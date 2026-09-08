@@ -1,0 +1,213 @@
+{
+  "version": "apr-crm-local-preflight-v1",
+  "revision": 1,
+  "status": "completed",
+  "sourceFingerprint": "13e6eaf5cff6206ef6db0d9b45a4e5533d8351ca6075d51fdf333e20d7c42061",
+  "currentCustomerKey": null,
+  "items": [
+    {
+      "customerKey": "nicla-biagioni",
+      "displayName": "Nicla Biagioni",
+      "practiceId": "2803d6c1-f867-44a9-bff2-e67fcc230f7e",
+      "dossierPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2935-global-controller-nicla-biagioni/crm-acquisition/dossiers/nicla-biagioni.json",
+      "state": "blocked_case",
+      "attemptCount": 1,
+      "startedAt": null,
+      "endedAt": null,
+      "report": {
+        "outcome": "blocked_case",
+        "formAvailable": true,
+        "startDate": null,
+        "startDateSource": null,
+        "completionDate": null,
+        "completionDateSource": null,
+        "buildingQualification": "single_unit",
+        "buildingUnitCount": 2,
+        "deductionRate": null,
+        "taxCodeStatus": "verified_form",
+        "resolvedTaxCode": "BGNNCL60E45I684G",
+        "taxCodeSourceIds": [
+          "nicla-biagioni"
+        ],
+        "primaryBeneficiaryResolution": {
+          "status": "not_found",
+          "identity": null,
+          "sourceIds": [],
+          "authority": null
+        },
+        "coBeneficiaryResolution": {
+          "status": "not_declared",
+          "present": false,
+          "identity": null,
+          "sourceIds": []
+        },
+        "products": [],
+        "financial": {
+          "invoiceTotal": null,
+          "eligibleExpense": null,
+          "tripleReconciliationVerified": false,
+          "reconciledTotal": null,
+          "evidence": [],
+          "bankTransfers": [],
+          "bankTransferReconciliation": {
+            "status": "not_provided",
+            "principalTotal": null,
+            "feesTotal": null,
+            "debitedTotal": null,
+            "difference": null,
+            "referenceStatus": "not_provided",
+            "missingInvoiceReferences": [],
+            "taxReliefTypes": []
+          },
+          "methods": [
+            {
+              "method": "structured_extraction",
+              "ok": false,
+              "total": null,
+              "sources": [],
+              "reason": "fonti-assenti, nessuna-fattura-economica-valida"
+            },
+            {
+              "method": "accounting_reconciliation",
+              "ok": false,
+              "total": null,
+              "sources": [],
+              "reason": "fonti-assenti, nessuna-fattura-economica-valida"
+            },
+            {
+              "method": "intervention_cross_check",
+              "ok": false,
+              "total": null,
+              "sources": [],
+              "reason": "righe-intervento-non-dimostrate:"
+            }
+          ],
+          "discardedDuplicateSourceIds": [],
+          "supersededTechnicalSourceIds": [],
+          "appliedRuleIds": [
+            "user-2026-08-16-invoice-gross-total-vat-included",
+            "user-2026-08-18-bundled-professional-expense-separation",
+            "user-2026-08-18-mandatory-bank-transfer-invoice-expense-cross-check",
+            "core-gross-triple-reconciliation",
+            "user-2026-08-14-preserve-technical-product-cardinality",
+            "system-explicit-advance-invoice-reference-marker-v1",
+            "user-2026-08-31-no-valid-economic-invoice-operator-v1"
+          ]
+        },
+        "warnings": [],
+        "blockers": [
+          {
+            "code": "screenings_missing",
+            "field": "screenings",
+            "reason": "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+            "sourceIds": [],
+            "appliedRuleIds": [
+              "user-2026-08-14-preserve-technical-product-cardinality"
+            ]
+          },
+          {
+            "code": "original_invoice_missing_or_unavailable",
+            "field": "economic_sources.invoice",
+            "reason": "La fattura originaria dichiarata non e' acquisibile come documento valido: Richiesto intervento operatore. Dopo il nuovo allegato e il ritorno in Pronte da fare APR rieseguira' la pratica.",
+            "sourceIds": [
+              "2803d6c1-f867-44a9-bff2-e67fcc230f7e/fattura/7370bc27-7390-4bf0-b970-cef699244285.pdf",
+              "2803d6c1-f867-44a9-bff2-e67fcc230f7e/fattura/59b62f69-1c4c-4a94-a93f-da76cf83bc1b.pdf",
+              "2803d6c1-f867-44a9-bff2-e67fcc230f7e/fattura/123c4db3-b42f-4218-a556-2802a472143a.pdf"
+            ],
+            "appliedRuleIds": [
+              "user-2026-08-16-missing-invoice-operator-requeue",
+              "system-apr-operator-intervention-routing",
+              "system-atomic-checkpoint-resume"
+            ]
+          },
+          {
+            "code": "completion_date_missing",
+            "field": "dates.completion",
+            "reason": "Fine lavori assente e data fattura non ricavabile.",
+            "sourceIds": [],
+            "appliedRuleIds": [
+              "user-2026-08-14-missing-completion-use-latest-invoice"
+            ]
+          },
+          {
+            "code": "gross_triple_reconciliation_failed",
+            "field": "economic_sources.total",
+            "reason": "Tripla riconciliazione non dimostrata: fonti-assenti, nessuna-fattura-economica-valida.",
+            "sourceIds": [],
+            "appliedRuleIds": [
+              "user-2026-08-16-invoice-gross-total-vat-included",
+              "core-gross-triple-reconciliation",
+              "user-2026-08-31-no-valid-economic-invoice-operator-v1"
+            ]
+          }
+        ],
+        "sourceIds": [],
+        "eneaPayloadAudit": {
+          "status": "payload_incomplete",
+          "mappingFingerprint": null,
+          "fieldSummary": {
+            "ready": 0,
+            "review": 0,
+            "missing": 0
+          },
+          "requiredPortalFieldCount": 0,
+          "blockerCount": 2,
+          "blockers": [
+            {
+              "code": "crm-source-not-screening",
+              "fieldId": null,
+              "message": "Il dossier non è mappabile come pratica schermature."
+            },
+            {
+              "code": "screenings_missing",
+              "fieldId": "screenings",
+              "message": "Nessun prodotto fisico riconciliato dalle fatture originarie."
+            }
+          ],
+          "excludedUnverifiedFields": [],
+          "draftReady": false,
+          "officialSubmissionAllowed": false,
+          "portalGate": {
+            "status": "blocked",
+            "reason": "screening-component-blocked",
+            "workflowFingerprint": null,
+            "supportedPages": [],
+            "screeningItemCount": 0,
+            "saveAllowedOnlyBySeparateCapability": true,
+            "previewAllowed": false,
+            "submitAllowed": false
+          },
+          "externalActionAllowed": false,
+          "reason": "1 blocker della componente Schermature invalidano il payload della bozza TEST."
+        },
+        "draftPlan": {
+          "status": "blocked",
+          "externalActionAllowed": false,
+          "previewAllowed": false,
+          "submitAllowed": false,
+          "communicationsAllowed": false,
+          "nextAction": "Richiesto intervento operatore: acquisire la fattura; al ritorno in Pronte da fare APR riprende dal nuovo fingerprint."
+        }
+      },
+      "reason": "Fresh replay dai documenti originali"
+    }
+  ],
+  "externalActionAllowed": false,
+  "reason": "Fresh replay locale",
+  "nextAction": "Nessuna azione esterna.",
+  "validationRevisionsApplied": [],
+  "sourceRevisionsApplied": [],
+  "operatorMeasurementResolutions": [],
+  "audit": [
+    {
+      "revision": 1,
+      "at": "2026-09-03T10:00:00.000Z",
+      "type": "completed",
+      "customerKey": null,
+      "reason": "Fresh replay locale",
+      "appliedRuleIds": [
+        "system-single-active-practice"
+      ]
+    }
+  ]
+}

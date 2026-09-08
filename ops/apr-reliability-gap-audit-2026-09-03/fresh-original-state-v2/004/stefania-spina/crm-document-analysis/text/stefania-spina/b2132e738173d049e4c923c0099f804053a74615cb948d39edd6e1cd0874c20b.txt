@@ -1,0 +1,264 @@
+APR_OCR_ORIENTATION:0
+ISTRUZIONI PER LA CORRETTA COMPILAZIONE
+Dati generali del richiedente
+Se persona fisica indicare: nome, cognome, codice fiscale, luogo e data di nascita
+Se persona giuridica indicare: ragione sociale, indirizzo sede legale e partita iva
+.B. il numero di telefono e l'indirizzo e-mail sono richiesti dall'ENEA per eventuali comunicazioni future al richiedente
+i Titolo
+Indicare con una crocetta una delle tre caselle a seguito della voce "Titolo" con la seguente casistica:
+Possessore: proprietario dell'immobile
+Detentore: gestore, locatore o semplice residente dell'immobile
+Familiare convivente: convive nella proprietà con il proprietario o con il locatore
+Pratica cointestata
+(indicare un solo nominativo, i vari soggetti devono risultare nella/e fattura/e e nel bonifico/i)
+Indicare con una crocetta su "SI" se il richiedente invia la richiesta anche per conto di altri soggetti che concorrono alle spese
+Dati generali edificio/abitazione
+Indicare l'ubicazione dell'edificio/abitazione con indirizzo, città, provincia, cap e relativi dati catastali (si trovano sul rogito)
+Superficie utile
+Indicare la superficie utile dell'immobile intesa come netta calpestabile, espressa in metri quadrati
+Anno di costruzione
+Se non si conosce l'anno esatto inserire comunque l'anno presunto
+Destinazione d'uso
+Indicare una delle scelte presenti o precisare alla voce "altro" la tipologia esatta
+Tipologia edilizia
+Indicare una delle scelte presenti o la voce "altro"
+Numero di unità immobiliari presenti nell'intero edificio
+Indicare il numero degli immobili presenti all'interno dell'edificio presso il quale si svolge l'intervento
+Indicare il tipo di generatore e di combustibile scegliendo una delle opzioni disponibili
+Dati identificativi impianto riscaldamento - presenza impianto climatizzazione estiva
+Tipo e numero di generatori presenti
+Indicare tutti i generatori presenti nell'immobile
+FOGLIO 5/5
+Per tende da sole o coperture solari in genere
+nel caso di più finestre ombreggiate dalla stessa tenda indicare la somma delle finestre in Mq
+Indicare per ogni tenda la sua esposizione secondo i punti cardinali e la superficie vetrata che ogni tenda copre,
+Per persiane blindate
+Indicare per ogni zanzariera o persiana blindata la sua esposizione secondo i punti cardinali con le relative misure
+Per infissi
+Indicare il materiale dei vecchi infissi e la tipologia del vetro ( singolo o doppio)
+PraticaRapida
+Pag. 1/5
+
+APR_OCR_ORIENTATION:0
+Compilazione a cura del richiedente la detrazione
+TITOLO
+Pratica
+Proprietario o comproprietario
+Detentore
+Familiare convivente
+cointestata
+si
+no
+Nome STETANIA
+PERSONA FISICA
+_Cognome SPINA
+Codice Fiscalo SPNSFN8BRS3B5195
+Luogo di nascita CAMOloaSdo
+Prov.
+. Data di nascita 13, 10 1988
+LUOGO DI RESIDENZA
+Indirizzo UIA
+FiORELLO CA GUARDSA
+n. 11
+int.
+,scala
+Comune
+POSSIA
+Prov. _
+TG
+_cap 71122
+N. telefono /cell. 334-5031993
+email SPiNASTETANiA, SS@ GMAIL. COTT
+DATI GENERALI EDIFICIO ABITAZIONE OGGETTO D'INTERVENTO
+Indirizzo VIA DONAIO
+TENICHELLA
+n. 16int.
+scala
+Comune
+LOSSIA
+Prov.
+FG cap F1122
+DATI CATASTALI
+Foglio
+Mappale o particella_ 564
+Subalterno 12
+ANNO DI COSTRUZIONE (anche presunto)
+superficie utile in mq
+DESTINAZIONE D'USO Residenziale
+Commerciale
+industriale
+Altro
+TIPOLOGIA EDILIZIA
+Edificio in linea e condominio fino a 3 p. fuori terra
+Edificio in linea e condominio oltre i 3 piani
+Costruzione isolata (es.mono o plurifamiliare)
+Edificio industriale, artigianale, commerciale
+NUMERO DI UNITA' IMMOBILIARI PRESENTI NELL'INTERO EDIFICIO
+12
+E' una abitazione principale
+E' una abitazione secondaria
+E' presente un impianto di condizionamento
+NO
+Luogo e data
+ROSSNA 17/04/2026
+Firma
+Steeene
+Sove
+In conformita ai decreto Legislatva n. l96 del 30 Giugno 2003. ai sensi dell'art. 13 del codice in materia di trattamento dei dati personali, Vi informiamo che i dati in nostro possessa sono utilizzati per verifche sul grado ai soddisfazione dei nostri client
+Manifestazione di consenso al trattamento dei dati personali - (ex art 23 Digs 30 Giugno 2003 n. 196)
+E' un sue dirito, secondo fart. 7 di detto decreto, chiedere quali sono i suoi uati sottoposti a trattamento e te
+Inibamato e ubicato e lorate raio di dai sog
+adone chiesta tramite lettera raccomandata indinizzata a Federico Biella. Via Ferini n. 9 • 20851 Lissone (MB)
+Luogo e data O
+SIA 17/04/2026
+Firma
+stefeue
+La presente scheda è da ritenersi necessaria per poter acquisire da parte nostra tutte le informazioni necessarie per la richiesta di sgravio fiscale del 50%
+La presente scheda è da ritenersi una autocertificazione dei dati a noi forniti
+PraticaRapida
+Pag. 2/5
+
+APR_OCR_ORIENTATION:180
+Pag. 3/5
+Pratica Rapida
+La presente scheda è da ritenersi necessaria per poter acquisire da parte nostra tutte le informazioni necessarie per la richiesta di sgravio fiscale del 50%
+La presente scheda è da ritenersi una autocertificazione dei dati a noi forniti
+Stefaue
+Firma
+FOSSIA 1/04 2026
+Luogo e data
+un suo diritto, secondo art. / di detto decreto, chiedere quali sono i suoi dati sottoposti a trattamento e le modalita utilesate, porendo su essi chiedere a correzione o la cancellazione. lacendone richiesta tramite lettera raccomandata indinizzata a Federico Biella. Via Ferrin 4 - 20851 Lissone (ME
+n conformità ai decreto Legislativo n. 196 del 10 Giugno 2003, ai sensi dell'art. 13 del codice in matena di trattamento dei dati personali. Vi informiamo che i dati in nostro possesso sono utilizati per veritene aul crado di soddisfasione del nostri alient
+Manifestazione di consenso al trattamento dei dati personali - (ex art 23 Digs 30 Giugno 2003 n. 196)
+Stelaue
+Firma
+Luogo e data RoSSus 17/042026
+Doppiat
+Singolo
+Tipo vetro sostituito
+Metallo taglio termico
+Metallo no taglio termico A
+Legno
+Tipo telaio sostituito
+DATI I DENTIFICATIVI DEGLI INFISSI PRIMA DELLA SOSTITUZIONE (solo in caso di sostituzione infissi)
+Altro
+Biomassa
+Energia elettrica
+Olio combustibile
+Teleriscaldamento
+GPL •
+Gasolio
+Gas metano
+DATI IDENTIFICATIVI IMPIANTO TERMICO - TIPO COMBUSTIBILE
+Split
+Riscaldamento a pavimento
+Bocchette aria calda
+Caloriferi
+TERMINALI DI EROGAZIONE
+Centralizzato
+Autonomo
+TIPO DI IMPIANTO TERMICO
+DATI IDENTIFICATIVI IMPIANTO TERMICO ESISTENTE
+Compilazione a cura del richiedente la detrazione
+
+APR_OCR_ORIENTATION:0
+Compilazione a cura del richiedente la detrazione
+DATI IDENTIFICATIVI IMPIANTO TERMICO ESISTENTE
+TIPO E QUANTITA' DI GENERATORI DI CALORE PRESENTI
+TIPOLOGIA DEL GENERATORE
+QUANTITA
+Caldaia ad acqua calda standard
+1
+Caldaia a bassa temperatura
+Caldaia a gas a condensazione
+Caldaia a gasolio a condensazione
+Pompa di calore7impianto geotermico
+Scambiatore per riscaldamento
+Caldaia a biomassa
+Altro
+Luogo e data
+POSSIA 17/04/026
+Stane Sie
+E un suo dirtto. secondo an. 7 di detto decreto, chiedere quali sono i suoi dati sottoposti a trattamento e le modalità utilizzale. potendo su essi chiedere la correzione a la cancellazione. facendone nchiesta tramte lettera raccomandata indirizzata a Federico Biella, Via Ferrinin. 4- 20851 Lissone iMBI
+In conformita al decreto Legislativo n. I96 del 30 Giugno 3003 ai sensi dell'art. 13 del codice in materia di trattamento dei dati personali, Vi inform
+Manifestazione di consenso al trattamento dei dati personali - (ex art. 23 Digs 30 Giugno 2003 a. 196
+possessa sono uliati per verfche sul grado di soddistazione dei nostri alienti.
+Luogo e data osSIA 17/05/226
+Firma
+Straue
+Sove
+La presente scheda è da ritenersi necessaria per poter acquisire da parte nostra tutte le informazioni necessarie per la richiesta di sgravio fiscale del 50%
+La presente scheda è da ritenersi una autocertificazione dei dati a noi forniti
+PraticaRapida
+Pag. 4/5
+
+APR_OCR_ORIENTATION:0
+MODULO PER DETRAZIONE FISCALE 50%
+Per interventi di riqualificazione energetica così come previsto dalla Legge n. 10 del 23/1272014
+INSTALLAZIONE DI SCHERMATURE SOLARI
+Orientamento
+Prodotto
+Sud
+L
+Est
+Ovest
+Dimensioni prodotto
+Nord/Est •/
+Nord/Ovest
+Sud/Est
+Sud/Ovest
+Dimensioni finestra protetta
+Dimensioni finestra protetta
+Dimensioni finestra protetta
+Dimensioni finestra protetta
+Dimensioni finestra protetta
+Dimensioni finestra protetta
+Orientamento
+Prodotto
+Sud
+Est
+Ovest
+Dimensioni prodotto
+Nord/Est • Nord/Ovest
+Sud/Est
+Sud/Ovest
+Dimensioni finestra protetta
+Dimensioni finestra protetta
+Dimensioni finestra protetta
+Dimensioni finestra protetta
+Dimensioni finestra protetta
+Dimensioni finestra protetta
+Orientamento
+Prodotto
+Sud
+Est
+Ovest
+Dimensioni prodotto
+Nord/Est L
+Nord/Ovest
+Sud/Est
+Sud/Ovest
+Dimensioni finestra protetta
+Dimensioni finestra protetta
+Dimensioni finestra protetta
+Dimensioni finestra protetta
+Dimensioni finestra protetta
+Dimensioni finestra protetta
+Orientamento
+Prodotto
+Sud
+Est
+Ovest
+Dimensioni prodotto
+Nord/Est L
+Nord/Ovest
+Sud/Est
+Sud/Ovest
+Dimensioni finestra protetta
+Dimensioni finestra protetta
+Dimensioni finestra protetta
+Dimensioni finestra protetta
+Dimensioni finestra protetta
+Dimensioni finestra protetta
+PraticaRapida
+Pag. 5/5

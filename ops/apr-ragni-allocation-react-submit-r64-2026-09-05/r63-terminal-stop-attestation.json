@@ -1,0 +1,40 @@
+{
+  "version": "apr-r63-terminal-stop-attestation-v1",
+  "observedAt": "2026-09-05T22:12:10+02:00",
+  "cohort": 3167,
+  "customerKey": "nadia-ragni",
+  "sources": {
+    "sequencerLaunchAgent": {
+      "label": "com.praticarapida.apr-ragni-r63",
+      "state": "not running",
+      "activeCount": 0,
+      "lastExitCode": 0
+    },
+    "persistentReport": {
+      "status": "completed",
+      "processed": 1,
+      "saved": 0,
+      "technicalBlock": 1,
+      "remaining": 0,
+      "draftId": "465517",
+      "completedPages": 7,
+      "expectedPages": 9,
+      "reason": "apr_cdp_enea_calculation_allocation_commit_not_observed"
+    },
+    "workerCheckpoint": {
+      "status": "completed",
+      "activeCommand": null,
+      "lastTerminalEvent": "run_completed",
+      "saved": 0,
+      "isolatedCases": 1
+    },
+    "dashboardTerminalSnapshot": {
+      "url": "http://127.0.0.1:7592/api/status",
+      "runnerStatus": "completed",
+      "activeCommand": null
+    }
+  },
+  "conclusion": "terminal_quiescent_safe_to_stop_only_concluded_cohort_services",
+  "keepaliveMustRemainRunning": true,
+  "chromeMustRemainRunning": true
+}

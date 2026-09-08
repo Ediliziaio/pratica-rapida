@@ -1,0 +1,636 @@
+{
+  "version": "apr-crm-local-preflight-v1",
+  "revision": 1,
+  "status": "completed",
+  "sourceFingerprint": "d0fa560af60b98783646e28688ce3e704e0c1695cfb2249c0773da31bd11b41e",
+  "currentCustomerKey": null,
+  "items": [
+    {
+      "customerKey": "zeno-righetti",
+      "displayName": "Zeno Righetti",
+      "practiceId": "513b7f1e-d79f-4efc-86f0-20e4018c9155",
+      "dossierPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3007-global-controller-zeno-righetti/crm-acquisition/dossiers/zeno-righetti.json",
+      "state": "ready_local_plan",
+      "attemptCount": 1,
+      "startedAt": null,
+      "endedAt": null,
+      "report": {
+        "outcome": "ready_local_plan",
+        "formAvailable": true,
+        "startDate": "2026-05-28",
+        "startDateSource": "ede1e52d45dbc9a70f2676389961d2d7f1dbe01794dff0b2318479971b9de8e7:invoice:264f0ccd0374",
+        "completionDate": "2026-07-17",
+        "completionDateSource": "59c526b049f1f1a62ea823d8256fdadcc2a53d51098fa9f5c1ef5807ae56df41:invoice:264f0ccd0374",
+        "buildingQualification": "multi_unit",
+        "buildingUnitCount": 1,
+        "deductionRate": null,
+        "taxCodeStatus": "verified_original_document",
+        "resolvedTaxCode": "RGHZNE91E02M172K",
+        "taxCodeSourceIds": [
+          "59c526b049f1f1a62ea823d8256fdadcc2a53d51098fa9f5c1ef5807ae56df41",
+          "869e4879ff26d5b7a9a87561fbb0a83b62526c4df02ff77198e50ac7a7e0dea8",
+          "e714592c72675281b17871451f88e3df275d215e7174803d29e40277fe4fd7aa",
+          "ede1e52d45dbc9a70f2676389961d2d7f1dbe01794dff0b2318479971b9de8e7"
+        ],
+        "primaryBeneficiaryResolution": {
+          "status": "verified_document",
+          "identity": {
+            "name": "Zeno",
+            "surname": "Righetti",
+            "taxCode": "RGHZNE91E02M172K",
+            "birthDate": "1991-05-02",
+            "sex": "M"
+          },
+          "sourceIds": [
+            "59c526b049f1f1a62ea823d8256fdadcc2a53d51098fa9f5c1ef5807ae56df41",
+            "869e4879ff26d5b7a9a87561fbb0a83b62526c4df02ff77198e50ac7a7e0dea8",
+            "e714592c72675281b17871451f88e3df275d215e7174803d29e40277fe4fd7aa",
+            "ede1e52d45dbc9a70f2676389961d2d7f1dbe01794dff0b2318479971b9de8e7"
+          ],
+          "authority": "fiscal_document"
+        },
+        "coBeneficiaryResolution": {
+          "status": "not_declared",
+          "present": false,
+          "identity": null,
+          "sourceIds": []
+        },
+        "products": [
+          {
+            "rowId": "59c526b049f1f1a62ea823d8256fdadcc2a53d51098fa9f5c1ef5807ae56df41:invoice:264f0ccd0374:piece-1",
+            "sourceDocumentKey": "59c526b049f1f1a62ea823d8256fdadcc2a53d51098fa9f5c1ef5807ae56df41:invoice:264f0ccd0374",
+            "description": "Tenda da sole motorizzata",
+            "pieceNumber": 1,
+            "widthMm": 2370,
+            "heightMm": 2850,
+            "surfaceM2": 6.754,
+            "exposure": "sud",
+            "exposureSource": null,
+            "protectedWindowSurfaceM2": null,
+            "protectedWindowSurfaceSource": null,
+            "supplementaryThermalResistance": null,
+            "declaredType": "tende_da_sole",
+            "formMappingSource": "group_inheritance",
+            "gTot": 0.33,
+            "gTotSource": "invoice_explicit",
+            "material": "Tessuto",
+            "materialSource": "authorized_fallback",
+            "movement": "Automatico",
+            "movementSource": "invoice_explicit",
+            "appliedRuleIds": [
+              "user-2026-08-31-documented-gtot-precedence-v1",
+              "user-2026-08-18-explicit-motorized-screening-movement",
+              "authorized-22-schermature-materiale",
+              "authorized-16-schermature-meccanismo",
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+              "user-2026-08-18-explicit-technical-surface-precision",
+              "user-2026-08-15-form-group-to-physical-products"
+            ]
+          },
+          {
+            "rowId": "59c526b049f1f1a62ea823d8256fdadcc2a53d51098fa9f5c1ef5807ae56df41:invoice:264f0ccd0374:piece-2",
+            "sourceDocumentKey": "59c526b049f1f1a62ea823d8256fdadcc2a53d51098fa9f5c1ef5807ae56df41:invoice:264f0ccd0374",
+            "description": "Tenda da sole motorizzata",
+            "pieceNumber": 2,
+            "widthMm": 2370,
+            "heightMm": 2850,
+            "surfaceM2": 6.754,
+            "exposure": "sud",
+            "exposureSource": null,
+            "protectedWindowSurfaceM2": null,
+            "protectedWindowSurfaceSource": null,
+            "supplementaryThermalResistance": null,
+            "declaredType": "tende_da_sole",
+            "formMappingSource": "group_inheritance",
+            "gTot": 0.33,
+            "gTotSource": "invoice_explicit",
+            "material": "Tessuto",
+            "materialSource": "authorized_fallback",
+            "movement": "Automatico",
+            "movementSource": "invoice_explicit",
+            "appliedRuleIds": [
+              "user-2026-08-31-documented-gtot-precedence-v1",
+              "user-2026-08-18-explicit-motorized-screening-movement",
+              "authorized-22-schermature-materiale",
+              "authorized-16-schermature-meccanismo",
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+              "user-2026-08-18-explicit-technical-surface-precision",
+              "user-2026-08-15-form-group-to-physical-products"
+            ]
+          },
+          {
+            "rowId": "59c526b049f1f1a62ea823d8256fdadcc2a53d51098fa9f5c1ef5807ae56df41:invoice:264f0ccd0374:piece-3",
+            "sourceDocumentKey": "59c526b049f1f1a62ea823d8256fdadcc2a53d51098fa9f5c1ef5807ae56df41:invoice:264f0ccd0374",
+            "description": "Altra schermatura solare - zanzariera",
+            "pieceNumber": 3,
+            "widthMm": 1292,
+            "heightMm": 1255,
+            "surfaceM2": 1.621,
+            "exposure": "sud",
+            "exposureSource": null,
+            "protectedWindowSurfaceM2": null,
+            "protectedWindowSurfaceSource": null,
+            "supplementaryThermalResistance": null,
+            "declaredType": "altro",
+            "formMappingSource": "group_inheritance",
+            "gTot": 0.34,
+            "gTotSource": "invoice_explicit",
+            "material": "Misto",
+            "materialSource": "authorized_fallback",
+            "movement": "Manuale",
+            "movementSource": "authorized_fallback",
+            "appliedRuleIds": [
+              "user-2026-08-31-documented-gtot-precedence-v1",
+              "authorized-22-schermature-materiale",
+              "authorized-16-schermature-meccanismo",
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+              "user-2026-08-18-explicit-technical-surface-precision",
+              "user-2026-08-15-form-group-to-physical-products"
+            ]
+          },
+          {
+            "rowId": "59c526b049f1f1a62ea823d8256fdadcc2a53d51098fa9f5c1ef5807ae56df41:invoice:264f0ccd0374:piece-4",
+            "sourceDocumentKey": "59c526b049f1f1a62ea823d8256fdadcc2a53d51098fa9f5c1ef5807ae56df41:invoice:264f0ccd0374",
+            "description": "Altra schermatura solare - zanzariera",
+            "pieceNumber": 4,
+            "widthMm": 695,
+            "heightMm": 2354,
+            "surfaceM2": 1.636,
+            "exposure": "sud",
+            "exposureSource": null,
+            "protectedWindowSurfaceM2": null,
+            "protectedWindowSurfaceSource": null,
+            "supplementaryThermalResistance": null,
+            "declaredType": "altro",
+            "formMappingSource": "group_inheritance",
+            "gTot": 0.34,
+            "gTotSource": "invoice_explicit",
+            "material": "Misto",
+            "materialSource": "authorized_fallback",
+            "movement": "Manuale",
+            "movementSource": "authorized_fallback",
+            "appliedRuleIds": [
+              "user-2026-08-31-documented-gtot-precedence-v1",
+              "authorized-22-schermature-materiale",
+              "authorized-16-schermature-meccanismo",
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+              "user-2026-08-18-explicit-technical-surface-precision",
+              "user-2026-08-15-form-group-to-physical-products"
+            ]
+          },
+          {
+            "rowId": "59c526b049f1f1a62ea823d8256fdadcc2a53d51098fa9f5c1ef5807ae56df41:invoice:264f0ccd0374:piece-5",
+            "sourceDocumentKey": "59c526b049f1f1a62ea823d8256fdadcc2a53d51098fa9f5c1ef5807ae56df41:invoice:264f0ccd0374",
+            "description": "Altra schermatura solare - zanzariera",
+            "pieceNumber": 5,
+            "widthMm": 2193,
+            "heightMm": 2655,
+            "surfaceM2": 5.822,
+            "exposure": "sud",
+            "exposureSource": null,
+            "protectedWindowSurfaceM2": null,
+            "protectedWindowSurfaceSource": null,
+            "supplementaryThermalResistance": null,
+            "declaredType": "altro",
+            "formMappingSource": "group_inheritance",
+            "gTot": 0.34,
+            "gTotSource": "invoice_explicit",
+            "material": "Misto",
+            "materialSource": "authorized_fallback",
+            "movement": "Manuale",
+            "movementSource": "authorized_fallback",
+            "appliedRuleIds": [
+              "user-2026-08-31-documented-gtot-precedence-v1",
+              "authorized-22-schermature-materiale",
+              "authorized-16-schermature-meccanismo",
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+              "user-2026-08-18-explicit-technical-surface-precision",
+              "user-2026-08-15-form-group-to-physical-products"
+            ]
+          },
+          {
+            "rowId": "59c526b049f1f1a62ea823d8256fdadcc2a53d51098fa9f5c1ef5807ae56df41:invoice:264f0ccd0374:piece-6",
+            "sourceDocumentKey": "59c526b049f1f1a62ea823d8256fdadcc2a53d51098fa9f5c1ef5807ae56df41:invoice:264f0ccd0374",
+            "description": "Altra schermatura solare - zanzariera",
+            "pieceNumber": 6,
+            "widthMm": 690,
+            "heightMm": 1256,
+            "surfaceM2": 0.8666,
+            "exposure": "sud",
+            "exposureSource": null,
+            "protectedWindowSurfaceM2": null,
+            "protectedWindowSurfaceSource": null,
+            "supplementaryThermalResistance": null,
+            "declaredType": "altro",
+            "formMappingSource": "group_inheritance",
+            "gTot": 0.34,
+            "gTotSource": "invoice_explicit",
+            "material": "Misto",
+            "materialSource": "authorized_fallback",
+            "movement": "Manuale",
+            "movementSource": "authorized_fallback",
+            "appliedRuleIds": [
+              "user-2026-08-31-documented-gtot-precedence-v1",
+              "authorized-22-schermature-materiale",
+              "authorized-16-schermature-meccanismo",
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+              "user-2026-08-18-explicit-technical-surface-precision",
+              "user-2026-08-15-form-group-to-physical-products"
+            ]
+          },
+          {
+            "rowId": "59c526b049f1f1a62ea823d8256fdadcc2a53d51098fa9f5c1ef5807ae56df41:invoice:264f0ccd0374:piece-7",
+            "sourceDocumentKey": "59c526b049f1f1a62ea823d8256fdadcc2a53d51098fa9f5c1ef5807ae56df41:invoice:264f0ccd0374",
+            "description": "Altra schermatura solare - zanzariera",
+            "pieceNumber": 7,
+            "widthMm": 1297,
+            "heightMm": 2353,
+            "surfaceM2": 3.0518,
+            "exposure": "sud",
+            "exposureSource": null,
+            "protectedWindowSurfaceM2": null,
+            "protectedWindowSurfaceSource": null,
+            "supplementaryThermalResistance": null,
+            "declaredType": "altro",
+            "formMappingSource": "group_inheritance",
+            "gTot": 0.34,
+            "gTotSource": "invoice_explicit",
+            "material": "Misto",
+            "materialSource": "authorized_fallback",
+            "movement": "Manuale",
+            "movementSource": "authorized_fallback",
+            "appliedRuleIds": [
+              "user-2026-08-31-documented-gtot-precedence-v1",
+              "authorized-22-schermature-materiale",
+              "authorized-16-schermature-meccanismo",
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+              "user-2026-08-18-explicit-technical-surface-precision",
+              "user-2026-08-15-form-group-to-physical-products"
+            ]
+          },
+          {
+            "rowId": "59c526b049f1f1a62ea823d8256fdadcc2a53d51098fa9f5c1ef5807ae56df41:invoice:264f0ccd0374:piece-8",
+            "sourceDocumentKey": "59c526b049f1f1a62ea823d8256fdadcc2a53d51098fa9f5c1ef5807ae56df41:invoice:264f0ccd0374",
+            "description": "Altra schermatura solare - zanzariera",
+            "pieceNumber": 8,
+            "widthMm": 1285,
+            "heightMm": 2354,
+            "surfaceM2": 3.024,
+            "exposure": "sud",
+            "exposureSource": null,
+            "protectedWindowSurfaceM2": null,
+            "protectedWindowSurfaceSource": null,
+            "supplementaryThermalResistance": null,
+            "declaredType": "altro",
+            "formMappingSource": "group_inheritance",
+            "gTot": 0.34,
+            "gTotSource": "invoice_explicit",
+            "material": "Misto",
+            "materialSource": "authorized_fallback",
+            "movement": "Manuale",
+            "movementSource": "authorized_fallback",
+            "appliedRuleIds": [
+              "user-2026-08-31-documented-gtot-precedence-v1",
+              "authorized-22-schermature-materiale",
+              "authorized-16-schermature-meccanismo",
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+              "user-2026-08-18-explicit-technical-surface-precision",
+              "user-2026-08-15-form-group-to-physical-products"
+            ]
+          },
+          {
+            "rowId": "59c526b049f1f1a62ea823d8256fdadcc2a53d51098fa9f5c1ef5807ae56df41:invoice:264f0ccd0374:piece-9",
+            "sourceDocumentKey": "59c526b049f1f1a62ea823d8256fdadcc2a53d51098fa9f5c1ef5807ae56df41:invoice:264f0ccd0374",
+            "description": "Altra schermatura solare - zanzariera",
+            "pieceNumber": 9,
+            "widthMm": 790,
+            "heightMm": 748,
+            "surfaceM2": 0.59,
+            "exposure": "sud",
+            "exposureSource": null,
+            "protectedWindowSurfaceM2": null,
+            "protectedWindowSurfaceSource": null,
+            "supplementaryThermalResistance": null,
+            "declaredType": "altro",
+            "formMappingSource": "group_inheritance",
+            "gTot": 0.34,
+            "gTotSource": "invoice_explicit",
+            "material": "Misto",
+            "materialSource": "authorized_fallback",
+            "movement": "Manuale",
+            "movementSource": "authorized_fallback",
+            "appliedRuleIds": [
+              "user-2026-08-31-documented-gtot-precedence-v1",
+              "authorized-22-schermature-materiale",
+              "authorized-16-schermature-meccanismo",
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+              "user-2026-08-18-explicit-technical-surface-precision",
+              "user-2026-08-15-form-group-to-physical-products"
+            ]
+          },
+          {
+            "rowId": "59c526b049f1f1a62ea823d8256fdadcc2a53d51098fa9f5c1ef5807ae56df41:invoice:264f0ccd0374:piece-10",
+            "sourceDocumentKey": "59c526b049f1f1a62ea823d8256fdadcc2a53d51098fa9f5c1ef5807ae56df41:invoice:264f0ccd0374",
+            "description": "Tenda da sole motorizzata",
+            "pieceNumber": 10,
+            "widthMm": 3900,
+            "heightMm": 2100,
+            "surfaceM2": 8.19,
+            "exposure": "sud",
+            "exposureSource": null,
+            "protectedWindowSurfaceM2": null,
+            "protectedWindowSurfaceSource": null,
+            "supplementaryThermalResistance": null,
+            "declaredType": "tende_da_sole",
+            "formMappingSource": "group_inheritance",
+            "gTot": 0.19,
+            "gTotSource": "invoice_explicit",
+            "material": "Tessuto",
+            "materialSource": "authorized_fallback",
+            "movement": "Automatico",
+            "movementSource": "invoice_explicit",
+            "appliedRuleIds": [
+              "user-2026-08-31-documented-gtot-precedence-v1",
+              "user-2026-08-18-explicit-motorized-screening-movement",
+              "authorized-22-schermature-materiale",
+              "authorized-16-schermature-meccanismo",
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+              "user-2026-08-18-explicit-technical-surface-precision",
+              "user-2026-08-15-form-group-to-physical-products"
+            ]
+          },
+          {
+            "rowId": "59c526b049f1f1a62ea823d8256fdadcc2a53d51098fa9f5c1ef5807ae56df41:invoice:264f0ccd0374:piece-11",
+            "sourceDocumentKey": "59c526b049f1f1a62ea823d8256fdadcc2a53d51098fa9f5c1ef5807ae56df41:invoice:264f0ccd0374",
+            "description": "Tenda da sole motorizzata",
+            "pieceNumber": 11,
+            "widthMm": 3900,
+            "heightMm": 2100,
+            "surfaceM2": 8.19,
+            "exposure": "sud",
+            "exposureSource": null,
+            "protectedWindowSurfaceM2": null,
+            "protectedWindowSurfaceSource": null,
+            "supplementaryThermalResistance": null,
+            "declaredType": "tende_da_sole",
+            "formMappingSource": "group_inheritance",
+            "gTot": 0.19,
+            "gTotSource": "invoice_explicit",
+            "material": "Tessuto",
+            "materialSource": "authorized_fallback",
+            "movement": "Automatico",
+            "movementSource": "invoice_explicit",
+            "appliedRuleIds": [
+              "user-2026-08-31-documented-gtot-precedence-v1",
+              "user-2026-08-18-explicit-motorized-screening-movement",
+              "authorized-22-schermature-materiale",
+              "authorized-16-schermature-meccanismo",
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+              "user-2026-08-18-explicit-technical-surface-precision",
+              "user-2026-08-15-form-group-to-physical-products"
+            ]
+          },
+          {
+            "rowId": "59c526b049f1f1a62ea823d8256fdadcc2a53d51098fa9f5c1ef5807ae56df41:invoice:264f0ccd0374:piece-12",
+            "sourceDocumentKey": "59c526b049f1f1a62ea823d8256fdadcc2a53d51098fa9f5c1ef5807ae56df41:invoice:264f0ccd0374",
+            "description": "Tenda da sole motorizzata",
+            "pieceNumber": 12,
+            "widthMm": 4250,
+            "heightMm": 2100,
+            "surfaceM2": 8.925,
+            "exposure": "sud",
+            "exposureSource": null,
+            "protectedWindowSurfaceM2": null,
+            "protectedWindowSurfaceSource": null,
+            "supplementaryThermalResistance": null,
+            "declaredType": "tende_da_sole",
+            "formMappingSource": "group_inheritance",
+            "gTot": 0.19,
+            "gTotSource": "invoice_explicit",
+            "material": "Tessuto",
+            "materialSource": "authorized_fallback",
+            "movement": "Automatico",
+            "movementSource": "invoice_explicit",
+            "appliedRuleIds": [
+              "user-2026-08-31-documented-gtot-precedence-v1",
+              "user-2026-08-18-explicit-motorized-screening-movement",
+              "authorized-22-schermature-materiale",
+              "authorized-16-schermature-meccanismo",
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+              "user-2026-08-18-explicit-technical-surface-precision",
+              "user-2026-08-15-form-group-to-physical-products"
+            ]
+          }
+        ],
+        "financial": {
+          "invoiceTotal": 11730.4,
+          "eligibleExpense": 11730.4,
+          "tripleReconciliationVerified": true,
+          "reconciledTotal": 11730.4,
+          "evidence": [
+            {
+              "sourceId": "59c526b049f1f1a62ea823d8256fdadcc2a53d51098fa9f5c1ef5807ae56df41:invoice:264f0ccd0374",
+              "kind": "balance",
+              "taxableAmount": 4960,
+              "vatAmount": 905.2,
+              "grossTotal": 5865.2,
+              "interventionGrossAmount": 5865.2,
+              "extractionConfidence": "certain",
+              "extractionIssues": []
+            },
+            {
+              "sourceId": "ede1e52d45dbc9a70f2676389961d2d7f1dbe01794dff0b2318479971b9de8e7:invoice:264f0ccd0374",
+              "kind": "advance",
+              "taxableAmount": 4960,
+              "vatAmount": 905.2,
+              "grossTotal": 5865.2,
+              "interventionGrossAmount": 5865.2,
+              "extractionConfidence": "certain",
+              "extractionIssues": []
+            }
+          ],
+          "bankTransfers": [],
+          "bankTransferReconciliation": {
+            "status": "not_provided",
+            "principalTotal": null,
+            "feesTotal": null,
+            "debitedTotal": null,
+            "difference": null,
+            "referenceStatus": "not_provided",
+            "missingInvoiceReferences": [],
+            "taxReliefTypes": []
+          },
+          "methods": [
+            {
+              "method": "structured_extraction",
+              "ok": true,
+              "total": 11730.4,
+              "sources": [
+                "59c526b049f1f1a62ea823d8256fdadcc2a53d51098fa9f5c1ef5807ae56df41:invoice:264f0ccd0374",
+                "ede1e52d45dbc9a70f2676389961d2d7f1dbe01794dff0b2318479971b9de8e7:invoice:264f0ccd0374"
+              ],
+              "reason": "Ogni documento ha imponibile, IVA e totale verificati."
+            },
+            {
+              "method": "accounting_reconciliation",
+              "ok": true,
+              "total": 11730.4,
+              "sources": [
+                "59c526b049f1f1a62ea823d8256fdadcc2a53d51098fa9f5c1ef5807ae56df41:invoice:264f0ccd0374",
+                "ede1e52d45dbc9a70f2676389961d2d7f1dbe01794dff0b2318479971b9de8e7:invoice:264f0ccd0374"
+              ],
+              "reason": "Somma dei totali lordi IVA inclusa delle fatture uniche deduplicate; gli storni interni sono solo note auditabili."
+            },
+            {
+              "method": "intervention_cross_check",
+              "ok": true,
+              "total": 11730.4,
+              "sources": [
+                "59c526b049f1f1a62ea823d8256fdadcc2a53d51098fa9f5c1ef5807ae56df41:invoice:264f0ccd0374",
+                "ede1e52d45dbc9a70f2676389961d2d7f1dbe01794dff0b2318479971b9de8e7:invoice:264f0ccd0374"
+              ],
+              "reason": "Totale ricostruito esclusivamente dalle righe pertinenti all'intervento."
+            }
+          ],
+          "discardedDuplicateSourceIds": [],
+          "supersededTechnicalSourceIds": [],
+          "appliedRuleIds": [
+            "user-2026-08-16-invoice-gross-total-vat-included",
+            "user-2026-08-18-bundled-professional-expense-separation",
+            "user-2026-08-18-mandatory-bank-transfer-invoice-expense-cross-check",
+            "core-gross-triple-reconciliation",
+            "user-2026-08-14-preserve-technical-product-cardinality",
+            "system-explicit-advance-invoice-reference-marker-v1",
+            "user-2026-08-16-distinct-invoice-numbers-same-customer-sum"
+          ]
+        },
+        "warnings": [
+          {
+            "code": "crm_fiscal_code_confirmed_by_invoice_customer_block",
+            "reason": "CF CRM RGHZNE91E02M172K confermato nel blocco CLIENTE di una fattura originaria, con checksum e prefissi fiscali di nome/cognome concordanti.",
+            "appliedRuleIds": [
+              "system-invoice-customer-block-crm-cf-v1",
+              "user-2026-08-16-fiscal-code-identity-cross-check"
+            ]
+          },
+          {
+            "code": "explicit_building_type_over_apartment_count",
+            "reason": "La tipologia esplicita fino/oltre tre piani prevale sul numero appartamenti della singola pratica: edificio qualificato come plurimo.",
+            "appliedRuleIds": [
+              "user-2026-08-27-explicit-building-type-over-apartment-count-v2"
+            ]
+          },
+          {
+            "code": "product_cardinality_form_invoice_difference_resolved",
+            "reason": "Controllo incrociato ripetuto: form 2 righe/gruppi, fatture 12 prodotti fisici. La differenza e risolta in modo univoco dalla quantita esplicita di fattura e dall'eredita del solo gruppo form compatibile; piano APR richiesto: 12 righe distinte.",
+            "appliedRuleIds": [
+              "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "user-2026-08-15-form-group-to-physical-products"
+            ]
+          }
+        ],
+        "blockers": [],
+        "sourceIds": [
+          "59c526b049f1f1a62ea823d8256fdadcc2a53d51098fa9f5c1ef5807ae56df41",
+          "ede1e52d45dbc9a70f2676389961d2d7f1dbe01794dff0b2318479971b9de8e7",
+          "e714592c72675281b17871451f88e3df275d215e7174803d29e40277fe4fd7aa",
+          "869e4879ff26d5b7a9a87561fbb0a83b62526c4df02ff77198e50ac7a7e0dea8"
+        ],
+        "eneaPayloadAudit": {
+          "status": "payload_complete",
+          "mappingFingerprint": "1s7k2rg",
+          "fieldSummary": {
+            "ready": 169,
+            "review": 0,
+            "missing": 0
+          },
+          "requiredPortalFieldCount": 142,
+          "blockerCount": 0,
+          "blockers": [],
+          "excludedUnverifiedFields": [
+            "immobile.codice_comune",
+            "immobile.zona_climatica",
+            "immobile.gradi_giorno",
+            "schermature.0.rsupp",
+            "schermature.1.rsupp",
+            "schermature.2.rsupp",
+            "schermature.3.rsupp",
+            "schermature.4.rsupp",
+            "schermature.5.rsupp",
+            "schermature.6.rsupp",
+            "schermature.7.rsupp",
+            "schermature.8.rsupp",
+            "schermature.9.rsupp",
+            "schermature.10.rsupp",
+            "schermature.11.rsupp",
+            "documenti.fatture",
+            "documenti.bonifico",
+            "documenti.tecnici"
+          ],
+          "draftReady": true,
+          "officialSubmissionAllowed": false,
+          "portalGate": {
+            "status": "ready",
+            "reason": null,
+            "workflowFingerprint": "1s7k2rg:142:12",
+            "supportedPages": [
+              "Generatore dell'impianto termico",
+              "Anagrafica Beneficiario",
+              "Immobile",
+              "Intervento",
+              "Impianto termico esistente",
+              "Schermature solari",
+              "Calcolo costi e detrazioni"
+            ],
+            "screeningItemCount": 12,
+            "saveAllowedOnlyBySeparateCapability": true,
+            "previewAllowed": false,
+            "submitAllowed": false
+          },
+          "externalActionAllowed": false,
+          "reason": "Payload TEST completo per la sola bozza salvata; anteprima e submit restano vietati."
+        },
+        "draftPlan": {
+          "status": "ready_before_external_action",
+          "externalActionAllowed": false,
+          "previewAllowed": false,
+          "submitAllowed": false,
+          "communicationsAllowed": false,
+          "nextAction": "Piano locale pronto; fermo prima di ENEA."
+        }
+      },
+      "reason": "Fresh replay dai documenti originali"
+    }
+  ],
+  "externalActionAllowed": false,
+  "reason": "Fresh replay locale",
+  "nextAction": "Nessuna azione esterna.",
+  "validationRevisionsApplied": [],
+  "sourceRevisionsApplied": [],
+  "operatorMeasurementResolutions": [],
+  "audit": [
+    {
+      "revision": 1,
+      "at": "2026-09-03T10:00:00.000Z",
+      "type": "completed",
+      "customerKey": null,
+      "reason": "Fresh replay locale",
+      "appliedRuleIds": [
+        "system-single-active-practice"
+      ]
+    }
+  ]
+}

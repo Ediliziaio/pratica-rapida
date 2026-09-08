@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "apr-wide100-local-replay-freeze-v1",
+  "businessTime": "2026-09-03T14:40:14.523Z",
+  "manifest": {
+    "path": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-wide100-province-lineage-2026-09-02/manifest.json",
+    "sha256": "51842252f71cabb6714f78923fe59ec9789ad06739393f61a553bb4bdb9154e0",
+    "count": 100
+  },
+  "bundle": {
+    "versionId": "working-tree-current-source-20260903",
+    "path": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida",
+    "hashes": {
+      "scripts/enea-shadow-runner/crmLocalPreflight.ts": "b6d8edfaa15953b28856bbe55a6b9cad9832fcf37f0c06840d9efda05b376614",
+      "scripts/enea-shadow-runner/localInvoiceSegmentation.ts": "058e708a87c081b6b71504756ab95322a56396563b9c00bb5d1758ab0a91b75d",
+      "src/features/enea-lab/invoiceParser.ts": "0c108ff8ab6503d5593a95ff9ad24bf289501b3ede84c40f0bd5a90ad5bb54e0",
+      "src/features/enea-shadow-crm/operationalRegistry.ts": "c4ad1062cc37c2907681301dacad2875bf649309f4ddfbd8d241ba39653a19ce",
+      "src/features/enea-shadow-crm/ruleTestMatrix.ts": "c158c2423206194c2d1c56afa11e411b9cd61fa431605c4b79550532149745d4"
+    },
+    "currentSourceMode": true
+  },
+  "safety": {
+    "localOnly": true,
+    "externalActionAllowed": false,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false
+  }
+}

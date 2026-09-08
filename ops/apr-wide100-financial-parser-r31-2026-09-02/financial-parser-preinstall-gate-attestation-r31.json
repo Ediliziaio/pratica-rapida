@@ -1,0 +1,42 @@
+{
+  "version": "apr-financial-parser-r31-preinstall-gate-attestation-v1",
+  "attestedAt": "2026-09-02T21:34:27.243Z",
+  "status": "tested_not_deployed",
+  "diagnosis": "lower_precedence_generic_unrecognized_total_blocker_survived_higher_precedence_verified_zero_reversal_reconciliation",
+  "monotonicGate": {
+    "baseline": {
+      "suites": 442,
+      "tests": 1660,
+      "reportSha256": "a546461230da82c58bf54121d415f9c6aadaa6c19f06536b31e141a7ae67a276"
+    },
+    "candidate": {
+      "suites": 442,
+      "tests": 1662,
+      "reportSha256": "d954aa009309204061c9cadc41f45a752220f608572c7971878a9d4b392b7b28"
+    },
+    "registryVersion": "enea-operational-registry-v105",
+    "matrixVersion": "apr-enea-rule-test-matrix-v83",
+    "rulesProved": 98,
+    "ruleEvidenceSha256": "9673641733f82200973c7b4a80fa60dca1e23beb64428c5ea6258da08c469430"
+  },
+  "operationalReadOnlyReplay": {
+    "status": "passed",
+    "artifactSha256": "b977b2c2bba136298c7d529327cd187d27ce0201a5bca6dca7cfbcbc380bdecd",
+    "customerKey": "maurizia-coreggioli",
+    "beforeBlocker": true,
+    "afterBlocker": false,
+    "reconciledTotal": 5000
+  },
+  "stagedBundle": {
+    "apr-supervisor.mjs": "c3d9a4b91d319f28b4d0e0ac98cfaa2ff8bf94b92d118758c309cb476346c749",
+    "apr-enea-worker.mjs": "5156569e08740b09b3a35d39c9780c821059a9e20b3931bf5eec18253e283c4b",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "apr-pdf-ocr": "4c41c9a6832b11b9d19eace538100270a533dddc05e475e5842711968393327f"
+  },
+  "safety": {
+    "draftOnly": true,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false
+  }
+}

@@ -1,0 +1,118 @@
+{
+  "schemaVersion": "apr-wide100-identity-discrepancy-scan-r33-v2",
+  "manifestCaseCount": 100,
+  "verifiedNameDiscrepancyCount": 3,
+  "cases": [
+    {
+      "customerKey": "della-maria-carla-vigetti",
+      "practiceId": "802a1cc1-c046-4c4b-a245-25401217740f",
+      "documentaryIdentity": {
+        "name": "Della Mariacarla",
+        "surname": "Vigetti",
+        "taxCode": "VGTDLM63T48F205X",
+        "birthDate": "1963-12-08",
+        "sex": "F"
+      },
+      "authority": "fiscal_document",
+      "sourceIds": [
+        "6e35f50314a63bff9189a5e99d252889833de06248cfde8167470e202fa77c71"
+      ],
+      "discrepancies": [
+        {
+          "field": "crm",
+          "value": "Della Maria Carla Vigetti"
+        },
+        {
+          "field": "form.richiedente",
+          "value": "Della Maria Carla Vigetti"
+        }
+      ]
+    },
+    {
+      "customerKey": "gianluigi-chiolini",
+      "practiceId": "d77a8626-54ac-408c-b7c2-58fd10d3e25a",
+      "documentaryIdentity": {
+        "name": "Gianluigi",
+        "surname": "Chiolin",
+        "taxCode": "CHLGLG66A31F205C",
+        "birthDate": "1966-01-31",
+        "sex": "M"
+      },
+      "authority": "fiscal_document",
+      "sourceIds": [
+        "b7a590e9c6afa8ee2f24f58a702dd09bec0429d1198b752697269109833e6393",
+        "da012be5f68b5ecf7d32a1ae1c02910f51fa5be0c038c0bc0afdae7b1217df24",
+        "e9018352144bc5fd8006d877ad4a52806b82a7d83407e7597126f31f153cc47b",
+        "ec55eafc6a0ec3700179d834d7935471f9a7ec93d2cae3f36c4ddcd8f88dd403"
+      ],
+      "discrepancies": [
+        {
+          "field": "crm",
+          "value": "Gianluigi Chiolini"
+        },
+        {
+          "field": "form.richiedente",
+          "value": "Gianluigi  Chiolini "
+        }
+      ]
+    },
+    {
+      "customerKey": "antonino-formisabo",
+      "practiceId": "ada3267b-29d0-4765-b15d-489e27b23ec6",
+      "documentaryIdentity": {
+        "name": "Antonino",
+        "surname": "Formisano",
+        "taxCode": "FRMNNN66P27L259X",
+        "birthDate": "1966-09-27",
+        "sex": "M"
+      },
+      "authority": "official_identity_document",
+      "sourceIds": [
+        "3f474befb0a10b53673324445535ebfcc82451255de8b100202149442a4bb706",
+        "d6234418d259872e3244b3c7cabd2fa15258dcbb8676a82fdd965192d4d8982b"
+      ],
+      "discrepancies": [
+        {
+          "field": "crm",
+          "value": "Antonino Formisabo"
+        },
+        {
+          "field": "form.richiedente",
+          "value": "Antonino Formisabo"
+        }
+      ]
+    }
+  ],
+  "otherDemographicDiscrepancyCount": 2,
+  "otherDemographicDiscrepancies": [
+    {
+      "customerKey": "riccardo-coda",
+      "practiceId": "a29f9183-1e31-4295-b5c7-aa3f02803d79",
+      "discrepancies": [
+        {
+          "field": "form.data_nascita",
+          "crmValue": "1950-09-30",
+          "documentaryValue": "1950-01-30"
+        }
+      ],
+      "sourceIds": [
+        "6c1f76247f7f75167d03bba588551f75d8891f18e47873e15c03e8f679aadedf"
+      ]
+    },
+    {
+      "customerKey": "caterina-claudia-garbato",
+      "practiceId": "9f44491c-30f7-44ef-84db-14877259d716",
+      "discrepancies": [
+        {
+          "field": "form.data_nascita",
+          "crmValue": "1971-04-09",
+          "documentaryValue": "1971-09-04"
+        }
+      ],
+      "sourceIds": [
+        "9d09e19fc92b8fa27a2be0467b9a1136595fc6f848c83de3f81cdb2b473a10c7",
+        "d86d5d9cef31d404f419447fc0e14c212bb9f9b3a6479a7297ed0a2cce3de50a"
+      ]
+    }
+  ]
+}

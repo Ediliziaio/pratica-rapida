@@ -1,0 +1,58 @@
+{
+  "schemaVersion": "apr-overnight-review-final-attestation-r32-v1",
+  "status": "local_review_tested_and_bundle_installed",
+  "scope": {
+    "blindReviewCompleted": true,
+    "eneaOperationalTestPerformed": false,
+    "productionAvailabilityClaimed": false
+  },
+  "blindReview": {
+    "identityCases": 5,
+    "productMeasurementCases": 9,
+    "dateProcedurabilityCases": 14,
+    "dateCasesWithNoExplicitCompletionEvidence": 12,
+    "dateTechnicalExtractionErrors": 2
+  },
+  "localReplay": {
+    "manifestCaseCount": 100,
+    "canonicalSha256": "1cf3820f35f3fec303e58bc6aae3f976d5d4673618b5fba63b594052ed0b7bdf",
+    "deterministicRuns": 2,
+    "readyLocal": 28,
+    "operatorRequiredLocal": 72
+  },
+  "gate": {
+    "baselineTests": 1662,
+    "candidateSuites": 442,
+    "candidateTests": 1679,
+    "passedTests": 1679,
+    "failedTests": 0,
+    "reportSha256": "f1b3055eb6b800b762af66cce7b354cd9ff35977dff33749b736049ab20a0192",
+    "registryVersion": "enea-operational-registry-v108",
+    "matrixVersion": "apr-enea-rule-test-matrix-v86",
+    "rulesProved": 106,
+    "activationStatus": "active_tested_deployed"
+  },
+  "installation": {
+    "versionId": "24fcd1bf-overnight-review-r32-20260903",
+    "workerSha256": "24fcd1bf222fee8a472c5e3b2232784ea6d8150cda929d7b02a89be5e6dfdb57",
+    "supervisorSha256": "868372e84c68ffa4cd16de4896c5425e7d3863586780eac6e5302a1a78f4a3db",
+    "watchdogSha256": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "ocrSha256": "4c41c9a6832b11b9d19eace538100270a533dddc05e475e5842711968393327f"
+  },
+  "continuity": {
+    "keepalivePid": 35873,
+    "chromePid": 3785,
+    "keepaliveRestarted": false,
+    "chromeRestarted": false,
+    "forbiddenActionCount": 0,
+    "previewAttemptCount": 0,
+    "submitAttemptCount": 0,
+    "communicationAttemptCount": 0
+  },
+  "remainingHumanReview": [
+    "autorità del documento di supporto di Massimiliano Montemorra",
+    "cognome Antonino Formisabo/Formisano",
+    "campione umano del 20% sui concordanti",
+    "decisioni di procedibilità oltre 90 giorni"
+  ]
+}

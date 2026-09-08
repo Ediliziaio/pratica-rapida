@@ -1,0 +1,24 @@
+{
+  "version": "apr-r69-alternative-verification-v1",
+  "status": "verified_alternative",
+  "verifiedAt": "2026-09-06T17:55:45.000Z",
+  "note": "Verifica esplicitamente alternativa al rituale formale di governance (apr-rule-governance-attestation.json), autorizzata dall'utente. Non certifica una prova individuale con fixture/replay per ciascuna delle 151 regole della matrice — quel lavoro resta da fare a parte. Certifica invece che l'intero repository, con le correzioni odierne incluse, compila senza errori di tipo e passa per intero la sua suite di test automatici.",
+  "gitCommitAtVerification": "e200ebd4a8979f15c8ea3c5fc31eaea5d4f1c088",
+  "gitWorkingTreeClean": false,
+  "gitWorkingTreeNote": "Working tree non pulito (lavoro non committato di questa sessione e di Codex); commit rimandato su richiesta esplicita dell'utente, da verificare con Codex separatamente.",
+  "typecheck": {
+    "command": "npm run typecheck",
+    "coversSrc": true,
+    "coversScripts": true,
+    "exitCode": 0
+  },
+  "typecheckExitCode": 0,
+  "vitestFullSuite": {
+    "command": "npx vitest run",
+    "testFiles": { "passed": 229, "total": 229 },
+    "tests": { "passed": 1826, "total": 1826 },
+    "durationSeconds": 447.54
+  },
+  "testsFailed": 0,
+  "testFilesFailed": 0
+}

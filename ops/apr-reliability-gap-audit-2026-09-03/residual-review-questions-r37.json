@@ -1,0 +1,374 @@
+{
+  "schemaVersion": "apr-reliability-residual-review-v1",
+  "generatedAt": "2026-09-03T18:08:04.582Z",
+  "safety": {
+    "localOnly": true,
+    "eneaAccessed": false,
+    "crmMutated": false,
+    "verdictsAttributed": false
+  },
+  "sourceReplay": "fresh-original-replay-r37-products.json",
+  "count": 25,
+  "cases": [
+    {
+      "practiceId": "7ebb9a52-2196-4ddc-9dc8-f431ff40e1b5",
+      "customerKey": "guido-calvacchi",
+      "displayName": "GUIDO CALVACCHI",
+      "classification": "PENDING_ORIGINAL_DOCUMENT_REVIEW",
+      "exactCause": "La rilettura locale fresca dai documenti originali ha cambiato l'insieme dei blocker rispetto allo snapshot operativo persistito: aggiunti [infissi_dimensions_and_cardinality_missing:technical_dimensions], rimossi [nessuno]. L'esito complessivo resta OPERATOR_REQUIRED_LOCAL; senza verifica documentale manuale e senza replay operativo questo delta non è classificato come errore APR.",
+      "addedBlockers": [
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions"
+      ],
+      "removedBlockers": [],
+      "missingDocumentType": "documento che separi la spesa professionale dal totale della fornitura; documento datato che consenta di verificare la decorrenza dei 90 giorni; abaco o documento tecnico con larghezza, altezza e quantità dei serramenti; abaco o fattura con righe tecniche associabili univocamente ai serramenti; insieme completo di fatture e pagamenti riconciliabili",
+      "operatorQuestion": "Per GUIDO CALVACCHI, qual è l'importo esatto della spesa professionale ammissibile e in quale riga del documento è separato dal resto della fornitura? Per GUIDO CALVACCHI, confermi la data di fine lavori e autorizzi la gestione del caso oltre 90 giorni sulla base del documento datato? Per GUIDO CALVACCHI, confermi il totale lordo delle fatture e il totale effettivamente pagato, indicando l'eventuale differenza? Per GUIDO CALVACCHI, quali sono larghezza, altezza e quantità di ogni serramento secondo il documento tecnico originale? Per GUIDO CALVACCHI, quale riga del documento tecnico corrisponde a ciascun serramento e quante unità fisiche sono presenti? Per GUIDO CALVACCHI, qual è il totale lordo corretto delle fatture ammissibili e quali documenti compongono esattamente tale totale?",
+      "onboardingGap": "Richiedere l'indicazione separata delle spese professionali e della relativa ammissibilità. Calcolare e segnalare già in onboarding la scadenza dei 90 giorni dalla fine lavori documentata. Richiedere un riepilogo economico strutturato e verificabile contro fatture e pagamenti. Richiedere all'origine un abaco strutturato con larghezza, altezza, quantità e identificativo univoco per ogni serramento. Richiedere righe prodotto numerate e una corrispondenza esplicita fra riga, quantità e misure. Richiedere tutte le fatture, inclusi acconti e saldi, e collegarle ai relativi pagamenti."
+    },
+    {
+      "practiceId": "78ca7885-b996-46c2-86f1-085ca43e9ede",
+      "customerKey": "roberta-di-cesare",
+      "displayName": "roberta di cesare",
+      "classification": "PENDING_ORIGINAL_DOCUMENT_REVIEW",
+      "exactCause": "La rilettura locale fresca dai documenti originali ha cambiato l'insieme dei blocker rispetto allo snapshot operativo persistito: aggiunti [tax_code_missing_or_invalid:beneficiary.taxCode], rimossi [nessuno]. L'esito complessivo resta OPERATOR_REQUIRED_LOCAL; senza verifica documentale manuale e senza replay operativo questo delta non è classificato come errore APR.",
+      "addedBlockers": [
+        "tax_code_missing_or_invalid:beneficiary.taxCode"
+      ],
+      "removedBlockers": [],
+      "missingDocumentType": "modulo cliente firmato; abaco o documento tecnico con misure delle schermature; documento tecnico o fattura con l'elenco delle schermature installate; documento fiscale o ufficiale leggibile con codice fiscale",
+      "operatorQuestion": "Per roberta di cesare, è disponibile il modulo cliente firmato? Se sì, in quale allegato si trova? Per roberta di cesare, quali sono larghezza e altezza di ciascuna schermatura secondo il documento tecnico originale? Per roberta di cesare, quali schermature sono state installate e in quale documento originale sono elencate? Qual è il codice fiscale corretto di roberta di cesare, come riportato su un documento fiscale o ufficiale leggibile?",
+      "onboardingGap": "Rendere obbligatorio e tipizzato il caricamento del modulo cliente firmato. Rendere obbligatorie le misure primarie strutturate per ogni schermatura. Richiedere un elenco strutturato delle schermature con tipologia, quantità e riferimento al documento originale. Rendere obbligatorio un documento ufficiale leggibile e validare formalmente il codice fiscale in acquisizione."
+    },
+    {
+      "practiceId": "e5c4f390-461b-43ea-ada7-d44cec4b91fb",
+      "customerKey": "marcella-capatti",
+      "displayName": "Marcella Capatti",
+      "classification": "PENDING_ORIGINAL_DOCUMENT_REVIEW",
+      "exactCause": "La rilettura locale fresca dai documenti originali ha cambiato l'insieme dei blocker rispetto allo snapshot operativo persistito: aggiunti [infissi_automatic_source_conflict:technical_dimensions, infissi_dimensions_and_cardinality_missing:technical_rows], rimossi [nessuno]. L'esito complessivo resta OPERATOR_REQUIRED_LOCAL; senza verifica documentale manuale e senza replay operativo questo delta non è classificato come errore APR.",
+      "addedBlockers": [
+        "infissi_automatic_source_conflict:technical_dimensions",
+        "infissi_dimensions_and_cardinality_missing:technical_rows"
+      ],
+      "removedBlockers": [],
+      "missingDocumentType": "documento datato che consenta di verificare la decorrenza dei 90 giorni; abaco o fattura con righe tecniche associabili univocamente ai serramenti",
+      "operatorQuestion": "Per Marcella Capatti, confermi la data di fine lavori e autorizzi la gestione del caso oltre 90 giorni sulla base del documento datato? Per Marcella Capatti, quali misure sono corrette tra le fonti documentali discordanti, indicando documento e riga autorevoli? Per Marcella Capatti, quale riga del documento tecnico corrisponde a ciascun serramento e quante unità fisiche sono presenti?",
+      "onboardingGap": "Calcolare e segnalare già in onboarding la scadenza dei 90 giorni dalla fine lavori documentata. Richiedere una sola tavola misure definitiva, datata e identificata come fonte autorevole. Richiedere righe prodotto numerate e una corrispondenza esplicita fra riga, quantità e misure."
+    },
+    {
+      "practiceId": "61b0dc51-4959-46e7-bd6d-37c8f1981c52",
+      "customerKey": "matteo-capitanelli",
+      "displayName": "MATTEO CAPITANELLI",
+      "classification": "PENDING_ORIGINAL_DOCUMENT_REVIEW",
+      "exactCause": "La rilettura locale fresca dai documenti originali ha cambiato l'insieme dei blocker rispetto allo snapshot operativo persistito: aggiunti [infissi_financial_triple_reconciliation_required:invoice_total], rimossi [nessuno]. L'esito complessivo resta OPERATOR_REQUIRED_LOCAL; senza verifica documentale manuale e senza replay operativo questo delta non è classificato come errore APR.",
+      "addedBlockers": [
+        "infissi_financial_triple_reconciliation_required:invoice_total"
+      ],
+      "removedBlockers": [],
+      "missingDocumentType": "insieme completo di fatture e pagamenti riconciliabili",
+      "operatorQuestion": "Per MATTEO CAPITANELLI, confermi il totale lordo delle fatture e il totale effettivamente pagato, indicando l'eventuale differenza? Per MATTEO CAPITANELLI, qual è il totale lordo corretto delle fatture ammissibili e quali documenti compongono esattamente tale totale?",
+      "onboardingGap": "Richiedere un riepilogo economico strutturato e verificabile contro fatture e pagamenti. Richiedere tutte le fatture, inclusi acconti e saldi, e collegarle ai relativi pagamenti."
+    },
+    {
+      "practiceId": "2803d6c1-f867-44a9-bff2-e67fcc230f7e",
+      "customerKey": "nicla-biagioni",
+      "displayName": "Nicla Biagioni",
+      "classification": "PENDING_ORIGINAL_DOCUMENT_REVIEW",
+      "exactCause": "La rilettura locale fresca dai documenti originali ha cambiato l'insieme dei blocker rispetto allo snapshot operativo persistito: aggiunti [infissi_dimensions_and_cardinality_missing:technical_dimensions], rimossi [nessuno]. L'esito complessivo resta OPERATOR_REQUIRED_LOCAL; senza verifica documentale manuale e senza replay operativo questo delta non è classificato come errore APR.",
+      "addedBlockers": [
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions"
+      ],
+      "removedBlockers": [],
+      "missingDocumentType": "verbale o dichiarazione datata di fine lavori/installazione; abaco o documento tecnico con larghezza, altezza e quantità dei serramenti; abaco o fattura con righe tecniche associabili univocamente ai serramenti; insieme completo di fatture e pagamenti riconciliabili; fattura originale completa",
+      "operatorQuestion": "Per Nicla Biagioni, qual è la data esatta di fine lavori e quale documento originale la attesta? Per Nicla Biagioni, confermi il totale lordo delle fatture e il totale effettivamente pagato, indicando l'eventuale differenza? Per Nicla Biagioni, quali sono larghezza, altezza e quantità di ogni serramento secondo il documento tecnico originale? Per Nicla Biagioni, quale riga del documento tecnico corrisponde a ciascun serramento e quante unità fisiche sono presenti? Per Nicla Biagioni, qual è il totale lordo corretto delle fatture ammissibili e quali documenti compongono esattamente tale totale? Per Nicla Biagioni, inserisci la fattura originale completa; il fascicolo contiene soltanto una fonte derivata o non disponibile.",
+      "onboardingGap": "Rendere obbligatorio un verbale o una dichiarazione esplicita e datata di fine lavori. Richiedere un riepilogo economico strutturato e verificabile contro fatture e pagamenti. Richiedere all'origine un abaco strutturato con larghezza, altezza, quantità e identificativo univoco per ogni serramento. Richiedere righe prodotto numerate e una corrispondenza esplicita fra riga, quantità e misure. Richiedere tutte le fatture, inclusi acconti e saldi, e collegarle ai relativi pagamenti. Rendere obbligatorio il caricamento della fattura originale, non di soli riepiloghi o riferimenti indiretti."
+    },
+    {
+      "practiceId": "5f669e8b-9ef1-45f6-b00d-12449d741314",
+      "customerKey": "eugenio-codognato",
+      "displayName": "EUGENIO CODOGNATO",
+      "classification": "PENDING_ORIGINAL_DOCUMENT_REVIEW",
+      "exactCause": "La rilettura locale fresca dai documenti originali ha cambiato l'insieme dei blocker rispetto allo snapshot operativo persistito: aggiunti [infissi_dimensions_and_cardinality_missing:technical_dimensions], rimossi [nessuno]. L'esito complessivo resta OPERATOR_REQUIRED_LOCAL; senza verifica documentale manuale e senza replay operativo questo delta non è classificato come errore APR.",
+      "addedBlockers": [
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions"
+      ],
+      "removedBlockers": [],
+      "missingDocumentType": "abaco o documento tecnico con larghezza, altezza e quantità dei serramenti; abaco o fattura con righe tecniche associabili univocamente ai serramenti",
+      "operatorQuestion": "Per EUGENIO CODOGNATO, quali sono larghezza, altezza e quantità di ogni serramento secondo il documento tecnico originale? Per EUGENIO CODOGNATO, quale riga del documento tecnico corrisponde a ciascun serramento e quante unità fisiche sono presenti?",
+      "onboardingGap": "Richiedere all'origine un abaco strutturato con larghezza, altezza, quantità e identificativo univoco per ogni serramento. Richiedere righe prodotto numerate e una corrispondenza esplicita fra riga, quantità e misure."
+    },
+    {
+      "practiceId": "b35fc3d3-d441-48d0-99f0-1d1e967ab6e7",
+      "customerKey": "gabriele-girelli",
+      "displayName": "Gabriele Girelli",
+      "classification": "PENDING_ORIGINAL_DOCUMENT_REVIEW",
+      "exactCause": "La rilettura locale fresca dai documenti originali ha cambiato l'insieme dei blocker rispetto allo snapshot operativo persistito: aggiunti [infissi_dimensions_and_cardinality_missing:technical_dimensions], rimossi [nessuno]. L'esito complessivo resta OPERATOR_REQUIRED_LOCAL; senza verifica documentale manuale e senza replay operativo questo delta non è classificato come errore APR.",
+      "addedBlockers": [
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions"
+      ],
+      "removedBlockers": [],
+      "missingDocumentType": "verbale o dichiarazione datata di fine lavori/installazione; abaco o documento tecnico con larghezza, altezza e quantità dei serramenti; abaco o fattura con righe tecniche associabili univocamente ai serramenti; insieme completo di fatture e pagamenti riconciliabili; modulo cliente con risposta univoca sulla presenza di chiusure oscuranti; fattura originale completa",
+      "operatorQuestion": "Per Gabriele Girelli, qual è la data esatta di fine lavori e quale documento originale la attesta? Per Gabriele Girelli, confermi il totale lordo delle fatture e il totale effettivamente pagato, indicando l'eventuale differenza? Per Gabriele Girelli, quali sono larghezza, altezza e quantità di ogni serramento secondo il documento tecnico originale? Per Gabriele Girelli, quale riga del documento tecnico corrisponde a ciascun serramento e quante unità fisiche sono presenti? Per Gabriele Girelli, qual è il totale lordo corretto delle fatture ammissibili e quali documenti compongono esattamente tale totale? Per Gabriele Girelli, l'intervento comprende chiusure oscuranti? Rispondi sì o no sulla base del modulo o del documento tecnico. Per Gabriele Girelli, inserisci la fattura originale completa con numero, data e totale leggibili.",
+      "onboardingGap": "Rendere obbligatorio un verbale o una dichiarazione esplicita e datata di fine lavori. Richiedere un riepilogo economico strutturato e verificabile contro fatture e pagamenti. Richiedere all'origine un abaco strutturato con larghezza, altezza, quantità e identificativo univoco per ogni serramento. Richiedere righe prodotto numerate e una corrispondenza esplicita fra riga, quantità e misure. Richiedere tutte le fatture, inclusi acconti e saldi, e collegarle ai relativi pagamenti. Rendere obbligatoria una risposta sì/no separata sulla presenza di chiusure oscuranti. Rendere obbligatorio il caricamento della fattura originale completa e leggibile."
+    },
+    {
+      "practiceId": "dc4484cd-c462-49c0-a734-3064dd6469a8",
+      "customerKey": "giovanna-atzeni",
+      "displayName": "GIOVANNA ATZENI",
+      "classification": "PENDING_ORIGINAL_DOCUMENT_REVIEW",
+      "exactCause": "La rilettura locale fresca dai documenti originali ha cambiato l'insieme dei blocker rispetto allo snapshot operativo persistito: aggiunti [nessuno], rimossi [bank_transfer_principal_exceeds_invoices:economic_sources.bankTransfers]. L'esito complessivo resta OPERATOR_REQUIRED_LOCAL; senza verifica documentale manuale e senza replay operativo questo delta non è classificato come errore APR.",
+      "addedBlockers": [],
+      "removedBlockers": [
+        "bank_transfer_principal_exceeds_invoices:economic_sources.bankTransfers"
+      ],
+      "missingDocumentType": "documento che confermi la data di fine lavori nell'anno ammesso dal portale; documento datato che consenta di verificare la decorrenza dei 90 giorni; modulo cliente firmato; modulo cliente con risposta univoca sulla presenza di chiusure oscuranti; documento fiscale o ufficiale leggibile con codice fiscale",
+      "operatorQuestion": "Per GIOVANNA ATZENI, confermi la data esatta di fine lavori e l'anno corretto da usare sul portale, indicando il documento che lo prova? Per GIOVANNA ATZENI, confermi la data di fine lavori e autorizzi la gestione del caso oltre 90 giorni sulla base del documento datato? Per GIOVANNA ATZENI, è disponibile il modulo cliente firmato? Se sì, in quale allegato si trova? Per GIOVANNA ATZENI, l'intervento comprende chiusure oscuranti? Rispondi sì o no sulla base del modulo o del documento tecnico. Qual è il codice fiscale corretto di GIOVANNA ATZENI, come riportato su un documento fiscale o ufficiale leggibile?",
+      "onboardingGap": "Validare in acquisizione l'anno della fine lavori rispetto all'anno fiscale e al portale di destinazione. Calcolare e segnalare già in onboarding la scadenza dei 90 giorni dalla fine lavori documentata. Rendere obbligatorio e tipizzato il caricamento del modulo cliente firmato. Rendere obbligatoria una risposta sì/no separata sulla presenza di chiusure oscuranti. Rendere obbligatorio un documento ufficiale leggibile e validare formalmente il codice fiscale in acquisizione."
+    },
+    {
+      "practiceId": "1d6b08fa-7120-4eab-a118-ce3a263ce001",
+      "customerKey": "loretta-riviera",
+      "displayName": "Loretta Riviera",
+      "classification": "PENDING_ORIGINAL_DOCUMENT_REVIEW",
+      "exactCause": "La rilettura locale fresca dai documenti originali ha cambiato l'insieme dei blocker rispetto allo snapshot operativo persistito: aggiunti [infissi_dimensions_and_cardinality_missing:technical_dimensions, invoice_schedule_amount_missing:economic_sources.schedule.amount], rimossi [nessuno]. L'esito complessivo resta OPERATOR_REQUIRED_LOCAL; senza verifica documentale manuale e senza replay operativo questo delta non è classificato come errore APR.",
+      "addedBlockers": [
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions",
+        "invoice_schedule_amount_missing:economic_sources.schedule.amount"
+      ],
+      "removedBlockers": [],
+      "missingDocumentType": "verbale o dichiarazione datata di fine lavori/installazione; abaco o documento tecnico con larghezza, altezza e quantità dei serramenti; abaco o fattura con righe tecniche associabili univocamente ai serramenti; insieme completo di fatture e pagamenti riconciliabili; fattura o scadenzario con importo della rata leggibile; fattura originale completa",
+      "operatorQuestion": "Per Loretta Riviera, qual è la data esatta di fine lavori e quale documento originale la attesta? Per Loretta Riviera, confermi il totale lordo delle fatture e il totale effettivamente pagato, indicando l'eventuale differenza? Per Loretta Riviera, quali sono larghezza, altezza e quantità di ogni serramento secondo il documento tecnico originale? Per Loretta Riviera, quale riga del documento tecnico corrisponde a ciascun serramento e quante unità fisiche sono presenti? Per Loretta Riviera, qual è il totale lordo corretto delle fatture ammissibili e quali documenti compongono esattamente tale totale? Per Loretta Riviera, qual è l'importo esatto di ciascuna scadenza o rata riportata nei documenti originali? Per Loretta Riviera, inserisci la fattura originale completa; il fascicolo contiene soltanto una fonte derivata o non disponibile.",
+      "onboardingGap": "Rendere obbligatorio un verbale o una dichiarazione esplicita e datata di fine lavori. Richiedere un riepilogo economico strutturato e verificabile contro fatture e pagamenti. Richiedere all'origine un abaco strutturato con larghezza, altezza, quantità e identificativo univoco per ogni serramento. Richiedere righe prodotto numerate e una corrispondenza esplicita fra riga, quantità e misure. Richiedere tutte le fatture, inclusi acconti e saldi, e collegarle ai relativi pagamenti. Richiedere uno scadenzario completo con importo, data e riferimento fattura per ogni rata. Rendere obbligatorio il caricamento della fattura originale, non di soli riepiloghi o riferimenti indiretti."
+    },
+    {
+      "practiceId": "752e4dd5-604c-495d-92ff-8d0f89be7531",
+      "customerKey": "cesare-imperiali",
+      "displayName": "Cesare Imperiali",
+      "classification": "PENDING_ORIGINAL_DOCUMENT_REVIEW",
+      "exactCause": "La rilettura locale fresca dai documenti originali ha cambiato l'insieme dei blocker rispetto allo snapshot operativo persistito: aggiunti [infissi_dimensions_and_cardinality_missing:technical_dimensions], rimossi [nessuno]. L'esito complessivo resta OPERATOR_REQUIRED_LOCAL; senza verifica documentale manuale e senza replay operativo questo delta non è classificato come errore APR.",
+      "addedBlockers": [
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions"
+      ],
+      "removedBlockers": [],
+      "missingDocumentType": "abaco o documento tecnico con larghezza, altezza e quantità dei serramenti; abaco o fattura con righe tecniche associabili univocamente ai serramenti",
+      "operatorQuestion": "Per Cesare Imperiali, quali sono larghezza, altezza e quantità di ogni serramento secondo il documento tecnico originale? Per Cesare Imperiali, quale riga del documento tecnico corrisponde a ciascun serramento e quante unità fisiche sono presenti?",
+      "onboardingGap": "Richiedere all'origine un abaco strutturato con larghezza, altezza, quantità e identificativo univoco per ogni serramento. Richiedere righe prodotto numerate e una corrispondenza esplicita fra riga, quantità e misure."
+    },
+    {
+      "practiceId": "11b99b30-2a58-40dd-96f5-5ef1a06e65d0",
+      "customerKey": "diego-mario-mocenighi",
+      "displayName": "diego mario mocenighi",
+      "classification": "PENDING_ORIGINAL_DOCUMENT_REVIEW",
+      "exactCause": "La rilettura locale fresca dai documenti originali ha cambiato l'insieme dei blocker rispetto allo snapshot operativo persistito: aggiunti [bank_transfer_invoice_cross_check_failed:economic_sources.bankTransfers], rimossi [nessuno]. L'esito complessivo resta OPERATOR_REQUIRED_LOCAL; senza verifica documentale manuale e senza replay operativo questo delta non è classificato come errore APR.",
+      "addedBlockers": [
+        "bank_transfer_invoice_cross_check_failed:economic_sources.bankTransfers"
+      ],
+      "removedBlockers": [],
+      "missingDocumentType": "contabile di bonifico collegabile univocamente alla fattura; documento che separi la spesa professionale dal totale della fornitura; fattura originale con numero, data, imponibile, IVA e totale leggibili; documento tecnico o fattura con l'elenco delle schermature installate",
+      "operatorQuestion": "Per diego mario mocenighi, quale bonifico si riferisce a quale fattura e qual è l'importo corretto da riconciliare? Per diego mario mocenighi, qual è l'importo esatto della spesa professionale ammissibile e in quale riga del documento è separato dal resto della fornitura? Per diego mario mocenighi, inserisci la fattura originale completa a cui si riferisce il documento economico non riconciliato, con numero, data e totale leggibili. Per diego mario mocenighi, quali schermature sono state installate e in quale documento originale sono elencate?",
+      "onboardingGap": "Richiedere causale, CRO/TRN e riferimento fattura leggibili per ogni bonifico. Richiedere l'indicazione separata delle spese professionali e della relativa ammissibilità. Richiedere la fattura originale completa e impedire allegati economici privi della relativa identità fiscale. Richiedere un elenco strutturato delle schermature con tipologia, quantità e riferimento al documento originale."
+    },
+    {
+      "practiceId": "3a393231-4cb9-4bf6-93f0-99da9a2a2972",
+      "customerKey": "stefano-buosi",
+      "displayName": "Stefano Buosi",
+      "classification": "PENDING_ORIGINAL_DOCUMENT_REVIEW",
+      "exactCause": "La rilettura locale fresca dai documenti originali ha cambiato l'insieme dei blocker rispetto allo snapshot operativo persistito: aggiunti [infissi_dimensions_and_cardinality_missing:technical_dimensions], rimossi [nessuno]. L'esito complessivo resta OPERATOR_REQUIRED_LOCAL; senza verifica documentale manuale e senza replay operativo questo delta non è classificato come errore APR.",
+      "addedBlockers": [
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions"
+      ],
+      "removedBlockers": [],
+      "missingDocumentType": "abaco o documento tecnico con larghezza, altezza e quantità dei serramenti; abaco o fattura con righe tecniche associabili univocamente ai serramenti",
+      "operatorQuestion": "Per Stefano Buosi, quali sono larghezza, altezza e quantità di ogni serramento secondo il documento tecnico originale? Per Stefano Buosi, quale riga del documento tecnico corrisponde a ciascun serramento e quante unità fisiche sono presenti?",
+      "onboardingGap": "Richiedere all'origine un abaco strutturato con larghezza, altezza, quantità e identificativo univoco per ogni serramento. Richiedere righe prodotto numerate e una corrispondenza esplicita fra riga, quantità e misure."
+    },
+    {
+      "practiceId": "83d29fcc-c3d9-4c31-8058-146993ec6b12",
+      "customerKey": "prova-rivenditore-1-30-04",
+      "displayName": "prova rivenditore 1 30/04",
+      "classification": "PENDING_EXCLUSION_DECISION",
+      "exactCause": "La rilettura locale fresca dai documenti originali ha cambiato l'insieme dei blocker rispetto allo snapshot operativo persistito: aggiunti [infissi_dimensions_and_cardinality_missing:technical_dimensions], rimossi [nessuno]. L'esito complessivo resta OPERATOR_REQUIRED_LOCAL; senza verifica documentale manuale e senza replay operativo questo delta non è classificato come errore APR.",
+      "addedBlockers": [
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions"
+      ],
+      "removedBlockers": [],
+      "missingDocumentType": "verbale o dichiarazione datata di fine lavori/installazione; modulo cliente firmato; abaco o documento tecnico con larghezza, altezza e quantità dei serramenti; abaco o fattura con righe tecniche associabili univocamente ai serramenti; insieme completo di fatture e pagamenti riconciliabili; modulo cliente con risposta univoca sulla presenza di chiusure oscuranti; documento fiscale o ufficiale leggibile con codice fiscale",
+      "operatorQuestion": "La pratica «prova rivenditore 1 30/04» è un test interno da aggiungere alle esclusioni permanenti?",
+      "onboardingGap": "Rendere obbligatorio un verbale o una dichiarazione esplicita e datata di fine lavori. Rendere obbligatorio e tipizzato il caricamento del modulo cliente firmato. Richiedere un riepilogo economico strutturato e verificabile contro fatture e pagamenti. Richiedere all'origine un abaco strutturato con larghezza, altezza, quantità e identificativo univoco per ogni serramento. Richiedere righe prodotto numerate e una corrispondenza esplicita fra riga, quantità e misure. Richiedere tutte le fatture, inclusi acconti e saldi, e collegarle ai relativi pagamenti. Rendere obbligatoria una risposta sì/no separata sulla presenza di chiusure oscuranti. Rendere obbligatorio un documento ufficiale leggibile e validare formalmente il codice fiscale in acquisizione."
+    },
+    {
+      "practiceId": "1b6d780a-2e81-415f-9a27-c67e2f19e846",
+      "customerKey": "marco-tocchetti",
+      "displayName": "Marco Tocchetti",
+      "classification": "PENDING_ORIGINAL_DOCUMENT_REVIEW",
+      "exactCause": "La rilettura locale fresca dai documenti originali ha cambiato l'insieme dei blocker rispetto allo snapshot operativo persistito: aggiunti [nessuno], rimossi [gross_triple_reconciliation_failed:economic_sources.total]. L'esito complessivo resta OPERATOR_REQUIRED_LOCAL; senza verifica documentale manuale e senza replay operativo questo delta non è classificato come errore APR.",
+      "addedBlockers": [],
+      "removedBlockers": [
+        "gross_triple_reconciliation_failed:economic_sources.total"
+      ],
+      "missingDocumentType": "fattura originale completa",
+      "operatorQuestion": "Per Marco Tocchetti, inserisci la fattura originale completa; il fascicolo contiene soltanto una fonte derivata o non disponibile.",
+      "onboardingGap": "Rendere obbligatorio il caricamento della fattura originale, non di soli riepiloghi o riferimenti indiretti."
+    },
+    {
+      "practiceId": "58f03680-c716-42e7-ad7d-e3ceaee5573d",
+      "customerKey": "claudia-sellati",
+      "displayName": "CLAUDIA SELLATI",
+      "classification": "PENDING_ORIGINAL_DOCUMENT_REVIEW",
+      "exactCause": "La rilettura locale fresca dai documenti originali ha cambiato l'insieme dei blocker rispetto allo snapshot operativo persistito: aggiunti [infissi_dimensions_and_cardinality_missing:technical_dimensions], rimossi [nessuno]. L'esito complessivo resta OPERATOR_REQUIRED_LOCAL; senza verifica documentale manuale e senza replay operativo questo delta non è classificato come errore APR.",
+      "addedBlockers": [
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions"
+      ],
+      "removedBlockers": [],
+      "missingDocumentType": "abaco o documento tecnico con larghezza, altezza e quantità dei serramenti; abaco o fattura con righe tecniche associabili univocamente ai serramenti",
+      "operatorQuestion": "Per CLAUDIA SELLATI, quali sono larghezza, altezza e quantità di ogni serramento secondo il documento tecnico originale? Per CLAUDIA SELLATI, quale riga del documento tecnico corrisponde a ciascun serramento e quante unità fisiche sono presenti?",
+      "onboardingGap": "Richiedere all'origine un abaco strutturato con larghezza, altezza, quantità e identificativo univoco per ogni serramento. Richiedere righe prodotto numerate e una corrispondenza esplicita fra riga, quantità e misure."
+    },
+    {
+      "practiceId": "2329836b-3d7c-4e55-b5ba-f232515a2299",
+      "customerKey": "francesca-pisanu",
+      "displayName": "FRANCESCA PISANU",
+      "classification": "PENDING_ORIGINAL_DOCUMENT_REVIEW",
+      "exactCause": "La rilettura locale fresca dai documenti originali ha cambiato l'insieme dei blocker rispetto allo snapshot operativo persistito: aggiunti [nessuno], rimossi [gross_triple_reconciliation_failed:economic_sources.total, infissi_financial_triple_reconciliation_required:invoice_total]. L'esito complessivo resta OPERATOR_REQUIRED_LOCAL; senza verifica documentale manuale e senza replay operativo questo delta non è classificato come errore APR.",
+      "addedBlockers": [],
+      "removedBlockers": [
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "infissi_financial_triple_reconciliation_required:invoice_total"
+      ],
+      "missingDocumentType": "modulo cliente firmato; modulo cliente con risposta univoca sulla presenza di chiusure oscuranti; documento fiscale o ufficiale leggibile con codice fiscale",
+      "operatorQuestion": "Per FRANCESCA PISANU, è disponibile il modulo cliente firmato? Se sì, in quale allegato si trova? Per FRANCESCA PISANU, l'intervento comprende chiusure oscuranti? Rispondi sì o no sulla base del modulo o del documento tecnico. Qual è il codice fiscale corretto di FRANCESCA PISANU, come riportato su un documento fiscale o ufficiale leggibile?",
+      "onboardingGap": "Rendere obbligatorio e tipizzato il caricamento del modulo cliente firmato. Rendere obbligatoria una risposta sì/no separata sulla presenza di chiusure oscuranti. Rendere obbligatorio un documento ufficiale leggibile e validare formalmente il codice fiscale in acquisizione."
+    },
+    {
+      "practiceId": "491cf101-c6cd-4f48-9cf0-78c096d95c0e",
+      "customerKey": "mauro-leonardi",
+      "displayName": "Mauro Leonardi",
+      "classification": "PENDING_ORIGINAL_DOCUMENT_REVIEW",
+      "exactCause": "La rilettura locale fresca dai documenti originali ha cambiato l'insieme dei blocker rispetto allo snapshot operativo persistito: aggiunti [infissi_dimensions_and_cardinality_missing:technical_dimensions], rimossi [nessuno]. L'esito complessivo resta OPERATOR_REQUIRED_LOCAL; senza verifica documentale manuale e senza replay operativo questo delta non è classificato come errore APR.",
+      "addedBlockers": [
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions"
+      ],
+      "removedBlockers": [],
+      "missingDocumentType": "documento che confermi la data di fine lavori nell'anno ammesso dal portale; documento datato che consenta di verificare la decorrenza dei 90 giorni; abaco o documento tecnico con larghezza, altezza e quantità dei serramenti; abaco o fattura con righe tecniche associabili univocamente ai serramenti",
+      "operatorQuestion": "Per Mauro Leonardi, confermi la data esatta di fine lavori e l'anno corretto da usare sul portale, indicando il documento che lo prova? Per Mauro Leonardi, confermi la data di fine lavori e autorizzi la gestione del caso oltre 90 giorni sulla base del documento datato? Per Mauro Leonardi, quali sono larghezza, altezza e quantità di ogni serramento secondo il documento tecnico originale? Per Mauro Leonardi, quale riga del documento tecnico corrisponde a ciascun serramento e quante unità fisiche sono presenti?",
+      "onboardingGap": "Validare in acquisizione l'anno della fine lavori rispetto all'anno fiscale e al portale di destinazione. Calcolare e segnalare già in onboarding la scadenza dei 90 giorni dalla fine lavori documentata. Richiedere all'origine un abaco strutturato con larghezza, altezza, quantità e identificativo univoco per ogni serramento. Richiedere righe prodotto numerate e una corrispondenza esplicita fra riga, quantità e misure."
+    },
+    {
+      "practiceId": "9f44491c-30f7-44ef-84db-14877259d716",
+      "customerKey": "caterina-claudia-garbato",
+      "displayName": "caterina Claudia garbato",
+      "classification": "PENDING_ORIGINAL_DOCUMENT_REVIEW",
+      "exactCause": "La rilettura locale fresca dai documenti originali ha cambiato l'insieme dei blocker rispetto allo snapshot operativo persistito: aggiunti [product_cardinality_form_invoice_mismatch:screenings.quantity, screening_primary_measurements_missing:screenings.dimensions], rimossi [persiana_measurement_ambiguous_1:screenings.1.dimensions]. L'esito complessivo resta OPERATOR_REQUIRED_LOCAL; senza verifica documentale manuale e senza replay operativo questo delta non è classificato come errore APR.",
+      "addedBlockers": [
+        "product_cardinality_form_invoice_mismatch:screenings.quantity",
+        "screening_primary_measurements_missing:screenings.dimensions"
+      ],
+      "removedBlockers": [
+        "persiana_measurement_ambiguous_1:screenings.1.dimensions"
+      ],
+      "missingDocumentType": "documento che confermi la data di fine lavori nell'anno ammesso dal portale; documento datato che consenta di verificare la decorrenza dei 90 giorni; abaco o documento tecnico con misure delle schermature; documento tecnico o fattura con l'elenco delle schermature installate",
+      "operatorQuestion": "Per caterina Claudia garbato, confermi la data esatta di fine lavori e l'anno corretto da usare sul portale, indicando il documento che lo prova? Per caterina Claudia garbato, confermi la data di fine lavori e autorizzi la gestione del caso oltre 90 giorni sulla base del documento datato? Per caterina Claudia garbato, qual è il numero corretto di schermature fisiche e quale fonte documentale lo prova? Per caterina Claudia garbato, quali sono larghezza e altezza di ciascuna schermatura secondo il documento tecnico originale? Per caterina Claudia garbato, quali schermature sono state installate e in quale documento originale sono elencate?",
+      "onboardingGap": "Validare in acquisizione l'anno della fine lavori rispetto all'anno fiscale e al portale di destinazione. Calcolare e segnalare già in onboarding la scadenza dei 90 giorni dalla fine lavori documentata. Richiedere quantità fisiche per riga e una corrispondenza esplicita tra modulo, fattura e abaco. Rendere obbligatorie le misure primarie strutturate per ogni schermatura. Richiedere un elenco strutturato delle schermature con tipologia, quantità e riferimento al documento originale."
+    },
+    {
+      "practiceId": "30936ae1-80b0-46fd-813c-e1425ca33c7f",
+      "customerKey": "francesca-monti",
+      "displayName": "francesca monti",
+      "classification": "PENDING_ORIGINAL_DOCUMENT_REVIEW",
+      "exactCause": "La rilettura locale fresca dai documenti originali ha cambiato l'insieme dei blocker rispetto allo snapshot operativo persistito: aggiunti [customer_form_missing:customer_form, tax_code_missing_or_invalid:beneficiary.taxCode], rimossi [nessuno]. L'esito complessivo resta OPERATOR_REQUIRED_LOCAL; senza verifica documentale manuale e senza replay operativo questo delta non è classificato come errore APR.",
+      "addedBlockers": [
+        "customer_form_missing:customer_form",
+        "tax_code_missing_or_invalid:beneficiary.taxCode"
+      ],
+      "removedBlockers": [],
+      "missingDocumentType": "modulo cliente firmato; fattura originale con numero, data, imponibile, IVA e totale leggibili; documento tecnico o fattura con l'elenco delle schermature installate; documento fiscale o ufficiale leggibile con codice fiscale",
+      "operatorQuestion": "Per francesca monti, è disponibile il modulo cliente firmato? Se sì, in quale allegato si trova? Per francesca monti, inserisci la fattura originale completa a cui si riferisce il documento economico non riconciliato, con numero, data e totale leggibili. Per francesca monti, quali schermature sono state installate e in quale documento originale sono elencate? Qual è il codice fiscale corretto di francesca monti, come riportato su un documento fiscale o ufficiale leggibile?",
+      "onboardingGap": "Rendere obbligatorio e tipizzato il caricamento del modulo cliente firmato. Richiedere la fattura originale completa e impedire allegati economici privi della relativa identità fiscale. Richiedere un elenco strutturato delle schermature con tipologia, quantità e riferimento al documento originale. Rendere obbligatorio un documento ufficiale leggibile e validare formalmente il codice fiscale in acquisizione."
+    },
+    {
+      "practiceId": "775bd8e8-f71f-4c00-b93a-eeea9ade948d",
+      "customerKey": "marian-maeschi",
+      "displayName": "Marian Maeschi",
+      "classification": "PENDING_ORIGINAL_DOCUMENT_REVIEW",
+      "exactCause": "La rilettura locale fresca dai documenti originali ha cambiato l'insieme dei blocker rispetto allo snapshot operativo persistito: aggiunti [infissi_dimensions_and_cardinality_missing:technical_dimensions], rimossi [nessuno]. L'esito complessivo resta OPERATOR_REQUIRED_LOCAL; senza verifica documentale manuale e senza replay operativo questo delta non è classificato come errore APR.",
+      "addedBlockers": [
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions"
+      ],
+      "removedBlockers": [],
+      "missingDocumentType": "abaco o documento tecnico con larghezza, altezza e quantità dei serramenti; abaco o fattura con righe tecniche associabili univocamente ai serramenti",
+      "operatorQuestion": "Per Marian Maeschi, quali sono larghezza, altezza e quantità di ogni serramento secondo il documento tecnico originale? Per Marian Maeschi, quale riga del documento tecnico corrisponde a ciascun serramento e quante unità fisiche sono presenti?",
+      "onboardingGap": "Richiedere all'origine un abaco strutturato con larghezza, altezza, quantità e identificativo univoco per ogni serramento. Richiedere righe prodotto numerate e una corrispondenza esplicita fra riga, quantità e misure."
+    },
+    {
+      "practiceId": "51ec4e1a-2600-482b-9fde-6b3976bbdbc2",
+      "customerKey": "gemma-minore",
+      "displayName": "Gemma Minore",
+      "classification": "PENDING_ORIGINAL_DOCUMENT_REVIEW",
+      "exactCause": "La rilettura locale fresca dai documenti originali ha cambiato l'insieme dei blocker rispetto allo snapshot operativo persistito: aggiunti [nessuno], rimossi [infissi_dimensions_and_cardinality_missing:technical_rows]. L'esito complessivo resta OPERATOR_REQUIRED_LOCAL; senza verifica documentale manuale e senza replay operativo questo delta non è classificato come errore APR.",
+      "addedBlockers": [],
+      "removedBlockers": [
+        "infissi_dimensions_and_cardinality_missing:technical_rows"
+      ],
+      "missingDocumentType": "documento fiscale o ufficiale che identifichi univocamente l'eventuale secondo beneficiario",
+      "operatorQuestion": "Per Gemma Minore, esiste un secondo beneficiario della detrazione? Se sì, indica nome, cognome e codice fiscale come risultano dal documento ufficiale.",
+      "onboardingGap": "Chiedere esplicitamente se esiste un secondo beneficiario e, in caso positivo, acquisirne documento ufficiale e codice fiscale."
+    },
+    {
+      "practiceId": "12c830b8-1d49-406a-b938-a37cfc68569e",
+      "customerKey": "francesco-laurelli",
+      "displayName": "FRANCESCO LAURELLI",
+      "classification": "PENDING_ORIGINAL_DOCUMENT_REVIEW",
+      "exactCause": "La rilettura locale fresca dai documenti originali ha cambiato l'insieme dei blocker rispetto allo snapshot operativo persistito: aggiunti [nessuno], rimossi [invoice_schedule_amount_missing:economic_sources.schedule.amount]. L'esito complessivo resta OPERATOR_REQUIRED_LOCAL; senza verifica documentale manuale e senza replay operativo questo delta non è classificato come errore APR.",
+      "addedBlockers": [],
+      "removedBlockers": [
+        "invoice_schedule_amount_missing:economic_sources.schedule.amount"
+      ],
+      "missingDocumentType": "fattura originale con numero, data, imponibile, IVA e totale leggibili; documento tecnico o fattura con l'elenco delle schermature installate",
+      "operatorQuestion": "Per FRANCESCO LAURELLI, confermi il totale lordo delle fatture e il totale effettivamente pagato, indicando l'eventuale differenza? Per FRANCESCO LAURELLI, inserisci la fattura originale completa a cui si riferisce il documento economico non riconciliato, con numero, data e totale leggibili. Per FRANCESCO LAURELLI, qual è il numero corretto di schermature fisiche e quale fonte documentale lo prova? Per FRANCESCO LAURELLI, quali schermature sono state installate e in quale documento originale sono elencate?",
+      "onboardingGap": "Richiedere un riepilogo economico strutturato e verificabile contro fatture e pagamenti. Richiedere la fattura originale completa e impedire allegati economici privi della relativa identità fiscale. Richiedere quantità fisiche per riga e una corrispondenza esplicita tra modulo, fattura e abaco. Richiedere un elenco strutturato delle schermature con tipologia, quantità e riferimento al documento originale."
+    },
+    {
+      "practiceId": "c3a6a2ae-3244-4b4c-84fe-1e0bfcdd6c53",
+      "customerKey": "mattia-vatieri",
+      "displayName": "Mattia Vatieri",
+      "classification": "PENDING_ORIGINAL_DOCUMENT_REVIEW",
+      "exactCause": "La rilettura locale fresca dai documenti originali ha cambiato l'insieme dei blocker rispetto allo snapshot operativo persistito: aggiunti [infissi_dimensions_and_cardinality_missing:technical_dimensions], rimossi [nessuno]. L'esito complessivo resta OPERATOR_REQUIRED_LOCAL; senza verifica documentale manuale e senza replay operativo questo delta non è classificato come errore APR.",
+      "addedBlockers": [
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions"
+      ],
+      "removedBlockers": [],
+      "missingDocumentType": "documento che confermi la data di fine lavori nell'anno ammesso dal portale; documento datato che consenta di verificare la decorrenza dei 90 giorni; abaco o documento tecnico con larghezza, altezza e quantità dei serramenti; abaco o fattura con righe tecniche associabili univocamente ai serramenti; modulo cliente con risposta univoca sulla presenza di chiusure oscuranti",
+      "operatorQuestion": "Per Mattia Vatieri, confermi la data esatta di fine lavori e l'anno corretto da usare sul portale, indicando il documento che lo prova? Per Mattia Vatieri, confermi la data di fine lavori e autorizzi la gestione del caso oltre 90 giorni sulla base del documento datato? Per Mattia Vatieri, quali sono larghezza, altezza e quantità di ogni serramento secondo il documento tecnico originale? Per Mattia Vatieri, quale riga del documento tecnico corrisponde a ciascun serramento e quante unità fisiche sono presenti? Per Mattia Vatieri, l'intervento comprende chiusure oscuranti? Rispondi sì o no sulla base del modulo o del documento tecnico.",
+      "onboardingGap": "Validare in acquisizione l'anno della fine lavori rispetto all'anno fiscale e al portale di destinazione. Calcolare e segnalare già in onboarding la scadenza dei 90 giorni dalla fine lavori documentata. Richiedere all'origine un abaco strutturato con larghezza, altezza, quantità e identificativo univoco per ogni serramento. Richiedere righe prodotto numerate e una corrispondenza esplicita fra riga, quantità e misure. Rendere obbligatoria una risposta sì/no separata sulla presenza di chiusure oscuranti."
+    },
+    {
+      "practiceId": "ada3267b-29d0-4765-b15d-489e27b23ec6",
+      "customerKey": "antonino-formisabo",
+      "displayName": "Antonino Formisabo",
+      "classification": "PENDING_ORIGINAL_DOCUMENT_REVIEW",
+      "exactCause": "La rilettura locale fresca dai documenti originali ha cambiato l'insieme dei blocker rispetto allo snapshot operativo persistito: aggiunti [bank_transfer_invoice_cross_check_failed:economic_sources.bankTransfers, gross_triple_reconciliation_failed:economic_sources.total, infissi_financial_triple_reconciliation_required:invoice_total, invoice_929a8665:economic_sources], rimossi [nessuno]. L'esito complessivo resta OPERATOR_REQUIRED_LOCAL; senza verifica documentale manuale e senza replay operativo questo delta non è classificato come errore APR.",
+      "addedBlockers": [
+        "bank_transfer_invoice_cross_check_failed:economic_sources.bankTransfers",
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "infissi_financial_triple_reconciliation_required:invoice_total",
+        "invoice_929a8665:economic_sources"
+      ],
+      "removedBlockers": [],
+      "missingDocumentType": "contabile di bonifico collegabile univocamente alla fattura; documento che confermi la data di fine lavori nell'anno ammesso dal portale; documento datato che consenta di verificare la decorrenza dei 90 giorni; insieme completo di fatture e pagamenti riconciliabili; fattura con totale economico leggibile oppure prova che il documento è uno storno non economico",
+      "operatorQuestion": "Per Antonino Formisabo, quale bonifico si riferisce a quale fattura e qual è l'importo corretto da riconciliare? Per Antonino Formisabo, confermi la data esatta di fine lavori e l'anno corretto da usare sul portale, indicando il documento che lo prova? Per Antonino Formisabo, confermi la data di fine lavori e autorizzi la gestione del caso oltre 90 giorni sulla base del documento datato? Per Antonino Formisabo, confermi il totale lordo delle fatture e il totale effettivamente pagato, indicando l'eventuale differenza? Per Antonino Formisabo, qual è il totale lordo corretto delle fatture ammissibili e quali documenti compongono esattamente tale totale? Per Antonino Formisabo, il documento fiscale segnalato è una fattura economica con un totale da conteggiare oppure uno storno/non economico a zero?",
+      "onboardingGap": "Richiedere causale, CRO/TRN e riferimento fattura leggibili per ogni bonifico. Validare in acquisizione l'anno della fine lavori rispetto all'anno fiscale e al portale di destinazione. Calcolare e segnalare già in onboarding la scadenza dei 90 giorni dalla fine lavori documentata. Richiedere un riepilogo economico strutturato e verificabile contro fatture e pagamenti. Richiedere tutte le fatture, inclusi acconti e saldi, e collegarle ai relativi pagamenti. Classificare esplicitamente in acquisizione fatture economiche, note/storni e documenti a totale zero."
+    },
+    {
+      "practiceId": "dbdc17d6-c279-451c-a042-56d0f6b87f93",
+      "customerKey": "leo-manini",
+      "displayName": "Leo Manini",
+      "classification": "PENDING_ORIGINAL_DOCUMENT_REVIEW",
+      "exactCause": "La rilettura locale fresca dai documenti originali ha cambiato l'insieme dei blocker rispetto allo snapshot operativo persistito: aggiunti [infissi_dimensions_and_cardinality_missing:technical_dimensions], rimossi [nessuno]. L'esito complessivo resta OPERATOR_REQUIRED_LOCAL; senza verifica documentale manuale e senza replay operativo questo delta non è classificato come errore APR.",
+      "addedBlockers": [
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions"
+      ],
+      "removedBlockers": [],
+      "missingDocumentType": "documento che confermi la data di fine lavori nell'anno ammesso dal portale; documento datato che consenta di verificare la decorrenza dei 90 giorni; abaco o documento tecnico con larghezza, altezza e quantità dei serramenti; abaco o fattura con righe tecniche associabili univocamente ai serramenti",
+      "operatorQuestion": "Per Leo Manini, confermi la data esatta di fine lavori e l'anno corretto da usare sul portale, indicando il documento che lo prova? Per Leo Manini, confermi la data di fine lavori e autorizzi la gestione del caso oltre 90 giorni sulla base del documento datato? Per Leo Manini, quali sono larghezza, altezza e quantità di ogni serramento secondo il documento tecnico originale? Per Leo Manini, quale riga del documento tecnico corrisponde a ciascun serramento e quante unità fisiche sono presenti?",
+      "onboardingGap": "Validare in acquisizione l'anno della fine lavori rispetto all'anno fiscale e al portale di destinazione. Calcolare e segnalare già in onboarding la scadenza dei 90 giorni dalla fine lavori documentata. Richiedere all'origine un abaco strutturato con larghezza, altezza, quantità e identificativo univoco per ogni serramento. Richiedere righe prodotto numerate e una corrispondenza esplicita fra riga, quantità e misure."
+    }
+  ]
+}

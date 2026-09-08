@@ -1,0 +1,44 @@
+{
+  "version": "apr-observability-live-source-gate-attestation-r48-v1",
+  "verifiedAt": "2026-09-04T17:12:00+02:00",
+  "ruleId": "system-terminal-observability-live-source-supersession-v1",
+  "status": "PASS_SUPERVISOR_ONLY_DEPLOYED",
+  "sourceCommit": "e200ebd4a8979f15c8ea3c5fc31eaea5d4f1c088",
+  "sourceBranch": "codex/apr-monotonic-gate",
+  "tests": {
+    "typecheck": "PASS",
+    "focused": "287/287 PASS",
+    "fullMonotonic": "1707/1707 PASS in 209 files",
+    "category": "automatic_local"
+  },
+  "positive": "Uno snapshot terminale con revisioni e identita esattamente coincidenti resta autorevole.",
+  "negative": "Uno snapshot terminale storico viene escluso sia davanti a una generazione attiva successiva sia davanti a una generazione quiescente successiva.",
+  "failClosed": "Fonti execution e worker discordanti producono INCONSISTENT e nessun verdetto pratica.",
+  "stagedBundle": {
+    "path": "ops/apr-generation-ab-r47-2026-09-04/observability-bundle-r48",
+    "supervisorSha256": "af980558f8732579608abae23f6665912b97b38e0492f422ac7989a487c977ec",
+    "workerSha256": "76f37401bf4432a35b3c3626b8c0a4b2da3435b42b11fbcd1198bf6689b4330e",
+    "watchdogSha256": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0"
+  },
+  "deployment": {
+    "scope": "supervisor_only",
+    "installedSupervisorSha256": "af980558f8732579608abae23f6665912b97b38e0492f422ac7989a487c977ec",
+    "workerReplaced": false,
+    "watchdogReplaced": false,
+    "reason": "La correzione appartiene esclusivamente alla dashboard; sostituire worker o watchdog avrebbe ampliato inutilmente il rischio sulla coorte congelata.",
+    "backupSupervisor": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3063-global-controller-angelina-stricelli/install/versions/r47-before-observability-r48/apr-supervisor.mjs"
+  },
+  "operationalVerification": {
+    "category": "local_runtime_observability",
+    "apiStatus": "INCONSISTENT",
+    "apiCaseTruth": "INCONSISTENT",
+    "staleWriteAtomicServedAsCurrent": false,
+    "executionCheckpointSha256": "0b05ec3dfaf0c087c27397cbd31ca68a27beaef92c64f838d57cd9a8ad89f205",
+    "workerCheckpointSha256": "31cc231c49147b421b402f3975b2bbbec6c85e723644b8e5c9d9f8a1ad92f192",
+    "cdpLedgerSha256": "3140c6d764c8408de6438c37026daec8085e7553c3d14f6561271547eeaaff39",
+    "workerLaunchAgentLoaded": false,
+    "keepaliveAlive": true,
+    "chromeAlive": true,
+    "eneaMutationPerformed": false
+  }
+}

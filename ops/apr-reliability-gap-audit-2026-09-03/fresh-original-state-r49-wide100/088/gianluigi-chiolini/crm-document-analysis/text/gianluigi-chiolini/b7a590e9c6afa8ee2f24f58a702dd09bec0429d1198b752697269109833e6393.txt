@@ -1,0 +1,56 @@
+FATTURA
+nr. FPR 384/26 del 22/07/2026
+Data invio: 22/07/2026
+FORNITORE
+LM TENDE DA SOLE E ZANZARIERE S.R.L.
+P.IVA: IT13223860969
+C.F.: 13223860969
+Via Della Resistenza
+20090 - Buccinasco (MI) - IT
+Telefono: 3348841668
+info@lmtende.it
+CLIENTE
+Gianluigi Chiolin
+C.F.: CHLGLG66A31F205C
+Via Salvo D'Acquisto 1
+20090 - Cesano Boscone (MI) - IT
+PRODOTTI E SERVIZI
+NR DESCRIZIONE QUANTITA' PREZZO IMPORTO IVA NATURA IVA
+1 Fattura saldo per fornitura e posa di Tenda da sole
+cassonata totale modello MINI CHIOCCIOLA RAL
+9006 Tessuto TEMPOTEST 3/84 GH. attacco a
+soffitto Mantovana a onda standard ricavata dal basso
+passamaneria in tinta N° 1 da 350 x 185 cm (manovra a
+SX V.I.) Motorizzata Schermatura superficie mq 6,475
+Classe 4 gtot 0,08 Data collaudo 22/07/2026
+1 1.000,00 € 1.000,00 € 22 % -
+2 Tenda da sole a caduta con cassonetto, con ganci RAL
+9006 Tessuto TEMPOTEST 3/84 GH. argano manuale
+attacco a soffitto Mantovana a onda standard ricavata
+dal basso passamaneria in tinta N° 1 da 105 x 200 cm
+a sx v.i. Schermatura superficie mq 2,100 Classe 4 gtot
+0,08 Data collaudo 22/07/2026
+1 300,00 € 300,00 € 22 % -
+METODO DI PAGAMENTO
+NR RATA MODALITÀ PAGAMENTO BANCA IBAN BIC/SWIFT DATA SCADENZA IMPORTO
+1 Bonifico Pagamento in
+unica soluzione
+Monte dei
+paschi di siena
+IT21X0103032650000007139314 22/07/2026 1.586,00 €
+REGIME FISCALE
+REGIME FISCALE
+RF01 - Ordinario
+IVA NATURA NORMATIVA 22% 1.300,00 € 286,00 €
+RIEPILOGO IVA CALCOLO FATTURA
+Importo prodotti o servizi 1.300,00 €
+Totale imponibile 1.300,00 €
+Totale IVA 286,00 €
+Totale documento 1.586,00 €
+ESIGIBILITA' IMPONIBILE IMPOSTA
+Netto a pagare 1.586,00 €
+effettuare bonifico per detrazione : Causale intervento di
+riqualificazione energetica L.296/2006
+Copia analogica della fattura elettronica inviata a SdI | Il documento xml originale è disponibile online sul portale "Fatture e Corrispettivi dell'Agenzia delle Entrate"
+Fattura Nr. FPR 384/26 del 22/07/2026 Fattura generata con:
+Pag.1/1

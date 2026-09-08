@@ -1,27 +1,60 @@
 #!/usr/bin/env node
 import path from "node:path";
 import { readFileSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { PersistentAprEneaBrowserWorker, reconcileStoppedAprEneaBrowserWorkerCheckpoint, type AprEneaDraftPackage, type AprEneaPageSaveProbeEvidence } from "./aprEneaBrowserWorker";
 import { CdpEneaBrowserDriver, classifyPersistedPageFieldsReadOnly, eneaGeneratorActivationLabels, matchingScreeningRowIndexes, portalNumberValue } from "./cdpEneaBrowserDriver";
 import { PersistentAprChromeRuntime } from "./cdpClient";
 import { PersistentAprCrmDocumentAnalysis } from "./crmDocumentAnalysis";
 import { PersistentAprCrmLocalPreflight } from "./crmLocalPreflight";
 import { PersistentAprCohortSeed } from "./aprCohortSeed";
-import { isTransientCdpReadOnlyFailure, nestedOuterSavePersistenceVerificationCandidate, nestedPageAbsenceRecoveryCandidate, PersistentAprEneaDraftExecution, savedPayloadPostCompletionVerificationEligible, type AprNestedPageAbsenceEvidence } from "./eneaDraftExecution";
-import { aprEneaKeepaliveInterval, aprEneaWorkerLoopFailureDisposition, isAprEneaKeepaliveDue, PersistentAprEneaWorkerService, shouldHoldAprEneaKeepaliveState } from "./aprEneaBrowserWorkerService";
+import { isTransientCdpReadOnlyFailure, nestedOuterSavePersistenceVerificationCandidate, nestedPageAbsenceRecoveryCandidate, partialInfissiEmptyCanonicalRecoveryCandidate, PersistentAprEneaDraftExecution, savedPayloadPostCompletionVerificationEligible, verifiedPackageRecoveryIntentAccountingCandidate, type AprNestedPageAbsenceEvidence, type AprUncertainPageSaveProbe } from "./eneaDraftExecution";
+import { aprEneaKeepaliveInterval, aprEneaWorkerLoopFailureDisposition, isAprEneaKeepaliveDue, PersistentAprEneaWorkerService, shouldHoldAprEneaKeepaliveState, shouldQuiesceTerminalAprEneaWorker } from "./aprEneaBrowserWorkerService";
 import { PersistentAprInfissiBatchPreflight } from "./infissiBatchPreflight";
 import { nestedUncertainPageSaveProbeAllowed } from "./infissiUncertainSavePolicy";
-import { APR_REQUIRED_INFISSI_VALIDATION_REVISIONS, dateGateReleaseReadyCustomerKeys, infissiExecutionGateReady } from "./infissiExecutionGate";
+import { applyRequiredInfissiValidationRevisions, dateGateReleaseReadyCustomerKeys, infissiExecutionGateReady } from "./infissiExecutionGate";
 import { PersistentAprEneaOperationalBridge } from "./aprEneaOperationalBridge";
 import type { AprEneaMappingArtifact } from "./aprEneaPureMapper";
-import { PersistentAprEneaGlobalBrowserController, type AprEneaGlobalBrowserAccess } from "./aprEneaGlobalBrowserController";
+import { PersistentAprEneaGlobalBrowserController, type AprEneaCdpCapability, type AprEneaGlobalBrowserAccess } from "./aprEneaGlobalBrowserController";
+import { assertAprRuleGovernanceAdmission } from "./aprRuleGovernanceAdmission";
+import { AUTO_CURRENT_VALIDATION_REVISION } from "../../src/features/enea-shadow-crm/operationalRegistry";
 
 function option(name: string) { const index = process.argv.indexOf(name); return index >= 0 ? process.argv[index + 1] : undefined; }
 const mode = process.argv[2] ?? "status";
+const governanceRequiredModes = new Set(["serve", "requeue-deleted-draft", "recover-pending-create", "resume-infissi-contract-discovery"]);
+if (governanceRequiredModes.has(mode)) assertAprRuleGovernanceAdmission({ executablePath: process.argv[1] });
 const rootDirectory = path.resolve(option("--state-dir") ?? ".enea-shadow-runtime");
 const intervalMs = Number(option("--interval-ms") ?? "2000");
 const service = new PersistentAprEneaWorkerService(rootDirectory);
 const instanceId = `apr-enea-worker-service-${process.pid}-${crypto.randomUUID()}`;
+const oneShotModes = new Set(["requeue-deleted-draft", "recover-pending-create", "resume-infissi-contract-discovery", "inspect-standard-save-control", "inspect-nested-server-json"]);
+let oneShotController: PersistentAprEneaGlobalBrowserController | null = null;
+let oneShotAccess: AprEneaGlobalBrowserAccess | null = null;
+let oneShotCapability: AprEneaCdpCapability | null = null;
+let oneShotRuntime: PersistentAprChromeRuntime | null = null;
+if (oneShotModes.has(mode)) {
+  const config = service.loadConfig();
+  oneShotController = new PersistentAprEneaGlobalBrowserController({ profileDirectory: config.profileDirectory, remoteDebuggingPort: config.remoteDebuggingPort });
+  oneShotAccess = oneShotController.tryAcquire({ ownerId: instanceId, cohortRoot: rootDirectory, purpose: "one_shot", accessMode: "readonly", processPid: process.pid });
+  if (!oneShotAccess) throw new Error("apr_enea_one_shot_global_browser_busy");
+  oneShotCapability = oneShotController.createCapability(oneShotAccess);
+  process.once("exit", () => { if (oneShotController && oneShotAccess) try { oneShotController.release(oneShotAccess); } catch { /* lease gia scaduta o fenced */ } });
+}
+
+function createOneShotRuntime(config: ReturnType<PersistentAprEneaWorkerService["loadConfig"]>) {
+  if (!oneShotModes.has(mode) || oneShotRuntime) throw new Error("apr_enea_one_shot_runtime_lifecycle_invalid");
+  oneShotRuntime = new PersistentAprChromeRuntime({ chromeExecutable: config.chromeExecutable, profileDirectory: config.profileDirectory, remoteDebuggingPort: config.remoteDebuggingPort, headless: false, initialUrl: config.dashboardUrl });
+  return oneShotRuntime;
+}
+
+function finalizeOneShot() {
+  if (!oneShotModes.has(mode)) return;
+  oneShotRuntime?.closeAllPageClients();
+  oneShotRuntime = null;
+  if (oneShotController && oneShotAccess) oneShotController.release(oneShotAccess);
+  oneShotAccess = null;
+  oneShotCapability = null;
+}
 
 function fieldVerificationRecoveryRevision(reason: string) {
   if (/co_beneficiary_trusted_input_not_verified/.test(reason)) return "co-beneficiary-modal-scoped-fields-v55";
@@ -51,6 +84,7 @@ async function advanceRepeatDeletionGate(driver: CdpEneaBrowserDriver) {
 async function serve() {
   if (!Number.isInteger(intervalMs) || intervalMs < 500) throw new Error("apr_enea_worker_interval_invalid");
   let running = true;
+  let terminalQuiescence = false;
   let runtime: PersistentAprChromeRuntime | null = null;
   let runtimeKey: string | null = null;
   let retainedGlobalBrowserController: PersistentAprEneaGlobalBrowserController | null = null;
@@ -78,6 +112,25 @@ async function serve() {
       service.record({ instanceId, processPid: process.pid, status: "disabled", type: "heartbeat_disabled", reason: "Servizio attivo ma setup browser disabilitato: nessuna finestra e nessuna azione ENEA.", nextAction: "Abilitare il setup soltanto dopo collaudo locale verde." });
       await new Promise((resolve) => setTimeout(resolve, intervalMs)); continue;
     }
+    const terminalBoundaryExecution = new PersistentAprEneaDraftExecution(rootDirectory).snapshot();
+    const terminalBoundaryService = service.loadState();
+    if (shouldQuiesceTerminalAprEneaWorker({
+      executionStatus: terminalBoundaryExecution.status,
+      currentCustomerKey: terminalBoundaryExecution.currentCustomerKey,
+      serviceStatus: terminalBoundaryService.status,
+    })) {
+      service.record({
+        instanceId,
+        processPid: process.pid,
+        status: "completed",
+        type: "terminal_worker_quiescing",
+        reason: "Esecuzione e servizio concordano su completato senza pratica corrente: il worker rilascia il controller browser e termina pulitamente.",
+        nextAction: "Nessuna: il keepalive ENEA indipendente resta attivo; una nuova coorte avviera un nuovo worker.",
+      });
+      terminalQuiescence = true;
+      running = false;
+      break;
+    }
     const nextRuntimeKey = JSON.stringify([config.chromeExecutable, config.profileDirectory, config.remoteDebuggingPort, config.dashboardUrl]);
     if (!runtime || runtimeKey !== nextRuntimeKey) {
       runtime?.closeAllPageClients();
@@ -85,6 +138,9 @@ async function serve() {
       runtimeKey = nextRuntimeKey;
     }
     const activeRuntime = runtime;
+    const leaseBoundaryExecution = new PersistentAprEneaDraftExecution(rootDirectory).snapshot();
+    const mayExecuteCase = Boolean(leaseBoundaryExecution.currentCustomerKey)
+      || leaseBoundaryExecution.items.some((item) => !["saved", "deferred_operator"].includes(item.state));
     const globalBrowserController: PersistentAprEneaGlobalBrowserController = retainedGlobalBrowserController ?? new PersistentAprEneaGlobalBrowserController({
       profileDirectory: config.profileDirectory,
       remoteDebuggingPort: config.remoteDebuggingPort,
@@ -92,7 +148,8 @@ async function serve() {
     const globalBrowserAccess: AprEneaGlobalBrowserAccess | null = retainedGlobalBrowserAccess ?? globalBrowserController.tryAcquire({
       ownerId: instanceId,
       cohortRoot: rootDirectory,
-      purpose: "case_execution",
+      purpose: mayExecuteCase ? "case_execution" : "keepalive",
+      accessMode: mayExecuteCase ? "mutating" : "readonly",
       processPid: process.pid,
     });
     if (!globalBrowserAccess) {
@@ -107,13 +164,34 @@ async function serve() {
       await new Promise((resolve) => setTimeout(resolve, intervalMs));
       continue;
     }
+    try {
+      // Un accesso conservato oltre il singolo tick non e' considerato valido
+      // per inerzia: viene ricontrollato e rinnovato prima di qualunque
+      // riaggancio a Chrome. Un holder fenced/expired perde quindi la
+      // capability prima di aprire una nuova connessione CDP.
+      globalBrowserController.renew(globalBrowserAccess);
+    } catch (error) {
+      retainedGlobalBrowserController = null;
+      retainedGlobalBrowserAccess = null;
+      activeRuntime.closeAllPageClients();
+      service.record({
+        instanceId,
+        processPid: process.pid,
+        status: "technical_block",
+        type: "global_browser_lease_lost",
+        reason: `Lease/fencing Chrome non piu valido: ${error instanceof Error ? error.message : String(error)}.`,
+        nextAction: "APR non esegue alcuna azione CDP; al prossimo tick tentera una nuova acquisizione fail-closed.",
+      });
+      await new Promise((resolve) => setTimeout(resolve, intervalMs));
+      continue;
+    }
     retainedGlobalBrowserController = globalBrowserController;
     retainedGlobalBrowserAccess = globalBrowserAccess;
     try {
       if (!["starting_browser", "login_required", "setup_ready", "running", "completed", "technical_block"].includes(service.loadState().status)) service.record({ instanceId, processPid: process.pid, status: "starting_browser", type: "browser_starting", reason: "APR avvia o riaggancia il proprio Chrome persistente.", nextAction: "Verificare la sessione ENEA nel profilo APR." });
       const browser = await activeRuntime.ensureRunning();
       const chromePid = browser.pid ?? service.loadState().chromePid;
-      const driver = new CdpEneaBrowserDriver(rootDirectory, activeRuntime, { allowedOrigin: config.allowedOrigin, dashboardUrl: config.dashboardUrl });
+      const driver = new CdpEneaBrowserDriver(rootDirectory, activeRuntime, { accessCapability: globalBrowserController.createCapability(globalBrowserAccess), allowedOrigin: config.allowedOrigin, dashboardUrl: config.dashboardUrl });
       const authenticationJourney = await driver.inspectExternalAuthenticationJourneyReadOnly();
       if (authenticationJourney.inProgress) {
         service.record({
@@ -167,12 +245,15 @@ async function serve() {
         const infissiPreflight = new PersistentAprInfissiBatchPreflight(rootDirectory);
         const execution = new PersistentAprEneaDraftExecution(rootDirectory);
         analysis.applyTechnicalPerformanceDiagramOcrRepair("infissi-performance-diagram-ocr-v2");
+        analysis.applyOcrOrientationRevision("document-ocr-orientation-normalization-v1");
         analysis.applyParserRevision("invoice-parser-v31-rinaldi-sp-dot-and-vat-layout");
         analysis.applyParserRevision("invoice-parser-v32-grk-vertical-number-date");
         analysis.applyParserRevision("invoice-parser-v33-header-identity-over-body-reference");
         analysis.applyParserRevision("invoice-parser-v34-linea-sole-partial-paper-scomparsa");
         analysis.applyParserRevision("invoice-parser-v35-composite-invoice-transfer-segmentation");
         analysis.applyParserRevision("invoice-parser-v36-screening-unit-surface-coherence");
+        analysis.applyParserRevision("invoice-parser-v38-rotated-fiscal-bank-layouts-r30");
+        analysis.applyParserRevision("invoice-parser-v40-labelled-depth-acconto-saldo");
         preflight.applyValidationRevision("single-unit-building-portal-mapping-v30");
         preflight.applyValidationRevision("rinaldi-sp-dot-and-vat-layout-v32");
         preflight.applyValidationRevision("grk-compact-financial-summary-v33");
@@ -209,14 +290,19 @@ async function serve() {
         // continuare a pubblicare i blocker costruiti dalla vecchia etichetta
         // CRM pur usando il nuovo bundle.
         preflight.applyValidationRevision("documented-product-module-over-label-v65");
+        // Difetto strutturale (2026-09-08): gli elenchi sopra sono scritti a
+        // mano e vanno gia' fuori sincrono con elenchi paralleli in altri
+        // file (crmLiveProcessing.ts si era fermato a una correzione molto
+        // piu' vecchia). Questo identificatore e' derivato dal contenuto del
+        // registro e cambia da solo: nessuna riga da aggiungere qui d'ora in poi.
+        analysis.applyParserRevision(AUTO_CURRENT_VALIDATION_REVISION);
+        preflight.applyValidationRevision(AUTO_CURRENT_VALIDATION_REVISION);
         // Una revisione fonti o un riavvio puo lasciare il preflight comune in
         // coda. Le bozze Infissi dipendono da CF e date risolti in quel
         // checkpoint: completarlo prima di costruire i pacchetti evita il race
         // `infissi_shared_mapping_not_ready` e non esegue azioni esterne.
         preflight.runToCompletion();
-        for (const validationRevision of APR_REQUIRED_INFISSI_VALIDATION_REVISIONS) {
-          infissiPreflight.applyValidationRevision(validationRevision);
-        }
+        applyRequiredInfissiValidationRevisions((validationRevision) => infissiPreflight.applyValidationRevision(validationRevision));
         infissiPreflight.tick();
         const infissiSnapshot = infissiPreflight.snapshot();
         if (infissiExecutionGateReady(infissiSnapshot)) {
@@ -275,6 +361,19 @@ async function serve() {
         execution.upgradeUncertainPageSaveOperatorInstructions("worker:operator-instruction-upgrade:v1");
         let executionBeforeTick = execution.snapshot();
         let driverBeforeTick = driver.snapshot();
+        const staleVerifiedPackageRecoveryIntent = executionBeforeTick.items.find((item) => {
+          if (!verifiedPackageRecoveryIntentAccountingCandidate(executionBeforeTick, item.customerKey) || !item.draftId || !item.uncertainPageSave) return false;
+          const page = item.pageCheckpoints.find((candidate) => candidate.pageId === item.uncertainPageSave!.pageId);
+          const commandId = `service:repair-verified-package-recovery-intent-accounting:${item.customerKey}:${item.draftId}:${page?.recoveryAuthorizedEvidenceId ?? "missing"}:v1`;
+          return Boolean(page && !executionBeforeTick.processedCommandIds.includes(commandId));
+        });
+        if (staleVerifiedPackageRecoveryIntent?.draftId) {
+          const page = staleVerifiedPackageRecoveryIntent.pageCheckpoints.find((candidate) => candidate.pageId === staleVerifiedPackageRecoveryIntent.uncertainPageSave!.pageId)!;
+          const commandId = `service:repair-verified-package-recovery-intent-accounting:${staleVerifiedPackageRecoveryIntent.customerKey}:${staleVerifiedPackageRecoveryIntent.draftId}:${page.recoveryAuthorizedEvidenceId}:v1`;
+          execution.repairVerifiedPackageRecoveryIntentAccounting(staleVerifiedPackageRecoveryIntent.customerKey, commandId);
+          executionBeforeTick = execution.snapshot();
+          service.record({ instanceId, processPid: process.pid, status: "running", type: "verified_package_recovery_intent_accounting_repaired", reason: `${staleVerifiedPackageRecoveryIntent.displayName}: contabilizzato il Salva gia tentato sulla bozza ${staleVerifiedPackageRecoveryIntent.draftId}; nessun nuovo click autorizzato.`, nextAction: "APR esegue soltanto la verifica server read-only della pagina.", chromePid, profileFingerprint: browser.profileFingerprint, sessionEvidenceId: page.recoveryAuthorizedEvidenceId });
+        }
         const crossCohortConflict = executionBeforeTick.items.find((item) => item.state === "operator_intervention"
           && Boolean(item.draftId)
           && item.createAttemptCount === 1
@@ -678,8 +777,8 @@ async function serve() {
           postClick?: { urlPath?: string; modalOpen?: boolean; invalidControlIds?: string[]; alerts?: string[]; markerFields?: Array<{ id?: string; value?: string; reactValue?: string }>; tables?: Array<{ headers?: string[]; rows?: string[][] }> };
         }> | undefined) ?? [];
         const partialInfissiEmptyCanonicalRecovery = executionBeforeTick.items.map((item) => {
-          if (item.state !== "operator_intervention" || !item.draftId || item.uncertainPageSave?.status !== "operator_required" || !item.uncertainPageSave.pageId.startsWith("screening:") || !item.pageCheckpoints.some((checkpoint) => /infiss/i.test(checkpoint.pageId))) return null;
-          const pageId = item.uncertainPageSave.pageId;
+          if (!partialInfissiEmptyCanonicalRecoveryCandidate(item)) return null;
+          const pageId = item.uncertainPageSave!.pageId;
           // Il recupero generico di una riga non persistita non deve precedere
           // una correzione business già provata dal portale. In quel caso il
           // payload va prima rigenerato col valore autorizzato, conservando
@@ -1347,6 +1446,14 @@ async function serve() {
           const firstScreeningPage = screeningSummaryPersistenceDiagnostic.pageCheckpoints.find((checkpoint) => checkpoint.pageId.startsWith("screening:"))!;
           const diagnostic = await driver.inspectScreeningSummaryReadOnly(draftPackageFor(screeningSummaryPersistenceDiagnostic.customerKey) as unknown as AprEneaDraftPackage, screeningSummaryPersistenceDiagnostic.draftId!, firstScreeningPage.pageId);
           service.record({ instanceId, processPid: process.pid, status: "technical_block", type: "screening_persistence_inspected_readonly", reason: `${screeningSummaryPersistenceDiagnostic.displayName}: lettura server indipendente ${screeningPersistenceProofs.length + 1}/2; righe=${diagnostic.rowCount}, caricamento=${diagnostic.loading}, superficie=${diagnostic.surfaceReady}, autenticata=${diagnostic.authenticated}; nessun campo modificato e nessun Salva.`, nextAction: "APR esegue una seconda lettura indipendente prima di autorizzare qualunque recupero.", chromePid, profileFingerprint: browser.profileFingerprint, sessionEvidenceId: diagnostic.evidenceId });
+          // La fotografia driverBeforeTick precede la GET appena persistita. Non
+          // eseguire il tick ordinario con un conteggio prove ormai obsoleto:
+          // potrebbe esaurire le sonde della riga, pubblicare un falso terminale
+          // e consentire al sequencer di spegnere il worker prima che il ciclo
+          // successivo applichi il recupero gia autorizzabile. Il continue passa
+          // dal finally (chiusura client/lease), poi rivaluta atomicamente le due
+          // prove dal checkpoint fresco. Nessuna azione mutativa avviene qui.
+          continue;
         }
         if (executionBeforeTick.status === "completed" && nestedOuterSavePersistenceVerification && nestedOuterPersistenceProofs.length < 2) {
           const firstScreeningPage = nestedOuterSavePersistenceVerification.pageCheckpoints.find((checkpoint) => checkpoint.pageId.startsWith("screening:"))!;
@@ -1892,14 +1999,17 @@ async function serve() {
       service.recordCdpConnections(activeRuntime.connectionStats());
       activeRuntime.closeAllPageClients();
     }
+    if (!new PersistentAprEneaDraftExecution(rootDirectory).snapshot().currentCustomerKey) releaseRetainedGlobalBrowserAccess();
     await new Promise((resolve) => setTimeout(resolve, intervalMs));
   }
   runtime?.closeAllPageClients();
   if (runtime) service.recordCdpConnections(runtime.connectionStats());
   releaseRetainedGlobalBrowserAccess();
-  const reason = "Worker APR realmente quiescente dopo il segnale di sistema; nessuna azione browser è ancora in corso.";
+  const reason = terminalQuiescence
+    ? "Worker APR terminale realmente quiescente; controller browser rilasciato e nessuna azione ENEA in corso."
+    : "Worker APR realmente quiescente dopo il segnale di sistema; nessuna azione browser è ancora in corso.";
   reconcileStoppedAprEneaBrowserWorkerCheckpoint(rootDirectory, { instanceId, reason });
-  service.record({ instanceId, processPid: 0, status: "stopped", type: "stopped_after_quiescence", reason, nextAction: "Il LaunchAgent lo riavvierà mantenendo checkpoint e profilo." });
+  service.record({ instanceId, processPid: 0, status: "stopped", type: "stopped_after_quiescence", reason, nextAction: "Un nuovo worker verra avviato soltanto per una nuova coorte o dopo un'uscita non riuscita; keepalive e Chrome restano indipendenti." });
 }
 
 if (mode === "status") print(service.snapshot());
@@ -1914,6 +2024,36 @@ else if (mode === "configure") {
   }));
 }
 else if (mode === "bridge-status") print(new PersistentAprEneaOperationalBridge(rootDirectory).snapshot());
+else if (mode === "restore-canonical-checkpoint") {
+  const attestationPath = path.resolve(option("--attestation") ?? "");
+  if (!attestationPath) throw new Error("apr_enea_checkpoint_restore_attestation_required");
+  const attestation = JSON.parse(readFileSync(attestationPath, "utf8")) as {
+    version?: string;
+    stateDirectory?: string;
+    authorization?: { scope?: string; draftId?: string };
+    preRestore?: { checkpointRevision?: number; checkpointSha256?: string };
+    safety?: { browserActionAllowed?: boolean; newDraftAllowed?: boolean; saveAllowed?: boolean };
+    restore?: Parameters<PersistentAprEneaDraftExecution["restoreCanonicalDraftCheckpoint"]>[0];
+  };
+  if (attestation.version !== "apr-canonical-draft-checkpoint-restore-v1"
+    || path.resolve(attestation.stateDirectory ?? "") !== rootDirectory
+    || attestation.authorization?.scope !== "same_generation_same_canonical_draft"
+    || attestation.authorization.draftId !== attestation.restore?.draftId
+    || attestation.safety?.browserActionAllowed !== false
+    || attestation.safety.newDraftAllowed !== false
+    || attestation.safety.saveAllowed !== false
+    || !attestation.restore) throw new Error("apr_enea_checkpoint_restore_attestation_invalid");
+  const execution = new PersistentAprEneaDraftExecution(rootDirectory);
+  const currentCheckpointBytes = readFileSync(execution.checkpointPath);
+  const currentCheckpointSha256 = createHash("sha256").update(currentCheckpointBytes).digest("hex");
+  const currentCheckpoint = execution.snapshot();
+  if (attestation.preRestore?.checkpointRevision !== currentCheckpoint.revision
+    || attestation.preRestore.checkpointSha256 !== currentCheckpointSha256) throw new Error("apr_enea_checkpoint_restore_precondition_changed");
+  const restored = execution.restoreCanonicalDraftCheckpoint({ ...attestation.restore, probes: attestation.restore.probes as AprUncertainPageSaveProbe[] });
+  const resumeDecision = execution.resumeDecision();
+  if (resumeDecision.action !== "verify_page_saved_state_readonly") throw new Error("apr_enea_checkpoint_restore_readonly_next_action_invalid");
+  print({ restored, resumeDecision });
+}
 else if (mode === "bridge-arm") {
   const customerKey = option("--customer-key") ?? "";
   const mappingPath = path.resolve(option("--mapping-artifact") ?? "");
@@ -1929,9 +2069,9 @@ else if (mode === "requeue-deleted-draft") {
   const commandId = option("--command-id") ?? `worker:requeue-deleted-draft:${customerKey}:${draftId}:v1`;
   if (!customerKey.trim() || !/^\d{4,}$/.test(draftId) || !operatorEvidenceId.trim()) throw new Error("apr_enea_deleted_draft_requeue_options_required");
   const config = service.loadConfig();
-  const runtime = new PersistentAprChromeRuntime({ chromeExecutable: config.chromeExecutable, profileDirectory: config.profileDirectory, remoteDebuggingPort: config.remoteDebuggingPort, headless: false, initialUrl: config.dashboardUrl });
+  const runtime = createOneShotRuntime(config);
   const browser = await runtime.ensureRunning();
-  const driver = new CdpEneaBrowserDriver(rootDirectory, runtime, { allowedOrigin: config.allowedOrigin, dashboardUrl: config.dashboardUrl });
+  const driver = new CdpEneaBrowserDriver(rootDirectory, runtime, { accessCapability: oneShotCapability!, allowedOrigin: config.allowedOrigin, dashboardUrl: config.dashboardUrl });
   const proof = await driver.verifyDraftIdsAbsentReadOnly([draftId]);
   if (!proof.allAbsent) throw new Error(`apr_enea_deleted_draft_still_present:${draftId}`);
   const retiredMapping = driver.retireDeletedDraftMappingAfterVerifiedAbsence(customerKey, draftId, proof);
@@ -1945,9 +2085,9 @@ else if (mode === "recover-pending-create") {
   const commandId = option("--command-id") ?? `worker:recover-pending-create:${customerKey}:v1`;
   if (!customerKey.trim()) throw new Error("apr_enea_pending_create_recovery_customer_required");
   const config = service.loadConfig();
-  const runtime = new PersistentAprChromeRuntime({ chromeExecutable: config.chromeExecutable, profileDirectory: config.profileDirectory, remoteDebuggingPort: config.remoteDebuggingPort, headless: false, initialUrl: config.dashboardUrl });
+  const runtime = createOneShotRuntime(config);
   const browser = await runtime.ensureRunning();
-  const driver = new CdpEneaBrowserDriver(rootDirectory, runtime, { allowedOrigin: config.allowedOrigin, dashboardUrl: config.dashboardUrl });
+  const driver = new CdpEneaBrowserDriver(rootDirectory, runtime, { accessCapability: oneShotCapability!, allowedOrigin: config.allowedOrigin, dashboardUrl: config.dashboardUrl });
   const pending = driver.snapshot().pendingCreate;
   if (!pending || pending.customerKey !== customerKey || pending.wizardSubmitAttemptCount !== 0) throw new Error("apr_enea_pending_create_recovery_checkpoint_invalid");
   const execution = new PersistentAprEneaDraftExecution(rootDirectory);
@@ -1970,13 +2110,8 @@ else if (mode === "resume-infissi-contract-discovery") {
   const customerKey = option("--customer-key") ?? "";
   const commandId = option("--command-id") ?? `worker:resume-infissi-contract-discovery:${customerKey}:v2`;
   if (!customerKey.trim()) throw new Error("apr_enea_infissi_contract_recovery_customer_required");
-  const driver = new CdpEneaBrowserDriver(rootDirectory, new PersistentAprChromeRuntime({
-    chromeExecutable: service.loadConfig().chromeExecutable,
-    profileDirectory: service.loadConfig().profileDirectory,
-    remoteDebuggingPort: service.loadConfig().remoteDebuggingPort,
-    headless: false,
-    initialUrl: service.loadConfig().dashboardUrl,
-  }), { allowedOrigin: service.loadConfig().allowedOrigin, dashboardUrl: service.loadConfig().dashboardUrl });
+  const config = service.loadConfig();
+  const driver = new CdpEneaBrowserDriver(rootDirectory, createOneShotRuntime(config), { accessCapability: oneShotCapability!, allowedOrigin: config.allowedOrigin, dashboardUrl: config.dashboardUrl });
   const diagnostic = driver.snapshot().pagePreparationDiagnostic as { kind?: string; customerKey?: string; draftId?: string; pageId?: string; evidenceId?: string } | null;
   if (!diagnostic
     || !["infissi-technical-contract-discovery-v1", "infissi-technical-contract-discovery-v2"].includes(diagnostic.kind ?? "")
@@ -2001,12 +2136,31 @@ else if (mode === "inspect-standard-save-control") {
   const page = item?.pageCheckpoints.find((candidate) => candidate.pageId === pageId);
   if (!item || item.draftId !== draftId || item.uncertainPageSave?.status !== "recovery_authorized" || page?.state !== "save_intent_recorded" || page.recoverySaveAttemptCount !== 1) throw new Error("apr_enea_standard_save_diagnostic_checkpoint_invalid");
   const config = service.loadConfig();
-  const runtime = new PersistentAprChromeRuntime({ chromeExecutable: config.chromeExecutable, profileDirectory: config.profileDirectory, remoteDebuggingPort: config.remoteDebuggingPort, headless: false, initialUrl: config.dashboardUrl });
+  const runtime = createOneShotRuntime(config);
   const browser = await runtime.ensureRunning();
-  const driver = new CdpEneaBrowserDriver(rootDirectory, runtime, { allowedOrigin: config.allowedOrigin, dashboardUrl: config.dashboardUrl });
+  const driver = new CdpEneaBrowserDriver(rootDirectory, runtime, { accessCapability: oneShotCapability!, allowedOrigin: config.allowedOrigin, dashboardUrl: config.dashboardUrl });
   const diagnostic = await driver.inspectPreparedStandardPageSaveControlReadOnly(loadDraftPackage(customerKey), draftId, pageId);
   service.record({ instanceId, processPid: process.pid, status: "running", type: "standard_save_control_inspected_readonly", reason: `${customerKey}: controllo Salva ispezionato senza clic né navigazione.`, nextAction: "Correggere il driver prima di consumare l'unico Salva di recupero autorizzato.", chromePid: browser.pid, profileFingerprint: browser.profileFingerprint, sessionEvidenceId: diagnostic.evidenceId });
   print({ diagnostic });
 }
+else if (mode === "inspect-nested-server-json") {
+  const customerKey = option("--customer-key") ?? "";
+  const draftId = option("--draft-id") ?? "";
+  const pageId = option("--page-id") ?? "";
+  if (!customerKey.trim() || !/^\d{4,}$/.test(draftId) || !/Generatore/.test(pageId)) throw new Error("apr_enea_nested_server_diagnostic_options_required");
+  const execution = new PersistentAprEneaDraftExecution(rootDirectory).snapshot();
+  const item = execution.items.find((candidate) => candidate.customerKey === customerKey);
+  if (!item || item.draftId !== draftId || item.state !== "operator_intervention"
+    || !/apr_enea_nested_page_not_persisted_after_outer_save/.test(item.reason)) throw new Error("apr_enea_nested_server_diagnostic_checkpoint_invalid");
+  const config = service.loadConfig();
+  const runtime = createOneShotRuntime(config);
+  const browser = await runtime.ensureRunning();
+  const driver = new CdpEneaBrowserDriver(rootDirectory, runtime, { accessCapability: oneShotCapability!, allowedOrigin: config.allowedOrigin, dashboardUrl: config.dashboardUrl });
+  const proof = await driver.inspectNestedPageServerJsonReadOnly(loadDraftPackage(customerKey), draftId, pageId);
+  service.record({ instanceId, processPid: process.pid, status: "technical_block", type: "nested_server_json_inspected_readonly", reason: `${customerKey}: GET autenticata fresca del draft ${draftId} acquisita senza click, campi o salvataggi.`, nextAction: "Classificare la risposta server e correggere la causa reale prima di un nuovo test.", chromePid: browser.pid, profileFingerprint: browser.profileFingerprint, sessionEvidenceId: proof.evidence?.evidenceId ?? undefined });
+  print(proof);
+}
 else if (mode === "serve") await serve();
-else throw new Error("Comando worker non valido: status, configure, bridge-status, bridge-arm, requeue-deleted-draft, recover-pending-create, resume-infissi-contract-discovery, inspect-standard-save-control, serve.");
+else throw new Error("Comando worker non valido: status, configure, bridge-status, restore-canonical-checkpoint, bridge-arm, requeue-deleted-draft, recover-pending-create, resume-infissi-contract-discovery, inspect-standard-save-control, inspect-nested-server-json, serve.");
+
+finalizeOneShot();

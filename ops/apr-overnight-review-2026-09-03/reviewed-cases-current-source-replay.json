@@ -1,0 +1,1755 @@
+{
+  "schemaVersion": "apr-reviewed-cases-current-source-replay-v1",
+  "generatedAt": "2026-09-03T00:03:13.790Z",
+  "source": "current_worktree_uninstalled_local_replay",
+  "safety": {
+    "localOnly": true,
+    "externalActionAllowed": false,
+    "eneaAccessed": false
+  },
+  "cases": [
+    {
+      "customerKey": "sarah-mondini",
+      "displayName": "Sarah Mondini",
+      "operationalCohort": 2922,
+      "outcome": "blocked_case",
+      "formAvailable": true,
+      "taxCodeStatus": "verified_original_document",
+      "resolvedTaxCode": "MNDSRH90T44D150Y",
+      "products": [],
+      "blockers": [
+        {
+          "code": "product_cardinality_form_invoice_mismatch",
+          "field": "screenings.quantity",
+          "reason": "Controllo incrociato ripetuto: il form descrive 3 righe e le fatture 0 prodotti fisici non riconciliabili in modo univoco per famiglia. Richiesto intervento operatore: confermare la cardinalita fisica e l'assegnazione degli attributi form.",
+          "sourceIds": [
+            "290e49526ceb914d458e58178a590115a965d4393857b98b97c6ebedbcdef648",
+            "079413635df1b377000764ca8cde70c407967c3a40f9acded1db08646d26141a",
+            "c04f4fb6933de06bdcf04832c6a72c79c16c9920960ba75c1b1a6b086fb22575",
+            "8cb34ce464b619b4d31d11203c3108ebdecd538863dc732278b187f1c2d20c35"
+          ],
+          "appliedRuleIds": [
+            "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+            "user-2026-08-14-preserve-technical-product-cardinality",
+            "user-2026-08-15-form-group-to-physical-products",
+            "system-apr-operator-intervention-routing"
+          ]
+        },
+        {
+          "code": "screenings_missing",
+          "field": "screenings",
+          "reason": "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+          "sourceIds": [
+            "290e49526ceb914d458e58178a590115a965d4393857b98b97c6ebedbcdef648",
+            "079413635df1b377000764ca8cde70c407967c3a40f9acded1db08646d26141a",
+            "c04f4fb6933de06bdcf04832c6a72c79c16c9920960ba75c1b1a6b086fb22575",
+            "8cb34ce464b619b4d31d11203c3108ebdecd538863dc732278b187f1c2d20c35"
+          ],
+          "appliedRuleIds": [
+            "user-2026-08-14-preserve-technical-product-cardinality"
+          ]
+        },
+        {
+          "code": "screening_primary_measurements_missing",
+          "field": "screenings.dimensions",
+          "reason": "La fattura descrive la schermatura ma nessuna fonte primaria riporta le misure fisiche del prodotto. APR non usa le misure della finestra protetta come misure del prodotto: acquisire o confermare le misure e rimettere la pratica in Pronte da fare.",
+          "sourceIds": [
+            "290e49526ceb914d458e58178a590115a965d4393857b98b97c6ebedbcdef648",
+            "079413635df1b377000764ca8cde70c407967c3a40f9acded1db08646d26141a",
+            "c04f4fb6933de06bdcf04832c6a72c79c16c9920960ba75c1b1a6b086fb22575",
+            "8cb34ce464b619b4d31d11203c3108ebdecd538863dc732278b187f1c2d20c35"
+          ],
+          "appliedRuleIds": [
+            "system-screening-primary-measurements-operator-routing",
+            "user-2026-08-14-preserve-technical-product-cardinality",
+            "system-apr-operator-intervention-routing"
+          ]
+        }
+      ],
+      "warnings": [
+        {
+          "code": "explicit_building_type_over_apartment_count",
+          "reason": "La tipologia esplicita fino/oltre tre piani prevale sul numero appartamenti della singola pratica: edificio qualificato come plurimo.",
+          "appliedRuleIds": [
+            "user-2026-08-27-explicit-building-type-over-apartment-count-v2"
+          ]
+        }
+      ]
+    },
+    {
+      "customerKey": "maria-sofia-tosatti",
+      "displayName": "MARIA SOFIA TOSATTI",
+      "operationalCohort": 2928,
+      "outcome": "blocked_case",
+      "formAvailable": true,
+      "taxCodeStatus": "verified_original_document",
+      "resolvedTaxCode": "TSTMSF34M58C207W",
+      "products": [],
+      "blockers": [
+        {
+          "code": "screenings_missing",
+          "field": "screenings",
+          "reason": "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+          "sourceIds": [
+            "99ec9db6903db82d3f9a348e71c680534c75704047173130d376ced466f473fe",
+            "73a7ee28a3be1e633a3313a64be006cc49d72d824b4e3d7b4b4ddb1da9582997"
+          ],
+          "appliedRuleIds": [
+            "user-2026-08-14-preserve-technical-product-cardinality"
+          ]
+        },
+        {
+          "code": "screening_primary_measurements_missing",
+          "field": "screenings.dimensions",
+          "reason": "La fattura descrive la schermatura ma nessuna fonte primaria riporta le misure fisiche del prodotto. APR non usa le misure della finestra protetta come misure del prodotto: acquisire o confermare le misure e rimettere la pratica in Pronte da fare.",
+          "sourceIds": [
+            "99ec9db6903db82d3f9a348e71c680534c75704047173130d376ced466f473fe",
+            "73a7ee28a3be1e633a3313a64be006cc49d72d824b4e3d7b4b4ddb1da9582997"
+          ],
+          "appliedRuleIds": [
+            "system-screening-primary-measurements-operator-routing",
+            "user-2026-08-14-preserve-technical-product-cardinality",
+            "system-apr-operator-intervention-routing"
+          ]
+        }
+      ],
+      "warnings": [
+        {
+          "code": "linea_sole_potito_paper_form_accepted",
+          "reason": "Modulo cartaceo Linea Sole Potito riconosciuto come form originario da 73a7ee28a3be1e633a3313a64be006cc49d72d824b4e3d7b4b4ddb1da9582997.",
+          "appliedRuleIds": [
+            "user-2026-08-17-linea-sole-potito-paper-form-fallbacks",
+            "core-form-first"
+          ]
+        },
+        {
+          "code": "paper_form_birth_date_separator_ocr_repaired",
+          "reason": "Separatore OCR della data di nascita ricomposto come 1934-08-18 soltanto dopo concordanza completa col CF valido della fattura; testo originario e valore usato restano auditabili.",
+          "appliedRuleIds": [
+            "system-paper-form-birth-date-leading-digit-ocr-repair",
+            "user-2026-08-16-fiscal-code-identity-cross-check"
+          ]
+        },
+        {
+          "code": "crm_fiscal_code_confirmed_by_invoice_customer_block",
+          "reason": "CF CRM TSTMSF34M58C207W confermato nel blocco CLIENTE di una fattura originaria, con checksum e prefissi fiscali di nome/cognome concordanti.",
+          "appliedRuleIds": [
+            "system-invoice-customer-block-crm-cf-v1",
+            "user-2026-08-16-fiscal-code-identity-cross-check"
+          ]
+        },
+        {
+          "code": "building_units_defaulted_to_one",
+          "reason": "Numero appartamenti non specificato o zero: impostata una unita immobiliare.",
+          "appliedRuleIds": [
+            "user-2026-08-16-default-single-unit-when-unspecified",
+            "user-2026-08-14-single-unit-building-over-floor-count"
+          ]
+        }
+      ]
+    },
+    {
+      "customerKey": "roberta-di-cesare",
+      "displayName": "roberta di cesare",
+      "operationalCohort": 2931,
+      "outcome": "blocked_case",
+      "formAvailable": false,
+      "taxCodeStatus": "verified_original_document",
+      "resolvedTaxCode": "DCSRRT74S53F205D",
+      "products": [],
+      "blockers": [
+        {
+          "code": "customer_form_missing",
+          "field": "customer_form",
+          "reason": "Il dossier CRM non contiene un form cliente originario utilizzabile; documenti ENEA storici esclusi.",
+          "sourceIds": [
+            "d642ae914d123bc712bae78bccff14a82e9c1b5a683ddb4cd728604283784965"
+          ],
+          "appliedRuleIds": [
+            "core-form-first"
+          ]
+        },
+        {
+          "code": "screenings_missing",
+          "field": "screenings",
+          "reason": "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+          "sourceIds": [
+            "d642ae914d123bc712bae78bccff14a82e9c1b5a683ddb4cd728604283784965"
+          ],
+          "appliedRuleIds": [
+            "user-2026-08-14-preserve-technical-product-cardinality"
+          ]
+        },
+        {
+          "code": "screening_primary_measurements_missing",
+          "field": "screenings.dimensions",
+          "reason": "La fattura descrive la schermatura ma nessuna fonte primaria riporta le misure fisiche del prodotto. APR non usa le misure della finestra protetta come misure del prodotto: acquisire o confermare le misure e rimettere la pratica in Pronte da fare.",
+          "sourceIds": [
+            "d642ae914d123bc712bae78bccff14a82e9c1b5a683ddb4cd728604283784965"
+          ],
+          "appliedRuleIds": [
+            "system-screening-primary-measurements-operator-routing",
+            "user-2026-08-14-preserve-technical-product-cardinality",
+            "system-apr-operator-intervention-routing"
+          ]
+        }
+      ],
+      "warnings": [
+        {
+          "code": "crm_fiscal_code_confirmed_by_invoice_customer_block",
+          "reason": "CF CRM DCSRRT74S53F205D confermato nel blocco CLIENTE di una fattura originaria, con checksum e prefissi fiscali di nome/cognome concordanti.",
+          "appliedRuleIds": [
+            "system-invoice-customer-block-crm-cf-v1",
+            "user-2026-08-16-fiscal-code-identity-cross-check"
+          ]
+        }
+      ]
+    },
+    {
+      "customerKey": "marco-de-marinis",
+      "displayName": "MARCO DE MARINIS",
+      "operationalCohort": 2932,
+      "outcome": "blocked_case",
+      "formAvailable": true,
+      "taxCodeStatus": "verified_original_document",
+      "resolvedTaxCode": "DMRMRC75H17E202Q",
+      "products": [],
+      "blockers": [
+        {
+          "code": "screenings_missing",
+          "field": "screenings",
+          "reason": "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+          "sourceIds": [
+            "c3be64dacc2188f0a1bab5dc7104b71a009d39de53b574501ae89a9b4adafa45",
+            "e64ea20eb3b42243834f01f8e955654163c0e64f99250784d6da29afcf021a7e",
+            "14c4e20627c9baf7ab2358d60c2a78d4b71879e9afef943df4a588636ae9f67e",
+            "36679bff7b5c664a5122de9a24ffb029ff509f5aba781ef775214703ec99ab9e",
+            "c7b5c680352992bd4445e01aa8b1bd6db26bd5963437f52985283b0b49a40d00",
+            "f0b4c9756e028104238a96e555a2731d0dcf9a4b23072570f1ae86dfdd09a5f1"
+          ],
+          "appliedRuleIds": [
+            "user-2026-08-14-preserve-technical-product-cardinality"
+          ]
+        },
+        {
+          "code": "completion_date_portal_year_mismatch",
+          "field": "dates.completion",
+          "reason": "Fine lavori 2025-12-17: anno 2025 incompatibile con il portale ENEA 2026. Selezionare il portale annuale corretto senza modificare la data.",
+          "sourceIds": [
+            "f0b4c9756e028104238a96e555a2731d0dcf9a4b23072570f1ae86dfdd09a5f1:invoice:264f0ccd0374",
+            "c7b5c680352992bd4445e01aa8b1bd6db26bd5963437f52985283b0b49a40d00:invoice:264f0ccd0374"
+          ],
+          "appliedRuleIds": [
+            "user-2026-08-23-completion-portal-year-operator-gate",
+            "user-2026-08-14-missing-completion-use-latest-invoice"
+          ]
+        },
+        {
+          "code": "completion_over_90_days_operator_required",
+          "field": "dates.completion",
+          "reason": "Fine lavori 2025-12-17: 259 giorni prima della lavorazione, oltre il limite di 90 giorni. Verificare la procedibilità e il portale annuale corretto.",
+          "sourceIds": [
+            "f0b4c9756e028104238a96e555a2731d0dcf9a4b23072570f1ae86dfdd09a5f1:invoice:264f0ccd0374",
+            "c7b5c680352992bd4445e01aa8b1bd6db26bd5963437f52985283b0b49a40d00:invoice:264f0ccd0374"
+          ],
+          "appliedRuleIds": [
+            "user-2026-08-23-completion-over-90-operator-gate",
+            "user-2026-08-14-missing-completion-use-latest-invoice"
+          ]
+        },
+        {
+          "code": "invoice_332a5af9",
+          "field": "economic_sources",
+          "reason": "Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture.",
+          "sourceIds": [
+            "c3be64dacc2188f0a1bab5dc7104b71a009d39de53b574501ae89a9b4adafa45",
+            "e64ea20eb3b42243834f01f8e955654163c0e64f99250784d6da29afcf021a7e",
+            "14c4e20627c9baf7ab2358d60c2a78d4b71879e9afef943df4a588636ae9f67e",
+            "36679bff7b5c664a5122de9a24ffb029ff509f5aba781ef775214703ec99ab9e",
+            "c7b5c680352992bd4445e01aa8b1bd6db26bd5963437f52985283b0b49a40d00",
+            "f0b4c9756e028104238a96e555a2731d0dcf9a4b23072570f1ae86dfdd09a5f1"
+          ],
+          "appliedRuleIds": [
+            "core-economic-classification"
+          ]
+        },
+        {
+          "code": "invoice_929a8665",
+          "field": "economic_sources",
+          "reason": "Il totale di almeno un documento fiscale non è stato riconosciuto.",
+          "sourceIds": [
+            "c3be64dacc2188f0a1bab5dc7104b71a009d39de53b574501ae89a9b4adafa45",
+            "e64ea20eb3b42243834f01f8e955654163c0e64f99250784d6da29afcf021a7e",
+            "14c4e20627c9baf7ab2358d60c2a78d4b71879e9afef943df4a588636ae9f67e",
+            "36679bff7b5c664a5122de9a24ffb029ff509f5aba781ef775214703ec99ab9e",
+            "c7b5c680352992bd4445e01aa8b1bd6db26bd5963437f52985283b0b49a40d00",
+            "f0b4c9756e028104238a96e555a2731d0dcf9a4b23072570f1ae86dfdd09a5f1"
+          ],
+          "appliedRuleIds": [
+            "core-economic-classification"
+          ]
+        },
+        {
+          "code": "gross_triple_reconciliation_failed",
+          "field": "economic_sources.total",
+          "reason": "Tripla riconciliazione non dimostrata: terna-fattura-incerta:14c4e20627c9baf7ab2358d60c2a78d4b71879e9afef943df4a588636ae9f67e:invoice:264f0ccd0374.",
+          "sourceIds": [
+            "c3be64dacc2188f0a1bab5dc7104b71a009d39de53b574501ae89a9b4adafa45",
+            "e64ea20eb3b42243834f01f8e955654163c0e64f99250784d6da29afcf021a7e",
+            "14c4e20627c9baf7ab2358d60c2a78d4b71879e9afef943df4a588636ae9f67e",
+            "36679bff7b5c664a5122de9a24ffb029ff509f5aba781ef775214703ec99ab9e",
+            "c7b5c680352992bd4445e01aa8b1bd6db26bd5963437f52985283b0b49a40d00",
+            "f0b4c9756e028104238a96e555a2731d0dcf9a4b23072570f1ae86dfdd09a5f1"
+          ],
+          "appliedRuleIds": [
+            "user-2026-08-16-invoice-gross-total-vat-included",
+            "core-gross-triple-reconciliation",
+            "user-2026-08-16-distinct-invoice-numbers-same-customer-sum"
+          ]
+        }
+      ],
+      "warnings": [
+        {
+          "code": "primary_beneficiary_identity_overridden_by_invoice",
+          "reason": "Identita principale ricavata dalla fattura per il CF verificato: Marco De Marinis Via Venezia 4, 21010 Cardano Al Campo (va); prevale sul form cliente.",
+          "appliedRuleIds": [
+            "user-2026-08-16-invoice-identity-over-customer-form",
+            "user-2026-08-16-fiscal-code-identity-cross-check"
+          ]
+        }
+      ]
+    },
+    {
+      "customerKey": "giulia-kasermann",
+      "displayName": "Giulia Kasermann",
+      "operationalCohort": 2937,
+      "outcome": "blocked_case",
+      "formAvailable": true,
+      "taxCodeStatus": "verified_original_document",
+      "resolvedTaxCode": "KSRGLI94E49I470A",
+      "products": [],
+      "blockers": [
+        {
+          "code": "product_cardinality_form_invoice_mismatch",
+          "field": "screenings.quantity",
+          "reason": "Controllo incrociato ripetuto: il form descrive 1 righe e le fatture 0 prodotti fisici non riconciliabili in modo univoco per famiglia. Richiesto intervento operatore: confermare la cardinalita fisica e l'assegnazione degli attributi form.",
+          "sourceIds": [
+            "e411ec170e5e190b2c04747eadb6f76de390f298a1a8d2abca05159c68d00491"
+          ],
+          "appliedRuleIds": [
+            "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+            "user-2026-08-14-preserve-technical-product-cardinality",
+            "user-2026-08-15-form-group-to-physical-products",
+            "system-apr-operator-intervention-routing"
+          ]
+        },
+        {
+          "code": "screenings_missing",
+          "field": "screenings",
+          "reason": "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+          "sourceIds": [
+            "e411ec170e5e190b2c04747eadb6f76de390f298a1a8d2abca05159c68d00491"
+          ],
+          "appliedRuleIds": [
+            "user-2026-08-14-preserve-technical-product-cardinality"
+          ]
+        },
+        {
+          "code": "screening_primary_measurements_missing",
+          "field": "screenings.dimensions",
+          "reason": "La fattura descrive la schermatura ma nessuna fonte primaria riporta le misure fisiche del prodotto. APR non usa le misure della finestra protetta come misure del prodotto: acquisire o confermare le misure e rimettere la pratica in Pronte da fare.",
+          "sourceIds": [
+            "e411ec170e5e190b2c04747eadb6f76de390f298a1a8d2abca05159c68d00491"
+          ],
+          "appliedRuleIds": [
+            "system-screening-primary-measurements-operator-routing",
+            "user-2026-08-14-preserve-technical-product-cardinality",
+            "system-apr-operator-intervention-routing"
+          ]
+        }
+      ],
+      "warnings": [
+        {
+          "code": "enea_2026_june_25_ninety_day_window_applied",
+          "reason": "Avviso ENEA 25/06/2026 applicato: inizio lavori 2026-06-17, fine lavori 2026-06-17; i 90 giorni decorrono dal 25/06/2026 e terminano il 23/09/2026.",
+          "appliedRuleIds": [
+            "user-2026-08-23-enea-2026-june-25-ninety-day-window"
+          ]
+        }
+      ]
+    },
+    {
+      "customerKey": "antonella-ferletic",
+      "displayName": "Antonella Ferletic",
+      "operationalCohort": 2946,
+      "outcome": "blocked_case",
+      "formAvailable": true,
+      "taxCodeStatus": "verified_original_document",
+      "resolvedTaxCode": "FRLNNL68A61D205Z",
+      "products": [],
+      "blockers": [
+        {
+          "code": "product_cardinality_form_invoice_mismatch",
+          "field": "screenings.quantity",
+          "reason": "Controllo incrociato ripetuto: il form descrive 1 righe e le fatture 0 prodotti fisici non riconciliabili in modo univoco per famiglia. Richiesto intervento operatore: confermare la cardinalita fisica e l'assegnazione degli attributi form.",
+          "sourceIds": [
+            "27629ce7b6b2f931274eedeb3b7ed3531c418fc7809b644d85c0695c14f1eb51"
+          ],
+          "appliedRuleIds": [
+            "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+            "user-2026-08-14-preserve-technical-product-cardinality",
+            "user-2026-08-15-form-group-to-physical-products",
+            "system-apr-operator-intervention-routing"
+          ]
+        },
+        {
+          "code": "screenings_missing",
+          "field": "screenings",
+          "reason": "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+          "sourceIds": [
+            "27629ce7b6b2f931274eedeb3b7ed3531c418fc7809b644d85c0695c14f1eb51"
+          ],
+          "appliedRuleIds": [
+            "user-2026-08-14-preserve-technical-product-cardinality"
+          ]
+        },
+        {
+          "code": "screening_primary_measurements_missing",
+          "field": "screenings.dimensions",
+          "reason": "La fattura descrive la schermatura ma nessuna fonte primaria riporta le misure fisiche del prodotto. APR non usa le misure della finestra protetta come misure del prodotto: acquisire o confermare le misure e rimettere la pratica in Pronte da fare.",
+          "sourceIds": [
+            "27629ce7b6b2f931274eedeb3b7ed3531c418fc7809b644d85c0695c14f1eb51"
+          ],
+          "appliedRuleIds": [
+            "system-screening-primary-measurements-operator-routing",
+            "user-2026-08-14-preserve-technical-product-cardinality",
+            "system-apr-operator-intervention-routing"
+          ]
+        }
+      ],
+      "warnings": [
+        {
+          "code": "explicit_building_type_over_apartment_count",
+          "reason": "La tipologia esplicita fino/oltre tre piani prevale sul numero appartamenti della singola pratica: edificio qualificato come plurimo.",
+          "appliedRuleIds": [
+            "user-2026-08-27-explicit-building-type-over-apartment-count-v2"
+          ]
+        },
+        {
+          "code": "enea_2026_june_25_ninety_day_window_applied",
+          "reason": "Avviso ENEA 25/06/2026 applicato: inizio lavori 2026-06-16, fine lavori 2026-06-16; i 90 giorni decorrono dal 25/06/2026 e terminano il 23/09/2026.",
+          "appliedRuleIds": [
+            "user-2026-08-23-enea-2026-june-25-ninety-day-window"
+          ]
+        }
+      ]
+    },
+    {
+      "customerKey": "massimiliano-montemorra",
+      "displayName": "MASSIMILIANO MONTEMORRA",
+      "operationalCohort": 2962,
+      "outcome": "blocked_case",
+      "formAvailable": false,
+      "taxCodeStatus": "missing_or_invalid",
+      "resolvedTaxCode": null,
+      "products": [
+        {
+          "rowId": "56e9306e6dfbf15f9422765693438241d26df1c2bfdf7143042b8e55e51e9d00:invoice:264f0ccd0374:piece-1",
+          "sourceDocumentKey": "56e9306e6dfbf15f9422765693438241d26df1c2bfdf7143042b8e55e51e9d00:invoice:264f0ccd0374",
+          "description": "Avvolgibile in alluminio",
+          "pieceNumber": 1,
+          "widthMm": 1300,
+          "heightMm": 1800,
+          "surfaceM2": 2.34,
+          "exposure": null,
+          "exposureSource": null,
+          "protectedWindowSurfaceM2": 2.34,
+          "protectedWindowSurfaceSource": "derived_product_surface",
+          "supplementaryThermalResistance": 0.17,
+          "declaredType": "avvolgibile",
+          "formMappingSource": null,
+          "gTot": 0.06,
+          "gTotSource": "authorized_fallback",
+          "material": "Metallo",
+          "materialSource": "invoice_explicit",
+          "movement": "Manuale",
+          "movementSource": "authorized_fallback",
+          "appliedRuleIds": [
+            "user-2026-08-31-rigid-screening-missing-gtot-006-v1",
+            "user-2026-08-31-avvolgibile-screening-contract-v2",
+            "user-2026-08-18-screening-surface-material-over-support-structure",
+            "authorized-22-schermature-materiale",
+            "authorized-16-schermature-meccanismo",
+            "user-2026-08-14-preserve-technical-product-cardinality",
+            "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+            "user-2026-08-18-explicit-technical-surface-precision"
+          ]
+        },
+        {
+          "rowId": "56e9306e6dfbf15f9422765693438241d26df1c2bfdf7143042b8e55e51e9d00:invoice:264f0ccd0374:piece-2",
+          "sourceDocumentKey": "56e9306e6dfbf15f9422765693438241d26df1c2bfdf7143042b8e55e51e9d00:invoice:264f0ccd0374",
+          "description": "Avvolgibile in alluminio",
+          "pieceNumber": 2,
+          "widthMm": 1300,
+          "heightMm": 1800,
+          "surfaceM2": 2.34,
+          "exposure": null,
+          "exposureSource": null,
+          "protectedWindowSurfaceM2": 2.34,
+          "protectedWindowSurfaceSource": "derived_product_surface",
+          "supplementaryThermalResistance": 0.17,
+          "declaredType": "avvolgibile",
+          "formMappingSource": null,
+          "gTot": 0.06,
+          "gTotSource": "authorized_fallback",
+          "material": "Metallo",
+          "materialSource": "invoice_explicit",
+          "movement": "Manuale",
+          "movementSource": "authorized_fallback",
+          "appliedRuleIds": [
+            "user-2026-08-31-rigid-screening-missing-gtot-006-v1",
+            "user-2026-08-31-avvolgibile-screening-contract-v2",
+            "user-2026-08-18-screening-surface-material-over-support-structure",
+            "authorized-22-schermature-materiale",
+            "authorized-16-schermature-meccanismo",
+            "user-2026-08-14-preserve-technical-product-cardinality",
+            "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+            "user-2026-08-18-explicit-technical-surface-precision"
+          ]
+        },
+        {
+          "rowId": "56e9306e6dfbf15f9422765693438241d26df1c2bfdf7143042b8e55e51e9d00:invoice:264f0ccd0374:piece-3",
+          "sourceDocumentKey": "56e9306e6dfbf15f9422765693438241d26df1c2bfdf7143042b8e55e51e9d00:invoice:264f0ccd0374",
+          "description": "Avvolgibile in alluminio",
+          "pieceNumber": 3,
+          "widthMm": 900,
+          "heightMm": 1800,
+          "surfaceM2": 1.62,
+          "exposure": null,
+          "exposureSource": null,
+          "protectedWindowSurfaceM2": 1.62,
+          "protectedWindowSurfaceSource": "derived_product_surface",
+          "supplementaryThermalResistance": 0.17,
+          "declaredType": "avvolgibile",
+          "formMappingSource": null,
+          "gTot": 0.06,
+          "gTotSource": "authorized_fallback",
+          "material": "Metallo",
+          "materialSource": "invoice_explicit",
+          "movement": "Manuale",
+          "movementSource": "authorized_fallback",
+          "appliedRuleIds": [
+            "user-2026-08-31-rigid-screening-missing-gtot-006-v1",
+            "user-2026-08-31-avvolgibile-screening-contract-v2",
+            "user-2026-08-18-screening-surface-material-over-support-structure",
+            "authorized-22-schermature-materiale",
+            "authorized-16-schermature-meccanismo",
+            "user-2026-08-14-preserve-technical-product-cardinality",
+            "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+            "user-2026-08-18-explicit-technical-surface-precision"
+          ]
+        },
+        {
+          "rowId": "56e9306e6dfbf15f9422765693438241d26df1c2bfdf7143042b8e55e51e9d00:invoice:264f0ccd0374:piece-4",
+          "sourceDocumentKey": "56e9306e6dfbf15f9422765693438241d26df1c2bfdf7143042b8e55e51e9d00:invoice:264f0ccd0374",
+          "description": "Avvolgibile in alluminio",
+          "pieceNumber": 4,
+          "widthMm": 900,
+          "heightMm": 1800,
+          "surfaceM2": 1.62,
+          "exposure": null,
+          "exposureSource": null,
+          "protectedWindowSurfaceM2": 1.62,
+          "protectedWindowSurfaceSource": "derived_product_surface",
+          "supplementaryThermalResistance": 0.17,
+          "declaredType": "avvolgibile",
+          "formMappingSource": null,
+          "gTot": 0.06,
+          "gTotSource": "authorized_fallback",
+          "material": "Metallo",
+          "materialSource": "invoice_explicit",
+          "movement": "Manuale",
+          "movementSource": "authorized_fallback",
+          "appliedRuleIds": [
+            "user-2026-08-31-rigid-screening-missing-gtot-006-v1",
+            "user-2026-08-31-avvolgibile-screening-contract-v2",
+            "user-2026-08-18-screening-surface-material-over-support-structure",
+            "authorized-22-schermature-materiale",
+            "authorized-16-schermature-meccanismo",
+            "user-2026-08-14-preserve-technical-product-cardinality",
+            "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+            "user-2026-08-18-explicit-technical-surface-precision"
+          ]
+        },
+        {
+          "rowId": "56e9306e6dfbf15f9422765693438241d26df1c2bfdf7143042b8e55e51e9d00:invoice:264f0ccd0374:piece-5",
+          "sourceDocumentKey": "56e9306e6dfbf15f9422765693438241d26df1c2bfdf7143042b8e55e51e9d00:invoice:264f0ccd0374",
+          "description": "Avvolgibile in alluminio",
+          "pieceNumber": 5,
+          "widthMm": 1700,
+          "heightMm": 2800,
+          "surfaceM2": 4.76,
+          "exposure": null,
+          "exposureSource": null,
+          "protectedWindowSurfaceM2": 4.76,
+          "protectedWindowSurfaceSource": "derived_product_surface",
+          "supplementaryThermalResistance": 0.17,
+          "declaredType": "avvolgibile",
+          "formMappingSource": null,
+          "gTot": 0.06,
+          "gTotSource": "authorized_fallback",
+          "material": "Metallo",
+          "materialSource": "invoice_explicit",
+          "movement": "Manuale",
+          "movementSource": "authorized_fallback",
+          "appliedRuleIds": [
+            "user-2026-08-31-rigid-screening-missing-gtot-006-v1",
+            "user-2026-08-31-avvolgibile-screening-contract-v2",
+            "user-2026-08-18-screening-surface-material-over-support-structure",
+            "authorized-22-schermature-materiale",
+            "authorized-16-schermature-meccanismo",
+            "user-2026-08-14-preserve-technical-product-cardinality",
+            "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+            "user-2026-08-18-explicit-technical-surface-precision"
+          ]
+        },
+        {
+          "rowId": "56e9306e6dfbf15f9422765693438241d26df1c2bfdf7143042b8e55e51e9d00:invoice:264f0ccd0374:piece-6",
+          "sourceDocumentKey": "56e9306e6dfbf15f9422765693438241d26df1c2bfdf7143042b8e55e51e9d00:invoice:264f0ccd0374",
+          "description": "Avvolgibile in alluminio",
+          "pieceNumber": 6,
+          "widthMm": 1700,
+          "heightMm": 2800,
+          "surfaceM2": 4.76,
+          "exposure": null,
+          "exposureSource": null,
+          "protectedWindowSurfaceM2": 4.76,
+          "protectedWindowSurfaceSource": "derived_product_surface",
+          "supplementaryThermalResistance": 0.17,
+          "declaredType": "avvolgibile",
+          "formMappingSource": null,
+          "gTot": 0.06,
+          "gTotSource": "authorized_fallback",
+          "material": "Metallo",
+          "materialSource": "invoice_explicit",
+          "movement": "Manuale",
+          "movementSource": "authorized_fallback",
+          "appliedRuleIds": [
+            "user-2026-08-31-rigid-screening-missing-gtot-006-v1",
+            "user-2026-08-31-avvolgibile-screening-contract-v2",
+            "user-2026-08-18-screening-surface-material-over-support-structure",
+            "authorized-22-schermature-materiale",
+            "authorized-16-schermature-meccanismo",
+            "user-2026-08-14-preserve-technical-product-cardinality",
+            "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+            "user-2026-08-18-explicit-technical-surface-precision"
+          ]
+        },
+        {
+          "rowId": "7c74eaed5fd55a16ccd3b61ef37ad174fff310260528b883b4ab34091a3e8424:invoice:264f0ccd0374:piece-7",
+          "sourceDocumentKey": "7c74eaed5fd55a16ccd3b61ef37ad174fff310260528b883b4ab34091a3e8424:invoice:264f0ccd0374",
+          "description": "Avvolgibile in alluminio",
+          "pieceNumber": 7,
+          "widthMm": 1300,
+          "heightMm": 1800,
+          "surfaceM2": 2.34,
+          "exposure": null,
+          "exposureSource": null,
+          "protectedWindowSurfaceM2": 2.34,
+          "protectedWindowSurfaceSource": "derived_product_surface",
+          "supplementaryThermalResistance": 0.17,
+          "declaredType": "avvolgibile",
+          "formMappingSource": null,
+          "gTot": 0.06,
+          "gTotSource": "authorized_fallback",
+          "material": "Metallo",
+          "materialSource": "invoice_explicit",
+          "movement": "Manuale",
+          "movementSource": "authorized_fallback",
+          "appliedRuleIds": [
+            "user-2026-08-31-rigid-screening-missing-gtot-006-v1",
+            "user-2026-08-31-avvolgibile-screening-contract-v2",
+            "user-2026-08-18-screening-surface-material-over-support-structure",
+            "authorized-22-schermature-materiale",
+            "authorized-16-schermature-meccanismo",
+            "user-2026-08-14-preserve-technical-product-cardinality",
+            "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+            "user-2026-08-18-explicit-technical-surface-precision"
+          ]
+        },
+        {
+          "rowId": "7c74eaed5fd55a16ccd3b61ef37ad174fff310260528b883b4ab34091a3e8424:invoice:264f0ccd0374:piece-8",
+          "sourceDocumentKey": "7c74eaed5fd55a16ccd3b61ef37ad174fff310260528b883b4ab34091a3e8424:invoice:264f0ccd0374",
+          "description": "Avvolgibile in alluminio",
+          "pieceNumber": 8,
+          "widthMm": 1300,
+          "heightMm": 1800,
+          "surfaceM2": 2.34,
+          "exposure": null,
+          "exposureSource": null,
+          "protectedWindowSurfaceM2": 2.34,
+          "protectedWindowSurfaceSource": "derived_product_surface",
+          "supplementaryThermalResistance": 0.17,
+          "declaredType": "avvolgibile",
+          "formMappingSource": null,
+          "gTot": 0.06,
+          "gTotSource": "authorized_fallback",
+          "material": "Metallo",
+          "materialSource": "invoice_explicit",
+          "movement": "Manuale",
+          "movementSource": "authorized_fallback",
+          "appliedRuleIds": [
+            "user-2026-08-31-rigid-screening-missing-gtot-006-v1",
+            "user-2026-08-31-avvolgibile-screening-contract-v2",
+            "user-2026-08-18-screening-surface-material-over-support-structure",
+            "authorized-22-schermature-materiale",
+            "authorized-16-schermature-meccanismo",
+            "user-2026-08-14-preserve-technical-product-cardinality",
+            "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+            "user-2026-08-18-explicit-technical-surface-precision"
+          ]
+        },
+        {
+          "rowId": "7c74eaed5fd55a16ccd3b61ef37ad174fff310260528b883b4ab34091a3e8424:invoice:264f0ccd0374:piece-9",
+          "sourceDocumentKey": "7c74eaed5fd55a16ccd3b61ef37ad174fff310260528b883b4ab34091a3e8424:invoice:264f0ccd0374",
+          "description": "Avvolgibile in alluminio",
+          "pieceNumber": 9,
+          "widthMm": 900,
+          "heightMm": 1800,
+          "surfaceM2": 1.62,
+          "exposure": null,
+          "exposureSource": null,
+          "protectedWindowSurfaceM2": 1.62,
+          "protectedWindowSurfaceSource": "derived_product_surface",
+          "supplementaryThermalResistance": 0.17,
+          "declaredType": "avvolgibile",
+          "formMappingSource": null,
+          "gTot": 0.06,
+          "gTotSource": "authorized_fallback",
+          "material": "Metallo",
+          "materialSource": "invoice_explicit",
+          "movement": "Manuale",
+          "movementSource": "authorized_fallback",
+          "appliedRuleIds": [
+            "user-2026-08-31-rigid-screening-missing-gtot-006-v1",
+            "user-2026-08-31-avvolgibile-screening-contract-v2",
+            "user-2026-08-18-screening-surface-material-over-support-structure",
+            "authorized-22-schermature-materiale",
+            "authorized-16-schermature-meccanismo",
+            "user-2026-08-14-preserve-technical-product-cardinality",
+            "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+            "user-2026-08-18-explicit-technical-surface-precision"
+          ]
+        },
+        {
+          "rowId": "7c74eaed5fd55a16ccd3b61ef37ad174fff310260528b883b4ab34091a3e8424:invoice:264f0ccd0374:piece-10",
+          "sourceDocumentKey": "7c74eaed5fd55a16ccd3b61ef37ad174fff310260528b883b4ab34091a3e8424:invoice:264f0ccd0374",
+          "description": "Avvolgibile in alluminio",
+          "pieceNumber": 10,
+          "widthMm": 900,
+          "heightMm": 1800,
+          "surfaceM2": 1.62,
+          "exposure": null,
+          "exposureSource": null,
+          "protectedWindowSurfaceM2": 1.62,
+          "protectedWindowSurfaceSource": "derived_product_surface",
+          "supplementaryThermalResistance": 0.17,
+          "declaredType": "avvolgibile",
+          "formMappingSource": null,
+          "gTot": 0.06,
+          "gTotSource": "authorized_fallback",
+          "material": "Metallo",
+          "materialSource": "invoice_explicit",
+          "movement": "Manuale",
+          "movementSource": "authorized_fallback",
+          "appliedRuleIds": [
+            "user-2026-08-31-rigid-screening-missing-gtot-006-v1",
+            "user-2026-08-31-avvolgibile-screening-contract-v2",
+            "user-2026-08-18-screening-surface-material-over-support-structure",
+            "authorized-22-schermature-materiale",
+            "authorized-16-schermature-meccanismo",
+            "user-2026-08-14-preserve-technical-product-cardinality",
+            "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+            "user-2026-08-18-explicit-technical-surface-precision"
+          ]
+        },
+        {
+          "rowId": "7c74eaed5fd55a16ccd3b61ef37ad174fff310260528b883b4ab34091a3e8424:invoice:264f0ccd0374:piece-11",
+          "sourceDocumentKey": "7c74eaed5fd55a16ccd3b61ef37ad174fff310260528b883b4ab34091a3e8424:invoice:264f0ccd0374",
+          "description": "Avvolgibile in alluminio",
+          "pieceNumber": 11,
+          "widthMm": 1700,
+          "heightMm": 2800,
+          "surfaceM2": 4.76,
+          "exposure": null,
+          "exposureSource": null,
+          "protectedWindowSurfaceM2": 4.76,
+          "protectedWindowSurfaceSource": "derived_product_surface",
+          "supplementaryThermalResistance": 0.17,
+          "declaredType": "avvolgibile",
+          "formMappingSource": null,
+          "gTot": 0.06,
+          "gTotSource": "authorized_fallback",
+          "material": "Metallo",
+          "materialSource": "invoice_explicit",
+          "movement": "Manuale",
+          "movementSource": "authorized_fallback",
+          "appliedRuleIds": [
+            "user-2026-08-31-rigid-screening-missing-gtot-006-v1",
+            "user-2026-08-31-avvolgibile-screening-contract-v2",
+            "user-2026-08-18-screening-surface-material-over-support-structure",
+            "authorized-22-schermature-materiale",
+            "authorized-16-schermature-meccanismo",
+            "user-2026-08-14-preserve-technical-product-cardinality",
+            "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+            "user-2026-08-18-explicit-technical-surface-precision"
+          ]
+        },
+        {
+          "rowId": "7c74eaed5fd55a16ccd3b61ef37ad174fff310260528b883b4ab34091a3e8424:invoice:264f0ccd0374:piece-12",
+          "sourceDocumentKey": "7c74eaed5fd55a16ccd3b61ef37ad174fff310260528b883b4ab34091a3e8424:invoice:264f0ccd0374",
+          "description": "Avvolgibile in alluminio",
+          "pieceNumber": 12,
+          "widthMm": 1700,
+          "heightMm": 2800,
+          "surfaceM2": 4.76,
+          "exposure": null,
+          "exposureSource": null,
+          "protectedWindowSurfaceM2": 4.76,
+          "protectedWindowSurfaceSource": "derived_product_surface",
+          "supplementaryThermalResistance": 0.17,
+          "declaredType": "avvolgibile",
+          "formMappingSource": null,
+          "gTot": 0.06,
+          "gTotSource": "authorized_fallback",
+          "material": "Metallo",
+          "materialSource": "invoice_explicit",
+          "movement": "Manuale",
+          "movementSource": "authorized_fallback",
+          "appliedRuleIds": [
+            "user-2026-08-31-rigid-screening-missing-gtot-006-v1",
+            "user-2026-08-31-avvolgibile-screening-contract-v2",
+            "user-2026-08-18-screening-surface-material-over-support-structure",
+            "authorized-22-schermature-materiale",
+            "authorized-16-schermature-meccanismo",
+            "user-2026-08-14-preserve-technical-product-cardinality",
+            "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+            "user-2026-08-18-explicit-technical-surface-precision"
+          ]
+        }
+      ],
+      "blockers": [
+        {
+          "code": "customer_form_missing",
+          "field": "customer_form",
+          "reason": "Il dossier CRM non contiene un form cliente originario utilizzabile; documenti ENEA storici esclusi.",
+          "sourceIds": [
+            "999dacb3892373828d676b96b4a417fb40d2216df6831698557fbce17bbe27eb",
+            "4710033b38d6f6a4c8ad5dcac4c298c4f51ffd9f129f37496f291da6faea7093",
+            "07abb1b5c61b9411c8b6b79b8935498a81cc5af1afd55f594d1c3040c6aac636",
+            "56e9306e6dfbf15f9422765693438241d26df1c2bfdf7143042b8e55e51e9d00",
+            "7c74eaed5fd55a16ccd3b61ef37ad174fff310260528b883b4ab34091a3e8424",
+            "1dc99e5d92c08086ffcca318150d517331d0479092419fd2b598e21289305d99"
+          ],
+          "appliedRuleIds": [
+            "core-form-first"
+          ]
+        },
+        {
+          "code": "tax_code_missing_or_invalid",
+          "field": "beneficiary.taxCode",
+          "reason": "CF valido e coerente non disponibile nel form o nelle fatture originarie.",
+          "sourceIds": [
+            "massimiliano-montemorra"
+          ],
+          "appliedRuleIds": [
+            "core-form-first",
+            "user-2026-08-14-valid-original-document-cf-over-invalid-form",
+            "user-2026-08-16-fiscal-code-identity-cross-check"
+          ]
+        },
+        {
+          "code": "gross_triple_reconciliation_failed",
+          "field": "economic_sources.total",
+          "reason": "Tripla riconciliazione non dimostrata: totali-incompleti:56e9306e6dfbf15f9422765693438241d26df1c2bfdf7143042b8e55e51e9d00:invoice:264f0ccd0374, totali-incompleti:7c74eaed5fd55a16ccd3b61ef37ad174fff310260528b883b4ab34091a3e8424:invoice:264f0ccd0374.",
+          "sourceIds": [
+            "999dacb3892373828d676b96b4a417fb40d2216df6831698557fbce17bbe27eb",
+            "4710033b38d6f6a4c8ad5dcac4c298c4f51ffd9f129f37496f291da6faea7093",
+            "07abb1b5c61b9411c8b6b79b8935498a81cc5af1afd55f594d1c3040c6aac636",
+            "56e9306e6dfbf15f9422765693438241d26df1c2bfdf7143042b8e55e51e9d00",
+            "7c74eaed5fd55a16ccd3b61ef37ad174fff310260528b883b4ab34091a3e8424",
+            "1dc99e5d92c08086ffcca318150d517331d0479092419fd2b598e21289305d99"
+          ],
+          "appliedRuleIds": [
+            "user-2026-08-16-invoice-gross-total-vat-included",
+            "core-gross-triple-reconciliation"
+          ]
+        }
+      ],
+      "warnings": [
+        {
+          "code": "enea_2026_june_25_ninety_day_window_applied",
+          "reason": "Avviso ENEA 25/06/2026 applicato: inizio lavori 2026-03-31, fine lavori 2026-03-31; i 90 giorni decorrono dal 25/06/2026 e terminano il 23/09/2026.",
+          "appliedRuleIds": [
+            "user-2026-08-23-enea-2026-june-25-ninety-day-window"
+          ]
+        }
+      ]
+    },
+    {
+      "customerKey": "sabrina-eustomi",
+      "displayName": "Sabrina Eustomi",
+      "operationalCohort": 2964,
+      "outcome": "blocked_case",
+      "formAvailable": false,
+      "taxCodeStatus": "missing_or_invalid",
+      "resolvedTaxCode": null,
+      "products": [
+        {
+          "rowId": "3b9f8263f8bef14451569012661231a2cbb0522edccb44af7b1e7a0264a45b35:invoice:264f0ccd0374:piece-1",
+          "sourceDocumentKey": "3b9f8263f8bef14451569012661231a2cbb0522edccb44af7b1e7a0264a45b35:invoice:264f0ccd0374",
+          "description": "Tapparella in alluminio",
+          "pieceNumber": 1,
+          "widthMm": 1100,
+          "heightMm": 2250,
+          "surfaceM2": 2.475,
+          "exposure": null,
+          "exposureSource": null,
+          "protectedWindowSurfaceM2": 2.475,
+          "protectedWindowSurfaceSource": "derived_product_surface",
+          "supplementaryThermalResistance": 0.17,
+          "declaredType": "avvolgibile",
+          "formMappingSource": null,
+          "gTot": 0.06,
+          "gTotSource": "authorized_fallback",
+          "material": "Metallo",
+          "materialSource": "invoice_explicit",
+          "movement": "Manuale",
+          "movementSource": "invoice_explicit",
+          "appliedRuleIds": [
+            "user-2026-08-31-rigid-screening-missing-gtot-006-v1",
+            "user-2026-08-31-avvolgibile-screening-contract-v2",
+            "user-2026-08-18-screening-surface-material-over-support-structure",
+            "user-2026-08-18-explicit-motorized-screening-movement",
+            "authorized-22-schermature-materiale",
+            "authorized-16-schermature-meccanismo",
+            "user-2026-08-14-preserve-technical-product-cardinality",
+            "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+            "user-2026-08-18-explicit-technical-surface-precision"
+          ]
+        },
+        {
+          "rowId": "3b9f8263f8bef14451569012661231a2cbb0522edccb44af7b1e7a0264a45b35:invoice:264f0ccd0374:piece-2",
+          "sourceDocumentKey": "3b9f8263f8bef14451569012661231a2cbb0522edccb44af7b1e7a0264a45b35:invoice:264f0ccd0374",
+          "description": "Tapparella in alluminio",
+          "pieceNumber": 2,
+          "widthMm": 700,
+          "heightMm": 1500,
+          "surfaceM2": 1.05,
+          "exposure": null,
+          "exposureSource": null,
+          "protectedWindowSurfaceM2": 1.05,
+          "protectedWindowSurfaceSource": "derived_product_surface",
+          "supplementaryThermalResistance": 0.17,
+          "declaredType": "avvolgibile",
+          "formMappingSource": null,
+          "gTot": 0.06,
+          "gTotSource": "authorized_fallback",
+          "material": "Metallo",
+          "materialSource": "invoice_explicit",
+          "movement": "Manuale",
+          "movementSource": "invoice_explicit",
+          "appliedRuleIds": [
+            "user-2026-08-31-rigid-screening-missing-gtot-006-v1",
+            "user-2026-08-31-avvolgibile-screening-contract-v2",
+            "user-2026-08-18-screening-surface-material-over-support-structure",
+            "user-2026-08-18-explicit-motorized-screening-movement",
+            "authorized-22-schermature-materiale",
+            "authorized-16-schermature-meccanismo",
+            "user-2026-08-14-preserve-technical-product-cardinality",
+            "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+            "user-2026-08-18-explicit-technical-surface-precision"
+          ]
+        },
+        {
+          "rowId": "3b9f8263f8bef14451569012661231a2cbb0522edccb44af7b1e7a0264a45b35:invoice:264f0ccd0374:piece-3",
+          "sourceDocumentKey": "3b9f8263f8bef14451569012661231a2cbb0522edccb44af7b1e7a0264a45b35:invoice:264f0ccd0374",
+          "description": "Tapparella in alluminio",
+          "pieceNumber": 3,
+          "widthMm": 1093,
+          "heightMm": 2270,
+          "surfaceM2": 2.4811,
+          "exposure": null,
+          "exposureSource": null,
+          "protectedWindowSurfaceM2": 2.4811,
+          "protectedWindowSurfaceSource": "derived_product_surface",
+          "supplementaryThermalResistance": 0.17,
+          "declaredType": "avvolgibile",
+          "formMappingSource": null,
+          "gTot": 0.06,
+          "gTotSource": "authorized_fallback",
+          "material": "Metallo",
+          "materialSource": "invoice_explicit",
+          "movement": "Manuale",
+          "movementSource": "invoice_explicit",
+          "appliedRuleIds": [
+            "user-2026-08-31-rigid-screening-missing-gtot-006-v1",
+            "user-2026-08-31-avvolgibile-screening-contract-v2",
+            "user-2026-08-18-screening-surface-material-over-support-structure",
+            "user-2026-08-18-explicit-motorized-screening-movement",
+            "authorized-22-schermature-materiale",
+            "authorized-16-schermature-meccanismo",
+            "user-2026-08-14-preserve-technical-product-cardinality",
+            "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+            "user-2026-08-18-explicit-technical-surface-precision"
+          ]
+        },
+        {
+          "rowId": "3b9f8263f8bef14451569012661231a2cbb0522edccb44af7b1e7a0264a45b35:invoice:264f0ccd0374:piece-4",
+          "sourceDocumentKey": "3b9f8263f8bef14451569012661231a2cbb0522edccb44af7b1e7a0264a45b35:invoice:264f0ccd0374",
+          "description": "Altra schermatura solare - zanzariera",
+          "pieceNumber": 4,
+          "widthMm": 1093,
+          "heightMm": 2270,
+          "surfaceM2": 2.4811,
+          "exposure": null,
+          "exposureSource": null,
+          "protectedWindowSurfaceM2": null,
+          "protectedWindowSurfaceSource": null,
+          "supplementaryThermalResistance": null,
+          "declaredType": null,
+          "formMappingSource": null,
+          "gTot": 0.33,
+          "gTotSource": "authorized_fallback",
+          "material": "Misto",
+          "materialSource": "invoice_explicit",
+          "movement": "Manuale",
+          "movementSource": "invoice_explicit",
+          "appliedRuleIds": [
+            "user-2026-08-31-zanzariera-missing-gtot-033-v1",
+            "user-2026-08-18-screening-surface-material-over-support-structure",
+            "user-2026-08-18-explicit-composite-screening-material",
+            "user-2026-08-18-explicit-motorized-screening-movement",
+            "authorized-22-schermature-materiale",
+            "authorized-16-schermature-meccanismo",
+            "user-2026-08-14-preserve-technical-product-cardinality",
+            "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+            "user-2026-08-18-explicit-technical-surface-precision"
+          ]
+        },
+        {
+          "rowId": "3b9f8263f8bef14451569012661231a2cbb0522edccb44af7b1e7a0264a45b35:invoice:264f0ccd0374:piece-5",
+          "sourceDocumentKey": "3b9f8263f8bef14451569012661231a2cbb0522edccb44af7b1e7a0264a45b35:invoice:264f0ccd0374",
+          "description": "Altra schermatura solare - zanzariera",
+          "pieceNumber": 5,
+          "widthMm": 710,
+          "heightMm": 1487,
+          "surfaceM2": 1.0558,
+          "exposure": null,
+          "exposureSource": null,
+          "protectedWindowSurfaceM2": null,
+          "protectedWindowSurfaceSource": null,
+          "supplementaryThermalResistance": null,
+          "declaredType": null,
+          "formMappingSource": null,
+          "gTot": 0.33,
+          "gTotSource": "authorized_fallback",
+          "material": "Misto",
+          "materialSource": "invoice_explicit",
+          "movement": "Manuale",
+          "movementSource": "invoice_explicit",
+          "appliedRuleIds": [
+            "user-2026-08-31-zanzariera-missing-gtot-033-v1",
+            "user-2026-08-18-screening-surface-material-over-support-structure",
+            "user-2026-08-18-explicit-composite-screening-material",
+            "user-2026-08-18-explicit-motorized-screening-movement",
+            "authorized-22-schermature-materiale",
+            "authorized-16-schermature-meccanismo",
+            "user-2026-08-14-preserve-technical-product-cardinality",
+            "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+            "user-2026-08-18-explicit-technical-surface-precision"
+          ]
+        }
+      ],
+      "blockers": [
+        {
+          "code": "customer_form_missing",
+          "field": "customer_form",
+          "reason": "Il dossier CRM non contiene un form cliente originario utilizzabile; documenti ENEA storici esclusi.",
+          "sourceIds": [
+            "3b9f8263f8bef14451569012661231a2cbb0522edccb44af7b1e7a0264a45b35"
+          ],
+          "appliedRuleIds": [
+            "core-form-first"
+          ]
+        },
+        {
+          "code": "tax_code_missing_or_invalid",
+          "field": "beneficiary.taxCode",
+          "reason": "CF valido e coerente non disponibile nel form o nelle fatture originarie.",
+          "sourceIds": [
+            "sabrina-eustomi"
+          ],
+          "appliedRuleIds": [
+            "core-form-first",
+            "user-2026-08-14-valid-original-document-cf-over-invalid-form",
+            "user-2026-08-16-fiscal-code-identity-cross-check"
+          ]
+        }
+      ],
+      "warnings": [
+        {
+          "code": "enea_2026_june_25_ninety_day_window_applied",
+          "reason": "Avviso ENEA 25/06/2026 applicato: inizio lavori 2026-06-16, fine lavori 2026-06-16; i 90 giorni decorrono dal 25/06/2026 e terminano il 23/09/2026.",
+          "appliedRuleIds": [
+            "user-2026-08-23-enea-2026-june-25-ninety-day-window"
+          ]
+        }
+      ]
+    },
+    {
+      "customerKey": "riccardo-coda",
+      "displayName": "RICCARDO CODA",
+      "operationalCohort": 2969,
+      "outcome": "blocked_case",
+      "formAvailable": true,
+      "taxCodeStatus": "verified_original_document",
+      "resolvedTaxCode": "CDORCR50A30A859R",
+      "products": [
+        {
+          "rowId": "6c1f76247f7f75167d03bba588551f75d8891f18e47873e15c03e8f679aadedf:invoice:83d4b33044b2:piece-1",
+          "sourceDocumentKey": "6c1f76247f7f75167d03bba588551f75d8891f18e47873e15c03e8f679aadedf:invoice:83d4b33044b2",
+          "description": "Tenda da sole a bracci",
+          "pieceNumber": 1,
+          "widthMm": 4600,
+          "heightMm": 2200,
+          "surfaceM2": 10.12,
+          "exposure": "sud",
+          "exposureSource": "linea_sole_potito_fallback",
+          "protectedWindowSurfaceM2": 2.3,
+          "protectedWindowSurfaceSource": "linea_sole_potito_fallback",
+          "supplementaryThermalResistance": null,
+          "declaredType": null,
+          "formMappingSource": null,
+          "gTot": 0.13,
+          "gTotSource": "invoice_explicit",
+          "material": "Tessuto",
+          "materialSource": "invoice_explicit",
+          "movement": "Automatico",
+          "movementSource": "invoice_explicit",
+          "appliedRuleIds": [
+            "user-2026-08-31-documented-gtot-precedence-v1",
+            "user-2026-08-18-explicit-motorized-screening-movement",
+            "authorized-22-schermature-materiale",
+            "authorized-16-schermature-meccanismo",
+            "user-2026-08-14-preserve-technical-product-cardinality",
+            "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+            "user-2026-08-18-explicit-technical-surface-precision",
+            "user-2026-08-17-linea-sole-potito-paper-form-fallbacks"
+          ]
+        }
+      ],
+      "blockers": [
+        {
+          "code": "invoice_929a8665",
+          "field": "economic_sources",
+          "reason": "Il totale di almeno un documento fiscale non è stato riconosciuto.",
+          "sourceIds": [
+            "6c1f76247f7f75167d03bba588551f75d8891f18e47873e15c03e8f679aadedf",
+            "6c1f76247f7f75167d03bba588551f75d8891f18e47873e15c03e8f679aadedf"
+          ],
+          "appliedRuleIds": [
+            "core-economic-classification"
+          ]
+        },
+        {
+          "code": "gross_triple_reconciliation_failed",
+          "field": "economic_sources.total",
+          "reason": "Tripla riconciliazione non dimostrata: terna-fattura-incerta:6c1f76247f7f75167d03bba588551f75d8891f18e47873e15c03e8f679aadedf:invoice:17381fdee994, terna-fattura-incerta:6c1f76247f7f75167d03bba588551f75d8891f18e47873e15c03e8f679aadedf:invoice:693b724dfb5a.",
+          "sourceIds": [
+            "6c1f76247f7f75167d03bba588551f75d8891f18e47873e15c03e8f679aadedf",
+            "6c1f76247f7f75167d03bba588551f75d8891f18e47873e15c03e8f679aadedf"
+          ],
+          "appliedRuleIds": [
+            "user-2026-08-16-invoice-gross-total-vat-included",
+            "core-gross-triple-reconciliation",
+            "user-2026-08-16-distinct-invoice-numbers-same-customer-sum"
+          ]
+        }
+      ],
+      "warnings": [
+        {
+          "code": "linea_sole_potito_paper_form_accepted",
+          "reason": "Modulo cartaceo Linea Sole Potito riconosciuto come form originario da 6c1f76247f7f75167d03bba588551f75d8891f18e47873e15c03e8f679aadedf.",
+          "appliedRuleIds": [
+            "user-2026-08-17-linea-sole-potito-paper-form-fallbacks",
+            "core-form-first"
+          ]
+        },
+        {
+          "code": "crm_fiscal_code_confirmed_by_invoice_customer_block",
+          "reason": "CF CRM CDORCR50A30A859R confermato nel blocco CLIENTE di una fattura originaria, con checksum e prefissi fiscali di nome/cognome concordanti.",
+          "appliedRuleIds": [
+            "system-invoice-customer-block-crm-cf-v1",
+            "user-2026-08-16-fiscal-code-identity-cross-check"
+          ]
+        },
+        {
+          "code": "building_units_defaulted_to_one",
+          "reason": "Numero appartamenti non specificato o zero: impostata una unita immobiliare.",
+          "appliedRuleIds": [
+            "user-2026-08-16-default-single-unit-when-unspecified",
+            "user-2026-08-14-single-unit-building-over-floor-count"
+          ]
+        },
+        {
+          "code": "enea_2026_june_25_ninety_day_window_applied",
+          "reason": "Avviso ENEA 25/06/2026 applicato: inizio lavori 2026-04-24, fine lavori 2026-06-19; i 90 giorni decorrono dal 25/06/2026 e terminano il 23/09/2026.",
+          "appliedRuleIds": [
+            "user-2026-08-23-enea-2026-june-25-ninety-day-window"
+          ]
+        }
+      ]
+    },
+    {
+      "customerKey": "nadia-ragni",
+      "displayName": "Nadia Ragni",
+      "operationalCohort": 2982,
+      "outcome": "blocked_case",
+      "formAvailable": true,
+      "taxCodeStatus": "verified_original_document",
+      "resolvedTaxCode": "RGNNDA63L50A944M",
+      "products": [],
+      "blockers": [
+        {
+          "code": "product_cardinality_form_invoice_mismatch",
+          "field": "screenings.quantity",
+          "reason": "Controllo incrociato ripetuto: il form descrive 1 righe e le fatture 0 prodotti fisici non riconciliabili in modo univoco per famiglia. Richiesto intervento operatore: confermare la cardinalita fisica e l'assegnazione degli attributi form.",
+          "sourceIds": [
+            "18fb251f0222e18300c5fa0bc284c5d69019e33ad72c0268f19ab5a0fc66145a",
+            "31f541d4daadff60f2d9ea158a7e70b2dd24d0d8588eb6b308d1a202820b6cf2"
+          ],
+          "appliedRuleIds": [
+            "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+            "user-2026-08-14-preserve-technical-product-cardinality",
+            "user-2026-08-15-form-group-to-physical-products",
+            "system-apr-operator-intervention-routing"
+          ]
+        },
+        {
+          "code": "screenings_missing",
+          "field": "screenings",
+          "reason": "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+          "sourceIds": [
+            "18fb251f0222e18300c5fa0bc284c5d69019e33ad72c0268f19ab5a0fc66145a",
+            "31f541d4daadff60f2d9ea158a7e70b2dd24d0d8588eb6b308d1a202820b6cf2"
+          ],
+          "appliedRuleIds": [
+            "user-2026-08-14-preserve-technical-product-cardinality"
+          ]
+        },
+        {
+          "code": "screening_primary_measurements_missing",
+          "field": "screenings.dimensions",
+          "reason": "La fattura descrive la schermatura ma nessuna fonte primaria riporta le misure fisiche del prodotto. APR non usa le misure della finestra protetta come misure del prodotto: acquisire o confermare le misure e rimettere la pratica in Pronte da fare.",
+          "sourceIds": [
+            "18fb251f0222e18300c5fa0bc284c5d69019e33ad72c0268f19ab5a0fc66145a",
+            "31f541d4daadff60f2d9ea158a7e70b2dd24d0d8588eb6b308d1a202820b6cf2"
+          ],
+          "appliedRuleIds": [
+            "system-screening-primary-measurements-operator-routing",
+            "user-2026-08-14-preserve-technical-product-cardinality",
+            "system-apr-operator-intervention-routing"
+          ]
+        }
+      ],
+      "warnings": [
+        {
+          "code": "secondary_home_36_percent_allocation_planned",
+          "reason": "Abitazione principale = NO: APR assegnera' l'intero totale congruo 2025-2026 alla colonna 36%, verifichera' 50%=0 e totale invariato dopo l'unico Salva.",
+          "appliedRuleIds": [
+            "user-2026-08-16-secondary-home-36-percent-calculation-allocation",
+            "system-atomic-checkpoint-resume"
+          ]
+        }
+      ]
+    },
+    {
+      "customerKey": "elena-marcella-berti",
+      "displayName": "ELENA MARCELLA BERTI",
+      "operationalCohort": 2992,
+      "outcome": "blocked_case",
+      "formAvailable": true,
+      "taxCodeStatus": "missing_or_invalid",
+      "resolvedTaxCode": null,
+      "products": [
+        {
+          "rowId": "37938446ac7888c640cb0ff2cec7401a064a0d191f91b39425691fbd7f50d83c:invoice:20bb095ecbc3:piece-1",
+          "sourceDocumentKey": "37938446ac7888c640cb0ff2cec7401a064a0d191f91b39425691fbd7f50d83c:invoice:20bb095ecbc3",
+          "description": "Tenda da sole a bracci",
+          "pieceNumber": 1,
+          "widthMm": 3000,
+          "heightMm": 2200,
+          "surfaceM2": 6.6,
+          "exposure": "sud",
+          "exposureSource": "linea_sole_potito_fallback",
+          "protectedWindowSurfaceM2": 2.5,
+          "protectedWindowSurfaceSource": "linea_sole_potito_fallback",
+          "supplementaryThermalResistance": null,
+          "declaredType": null,
+          "formMappingSource": null,
+          "gTot": 0.12,
+          "gTotSource": "invoice_explicit",
+          "material": "Tessuto",
+          "materialSource": "invoice_explicit",
+          "movement": "Manuale",
+          "movementSource": "authorized_fallback",
+          "appliedRuleIds": [
+            "user-2026-08-31-documented-gtot-precedence-v1",
+            "authorized-22-schermature-materiale",
+            "authorized-16-schermature-meccanismo",
+            "user-2026-08-14-preserve-technical-product-cardinality",
+            "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+            "user-2026-08-18-explicit-technical-surface-precision",
+            "user-2026-08-17-linea-sole-potito-paper-form-fallbacks"
+          ]
+        }
+      ],
+      "blockers": [
+        {
+          "code": "tax_code_missing_or_invalid",
+          "field": "beneficiary.taxCode",
+          "reason": "CF valido e coerente non disponibile nel form o nelle fatture originarie.",
+          "sourceIds": [
+            "elena-marcella-berti"
+          ],
+          "appliedRuleIds": [
+            "core-form-first",
+            "user-2026-08-14-valid-original-document-cf-over-invalid-form",
+            "user-2026-08-16-fiscal-code-identity-cross-check"
+          ]
+        }
+      ],
+      "warnings": [
+        {
+          "code": "linea_sole_potito_paper_form_accepted",
+          "reason": "Modulo cartaceo Linea Sole Potito riconosciuto come form originario da ab757f42f476bdcf268ba24d74d10518ba8b959cf6c10071e2c628810c1136d8.",
+          "appliedRuleIds": [
+            "user-2026-08-17-linea-sole-potito-paper-form-fallbacks",
+            "core-form-first"
+          ]
+        },
+        {
+          "code": "building_units_defaulted_to_one",
+          "reason": "Numero appartamenti non specificato o zero: impostata una unita immobiliare.",
+          "appliedRuleIds": [
+            "user-2026-08-16-default-single-unit-when-unspecified",
+            "user-2026-08-14-single-unit-building-over-floor-count"
+          ]
+        },
+        {
+          "code": "bank_transfer_below_invoice_total_audited_nonblocking",
+          "reason": "Capitale bonificato € 1320.00 non superiore al totale fatture € 1320.00; riferimenti mancanti FATTURA195/2026, FATTURA129/2026. Il totale fatture IVA incluso resta autorevole e la differenza e auditata senza bloccare.",
+          "appliedRuleIds": [
+            "user-2026-08-16-invoice-total-over-bank-transfers",
+            "user-2026-08-18-mandatory-bank-transfer-invoice-expense-cross-check"
+          ]
+        },
+        {
+          "code": "bank_fees_excluded_invoice_total_authoritative",
+          "reason": "Commissioni bancarie € 1.20 escluse; il totale fatture resta l'importo ENEA autorevole.",
+          "appliedRuleIds": [
+            "user-2026-08-16-invoice-total-over-bank-transfers",
+            "core-economic-classification"
+          ]
+        },
+        {
+          "code": "enea_2026_june_25_ninety_day_window_applied",
+          "reason": "Avviso ENEA 25/06/2026 applicato: inizio lavori 2026-04-23, fine lavori 2026-06-13; i 90 giorni decorrono dal 25/06/2026 e terminano il 23/09/2026.",
+          "appliedRuleIds": [
+            "user-2026-08-23-enea-2026-june-25-ninety-day-window"
+          ]
+        }
+      ]
+    },
+    {
+      "customerKey": "francesca-monti",
+      "displayName": "francesca monti",
+      "operationalCohort": 3000,
+      "outcome": "blocked_case",
+      "formAvailable": true,
+      "taxCodeStatus": "verified_original_document",
+      "resolvedTaxCode": "MNTFNC71P59L319D",
+      "products": [],
+      "blockers": [
+        {
+          "code": "screenings_missing",
+          "field": "screenings",
+          "reason": "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+          "sourceIds": [
+            "1134d022efa4540f538b551006d922e262f9ad11a54c16e050604cad44f810fd",
+            "1134d022efa4540f538b551006d922e262f9ad11a54c16e050604cad44f810fd",
+            "9bf080734f399f609456a22d697423d9903823aef75193ff546111320b405309"
+          ],
+          "appliedRuleIds": [
+            "user-2026-08-14-preserve-technical-product-cardinality"
+          ]
+        },
+        {
+          "code": "invoice_332a5af9",
+          "field": "economic_sources",
+          "reason": "Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture.",
+          "sourceIds": [
+            "1134d022efa4540f538b551006d922e262f9ad11a54c16e050604cad44f810fd",
+            "1134d022efa4540f538b551006d922e262f9ad11a54c16e050604cad44f810fd",
+            "9bf080734f399f609456a22d697423d9903823aef75193ff546111320b405309"
+          ],
+          "appliedRuleIds": [
+            "core-economic-classification"
+          ]
+        }
+      ],
+      "warnings": [
+        {
+          "code": "linea_sole_potito_paper_form_accepted",
+          "reason": "Modulo cartaceo Linea Sole Potito riconosciuto come form originario da 1134d022efa4540f538b551006d922e262f9ad11a54c16e050604cad44f810fd, 9bf080734f399f609456a22d697423d9903823aef75193ff546111320b405309.",
+          "appliedRuleIds": [
+            "user-2026-08-17-linea-sole-potito-paper-form-fallbacks",
+            "core-form-first"
+          ]
+        },
+        {
+          "code": "crm_fiscal_code_confirmed_by_invoice_customer_block",
+          "reason": "CF CRM MNTFNC71P59L319D confermato nel blocco CLIENTE di una fattura originaria, con checksum e prefissi fiscali di nome/cognome concordanti.",
+          "appliedRuleIds": [
+            "system-invoice-customer-block-crm-cf-v1",
+            "user-2026-08-16-fiscal-code-identity-cross-check"
+          ]
+        },
+        {
+          "code": "building_units_defaulted_to_one",
+          "reason": "Numero appartamenti non specificato o zero: impostata una unita immobiliare.",
+          "appliedRuleIds": [
+            "user-2026-08-16-default-single-unit-when-unspecified",
+            "user-2026-08-14-single-unit-building-over-floor-count"
+          ]
+        },
+        {
+          "code": "enea_2026_june_25_ninety_day_window_applied",
+          "reason": "Avviso ENEA 25/06/2026 applicato: inizio lavori 2026-04-15, fine lavori 2026-06-16; i 90 giorni decorrono dal 25/06/2026 e terminano il 23/09/2026.",
+          "appliedRuleIds": [
+            "user-2026-08-23-enea-2026-june-25-ninety-day-window"
+          ]
+        }
+      ]
+    },
+    {
+      "customerKey": "enrico-amos-maria-berneri",
+      "displayName": "Enrico Amos maria Berneri",
+      "operationalCohort": 3006,
+      "outcome": "blocked_case",
+      "formAvailable": true,
+      "taxCodeStatus": "verified_original_document",
+      "resolvedTaxCode": "BRNNCM64B11F205G",
+      "products": [],
+      "blockers": [
+        {
+          "code": "screenings_missing",
+          "field": "screenings",
+          "reason": "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+          "sourceIds": [
+            "d9120c58aa351050f019f69316e4bd6bb3ad25cb9b8a66a2ed4ee53c44521882",
+            "d1c501ae024c46477bbc097abab29d5d8d98639fe0a54978d101ef592b8844ab"
+          ],
+          "appliedRuleIds": [
+            "user-2026-08-14-preserve-technical-product-cardinality"
+          ]
+        },
+        {
+          "code": "invoice_332a5af9",
+          "field": "economic_sources",
+          "reason": "Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture.",
+          "sourceIds": [
+            "d9120c58aa351050f019f69316e4bd6bb3ad25cb9b8a66a2ed4ee53c44521882",
+            "d1c501ae024c46477bbc097abab29d5d8d98639fe0a54978d101ef592b8844ab"
+          ],
+          "appliedRuleIds": [
+            "core-economic-classification"
+          ]
+        }
+      ],
+      "warnings": [
+        {
+          "code": "linea_sole_potito_paper_form_accepted",
+          "reason": "Modulo cartaceo Linea Sole Potito riconosciuto come form originario da d1c501ae024c46477bbc097abab29d5d8d98639fe0a54978d101ef592b8844ab.",
+          "appliedRuleIds": [
+            "user-2026-08-17-linea-sole-potito-paper-form-fallbacks",
+            "core-form-first"
+          ]
+        },
+        {
+          "code": "paper_form_birth_date_separator_ocr_repaired",
+          "reason": "Separatore OCR della data di nascita ricomposto come 1964-02-11 soltanto dopo concordanza completa col CF valido della fattura; testo originario e valore usato restano auditabili.",
+          "appliedRuleIds": [
+            "system-paper-form-birth-date-leading-digit-ocr-repair",
+            "user-2026-08-16-fiscal-code-identity-cross-check"
+          ]
+        },
+        {
+          "code": "crm_fiscal_code_confirmed_by_invoice_customer_block",
+          "reason": "CF CRM BRNNCM64B11F205G confermato nel blocco CLIENTE di una fattura originaria, con checksum e prefissi fiscali di nome/cognome concordanti.",
+          "appliedRuleIds": [
+            "system-invoice-customer-block-crm-cf-v1",
+            "user-2026-08-16-fiscal-code-identity-cross-check"
+          ]
+        },
+        {
+          "code": "building_units_defaulted_to_one",
+          "reason": "Numero appartamenti non specificato o zero: impostata una unita immobiliare.",
+          "appliedRuleIds": [
+            "user-2026-08-16-default-single-unit-when-unspecified",
+            "user-2026-08-14-single-unit-building-over-floor-count"
+          ]
+        },
+        {
+          "code": "enea_2026_june_25_ninety_day_window_applied",
+          "reason": "Avviso ENEA 25/06/2026 applicato: inizio lavori 2026-06-13, fine lavori 2026-06-13; i 90 giorni decorrono dal 25/06/2026 e terminano il 23/09/2026.",
+          "appliedRuleIds": [
+            "user-2026-08-23-enea-2026-june-25-ninety-day-window"
+          ]
+        }
+      ]
+    },
+    {
+      "customerKey": "mimosa-freni",
+      "displayName": "Mimosa Freni",
+      "operationalCohort": 3018,
+      "outcome": "ready_local_plan",
+      "formAvailable": true,
+      "taxCodeStatus": "verified_original_document",
+      "resolvedTaxCode": "FRNMMS67L47F205M",
+      "products": [
+        {
+          "rowId": "667c67e484dd9d34b9afd9abb35328cdaf8f1208cff78818e6711fb6acaeb9fb:piece-1",
+          "sourceDocumentKey": "667c67e484dd9d34b9afd9abb35328cdaf8f1208cff78818e6711fb6acaeb9fb",
+          "description": "Persiana in alluminio",
+          "pieceNumber": 1,
+          "widthMm": 2445,
+          "heightMm": 2405,
+          "surfaceM2": 5.8802,
+          "exposure": "ovest",
+          "exposureSource": null,
+          "protectedWindowSurfaceM2": 5.8802,
+          "protectedWindowSurfaceSource": "derived_product_surface",
+          "supplementaryThermalResistance": 0.17,
+          "declaredType": "persiana",
+          "formMappingSource": "one_to_one",
+          "gTot": 0.09,
+          "gTotSource": "invoice_explicit",
+          "material": "Metallo",
+          "materialSource": "invoice_explicit",
+          "movement": "Manuale",
+          "movementSource": "authorized_fallback",
+          "appliedRuleIds": [
+            "user-2026-08-31-documented-gtot-precedence-v1",
+            "user-2026-08-31-persiana-screening-contract-v2",
+            "authorized-22-schermature-materiale",
+            "authorized-16-schermature-meccanismo",
+            "user-2026-08-14-preserve-technical-product-cardinality",
+            "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+            "user-2026-08-18-explicit-technical-surface-precision"
+          ]
+        },
+        {
+          "rowId": "667c67e484dd9d34b9afd9abb35328cdaf8f1208cff78818e6711fb6acaeb9fb:piece-2",
+          "sourceDocumentKey": "667c67e484dd9d34b9afd9abb35328cdaf8f1208cff78818e6711fb6acaeb9fb",
+          "description": "Persiana in alluminio",
+          "pieceNumber": 2,
+          "widthMm": 1060,
+          "heightMm": 2405,
+          "surfaceM2": 2.5493,
+          "exposure": "ovest",
+          "exposureSource": null,
+          "protectedWindowSurfaceM2": 2.5493,
+          "protectedWindowSurfaceSource": "derived_product_surface",
+          "supplementaryThermalResistance": 0.17,
+          "declaredType": "persiana",
+          "formMappingSource": "one_to_one",
+          "gTot": 0.09,
+          "gTotSource": "invoice_explicit",
+          "material": "Metallo",
+          "materialSource": "invoice_explicit",
+          "movement": "Manuale",
+          "movementSource": "authorized_fallback",
+          "appliedRuleIds": [
+            "user-2026-08-31-documented-gtot-precedence-v1",
+            "user-2026-08-31-persiana-screening-contract-v2",
+            "authorized-22-schermature-materiale",
+            "authorized-16-schermature-meccanismo",
+            "user-2026-08-14-preserve-technical-product-cardinality",
+            "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+            "user-2026-08-18-explicit-technical-surface-precision"
+          ]
+        },
+        {
+          "rowId": "667c67e484dd9d34b9afd9abb35328cdaf8f1208cff78818e6711fb6acaeb9fb:piece-3",
+          "sourceDocumentKey": "667c67e484dd9d34b9afd9abb35328cdaf8f1208cff78818e6711fb6acaeb9fb",
+          "description": "Persiana in alluminio",
+          "pieceNumber": 3,
+          "widthMm": 930,
+          "heightMm": 1530,
+          "surfaceM2": 1.4229,
+          "exposure": "ovest",
+          "exposureSource": null,
+          "protectedWindowSurfaceM2": 1.4229,
+          "protectedWindowSurfaceSource": "derived_product_surface",
+          "supplementaryThermalResistance": 0.17,
+          "declaredType": "persiana",
+          "formMappingSource": "one_to_one",
+          "gTot": 0.09,
+          "gTotSource": "invoice_explicit",
+          "material": "Metallo",
+          "materialSource": "invoice_explicit",
+          "movement": "Manuale",
+          "movementSource": "authorized_fallback",
+          "appliedRuleIds": [
+            "user-2026-08-31-documented-gtot-precedence-v1",
+            "user-2026-08-31-persiana-screening-contract-v2",
+            "authorized-22-schermature-materiale",
+            "authorized-16-schermature-meccanismo",
+            "user-2026-08-14-preserve-technical-product-cardinality",
+            "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+            "user-2026-08-18-explicit-technical-surface-precision"
+          ]
+        },
+        {
+          "rowId": "667c67e484dd9d34b9afd9abb35328cdaf8f1208cff78818e6711fb6acaeb9fb:piece-4",
+          "sourceDocumentKey": "667c67e484dd9d34b9afd9abb35328cdaf8f1208cff78818e6711fb6acaeb9fb",
+          "description": "Persiana in alluminio",
+          "pieceNumber": 4,
+          "widthMm": 1630,
+          "heightMm": 2405,
+          "surfaceM2": 3.9202,
+          "exposure": "sud",
+          "exposureSource": null,
+          "protectedWindowSurfaceM2": 3.9202,
+          "protectedWindowSurfaceSource": "derived_product_surface",
+          "supplementaryThermalResistance": 0.17,
+          "declaredType": "persiana",
+          "formMappingSource": "one_to_one",
+          "gTot": 0.09,
+          "gTotSource": "invoice_explicit",
+          "material": "Metallo",
+          "materialSource": "invoice_explicit",
+          "movement": "Manuale",
+          "movementSource": "authorized_fallback",
+          "appliedRuleIds": [
+            "user-2026-08-31-documented-gtot-precedence-v1",
+            "user-2026-08-31-persiana-screening-contract-v2",
+            "authorized-22-schermature-materiale",
+            "authorized-16-schermature-meccanismo",
+            "user-2026-08-14-preserve-technical-product-cardinality",
+            "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+            "user-2026-08-18-explicit-technical-surface-precision"
+          ]
+        },
+        {
+          "rowId": "667c67e484dd9d34b9afd9abb35328cdaf8f1208cff78818e6711fb6acaeb9fb:piece-5",
+          "sourceDocumentKey": "667c67e484dd9d34b9afd9abb35328cdaf8f1208cff78818e6711fb6acaeb9fb",
+          "description": "Persiana in alluminio",
+          "pieceNumber": 5,
+          "widthMm": 840,
+          "heightMm": 1510,
+          "surfaceM2": 1.2684,
+          "exposure": "sud",
+          "exposureSource": null,
+          "protectedWindowSurfaceM2": 1.2684,
+          "protectedWindowSurfaceSource": "derived_product_surface",
+          "supplementaryThermalResistance": 0.17,
+          "declaredType": "persiana",
+          "formMappingSource": "one_to_one",
+          "gTot": 0.09,
+          "gTotSource": "invoice_explicit",
+          "material": "Metallo",
+          "materialSource": "invoice_explicit",
+          "movement": "Manuale",
+          "movementSource": "authorized_fallback",
+          "appliedRuleIds": [
+            "user-2026-08-31-documented-gtot-precedence-v1",
+            "user-2026-08-31-persiana-screening-contract-v2",
+            "authorized-22-schermature-materiale",
+            "authorized-16-schermature-meccanismo",
+            "user-2026-08-14-preserve-technical-product-cardinality",
+            "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+            "user-2026-08-18-explicit-technical-surface-precision"
+          ]
+        },
+        {
+          "rowId": "667c67e484dd9d34b9afd9abb35328cdaf8f1208cff78818e6711fb6acaeb9fb:piece-6",
+          "sourceDocumentKey": "667c67e484dd9d34b9afd9abb35328cdaf8f1208cff78818e6711fb6acaeb9fb",
+          "description": "Persiana in alluminio",
+          "pieceNumber": 6,
+          "widthMm": 1060,
+          "heightMm": 2405,
+          "surfaceM2": 2.5493,
+          "exposure": "sud",
+          "exposureSource": null,
+          "protectedWindowSurfaceM2": 2.5493,
+          "protectedWindowSurfaceSource": "derived_product_surface",
+          "supplementaryThermalResistance": 0.17,
+          "declaredType": "persiana",
+          "formMappingSource": "one_to_one",
+          "gTot": 0.09,
+          "gTotSource": "invoice_explicit",
+          "material": "Metallo",
+          "materialSource": "invoice_explicit",
+          "movement": "Manuale",
+          "movementSource": "authorized_fallback",
+          "appliedRuleIds": [
+            "user-2026-08-31-documented-gtot-precedence-v1",
+            "user-2026-08-31-persiana-screening-contract-v2",
+            "authorized-22-schermature-materiale",
+            "authorized-16-schermature-meccanismo",
+            "user-2026-08-14-preserve-technical-product-cardinality",
+            "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+            "user-2026-08-18-explicit-technical-surface-precision"
+          ]
+        }
+      ],
+      "blockers": [],
+      "warnings": [
+        {
+          "code": "original_non_fiscal_technical_source_applied",
+          "reason": "6 prodotti fisici ricavati da scheda tecnica/preventivo originario; nessun importo della fonte non fiscale e stato usato.",
+          "appliedRuleIds": [
+            "user-2026-08-23-documented-product-module-over-label",
+            "user-2026-08-14-preserve-technical-product-cardinality"
+          ]
+        },
+        {
+          "code": "crm_fiscal_code_confirmed_by_invoice_customer_block",
+          "reason": "CF CRM FRNMMS67L47F205M confermato nel blocco CLIENTE di una fattura originaria, con checksum e prefissi fiscali di nome/cognome concordanti.",
+          "appliedRuleIds": [
+            "system-invoice-customer-block-crm-cf-v1",
+            "user-2026-08-16-fiscal-code-identity-cross-check"
+          ]
+        },
+        {
+          "code": "co_beneficiary_confirmed_by_invoice",
+          "reason": "Cointestatario persona fisica confermato dalla fattura originaria: pianificato nel riquadro ENEA Altri beneficiari con verifica idempotente del CF.",
+          "appliedRuleIds": [
+            "user-2026-08-16-invoice-identity-over-customer-form",
+            "user-2026-08-17-invoice-co-beneficiary-person-flow"
+          ]
+        },
+        {
+          "code": "enea_2026_june_25_ninety_day_window_applied",
+          "reason": "Avviso ENEA 25/06/2026 applicato: inizio lavori 2026-05-14, fine lavori 2026-05-14; i 90 giorni decorrono dal 25/06/2026 e terminano il 23/09/2026.",
+          "appliedRuleIds": [
+            "user-2026-08-23-enea-2026-june-25-ninety-day-window"
+          ]
+        }
+      ]
+    }
+  ]
+}

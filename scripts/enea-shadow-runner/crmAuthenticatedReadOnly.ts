@@ -4,6 +4,7 @@ import path from "node:path";
 import { registryRule } from "../../src/features/enea-shadow-crm/operationalRegistry";
 import type { PersistentAprCrmAuth } from "./crmAuth";
 import type { AprPilotCandidate } from "./pilotSample";
+import { APR_FUTURE_TEST_EXCLUSION_RULE_ID, aprAutomationExclusion, type AprAutomationExclusion } from "./aprFutureTestExclusions";
 
 export const APR_CRM_ACQUISITION_VERSION = "apr-crm-readonly-acquisition-v1" as const;
 const RULE_IDS = [
@@ -35,7 +36,7 @@ export interface AprCrmAcquisitionItem {
   displayName: string;
   sourceEventId?: string;
   expectedPracticeId?: string;
-  expectedStageType?: "archiviate" | "recensione" | "pronte_da_fare";
+  expectedStageType?: "archiviate" | "recensione" | "pronte_da_fare" | "gestionale";
   productModule?: "screening" | "infissi";
   state: "queued" | "acquiring" | "acquired" | "blocked_not_found" | "blocked_ambiguous" | "blocked_invalid_response";
   requestId: string;
@@ -59,6 +60,7 @@ export interface AprCrmAcquisitionItem {
     correctedDisplayName: string;
     recordedAt: string;
   };
+  automationExclusion?: AprAutomationExclusion | null;
 }
 
 export interface AprCrmAcquisitionState {
@@ -74,6 +76,13 @@ export interface AprCrmAcquisitionState {
   nextAction: string;
   repairsApplied: string[];
   audit: Array<{ revision: number; at: string; type: "initialized" | "prepared" | "transport_repaired" | "operator_resolution" | "item_claimed" | "item_acquired" | "item_blocked" | "completed" | "waiting_auth"; customerKey: string | null; reason: string; appliedRuleIds: string[] }>;
+}
+
+/** The only admission point from read-only CRM acquisition to attachment IO. */
+export function aprDocumentProcessingDossiers(items: readonly AprCrmAcquisitionItem[]) {
+  return items
+    .filter((item) => item.state === "acquired" && !item.automationExclusion && item.practiceId && item.dossierPath)
+    .map((item) => ({ customerKey: item.customerKey, practiceId: item.practiceId!, dossierPath: item.dossierPath! }));
 }
 
 function atomicWrite(target: string, contents: string) {
@@ -356,14 +365,23 @@ export class PersistentAprCrmAuthenticatedReadOnly {
     const { row, bodyHash, partition } = matches[0];
     const practiceId = typeof row.id === "string" ? row.id : "";
     if (!/^[a-f0-9-]{36}$/i.test(practiceId)) return this.blockItem(item.customerKey, "blocked_invalid_response", "Identificativo pratica CRM assente o non valido.", now, bodyHash);
-    const dossier = { version: "apr-crm-dossier-v1", acquiredAt: now.toISOString(), requestId: item.requestId, appliedRuleIds: RULE_IDS, source: { origin: "https://xmkjrhwmmuzaqjqlvzxm.supabase.co", relation: "enea_practices_public", method: "GET", responseSha256: bodyHash, identityPartition: partition, partitionCount: partitions.length }, row };
+    const automationExclusion = aprAutomationExclusion({
+      customerKey: item.customerKey,
+      displayName: item.displayName,
+      fornitore: row.fornitore,
+      companies: row.companies,
+    });
+    const dossier = { version: "apr-crm-dossier-v1", acquiredAt: now.toISOString(), requestId: item.requestId, appliedRuleIds: [...RULE_IDS, ...(automationExclusion ? [APR_FUTURE_TEST_EXCLUSION_RULE_ID] : [])], source: { origin: "https://xmkjrhwmmuzaqjqlvzxm.supabase.co", relation: "enea_practices_public", method: "GET", responseSha256: bodyHash, identityPartition: partition, partitionCount: partitions.length }, row, automationExclusion };
     const dossierPath = path.join(this.dossierDirectory, `${item.customerKey}.json`);
     atomicWrite(dossierPath, `${JSON.stringify(dossier, null, 2)}\n`);
     const next = structuredClone(this.load(now));
     const target = next.items.find((candidate) => candidate.customerKey === item.customerKey)!;
-    next.revision += 1; target.state = "acquired"; target.practiceId = practiceId; target.dossierPath = dossierPath; target.responseSha256 = bodyHash;
+    next.revision += 1; target.state = "acquired"; target.practiceId = practiceId; target.dossierPath = dossierPath; target.responseSha256 = bodyHash; target.automationExclusion = automationExclusion;
     target.sourceDocumentCount = [...(Array.isArray(row.fatture_urls) ? row.fatture_urls : []), ...(Array.isArray(row.documenti_aggiuntivi_urls) ? row.documenti_aggiuntivi_urls : [])].length;
-    target.reason = `Dossier CRM acquisito via GET e salvato con fingerprint; ${target.sourceDocumentCount} fonti originarie referenziate.${target.operatorResolution ? ` Risoluzione operatore ${target.operatorResolution.resolutionId} applicata.` : ""}`; target.endedAt = now.toISOString();
+    target.reason = automationExclusion
+      ? `Dossier CRM acquisito via GET: esclusione automatica ${automationExclusion.displayName} rilevata in ${automationExclusion.sourceField}; gli allegati non saranno scaricati o analizzati.`
+      : `Dossier CRM acquisito via GET e salvato con fingerprint; ${target.sourceDocumentCount} fonti originarie referenziate.${target.operatorResolution ? ` Risoluzione operatore ${target.operatorResolution.resolutionId} applicata.` : ""}`;
+    target.endedAt = now.toISOString();
     next.currentCustomerKey = null; next.reason = target.reason; next.nextAction = "Proseguire con il prossimo dossier; non scaricare documenti o aprire ENEA in questa fase.";
     next.audit.push({ revision: next.revision, at: now.toISOString(), type: "item_acquired", customerKey: target.customerKey, reason: target.reason, appliedRuleIds: RULE_IDS });
     this.write(next);

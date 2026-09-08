@@ -1,0 +1,512 @@
+{
+  "version": "apr-crm-local-preflight-v1",
+  "revision": 1,
+  "status": "completed",
+  "sourceFingerprint": "9c4b6d7803724e578aadbb5f19997967b443e39636dc0a7763f9facb10af91b3",
+  "currentCustomerKey": null,
+  "items": [
+    {
+      "customerKey": "milena-fiorini",
+      "displayName": "Milena Fiorini",
+      "practiceId": "5ffcaa4d-60d6-4c6f-92dd-158ba844b6d1",
+      "dossierPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2991-global-controller-milena-fiorini/crm-acquisition/dossiers/milena-fiorini.json",
+      "state": "blocked_case",
+      "attemptCount": 1,
+      "startedAt": null,
+      "endedAt": null,
+      "report": {
+        "outcome": "blocked_case",
+        "formAvailable": true,
+        "startDate": "2026-04-09",
+        "startDateSource": "f6a816241b52b4b6f3587a7b134c941949a15a269acdc6b77b44a7c8dd77f038:invoice:264f0ccd0374",
+        "completionDate": "2026-05-25",
+        "completionDateSource": "584df9243b013f39811d4afa8ddc8135a1a25b6b639dbac32b91614393d67174:invoice:264f0ccd0374",
+        "buildingQualification": "multi_unit",
+        "buildingUnitCount": 1,
+        "deductionRate": null,
+        "taxCodeStatus": "verified_form",
+        "resolvedTaxCode": "FRNMLN71T41A944T",
+        "taxCodeSourceIds": [
+          "milena-fiorini"
+        ],
+        "primaryBeneficiaryResolution": {
+          "status": "not_found",
+          "identity": null,
+          "sourceIds": [],
+          "authority": null
+        },
+        "coBeneficiaryResolution": {
+          "status": "not_declared",
+          "present": false,
+          "identity": null,
+          "sourceIds": []
+        },
+        "products": [],
+        "financial": {
+          "invoiceTotal": 13090,
+          "eligibleExpense": null,
+          "tripleReconciliationVerified": false,
+          "reconciledTotal": null,
+          "evidence": [
+            {
+              "sourceId": "f6a816241b52b4b6f3587a7b134c941949a15a269acdc6b77b44a7c8dd77f038:invoice:264f0ccd0374",
+              "kind": "advance",
+              "taxableAmount": 5950,
+              "vatAmount": 595,
+              "grossTotal": 6545,
+              "interventionGrossAmount": 6545,
+              "extractionConfidence": "certain",
+              "extractionIssues": []
+            },
+            {
+              "sourceId": "584df9243b013f39811d4afa8ddc8135a1a25b6b639dbac32b91614393d67174:invoice:264f0ccd0374",
+              "kind": "invoice",
+              "taxableAmount": 5950,
+              "vatAmount": 595,
+              "grossTotal": 6545,
+              "interventionGrossAmount": 6545,
+              "extractionConfidence": "certain",
+              "extractionIssues": []
+            }
+          ],
+          "bankTransfers": [],
+          "bankTransferReconciliation": {
+            "status": "not_provided",
+            "principalTotal": null,
+            "feesTotal": null,
+            "debitedTotal": null,
+            "difference": null,
+            "referenceStatus": "not_provided",
+            "missingInvoiceReferences": [],
+            "taxReliefTypes": []
+          },
+          "methods": [
+            {
+              "method": "structured_extraction",
+              "ok": true,
+              "total": 13090,
+              "sources": [
+                "f6a816241b52b4b6f3587a7b134c941949a15a269acdc6b77b44a7c8dd77f038:invoice:264f0ccd0374",
+                "584df9243b013f39811d4afa8ddc8135a1a25b6b639dbac32b91614393d67174:invoice:264f0ccd0374"
+              ],
+              "reason": "Ogni documento ha imponibile, IVA e totale verificati."
+            },
+            {
+              "method": "accounting_reconciliation",
+              "ok": true,
+              "total": 13090,
+              "sources": [
+                "f6a816241b52b4b6f3587a7b134c941949a15a269acdc6b77b44a7c8dd77f038:invoice:264f0ccd0374",
+                "584df9243b013f39811d4afa8ddc8135a1a25b6b639dbac32b91614393d67174:invoice:264f0ccd0374"
+              ],
+              "reason": "Somma dei totali lordi IVA inclusa delle fatture uniche deduplicate; gli storni interni sono solo note auditabili."
+            },
+            {
+              "method": "intervention_cross_check",
+              "ok": true,
+              "total": 13090,
+              "sources": [
+                "f6a816241b52b4b6f3587a7b134c941949a15a269acdc6b77b44a7c8dd77f038:invoice:264f0ccd0374",
+                "584df9243b013f39811d4afa8ddc8135a1a25b6b639dbac32b91614393d67174:invoice:264f0ccd0374"
+              ],
+              "reason": "Totale ricostruito esclusivamente dalle righe pertinenti all'intervento."
+            }
+          ],
+          "discardedDuplicateSourceIds": [],
+          "supersededTechnicalSourceIds": [],
+          "appliedRuleIds": [
+            "user-2026-08-16-invoice-gross-total-vat-included",
+            "user-2026-08-18-bundled-professional-expense-separation",
+            "user-2026-08-18-mandatory-bank-transfer-invoice-expense-cross-check",
+            "core-gross-triple-reconciliation",
+            "user-2026-08-14-preserve-technical-product-cardinality",
+            "system-explicit-advance-invoice-reference-marker-v1",
+            "user-2026-08-16-distinct-invoice-numbers-same-customer-sum"
+          ]
+        },
+        "warnings": [
+          {
+            "code": "explicit_building_type_over_apartment_count",
+            "reason": "La tipologia esplicita fino/oltre tre piani prevale sul numero appartamenti della singola pratica: edificio qualificato come plurimo.",
+            "appliedRuleIds": [
+              "user-2026-08-27-explicit-building-type-over-apartment-count-v2"
+            ]
+          },
+          {
+            "code": "product_cardinality_form_invoice_difference_resolved",
+            "reason": "Controllo incrociato ripetuto: form 1 righe/gruppi, fatture 5 prodotti fisici. La differenza e risolta in modo univoco dalla quantita esplicita di fattura e dall'eredita del solo gruppo form compatibile; piano APR richiesto: 5 righe distinte.",
+            "appliedRuleIds": [
+              "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "user-2026-08-15-form-group-to-physical-products"
+            ]
+          },
+          {
+            "code": "enea_2026_june_25_ninety_day_window_applied",
+            "reason": "Avviso ENEA 25/06/2026 applicato: inizio lavori 2026-04-09, fine lavori 2026-05-25; i 90 giorni decorrono dal 25/06/2026 e terminano il 23/09/2026.",
+            "appliedRuleIds": [
+              "user-2026-08-23-enea-2026-june-25-ninety-day-window"
+            ]
+          }
+        ],
+        "blockers": [
+          {
+            "code": "screening_gtot_missing_operator_required_1",
+            "field": "screenings.1.gTot",
+            "reason": "gTot non documentato per famiglia tenda: nessun fallback autorizzato. Richiesto intervento operatore per questa pratica; la coda prosegue.",
+            "sourceIds": [
+              "584df9243b013f39811d4afa8ddc8135a1a25b6b639dbac32b91614393d67174:invoice:264f0ccd0374"
+            ],
+            "appliedRuleIds": [
+              "user-2026-08-31-unknown-screening-missing-gtot-operator-v1",
+              "user-2026-08-31-shared-screening-product-classifier-v1",
+              "system-apr-operator-intervention-routing",
+              "system-atomic-checkpoint-resume"
+            ]
+          },
+          {
+            "code": "screening_gtot_missing_operator_required_2",
+            "field": "screenings.2.gTot",
+            "reason": "gTot non documentato per famiglia tenda: nessun fallback autorizzato. Richiesto intervento operatore per questa pratica; la coda prosegue.",
+            "sourceIds": [
+              "584df9243b013f39811d4afa8ddc8135a1a25b6b639dbac32b91614393d67174:invoice:264f0ccd0374"
+            ],
+            "appliedRuleIds": [
+              "user-2026-08-31-unknown-screening-missing-gtot-operator-v1",
+              "user-2026-08-31-shared-screening-product-classifier-v1",
+              "system-apr-operator-intervention-routing",
+              "system-atomic-checkpoint-resume"
+            ]
+          },
+          {
+            "code": "screening_gtot_missing_operator_required_3",
+            "field": "screenings.3.gTot",
+            "reason": "gTot non documentato per famiglia tenda: nessun fallback autorizzato. Richiesto intervento operatore per questa pratica; la coda prosegue.",
+            "sourceIds": [
+              "584df9243b013f39811d4afa8ddc8135a1a25b6b639dbac32b91614393d67174:invoice:264f0ccd0374"
+            ],
+            "appliedRuleIds": [
+              "user-2026-08-31-unknown-screening-missing-gtot-operator-v1",
+              "user-2026-08-31-shared-screening-product-classifier-v1",
+              "system-apr-operator-intervention-routing",
+              "system-atomic-checkpoint-resume"
+            ]
+          },
+          {
+            "code": "screening_gtot_missing_operator_required_4",
+            "field": "screenings.4.gTot",
+            "reason": "gTot non documentato per famiglia tenda: nessun fallback autorizzato. Richiesto intervento operatore per questa pratica; la coda prosegue.",
+            "sourceIds": [
+              "584df9243b013f39811d4afa8ddc8135a1a25b6b639dbac32b91614393d67174:invoice:264f0ccd0374"
+            ],
+            "appliedRuleIds": [
+              "user-2026-08-31-unknown-screening-missing-gtot-operator-v1",
+              "user-2026-08-31-shared-screening-product-classifier-v1",
+              "system-apr-operator-intervention-routing",
+              "system-atomic-checkpoint-resume"
+            ]
+          },
+          {
+            "code": "screening_gtot_missing_operator_required_5",
+            "field": "screenings.5.gTot",
+            "reason": "gTot non documentato per famiglia tenda: nessun fallback autorizzato. Richiesto intervento operatore per questa pratica; la coda prosegue.",
+            "sourceIds": [
+              "584df9243b013f39811d4afa8ddc8135a1a25b6b639dbac32b91614393d67174:invoice:264f0ccd0374"
+            ],
+            "appliedRuleIds": [
+              "user-2026-08-31-unknown-screening-missing-gtot-operator-v1",
+              "user-2026-08-31-shared-screening-product-classifier-v1",
+              "system-apr-operator-intervention-routing",
+              "system-atomic-checkpoint-resume"
+            ]
+          },
+          {
+            "code": "screenings_missing",
+            "field": "screenings",
+            "reason": "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+            "sourceIds": [
+              "f6a816241b52b4b6f3587a7b134c941949a15a269acdc6b77b44a7c8dd77f038",
+              "584df9243b013f39811d4afa8ddc8135a1a25b6b639dbac32b91614393d67174"
+            ],
+            "appliedRuleIds": [
+              "user-2026-08-14-preserve-technical-product-cardinality"
+            ]
+          },
+          {
+            "code": "bundled_professional_expense_unitemized",
+            "field": "economic_sources.eligibleTechnicalExpense",
+            "reason": "Le fatture includono «Pratica ENEA compresa» ma non quantificano separatamente il servizio. Lordo € 13090.00: indicare la sola spesa tecnica; APR non usera il lordo alla cieca.",
+            "sourceIds": [
+              "584df9243b013f39811d4afa8ddc8135a1a25b6b639dbac32b91614393d67174:invoice:264f0ccd0374"
+            ],
+            "appliedRuleIds": [
+              "user-2026-08-18-bundled-professional-expense-separation",
+              "system-apr-operator-intervention-routing",
+              "system-atomic-checkpoint-resume"
+            ]
+          }
+        ],
+        "sourceIds": [
+          "f6a816241b52b4b6f3587a7b134c941949a15a269acdc6b77b44a7c8dd77f038",
+          "584df9243b013f39811d4afa8ddc8135a1a25b6b639dbac32b91614393d67174"
+        ],
+        "eneaPayloadAudit": {
+          "status": "payload_incomplete",
+          "mappingFingerprint": "1iuhxfo",
+          "fieldSummary": {
+            "ready": 82,
+            "review": 1,
+            "missing": 16
+          },
+          "requiredPortalFieldCount": 70,
+          "blockerCount": 34,
+          "blockers": [
+            {
+              "code": "screening-list-empty",
+              "fieldId": "schermature.numero",
+              "message": "Il modulo cliente non contiene l'elenco delle schermature."
+            },
+            {
+              "code": "unverified-gtot-0",
+              "fieldId": "schermature.0.gtot",
+              "message": "Elemento 1: il gTot non è documentato. Verificare fattura o scheda tecnica oppure inserirlo dopo controllo umano."
+            },
+            {
+              "code": "unverified-gtot-1",
+              "fieldId": "schermature.1.gtot",
+              "message": "Elemento 2: il gTot non è documentato. Verificare fattura o scheda tecnica oppure inserirlo dopo controllo umano."
+            },
+            {
+              "code": "unverified-gtot-2",
+              "fieldId": "schermature.2.gtot",
+              "message": "Elemento 3: il gTot non è documentato. Verificare fattura o scheda tecnica oppure inserirlo dopo controllo umano."
+            },
+            {
+              "code": "unverified-gtot-3",
+              "fieldId": "schermature.3.gtot",
+              "message": "Elemento 4: il gTot non è documentato. Verificare fattura o scheda tecnica oppure inserirlo dopo controllo umano."
+            },
+            {
+              "code": "unverified-gtot-4",
+              "fieldId": "schermature.4.gtot",
+              "message": "Elemento 5: il gTot non è documentato. Verificare fattura o scheda tecnica oppure inserirlo dopo controllo umano."
+            },
+            {
+              "code": "invalid-gtot-0",
+              "fieldId": "schermature.0.gtot",
+              "message": "Elemento 1: il gTot deve essere documentato e non superiore a 0,35."
+            },
+            {
+              "code": "invalid-gtot-1",
+              "fieldId": "schermature.1.gtot",
+              "message": "Elemento 2: il gTot deve essere documentato e non superiore a 0,35."
+            },
+            {
+              "code": "invalid-gtot-2",
+              "fieldId": "schermature.2.gtot",
+              "message": "Elemento 3: il gTot deve essere documentato e non superiore a 0,35."
+            },
+            {
+              "code": "invalid-gtot-3",
+              "fieldId": "schermature.3.gtot",
+              "message": "Elemento 4: il gTot deve essere documentato e non superiore a 0,35."
+            },
+            {
+              "code": "invalid-gtot-4",
+              "fieldId": "schermature.4.gtot",
+              "message": "Elemento 5: il gTot deve essere documentato e non superiore a 0,35."
+            },
+            {
+              "code": "missing-schermature.0.tipo",
+              "fieldId": "schermature.0.tipo",
+              "message": "Elemento 1 · tipo schermatura: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-schermature.0.gtot",
+              "fieldId": "schermature.0.gtot",
+              "message": "Elemento 1 · gTot: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-schermature.0.materiale",
+              "fieldId": "schermature.0.materiale",
+              "message": "Elemento 1 · materiale: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-schermature.1.tipo",
+              "fieldId": "schermature.1.tipo",
+              "message": "Elemento 2 · tipo schermatura: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-schermature.1.gtot",
+              "fieldId": "schermature.1.gtot",
+              "message": "Elemento 2 · gTot: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-schermature.1.materiale",
+              "fieldId": "schermature.1.materiale",
+              "message": "Elemento 2 · materiale: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-schermature.2.tipo",
+              "fieldId": "schermature.2.tipo",
+              "message": "Elemento 3 · tipo schermatura: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-schermature.2.gtot",
+              "fieldId": "schermature.2.gtot",
+              "message": "Elemento 3 · gTot: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-schermature.2.materiale",
+              "fieldId": "schermature.2.materiale",
+              "message": "Elemento 3 · materiale: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-schermature.3.tipo",
+              "fieldId": "schermature.3.tipo",
+              "message": "Elemento 4 · tipo schermatura: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-schermature.3.gtot",
+              "fieldId": "schermature.3.gtot",
+              "message": "Elemento 4 · gTot: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-schermature.3.materiale",
+              "fieldId": "schermature.3.materiale",
+              "message": "Elemento 4 · materiale: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-schermature.4.tipo",
+              "fieldId": "schermature.4.tipo",
+              "message": "Elemento 5 · tipo schermatura: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-schermature.4.gtot",
+              "fieldId": "schermature.4.gtot",
+              "message": "Elemento 5 · gTot: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-schermature.4.materiale",
+              "fieldId": "schermature.4.materiale",
+              "message": "Elemento 5 · materiale: Intervento umano richiesto."
+            },
+            {
+              "code": "review-schermature.numero",
+              "fieldId": "schermature.numero",
+              "message": "Numero totale schermature: controllo operatore da confermare."
+            },
+            {
+              "code": "missing-schermature.spesa",
+              "fieldId": "schermature.spesa",
+              "message": "Spese congrue sostenute: Intervento umano richiesto."
+            },
+            {
+              "code": "screening_gtot_missing_operator_required_1",
+              "fieldId": "screenings.1.gTot",
+              "message": "gTot non documentato per famiglia tenda: nessun fallback autorizzato. Richiesto intervento operatore per questa pratica; la coda prosegue."
+            },
+            {
+              "code": "screening_gtot_missing_operator_required_2",
+              "fieldId": "screenings.2.gTot",
+              "message": "gTot non documentato per famiglia tenda: nessun fallback autorizzato. Richiesto intervento operatore per questa pratica; la coda prosegue."
+            },
+            {
+              "code": "screening_gtot_missing_operator_required_3",
+              "fieldId": "screenings.3.gTot",
+              "message": "gTot non documentato per famiglia tenda: nessun fallback autorizzato. Richiesto intervento operatore per questa pratica; la coda prosegue."
+            },
+            {
+              "code": "screening_gtot_missing_operator_required_4",
+              "fieldId": "screenings.4.gTot",
+              "message": "gTot non documentato per famiglia tenda: nessun fallback autorizzato. Richiesto intervento operatore per questa pratica; la coda prosegue."
+            },
+            {
+              "code": "screening_gtot_missing_operator_required_5",
+              "fieldId": "screenings.5.gTot",
+              "message": "gTot non documentato per famiglia tenda: nessun fallback autorizzato. Richiesto intervento operatore per questa pratica; la coda prosegue."
+            },
+            {
+              "code": "screenings_missing",
+              "fieldId": "screenings",
+              "message": "Nessun prodotto fisico riconciliato dalle fatture originarie."
+            }
+          ],
+          "excludedUnverifiedFields": [
+            "beneficiario.provincia_nascita",
+            "immobile.provincia",
+            "immobile.codice_comune",
+            "immobile.zona_climatica",
+            "immobile.gradi_giorno",
+            "schermature.0.tipo",
+            "schermature.0.rsupp",
+            "schermature.0.gtot",
+            "schermature.0.materiale",
+            "schermature.1.tipo",
+            "schermature.1.rsupp",
+            "schermature.1.gtot",
+            "schermature.1.materiale",
+            "schermature.2.tipo",
+            "schermature.2.rsupp",
+            "schermature.2.gtot",
+            "schermature.2.materiale",
+            "schermature.3.tipo",
+            "schermature.3.rsupp",
+            "schermature.3.gtot",
+            "schermature.3.materiale",
+            "schermature.4.tipo",
+            "schermature.4.rsupp",
+            "schermature.4.gtot",
+            "schermature.4.materiale",
+            "schermature.numero",
+            "schermature.spesa",
+            "documenti.fatture",
+            "documenti.bonifico",
+            "documenti.tecnici"
+          ],
+          "draftReady": false,
+          "officialSubmissionAllowed": false,
+          "portalGate": {
+            "status": "blocked",
+            "reason": "screening-component-blocked",
+            "workflowFingerprint": null,
+            "supportedPages": [],
+            "screeningItemCount": 0,
+            "saveAllowedOnlyBySeparateCapability": true,
+            "previewAllowed": false,
+            "submitAllowed": false
+          },
+          "externalActionAllowed": false,
+          "reason": "6 blocker della componente Schermature invalidano il payload della bozza TEST."
+        },
+        "draftPlan": {
+          "status": "blocked",
+          "externalActionAllowed": false,
+          "previewAllowed": false,
+          "submitAllowed": false,
+          "communicationsAllowed": false,
+          "nextAction": "Risolvere i blocker con sole fonti originarie; la coda prosegue sugli altri casi."
+        }
+      },
+      "reason": "Fresh replay dai documenti originali"
+    }
+  ],
+  "externalActionAllowed": false,
+  "reason": "Fresh replay locale",
+  "nextAction": "Nessuna azione esterna.",
+  "validationRevisionsApplied": [],
+  "sourceRevisionsApplied": [],
+  "operatorMeasurementResolutions": [],
+  "audit": [
+    {
+      "revision": 1,
+      "at": "2026-09-03T10:00:00.000Z",
+      "type": "completed",
+      "customerKey": null,
+      "reason": "Fresh replay locale",
+      "appliedRuleIds": [
+        "system-single-active-practice"
+      ]
+    }
+  ]
+}

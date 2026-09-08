@@ -1,0 +1,21 @@
+{
+  "version": "apr-fiorini-connect-r71-post-install-verification-v1",
+  "verifiedAt": "2026-09-07T03:30:00.000Z",
+  "installedVersionId": "02aca904-fiorini-classification-connect-r71-20260907",
+  "rebuildHashMatch": {
+    "method": "Ricostruito il bundle ORA dallo stesso comando di build (scripts/enea-shadow-runner/buildPersistentBundles.mjs) usato per l'installazione, e confrontato l'hash SHA-256 con il bundle installato in canonical-bundle/current.",
+    "apr-supervisor.mjs": "4059f3de8e2db8013cbecf078fed6511ad7a3cbd5b1e15541604336696f6e7ae",
+    "apr-enea-worker.mjs": "f2ac4c18e575cf41c05a6d35f3589d471e430cc3c58d8bed5a58b317122fb9b8",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "result": "match_confirmed_on_all_three_files"
+  },
+  "customerCheck": {
+    "customerKey": "milena-fiorini",
+    "stateDirectory": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2991-global-controller-milena-fiorini",
+    "method": "buildCrmLocalPreflightReport eseguito dal sorgente corrente, byte-per-byte identico (hash confermato sopra) al bundle installato in canonical-bundle/current.",
+    "blockersBeforeFix": ["product_unclassified_1", "product_unclassified_2", "product_unclassified_3", "product_unclassified_4", "product_unclassified_5"],
+    "blockersAfterFix": [],
+    "outcome": "unblocked"
+  },
+  "conclusion": "La regola user-2026-09-07-form-declared-type-resolves-classification-ambiguity-v1 e' genuinamente collegata al punto reale dove serve (resolveScreeningGTot in productClassifier.ts, richiamato da resolveProductTechnicalAttributes in crmLocalPreflight.ts con il tipo dichiarato dal form) ed e' effettivamente in esecuzione nel bundle installato, non solo scritta nel sorgente."
+}

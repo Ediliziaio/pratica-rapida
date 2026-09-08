@@ -22,7 +22,7 @@ function fixtureRoot() {
   const analysisItems = cases.map((item) => {
     const textPath = path.join(root, "crm-document-analysis", "text", item.key, "doc.txt");
     mkdirSync(path.dirname(textPath), { recursive: true }); writeFileSync(textPath, item.technical);
-    return { customerKey: item.key, documentKey: `${item.key}-doc`, kind: "third_party_certificate", textPath, state: "analyzed" };
+    return { customerKey: item.key, documentKey: `${item.key}-doc`, kind: "invoice", textPath, state: "analyzed" };
   });
   writeJson(path.join(root, "crm-acquisition", "checkpoint.json"), { status: "completed", items: acquisitionItems });
   writeJson(path.join(root, "crm-document-analysis", "checkpoint.json"), { status: "completed", items: analysisItems });
@@ -33,6 +33,25 @@ function fixtureRoot() {
 afterEach(() => { for (const root of roots.splice(0)) rmSync(root, { recursive: true, force: true }); });
 
 describe("APR Infissi · batch preflight persistente", () => {
+  it("non elabora nel modulo Infissi una pratica già esclusa permanentemente dal preflight comune", () => {
+    const root = fixtureRoot();
+    const commonPath = path.join(root, "crm-local-preflight", "checkpoint.json");
+    const common = JSON.parse(readFileSync(commonPath, "utf8"));
+    common.items[0].report.blockers = [{
+      code: "permanent_customer_automation_exclusion",
+      field: "practice",
+      sourceIds: ["customerKey:ready"],
+      appliedRuleIds: ["user-2026-08-18-future-test-exclusions"],
+    }];
+    writeJson(commonPath, common);
+
+    const batch = new PersistentAprInfissiBatchPreflight(root);
+    batch.tick(new Date("2026-09-04T00:00:00Z"));
+    const snapshot = batch.snapshot();
+    expect(snapshot.items.map((item) => item.customerKey)).toEqual(["blocked"]);
+    expect(snapshot.items.some((item) => item.customerKey === "ready")).toBe(false);
+  });
+
   it("riconcilia un checkpoint storico solo con migrate esplicito", () => {
     const root = fixtureRoot();
     const batch = new PersistentAprInfissiBatchPreflight(root);

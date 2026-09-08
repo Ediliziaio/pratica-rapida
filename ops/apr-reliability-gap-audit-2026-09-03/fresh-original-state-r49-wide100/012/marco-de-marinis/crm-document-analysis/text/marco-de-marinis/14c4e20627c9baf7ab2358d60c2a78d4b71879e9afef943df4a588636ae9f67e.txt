@@ -1,0 +1,74 @@
+Ricevuta bonifico
+per agevolazione fiscale
+Numero operazione
+2105619
+Conto di addebito
+Conto Corrente di addebito
+000000003120
+Dati Ordinante
+Nome
+MARCO
+Cognome o Ragione sociale
+DE MARINIS
+Codice fiscale
+DMRMRC75H17E202Q
+Dati Detrazione
+Tipologia Fruitore detrazione
+Persona Fisica
+Codice fiscale Fruitore detrazione
+DMRMRC75H17E202Q
+Codice fiscale altro Fruitore
+Codice fiscale altro Fruitore
+Codice fiscale altro Fruitore
+Codice fiscale altro Fruitore
+Motivo agevolazione fiscale
+Riqualificazione energetica: Art. 1 dal comma 344 al 347, della L.296/2006
+Dati Beneficiario
+Nome
+Cognome o Ragione sociale
+INNOVA SERRAMENTI
+Codice fiscale/Partita IVA
+12087331000
+Via/Piazza e n° civico
+VIA DELLE CASE ROSSE 58
+CAP Comune Provincia 00131
+ROMA RM
+Codice IBAN
+IT70O0344003210000000386500
+Banca
+BANCO DI DESIO E DELLA BRIANZA, VIA VAL MAGGIA 135 ANG. VIA
+VAL DI NON, 00141, ROMA
+Agenzia
+ROMA 460 - PRATI FISCALI
+TA4114 ed. 06/2026
+Findomestic Banca S.p.A. - Sede Legale Viale della Toscana, 24 - 50127 Firenze - I - Capitale Sociale 659.403.400 Euro i.v. - R.E.A. 370219 (FI) - Cod. Fisc./ P. Iva
+e R.I. di FI n. 03562770481 - Albo Banche n. 5396 - Indirizzo PEC: findomestic_banca_pec@findomesticbanca.telecompost.it - Società soggetta ad attività di
+direzione e coordinamento da parte del Socio Unico BNP Paribas Personal Finance S.A. - Parigi (Gruppo BNP Paribas) - Associata ABI Associazione Bancaria
+Italiana - Associata ASSOFIN Associazione Italiana del Credito al Consumo ed Immobiliare - Iscritta alla Sezione "D" del "Registro Unico degli Intermediari
+Assicurativi, anche a titolo accessorio, e Riassicurativi" presso l'IVASS con il N. D000200406 - Società sottoposta al controllo ed alla vigilanza di Banca d'Italia e
+dell'IVASS.
+
+Dati Bonifico
+Codice identificativo dell'operazione
+87344285108
+Data di esecuzione
+15/12/2025
+Data di regolamento
+16/12/2025
+Causale
+(o informazioni sul pagamento)
+FATTURA ACCONTO PER POSA E FORNITURA INFISSI IN PVC
+Importo
+4.500,00 €
+Importo commissioni
+2,60 €
+Importo totale
+4.502,60 €
+Firenze, 10/07/2026
+TA4114 ed. 06/2026
+Findomestic Banca S.p.A. - Sede Legale Viale della Toscana, 24 - 50127 Firenze - I - Capitale Sociale 659.403.400 Euro i.v. - R.E.A. 370219 (FI) - Cod. Fisc./ P. Iva
+e R.I. di FI n. 03562770481 - Albo Banche n. 5396 - Indirizzo PEC: findomestic_banca_pec@findomesticbanca.telecompost.it - Società soggetta ad attività di
+direzione e coordinamento da parte del Socio Unico BNP Paribas Personal Finance S.A. - Parigi (Gruppo BNP Paribas) - Associata ABI Associazione Bancaria
+Italiana - Associata ASSOFIN Associazione Italiana del Credito al Consumo ed Immobiliare - Iscritta alla Sezione "D" del "Registro Unico degli Intermediari
+Assicurativi, anche a titolo accessorio, e Riassicurativi" presso l'IVASS con il N. D000200406 - Società sottoposta al controllo ed alla vigilanza di Banca d'Italia e
+dell'IVASS.

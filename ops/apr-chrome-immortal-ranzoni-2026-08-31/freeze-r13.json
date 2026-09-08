@@ -1,0 +1,68 @@
+{
+  "version": "apr-chrome-immortal-ranzoni-freeze-r13-v1",
+  "frozenAt": "2026-08-31T12:17:00Z",
+  "authorizationId": "user-2026-08-31-chrome-immortal-ranzoni-then-same-30x3",
+  "portalMode": "real_enea_draft_only",
+  "sourceSnapshot": {
+    "path": "/private/tmp/apr-promote-field-boundary-observability-20260831-R13",
+    "gitCommit": "d1d083d787b5414e5633ef3d5af78ff38fbba407",
+    "treeHash": "31fadd28d363fcc7c6457de89e9d30d37b5f1652"
+  },
+  "sequencer": {
+    "path": "/private/tmp/apr-promote-field-boundary-observability-20260831-R13/ops/apr-global-controller-test10-2026-08-29/sequencer.mjs",
+    "sha256": "7272edc599725e20d325c6ee4dee9c6f6993357422670800eca437fd28f60d05"
+  },
+  "manifest": {
+    "path": "/private/tmp/apr-promote-field-boundary-observability-20260831-R13/ops/apr-global-controller-test10-2026-08-29/manifest-autonomy30.json",
+    "sha256": "6c684df774a48899a6ff4e2a6e52dfe83c2b9c357a81a6c6c52034abe687a953",
+    "caseCount": 30,
+    "requiredCustomerKeys": ["cristina-ricchi", "zeno-righetti"],
+    "excludedCustomerKeys": ["beatrice-ciotta"]
+  },
+  "monotonicGate": {
+    "status": "PASS",
+    "suites": 431,
+    "tests": 1599,
+    "failed": 0,
+    "reportPath": "/private/tmp/apr-full-gate-20260831-r13.json",
+    "reportSha256": "6fca6f41c03a39e855c0b30aee601844a0bc8d559d885fbc04d9718d5ed28a63",
+    "matrixVersion": "apr-enea-rule-test-matrix-v72",
+    "registryVersion": "enea-operational-registry-v95",
+    "matrixRules": 85,
+    "sourceFingerprint": "74a26384936bf91d5c0b63e09324c7912b38adc10309199e0a3ff6a0d1252852"
+  },
+  "canonicalBundle": {
+    "versionId": "65706a9-field-boundary-observability-20260831",
+    "supervisorSha256": "38abaade3ae98df47005abecf3d86a4f23f280839b7d04e2de71ac7dc67e801a",
+    "workerSha256": "65706a900a0e81953be603bbd962ed01db1ace4f444632c202c064a26942d7ef",
+    "watchdogSha256": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "activationStatus": "active_tested_deployed"
+  },
+  "targeted": {
+    "customerKey": "armando-ranzoni",
+    "cohort": 1646,
+    "manifestPath": "/private/tmp/apr-promote-field-boundary-observability-20260831-R13/ops/apr-chrome-immortal-ranzoni-2026-08-31/manifest-targeted-ranzoni.json",
+    "manifestSha256": "b60bb09ab46fd2996677a28ce67680182c43cf706ea9a0b6724712da0b585532",
+    "runRoot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-chrome-immortal-targeted-ranzoni-v7",
+    "priorInvalidRuns": [
+      {"cohort": 1346, "reason": "Checkpoint terminale riutilizzato: nessuna riesecuzione reale."},
+      {"cohort": 1446, "reason": "Riesecuzione reale terminata da lease scaduta durante preparePage; causa corretta con rinnovo ai confini di comando."},
+      {"cohort": 1546, "reason": "Riesecuzione reale terminata da timeout aggregato SHORT_MUTATION; causa corretta spezzando la compilazione React per campo e confine di comando."}
+    ]
+  },
+  "rounds": [
+    {"round": 1, "cohortOffset": 1500, "cohortRange": "1728-1757", "runRoot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-chrome-immortal-r13-round1"},
+    {"round": 2, "cohortOffset": 1530, "cohortRange": "1758-1787", "runRoot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-chrome-immortal-r13-round2"},
+    {"round": 3, "cohortOffset": 1560, "cohortRange": "1788-1817", "runRoot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-chrome-immortal-r13-round3"}
+  ],
+  "constraints": {
+    "chromeKeepaliveMayTerminate": false,
+    "roundsMayOverlap": false,
+    "noCodeChangesBetweenRounds": true,
+    "sameBundleHashesRequired": true,
+    "sameManifestRequired": true,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false
+  }
+}

@@ -20,9 +20,9 @@ const results = readdirSync(textRoot, { withFileTypes: true })
       .filter((name) => name.endsWith(".txt"))
       .map((name) => {
         const sourceId = name.replace(/\.txt$/u, "");
-        return { sourceId, kind: kindByDocumentKey.get(sourceId), text: readFileSync(path.join(directory, name), "utf8") };
+        return { sourceId, kind: kindByDocumentKey.get(sourceId), practiceCustomerName: entry.name.replace(/-/gu, " "), text: readFileSync(path.join(directory, name), "utf8") };
       });
-    const result = extractAprInfissiAutomaticTechnicalEvidence(sources);
+    const result = extractAprInfissiAutomaticTechnicalEvidence(sources, { requirePracticeBinding: true });
     return {
       customerKey: entry.name,
       status: result.status,

@@ -1,4 +1,6 @@
 import type { EneaLabMappedPractice } from "./types";
+import { resolveOfficialMunicipalityCanonicalIdentity } from "@/features/enea-shadow-crm/officialMunicipalities";
+import { resolveOfficialMunicipalityProvinceChange } from "@/features/enea-shadow-crm/officialMunicipalityProvinceChanges";
 import {
   buildEneaPortalRuntimeScript,
   type EneaPortalControl,
@@ -95,7 +97,17 @@ export function buildEneaBuildingPortalScript(
       || field.value === "Non indicato"
       || field.value === "Intervento umano richiesto"
     ) return [];
-    const value = definition.normalizeValue ? definition.normalizeValue(field.value) : field.value;
+    const sourceProvince = fieldsById.get("immobile.provincia")?.value ?? "";
+    const officialProvinceChange = definition.fieldId === "immobile.comune"
+      ? resolveOfficialMunicipalityProvinceChange({ name: field.value, province: sourceProvince })
+      : null;
+    const officialMunicipality = definition.fieldId === "immobile.comune"
+      ? resolveOfficialMunicipalityCanonicalIdentity({
+        name: field.value,
+        province: officialProvinceChange?.currentProvinceCode ?? sourceProvince,
+      })
+      : null;
+    const value = officialMunicipality?.canonicalName ?? (definition.normalizeValue ? definition.normalizeValue(field.value) : field.value);
     const selectValue = definition.selectValues?.[field.value];
     if (definition.control === "select" && definition.selectValues && !selectValue) return [];
     const prepared: EneaPortalRuntimeField = {
@@ -103,7 +115,11 @@ export function buildEneaBuildingPortalScript(
       control: definition.control,
       value,
       ...(selectValue ? { selectValue } : {}),
-      ...(definition.fieldId === "immobile.comune"
+      ...(officialMunicipality
+        ? { autocompleteQualifier: officialMunicipality.provinceCode, autocompleteAuthoritativeIstatCode: officialMunicipality.istatCode }
+        : officialProvinceChange
+          ? { autocompleteQualifier: officialProvinceChange.currentProvinceCode, autocompleteAuthoritativeIstatCode: officialProvinceChange.currentIstatCode }
+        : definition.fieldId === "immobile.comune"
         && fieldsById.get("immobile.provincia")?.status === "ready"
         && /^[A-Z]{2}$/i.test(fieldsById.get("immobile.provincia")!.value.trim())
         ? { autocompleteQualifier: fieldsById.get("immobile.provincia")!.value.trim().toUpperCase() }

@@ -1,0 +1,50 @@
+{
+  "version": "apr-r85-single-case-proof-v1",
+  "case": {
+    "customerKey": "elena-marcella-berti",
+    "displayName": "Elena Marcella Berti",
+    "mode": "local_copy_no_external_actions",
+    "result": "blocked_case",
+    "financial": {
+      "invoiceTotal": 1320,
+      "eligibleExpense": 1320,
+      "bankTransferPrincipalTotal": 1320,
+      "bankFeesExcluded": 1.2,
+      "tripleReconciliationVerified": true
+    },
+    "building": {
+      "qualification": "single_unit",
+      "unitCount": 1
+    },
+    "worksMunicipality": {
+      "status": "not_found",
+      "value": null
+    },
+    "remainingBlockerCodes": [
+      "draft_payload_mapping_incomplete"
+    ]
+  },
+  "installedBundle": {
+    "versionId": "d1681076-manso-cap-typo-fix-r85-20260907",
+    "workerSha256Observed": "25c2037e98876c6b49e97908fd1aad6b04c94c991e16a1eaaefa5657975c142d",
+    "workerSha256InstallReceipt": "25c2037e98876c6b49e97908fd1aad6b04c94c991e16a1eaaefa5657975c142d",
+    "supervisorSha256Observed": "050d1ffe3f0b4cde66a61b83b1a24f994cfe339d6d6c3fdc16905eb372dbb5bf",
+    "supervisorSha256InstallReceipt": "050d1ffe3f0b4cde66a61b83b1a24f994cfe339d6d6c3fdc16905eb372dbb5bf"
+  },
+  "executionEvidence": {
+    "localCaseEvaluator": "canonical-bundle/current/apr-supervisor.mjs",
+    "workerInvokedForStatusAndOperationalAdmission": true,
+    "workerUsedAsLocalCaseEvaluator": false,
+    "currentlyRunningPersistentWorkerLoadedVersionId": "1c9e8a32-business-rule-governance-r56-20260905",
+    "currentlyRunningPersistentWorkerUsesR85": false,
+    "operationalAdmission": "technical_block",
+    "operationalAdmissionReason": "apr_rule_governance_admission_failed:attestation_missing",
+    "largeCohortStarted": false
+  },
+  "requestedCohortCardinality": {
+    "claimedTotal": 108,
+    "lineaSolePotitoCount": 4,
+    "lineaSolePotitoIsSubsetOfUntested37": true,
+    "deduplicationRequired": true
+  }
+}

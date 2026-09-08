@@ -12,11 +12,18 @@ import { APR_RULE_TEST_MATRIX } from "../../src/features/enea-shadow-crm/ruleTes
 
 const sourceFixture = path.resolve("scripts/enea-shadow-runner/fixtures/localCrmDossier.json");
 
+function documentFixtureAwningGTot(dossier: LocalCrmDossier) {
+  const awning = dossier.invoices.flatMap((invoice) => invoice.lines).find((line) => line.classification === "tenda");
+  if (!awning) throw new Error("fixture tenda mancante");
+  awning.documentedGTot = 0.13;
+}
+
 describe("batch locale APR ENEA", () => {
   it("riprende automaticamente un elemento reclamato dopo stop senza Codex, senza duplicati o perdite", async () => {
     const directory = mkdtempSync(path.join(tmpdir(), "apr-batch-autonomous-"));
     try {
       const template = JSON.parse(readFileSync(sourceFixture, "utf8")) as LocalCrmDossier;
+      documentFixtureAwningGTot(template);
       const inputs: LocalDossierBatchInput[] = [1, 2].map((ordinal) => {
         const dossier = structuredClone(template); dossier.dossierId = `restart-${ordinal}`; dossier.displayName = `Ripresa ${ordinal}`;
         const dossierPath = path.join(directory, `restart-${ordinal}.json`); writeFileSync(dossierPath, JSON.stringify(dossier));
@@ -53,6 +60,7 @@ describe("batch locale APR ENEA", () => {
     const directory = mkdtempSync(path.join(tmpdir(), "apr-batch-"));
     try {
       const template = JSON.parse(readFileSync(sourceFixture, "utf8")) as LocalCrmDossier;
+      documentFixtureAwningGTot(template);
       const inputs: LocalDossierBatchInput[] = [];
       for (let index = 1; index <= 14; index += 1) {
         const dossier = structuredClone(template); dossier.dossierId = `dossier-${index}`; dossier.displayName = `Cliente ${index}`;

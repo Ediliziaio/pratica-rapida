@@ -1,0 +1,26 @@
+{
+  "version": "apr-screening-rounding-r22-gate-attestation-v1",
+  "recordedAt": "2026-09-01T03:50:00Z",
+  "sourceCommit": "e891ea92951338b966fd6727ff7fde10c48f25af",
+  "sourceTree": "bc782428b0416da440d0da848a0b2a38b7076e37",
+  "runtimeGate": {
+    "status": "PASS",
+    "testSuites": 433,
+    "testFiles": 216,
+    "tests": 1611,
+    "failed": 0,
+    "typecheck": "PASS",
+    "productionBuild": "PASS",
+    "executionEnvironment": "host-with-loopback-for-cdp-test-servers",
+    "machineReadableResult": "/private/tmp/apr-r22-vitest-authoritative-rerun.json"
+  },
+  "focusedTerminalTruthGate": {
+    "status": "PASS",
+    "tests": 14,
+    "failed": 0,
+    "reportCaseTruthMapping": "PASS",
+    "caseTechnicalIsolation": "PASS",
+    "unresolvedFinalizerRecovery": "PASS"
+  },
+  "diagnosticNote": "The first full attempt had one transient Chrome fixture failure; the isolated test passed and the complete authoritative rerun then passed 1611/1611. Typecheck, production build and the 14 focused fail-closed tests were rerun after the final R22 commit and passed."
+}

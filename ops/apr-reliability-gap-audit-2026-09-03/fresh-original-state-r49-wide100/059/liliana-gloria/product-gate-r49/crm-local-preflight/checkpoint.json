@@ -1,0 +1,363 @@
+{
+  "version": "apr-crm-local-preflight-v1",
+  "revision": 1,
+  "status": "completed",
+  "sourceFingerprint": "3c240c9d8e0eeca9a337be446add00823f30c059f2238edc5485d39cec580ec8",
+  "currentCustomerKey": null,
+  "items": [
+    {
+      "customerKey": "liliana-gloria",
+      "displayName": "liliana gloria",
+      "practiceId": "226564d6-44d1-45a2-944e-61ba4c1450f3",
+      "dossierPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2979-global-controller-liliana-gloria/crm-acquisition/dossiers/liliana-gloria.json",
+      "state": "blocked_case",
+      "attemptCount": 1,
+      "startedAt": null,
+      "endedAt": null,
+      "report": {
+        "outcome": "blocked_case",
+        "formAvailable": true,
+        "startDate": "2026-06-23",
+        "startDateSource": "f5746c9d0ef32157c3bc2be7eff5eed934a8438bddd2ec75db87b90c0374d056:invoice:064217fb92d4",
+        "completionDate": "2026-07-20",
+        "completionDateSource": "c6b95fdc04b46e4afae6d7392907ef583d431548c7861f14b7fc3a00f1d1c170:invoice:f5f3a339e1b0",
+        "buildingQualification": "single_unit",
+        "buildingUnitCount": 1,
+        "deductionRate": null,
+        "taxCodeStatus": "verified_original_document",
+        "resolvedTaxCode": "GLRLLN73B60A089P",
+        "taxCodeSourceIds": [
+          "c6b95fdc04b46e4afae6d7392907ef583d431548c7861f14b7fc3a00f1d1c170",
+          "f5746c9d0ef32157c3bc2be7eff5eed934a8438bddd2ec75db87b90c0374d056"
+        ],
+        "primaryBeneficiaryResolution": {
+          "status": "verified_document",
+          "identity": {
+            "name": "Liliana",
+            "surname": "Gloria",
+            "taxCode": "GLRLLN73B60A089P",
+            "birthDate": "1973-02-20",
+            "sex": "F"
+          },
+          "sourceIds": [
+            "c6b95fdc04b46e4afae6d7392907ef583d431548c7861f14b7fc3a00f1d1c170",
+            "f5746c9d0ef32157c3bc2be7eff5eed934a8438bddd2ec75db87b90c0374d056"
+          ],
+          "authority": "fiscal_document"
+        },
+        "coBeneficiaryResolution": {
+          "status": "not_declared",
+          "present": false,
+          "identity": null,
+          "sourceIds": []
+        },
+        "products": [
+          {
+            "rowId": "c6b95fdc04b46e4afae6d7392907ef583d431548c7861f14b7fc3a00f1d1c170:invoice:f5f3a339e1b0:piece-1",
+            "sourceDocumentKey": "c6b95fdc04b46e4afae6d7392907ef583d431548c7861f14b7fc3a00f1d1c170:invoice:f5f3a339e1b0",
+            "description": "Tenda da sole a bracci",
+            "pieceNumber": 1,
+            "widthMm": 3400,
+            "heightMm": 1800,
+            "surfaceM2": 6.12,
+            "exposure": "sud",
+            "exposureSource": "linea_sole_potito_fallback",
+            "protectedWindowSurfaceM2": 2.9,
+            "protectedWindowSurfaceSource": "linea_sole_potito_fallback",
+            "supplementaryThermalResistance": null,
+            "declaredType": null,
+            "formMappingSource": null,
+            "gTot": 0.11,
+            "gTotSource": "invoice_explicit",
+            "material": "Tessuto",
+            "materialSource": "authorized_fallback",
+            "movement": "Manuale",
+            "movementSource": "authorized_fallback",
+            "appliedRuleIds": [
+              "user-2026-08-31-documented-gtot-precedence-v1",
+              "authorized-22-schermature-materiale",
+              "authorized-16-schermature-meccanismo",
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+              "user-2026-08-18-explicit-technical-surface-precision",
+              "user-2026-08-17-linea-sole-potito-paper-form-fallbacks"
+            ]
+          },
+          {
+            "rowId": "c6b95fdc04b46e4afae6d7392907ef583d431548c7861f14b7fc3a00f1d1c170:invoice:f5f3a339e1b0:piece-2",
+            "sourceDocumentKey": "c6b95fdc04b46e4afae6d7392907ef583d431548c7861f14b7fc3a00f1d1c170:invoice:f5f3a339e1b0",
+            "description": "Tenda da sole a bracci",
+            "pieceNumber": 2,
+            "widthMm": 3400,
+            "heightMm": 1800,
+            "surfaceM2": 6.12,
+            "exposure": "sud",
+            "exposureSource": "linea_sole_potito_fallback",
+            "protectedWindowSurfaceM2": 2.2,
+            "protectedWindowSurfaceSource": "linea_sole_potito_fallback",
+            "supplementaryThermalResistance": null,
+            "declaredType": null,
+            "formMappingSource": null,
+            "gTot": 0.11,
+            "gTotSource": "invoice_explicit",
+            "material": "Tessuto",
+            "materialSource": "authorized_fallback",
+            "movement": "Manuale",
+            "movementSource": "authorized_fallback",
+            "appliedRuleIds": [
+              "user-2026-08-31-documented-gtot-precedence-v1",
+              "authorized-22-schermature-materiale",
+              "authorized-16-schermature-meccanismo",
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+              "user-2026-08-18-explicit-technical-surface-precision",
+              "user-2026-08-17-linea-sole-potito-paper-form-fallbacks"
+            ]
+          }
+        ],
+        "financial": {
+          "invoiceTotal": 3663,
+          "eligibleExpense": 3663,
+          "tripleReconciliationVerified": true,
+          "reconciledTotal": 3663,
+          "evidence": [
+            {
+              "sourceId": "c6b95fdc04b46e4afae6d7392907ef583d431548c7861f14b7fc3a00f1d1c170:invoice:f5f3a339e1b0",
+              "kind": "invoice",
+              "taxableAmount": 1665,
+              "vatAmount": 166.5,
+              "grossTotal": 1831.5,
+              "interventionGrossAmount": 1831.5,
+              "extractionConfidence": "certain",
+              "extractionIssues": []
+            },
+            {
+              "sourceId": "f5746c9d0ef32157c3bc2be7eff5eed934a8438bddd2ec75db87b90c0374d056:invoice:064217fb92d4",
+              "kind": "invoice",
+              "taxableAmount": 1665,
+              "vatAmount": 166.5,
+              "grossTotal": 1831.5,
+              "interventionGrossAmount": 1831.5,
+              "extractionConfidence": "certain",
+              "extractionIssues": []
+            }
+          ],
+          "bankTransfers": [],
+          "bankTransferReconciliation": {
+            "status": "not_provided",
+            "principalTotal": null,
+            "feesTotal": null,
+            "debitedTotal": null,
+            "difference": null,
+            "referenceStatus": "not_provided",
+            "missingInvoiceReferences": [],
+            "taxReliefTypes": []
+          },
+          "methods": [
+            {
+              "method": "structured_extraction",
+              "ok": true,
+              "total": 3663,
+              "sources": [
+                "c6b95fdc04b46e4afae6d7392907ef583d431548c7861f14b7fc3a00f1d1c170:invoice:f5f3a339e1b0",
+                "f5746c9d0ef32157c3bc2be7eff5eed934a8438bddd2ec75db87b90c0374d056:invoice:064217fb92d4"
+              ],
+              "reason": "Ogni documento ha imponibile, IVA e totale verificati."
+            },
+            {
+              "method": "accounting_reconciliation",
+              "ok": true,
+              "total": 3663,
+              "sources": [
+                "c6b95fdc04b46e4afae6d7392907ef583d431548c7861f14b7fc3a00f1d1c170:invoice:f5f3a339e1b0",
+                "f5746c9d0ef32157c3bc2be7eff5eed934a8438bddd2ec75db87b90c0374d056:invoice:064217fb92d4"
+              ],
+              "reason": "Somma dei totali lordi IVA inclusa delle fatture uniche deduplicate; gli storni interni sono solo note auditabili."
+            },
+            {
+              "method": "intervention_cross_check",
+              "ok": true,
+              "total": 3663,
+              "sources": [
+                "c6b95fdc04b46e4afae6d7392907ef583d431548c7861f14b7fc3a00f1d1c170:invoice:f5f3a339e1b0",
+                "f5746c9d0ef32157c3bc2be7eff5eed934a8438bddd2ec75db87b90c0374d056:invoice:064217fb92d4"
+              ],
+              "reason": "Totale ricostruito esclusivamente dalle righe pertinenti all'intervento."
+            }
+          ],
+          "discardedDuplicateSourceIds": [],
+          "supersededTechnicalSourceIds": [],
+          "appliedRuleIds": [
+            "user-2026-08-16-invoice-gross-total-vat-included",
+            "user-2026-08-18-bundled-professional-expense-separation",
+            "user-2026-08-18-mandatory-bank-transfer-invoice-expense-cross-check",
+            "core-gross-triple-reconciliation",
+            "user-2026-08-14-preserve-technical-product-cardinality",
+            "system-explicit-advance-invoice-reference-marker-v1",
+            "user-2026-08-16-distinct-invoice-numbers-same-customer-sum"
+          ]
+        },
+        "warnings": [
+          {
+            "code": "linea_sole_potito_paper_form_accepted",
+            "reason": "Modulo cartaceo Linea Sole Potito riconosciuto come form originario da 0102a833d0d2de6a20483e87789205052b0d8e1eca612632be066a15103522f1.",
+            "appliedRuleIds": [
+              "user-2026-08-17-linea-sole-potito-paper-form-fallbacks",
+              "core-form-first"
+            ]
+          },
+          {
+            "code": "crm_fiscal_code_confirmed_by_invoice_customer_block",
+            "reason": "CF CRM GLRLLN73B60A089P confermato nel blocco CLIENTE di una fattura originaria, con checksum e prefissi fiscali di nome/cognome concordanti.",
+            "appliedRuleIds": [
+              "system-invoice-customer-block-crm-cf-v1",
+              "user-2026-08-16-fiscal-code-identity-cross-check"
+            ]
+          },
+          {
+            "code": "building_units_defaulted_to_one",
+            "reason": "Numero appartamenti non specificato o zero: impostata una unita immobiliare.",
+            "appliedRuleIds": [
+              "user-2026-08-16-default-single-unit-when-unspecified",
+              "user-2026-08-14-single-unit-building-over-floor-count"
+            ]
+          }
+        ],
+        "blockers": [
+          {
+            "code": "draft_payload_mapping_incomplete",
+            "field": "enea_payload",
+            "reason": "Il preflight delle fonti non presenta conflitti, ma il payload ENEA non e completo: Titolo sull'immobile: Intervento umano richiesto.; Abitazione principale: Intervento umano richiesto.; Tipo impianto: Intervento umano richiesto.; Terminali: Intervento umano richiesto.; Tipo generatore: Intervento umano richiesto.; Numero generatori: Intervento umano richiesto.; Vettore energetico: Intervento umano richiesto.; Climatizzazione estiva: Intervento umano richiesto.. Correggere il mapping locale prima di accodare la pratica; nessuna azione esterna consentita.",
+            "sourceIds": [
+              "c6b95fdc04b46e4afae6d7392907ef583d431548c7861f14b7fc3a00f1d1c170",
+              "f5746c9d0ef32157c3bc2be7eff5eed934a8438bddd2ec75db87b90c0374d056",
+              "0102a833d0d2de6a20483e87789205052b0d8e1eca612632be066a15103522f1"
+            ],
+            "appliedRuleIds": [
+              "system-draft-payload-mapping-completeness",
+              "system-apr-technical-repair-queue",
+              "core-mapping-complete"
+            ]
+          }
+        ],
+        "sourceIds": [
+          "c6b95fdc04b46e4afae6d7392907ef583d431548c7861f14b7fc3a00f1d1c170",
+          "f5746c9d0ef32157c3bc2be7eff5eed934a8438bddd2ec75db87b90c0374d056",
+          "0102a833d0d2de6a20483e87789205052b0d8e1eca612632be066a15103522f1"
+        ],
+        "eneaPayloadAudit": {
+          "status": "payload_incomplete",
+          "mappingFingerprint": "imnzxu",
+          "fieldSummary": {
+            "ready": 61,
+            "review": 0,
+            "missing": 8
+          },
+          "requiredPortalFieldCount": 54,
+          "blockerCount": 8,
+          "blockers": [
+            {
+              "code": "missing-beneficiario.titolo",
+              "fieldId": "beneficiario.titolo",
+              "message": "Titolo sull'immobile: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-beneficiario.abitazione_principale",
+              "fieldId": "beneficiario.abitazione_principale",
+              "message": "Abitazione principale: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-impianto.tipo",
+              "fieldId": "impianto.tipo",
+              "message": "Tipo impianto: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-impianto.terminali",
+              "fieldId": "impianto.terminali",
+              "message": "Terminali: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-impianto.generatore",
+              "fieldId": "impianto.generatore",
+              "message": "Tipo generatore: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-impianto.numero_generatori",
+              "fieldId": "impianto.numero_generatori",
+              "message": "Numero generatori: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-impianto.combustibile",
+              "fieldId": "impianto.combustibile",
+              "message": "Vettore energetico: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-impianto.condizionamento",
+              "fieldId": "impianto.condizionamento",
+              "message": "Climatizzazione estiva: Intervento umano richiesto."
+            }
+          ],
+          "excludedUnverifiedFields": [
+            "beneficiario.titolo",
+            "beneficiario.abitazione_principale",
+            "immobile.codice_comune",
+            "immobile.zona_climatica",
+            "immobile.gradi_giorno",
+            "intervento.impianto_centralizzato",
+            "impianto.tipo",
+            "impianto.terminali",
+            "impianto.generatore",
+            "impianto.combustibile",
+            "impianto.condizionamento",
+            "schermature.0.rsupp",
+            "schermature.1.rsupp",
+            "documenti.fatture",
+            "documenti.bonifico",
+            "documenti.tecnici"
+          ],
+          "draftReady": false,
+          "officialSubmissionAllowed": false,
+          "portalGate": {
+            "status": "blocked",
+            "reason": "draft-data-incomplete",
+            "workflowFingerprint": null,
+            "supportedPages": [],
+            "screeningItemCount": 0,
+            "saveAllowedOnlyBySeparateCapability": true,
+            "previewAllowed": false,
+            "submitAllowed": false
+          },
+          "externalActionAllowed": false,
+          "reason": "8 campi o controlli impediscono ancora il payload della bozza TEST."
+        },
+        "draftPlan": {
+          "status": "blocked",
+          "externalActionAllowed": false,
+          "previewAllowed": false,
+          "submitAllowed": false,
+          "communicationsAllowed": false,
+          "nextAction": "Risolvere i blocker con sole fonti originarie; la coda prosegue sugli altri casi."
+        }
+      },
+      "reason": "Fresh replay dai documenti originali"
+    }
+  ],
+  "externalActionAllowed": false,
+  "reason": "Fresh replay locale",
+  "nextAction": "Nessuna azione esterna.",
+  "validationRevisionsApplied": [],
+  "sourceRevisionsApplied": [],
+  "operatorMeasurementResolutions": [],
+  "audit": [
+    {
+      "revision": 1,
+      "at": "2026-09-03T10:00:00.000Z",
+      "type": "completed",
+      "customerKey": null,
+      "reason": "Fresh replay locale",
+      "appliedRuleIds": [
+        "system-single-active-practice"
+      ]
+    }
+  ]
+}

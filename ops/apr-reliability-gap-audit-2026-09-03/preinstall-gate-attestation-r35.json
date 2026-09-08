@@ -1,0 +1,50 @@
+{
+  "version": "apr-fiscal-copy-reliability-r35-preinstall-gate-v1",
+  "attestedAt": "2026-09-03T17:24:53.975Z",
+  "status": "tested_not_deployed",
+  "monotonicGate": {
+    "baseline": {
+      "suites": 444,
+      "tests": 1693,
+      "reportSha256": "3aa2091d82fa253cf0efd822029c24a3dc0e9d3e6afaa48ef5c8a2aa8b90bdba"
+    },
+    "candidate": {
+      "suites": 444,
+      "tests": 1696,
+      "reportSha256": "7acb52a52d91505399c5afcaebb1d398abfeab6a05861dcaa6ca5065e1b95bc8"
+    },
+    "registryVersion": "enea-operational-registry-v111",
+    "matrixVersion": "apr-enea-rule-test-matrix-v89",
+    "rulesProved": 110,
+    "ruleEvidenceSha256": "2b8d01655e1ed88020174ab39c3ef079cc18cd18ae4ed126850afe79c4823f4b"
+  },
+  "freshOriginalReplay": {
+    "status": "passed",
+    "beforeSha256": "087eabfcea81ffd9767619ba40804db28d24c172eab9b9f0054bd039e8bc3c60",
+    "afterSha256": "27878ba2f568a62640b86ffc9e6b0b0027d3a59799c23141776b0a45e6317ac7",
+    "diagnosticSha256": "a60f56dc02271c5318f8f352b6251d7cb49979e841c5c271b7fd2c5cb05d3aa2",
+    "residualReviewSha256": "2bc43882bf387901000baba0c3bc7995b602559226f9df7fdaf9a88d9e61b003",
+    "documents": 359,
+    "bytes": 293624565,
+    "improvedCases": [
+      "claudia-campagna",
+      "monica-molteni"
+    ],
+    "unchangedCases": 98,
+    "externalActionAllowed": false
+  },
+  "stagedBundle": {
+    "apr-supervisor.mjs": "68a235d2dc4e2ce2066fac62fcaec0802ddb7b170d7ba2498438487bb12a3e7d",
+    "apr-enea-worker.mjs": "f68568da7275322f7c76068dbfb130e7b65118ffec44aa7aabe6102a28bb7898",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "apr-pdf-ocr": "4c41c9a6832b11b9d19eace538100270a533dddc05e475e5842711968393327f"
+  },
+  "safety": {
+    "localOnly": true,
+    "externalActionAllowed": false,
+    "previewAllowed": false,
+    "saveAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false
+  }
+}

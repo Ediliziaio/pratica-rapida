@@ -1,0 +1,47 @@
+{
+  "version": "apr-sellati-clean-r54-manifest-v1",
+  "experimentId": "apr-sellati-clean-r54-2026-09-05",
+  "authorizationId": "user-2026-09-05-sellati-new-clean-draft-r54",
+  "authorizedAt": "2026-09-05T00:49:29Z",
+  "mode": "real_enea_draft_only",
+  "selection": {
+    "total": 1,
+    "allowedStages": ["archiviate"],
+    "excludedCustomerKeys": [
+      "beatrice-ciotta",
+      "samuele-beretta",
+      "prova-rivenditore-1-30-04",
+      "lucia-droghetti",
+      "angelina-stricelli"
+    ],
+    "excludedResellers": ["Vans", "Erre Emme", "RM Legno"],
+    "method": "Replay operativo autorizzato su una nuova generazione pulita. La bozza storica 460570 è superseded e non può essere adottata o mutata."
+  },
+  "cases": [
+    {
+      "cohort": 3098,
+      "practiceId": "58f03680-c716-42e7-ad7d-e3ceaee5573d",
+      "customerKey": "claudia-sellati",
+      "displayName": "CLAUDIA SELLATI",
+      "stage": "archiviate",
+      "stageName": "Archiviate",
+      "module": "infissi",
+      "productEvidence": "Infissi / Serramenti",
+      "reseller": "Stellino Design SRL SOCIO UNICO",
+      "invoiceCount": 6,
+      "complexity": "complex",
+      "historicalRetest": true,
+      "generationMode": "fresh_generation"
+    }
+  ],
+  "safety": {
+    "draftOnly": true,
+    "freshGenerationRequired": true,
+    "forbiddenPriorDraftIds": ["460570"],
+    "previewForbidden": true,
+    "submitForbidden": true,
+    "protocolForbidden": true,
+    "receiptsForbidden": true,
+    "communicationsForbidden": true
+  }
+}

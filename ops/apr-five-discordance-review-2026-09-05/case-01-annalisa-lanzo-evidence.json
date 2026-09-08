@@ -1,0 +1,44 @@
+{
+  "version": "apr-discordance-human-review-evidence-v1",
+  "customerKey": "annalisa-lanzo",
+  "displayName": "Annalisa Lanzo",
+  "practiceId": "b51df57d-dae2-4ddc-bf99-904673ebe50d",
+  "status": "awaiting_user_review_before_verdict",
+  "formEvidence": {
+    "source": "dati_form.prodotto.schermature",
+    "count": 1,
+    "items": [
+      { "tipo_prodotto": "tende_da_sole", "direzione": "est" }
+    ]
+  },
+  "invoiceEvidence": [
+    {
+      "documentNumber": "207",
+      "documentDate": "2026-06-09",
+      "sha256": "3c4f238dbf2a7bdab9014ae592b80bcb20223dc8b7d41d77a2aa63bcfbb95ae7",
+      "meaning": "acconto, non secondo prodotto fisico",
+      "visibleRows": ["ACCONTO TENDA DA SOLE", "quantità 1,00", "totale fattura 420,00 euro"]
+    },
+    {
+      "documentNumber": "260",
+      "documentDate": "2026-07-07",
+      "sha256": "a29ae1eb2edcf8fe2dcd61d06c18be1a6f0d61dd2fce145f4ed7f0b67354d1d2",
+      "meaning": "saldo con un prodotto fisico e detrazione dell’acconto",
+      "visibleRows": [
+        "TENDA DA SOLE CASSONETTO MOD. R51 PONANT",
+        "DIM. CM L 265x220 SP (=MQ 5,83)",
+        "quantità 1,00",
+        "ACCONTO RIF. FATTURA N. 207 DEL 09/06/2026",
+        "totale fattura 980,00 euro"
+      ]
+    }
+  ],
+  "aprPreviousReading": {
+    "formPhysicalCount": 1,
+    "invoicePhysicalCount": 0,
+    "invoice207ItemCount": 0,
+    "invoice260ItemCount": 0
+  },
+  "preliminaryFinding": "Le fonti originali sembrano concordare su un solo prodotto fisico. La discordanza 1 contro 0 nasce perché APR non ha riconosciuto la riga fisica della fattura 260; non è ancora classificata come blocco nel nuovo test.",
+  "operatorQuestion": "Confermi che la fattura 260 descrive una sola tenda da sole fisica da 265 x 220 cm e che la fattura 207 è soltanto l’acconto dello stesso prodotto?"
+}

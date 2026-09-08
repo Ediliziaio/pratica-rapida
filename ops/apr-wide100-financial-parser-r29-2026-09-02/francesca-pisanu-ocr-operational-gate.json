@@ -1,0 +1,27 @@
+{
+  "version": "apr-financial-parser-r29-ocr-operational-gate-v1",
+  "sourceCustomerKey": "francesca-pisanu",
+  "sourceDocumentSha256": "e0e8cfc8a249ca6150b5c430c7205af82133941c2d12292f7efede6c5456e463",
+  "ocrExecutableSha256": "4c41c9a6832b11b9d19eace538100270a533dddc05e475e5842711968393327f",
+  "orientationMarkers": [270, 0, 0, 0, 180, 0, 180, 0, 180, 90, 90, 180, 270, 90, 0, 0],
+  "invoiceCount": 2,
+  "invoices": [
+    {
+      "documentNumber": "84/00",
+      "documentDate": "2026-02-27",
+      "taxableAmount": 2500,
+      "vatAmount": 250,
+      "grossTotal": 2750,
+      "extractionConfidence": "certain"
+    },
+    {
+      "documentNumber": "156/00",
+      "documentDate": "2026-04-03",
+      "taxableAmount": 2451.31,
+      "vatAmount": 298.69,
+      "grossTotal": 2750,
+      "extractionConfidence": "certain"
+    }
+  ],
+  "status": "passed"
+}

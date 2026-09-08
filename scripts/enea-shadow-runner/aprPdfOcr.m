@@ -30,6 +30,62 @@ static NSString *recognizeImage(CGImageRef cgImage, CGImagePropertyOrientation o
   return [lines componentsJoinedByString:@"\n"];
 }
 
+static NSInteger documentTextScore(NSString *text) {
+  if (!text.length) return NSIntegerMin;
+  NSString *upper = text.uppercaseString;
+  NSArray<NSString *> *anchors = @[@"FATTURA", @"TOTALE", @"IMPONIBILE", @"IVA", @"DOCUMENTO", @"PAGARE", @"BONIFICO"];
+  NSInteger score = MIN((NSInteger)text.length, 1200);
+  for (NSString *anchor in anchors) {
+    NSRange search = NSMakeRange(0, upper.length);
+    while (search.location < upper.length) {
+      NSRange found = [upper rangeOfString:anchor options:0 range:search];
+      if (found.location == NSNotFound) break;
+      score += 180;
+      NSUInteger next = NSMaxRange(found);
+      search = NSMakeRange(next, upper.length - next);
+    }
+  }
+  NSCharacterSet *digits = NSCharacterSet.decimalDigitCharacterSet;
+  for (NSUInteger index = 0; index < text.length; index++) if ([digits characterIsMember:[text characterAtIndex:index]]) score += 2;
+  return score;
+}
+
+static NSString *recognizeBestDocumentOrientation(CGImageRef cgImage, CGImagePropertyOrientation *selectedOrientation, NSError **error) {
+  const CGImagePropertyOrientation orientations[] = {
+    kCGImagePropertyOrientationUp,
+    kCGImagePropertyOrientationRight,
+    kCGImagePropertyOrientationDown,
+    kCGImagePropertyOrientationLeft,
+  };
+  NSString *best = nil;
+  NSInteger bestScore = NSIntegerMin;
+  NSError *lastError = nil;
+  CGImagePropertyOrientation bestOrientation = kCGImagePropertyOrientationUp;
+  for (NSUInteger index = 0; index < 4; index++) {
+    NSError *candidateError = nil;
+    NSString *candidate = recognizeImage(cgImage, orientations[index], &candidateError);
+    if (!candidate) { lastError = candidateError; continue; }
+    NSInteger score = documentTextScore(candidate);
+    // A parita' si conserva l'orientamento originale: una rotazione viene
+    // scelta soltanto con evidenza OCR strettamente migliore e auditabile.
+    if (!best || score > bestScore) {
+      best = candidate;
+      bestScore = score;
+      bestOrientation = orientations[index];
+    }
+  }
+  if (!best && error) *error = lastError;
+  if (selectedOrientation) *selectedOrientation = bestOrientation;
+  return best;
+}
+
+static NSInteger orientationDegrees(CGImagePropertyOrientation orientation) {
+  if (orientation == kCGImagePropertyOrientationRight) return 90;
+  if (orientation == kCGImagePropertyOrientationDown) return 180;
+  if (orientation == kCGImagePropertyOrientationLeft) return 270;
+  return 0;
+}
+
 int main(int argc, const char *argv[]) {
   @autoreleasepool {
     if (argc != 2) return fail(@"usage: apr-pdf-ocr <local-pdf-or-image>", 64);
@@ -63,7 +119,8 @@ int main(int argc, const char *argv[]) {
         CGImageRef cgImage = [image CGImageForProposedRect:NULL context:nil hints:nil];
         if (!cgImage) return fail(@"render_image_failed", 1);
         NSError *error = nil;
-        NSString *recognized = recognizeImage(cgImage, kCGImagePropertyOrientationUp, &error);
+        CGImagePropertyOrientation selectedOrientation = kCGImagePropertyOrientationUp;
+        NSString *recognized = recognizeBestDocumentOrientation(cgImage, &selectedOrientation, &error);
         if (!recognized) return fail(error.localizedDescription ?: @"ocr_failed", 1);
         if (technicalWindowPerformancePage && compactNative.length >= 40) {
           NSError *clockwiseError = nil;
@@ -99,7 +156,8 @@ int main(int argc, const char *argv[]) {
           if (!verticalCounterclockwise) return fail(verticalCounterclockwiseError.localizedDescription ?: @"vertical_dimension_ocr_failed", 1);
           [pages addObject:[NSString stringWithFormat:@"%@\nAPR_VISUAL_OCR:\n%@\nAPR_ROTATED_CLOCKWISE_OCR:\n%@\nAPR_ROTATED_COUNTERCLOCKWISE_OCR:\n%@\nAPR_DIAGRAM_OCR:\n%@\nAPR_DIAGRAM_ROTATED_CLOCKWISE_OCR:\n%@\nAPR_DIAGRAM_ROTATED_COUNTERCLOCKWISE_OCR:\n%@\nAPR_VERTICAL_DIMENSION_CLOCKWISE_OCR:\n%@\nAPR_VERTICAL_DIMENSION_COUNTERCLOCKWISE_OCR:\n%@", nativeText, recognized, clockwise, counterclockwise, diagram, diagramClockwise, diagramCounterclockwise, verticalClockwise, verticalCounterclockwise]];
         } else {
-          [pages addObject:recognized];
+          NSInteger degrees = orientationDegrees(selectedOrientation);
+          [pages addObject:[NSString stringWithFormat:@"APR_OCR_ORIENTATION:%ld\n%@", (long)degrees, recognized]];
         }
       }
     } else if ([extension isEqualToString:@"png"] || [extension isEqualToString:@"jpg"] || [extension isEqualToString:@"jpeg"]) {
@@ -110,9 +168,11 @@ int main(int argc, const char *argv[]) {
       CGImageRef cgImage = [image CGImageForProposedRect:NULL context:nil hints:nil];
       if (!cgImage) return fail(@"render_image_failed", 1);
       NSError *error = nil;
-      NSString *recognized = recognizeImage(cgImage, kCGImagePropertyOrientationUp, &error);
+      CGImagePropertyOrientation selectedOrientation = kCGImagePropertyOrientationUp;
+      NSString *recognized = recognizeBestDocumentOrientation(cgImage, &selectedOrientation, &error);
       if (!recognized) return fail(error.localizedDescription ?: @"ocr_failed", 1);
-      [pages addObject:recognized];
+      NSInteger degrees = orientationDegrees(selectedOrientation);
+      [pages addObject:[NSString stringWithFormat:@"APR_OCR_ORIENTATION:%ld\n%@", (long)degrees, recognized]];
     } else {
       return fail(@"invalid_document_format", 65);
     }

@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "blind-product-review-v1",
+  "reviewer": "Claude Code",
+  "cases": [
+    {
+      "customerKey": "caterina-claudia-garbato",
+      "displayName": "Caterina Claudia Garbato",
+      "classification": "EXPLICIT_PARTIAL",
+      "exactCause": "È documentata una persiana e la luce architettonica 2520x2710 mm, ma non la misura di taglio del prodotto; due fatture sono copie dello stesso documento.",
+      "missingDocumentType": "scheda di produzione con misura di taglio della persiana",
+      "operatorQuestion": "Per Caterina Claudia Garbato, quali sono le misure di taglio effettive della persiana, distinte dalla luce architettonica 2520x2710 mm?",
+      "onboardingGap": "Richiedere la scheda di produzione e distinguere misura vano da misura prodotto."
+    },
+    {
+      "customerKey": "marian-maeschi",
+      "displayName": "Marian Maeschi",
+      "classification": "EXPLICIT_PARTIAL",
+      "exactCause": "Le tre persiane hanno misure di taglio esplicite; i tre serramenti hanno quote manoscritte ma senza tipo misura e con ubicazioni illeggibili.",
+      "missingDocumentType": "scheda leggibile dei tre serramenti con tipo misura e ubicazione",
+      "operatorQuestion": "Per Marian Maeschi, le quote 1000x2150, 1000x1660 e 1000x1450 mm sono misure del prodotto o del vano, e a quale ambiente corrisponde ciascuna?",
+      "onboardingGap": "Controllare leggibilità e completezza delle schede manoscritte all'acquisizione."
+    },
+    {
+      "customerKey": "gemma-minore",
+      "displayName": "Gemma Minore",
+      "classification": "AMBIGUOUS_SOURCE_ASSOCIATION_TECHNICAL_REGRESSION",
+      "exactCause": "Le misure 1090x2075 mm appartengono alla commessa STARPUR 15040/2026 intestata a CISAM INFISSI e descrivono una portafinestra; le fatture di Gemma citano preventivi 20/2026 e 25/2026 e il saldo descrive un portoncino. La regola r37 ha accettato la fonte senza prova di collegamento univoco al cliente/prodotto.",
+      "missingDocumentType": "documento che colleghi la commessa STARPUR a Gemma oppure scheda tecnica del portoncino effettivamente fatturato",
+      "operatorQuestion": "Per Gemma Minore, la commessa STARPUR 15040/2026 con portafinestra 1090x2075 mm è davvero la sua fornitura, oppure va usato il portoncino del preventivo 25/2026?",
+      "onboardingGap": "Richiedere un riferimento comune univoco tra fatture cliente, preventivo e commessa produttore."
+    },
+    {
+      "customerKey": "mattia-vatieri",
+      "displayName": "Mattia Vatieri",
+      "classification": "EXPLICIT_PARTIAL",
+      "exactCause": "Cinque persiane hanno misure complete e riferimenti ambiente; le cinque zanzariere e il blindato fatturati non hanno schede misure.",
+      "missingDocumentType": "schede tecniche con misure delle cinque zanzariere e del blindato",
+      "operatorQuestion": "Inserisci per Mattia Vatieri le schede tecniche con larghezza e altezza delle cinque zanzariere e del portone blindato.",
+      "onboardingGap": "Richiedere documentazione tecnica per ogni categoria inclusa nella stessa fattura."
+    },
+    {
+      "customerKey": "leo-manini",
+      "displayName": "Leo Manini",
+      "classification": "EXPLICIT_COMPLETE_FALSE_BLOCKER_CANDIDATE",
+      "exactCause": "La fattura contiene sette infissi VEKA e una persiana con misure decimali in centimetri, ambiente e cardinalità verificabile; APR mantiene falsi blocker perché il parser corrente non riconosce in sicurezza il layout MISURA con decimali e quantità implicita sulle righe singole.",
+      "missingDocumentType": null,
+      "operatorQuestion": null,
+      "onboardingGap": null
+    }
+  ]
+}

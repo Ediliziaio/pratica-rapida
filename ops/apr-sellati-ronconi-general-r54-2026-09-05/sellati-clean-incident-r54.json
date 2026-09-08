@@ -1,0 +1,66 @@
+{
+  "version": "apr-sellati-clean-incident-r54-v1",
+  "recordedAt": "2026-09-05T00:58:29Z",
+  "authorizationId": "user-2026-09-05-sellati-new-clean-draft-r54",
+  "classification": "INCONSISTENT",
+  "customerKey": "claudia-sellati",
+  "practiceId": "58f03680-c716-42e7-ad7d-e3ceaee5573d",
+  "cohort": 3098,
+  "generation": {
+    "mode": "fresh_generation",
+    "canonicalDraftId": "464264",
+    "priorDraftId": "460570",
+    "priorDraftDisposition": "superseded_forbidden",
+    "observedDriverDraftIds": ["464264"],
+    "priorDraftReferencedByOperationalDriver": false
+  },
+  "exactCause": "Non attribuibile finché le fonti persistenti divergono: il sequencer e lo snapshot terminale hanno chiuso INCONSISTENT, mentre il checkpoint execution è rimasto running/save_intent_recorded ed è avanzato dopo la terminalizzazione.",
+  "observationsNotCaseVerdict": [
+    "Il primo Salva dell'Anagrafica non ha prodotto una scrittura canonica e la GET ha provato not_saved.",
+    "APR ha consumato l'unico recupero autorizzato, ma il controllo del portale continuava a dichiarare id-comune_residenza non valido.",
+    "Dopo lo snapshot terminale INCONSISTENT, il worker ha registrato un ulteriore prepare_allowlisted_page e save_page_once; questa divergenza impedisce di diagnosticare la pratica.",
+    "La bozza storica 460570 non compare nell'audit operativo della nuova coorte."
+  ],
+  "tripleVerification": {
+    "sequencerReport": {
+      "status": "completed",
+      "caseState": "inconsistent",
+      "saved": 0,
+      "inconsistent": 1
+    },
+    "terminalSnapshot": {
+      "lifecycleState": "technical_stop",
+      "publicStatus": "INCONSISTENT",
+      "caseTruth": "INCONSISTENT",
+      "executionRevisionObserved": 14
+    },
+    "executionCheckpointAfterTerminalization": {
+      "status": "running",
+      "revision": 20,
+      "state": "save_intent_recorded",
+      "completedPages": 0
+    },
+    "sourcesConcordant": false
+  },
+  "missingDocumentType": null,
+  "operatorQuestion": "Autorizzi un audit generale e inizialmente read-only della divergenza tra finalizzatore, checkpoint execution e worker Sellati, incluso il Salva registrato dopo la terminalizzazione, prima di qualsiasi nuovo replay?",
+  "onboardingGap": null,
+  "safetyAction": {
+    "action": "stopped_only_cohort_3098",
+    "reason": "Impedire ulteriori mutazioni dopo una terminalizzazione incoerente.",
+    "supervisorStopped": true,
+    "workerStopped": true,
+    "watchdogStopped": true,
+    "keepalivePreserved": true,
+    "chromePreserved": true,
+    "previewAttempted": false,
+    "submitAttempted": false,
+    "communicationsAttempted": false
+  },
+  "evidence": {
+    "executionCheckpoint": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3098-global-controller-claudia-sellati/enea-draft-execution/checkpoint.json",
+    "sequencerReport": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-sellati-clean-r54/report.json",
+    "terminalSnapshot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-3098-global-controller-claudia-sellati.json",
+    "driverAudit": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3098-global-controller-claudia-sellati/enea-browser-worker/cdp-driver.json"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "version": "apr-cohort-seed-v1",
+  "sourceEvidenceId": "user-2026-09-05-ronconi-new-clean-draft-r54",
+  "candidates": [
+    {
+      "customerKey": "luca-ronconi",
+      "displayName": "Luca Ronconi",
+      "practiceId": "98d44d99-86af-4fec-ba55-ffe24d208e83",
+      "expectedStageType": "archiviate",
+      "productModule": "screening"
+    }
+  ],
+  "authorizedSingleCase": {
+    "authorizationId": "user-2026-09-05-ronconi-new-clean-draft-r54"
+  },
+  "draftGenerationPolicy": {
+    "mode": "fresh_generation",
+    "experimentId": "apr-ronconi-clean-r54-2026-09-05"
+  },
+  "historicalRetest": {
+    "authorizationId": "user-2026-09-05-ronconi-new-clean-draft-r54",
+    "preservePriorDrafts": true
+  }
+}

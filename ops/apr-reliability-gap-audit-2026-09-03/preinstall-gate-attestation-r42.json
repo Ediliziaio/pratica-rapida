@@ -1,0 +1,45 @@
+{
+  "version": "apr-uncertain-save-probe-lifecycle-r42-preinstall-gate-v1",
+  "attestedAt": "2026-09-04T07:34:38.787Z",
+  "status": "tested_not_deployed",
+  "monotonicGate": {
+    "baseline": {
+      "suites": 444,
+      "tests": 1719,
+      "reportSha256": "dff8373ab58976aa5cc7fa638ea08fd12a24a258af5630d1746ff6cdea7a5bc9"
+    },
+    "candidate": {
+      "suites": 444,
+      "tests": 1723,
+      "reportSha256": "bebbcee6bf9e1d3aa935803b59c1f4e3b7c8261252739f67ce843197d1f583f7"
+    },
+    "registryVersion": "enea-operational-registry-v119",
+    "matrixVersion": "apr-enea-rule-test-matrix-v96",
+    "rulesProved": 117,
+    "ruleEvidenceSha256": "a22d89126085696faac906b2a81e26e58907704294c661c3981f692e74966678"
+  },
+  "correction": {
+    "status": "proved_positive_negative_restart_and_finalizer",
+    "ruleId": "system-sequencer-uncertain-save-probe-lifecycle-v1"
+  },
+  "stagedBundle": {
+    "apr-supervisor.mjs": "02a837d47fa0390318a1fd0d2fb30df547569ea9f44ee1fe98d71e37195f1bf0",
+    "apr-enea-worker.mjs": "cc87945774e43fe3eb69e0aaed01d5478a8d71cca2cb08f268a518def7ea07f2",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "apr-pdf-ocr": "4c41c9a6832b11b9d19eace538100270a533dddc05e475e5842711968393327f"
+  },
+  "sequencer": {
+    "path": "ops/apr-global-controller-test10-2026-08-29/sequencer.mjs",
+    "sha256": "1781bba6d05d24955bfc61b9aacb9c5811987bba1a48d0c6c3879d3e9e213939",
+    "preflightGuardPath": "ops/apr-global-controller-test10-2026-08-29/sequencerPreflightGuard.mjs",
+    "preflightGuardSha256": "71ffff32893723088a6deb5fbe4dc1e8218af49ddb4dece8ec5da37244fcdb02"
+  },
+  "safety": {
+    "localTestsOnly": true,
+    "eneaAccessed": false,
+    "mutationPerformed": false,
+    "previewPerformed": false,
+    "submitPerformed": false,
+    "communicationPerformed": false
+  }
+}

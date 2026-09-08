@@ -6,7 +6,8 @@ import {
   createSessionWaitGuard,
   executionProgressFingerprint,
   observeSessionWait,
-} from "./sequencerSessionGuard.mjs";
+  retireStaleTransientSequencerResults,
+} from "../apr-global-controller-test10-2026-08-29/sequencerSessionGuard.mjs";
 
 const thresholdMs = 5 * 60 * 1000;
 
@@ -121,4 +122,58 @@ test("la ripresa esplicitamente autorizzata conserva i risultati terminali già 
   assert.equal(state.endedAt, null);
   assert.equal(state.commonTechnicalBlock, null);
   assert.deepEqual(state.results, [{ customerKey: "fabio-sartori", state: "saved", draftId: "438757" }]);
+});
+
+test("ritira un vecchio INCONSISTENT solo quando la stessa bozza deve ancora completare le sonde", () => {
+  const state = {
+    authorizationId: "authorized-cohort",
+    status: "completed",
+    endedAt: "2026-09-04T00:30:00.000Z",
+    currentCustomerKey: null,
+    results: [
+      { customerKey: "already-saved", cohort: 1, state: "saved", draftId: "10" },
+      { customerKey: "flavia", cohort: 2, state: "inconsistent", draftId: "460574" },
+    ],
+  };
+  const retired = retireStaleTransientSequencerResults(state, {
+    authorizationId: "authorized-cohort",
+    nowIso: "2026-09-04T01:00:00.000Z",
+    observations: [{
+      customerKey: "flavia",
+      cohort: 2,
+      lifecycle: {
+        kind: "wait_for_probes",
+        ruleId: "system-sequencer-uncertain-save-probe-lifecycle-v1",
+        item: { customerKey: "flavia", draftId: "460574" },
+      },
+    }],
+  });
+  assert.equal(retired.length, 1);
+  assert.deepEqual(state.results, [{ customerKey: "already-saved", cohort: 1, state: "saved", draftId: "10" }]);
+  assert.equal(state.status, "running");
+  assert.equal(state.currentCustomerKey, "flavia");
+  assert.equal(state.transientResultRetirements[0].draftId, "460574");
+});
+
+test("non ritira risultati terminali o una bozza diversa e rifiuta autorizzazioni discordanti", () => {
+  const original = {
+    authorizationId: "authorized-cohort",
+    status: "completed",
+    results: [
+      { customerKey: "saved", cohort: 1, state: "saved", draftId: "10" },
+      { customerKey: "flavia", cohort: 2, state: "inconsistent", draftId: "old-draft" },
+    ],
+  };
+  const state = structuredClone(original);
+  const observations = [{
+    customerKey: "flavia",
+    cohort: 2,
+    lifecycle: { kind: "wait_for_probes", item: { customerKey: "flavia", draftId: "new-draft" } },
+  }];
+  assert.equal(retireStaleTransientSequencerResults(state, { authorizationId: "authorized-cohort", observations }).length, 0);
+  assert.deepEqual(state, original);
+  assert.throws(
+    () => retireStaleTransientSequencerResults(state, { authorizationId: "different", observations }),
+    /authorization_mismatch/,
+  );
 });

@@ -1,0 +1,63 @@
+{
+  "version": "apr-angelina-worker-replacement-incident-v1",
+  "observedAt": "2026-09-04T12:28:36.705Z",
+  "classification": "INCONSISTENT",
+  "customerKey": "angelina-stricelli",
+  "displayName": "Angelina Stricelli",
+  "authorizedCanonicalDraftId": "462287",
+  "workerReplacement": {
+    "scope": "worker_only",
+    "previousPid": 44431,
+    "replacementPid": 59931,
+    "installedWorkerSha256": "3367fb33e4a8716e1fa9703c456b5384f2fba3ac18870db5e7c78c7178f71a32",
+    "workerStoppedForSafety": true,
+    "workerLaunchAgentLoadedAfterStop": false
+  },
+  "preservedServices": {
+    "supervisorPid": 44293,
+    "watchdogPid": 44343,
+    "keepalivePid": 42593,
+    "chromePid": 3785
+  },
+  "preReplacementEvidence": {
+    "executionRevision": 31,
+    "executionState": "save_intent_recorded",
+    "generationId": "generation-8f2843ab5ddf4fee25c1ec65",
+    "draftId": "462287",
+    "canonicalDraftId": "462287",
+    "pageId": "page:Anagrafica Beneficiario",
+    "saveAttemptCount": 1,
+    "recoverySaveAttemptCount": 0,
+    "recoveryAuthorizedEvidenceId": "cdp-server-25-0dfffba3e0cc0f783867"
+  },
+  "postReplacementEvidence": {
+    "serviceAuditRevision": 77,
+    "serviceAuditType": "verified_package_recovery_intent_accounting_repaired",
+    "serviceAuditReason": "Angelina Stricelli: contabilizzato il Salva gia tentato sulla bozza 462287; nessun nuovo click autorizzato.",
+    "executionRevision": 1,
+    "executionState": "queued",
+    "draftId": null,
+    "canonicalDraftId": null,
+    "checkpointReinitializedAt": "2026-09-04T12:28:00.678Z",
+    "lastCdpEventRevision": 36,
+    "lastCdpEventAt": "2026-09-04T12:24:55.089Z",
+    "browserActionAfterReplacement": false
+  },
+  "exactCause": "La transizione di riparazione viene scritta e auditata, ma il successivo round-trip di caricamento del checkpoint la considera non valida e restituisce lo stato iniziale; il ciclo operativo interpreta quindi sourceFingerprint nullo come coda da preparare e sovrascrive il checkpoint con una nuova revisione 1 priva della bozza canonica. È un nuovo difetto fail-open del confine load/normalize/validState, distinto dal precedente errore di contabilizzazione del recupero.",
+  "threeSourceVerification": {
+    "launchctlAndProcesses": "Worker scaricato; supervisor, watchdog, keepalive e Chrome invariati e attivi.",
+    "persistentCheckpointAndJournal": "Service audit conferma la riparazione su 462287, ma execution checkpoint è stato reinizializzato a revision 1 con draftId null.",
+    "dashboardCaseTruth": "Stato ancora TECHNICAL_BLOCK da snapshot obsoleto writeAtomic, sourceState/reportOutcome ready_local_plan e zero blocker.",
+    "agreement": false
+  },
+  "safety": {
+    "newDraftCreated": false,
+    "newSaveAttempted": false,
+    "previewPerformed": false,
+    "submitPerformed": false,
+    "communicationPerformed": false
+  },
+  "missingDocumentType": null,
+  "operatorQuestion": "Autorizzi la correzione generale fail-closed del caricamento checkpoint, con ripristino verificato della generazione generation-8f2843ab5ddf4fee25c1ec65 e della bozza canonica 462287 dalle prove persistenti, prima di riattivare il solo worker?",
+  "onboardingGap": null
+}

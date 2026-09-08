@@ -1,0 +1,331 @@
+{
+  "version": "apr-crm-local-preflight-v1",
+  "revision": 1,
+  "status": "completed",
+  "sourceFingerprint": "2cd34276667e5d570343b808db586a60d6779bc637efc3985a2cd278ce53e2ca",
+  "currentCustomerKey": null,
+  "items": [
+    {
+      "customerKey": "smaj-hhhhh",
+      "displayName": "Smaj Hhhhh",
+      "practiceId": "63e92880-3323-47f5-99ce-a4ba08949926",
+      "dossierPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3013-global-controller-smaj-hhhhh/crm-acquisition/dossiers/smaj-hhhhh.json",
+      "state": "blocked_case",
+      "attemptCount": 1,
+      "startedAt": null,
+      "endedAt": null,
+      "report": {
+        "outcome": "blocked_case",
+        "formAvailable": true,
+        "startDate": null,
+        "startDateSource": null,
+        "completionDate": null,
+        "completionDateSource": null,
+        "buildingQualification": "single_unit",
+        "buildingUnitCount": 100,
+        "deductionRate": null,
+        "taxCodeStatus": "missing_or_invalid",
+        "resolvedTaxCode": null,
+        "taxCodeSourceIds": [
+          "smaj-hhhhh"
+        ],
+        "primaryBeneficiaryResolution": {
+          "status": "not_found",
+          "identity": null,
+          "sourceIds": [],
+          "authority": null
+        },
+        "coBeneficiaryResolution": {
+          "status": "not_declared",
+          "present": false,
+          "identity": null,
+          "sourceIds": []
+        },
+        "products": [],
+        "financial": {
+          "invoiceTotal": null,
+          "eligibleExpense": null,
+          "tripleReconciliationVerified": false,
+          "reconciledTotal": null,
+          "evidence": [],
+          "bankTransfers": [],
+          "bankTransferReconciliation": {
+            "status": "not_provided",
+            "principalTotal": null,
+            "feesTotal": null,
+            "debitedTotal": null,
+            "difference": null,
+            "referenceStatus": "not_provided",
+            "missingInvoiceReferences": [],
+            "taxReliefTypes": []
+          },
+          "methods": [
+            {
+              "method": "structured_extraction",
+              "ok": false,
+              "total": null,
+              "sources": [],
+              "reason": "fonti-assenti, nessuna-fattura-economica-valida"
+            },
+            {
+              "method": "accounting_reconciliation",
+              "ok": false,
+              "total": null,
+              "sources": [],
+              "reason": "fonti-assenti, nessuna-fattura-economica-valida"
+            },
+            {
+              "method": "intervention_cross_check",
+              "ok": false,
+              "total": null,
+              "sources": [],
+              "reason": "righe-intervento-non-dimostrate:"
+            }
+          ],
+          "discardedDuplicateSourceIds": [],
+          "supersededTechnicalSourceIds": [],
+          "appliedRuleIds": [
+            "user-2026-08-16-invoice-gross-total-vat-included",
+            "user-2026-08-18-bundled-professional-expense-separation",
+            "user-2026-08-18-mandatory-bank-transfer-invoice-expense-cross-check",
+            "core-gross-triple-reconciliation",
+            "user-2026-08-14-preserve-technical-product-cardinality",
+            "system-explicit-advance-invoice-reference-marker-v1",
+            "user-2026-08-31-no-valid-economic-invoice-operator-v1"
+          ]
+        },
+        "warnings": [],
+        "blockers": [
+          {
+            "code": "tax_code_missing_or_invalid",
+            "field": "beneficiary.taxCode",
+            "reason": "CF valido e coerente non disponibile nel form o nelle fatture originarie.",
+            "sourceIds": [
+              "smaj-hhhhh"
+            ],
+            "appliedRuleIds": [
+              "core-form-first",
+              "user-2026-08-14-valid-original-document-cf-over-invalid-form",
+              "user-2026-08-16-fiscal-code-identity-cross-check"
+            ]
+          },
+          {
+            "code": "product_cardinality_form_invoice_mismatch",
+            "field": "screenings.quantity",
+            "reason": "Controllo incrociato ripetuto: il form descrive 1 righe e le fatture 0 prodotti fisici non riconciliabili in modo univoco per famiglia. Richiesto intervento operatore: confermare la cardinalita fisica e l'assegnazione degli attributi form.",
+            "sourceIds": [
+              "2bd3a21c7fb9551ec4e229eb020287206c8ad66e608b99788130baaa174d96bb"
+            ],
+            "appliedRuleIds": [
+              "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "user-2026-08-15-form-group-to-physical-products",
+              "system-apr-operator-intervention-routing"
+            ]
+          },
+          {
+            "code": "screenings_missing",
+            "field": "screenings",
+            "reason": "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+            "sourceIds": [
+              "2bd3a21c7fb9551ec4e229eb020287206c8ad66e608b99788130baaa174d96bb"
+            ],
+            "appliedRuleIds": [
+              "user-2026-08-14-preserve-technical-product-cardinality"
+            ]
+          },
+          {
+            "code": "completion_date_missing",
+            "field": "dates.completion",
+            "reason": "Fine lavori assente e data fattura non ricavabile.",
+            "sourceIds": [
+              "2bd3a21c7fb9551ec4e229eb020287206c8ad66e608b99788130baaa174d96bb"
+            ],
+            "appliedRuleIds": [
+              "user-2026-08-14-missing-completion-use-latest-invoice"
+            ]
+          },
+          {
+            "code": "gross_triple_reconciliation_failed",
+            "field": "economic_sources.total",
+            "reason": "Tripla riconciliazione non dimostrata: fonti-assenti, nessuna-fattura-economica-valida.",
+            "sourceIds": [
+              "2bd3a21c7fb9551ec4e229eb020287206c8ad66e608b99788130baaa174d96bb"
+            ],
+            "appliedRuleIds": [
+              "user-2026-08-16-invoice-gross-total-vat-included",
+              "core-gross-triple-reconciliation",
+              "user-2026-08-31-no-valid-economic-invoice-operator-v1"
+            ]
+          }
+        ],
+        "sourceIds": [
+          "2bd3a21c7fb9551ec4e229eb020287206c8ad66e608b99788130baaa174d96bb"
+        ],
+        "eneaPayloadAudit": {
+          "status": "payload_incomplete",
+          "mappingFingerprint": "byc669",
+          "fieldSummary": {
+            "ready": 35,
+            "review": 0,
+            "missing": 14
+          },
+          "requiredPortalFieldCount": 33,
+          "blockerCount": 17,
+          "blockers": [
+            {
+              "code": "screening-list-empty",
+              "fieldId": "schermature.numero",
+              "message": "Il modulo cliente non contiene l'elenco delle schermature."
+            },
+            {
+              "code": "missing-beneficiario.cf",
+              "fieldId": "beneficiario.cf",
+              "message": "Codice fiscale: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-beneficiario.sesso",
+              "fieldId": "beneficiario.sesso",
+              "message": "Sesso: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-beneficiario.nazione_nascita",
+              "fieldId": "beneficiario.nazione_nascita",
+              "message": "Nazione di nascita: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-beneficiario.nazione_residenza",
+              "fieldId": "beneficiario.nazione_residenza",
+              "message": "Nazione di residenza: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-beneficiario.cap_residenza",
+              "fieldId": "beneficiario.cap_residenza",
+              "message": "CAP di residenza: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-immobile.cap",
+              "fieldId": "immobile.cap",
+              "message": "CAP lavori: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-immobile.foglio",
+              "fieldId": "immobile.foglio",
+              "message": "Foglio: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-immobile.mappale",
+              "fieldId": "immobile.mappale",
+              "message": "Particella / mappale: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-intervento.data_inizio",
+              "fieldId": "intervento.data_inizio",
+              "message": "Data inizio lavori: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-intervento.data_fine",
+              "fieldId": "intervento.data_fine",
+              "message": "Data fine lavori: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-schermature.numero",
+              "fieldId": "schermature.numero",
+              "message": "Numero totale schermature: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-schermature.superficie_totale",
+              "fieldId": "schermature.superficie_totale",
+              "message": "Superficie totale schermature: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-schermature.spesa",
+              "fieldId": "schermature.spesa",
+              "message": "Spese congrue sostenute: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-schermature.risparmio_energia",
+              "fieldId": "schermature.risparmio_energia",
+              "message": "Risparmio energia primaria non rinnovabile: Intervento umano richiesto."
+            },
+            {
+              "code": "product_cardinality_form_invoice_mismatch",
+              "fieldId": "screenings.quantity",
+              "message": "Controllo incrociato ripetuto: il form descrive 1 righe e le fatture 0 prodotti fisici non riconciliabili in modo univoco per famiglia. Richiesto intervento operatore: confermare la cardinalita fisica e l'assegnazione degli attributi form."
+            },
+            {
+              "code": "screenings_missing",
+              "fieldId": "screenings",
+              "message": "Nessun prodotto fisico riconciliato dalle fatture originarie."
+            }
+          ],
+          "excludedUnverifiedFields": [
+            "beneficiario.cf",
+            "beneficiario.sesso",
+            "beneficiario.nazione_nascita",
+            "beneficiario.provincia_nascita",
+            "beneficiario.nazione_residenza",
+            "beneficiario.cap_residenza",
+            "immobile.provincia",
+            "immobile.cap",
+            "immobile.codice_comune",
+            "immobile.foglio",
+            "immobile.mappale",
+            "immobile.zona_climatica",
+            "immobile.gradi_giorno",
+            "intervento.data_inizio",
+            "intervento.data_fine",
+            "schermature.numero",
+            "schermature.superficie_totale",
+            "schermature.spesa",
+            "schermature.risparmio_energia",
+            "documenti.fatture",
+            "documenti.bonifico",
+            "documenti.tecnici"
+          ],
+          "draftReady": false,
+          "officialSubmissionAllowed": false,
+          "portalGate": {
+            "status": "blocked",
+            "reason": "screening-component-blocked",
+            "workflowFingerprint": null,
+            "supportedPages": [],
+            "screeningItemCount": 0,
+            "saveAllowedOnlyBySeparateCapability": true,
+            "previewAllowed": false,
+            "submitAllowed": false
+          },
+          "externalActionAllowed": false,
+          "reason": "2 blocker della componente Schermature invalidano il payload della bozza TEST."
+        },
+        "draftPlan": {
+          "status": "blocked",
+          "externalActionAllowed": false,
+          "previewAllowed": false,
+          "submitAllowed": false,
+          "communicationsAllowed": false,
+          "nextAction": "Risolvere i blocker con sole fonti originarie; la coda prosegue sugli altri casi."
+        }
+      },
+      "reason": "Fresh replay dai documenti originali"
+    }
+  ],
+  "externalActionAllowed": false,
+  "reason": "Fresh replay locale",
+  "nextAction": "Nessuna azione esterna.",
+  "validationRevisionsApplied": [],
+  "sourceRevisionsApplied": [],
+  "operatorMeasurementResolutions": [],
+  "audit": [
+    {
+      "revision": 1,
+      "at": "2026-09-03T10:00:00.000Z",
+      "type": "completed",
+      "customerKey": null,
+      "reason": "Fresh replay locale",
+      "appliedRuleIds": [
+        "system-single-active-practice"
+      ]
+    }
+  ]
+}

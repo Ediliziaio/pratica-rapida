@@ -1,0 +1,686 @@
+{
+  "version": "apr-crm-document-analysis-v1",
+  "revision": 18,
+  "status": "completed",
+  "sourceFingerprint": "d0fa560af60b98783646e28688ce3e704e0c1695cfb2249c0773da31bd11b41e",
+  "currentDocumentKey": null,
+  "items": [
+    {
+      "documentKey": "59c526b049f1f1a62ea823d8256fdadcc2a53d51098fa9f5c1ef5807ae56df41",
+      "customerKey": "zeno-righetti",
+      "kind": "invoice",
+      "semanticKind": "invoice",
+      "documentClassification": {
+        "version": "apr-infissi-technical-document-classifier-v1",
+        "storageKind": "invoice",
+        "verifiedKind": "invoice",
+        "profile": "invoice_passthrough",
+        "certificateScope": null,
+        "matchedCriteria": [],
+        "missingCriteria": [],
+        "appliedRuleIds": [
+          "user-2026-08-26-third-party-technical-certificate-classification-v1",
+          "user-2026-08-25-crm-internal-technical-document-untrusted-v1"
+        ]
+      },
+      "localPdfPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3007-global-controller-zeno-righetti/crm-original-documents/files/zeno-righetti/59c526b049f1f1a62ea823d8256fdadcc2a53d51098fa9f5c1ef5807ae56df41.pdf",
+      "sourceSha256": "c81cafa8ddf612db955847082c0c7a0d0ceabe5ea75fff1be9d2f68ff604dec6",
+      "state": "analyzed",
+      "attemptCount": 1,
+      "extractionMode": "native_text",
+      "pageCount": 1,
+      "textCharacterCount": 2674,
+      "textSha256": "f61a18b9bd5ca87047d463b9ac86a886abd71591c8ddccb2aac337dc1f3eee09",
+      "textPath": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-reliability-gap-audit-2026-09-03/fresh-original-state/087/zeno-righetti/crm-document-analysis/text/zeno-righetti/59c526b049f1f1a62ea823d8256fdadcc2a53d51098fa9f5c1ef5807ae56df41.txt",
+      "invoiceResult": {
+        "path": "59c526b049f1f1a62ea823d8256fdadcc2a53d51098fa9f5c1ef5807ae56df41",
+        "status": "parsed",
+        "documentType": "invoice",
+        "total": 5865.2,
+        "itemCount": 12,
+        "documentNumber": "FPR 374/26",
+        "documentDate": "2026-07-17"
+      },
+      "screeningItems": [
+        {
+          "widthMm": 2370,
+          "heightMm": 2850,
+          "surfaceM2": 6.754,
+          "gTot": 0.33,
+          "description": "Tenda da sole motorizzata",
+          "sourcePath": "59c526b049f1f1a62ea823d8256fdadcc2a53d51098fa9f5c1ef5807ae56df41"
+        },
+        {
+          "widthMm": 2370,
+          "heightMm": 2850,
+          "surfaceM2": 6.754,
+          "gTot": 0.33,
+          "description": "Tenda da sole motorizzata",
+          "sourcePath": "59c526b049f1f1a62ea823d8256fdadcc2a53d51098fa9f5c1ef5807ae56df41"
+        },
+        {
+          "widthMm": 1292,
+          "heightMm": 1255,
+          "surfaceM2": 1.621,
+          "gTot": 0.34,
+          "description": "Altra schermatura solare - zanzariera",
+          "sourcePath": "59c526b049f1f1a62ea823d8256fdadcc2a53d51098fa9f5c1ef5807ae56df41"
+        },
+        {
+          "widthMm": 695,
+          "heightMm": 2354,
+          "surfaceM2": 1.636,
+          "gTot": 0.34,
+          "description": "Altra schermatura solare - zanzariera",
+          "sourcePath": "59c526b049f1f1a62ea823d8256fdadcc2a53d51098fa9f5c1ef5807ae56df41"
+        },
+        {
+          "widthMm": 2193,
+          "heightMm": 2655,
+          "surfaceM2": 5.822,
+          "gTot": 0.34,
+          "description": "Altra schermatura solare - zanzariera",
+          "sourcePath": "59c526b049f1f1a62ea823d8256fdadcc2a53d51098fa9f5c1ef5807ae56df41"
+        },
+        {
+          "widthMm": 690,
+          "heightMm": 1256,
+          "surfaceM2": 0.8666,
+          "gTot": 0.34,
+          "description": "Altra schermatura solare - zanzariera",
+          "sourcePath": "59c526b049f1f1a62ea823d8256fdadcc2a53d51098fa9f5c1ef5807ae56df41"
+        },
+        {
+          "widthMm": 1297,
+          "heightMm": 2353,
+          "surfaceM2": 3.0518,
+          "gTot": 0.34,
+          "description": "Altra schermatura solare - zanzariera",
+          "sourcePath": "59c526b049f1f1a62ea823d8256fdadcc2a53d51098fa9f5c1ef5807ae56df41"
+        },
+        {
+          "widthMm": 1285,
+          "heightMm": 2354,
+          "surfaceM2": 3.024,
+          "gTot": 0.34,
+          "description": "Altra schermatura solare - zanzariera",
+          "sourcePath": "59c526b049f1f1a62ea823d8256fdadcc2a53d51098fa9f5c1ef5807ae56df41"
+        },
+        {
+          "widthMm": 790,
+          "heightMm": 748,
+          "surfaceM2": 0.59,
+          "gTot": 0.34,
+          "description": "Altra schermatura solare - zanzariera",
+          "sourcePath": "59c526b049f1f1a62ea823d8256fdadcc2a53d51098fa9f5c1ef5807ae56df41"
+        },
+        {
+          "widthMm": 3900,
+          "heightMm": 2100,
+          "surfaceM2": 8.19,
+          "gTot": 0.19,
+          "description": "Tenda da sole motorizzata",
+          "sourcePath": "59c526b049f1f1a62ea823d8256fdadcc2a53d51098fa9f5c1ef5807ae56df41"
+        },
+        {
+          "widthMm": 3900,
+          "heightMm": 2100,
+          "surfaceM2": 8.19,
+          "gTot": 0.19,
+          "description": "Tenda da sole motorizzata",
+          "sourcePath": "59c526b049f1f1a62ea823d8256fdadcc2a53d51098fa9f5c1ef5807ae56df41"
+        },
+        {
+          "widthMm": 4250,
+          "heightMm": 2100,
+          "surfaceM2": 8.925,
+          "gTot": 0.19,
+          "description": "Tenda da sole motorizzata",
+          "sourcePath": "59c526b049f1f1a62ea823d8256fdadcc2a53d51098fa9f5c1ef5807ae56df41"
+        }
+      ],
+      "historicalEneaAppendixExcluded": false,
+      "nonFiscalImageExcluded": false,
+      "reason": "Testo gia' estratto localmente; 12 righe schermatura rilevate.",
+      "startedAt": "2026-09-03T16:01:57.830Z",
+      "endedAt": "2026-09-03T16:01:57.830Z"
+    },
+    {
+      "documentKey": "ede1e52d45dbc9a70f2676389961d2d7f1dbe01794dff0b2318479971b9de8e7",
+      "customerKey": "zeno-righetti",
+      "kind": "invoice",
+      "semanticKind": "invoice",
+      "documentClassification": {
+        "version": "apr-infissi-technical-document-classifier-v1",
+        "storageKind": "invoice",
+        "verifiedKind": "invoice",
+        "profile": "invoice_passthrough",
+        "certificateScope": null,
+        "matchedCriteria": [],
+        "missingCriteria": [],
+        "appliedRuleIds": [
+          "user-2026-08-26-third-party-technical-certificate-classification-v1",
+          "user-2026-08-25-crm-internal-technical-document-untrusted-v1"
+        ]
+      },
+      "localPdfPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3007-global-controller-zeno-righetti/crm-original-documents/files/zeno-righetti/ede1e52d45dbc9a70f2676389961d2d7f1dbe01794dff0b2318479971b9de8e7.pdf",
+      "sourceSha256": "81d7395574f22b65a3029f8c08fab63780110f3a9fa71c3898ade3372748edba",
+      "state": "analyzed",
+      "attemptCount": 1,
+      "extractionMode": "native_text",
+      "pageCount": 1,
+      "textCharacterCount": 2215,
+      "textSha256": "1638018f586a5563d00487e2e689c01f1dd650d8c0bea11b1058d47738c11a45",
+      "textPath": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-reliability-gap-audit-2026-09-03/fresh-original-state/087/zeno-righetti/crm-document-analysis/text/zeno-righetti/ede1e52d45dbc9a70f2676389961d2d7f1dbe01794dff0b2318479971b9de8e7.txt",
+      "invoiceResult": {
+        "path": "ede1e52d45dbc9a70f2676389961d2d7f1dbe01794dff0b2318479971b9de8e7",
+        "status": "parsed",
+        "documentType": "invoice",
+        "total": 5865.2,
+        "itemCount": 0,
+        "documentNumber": "FPR 258/26",
+        "documentDate": "2026-05-28"
+      },
+      "screeningItems": [],
+      "historicalEneaAppendixExcluded": false,
+      "nonFiscalImageExcluded": false,
+      "reason": "Testo gia' estratto localmente; 0 righe schermatura rilevate.",
+      "startedAt": "2026-09-03T16:01:57.883Z",
+      "endedAt": "2026-09-03T16:01:57.883Z"
+    },
+    {
+      "documentKey": "e714592c72675281b17871451f88e3df275d215e7174803d29e40277fe4fd7aa",
+      "customerKey": "zeno-righetti",
+      "kind": "invoice",
+      "semanticKind": "invoice",
+      "documentClassification": {
+        "version": "apr-infissi-technical-document-classifier-v1",
+        "storageKind": "invoice",
+        "verifiedKind": "invoice",
+        "profile": "invoice_passthrough",
+        "certificateScope": null,
+        "matchedCriteria": [],
+        "missingCriteria": [],
+        "appliedRuleIds": [
+          "user-2026-08-26-third-party-technical-certificate-classification-v1",
+          "user-2026-08-25-crm-internal-technical-document-untrusted-v1"
+        ]
+      },
+      "localPdfPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3007-global-controller-zeno-righetti/crm-original-documents/files/zeno-righetti/e714592c72675281b17871451f88e3df275d215e7174803d29e40277fe4fd7aa.pdf",
+      "sourceSha256": "a0191ab638e3d2c04c20543f5993cab1992c5e16f240102b4afdd0544b4c3188",
+      "state": "analyzed",
+      "attemptCount": 1,
+      "extractionMode": "native_text",
+      "pageCount": 1,
+      "textCharacterCount": 2215,
+      "textSha256": "1638018f586a5563d00487e2e689c01f1dd650d8c0bea11b1058d47738c11a45",
+      "textPath": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-reliability-gap-audit-2026-09-03/fresh-original-state/087/zeno-righetti/crm-document-analysis/text/zeno-righetti/e714592c72675281b17871451f88e3df275d215e7174803d29e40277fe4fd7aa.txt",
+      "invoiceResult": {
+        "path": "e714592c72675281b17871451f88e3df275d215e7174803d29e40277fe4fd7aa",
+        "status": "parsed",
+        "documentType": "invoice",
+        "total": 5865.2,
+        "itemCount": 0,
+        "documentNumber": "FPR 258/26",
+        "documentDate": "2026-05-28"
+      },
+      "screeningItems": [],
+      "historicalEneaAppendixExcluded": false,
+      "nonFiscalImageExcluded": false,
+      "reason": "Testo gia' estratto localmente; 0 righe schermatura rilevate.",
+      "startedAt": "2026-09-03T16:01:57.939Z",
+      "endedAt": "2026-09-03T16:01:57.939Z"
+    },
+    {
+      "documentKey": "869e4879ff26d5b7a9a87561fbb0a83b62526c4df02ff77198e50ac7a7e0dea8",
+      "customerKey": "zeno-righetti",
+      "kind": "invoice",
+      "semanticKind": "invoice",
+      "documentClassification": {
+        "version": "apr-infissi-technical-document-classifier-v1",
+        "storageKind": "invoice",
+        "verifiedKind": "invoice",
+        "profile": "invoice_passthrough",
+        "certificateScope": null,
+        "matchedCriteria": [],
+        "missingCriteria": [],
+        "appliedRuleIds": [
+          "user-2026-08-26-third-party-technical-certificate-classification-v1",
+          "user-2026-08-25-crm-internal-technical-document-untrusted-v1"
+        ]
+      },
+      "localPdfPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3007-global-controller-zeno-righetti/crm-original-documents/files/zeno-righetti/869e4879ff26d5b7a9a87561fbb0a83b62526c4df02ff77198e50ac7a7e0dea8.pdf",
+      "sourceSha256": "56b795dddb9b46f007aa2853f2ca901814aa01eea7766838e26a334d71e00979",
+      "state": "analyzed",
+      "attemptCount": 1,
+      "extractionMode": "native_text",
+      "pageCount": 1,
+      "textCharacterCount": 2674,
+      "textSha256": "f61a18b9bd5ca87047d463b9ac86a886abd71591c8ddccb2aac337dc1f3eee09",
+      "textPath": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-reliability-gap-audit-2026-09-03/fresh-original-state/087/zeno-righetti/crm-document-analysis/text/zeno-righetti/869e4879ff26d5b7a9a87561fbb0a83b62526c4df02ff77198e50ac7a7e0dea8.txt",
+      "invoiceResult": {
+        "path": "869e4879ff26d5b7a9a87561fbb0a83b62526c4df02ff77198e50ac7a7e0dea8",
+        "status": "parsed",
+        "documentType": "invoice",
+        "total": 5865.2,
+        "itemCount": 12,
+        "documentNumber": "FPR 374/26",
+        "documentDate": "2026-07-17"
+      },
+      "screeningItems": [
+        {
+          "widthMm": 2370,
+          "heightMm": 2850,
+          "surfaceM2": 6.754,
+          "gTot": 0.33,
+          "description": "Tenda da sole motorizzata",
+          "sourcePath": "869e4879ff26d5b7a9a87561fbb0a83b62526c4df02ff77198e50ac7a7e0dea8"
+        },
+        {
+          "widthMm": 2370,
+          "heightMm": 2850,
+          "surfaceM2": 6.754,
+          "gTot": 0.33,
+          "description": "Tenda da sole motorizzata",
+          "sourcePath": "869e4879ff26d5b7a9a87561fbb0a83b62526c4df02ff77198e50ac7a7e0dea8"
+        },
+        {
+          "widthMm": 1292,
+          "heightMm": 1255,
+          "surfaceM2": 1.621,
+          "gTot": 0.34,
+          "description": "Altra schermatura solare - zanzariera",
+          "sourcePath": "869e4879ff26d5b7a9a87561fbb0a83b62526c4df02ff77198e50ac7a7e0dea8"
+        },
+        {
+          "widthMm": 695,
+          "heightMm": 2354,
+          "surfaceM2": 1.636,
+          "gTot": 0.34,
+          "description": "Altra schermatura solare - zanzariera",
+          "sourcePath": "869e4879ff26d5b7a9a87561fbb0a83b62526c4df02ff77198e50ac7a7e0dea8"
+        },
+        {
+          "widthMm": 2193,
+          "heightMm": 2655,
+          "surfaceM2": 5.822,
+          "gTot": 0.34,
+          "description": "Altra schermatura solare - zanzariera",
+          "sourcePath": "869e4879ff26d5b7a9a87561fbb0a83b62526c4df02ff77198e50ac7a7e0dea8"
+        },
+        {
+          "widthMm": 690,
+          "heightMm": 1256,
+          "surfaceM2": 0.8666,
+          "gTot": 0.34,
+          "description": "Altra schermatura solare - zanzariera",
+          "sourcePath": "869e4879ff26d5b7a9a87561fbb0a83b62526c4df02ff77198e50ac7a7e0dea8"
+        },
+        {
+          "widthMm": 1297,
+          "heightMm": 2353,
+          "surfaceM2": 3.0518,
+          "gTot": 0.34,
+          "description": "Altra schermatura solare - zanzariera",
+          "sourcePath": "869e4879ff26d5b7a9a87561fbb0a83b62526c4df02ff77198e50ac7a7e0dea8"
+        },
+        {
+          "widthMm": 1285,
+          "heightMm": 2354,
+          "surfaceM2": 3.024,
+          "gTot": 0.34,
+          "description": "Altra schermatura solare - zanzariera",
+          "sourcePath": "869e4879ff26d5b7a9a87561fbb0a83b62526c4df02ff77198e50ac7a7e0dea8"
+        },
+        {
+          "widthMm": 790,
+          "heightMm": 748,
+          "surfaceM2": 0.59,
+          "gTot": 0.34,
+          "description": "Altra schermatura solare - zanzariera",
+          "sourcePath": "869e4879ff26d5b7a9a87561fbb0a83b62526c4df02ff77198e50ac7a7e0dea8"
+        },
+        {
+          "widthMm": 3900,
+          "heightMm": 2100,
+          "surfaceM2": 8.19,
+          "gTot": 0.19,
+          "description": "Tenda da sole motorizzata",
+          "sourcePath": "869e4879ff26d5b7a9a87561fbb0a83b62526c4df02ff77198e50ac7a7e0dea8"
+        },
+        {
+          "widthMm": 3900,
+          "heightMm": 2100,
+          "surfaceM2": 8.19,
+          "gTot": 0.19,
+          "description": "Tenda da sole motorizzata",
+          "sourcePath": "869e4879ff26d5b7a9a87561fbb0a83b62526c4df02ff77198e50ac7a7e0dea8"
+        },
+        {
+          "widthMm": 4250,
+          "heightMm": 2100,
+          "surfaceM2": 8.925,
+          "gTot": 0.19,
+          "description": "Tenda da sole motorizzata",
+          "sourcePath": "869e4879ff26d5b7a9a87561fbb0a83b62526c4df02ff77198e50ac7a7e0dea8"
+        }
+      ],
+      "historicalEneaAppendixExcluded": false,
+      "nonFiscalImageExcluded": false,
+      "reason": "Testo gia' estratto localmente; 12 righe schermatura rilevate.",
+      "startedAt": "2026-09-03T16:01:57.995Z",
+      "endedAt": "2026-09-03T16:01:57.995Z"
+    }
+  ],
+  "externalActionAllowed": false,
+  "reason": "Parser invoice-parser-v38-rotated-fiscal-bank-layouts-r30 applicato localmente a 4 fatture senza ripetere download, OCR o accessi CRM.",
+  "nextAction": "Ricalcolare i report per-pratica e isolare soltanto i conflitti residui verificabili.",
+  "parserRevisionsApplied": [
+    "invoice-parser-v31-rinaldi-sp-dot-and-vat-layout",
+    "invoice-parser-v32-grk-vertical-number-date",
+    "invoice-parser-v33-header-identity-over-body-reference",
+    "invoice-parser-v34-linea-sole-partial-paper-scomparsa",
+    "invoice-parser-v35-composite-invoice-transfer-segmentation",
+    "invoice-parser-v36-screening-unit-surface-coherence",
+    "invoice-parser-v38-rotated-fiscal-bank-layouts-r30"
+  ],
+  "analyzerRepairsApplied": [],
+  "classificationRevisionsApplied": [
+    "fresh-original-document-classification-r34-v1"
+  ],
+  "audit": [
+    {
+      "revision": 0,
+      "at": "2026-09-03T16:01:57.818Z",
+      "type": "initialized",
+      "documentKey": null,
+      "reason": "Analisi locale degli allegati non ancora preparata.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume"
+      ]
+    },
+    {
+      "revision": 1,
+      "at": "2026-09-03T16:01:57.818Z",
+      "type": "prepared",
+      "documentKey": null,
+      "reason": "Preparati 4 documenti per estrazione locale; nessun contenuto inviato a servizi esterni.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume"
+      ]
+    },
+    {
+      "revision": 2,
+      "at": "2026-09-03T16:01:57.830Z",
+      "type": "analysis_claimed",
+      "documentKey": "59c526b049f1f1a62ea823d8256fdadcc2a53d51098fa9f5c1ef5807ae56df41",
+      "reason": "Analisi locale reclamata; ripresa sicura dopo riavvio.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume"
+      ]
+    },
+    {
+      "revision": 3,
+      "at": "2026-09-03T16:01:57.830Z",
+      "type": "analyzed",
+      "documentKey": "59c526b049f1f1a62ea823d8256fdadcc2a53d51098fa9f5c1ef5807ae56df41",
+      "reason": "Testo estratto localmente (native_text); 12 righe schermatura rilevate.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume",
+        "user-2026-08-26-third-party-technical-certificate-classification-v1",
+        "user-2026-08-25-crm-internal-technical-document-untrusted-v1"
+      ]
+    },
+    {
+      "revision": 4,
+      "at": "2026-09-03T16:01:57.883Z",
+      "type": "analysis_claimed",
+      "documentKey": "ede1e52d45dbc9a70f2676389961d2d7f1dbe01794dff0b2318479971b9de8e7",
+      "reason": "Analisi locale reclamata; ripresa sicura dopo riavvio.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume"
+      ]
+    },
+    {
+      "revision": 5,
+      "at": "2026-09-03T16:01:57.883Z",
+      "type": "analyzed",
+      "documentKey": "ede1e52d45dbc9a70f2676389961d2d7f1dbe01794dff0b2318479971b9de8e7",
+      "reason": "Testo estratto localmente (native_text); 0 righe schermatura rilevate.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume",
+        "user-2026-08-26-third-party-technical-certificate-classification-v1",
+        "user-2026-08-25-crm-internal-technical-document-untrusted-v1"
+      ]
+    },
+    {
+      "revision": 6,
+      "at": "2026-09-03T16:01:57.939Z",
+      "type": "analysis_claimed",
+      "documentKey": "e714592c72675281b17871451f88e3df275d215e7174803d29e40277fe4fd7aa",
+      "reason": "Analisi locale reclamata; ripresa sicura dopo riavvio.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume"
+      ]
+    },
+    {
+      "revision": 7,
+      "at": "2026-09-03T16:01:57.939Z",
+      "type": "analyzed",
+      "documentKey": "e714592c72675281b17871451f88e3df275d215e7174803d29e40277fe4fd7aa",
+      "reason": "Testo estratto localmente (native_text); 0 righe schermatura rilevate.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume",
+        "user-2026-08-26-third-party-technical-certificate-classification-v1",
+        "user-2026-08-25-crm-internal-technical-document-untrusted-v1"
+      ]
+    },
+    {
+      "revision": 8,
+      "at": "2026-09-03T16:01:57.995Z",
+      "type": "analysis_claimed",
+      "documentKey": "869e4879ff26d5b7a9a87561fbb0a83b62526c4df02ff77198e50ac7a7e0dea8",
+      "reason": "Analisi locale reclamata; ripresa sicura dopo riavvio.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume"
+      ]
+    },
+    {
+      "revision": 9,
+      "at": "2026-09-03T16:01:57.995Z",
+      "type": "analyzed",
+      "documentKey": "869e4879ff26d5b7a9a87561fbb0a83b62526c4df02ff77198e50ac7a7e0dea8",
+      "reason": "Testo estratto localmente (native_text); 12 righe schermatura rilevate.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume",
+        "user-2026-08-26-third-party-technical-certificate-classification-v1",
+        "user-2026-08-25-crm-internal-technical-document-untrusted-v1"
+      ]
+    },
+    {
+      "revision": 10,
+      "at": "2026-09-03T16:01:57.995Z",
+      "type": "completed",
+      "documentKey": null,
+      "reason": "Analisi documenti locale conclusa: 4 analizzati, 0 bloccati.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume"
+      ]
+    },
+    {
+      "revision": 11,
+      "at": "2026-09-03T16:01:58.057Z",
+      "type": "document_classified",
+      "documentKey": null,
+      "reason": "Classificazione semantica fresh-original-document-classification-r34-v1 applicata a 4 documenti locali; 0 certificati tecnici di terza parte verificati.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume",
+        "user-2026-08-26-third-party-technical-certificate-classification-v1",
+        "user-2026-08-25-crm-internal-technical-document-untrusted-v1"
+      ]
+    },
+    {
+      "revision": 12,
+      "at": "2026-09-03T16:01:58.065Z",
+      "type": "parser_reanalyzed",
+      "documentKey": null,
+      "reason": "Parser invoice-parser-v31-rinaldi-sp-dot-and-vat-layout applicato localmente a 4 fatture senza ripetere download, OCR o accessi CRM.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume",
+        "user-2026-08-16-narrative-invoice-product-extraction",
+        "user-2026-08-14-preserve-technical-product-cardinality",
+        "user-2026-08-16-invoice-gross-total-vat-included"
+      ]
+    },
+    {
+      "revision": 13,
+      "at": "2026-09-03T16:01:58.072Z",
+      "type": "parser_reanalyzed",
+      "documentKey": null,
+      "reason": "Parser invoice-parser-v32-grk-vertical-number-date applicato localmente a 4 fatture senza ripetere download, OCR o accessi CRM.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume"
+      ]
+    },
+    {
+      "revision": 14,
+      "at": "2026-09-03T16:01:58.081Z",
+      "type": "parser_reanalyzed",
+      "documentKey": null,
+      "reason": "Parser invoice-parser-v33-header-identity-over-body-reference applicato localmente a 4 fatture senza ripetere download, OCR o accessi CRM.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume",
+        "system-invoice-header-identity-over-body-reference",
+        "user-2026-08-14-preserve-technical-product-cardinality",
+        "user-2026-08-16-invoice-gross-total-vat-included"
+      ]
+    },
+    {
+      "revision": 15,
+      "at": "2026-09-03T16:01:58.089Z",
+      "type": "parser_reanalyzed",
+      "documentKey": null,
+      "reason": "Parser invoice-parser-v34-linea-sole-partial-paper-scomparsa applicato localmente a 4 fatture senza ripetere download, OCR o accessi CRM.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume",
+        "user-2026-08-17-linea-sole-potito-paper-form-fallbacks",
+        "user-2026-08-14-preserve-technical-product-cardinality"
+      ]
+    },
+    {
+      "revision": 16,
+      "at": "2026-09-03T16:01:58.096Z",
+      "type": "parser_reanalyzed",
+      "documentKey": null,
+      "reason": "Parser invoice-parser-v35-composite-invoice-transfer-segmentation applicato localmente a 4 fatture senza ripetere download, OCR o accessi CRM.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume",
+        "user-2026-08-17-linea-sole-potito-paper-form-fallbacks",
+        "user-2026-08-14-preserve-technical-product-cardinality"
+      ]
+    },
+    {
+      "revision": 17,
+      "at": "2026-09-03T16:01:58.105Z",
+      "type": "parser_reanalyzed",
+      "documentKey": null,
+      "reason": "Parser invoice-parser-v36-screening-unit-surface-coherence applicato localmente a 4 fatture senza ripetere download, OCR o accessi CRM.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume",
+        "user-2026-08-26-screening-dimension-unit-surface-coherence-v1",
+        "user-2026-08-18-explicit-technical-surface-precision"
+      ]
+    },
+    {
+      "revision": 18,
+      "at": "2026-09-03T16:01:58.113Z",
+      "type": "parser_reanalyzed",
+      "documentKey": null,
+      "reason": "Parser invoice-parser-v38-rotated-fiscal-bank-layouts-r30 applicato localmente a 4 fatture senza ripetere download, OCR o accessi CRM.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume",
+        "system-rotated-ocr-fiscal-reading-order-v1",
+        "system-multipage-bank-receipt-label-reconciliation-v1",
+        "system-document-ocr-orientation-normalization-v1",
+        "system-invoice-multi-document-fiscal-segmentation-v2",
+        "system-label-anchored-invoice-totals-v1"
+      ]
+    }
+  ]
+}

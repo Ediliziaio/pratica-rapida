@@ -1,0 +1,1380 @@
+{
+  "summary": {
+    "version": "apr-full-recalc-r82-summary-v1",
+    "ranAt": "2026-09-07T15:41:47.183Z",
+    "installedVersionId": "c53ceda9-bank-transfer-suspension-tuttolani-fix-r82-20260907",
+    "validationRevision": "apr-full-recalc-r82-2026-09-07",
+    "totalCases": 100,
+    "touchedCount": 56,
+    "resolvedNowCount": 2,
+    "stillBlockedCount": 54,
+    "skippedCount": 44
+  },
+  "results": [
+    {
+      "customerKey": "guido-calvacchi",
+      "cohort": 1,
+      "module": "infissi",
+      "touched": true,
+      "stateBefore": "blocked_case",
+      "stateAfter": "blocked_case",
+      "blockerCodesBefore": [
+        "gross_triple_reconciliation_failed"
+      ],
+      "blockerCodesAfter": [
+        "gross_triple_reconciliation_failed"
+      ],
+      "infissiStateAfter": "blocked_case"
+    },
+    {
+      "customerKey": "sarah-mondini",
+      "cohort": 2,
+      "module": "screening",
+      "touched": true,
+      "stateBefore": "blocked_case",
+      "stateAfter": "blocked_case",
+      "blockerCodesBefore": [
+        "product_cardinality_form_invoice_mismatch",
+        "screenings_missing",
+        "screening_primary_measurements_missing"
+      ],
+      "blockerCodesAfter": [
+        "product_cardinality_form_invoice_mismatch",
+        "screenings_missing",
+        "screening_primary_measurements_missing"
+      ],
+      "infissiStateAfter": null
+    },
+    {
+      "customerKey": "lucia-droghetti",
+      "cohort": 3,
+      "module": "screening",
+      "touched": false,
+      "reason": "already_not_blocked",
+      "stateBefore": "ready_local_plan"
+    },
+    {
+      "customerKey": "stefania-spina",
+      "cohort": 4,
+      "module": "infissi",
+      "touched": true,
+      "stateBefore": "blocked_case",
+      "stateAfter": "blocked_case",
+      "blockerCodesBefore": [
+        "permanent_supplier_automation_exclusion"
+      ],
+      "blockerCodesAfter": [
+        "permanent_supplier_automation_exclusion"
+      ],
+      "infissiStateAfter": null
+    },
+    {
+      "customerKey": "andreea-ioana-olteanu",
+      "cohort": 5,
+      "module": "infissi",
+      "touched": true,
+      "stateBefore": "blocked_case",
+      "stateAfter": "blocked_case",
+      "blockerCodesBefore": [
+        "completion_date_portal_year_mismatch",
+        "completion_over_90_days_operator_required"
+      ],
+      "blockerCodesAfter": [
+        "completion_date_portal_year_mismatch",
+        "completion_over_90_days_operator_required"
+      ],
+      "infissiStateAfter": "ready_local_plan"
+    },
+    {
+      "customerKey": "filippo-bigalli",
+      "cohort": 6,
+      "module": "screening",
+      "touched": true,
+      "stateBefore": "blocked_case",
+      "stateAfter": "blocked_case",
+      "blockerCodesBefore": [
+        "product_cardinality_form_invoice_mismatch",
+        "screenings_missing",
+        "original_invoice_missing_or_unavailable",
+        "completion_date_missing",
+        "gross_triple_reconciliation_failed"
+      ],
+      "blockerCodesAfter": [
+        "product_cardinality_form_invoice_mismatch",
+        "screenings_missing",
+        "original_invoice_missing_or_unavailable",
+        "completion_date_missing",
+        "gross_triple_reconciliation_failed"
+      ],
+      "infissiStateAfter": null
+    },
+    {
+      "customerKey": "angela-tuttolani",
+      "cohort": 7,
+      "module": "screening",
+      "touched": true,
+      "stateBefore": "blocked_case",
+      "stateAfter": "ready_local_plan",
+      "blockerCodesBefore": [
+        "invoice_929a8665",
+        "gross_triple_reconciliation_failed"
+      ],
+      "blockerCodesAfter": [],
+      "infissiStateAfter": null
+    },
+    {
+      "customerKey": "maria-sofia-tosatti",
+      "cohort": 8,
+      "module": "screening",
+      "touched": true,
+      "stateBefore": "blocked_case",
+      "stateAfter": "blocked_case",
+      "blockerCodesBefore": [
+        "screenings_missing",
+        "screening_primary_measurements_missing"
+      ],
+      "blockerCodesAfter": [
+        "screenings_missing",
+        "screening_primary_measurements_missing"
+      ],
+      "infissiStateAfter": null
+    },
+    {
+      "customerKey": "alessandro-zaniboni",
+      "cohort": 9,
+      "module": "screening",
+      "touched": true,
+      "stateBefore": "blocked_case",
+      "stateAfter": "blocked_case",
+      "blockerCodesBefore": [
+        "product_cardinality_form_invoice_mismatch",
+        "screenings_missing",
+        "original_invoice_missing_or_unavailable",
+        "completion_date_missing",
+        "gross_triple_reconciliation_failed"
+      ],
+      "blockerCodesAfter": [
+        "product_cardinality_form_invoice_mismatch",
+        "screenings_missing",
+        "original_invoice_missing_or_unavailable",
+        "completion_date_missing",
+        "gross_triple_reconciliation_failed"
+      ],
+      "infissiStateAfter": null
+    },
+    {
+      "customerKey": "gianfranco-lavezzi",
+      "cohort": 10,
+      "module": "screening",
+      "touched": true,
+      "stateBefore": "blocked_case",
+      "stateAfter": "blocked_case",
+      "blockerCodesBefore": [
+        "product_cardinality_form_invoice_mismatch",
+        "screenings_missing",
+        "invoice_332a5af9",
+        "gross_triple_reconciliation_failed"
+      ],
+      "blockerCodesAfter": [
+        "product_cardinality_form_invoice_mismatch",
+        "screenings_missing",
+        "invoice_332a5af9",
+        "gross_triple_reconciliation_failed"
+      ],
+      "infissiStateAfter": null
+    },
+    {
+      "customerKey": "roberta-di-cesare",
+      "cohort": 11,
+      "module": "screening",
+      "touched": true,
+      "stateBefore": "blocked_case",
+      "stateAfter": "blocked_case",
+      "blockerCodesBefore": [
+        "customer_form_missing",
+        "screenings_missing",
+        "screening_primary_measurements_missing"
+      ],
+      "blockerCodesAfter": [
+        "customer_form_missing",
+        "screenings_missing",
+        "screening_primary_measurements_missing"
+      ],
+      "infissiStateAfter": null
+    },
+    {
+      "customerKey": "marco-de-marinis",
+      "cohort": 12,
+      "module": "infissi",
+      "touched": true,
+      "stateBefore": "blocked_case",
+      "stateAfter": "blocked_case",
+      "blockerCodesBefore": [
+        "completion_date_portal_year_mismatch",
+        "completion_over_90_days_operator_required",
+        "invoice_929a8665",
+        "gross_triple_reconciliation_failed"
+      ],
+      "blockerCodesAfter": [
+        "completion_date_portal_year_mismatch",
+        "completion_over_90_days_operator_required",
+        "invoice_929a8665",
+        "gross_triple_reconciliation_failed"
+      ],
+      "infissiStateAfter": "blocked_case"
+    },
+    {
+      "customerKey": "marcella-capatti",
+      "cohort": 13,
+      "module": "infissi",
+      "touched": false,
+      "reason": "already_not_blocked",
+      "stateBefore": "ready_local_plan"
+    },
+    {
+      "customerKey": "matteo-capitanelli",
+      "cohort": 14,
+      "module": "infissi",
+      "touched": true,
+      "stateBefore": "blocked_case",
+      "stateAfter": "blocked_case",
+      "blockerCodesBefore": [
+        "draft_payload_mapping_incomplete"
+      ],
+      "blockerCodesAfter": [
+        "draft_payload_mapping_incomplete"
+      ],
+      "infissiStateAfter": null
+    },
+    {
+      "customerKey": "nicla-biagioni",
+      "cohort": 15,
+      "module": "infissi",
+      "touched": true,
+      "stateBefore": "blocked_case",
+      "stateAfter": "blocked_case",
+      "blockerCodesBefore": [
+        "original_invoice_missing_or_unavailable",
+        "completion_date_missing",
+        "gross_triple_reconciliation_failed"
+      ],
+      "blockerCodesAfter": [
+        "original_invoice_missing_or_unavailable",
+        "completion_date_missing",
+        "gross_triple_reconciliation_failed"
+      ],
+      "infissiStateAfter": "blocked_case"
+    },
+    {
+      "customerKey": "eugenio-codognato",
+      "cohort": 16,
+      "module": "infissi",
+      "touched": false,
+      "reason": "already_not_blocked",
+      "stateBefore": "ready_local_plan"
+    },
+    {
+      "customerKey": "giulia-kasermann",
+      "cohort": 17,
+      "module": "screening",
+      "touched": true,
+      "stateBefore": "blocked_case",
+      "stateAfter": "blocked_case",
+      "blockerCodesBefore": [
+        "product_cardinality_form_invoice_mismatch",
+        "screenings_missing",
+        "screening_primary_measurements_missing"
+      ],
+      "blockerCodesAfter": [
+        "product_cardinality_form_invoice_mismatch",
+        "screenings_missing",
+        "screening_primary_measurements_missing"
+      ],
+      "infissiStateAfter": null
+    },
+    {
+      "customerKey": "gabriele-girelli",
+      "cohort": 18,
+      "module": "infissi",
+      "touched": true,
+      "stateBefore": "blocked_case",
+      "stateAfter": "blocked_case",
+      "blockerCodesBefore": [
+        "original_invoice_missing_or_unavailable",
+        "completion_date_missing",
+        "gross_triple_reconciliation_failed"
+      ],
+      "blockerCodesAfter": [
+        "original_invoice_missing_or_unavailable",
+        "completion_date_missing",
+        "gross_triple_reconciliation_failed"
+      ],
+      "infissiStateAfter": "blocked_case"
+    },
+    {
+      "customerKey": "vincenzo-falconi",
+      "cohort": 19,
+      "module": "screening",
+      "touched": true,
+      "stateBefore": "blocked_case",
+      "stateAfter": "blocked_case",
+      "blockerCodesBefore": [
+        "product_cardinality_form_invoice_mismatch"
+      ],
+      "blockerCodesAfter": [
+        "product_cardinality_form_invoice_mismatch"
+      ],
+      "infissiStateAfter": null
+    },
+    {
+      "customerKey": "gregorio-fusco",
+      "cohort": 20,
+      "module": "infissi",
+      "touched": false,
+      "reason": "already_not_blocked",
+      "stateBefore": "ready_local_plan"
+    },
+    {
+      "customerKey": "rossella-munafo",
+      "cohort": 21,
+      "module": "screening",
+      "touched": true,
+      "stateBefore": "blocked_case",
+      "stateAfter": "blocked_case",
+      "blockerCodesBefore": [
+        "product_cardinality_form_invoice_mismatch",
+        "screenings_missing",
+        "invoice_332a5af9"
+      ],
+      "blockerCodesAfter": [
+        "product_cardinality_form_invoice_mismatch",
+        "screenings_missing",
+        "invoice_332a5af9"
+      ],
+      "infissiStateAfter": null
+    },
+    {
+      "customerKey": "luca-ronconi",
+      "cohort": 22,
+      "module": "screening",
+      "touched": false,
+      "reason": "already_not_blocked",
+      "stateBefore": "ready_local_plan"
+    },
+    {
+      "customerKey": "giovanna-atzeni",
+      "cohort": 23,
+      "module": "infissi",
+      "touched": true,
+      "stateBefore": "blocked_case",
+      "stateAfter": "blocked_case",
+      "blockerCodesBefore": [
+        "customer_form_missing",
+        "tax_code_missing_or_invalid",
+        "bank_transfer_principal_exceeds_invoices",
+        "completion_date_portal_year_mismatch",
+        "completion_over_90_days_operator_required",
+        "gross_triple_reconciliation_failed"
+      ],
+      "blockerCodesAfter": [
+        "customer_form_missing",
+        "tax_code_missing_or_invalid",
+        "completion_date_portal_year_mismatch",
+        "completion_over_90_days_operator_required"
+      ],
+      "infissiStateAfter": "blocked_case"
+    },
+    {
+      "customerKey": "andrea-trabucco",
+      "cohort": 24,
+      "module": "infissi",
+      "touched": false,
+      "reason": "already_not_blocked",
+      "stateBefore": "ready_local_plan"
+    },
+    {
+      "customerKey": "vera-buracchi",
+      "cohort": 25,
+      "module": "infissi",
+      "touched": true,
+      "stateBefore": "blocked_case",
+      "stateAfter": "blocked_case",
+      "blockerCodesBefore": [
+        "original_invoice_missing_or_unavailable"
+      ],
+      "blockerCodesAfter": [
+        "original_invoice_missing_or_unavailable"
+      ],
+      "infissiStateAfter": "blocked_case"
+    },
+    {
+      "customerKey": "antonella-ferletic",
+      "cohort": 26,
+      "module": "screening",
+      "touched": false,
+      "reason": "already_not_blocked",
+      "stateBefore": "ready_local_plan"
+    },
+    {
+      "customerKey": "luca-cigognetti",
+      "cohort": 27,
+      "module": "infissi",
+      "touched": false,
+      "reason": "already_not_blocked",
+      "stateBefore": "ready_local_plan"
+    },
+    {
+      "customerKey": "giuseppe-d-adduzio",
+      "cohort": 28,
+      "module": "infissi",
+      "touched": true,
+      "stateBefore": "blocked_case",
+      "stateAfter": "blocked_case",
+      "blockerCodesBefore": [
+        "permanent_supplier_automation_exclusion"
+      ],
+      "blockerCodesAfter": [
+        "permanent_supplier_automation_exclusion"
+      ],
+      "infissiStateAfter": "blocked_case"
+    },
+    {
+      "customerKey": "lia-chiericati",
+      "cohort": 29,
+      "module": "screening",
+      "touched": false,
+      "reason": "already_not_blocked",
+      "stateBefore": "ready_local_plan"
+    },
+    {
+      "customerKey": "della-maria-carla-vigetti",
+      "cohort": 30,
+      "module": "screening",
+      "touched": false,
+      "reason": "already_not_blocked",
+      "stateBefore": "ready_local_plan"
+    },
+    {
+      "customerKey": "gabriello-manso",
+      "cohort": 31,
+      "module": "screening",
+      "touched": true,
+      "stateBefore": "blocked_case",
+      "stateAfter": "blocked_case",
+      "blockerCodesBefore": [
+        "gross_triple_reconciliation_failed"
+      ],
+      "blockerCodesAfter": [
+        "draft_payload_mapping_incomplete"
+      ],
+      "infissiStateAfter": null
+    },
+    {
+      "customerKey": "monica-molteni",
+      "cohort": 32,
+      "module": "screening",
+      "touched": false,
+      "reason": "already_not_blocked",
+      "stateBefore": "ready_local_plan"
+    },
+    {
+      "customerKey": "santo-giuga",
+      "cohort": 33,
+      "module": "infissi",
+      "touched": true,
+      "stateBefore": "blocked_case",
+      "stateAfter": "blocked_case",
+      "blockerCodesBefore": [
+        "bank_transfer_invoice_cross_check_failed",
+        "invoice_929a8665",
+        "gross_triple_reconciliation_failed"
+      ],
+      "blockerCodesAfter": [
+        "invoice_929a8665",
+        "gross_triple_reconciliation_failed"
+      ],
+      "infissiStateAfter": "blocked_case"
+    },
+    {
+      "customerKey": "patrizia-muzzi",
+      "cohort": 34,
+      "module": "screening",
+      "touched": true,
+      "stateBefore": "blocked_case",
+      "stateAfter": "blocked_case",
+      "blockerCodesBefore": [
+        "product_cardinality_form_invoice_mismatch",
+        "screenings_missing",
+        "completion_date_missing",
+        "gross_triple_reconciliation_failed"
+      ],
+      "blockerCodesAfter": [
+        "product_cardinality_form_invoice_mismatch",
+        "screenings_missing",
+        "completion_date_missing",
+        "gross_triple_reconciliation_failed"
+      ],
+      "infissiStateAfter": null
+    },
+    {
+      "customerKey": "claudia-campagna",
+      "cohort": 35,
+      "module": "screening",
+      "touched": false,
+      "reason": "already_not_blocked",
+      "stateBefore": "ready_local_plan"
+    },
+    {
+      "customerKey": "ida-gigliotti",
+      "cohort": 36,
+      "module": "screening",
+      "touched": true,
+      "stateBefore": "blocked_case",
+      "stateAfter": "blocked_case",
+      "blockerCodesBefore": [
+        "product_cardinality_form_invoice_mismatch",
+        "screenings_missing",
+        "completion_date_portal_year_mismatch",
+        "completion_over_90_days_operator_required",
+        "invoice_332a5af9"
+      ],
+      "blockerCodesAfter": [
+        "product_cardinality_form_invoice_mismatch",
+        "screenings_missing",
+        "completion_date_portal_year_mismatch",
+        "completion_over_90_days_operator_required",
+        "invoice_332a5af9"
+      ],
+      "infissiStateAfter": null
+    },
+    {
+      "customerKey": "loretta-riviera",
+      "cohort": 37,
+      "module": "infissi",
+      "touched": true,
+      "stateBefore": "blocked_case",
+      "stateAfter": "blocked_case",
+      "blockerCodesBefore": [
+        "original_invoice_missing_or_unavailable",
+        "completion_date_missing",
+        "gross_triple_reconciliation_failed"
+      ],
+      "blockerCodesAfter": [
+        "original_invoice_missing_or_unavailable",
+        "completion_date_missing",
+        "gross_triple_reconciliation_failed"
+      ],
+      "infissiStateAfter": "blocked_case"
+    },
+    {
+      "customerKey": "fabio-sartori",
+      "cohort": 38,
+      "module": "screening",
+      "touched": false,
+      "reason": "already_not_blocked",
+      "stateBefore": "ready_local_plan"
+    },
+    {
+      "customerKey": "annalisa-lanzo",
+      "cohort": 39,
+      "module": "screening",
+      "touched": false,
+      "reason": "already_not_blocked",
+      "stateBefore": "ready_local_plan"
+    },
+    {
+      "customerKey": "armando-ranzoni",
+      "cohort": 40,
+      "module": "infissi",
+      "touched": false,
+      "reason": "already_not_blocked",
+      "stateBefore": "ready_local_plan"
+    },
+    {
+      "customerKey": "monica-ambra-fioravanti",
+      "cohort": 41,
+      "module": "screening",
+      "touched": false,
+      "reason": "already_not_blocked",
+      "stateBefore": "ready_local_plan"
+    },
+    {
+      "customerKey": "massimiliano-montemorra",
+      "cohort": 42,
+      "module": "infissi",
+      "touched": true,
+      "stateBefore": "blocked_case",
+      "stateAfter": "blocked_case",
+      "blockerCodesBefore": [
+        "permanent_supplier_automation_exclusion"
+      ],
+      "blockerCodesAfter": [
+        "permanent_supplier_automation_exclusion"
+      ],
+      "infissiStateAfter": null
+    },
+    {
+      "customerKey": "adelfio-pietro-spinelli",
+      "cohort": 43,
+      "module": "screening",
+      "touched": false,
+      "reason": "already_not_blocked",
+      "stateBefore": "ready_local_plan"
+    },
+    {
+      "customerKey": "sabrina-eustomi",
+      "cohort": 44,
+      "module": "infissi",
+      "touched": true,
+      "stateBefore": "blocked_case",
+      "stateAfter": "blocked_case",
+      "blockerCodesBefore": [
+        "customer_form_missing",
+        "tax_code_missing_or_invalid"
+      ],
+      "blockerCodesAfter": [
+        "customer_form_missing",
+        "tax_code_missing_or_invalid"
+      ],
+      "infissiStateAfter": null
+    },
+    {
+      "customerKey": "cesare-imperiali",
+      "cohort": 45,
+      "module": "infissi",
+      "touched": false,
+      "reason": "already_not_blocked",
+      "stateBefore": "ready_local_plan"
+    },
+    {
+      "customerKey": "natale-tiraboschi",
+      "cohort": 46,
+      "module": "screening",
+      "touched": true,
+      "stateBefore": "blocked_case",
+      "stateAfter": "blocked_case",
+      "blockerCodesBefore": [
+        "works_municipality_invoice_conflict",
+        "invoice_929a8665",
+        "gross_triple_reconciliation_failed"
+      ],
+      "blockerCodesAfter": [
+        "works_municipality_invoice_conflict",
+        "invoice_929a8665",
+        "gross_triple_reconciliation_failed"
+      ],
+      "infissiStateAfter": null
+    },
+    {
+      "customerKey": "paolino-bellini",
+      "cohort": 47,
+      "module": "screening",
+      "touched": true,
+      "stateBefore": "blocked_case",
+      "stateAfter": "blocked_case",
+      "blockerCodesBefore": [
+        "product_cardinality_form_invoice_mismatch",
+        "screenings_missing",
+        "invoice_332a5af9",
+        "invoice_929a8665",
+        "gross_triple_reconciliation_failed"
+      ],
+      "blockerCodesAfter": [
+        "product_cardinality_form_invoice_mismatch",
+        "screenings_missing",
+        "invoice_332a5af9",
+        "invoice_929a8665",
+        "gross_triple_reconciliation_failed"
+      ],
+      "infissiStateAfter": null
+    },
+    {
+      "customerKey": "lea-dettori",
+      "cohort": 48,
+      "module": "screening",
+      "touched": false,
+      "reason": "already_not_blocked",
+      "stateBefore": "ready_local_plan"
+    },
+    {
+      "customerKey": "riccardo-coda",
+      "cohort": 49,
+      "module": "screening",
+      "touched": true,
+      "stateBefore": "blocked_case",
+      "stateAfter": "blocked_case",
+      "blockerCodesBefore": [
+        "invoice_929a8665",
+        "gross_triple_reconciliation_failed"
+      ],
+      "blockerCodesAfter": [
+        "draft_payload_mapping_incomplete"
+      ],
+      "infissiStateAfter": null
+    },
+    {
+      "customerKey": "massimo-cappello",
+      "cohort": 50,
+      "module": "infissi",
+      "touched": false,
+      "reason": "already_not_blocked",
+      "stateBefore": "ready_local_plan"
+    },
+    {
+      "customerKey": "giovanni-pescatori",
+      "cohort": 51,
+      "module": "screening",
+      "touched": true,
+      "stateBefore": "blocked_case",
+      "stateAfter": "blocked_case",
+      "blockerCodesBefore": [
+        "product_cardinality_form_invoice_mismatch",
+        "screenings_missing",
+        "invoice_332a5af9"
+      ],
+      "blockerCodesAfter": [
+        "product_cardinality_form_invoice_mismatch",
+        "screenings_missing",
+        "invoice_332a5af9"
+      ],
+      "infissiStateAfter": null
+    },
+    {
+      "customerKey": "gavina-emanuela-cannas",
+      "cohort": 52,
+      "module": "infissi",
+      "touched": true,
+      "stateBefore": "blocked_case",
+      "stateAfter": "blocked_case",
+      "blockerCodesBefore": [
+        "customer_form_missing",
+        "tax_code_missing_or_invalid"
+      ],
+      "blockerCodesAfter": [
+        "customer_form_missing",
+        "tax_code_missing_or_invalid"
+      ],
+      "infissiStateAfter": "blocked_case"
+    },
+    {
+      "customerKey": "diego-mario-mocenighi",
+      "cohort": 53,
+      "module": "screening",
+      "touched": true,
+      "stateBefore": "blocked_case",
+      "stateAfter": "blocked_case",
+      "blockerCodesBefore": [
+        "draft_payload_mapping_incomplete"
+      ],
+      "blockerCodesAfter": [
+        "draft_payload_mapping_incomplete"
+      ],
+      "infissiStateAfter": null
+    },
+    {
+      "customerKey": "stefano-buosi",
+      "cohort": 54,
+      "module": "infissi",
+      "touched": false,
+      "reason": "already_not_blocked",
+      "stateBefore": "ready_local_plan"
+    },
+    {
+      "customerKey": "prova-rivenditore-1-30-04",
+      "cohort": 55,
+      "module": "infissi",
+      "touched": true,
+      "stateBefore": "blocked_case",
+      "stateAfter": "blocked_case",
+      "blockerCodesBefore": [
+        "permanent_customer_automation_exclusion"
+      ],
+      "blockerCodesAfter": [
+        "permanent_customer_automation_exclusion"
+      ],
+      "infissiStateAfter": "blocked_case"
+    },
+    {
+      "customerKey": "vito-fusillo",
+      "cohort": 56,
+      "module": "screening",
+      "touched": true,
+      "stateBefore": "blocked_case",
+      "stateAfter": "blocked_case",
+      "blockerCodesBefore": [
+        "product_cardinality_form_invoice_mismatch",
+        "screenings_missing",
+        "completion_date_portal_year_mismatch",
+        "completion_over_90_days_operator_required",
+        "invoice_332a5af9"
+      ],
+      "blockerCodesAfter": [
+        "product_cardinality_form_invoice_mismatch",
+        "screenings_missing",
+        "completion_date_portal_year_mismatch",
+        "completion_over_90_days_operator_required",
+        "invoice_332a5af9"
+      ],
+      "infissiStateAfter": null
+    },
+    {
+      "customerKey": "fares-hassairi",
+      "cohort": 57,
+      "module": "screening",
+      "touched": false,
+      "reason": "already_not_blocked",
+      "stateBefore": "ready_local_plan"
+    },
+    {
+      "customerKey": "ivana-mastrangelo",
+      "cohort": 58,
+      "module": "infissi",
+      "touched": true,
+      "stateBefore": "blocked_case",
+      "stateAfter": "ready_local_plan",
+      "blockerCodesBefore": [
+        "invoice_929a8665",
+        "gross_triple_reconciliation_failed"
+      ],
+      "blockerCodesAfter": [],
+      "infissiStateAfter": "ready_local_plan"
+    },
+    {
+      "customerKey": "liliana-gloria",
+      "cohort": 59,
+      "module": "screening",
+      "touched": true,
+      "stateBefore": "blocked_case",
+      "stateAfter": "blocked_case",
+      "blockerCodesBefore": [
+        "gross_triple_reconciliation_failed"
+      ],
+      "blockerCodesAfter": [
+        "draft_payload_mapping_incomplete"
+      ],
+      "infissiStateAfter": null
+    },
+    {
+      "customerKey": "lucia-lagrasta",
+      "cohort": 60,
+      "module": "screening",
+      "touched": false,
+      "reason": "already_not_blocked",
+      "stateBefore": "ready_local_plan"
+    },
+    {
+      "customerKey": "angelina-stricelli",
+      "cohort": 61,
+      "module": "infissi",
+      "touched": false,
+      "reason": "already_not_blocked",
+      "stateBefore": "ready_local_plan"
+    },
+    {
+      "customerKey": "nadia-ragni",
+      "cohort": 62,
+      "module": "screening",
+      "touched": false,
+      "reason": "already_not_blocked",
+      "stateBefore": "ready_local_plan"
+    },
+    {
+      "customerKey": "gloria-padoani",
+      "cohort": 63,
+      "module": "screening",
+      "touched": true,
+      "stateBefore": "blocked_case",
+      "stateAfter": "blocked_case",
+      "blockerCodesBefore": [
+        "product_cardinality_form_invoice_mismatch",
+        "screenings_missing",
+        "invoice_332a5af9"
+      ],
+      "blockerCodesAfter": [
+        "product_cardinality_form_invoice_mismatch",
+        "screenings_missing",
+        "invoice_332a5af9"
+      ],
+      "infissiStateAfter": null
+    },
+    {
+      "customerKey": "milena-albertoni",
+      "cohort": 64,
+      "module": "screening",
+      "touched": false,
+      "reason": "already_not_blocked",
+      "stateBefore": "ready_local_plan"
+    },
+    {
+      "customerKey": "cataldo-cassone",
+      "cohort": 65,
+      "module": "screening",
+      "touched": false,
+      "reason": "already_not_blocked",
+      "stateBefore": "ready_local_plan"
+    },
+    {
+      "customerKey": "marco-tocchetti",
+      "cohort": 66,
+      "module": "screening",
+      "touched": true,
+      "stateBefore": "blocked_case",
+      "stateAfter": "blocked_case",
+      "blockerCodesBefore": [
+        "original_invoice_missing_or_unavailable",
+        "gross_triple_reconciliation_failed"
+      ],
+      "blockerCodesAfter": [
+        "original_invoice_missing_or_unavailable",
+        "gross_triple_reconciliation_failed"
+      ],
+      "infissiStateAfter": null
+    },
+    {
+      "customerKey": "romeo-ropa",
+      "cohort": 67,
+      "module": "screening",
+      "touched": false,
+      "reason": "already_not_blocked",
+      "stateBefore": "ready_local_plan"
+    },
+    {
+      "customerKey": "claudia-sellati",
+      "cohort": 68,
+      "module": "infissi",
+      "touched": false,
+      "reason": "already_not_blocked",
+      "stateBefore": "ready_local_plan"
+    },
+    {
+      "customerKey": "rocco-giacotto",
+      "cohort": 69,
+      "module": "screening",
+      "touched": true,
+      "stateBefore": "blocked_case",
+      "stateAfter": "blocked_case",
+      "blockerCodesBefore": [
+        "product_cardinality_form_invoice_mismatch",
+        "screenings_missing",
+        "original_invoice_missing_or_unavailable",
+        "completion_date_missing",
+        "gross_triple_reconciliation_failed"
+      ],
+      "blockerCodesAfter": [
+        "product_cardinality_form_invoice_mismatch",
+        "screenings_missing",
+        "original_invoice_missing_or_unavailable",
+        "completion_date_missing",
+        "gross_triple_reconciliation_failed"
+      ],
+      "infissiStateAfter": null
+    },
+    {
+      "customerKey": "maurizia-coreggioli",
+      "cohort": 70,
+      "module": "infissi",
+      "touched": true,
+      "stateBefore": "blocked_case",
+      "stateAfter": "blocked_case",
+      "blockerCodesBefore": [
+        "customer_form_missing",
+        "tax_code_missing_or_invalid"
+      ],
+      "blockerCodesAfter": [
+        "customer_form_missing",
+        "tax_code_missing_or_invalid"
+      ],
+      "infissiStateAfter": "blocked_case"
+    },
+    {
+      "customerKey": "milena-fiorini",
+      "cohort": 71,
+      "module": "screening",
+      "touched": false,
+      "reason": "already_not_blocked",
+      "stateBefore": "ready_local_plan"
+    },
+    {
+      "customerKey": "elena-marcella-berti",
+      "cohort": 72,
+      "module": "screening",
+      "touched": true,
+      "stateBefore": "blocked_case",
+      "stateAfter": "blocked_case",
+      "blockerCodesBefore": [
+        "draft_payload_mapping_incomplete"
+      ],
+      "blockerCodesAfter": [
+        "draft_payload_mapping_incomplete"
+      ],
+      "infissiStateAfter": null
+    },
+    {
+      "customerKey": "elena-depalma",
+      "cohort": 73,
+      "module": "infissi",
+      "touched": false,
+      "reason": "already_not_blocked",
+      "stateBefore": "ready_local_plan"
+    },
+    {
+      "customerKey": "mauro-ballabio",
+      "cohort": 74,
+      "module": "screening",
+      "touched": false,
+      "reason": "already_not_blocked",
+      "stateBefore": "ready_local_plan"
+    },
+    {
+      "customerKey": "francesca-pisanu",
+      "cohort": 75,
+      "module": "infissi",
+      "touched": true,
+      "stateBefore": "blocked_case",
+      "stateAfter": "blocked_case",
+      "blockerCodesBefore": [
+        "customer_form_missing",
+        "tax_code_missing_or_invalid"
+      ],
+      "blockerCodesAfter": [
+        "customer_form_missing",
+        "tax_code_missing_or_invalid"
+      ],
+      "infissiStateAfter": "blocked_case"
+    },
+    {
+      "customerKey": "mauro-leonardi",
+      "cohort": 76,
+      "module": "infissi",
+      "touched": true,
+      "stateBefore": "blocked_case",
+      "stateAfter": "blocked_case",
+      "blockerCodesBefore": [
+        "screenings_missing",
+        "completion_date_portal_year_mismatch",
+        "completion_over_90_days_operator_required",
+        "screening_primary_measurements_missing"
+      ],
+      "blockerCodesAfter": [
+        "screenings_missing",
+        "completion_date_portal_year_mismatch",
+        "completion_over_90_days_operator_required",
+        "screening_primary_measurements_missing"
+      ],
+      "infissiStateAfter": "blocked_case"
+    },
+    {
+      "customerKey": "caterina-claudia-garbato",
+      "cohort": 77,
+      "module": "screening",
+      "touched": true,
+      "stateBefore": "blocked_case",
+      "stateAfter": "blocked_case",
+      "blockerCodesBefore": [
+        "persiana_measurement_ambiguous_1",
+        "completion_date_portal_year_mismatch",
+        "completion_over_90_days_operator_required"
+      ],
+      "blockerCodesAfter": [
+        "persiana_measurement_ambiguous_1",
+        "completion_date_portal_year_mismatch",
+        "completion_over_90_days_operator_required"
+      ],
+      "infissiStateAfter": null
+    },
+    {
+      "customerKey": "flavia-cipriani",
+      "cohort": 78,
+      "module": "infissi",
+      "touched": false,
+      "reason": "already_not_blocked",
+      "stateBefore": "ready_local_plan"
+    },
+    {
+      "customerKey": "giovanni-amadu",
+      "cohort": 79,
+      "module": "infissi",
+      "touched": true,
+      "stateBefore": "blocked_case",
+      "stateAfter": "blocked_case",
+      "blockerCodesBefore": [
+        "customer_form_missing",
+        "tax_code_missing_or_invalid",
+        "completion_date_portal_year_mismatch",
+        "completion_over_90_days_operator_required"
+      ],
+      "blockerCodesAfter": [
+        "customer_form_missing",
+        "tax_code_missing_or_invalid",
+        "completion_date_portal_year_mismatch",
+        "completion_over_90_days_operator_required"
+      ],
+      "infissiStateAfter": "blocked_case"
+    },
+    {
+      "customerKey": "francesca-monti",
+      "cohort": 80,
+      "module": "screening",
+      "touched": true,
+      "stateBefore": "blocked_case",
+      "stateAfter": "blocked_case",
+      "blockerCodesBefore": [
+        "screenings_missing",
+        "invoice_332a5af9"
+      ],
+      "blockerCodesAfter": [
+        "screenings_missing",
+        "invoice_332a5af9"
+      ],
+      "infissiStateAfter": null
+    },
+    {
+      "customerKey": "rosa-toscano",
+      "cohort": 81,
+      "module": "screening",
+      "touched": false,
+      "reason": "already_not_blocked",
+      "stateBefore": "ready_local_plan"
+    },
+    {
+      "customerKey": "marian-maeschi",
+      "cohort": 82,
+      "module": "infissi",
+      "touched": true,
+      "stateBefore": "blocked_case",
+      "stateAfter": "blocked_case",
+      "blockerCodesBefore": [
+        "screenings_missing",
+        "screening_primary_measurements_missing"
+      ],
+      "blockerCodesAfter": [
+        "screenings_missing",
+        "screening_primary_measurements_missing"
+      ],
+      "infissiStateAfter": "blocked_case"
+    },
+    {
+      "customerKey": "claudio-beghini",
+      "cohort": 83,
+      "module": "screening",
+      "touched": false,
+      "reason": "already_not_blocked",
+      "stateBefore": "ready_local_plan"
+    },
+    {
+      "customerKey": "luigi-carfora",
+      "cohort": 84,
+      "module": "screening",
+      "touched": false,
+      "reason": "already_not_blocked",
+      "stateBefore": "ready_local_plan"
+    },
+    {
+      "customerKey": "gemma-minore",
+      "cohort": 85,
+      "module": "infissi",
+      "touched": true,
+      "stateBefore": "blocked_case",
+      "stateAfter": "blocked_case",
+      "blockerCodesBefore": [
+        "co_beneficiary_invoice_identity_unresolved"
+      ],
+      "blockerCodesAfter": [
+        "co_beneficiary_invoice_identity_unresolved"
+      ],
+      "infissiStateAfter": "ready_local_plan"
+    },
+    {
+      "customerKey": "enrico-amos-maria-berneri",
+      "cohort": 86,
+      "module": "screening",
+      "touched": true,
+      "stateBefore": "blocked_case",
+      "stateAfter": "blocked_case",
+      "blockerCodesBefore": [
+        "screenings_missing",
+        "invoice_332a5af9"
+      ],
+      "blockerCodesAfter": [
+        "screenings_missing",
+        "completion_date_missing",
+        "gross_triple_reconciliation_failed"
+      ],
+      "infissiStateAfter": null
+    },
+    {
+      "customerKey": "zeno-righetti",
+      "cohort": 87,
+      "module": "screening",
+      "touched": false,
+      "reason": "already_not_blocked",
+      "stateBefore": "ready_local_plan"
+    },
+    {
+      "customerKey": "gianluigi-chiolini",
+      "cohort": 88,
+      "module": "screening",
+      "touched": false,
+      "reason": "already_not_blocked",
+      "stateBefore": "ready_local_plan"
+    },
+    {
+      "customerKey": "stefania-venturi",
+      "cohort": 89,
+      "module": "screening",
+      "touched": true,
+      "stateBefore": "blocked_case",
+      "stateAfter": "blocked_case",
+      "blockerCodesBefore": [
+        "draft_payload_mapping_incomplete"
+      ],
+      "blockerCodesAfter": [
+        "draft_payload_mapping_incomplete"
+      ],
+      "infissiStateAfter": null
+    },
+    {
+      "customerKey": "francesco-laurelli",
+      "cohort": 90,
+      "module": "screening",
+      "touched": false,
+      "reason": "already_not_blocked",
+      "stateBefore": "ready_local_plan"
+    },
+    {
+      "customerKey": "fausta-de-filippo",
+      "cohort": 91,
+      "module": "screening",
+      "touched": false,
+      "reason": "already_not_blocked",
+      "stateBefore": "ready_local_plan"
+    },
+    {
+      "customerKey": "danila-serpa",
+      "cohort": 92,
+      "module": "screening",
+      "touched": false,
+      "reason": "already_not_blocked",
+      "stateBefore": "ready_local_plan"
+    },
+    {
+      "customerKey": "smaj-hhhhh",
+      "cohort": 93,
+      "module": "screening",
+      "touched": true,
+      "stateBefore": "blocked_case",
+      "stateAfter": "blocked_case",
+      "blockerCodesBefore": [
+        "permanent_customer_automation_exclusion"
+      ],
+      "blockerCodesAfter": [
+        "permanent_customer_automation_exclusion"
+      ],
+      "infissiStateAfter": null
+    },
+    {
+      "customerKey": "antonio-scaparrotta",
+      "cohort": 94,
+      "module": "infissi",
+      "touched": false,
+      "reason": "already_not_blocked",
+      "stateBefore": "ready_local_plan"
+    },
+    {
+      "customerKey": "fabrizio-pelizzari",
+      "cohort": 95,
+      "module": "screening",
+      "touched": false,
+      "reason": "already_not_blocked",
+      "stateBefore": "ready_local_plan"
+    },
+    {
+      "customerKey": "franco-screpanti",
+      "cohort": 96,
+      "module": "screening",
+      "touched": true,
+      "stateBefore": "blocked_case",
+      "stateAfter": "blocked_case",
+      "blockerCodesBefore": [
+        "product_cardinality_form_invoice_mismatch",
+        "screenings_missing",
+        "original_invoice_missing_or_unavailable",
+        "completion_date_missing",
+        "gross_triple_reconciliation_failed"
+      ],
+      "blockerCodesAfter": [
+        "product_cardinality_form_invoice_mismatch",
+        "screenings_missing",
+        "original_invoice_missing_or_unavailable",
+        "completion_date_missing",
+        "gross_triple_reconciliation_failed"
+      ],
+      "infissiStateAfter": null
+    },
+    {
+      "customerKey": "mattia-vatieri",
+      "cohort": 97,
+      "module": "screening",
+      "touched": true,
+      "stateBefore": "blocked_case",
+      "stateAfter": "blocked_case",
+      "blockerCodesBefore": [
+        "product_cardinality_form_invoice_mismatch",
+        "screenings_missing",
+        "completion_date_portal_year_mismatch",
+        "completion_over_90_days_operator_required",
+        "screening_primary_measurements_missing"
+      ],
+      "blockerCodesAfter": [
+        "product_cardinality_form_invoice_mismatch",
+        "screenings_missing",
+        "completion_date_portal_year_mismatch",
+        "completion_over_90_days_operator_required",
+        "screening_primary_measurements_missing"
+      ],
+      "infissiStateAfter": "blocked_case"
+    },
+    {
+      "customerKey": "mimosa-freni",
+      "cohort": 98,
+      "module": "screening",
+      "touched": false,
+      "reason": "already_not_blocked",
+      "stateBefore": "ready_local_plan"
+    },
+    {
+      "customerKey": "antonino-formisabo",
+      "cohort": 99,
+      "module": "infissi",
+      "touched": true,
+      "stateBefore": "blocked_case",
+      "stateAfter": "blocked_case",
+      "blockerCodesBefore": [
+        "completion_date_portal_year_mismatch",
+        "completion_over_90_days_operator_required"
+      ],
+      "blockerCodesAfter": [
+        "completion_date_portal_year_mismatch",
+        "completion_over_90_days_operator_required"
+      ],
+      "infissiStateAfter": "ready_local_plan"
+    },
+    {
+      "customerKey": "leo-manini",
+      "cohort": 100,
+      "module": "infissi",
+      "touched": true,
+      "stateBefore": "blocked_case",
+      "stateAfter": "blocked_case",
+      "blockerCodesBefore": [
+        "completion_date_portal_year_mismatch",
+        "completion_over_90_days_operator_required"
+      ],
+      "blockerCodesAfter": [
+        "completion_date_portal_year_mismatch",
+        "completion_over_90_days_operator_required"
+      ],
+      "infissiStateAfter": "blocked_case"
+    }
+  ]
+}

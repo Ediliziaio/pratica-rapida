@@ -1,0 +1,292 @@
+{
+  "version": "apr-crm-local-preflight-v1",
+  "revision": 1,
+  "status": "completed",
+  "sourceFingerprint": "f12487aad575f300728f17af3668cac94a2f129b31f204084aa2cd7a83f2e15d",
+  "currentCustomerKey": null,
+  "items": [
+    {
+      "customerKey": "armando-ranzoni",
+      "displayName": "Armando Ranzoni",
+      "practiceId": "54fdcf5f-3092-4f43-a741-ff510c25f51f",
+      "dossierPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2960-global-controller-armando-ranzoni/crm-acquisition/dossiers/armando-ranzoni.json",
+      "state": "ready_local_plan",
+      "attemptCount": 1,
+      "startedAt": null,
+      "endedAt": null,
+      "report": {
+        "outcome": "ready_local_plan",
+        "formAvailable": true,
+        "startDate": "2026-04-23",
+        "startDateSource": "b18ad9f40a09da8f9248ca09a3876e2de79d60734fd0d9a7d51ded0f55ff1640:invoice:264f0ccd0374",
+        "completionDate": "2026-07-01",
+        "completionDateSource": "99bf18734c7e3e3a7c20e8999b9340a371480bc329f742644d721d5561382fb0:invoice:264f0ccd0374",
+        "buildingQualification": "multi_unit",
+        "buildingUnitCount": 5,
+        "deductionRate": null,
+        "taxCodeStatus": "verified_original_document",
+        "resolvedTaxCode": "RNZRND49B18E072J",
+        "taxCodeSourceIds": [
+          "99bf18734c7e3e3a7c20e8999b9340a371480bc329f742644d721d5561382fb0",
+          "b18ad9f40a09da8f9248ca09a3876e2de79d60734fd0d9a7d51ded0f55ff1640"
+        ],
+        "primaryBeneficiaryResolution": {
+          "status": "verified_document",
+          "identity": {
+            "name": "Armando",
+            "surname": "Ranzoni",
+            "taxCode": "RNZRND49B18E072J",
+            "birthDate": "1949-02-18",
+            "sex": "M"
+          },
+          "sourceIds": [
+            "99bf18734c7e3e3a7c20e8999b9340a371480bc329f742644d721d5561382fb0",
+            "b18ad9f40a09da8f9248ca09a3876e2de79d60734fd0d9a7d51ded0f55ff1640"
+          ],
+          "authority": "fiscal_document"
+        },
+        "coBeneficiaryResolution": {
+          "status": "not_declared",
+          "present": false,
+          "identity": null,
+          "sourceIds": []
+        },
+        "products": [
+          {
+            "rowId": "99bf18734c7e3e3a7c20e8999b9340a371480bc329f742644d721d5561382fb0:invoice:264f0ccd0374:piece-1",
+            "sourceDocumentKey": "99bf18734c7e3e3a7c20e8999b9340a371480bc329f742644d721d5561382fb0:invoice:264f0ccd0374",
+            "description": "Tapparella in alluminio",
+            "pieceNumber": 1,
+            "widthMm": 1430,
+            "heightMm": 1850,
+            "surfaceM2": 2.645,
+            "exposure": null,
+            "exposureSource": null,
+            "protectedWindowSurfaceM2": 2.645,
+            "protectedWindowSurfaceSource": "derived_product_surface",
+            "supplementaryThermalResistance": 0.17,
+            "declaredType": "avvolgibile",
+            "formMappingSource": null,
+            "gTot": 0.06,
+            "gTotSource": "invoice_explicit",
+            "material": "Metallo",
+            "materialSource": "invoice_explicit",
+            "movement": "Manuale",
+            "movementSource": "authorized_fallback",
+            "appliedRuleIds": [
+              "user-2026-08-31-documented-gtot-precedence-v1",
+              "user-2026-08-31-avvolgibile-screening-contract-v2",
+              "authorized-22-schermature-materiale",
+              "authorized-16-schermature-meccanismo",
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+              "user-2026-08-18-explicit-technical-surface-precision"
+            ]
+          },
+          {
+            "rowId": "99bf18734c7e3e3a7c20e8999b9340a371480bc329f742644d721d5561382fb0:invoice:264f0ccd0374:piece-2",
+            "sourceDocumentKey": "99bf18734c7e3e3a7c20e8999b9340a371480bc329f742644d721d5561382fb0:invoice:264f0ccd0374",
+            "description": "Tapparella in alluminio",
+            "pieceNumber": 2,
+            "widthMm": 2835,
+            "heightMm": 1850,
+            "surfaceM2": 5.2447,
+            "exposure": null,
+            "exposureSource": null,
+            "protectedWindowSurfaceM2": 5.2447,
+            "protectedWindowSurfaceSource": "derived_product_surface",
+            "supplementaryThermalResistance": 0.17,
+            "declaredType": "avvolgibile",
+            "formMappingSource": null,
+            "gTot": 0.06,
+            "gTotSource": "invoice_explicit",
+            "material": "Metallo",
+            "materialSource": "invoice_explicit",
+            "movement": "Manuale",
+            "movementSource": "authorized_fallback",
+            "appliedRuleIds": [
+              "user-2026-08-31-documented-gtot-precedence-v1",
+              "user-2026-08-31-avvolgibile-screening-contract-v2",
+              "authorized-22-schermature-materiale",
+              "authorized-16-schermature-meccanismo",
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+              "user-2026-08-18-explicit-technical-surface-precision"
+            ]
+          }
+        ],
+        "financial": {
+          "invoiceTotal": 6893,
+          "eligibleExpense": 6893,
+          "tripleReconciliationVerified": true,
+          "reconciledTotal": 6893,
+          "evidence": [
+            {
+              "sourceId": "b18ad9f40a09da8f9248ca09a3876e2de79d60734fd0d9a7d51ded0f55ff1640:invoice:264f0ccd0374",
+              "kind": "advance",
+              "taxableAmount": 2825,
+              "vatAmount": 621.5,
+              "grossTotal": 3446.5,
+              "interventionGrossAmount": 3446.5,
+              "extractionConfidence": "certain",
+              "extractionIssues": []
+            },
+            {
+              "sourceId": "99bf18734c7e3e3a7c20e8999b9340a371480bc329f742644d721d5561382fb0:invoice:264f0ccd0374",
+              "kind": "balance",
+              "taxableAmount": 2825,
+              "vatAmount": 621.5,
+              "grossTotal": 3446.5,
+              "interventionGrossAmount": 3446.5,
+              "extractionConfidence": "certain",
+              "extractionIssues": []
+            }
+          ],
+          "bankTransfers": [],
+          "bankTransferReconciliation": {
+            "status": "not_provided",
+            "principalTotal": null,
+            "feesTotal": null,
+            "debitedTotal": null,
+            "difference": null,
+            "referenceStatus": "not_provided",
+            "missingInvoiceReferences": [],
+            "taxReliefTypes": []
+          },
+          "methods": [
+            {
+              "method": "structured_extraction",
+              "ok": true,
+              "total": 6893,
+              "sources": [
+                "b18ad9f40a09da8f9248ca09a3876e2de79d60734fd0d9a7d51ded0f55ff1640:invoice:264f0ccd0374",
+                "99bf18734c7e3e3a7c20e8999b9340a371480bc329f742644d721d5561382fb0:invoice:264f0ccd0374"
+              ],
+              "reason": "Ogni documento ha imponibile, IVA e totale verificati."
+            },
+            {
+              "method": "accounting_reconciliation",
+              "ok": true,
+              "total": 6893,
+              "sources": [
+                "b18ad9f40a09da8f9248ca09a3876e2de79d60734fd0d9a7d51ded0f55ff1640:invoice:264f0ccd0374",
+                "99bf18734c7e3e3a7c20e8999b9340a371480bc329f742644d721d5561382fb0:invoice:264f0ccd0374"
+              ],
+              "reason": "Somma dei totali lordi IVA inclusa delle fatture uniche deduplicate; gli storni interni sono solo note auditabili."
+            },
+            {
+              "method": "intervention_cross_check",
+              "ok": true,
+              "total": 6893,
+              "sources": [
+                "b18ad9f40a09da8f9248ca09a3876e2de79d60734fd0d9a7d51ded0f55ff1640:invoice:264f0ccd0374",
+                "99bf18734c7e3e3a7c20e8999b9340a371480bc329f742644d721d5561382fb0:invoice:264f0ccd0374"
+              ],
+              "reason": "Totale ricostruito esclusivamente dalle righe pertinenti all'intervento."
+            }
+          ],
+          "discardedDuplicateSourceIds": [],
+          "supersededTechnicalSourceIds": [
+            "b18ad9f40a09da8f9248ca09a3876e2de79d60734fd0d9a7d51ded0f55ff1640:invoice:264f0ccd0374"
+          ],
+          "appliedRuleIds": [
+            "user-2026-08-16-invoice-gross-total-vat-included",
+            "user-2026-08-18-bundled-professional-expense-separation",
+            "user-2026-08-18-mandatory-bank-transfer-invoice-expense-cross-check",
+            "core-gross-triple-reconciliation",
+            "user-2026-08-14-preserve-technical-product-cardinality",
+            "system-explicit-advance-invoice-reference-marker-v1",
+            "system-explicit-percentage-causal-technical-supersession-v1",
+            "user-2026-08-16-distinct-invoice-numbers-same-customer-sum"
+          ]
+        },
+        "warnings": [
+          {
+            "code": "crm_fiscal_code_confirmed_by_invoice_customer_block",
+            "reason": "CF CRM RNZRND49B18E072J confermato nel blocco CLIENTE di una fattura originaria, con checksum e prefissi fiscali di nome/cognome concordanti.",
+            "appliedRuleIds": [
+              "system-invoice-customer-block-crm-cf-v1",
+              "user-2026-08-16-fiscal-code-identity-cross-check"
+            ]
+          }
+        ],
+        "blockers": [],
+        "sourceIds": [
+          "b18ad9f40a09da8f9248ca09a3876e2de79d60734fd0d9a7d51ded0f55ff1640",
+          "99bf18734c7e3e3a7c20e8999b9340a371480bc329f742644d721d5561382fb0"
+        ],
+        "eneaPayloadAudit": {
+          "status": "payload_complete",
+          "mappingFingerprint": "mz3zpx",
+          "fieldSummary": {
+            "ready": 71,
+            "review": 0,
+            "missing": 0
+          },
+          "requiredPortalFieldCount": 65,
+          "blockerCount": 0,
+          "blockers": [],
+          "excludedUnverifiedFields": [
+            "beneficiario.provincia_nascita",
+            "immobile.provincia",
+            "immobile.codice_comune",
+            "immobile.zona_climatica",
+            "immobile.gradi_giorno",
+            "documenti.fatture",
+            "documenti.bonifico",
+            "documenti.tecnici"
+          ],
+          "draftReady": true,
+          "officialSubmissionAllowed": false,
+          "portalGate": {
+            "status": "ready",
+            "reason": null,
+            "workflowFingerprint": "mz3zpx:65:2",
+            "supportedPages": [
+              "Generatore dell'impianto termico",
+              "Anagrafica Beneficiario",
+              "Immobile",
+              "Intervento",
+              "Impianto termico esistente",
+              "Schermature solari",
+              "Calcolo costi e detrazioni"
+            ],
+            "screeningItemCount": 2,
+            "saveAllowedOnlyBySeparateCapability": true,
+            "previewAllowed": false,
+            "submitAllowed": false
+          },
+          "externalActionAllowed": false,
+          "reason": "Payload TEST completo per la sola bozza salvata; anteprima e submit restano vietati."
+        },
+        "draftPlan": {
+          "status": "ready_before_external_action",
+          "externalActionAllowed": false,
+          "previewAllowed": false,
+          "submitAllowed": false,
+          "communicationsAllowed": false,
+          "nextAction": "Piano locale pronto; fermo prima di ENEA."
+        }
+      },
+      "reason": "Fresh replay dai documenti originali"
+    }
+  ],
+  "externalActionAllowed": false,
+  "reason": "Fresh replay locale",
+  "nextAction": "Nessuna azione esterna.",
+  "validationRevisionsApplied": [],
+  "sourceRevisionsApplied": [],
+  "operatorMeasurementResolutions": [],
+  "audit": [
+    {
+      "revision": 1,
+      "at": "2026-09-03T10:00:00.000Z",
+      "type": "completed",
+      "customerKey": null,
+      "reason": "Fresh replay locale",
+      "appliedRuleIds": [
+        "system-single-active-practice"
+      ]
+    }
+  ]
+}

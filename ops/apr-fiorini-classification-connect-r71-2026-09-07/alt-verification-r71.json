@@ -1,0 +1,23 @@
+{
+  "version": "apr-fiorini-connect-r71-alt-verification-v1",
+  "status": "verified_alternative",
+  "verifiedAt": "2026-09-07T03:20:00.000Z",
+  "typecheckCommand": "npm run typecheck",
+  "typecheckExitCode": 0,
+  "testCommands": [
+    "npm run test:apr:sandbox",
+    "npm run test:apr:socket-integration"
+  ],
+  "testFiles": 229,
+  "testsPassed": 1856,
+  "testsFailed": 0,
+  "note": "npm run test:apr:sandbox: 227 file, 1774 test verdi. npm run test:apr:socket-integration: 2 file, 82 test verdi. Nessuna certificazione formale di governance (apr-rule-governance-attestation.json, riprova individuale delle regole della matrice con fixture/replay) eseguita in questa sessione: albero git non pulito (238 file non committati, lavoro condiviso in corso con Codex). Verifica alternativa dichiarata esplicitamente, come per l'installazione r69 precedente.",
+  "correctionsIncludedSinceR70": [
+    "user-2026-09-07-duplicate-invoice-ocr-variant-deduplication-v1 (Sanvito: deduplica fatture native/OCR anche con categorie fiscali asimmetriche C.F./P.IVA)",
+    "user-2026-09-07-form-declared-product-module-priority-v1 (Awal: priorita' del modulo dichiarato dal form quando fattura ed etichetta CRM non offrono segnale)",
+    "user-2026-09-07-generic-two-measurement-screening-area-fallback-v1 (Cotta: area da due misure numeriche con etichette mai viste prima)",
+    "estensione di system-invoice-customer-block-crm-cf-v1 (Berti: CF valido nel blocco CLIENTE prevale quando il CF CRM ha checksum invalido)",
+    "correzione di system-explicit-advance-invoice-reference-marker-v1 (Toscano: marcatore N./NR. obbligatorio su entrambe le forme sintattiche, elimina il falso riferimento a fattura d'acconto letto dall'importo)",
+    "user-2026-09-07-form-declared-type-resolves-classification-ambiguity-v1 (Fiorini: il form risolve un'ambiguita' di classificazione prodotto/gTot gia' individuata dalla fattura, prima di fermarsi per operatore)"
+  ]
+}

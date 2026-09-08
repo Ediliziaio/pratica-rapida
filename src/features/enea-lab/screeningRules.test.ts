@@ -20,10 +20,18 @@ describe("regole operative schermature solari", () => {
   it("riconosce motore e PVC dalla descrizione della tenda", () => {
     expect(screeningRules("tende_da_sole", "Tenda in PVC con motore", null)).toMatchObject({
       type: ENEA_SCREENING_TYPE.awning,
-      gTot: 0.06,
+      gTot: 0.13,
+      gTotResolutionStatus: "resolved",
       calculation: "Dichiarato dal fornitore",
       material: ENEA_SCREENING_MATERIAL.pvc,
       regulation: ENEA_SCREENING_REGULATION.automatic,
+    });
+  });
+
+  it("mantiene fail-closed una riga Cristal senza gTot esplicito", () => {
+    expect(screeningRules("altro", "Cristal trasparente", null)).toMatchObject({
+      gTot: null,
+      gTotResolutionStatus: "operator_required",
     });
   });
 
@@ -82,7 +90,7 @@ describe("regole operative schermature solari", () => {
   it("applica alla tapparella tutte le regole persiana salvo la tipologia ENEA", () => {
     expect(screeningRules("altro", "Tapparella motorizzata", null)).toMatchObject({
       type: ENEA_SCREENING_TYPE.rollerShutter,
-      gTot: 0.08,
+      gTot: 0.06,
       gTotFromDocument: false,
       supplementaryThermalResistance: 0.17,
       material: ENEA_SCREENING_MATERIAL.metal,
@@ -106,7 +114,7 @@ describe("regole operative schermature solari", () => {
       type: ENEA_SCREENING_TYPE.persiana,
       installation: "Esterna",
       calculation: "Dichiarato dal fornitore",
-      gTot: 0.08,
+      gTot: 0.06,
       gTotFromDocument: false,
       supplementaryThermalResistance: 0.17,
       material: ENEA_SCREENING_MATERIAL.metal,

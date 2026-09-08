@@ -44,6 +44,25 @@ function sourceFromDossier(dossierValue: unknown, input: InfissiDraftPackageInpu
   if (!form.richiedente.cf) form.richiedente.cf = text(row.cliente_cf);
   if (!form.richiedente.email) form.richiedente.email = text(row.cliente_email);
   if (!form.richiedente.telefono) form.richiedente.telefono = text(row.cliente_telefono);
+  if (input.resolvedPrimaryBeneficiary) {
+    form.richiedente.nome = input.resolvedPrimaryBeneficiary.name;
+    form.richiedente.cognome = input.resolvedPrimaryBeneficiary.surname;
+    form.richiedente.cf = input.resolvedPrimaryBeneficiary.taxCode;
+    if (input.resolvedPrimaryBeneficiary.birthDate) form.richiedente.data_nascita = input.resolvedPrimaryBeneficiary.birthDate;
+  }
+  if (input.resolvedWorksMunicipality) {
+    // Il mapper deriva l'indirizzo lavori dalla residenza quando
+    // stesso_indirizzo_lavori e' vero: in quel caso il Comune lavori
+    // documentale deve correggere la residenza, non il campo inerte
+    // appartamento_lavori che il mapper ignorerebbe.
+    if (form.residenza.stesso_indirizzo_lavori) {
+      form.residenza.comune = input.resolvedWorksMunicipality.comune;
+      form.residenza.provincia = input.resolvedWorksMunicipality.provincia;
+    } else {
+      form.appartamento_lavori.comune = input.resolvedWorksMunicipality.comune;
+      form.appartamento_lavori.provincia = input.resolvedWorksMunicipality.provincia;
+    }
+  }
   if (input.resolvedCoBeneficiaryPresent === false) {
     form.cointestazione = { presente: false, nome: "", cognome: "", cf: "" };
   } else if (input.resolvedCoBeneficiary) {
@@ -189,6 +208,8 @@ export interface InfissiDraftPackageInput {
   startDate: string;
   completionDate: string;
   resolvedTaxCode: string;
+  resolvedPrimaryBeneficiary?: { name: string; surname: string; taxCode: string; birthDate?: string | null; sex?: "M" | "F" } | null;
+  resolvedWorksMunicipality?: { comune: string; provincia: string } | null;
   resolvedCoBeneficiaryPresent?: boolean;
   resolvedCoBeneficiary?: { name: string; surname: string; taxCode: string } | null;
   infissiPayload: AprInfissiEneaDraftPayload;

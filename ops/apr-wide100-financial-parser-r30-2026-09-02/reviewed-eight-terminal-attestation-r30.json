@@ -1,0 +1,55 @@
+{
+  "version": "apr-financial-parser-r30-reviewed-eight-terminal-attestation-v1",
+  "observedAt": "2026-09-02T20:50:13Z",
+  "lot": {
+    "label": "com.praticarapida.apr-financial-parser-r30-reviewed-eight",
+    "cohorts": [3038, 3039, 3040, 3041, 3042, 3043, 3044, 3045],
+    "manifestPath": "ops/apr-wide100-financial-parser-r29-2026-09-02/manifest-reviewed-eight.json",
+    "manifestSha256": "1a15fa809e161424eff8c30fc5cb5f5289f0ec6d004244b747b8798827173b12",
+    "runRoot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-financial-parser-r30-reviewed-eight"
+  },
+  "bundle": {
+    "canonical": "versions/68e367e2-rotated-fiscal-bank-layouts-r30-20260902",
+    "installAttestationPath": "ops/apr-wide100-financial-parser-r30-2026-09-02/financial-parser-install-attestation-r30.json",
+    "installAttestationSha256": "773d9fa464a7fd33ca00070400e9048c14e9a8cf3482ad48f196e5fd049ede4d"
+  },
+  "persistentArtifacts": {
+    "checkpointSha256": "22c39703377ea5e070f2499b1193d74335761052ae5024d1b4b425837c0d277b",
+    "reportSha256": "483963b5687d8f058dbe01c83a664fbf564892652e5dc76b53e5bd254de4371f",
+    "sequencerLogSha256": "6b9d9a5aac7b188f68ac8e0dd8416eeb8bd9d903f0cfa8c1d70fb5a2bbac783e"
+  },
+  "aggregate": {
+    "processed": 8,
+    "saved": 0,
+    "operatorRequiredPublished": 8,
+    "technicalBlockPublished": 0,
+    "inconsistentPublished": 0
+  },
+  "tripleVerification": {
+    "launchctlAndProcesses": "Sequencer exited 0 after one run; keepalive PID 35873 remains running; Chrome PID 3785 remains open and is referenced by the fresh keepalive service checkpoint.",
+    "persistentCheckpointReportJournal": "Run checkpoint and report are terminal; seven cases have triple financial reconciliation true and Gabriele Girelli retains a genuinely absent original invoice.",
+    "dashboardOrTerminalSnapshot": "All eight cohort dashboard/status.json snapshots publish OPERATOR_REQUIRED from sequencer_finalizer.",
+    "agreement": false
+  },
+  "verdict": "INCONSISTENT",
+  "anomaly": {
+    "customerKey": "maurizia-coreggioli",
+    "practiceId": "81b4934a-3d6a-49ff-8f08-8d1400d55dff",
+    "cohort": 3044,
+    "code": "invoice_929a8665",
+    "reason": "The same persisted report proves the zero-total document is non_economic with taxableAmount=0, vatAmount=0 and grossTotal=0, proves invoiceTotal=reconciledTotal=5000 and tripleReconciliationVerified=true, but still retains the blocker 'Il totale di almeno un documento fiscale non è stato riconosciuto'. The financial evidence and blocker are mutually contradictory.",
+    "operatorQuestion": null,
+    "operatorQuestionReason": "No customer question is generated because the persisted evidence does not prove a missing document or data defect; this is a software-state inconsistency."
+  },
+  "transition": {
+    "remainingNineStarted": false,
+    "reason": "Fail-closed: lot 2 is not started while lot 1 contains an internally contradictory financial blocker. No code change was applied during the lot."
+  },
+  "safety": {
+    "previewAttempted": false,
+    "submitAttempted": false,
+    "communicationsAttempted": false,
+    "keepalivePreserved": true,
+    "chromePreserved": true
+  }
+}

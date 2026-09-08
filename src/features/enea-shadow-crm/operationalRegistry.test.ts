@@ -12,7 +12,50 @@ describe("registro operativo unico",()=>{
   });
   it("rende reperibili le regole solo per id",()=>expect(registryRule("core-form-first")?.step).toBe("customer_form"));
   it("registra le nuove regole utente con provenienza, precedenza e audit",()=>{
-    expect(ENEA_OPERATIONAL_REGISTRY_VERSION).toBe("enea-operational-registry-v87");
+    expect(ENEA_OPERATIONAL_REGISTRY_VERSION).toBe("enea-operational-registry-v152");
+    expect(registryRule(USER_AUTHORIZED_RULE_IDS.officialMunicipalityCanonicalIdentity)).toMatchObject({
+      step: "identity_property",
+      outcome: "continue",
+      provenance: { authority: "user", receivedAt: "2026-09-05" },
+      deterministicAction: expect.stringContaining("similarita fuzzy"),
+      audit: expect.stringContaining("codice catastale"),
+    });
+    expect(registryRule(USER_AUTHORIZED_RULE_IDS.futureTestExclusions)).toMatchObject({
+      step: "runner_lifecycle",
+      outcome: "requested_operator",
+      provenance: { authority: "user", receivedAt: "2026-09-03" },
+      deterministicAction: expect.stringContaining("preflight"),
+      audit: expect.stringContaining("customerKey"),
+    });
+    expect(registryRule(USER_AUTHORIZED_RULE_IDS.technicalDocumentPracticeBinding)).toMatchObject({
+      step: "screenings",
+      outcome: "requested_operator",
+      provenance: { authority: "user", receivedAt: "2026-09-03" },
+      deterministicAction: expect.stringContaining("cliente/cantiere"),
+      audit: expect.stringContaining("firme prodotto"),
+    });
+    expect(registryRule(USER_AUTHORIZED_RULE_IDS.coBeneficiarySingleIntentDelivery)).toMatchObject({
+      step: "customer_form",
+      kind: "system",
+      outcome: "continue",
+      provenance: { authority: "user", receivedAt: "2026-09-02" },
+      deterministicAction: expect.stringContaining("zero richieste mutative"),
+      audit: expect.stringContaining("canale di consegna"),
+    });
+    expect(registryRule(USER_AUTHORIZED_RULE_IDS.currentCohortEconomicBridge)).toMatchObject({
+      step: "economic_sources",
+      outcome: "continue",
+      provenance: { authority: "user", receivedAt: "2026-09-02" },
+      deterministicAction: expect.stringContaining("coorte corrente"),
+      audit: expect.stringContaining("artifact ID"),
+    });
+    expect(registryRule(USER_AUTHORIZED_RULE_IDS.officialMunicipalityProvinceLineage)).toMatchObject({
+      step: "identity_property",
+      outcome: "continue",
+      provenance: { authority: "user", receivedAt: "2026-09-02" },
+      deterministicAction: expect.stringContaining("codice ISTAT correnti"),
+      audit: expect.stringContaining("SHA-256"),
+    });
     expect(registryRule(USER_AUTHORIZED_RULE_IDS.officialMunicipalityNameChange)).toMatchObject({
       step: "identity_property",
       outcome: "continue",
@@ -104,10 +147,10 @@ describe("registro operativo unico",()=>{
     const cristal = registryRule(USER_AUTHORIZED_RULE_IDS.cristalScreening)!;
     const dates = registryRule(USER_AUTHORIZED_RULE_IDS.missingCompletionDate)!;
     expect(pergola).toMatchObject({ priority: 300, outcome: "continue", provenance: { authority: "user", receivedAt: "2026-08-14", source: "delegated_user_instruction" } });
-    expect(cristal).toMatchObject({ priority: 200, outcome: "continue", provenance: pergola.provenance });
+    expect(cristal).toMatchObject({ priority: 200, outcome: "requested_operator", provenance: pergola.provenance });
     expect(pergola.priority).toBeGreaterThan(cristal.priority!);
     expect(pergola.sourcePrecedence[0]).toContain("gTot esplicito");
-    expect(pergola.deterministicAction).toContain("0,08 soltanto come fallback");
+    expect(pergola.deterministicAction).toContain("0,06 soltanto come fallback");
     expect(dates).toMatchObject({ priority: 250, outcome: "requested_operator", provenance: pergola.provenance });
     expect(dates.sourcePrecedence[0]).toContain("form cliente");
     expect(dates.audit).toContain("giorni trascorsi");
@@ -339,11 +382,15 @@ describe("registro operativo unico",()=>{
   it("limita le regole finanziarie Rinaldi al fornitore e allo scope dichiarato", () => {
     const deductible = registryRule(USER_AUTHORIZED_RULE_IDS.rinaldiExplicitDeductibleTotal)!;
     const vepa = registryRule(USER_AUTHORIZED_RULE_IDS.rinaldiPergolaVepaTestEcobonus)!;
-    expect(deductible).toMatchObject({ step: "gross_reconciliation", priority: 900, provenance: { authority: "user" } });
+    expect(deductible).toMatchObject({ step: "gross_reconciliation", priority: 900, provenance: { authority: "user", receivedAt: "2026-09-03" } });
     expect(deductible.condition).toContain("Solo rivenditore identificato inequivocabilmente come Rinaldi");
+    expect(deductible.condition).toContain("spese congrue sostenute in base ai massimali ammessi");
+    expect(deductible.deterministicAction).toContain("intera pratica, senza sommare le altre fatture");
+    expect(deductible.deterministicAction).toContain("Se la riga è assente, conservare la somma normale dei lordi delle fatture");
     expect(deductible.deterministicAction).toContain("Non applicare ad altri rivenditori");
     expect(deductible.audit).toContain("numero riga");
-    expect(vepa).toMatchObject({ step: "gross_reconciliation", priority: 950, provenance: deductible.provenance });
+    expect(deductible.audit).toContain("somma lordi fatture");
+    expect(vepa).toMatchObject({ step: "gross_reconciliation", priority: 950, provenance: { authority: "user", receivedAt: "2026-08-14" } });
     expect(vepa.priority).toBeGreaterThan(deductible.priority!);
     expect(vepa.condition).toContain("sola modalità TEST Ecobonus");
     expect(vepa.deterministicAction).toContain("VEPA separata, Bonus Casa non ancora lavorato");
@@ -573,7 +620,7 @@ describe("registro operativo unico",()=>{
     const rule = registryRule(USER_AUTHORIZED_RULE_IDS.persianaScreening)!;
     expect(rule).toMatchObject({ step: "screenings", kind: "business", priority: 1210, outcome: "continue", provenance: { authority: "user", receivedAt: "2026-08-18" } });
     expect(rule.deterministicAction).toContain("tipologia ENEA Persiana");
-    expect(rule.deterministicAction).toContain("gTot esplicito oppure 0,08");
+    expect(rule.deterministicAction).toContain("gTot esplicito oppure 0,06");
     expect(rule.deterministicAction).toContain("resistenza termica supplementare 0,17");
     expect(rule.deterministicAction).toContain("materiale sempre Metallo");
     expect(rule.deterministicAction).toContain("motore/motorizzazione espliciti producono Automatico, altrimenti Manuale");
@@ -588,7 +635,7 @@ describe("registro operativo unico",()=>{
     const rule = registryRule(USER_AUTHORIZED_RULE_IDS.avvolgibileScreening)!;
     expect(rule).toMatchObject({ step: "screenings", kind: "business", priority: 1209, outcome: "continue", provenance: { authority: "user", receivedAt: "2026-08-18" } });
     expect(rule.deterministicAction).toContain("Persiane avvolgibili");
-    expect(rule.deterministicAction).toContain("gTot esplicito oppure 0,08");
+    expect(rule.deterministicAction).toContain("gTot esplicito oppure 0,06");
     expect(rule.deterministicAction).toContain("resistenza termica supplementare 0,17");
     expect(rule.deterministicAction).toContain("materiale sempre Metallo/alluminio");
     expect(rule.deterministicAction).toContain("altrimenti Manuale");

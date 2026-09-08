@@ -1,0 +1,1011 @@
+APR_OCR_ORIENTATION:270
+Pag.
+1/ 1
+Ns. Rif
+IVA
+10
+10
+10
+6.997,84
+0,00
+0,00
+0,00
+0,00
+600,00
+0,00
+330,00
+90,00
+170,00
+200,00
+1.682,35
+3.072,35
+853,14
+Euro 7.800,00
+Data Docum.
+19/12/2025
+Imp. Netto
+Netto merce
+1
+TOTALE A PAGARE
+FATTURA IMMEDIATA - COPIA DI CORTESIA
+Commessa:
+Soltware fornito da: Dala Symposium srl - Sassari -
+0,00
+0,00
+0,00
+0,00
+600.00
+0,00
+330,00
+90,00
+170,00
+200,00
+Num. Doc.
+698/00
+Prezzo Un.
+1.682,35
+3.072,35
+853,14
+Importo sconto
+Varie
+1,00
+Bonificare c/o BANCO DI DESIO E DELLA BRIANZA - ABI 3440 -
+1,00
+1,00
+1,00
+1,00
+1,00
+1,00
+1,00
+1,00
+1,00
+1,00
+1,00
+1,00
+0,00
+Sconto in fattura
+AMADU GIOVANNI
+VIA SAN LORENZO 15
+07033 OSILO (SS)
+Luogo di Destinazione
+Tipo documento
+FATTURA
+C/C 000047463714 - IBAN: IT44L0344017210000047463714
+Quantità
+% Sconto
+Spese incasso
+Firma per Accettazione
+Spettle
+CIG
+CUP
+U.M.
+6.997,84
+Euro 7.800,00
+Totale merce
+Spese Bolli
+TOTALE DOCUMENTO
+Partita IVA
+Codice SDI
+P.IVA 01959880905
+614,47
+187,69
+802,16
+IDEAL SISTEM S.R.L.
+STABILIMENTO ED ESPOSIZIONE
+Z.I. PREDDA NIEDDA NORD, STR. 33
+TEL./FAX 079 268047 - 079 269656
+Descrizione
+A CORPO INFISSI BENI SIGNIFICATIVI AI SENSI EX DM 29/12/1999
+A CORPO INFISSI BENI SIGNIFICATIVI AI SENSI EX DM 29/12/1999
+MDAGNN36M18G156| (
+PORTAFINESTRA TELAIO A MURARE 2 ANTE 129,5X230
+MANUTENZIONE ORDINARIA art.3 c.1 lett.a del DPR 380/2001
+INTERVENTO IDONEO A USUFRUIRE DI DETRAZIONE FISCALE
+MANODOPERA PER SMALTIMENTO INFISSI RIMOSSI
+MANODOPERA PER SMONTAGGIO INFISSI RIMOSSI
+FORNITURA E POSA IN UN IMMOBILE A PREVALENTE
+Importo IVA
+07100 SASSARI
+Codice fiscale
+MANODOPERA PER FACCHINAGGIO AI PIANI
+DESTINAZIONE ABITATIVA PRIVATA OGGETTO DI
+SCORREVOLE TRASLANTE 231,8X174
+SCORREVOLE TRASLANTE 231,5X172,5
+SCORREVOLE TRASLANTE 175,3X204,5
+MANODOPERA PER POSA IN OPERA
+MANODOPERA PER CARICO SCARICO
+PER ECOBONUS L.296/06 E S.M.I.
+SPC/ SPANU CARLO
+19/12/2025
+FISSO 175,3X170,5
+SERVIZI DI VENDITA
+Copia della fattura elettronica disponibile nella tua area riservata dell'Agenzia delle Entrate
+Valuta
+EURO
+Agente
+ALIVA
+10,00
+22,00
+BBa 7.800,00
+DA VENT'ANNI INFISSI IN PVC DI QUALITÀ
+Serramenti in PVC
+6.144,70
+853,14
+6.997.84
+IVA
+Codice
+Codice e descrizione pagamento
+101 NR.01 BBa A VISTA
+Imponibile
+Cod. Cli.
+1.077
+Telefono
+PFRES2A
+SCO
+SCO
+SCO
+MAPOS
+FIS
+MAFAC
+MASMT
+MASMG
+MACA
+SEVEN
+A CORPO
+A CORPO
+Scadenze
+
+APR_OCR_ORIENTATION:180
+* Divisa EUR *
+BONIFICO AGEVOLAZIONI FISCALI
+віl.Оре.: 253576064687387-3784951849901T01015
+Rif. Pag.: NRG 1.206 DEL 27.12.06 E SUCC.MODIF
+Bic.Ord.: SARDIT31XXX
+VALUTA
+24/12/2025
+ROBER
+BONIFICI
+7.900,00.
+A VS. CREDITO
+7.800,00
+TOT. A VS. CRED.
+:Ideal Sistem Srl
+in data 24/12/2025
+A VS DEBITO
+DATA ORDINE: 21/12/2025
+TOT. A VS. DEB.
+COMMISSIONI
+PER CONTO : AMADU
+DESTINAT.
+S1.:50000B8A8990900000199352
+
+APR_OCR_ORIENTATION:0
+IDEAL SISTEM SRL
+Sisten
+S.r.
+07100 Sassari
+Predda Niedda Nord, str. 33
+Tel/ Fax 079268047; 079269656
+info@idealsistem.it
+Serramenti in PVC
+Indirizzo di Fatturazione
+AMADU GIOVANNI
+Indirizzo di Destinazione
+AMADU GIOVANNI
+VIA SAN LORENZO, 15
+VIA SAN LORENZO, 15
+7033 OSILO (**)
+tel
+7033 OSILO (**)
+fax
+Prestazioni Energetiche CO 20 Rif:
+16.01.26
+Il sottoscritto, Salvatore Muzzu, in qualità di Amministratore della ditta Ideal Sistem. Sita in Sassari Predda
+Niedda Nord Str. 33, Partita Iva 01959880905
+assevera e dichiara
+che, ai sensi della legge 10/91 art. 32, dal DM 2 Aprile 1998 ed all'art. 1 comma 345 della Legge del 27
+dicembre 2006 n. 296, corretta ed integrata dal Decreto ministeriale del 19 Febbraio 2007:
+- la trasmittanza termica complessiva (U) è stata determinata numericamente considerando una finestra tipo
+rappresentativa, utilizzando la metodologia di calcolo semplificato prevista dalla norma UNI EN 10077-1 sulla
+base dei singoli valori di trasmittanza termica dei componenti costituenti la finestra tipo considerata cosi come
+rilevabile dai certificati di prova in nostro possesso e dai dati dichiarti dalla società produttrice del vetro camera
+(il tipo di vetro utilizzato ed il relativo valore di trasmittanza termica è riportato a margine di ogni posizione). La
+trasmittanza termica delle finestre, di cui alla fornitura menzionata rispetta i limiti previsti dall'Allegato D del
+Decreto ministeriale del 19 Febbraio 2007 prevista per la zona climatica sopra riportata.
+- la trasmissione luminosa (TL) dei serramenti è rilevata dalle schede tecniche del fornitore di vetro camera
+- la permeabilità all'aria dei serramenti corrisponde alle classi indicate nella tabella in calce così come definite
+dalla norma UNI 12207.
+Certificazione energetica secondo le norme UNI EN 10077-1
+Comune: OSILO
+U max richiesto dal comune : 1.7 W/m2K
+Zona climatica: D
+Trasmissione luminosa: TL = 73.8 %
+Alt. sul livello del mare: 615 metri
+
+APR_OCR_ORIENTATION:90
+Pos.5
+Pos.4
+Pos.3
+Pos.2
+Pos.1
+Ideal
+Serramenti in PVC
+Uw richiesto = 1.7 W/m2K
+Uw effettivo = 1.38 W/m2K
+Pezzi 1
+SistEm
+Trasmittanza termica totale
+Serramento
+Schermatura
+Vetro / Pann.
+Telaio/anta
+Serramento
+Schermatura
+Totale metri quadri infissi: 14.16
+Vetro / Pann.
+Telaio/anta
+Serramento
+Schermatura
+Vetro / Pann.
+Telaio/anta
+Serramento
+Schermatura
+Vetro / Pann.
+Telaio/anta
+Serramento
+Schermatura
+Vetro / Pann.
+Telaio/anta
+s.r.l.
+Pezzi 1 Tipologia Fisso1
+Prestazioni Energetiche CO 20 / /
+Pezzi 1 Tipologia PF sxDX DK
+Senza schermo
+Senza schermo
+Senza schermo
+Senza schermo
+Senza schermo
+Pezzi 1 Tipologia Fin Scorr Dx+Fisdie. 2305 x 1718 mq: 3.96
+Pezzi 1 Tipologia Fin Scorr Dx+Fißdie. 2308 x 1733 mq: 4.00
+MD F.I. L Tel Fin / PF 4 lati
+MD F.I. L Tel Fin / PF 4 lati
+MD F.I. L Tel Fin / PF 4 lati
+MD F.I. L Tel Fin / PF 4 lati
+MD F.I. L Tel Fin / PF 4 lati
+Valore stimato vecchi serramenti
+27 - 4 - 16 - 3+3 BASSO EMISSIVO
+Valore stimato vecchi serramenti
+Tipologia Fin Scorr Sx+Fisdis. 1743 x 1450 mq: 2.53
+27 - 4 - 16 - 3+3 BASSO EMISSIVO
+Valore stimato vecchi serramenti
+27 - 4 - 16 - 3+3 BASSO EMISSIVO
+Valore stimato vecchi serramenti
+27 - 4 - 16 - 3+3 BASSO EMISSIVO
+Valore stimato vecchi serramenti
+29 3+3 - 16 - 3+3 BASSO EMISSIVO
+Mis. 1743 x 587 mq: 1.02
+Mis. 1285 x 2293 mq: 2.95
+gtot
+giot
+Uw
+gtot
+Uf Nodo :
+Uf Nodo :
+giot
+giot
+Uf Nodo :
+Uf Nodo :
+Ug Vetro/Pann:
+Uf Nodo :
+U Tot. Serramento :
+Ug Vetro/Pann:
+U Tot. Serramento :
+Ug Vetro/Pann:
+Ug Vetro/Pann:
+U Tot. Serramento :
+U Tot. Serramento :
+Ug Vetro/Pann:
+U Tot. Serramento :
+pag. 2/ 16.01.26
+0 W/m?K
+0.54 W/m2K
+1.30 W/m2K
+1.10 W/m?K
+1.41 W/m^K
+0 W/m2K
+0.54 W/m2K
+1.30 W/m2K
+1.10 W/m2K
+1.38 W/m'K
+0.54 W/m2K
+0 W/m?K
+1.30 W/m'K
+1.10 W/m2K
+1.36 W/m'K
+0 W/m?K
+0.54 W/m2K
+1.30 W/m2K
+1.10 W/m'K
+1.36 W/m?K
+0 W/m?K
+0.51 W/m'K
+1.30 W/m2K
+1.10 W/m2K
+1.38 W/m'K
+
+APR_OCR_ORIENTATION:90
+Serramenti in PVC
+SISTEm
+deal s.r..
+Allegati alla presente dichiarazione:
+Prestazioni Energetiche CO 20/ 1
+-Copia del certificato di prova relativo al valore di trasmittanza termica del profilo utilizzato.
+stilleg
+Muzzu Salvatore
+Amministratore
+IDEAL SISTEM SRL
+pag. 3/ 16.01.26
+
+APR_OCR_ORIENTATION:90
+Tipo di vetrata
+#socrato ds: VETRERIA FOIS SRL
+4 (16 AIR) 33.1
+Calumen
+Degnate. PLANITHERM CLEAR 1.0 #3
+Vetrata 2
+AIR 16 mm
+Vecrata 1
+intercopedine 1
+PLANICLEAR (3mmi) - Ricollo
+PVB STANDARD (0.38mm)
+PLANICLEAR (3mm) - Ricotto
+PLANITHERM CLEAR 1.0
+PLANICLEAR (4mm) - Ricotto
+#leberose l: 22/01/2025
+Peso
+Ra.tr
+Ug
+(GWP) - AI-A3
+Kw (C;Ctr)
++ Acustica
+Impronta di Carbonio
+•Sostenibilità
+Spessore nominale
+Fattore solare (9)
+Restenza allettrazione
+E, Anti-cifrazione
+Riflessione (Ra)
+Resstenzo al percalo
+Trasmissione (Ra)
+: Reso coloro
+CITC (ASTM E1332)
+STC (ASTM E4:3)
+•: Fattore solare
+Classe di sicurezza
+¿ Trasmistanza termica
+Fattori energetici
+Riflessione irtema (RLI)
+(kg. CO: equiv/m") Medie curapea
+norma EN 25304÷42 (2019)
+Angolo relativo alla verticale
+Riscaldamento Globale Potenziale
+Trasmissione energetico (TE)
+Riflessione astema (RLe)
+Trasmissione Luminosa (TL)
+Fattori Luminosi
+Coste stocots italy
+Dimensioni di produzione
+Coeffeiente ci ombressiamento (SC)
+Assorbimento anergetico 42 (AE2)
+Assorb mento energetico A1 (AE1)
+Riflessione energetica interna (Rei)
+Riflessione enerçetica esterna (Ree)
+Dati simulati sulle prestazioni
+Valori acustici in accorda alla EN 12758 e da ente natificato
+i valare è calcolata sulla base della configurazione in relazione alla
+43
+NPD
+N/A
+N/A
+25 kg/m=
+26.4 mm
+EN 355
+NºD/282
+93.8
+97.5
+29 d8
+33 dB
+0.62
+0.54
+12%
+33%
+37%
+43%
+20%
+18%
+74%
+EN 12600
+Norme: EN410 [2011-04)
+CIE (15-2004)
+34 (-1; -5) cB
+EN 12758
+1.3 W/im2.K)
+EN673-2012
+EN 15304+A2 (2019)
+EN410 (2012-04)
+EN41O (2011-04)
+CIE (IS-2004)
+Pagina L/t
+
+APR_OCR_ORIENTATION:180
+10002S7E
+Pagina 1/1
+53
+EN 15804+A2 (2019)
+(kg. CO, equivin') Media curopea
+Riscaldamento Globale Potenziale
+(GWP) - AL-A3
+Il valore é caicolato sulla base deita configurazione in relazione alta.
+norma EN 15804+A2 (2019)
+Impronto di Carbonio
+Sosteniailità
+31 kg/m?
+28.8 mm
+_. Dimensioni di produzione
+Spessore nominale
+Peso
+EN 356
+NPD
+Resistenzo eil'effradone
+E Anti-effrazione
+EN 12600
+282/282
+: Casse di sicurezza
+Rasistenza al pendolo
+CIE (15-2004)
+97.2
+93.6
+Trasmissione (fa)
+Riflessione (Ra)
+: Resa colore
+N/A
+30 dB
+N/A
+OIFC (ASTM E1332:
+STC (ASTI E423)
+Ra,tr
+PLANICLEAR (3mm) - Ricotto
+Valori acustici in accordo alla EN 12758 e di ente notificato
+35 (-1: -5) d8
+34 dB
+Riv (C:Ctr)
+Ra
+EN 1275S
+PLANICLEAR (3mna) - Ricolto
+PVB STANDARD (0.38mm)
+* Acustica
+PLANITHERM CLEAR 2.0
+Angola rolstivo alla verticale
+Vetrata 2
+ENG73-2011
+1.3 W/(m2.K)
+0°
+Trasmittatiza termica
+üg
+AIR 16 mm
+0.58
+0.51
+Coefficiónte di ambregsiamento (SC)
+Intercapedine I
+EN410 (2011-04)
+* Fattore solare
+Fattore solare (g)
+PLANICLEAR (3mm) - Ricotto
+17%
+9%
+Assorbimento energetica AZ (AE2)
+PLANICLEAR (3mm) - Ricotto
+PVE STANDARD (0.33mm)
+Riflessione energesica esterna (Ree)
+Riflessione enargetica intera (Rei)
+Assorbimento energetico A1 (AE1)
+Vetrato 1
+EN410 (2011-04)
+42%
+32%
+33%
+Trasmissione energetica TEl
+4 Fattori energetici
+20%
+18%
+Riflessione intema (RL)
+CIE (15-2004)
+73%
+Trasmissione Luminosa (TL)
+Riflessione esterna (RLe)
+: Fattori Luminosi
+Dati simulati sulle prestazioni
+Tipo di vetrata
+ENG20 (2011-04)
+Norme:
+Cole ogo procorti: Italy
+Elaboraroi: 22/01/2025
+Dusato PLANITHERM CLEAR 2.0 #5
+Braboran de: VETRERIA FOIS SAL
+33.1 (16 AIR) 33.1
+7. Calumen
+
+APR_OCR_ORIENTATION:0
+DOCUMENTO DI SUPPORTO ALLA COMPILAZIONE DELLA SCHED RACCOLTA DATI
+permette di velocizzare la procedura di relazione della prima e di conseguenza l'invio della comunicazione ad ENEA.
+ATTENZIONE: Questo documento di supporto NON va a sostituire la scheda raccolta dati prodotta per la singola fornitura. Si tratta di un supporto alla compilazione che
+DATI GENERALI
+1. Anno di costruzione (anche stimato)
+Anno:
+1965
+2. Superficie utile dell'immobile oggetto dell'intervento (m2)
+i lavori Se specheata e posibile usare la superficie coperta rigortata nella visural
+NOTA: va senta la superficie doperta dell'immobile nal quale vengono e egua
+catastale per quei sugaiterno
+3. Titolo di possesso
+* Proprietario o comproprietario,
+Detentore o co-detentore,
+C
+Familiare convivente con il proprietario o il detentore,
+Promissario acquirente (con preliminare di compravendita registrato)
+4. Destinazione d'uso generale
+Residenziale,
+Non residenziale,
+scelta correra fareboe "edificio MISTO"
+quindi, ie i dovesse trattare di un sondominio con al piano terra da regos. in
+C
+Misto
+5. Destinazione d'uso particolare
+assimilabili (con carattere continuativo o saltuario tipo gli alberghi)
+Edifici adibiti a residenza (tipo abitazioni singole o appartamenti) o
+Edifici adibiti a uffici e assimilabili
+Edifici adibiti a ospedali, cliniche o case di cura e assimilabili
+(cinema, teatri, sale riunioni, musei, chiese e similari)
+Edifici adibiti ad attività ricreative, associative o di culto e assimilabili
+Edifici adibiti ad attività commerciali e assimilabili
+Edifici adibiti ad attività sportive (piscine, palestre....)
+•
+Edifici adibiti ad attività scolastiche a tutti i livelli e assimilabili
+Edifici adibiti ad attività industriali ed artigianali e assimilabili
+6. Tipologia edilizia
+C
+Edificio oltre i tre piani fuori terra,
+Edificio fino a tre piani fuori terra,
+Costruzione isolata (villette mono, bi, o tri familiari).
+7. Intervento su
+C
+Edificio industriale artigianale o commerciale,
+Altro
+immobiliari come un condominio, una bifamiliare o una trifamiliare;
+Singola unità immobiliare in un edificio costituito da più unità
+8.Numero totale delle unità immobiliari dell'edificio alla fine dei lavori
+Numero:
+Edificio costituito da una singola unità immobiliare
+condominio a su di una casa plurifamilare, qui va inserito il numero di tutte le
+NOTA: ie l'intervento viene elequito i di un appartamento all'interco di an
+1
+unità che compongono l'edific o
+9.Si sono verificati degli accorpamenti di unità immobiliari?
+subalterni al termine der lavo:
+NN C t t ca a t t pd la fusione di due a giu
+Doc. 01 - Rev. 18 marzo 2025
+
+APR_OCR_ORIENTATION:0
+IMPIANTO TERMICO ESISTENTE (DA COMPILARE SOLO PER ECOBONUS)
+inserire : dati relativi al tipo di generatore presente all'inizio dei lavori anche se nel corso degli stessi viene sostituito
+NOTA: DA COMPILARE SEMPRE SE C'E UN IMPIANTO DI RISCALDAMENTO, ANCHE SE SI SONO FORNITE SOLO CHIUSURE OSCURANTI O SCHERMATURE SOLARI.
+1. Tipo d'impianto
+Opa A sintende guando alla bare aggato
+* impianto autonomo,
+impianto centralizzato,
+incoiliare e che il cliente può autonomamente accendere/spegnere/regolare
+dintervento. è presente un generatore di calore (caldaia) che riscalda solo quell'unita
+Per IMPIANTO CENTRALIZZATO si intende il caso in cui una caidaia riscalda più
+C
+impianto centralizzato con contabilizzazione di calore per
+singolo utente,
+impianto centralizzato con più generatori di calore,
+monitoraggio dei consumi reali per esempio attraverso un contacalore/
+Per CONTABILIZZAZIONE PER SINGOLO UTENTE ovvero se esiste un sistema di
+impianto centralizzato con più generatori di calore con
+contadina de cl p piccolo dispositivo con uno schermo che puo
+contabilizzazione di calore per singolo utente
+ester in salato stal singolo termosifone o sul tubo principale di mandata.
+NOTA: per, termosifoni unlizzare radiatori
+2.Tipologia prevalente terminali di erogazione
+C
+termoconvettori
+ventilconvettori
+C
+bocchette aria calda
+radiatori / termosifoni
+pannelli radianti (riscaldamento a pavimento)
+split
+altro (descrivere):
+3.Generatori esistenti prima dell'inizio dei lavori
+NOTA: potete trovare tutte le informazioni relative al generatore di calore naila sezione
+Tipo di generatore
+N
+Rendimento al
+4 de fioretto d'impianto nominata "generatori"
+100% della
+Potenza utile
+Nel caso si trastasse di un condominio le informazioni vanno richieste all'amministratore
+potenza/P.E.A.
+nominale kW
+Se ci sono diu generatori distinguiamo 3 casistiche:
+o al manutentore dell'impianto.
+standard
+Caldaia ad acqua calda
+va inserito solo quest'ultimo
+Caldaia a gas a
+a basse temperature
+Caldaia ad acqua calda
+per il riscaldamento inseririi entrambi nelle apposte seriori
+se di sono due generatori de diversa tipologia e ambedue rangono utilizzati
+condensazione
+Caldaia a gasolio a
+Rena. 97%
+somma delle varie potenze) e il valore pesato des rendimento ichiedere
+epigrati per il riscaldamento inserire la potenda termica totale (ovvero la
+le de sono due generatori della stessa tipologia ed entrama vengono
+Pompa di calore/
+condensazione
+eventuaimente al, tecnico a cui è affidata la pratical
+geotermico
+01. 56270
+5,60 KW
+generatare potere consultare la scheda tecnica sul sito del produttore, in questo
+Nel caso per qualsiasi motivo non riusciste a reperire il libretto dimpranto dei vostro
+calda
+Generatore ad aria
+PEA 1,37K
+rendimento deve essere caicolato 11:00% della potenza.
+ricordiamo ina va inserita la potenta utile nominale a non quella di focolare e il
+teleriscaldamento
+Scambiatore per
+fornitore i guida specifica!
+Nel caso son sapeste come recuperare i dari del generatore. potete richiedere al
+altro
+Caldaia a biomassa
+NOTA: i vettore energetico a il moo di combustie utilizzato.
+4. Vettore energetico
+C
+gas metano
+indica e quello prevalente
+Se a iano van tipi di generator calore che ulizzano diversi ap di vettori energetici
+LI
+gasolio
+GPL
+teleriscaldamento
+* energia elettrica
+olio combustibile
+biomassa, legno e pellet
+altro
+5. Marca e modello impianto di riscaldamento
+Modo: DAIKIN DUAL -MODELLO:
+NOTA: barrare Si anche in caso sia presente un singoio solit ena ratiresca on solo
+6.Impianto di condizionamento estivo
+ambiente
+Ano
+Doc. O1 - Rev. 18 marzo 2025
+
+APR_OCR_ORIENTATION:270
+AMPLIAMENTO (n. 85017.1/2022)
+Annotazione
+S0085017 in atti dal 30/11/2022 DIVISIONE-
+VARIAZIONE del 30/11/2022 Pratica n.
+Euro 131,80
+Totale: 44 m=
+44m=
+U
+C/6
+2
+2
+469
+35
+VIA SAN LORENZO n. 17 Piano T
+AMPLIAMENTO (n. 85017.1/2022)
+Annotazione
+SS0085017 in atti dal 30/11/2022 DIVISIONE-
+VARIAZIONE del 30/11/2022 Pratica n.
+Euro 352,48
+scoperte**: 154 m*
+Totale escluse aree
+6,5 vani
+U
+A/4
+2
+469
+35
+VIA SAN LORENZO n. 17 Piano T-1 - 2
+Totale: 164 ma
+1
+Dati Ulteriori
+Dati derivanti da
+Indirizzo
+Rendita
+Catastale
+Superficie
+Classe Consistenza
+Categoria
+Zona
+Cens.
+ALTRE INFORMAZIONI
+Micro
+Zona
+Sub
+Numero
+Foglio
+Urbana
+DATI DI CLASSAMENTO
+Sez
+N.
+DATI IDENTIFICATIVI
+2. Immobili siti nel Comune di OSILO (Codice G156) Catasto dei Fabbricati
+(1) Proprieta' 1000/1000
+DIVISIONE del 20/07/2012 Pratica n. SS0169288 in atti dal 20/07/2012 DIVISIONE (n. 17759.1/2012)
+MDAGNN36M18G1561*
+DATI DERIVANTI DA
+DIRITTI E ONERI REALT
+CODICE FISCALE
+AMADU Giovanni nato a OSILO il 18/08/1936
+DATI ANAGRAFICT
+Intestazione degli immobili indicati al n.1
+Totale: vani 5,50 Rendita: Euro 298,25
+-classamento e rendita non rettificati entro dodici mesi dalla data di iscrizione in atti della dichiarazione (d.m. 701/94)
+Immobile 1: Annotazione:
+visura dei dati di superficie.
+Annotazione
+Variazione del 09/11/2015 - Inserimento in
+Euro 298,25
+scoperte**: 123 m*
+Totale escluse aree
+5,5 vani
+VIA SAN LORENZO n. 17 Piano T-1
+Totale: 128 m*
+U
+A/4
+2
+164
+35
+1
+Dati Ulteriori
+Dati drivanti da
+Rendita
+Catastale
+Superficie
+Categoria Classe Consistenza
+Zens. Mona
+Zona
+Sub
+Numero
+ALTRE INFORMAZIONI
+Foglio
+Urbana
+DATI DI CLASSAMENTO
+Sez
+N.
+DATI IDENTIFICATIVI
+1. Immobili siti nel Comune di OSILO (Codice G156) Catasto dei Fabbricati
+AMADU Giovanni (CF: MDAGNN36M18G156I) nato a OSILO (SS) il 18/08/1936
+Soggetto individuato
+Terreni e Fabbricati siti in tutta la provincia di SASSARI
+Dati della richiesta
+Situazione degli atti informatizzati al 18/12/2025
+Servizi Catastali
+Ufficio Provinciale - Territorio
+Visura n.: T99197/2025
+Visura attuale sintetica per soggetto
+Direzione Provinciale di Sassari
+Data: 18/12/2025 Ora: 11.18.53 pag: 1 Segue
+intrate?
+genzia
+
+APR_OCR_ORIENTATION:270
+(1) Proprieta 2/28
+(1) Proprieta' 2/28
+MDASVT59H45G156V*
+AMADU Salvatorica nata a OSILO il 05/06/1959
+(1) Proprieta' 2/28
+MDASVT49A06G1562*
+MDAPNI56H48G156U*
+AMADU Salvatore nato a OSILO il 06/01/1949
+6
+AMADU Pina nata a OSILO il 08/06/1956
+(1) Proprieta' 7/28 in regime di comunione dei beni
+(I) Proprieta' 2/28
+MDAGNN36M18G1561*
+AMADU Giovanni nato a OSILO il 18/08/1936
+(I) Proprieta' 2/28
+MDAGNN36M18G1561*
+AMADU Giovanni nato a OSILO il 18/08/1936
+(1) Proprietal 2/28
+MDABNG44R21G156U*
+AMADU Baingio nato a OSILO il 21/10/1944
+DIRITTI E ONERI REALI
+MDANTN34D29G1562*
+CODICE FISCALE
+AMADU Antonio nato a OSILO il 29/04/1934
+DATI ANAGRAFICI
+N.
+Intestazione degli immobili indicati al n.3
+Totale: Superficie .00.98 Redditi: Dominicale Euro 0,35 Agrario Euro 0,20
+Euro 0,20
+FRAZIONAMENTO del 09/08/2004
+Euro 0,35
+98
+00
+02
+SEMINATIVO
+406
+35
+1
+Agrario
+Dominicale
+ha are ca
+Dati Ulteriori
+Dati derivanti da
+Reddito
+Superficie(m*)| Deduz.
+Qualità Classe
+Porz
+ALTRE INFORMAZIONI
+Sub
+Particella
+Foglio
+DATI DI CLASSAMENTO
+DATI IDENTIFICATIVI
+3. Immobili siti nel Comune di OSILO (Codice G156) Catasto dei Terreni
+(ARS1.NE2) 301/2022 Pratica n. S50085017 in ati dal 301/222 Protocollo NSD n. ENTRATE AGEVSTI. REGISTRO UFFICIALE:821610630/1/2022 DIVISIONE-AMPLIAMENTO
+DATI DERIVANTI DA
+1) Proprieta' 1/2 ris. 1 ditta priva di titolo legale reso pubblico
+LDDPRN44R48C272J*
+() Propriet 12 i ria rine periodo legale reso publico
+LEDDA Pietrina nata a CASTELSARDO il 08/10/1944
+2
+DIRITTI E ONERI REALI
+MDAGNN36MI8G1561*
+CODICE FISCALE
+AMADU Giovanni nato a OSILO il 18/08/1936
+DATI ANAGRAFICI
+N.
+Intestazione degli immobili indicati al n.2
+Totale: vani 6,50 m' 44 Rendita: Euro 484,28
+-classamento e rendita proposti (d.m. 701/94)
+Annotazione:
+Immobile 2:
+-classamento e rendita proposti (d.m. 701/94)
+Annotazione:
+Immobile 1:
+Situazione degli atti informatizzati al 18/12/2025
+Servizi Catastali
+Ufficio Provinciale - Territorio
+Visura n.: T99197/2025
+Visura attuale sintetica per soggetto
+Direzione Provinciale di Sassari
+ntrate *
+Data: 18/12/2025 Ora: 11.18.53
+genzia
+
+APR_OCR_ORIENTATION:0
+Data: 18/12/2025 Ora: 11.18.53 pag: 3 Fine-
+(1) Proprieta' 2/28
+(1) Proprieta' 7/28 in regime di comunione dei beni
+Visura n.: T99197/2025
+MDAVTR42C23G156V*
+LDDPRN44R48C272J*
+Visura attuale sintetica per soggetto
+Situazione degli atti informatizzati al 18/12/2025
+FRAZIONAMENTO del 09/08/2004 Pratica n. SS0165167 in atti dal 09/08/2004 (n. 165167.1/2004)
+** Si intende Provesile to del Direi bore di grazia dale Entrate 29 marzo 201) accessorie, comunicanti o non comunicanti"
+Totale Generale: Superficie .00.98 Redditi: Dominicale Euro 0,35 Agrario Euro 0,20
+LEDDA Pietrina nata a CASTELSARDO il 08/10/1944
+Totale Generale: vani 12 m° 44 Rendita: Euro 782,53
+AMADU Vittorino nato a OSILO il 23/03/1942
+* Codice Fiscale Validato in Anagrafe Tributaria
+genzia
+intrate
+Direzione Provinciale di Sassari
+Ufficio Provinciale - Territorio
+Servizi Catastali
+DATI DERIVANTI DA
+Unità immobiliari n. 4
+Visura telematica
+
+APR_OCR_ORIENTATION:180
+7 al sane
+2
+859894
+HOLDER'S SIGNATURE
+FIRMA DEL TITOLARE
+18.08.2029
+04.04.2019
+SCADENZA / EXPIRY
+EMISSIONE / ISSUING
+ITA
+176
+M
+CITTADINANZA
+NATIONALITY
+STATURA
+HEIGHT
+SEX
+SESSO
+OSILO (SS) 18.08. 1936
+LUOGO E DATA DI NASCITA
+PLACE AND DATE OF BIRTH
+GIOVANNI
+NOME/NAME
+9516
+AMADU
+COGNOME / SURNAME
+OSILO
+COMUNE DI MUNICIPALITY
+CARTA DI IDENTITÀ / IDENTITY CARD
+MINISTERO DELLINTERNO
+CA84192DS
+REPUBBLICA ITALIANA
+DELLA SARDEGNA
+AUTONOMA
+di nascit18/08/1936
+Data
+REGIONE
+SS°
+Provincia
+21/10/2022
+Dati sanitari regionali
+OSILO
+di nascita
+scadenza
+Luogo
+Data di
+ANNI
+GIO
+Nome
+Cognome AMADU
+Fiscale
+M
+Sesso
+MDAGNN36M18G156I
+Codice
+SERVIZI
+CARTA:
+CARTA REGIONALE DEI SERVIZI
+AC 2014
+TESSERA SANITARIA
+REPUBBLICA ITALIANA
+
+APR_OCR_ORIENTATION:90
+SAL CODE
+CODICE FISCALE
+AMADU
+GIOVANNI
+MDAGNN36M18G1561
+DIRIZZODI RESIDENZA / RESIDENCE
+HATHER AND MOTHER'S-TUTORIS NAME
+AHADUS<GIOVANNI<
+5808186M29081881
+CAITACA84192DS3<
+80380002000039138885
+FRAZIONE S. VITT VIA S.LORENZO, 15 OSILO (SS)
+COGNOME E NOME DEL PADRE E DELLA MADRE O DI CHI NE FA LE VECI
+MDAGNN36M18G1561 SSN-MIN SALUTE - 500001
+TESSERA EUROPEA DI ASSICURAZIONE MALATTIA
+. <<
+1<<
+N.94 P. 1 S. anno 1936
+ESTREMI AFTO DI NASCITA
+A
+V
+V
+21/10/2022
+18/08/1936
+<. <
+<<O
+<<<

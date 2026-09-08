@@ -1,0 +1,85 @@
+{
+  "version": "apr-ronconi-clean-operational-verification-r54-v1",
+  "verifiedAt": "2026-09-05T00:45:27.107Z",
+  "authorizationId": "user-2026-09-05-ronconi-new-clean-draft-r54",
+  "status": "completed_consistent",
+  "customerKey": "luca-ronconi",
+  "practiceId": "98d44d99-86af-4fec-ba55-ffe24d208e83",
+  "cohort": 3097,
+  "generation": {
+    "mode": "fresh_generation",
+    "generationId": "generation-d3c7cdb2b0676a4199b33551",
+    "canonicalDraftId": "464263",
+    "priorDraftId": "464262",
+    "priorDraftDisposition": "superseded_forbidden",
+    "observedDriverDraftIds": [
+      "464263"
+    ],
+    "priorDraftReferencedByOperationalDriver": false
+  },
+  "outcome": {
+    "state": "saved",
+    "completedPages": 8,
+    "expectedPages": 8,
+    "operatorRequired": 0,
+    "technicalBlock": 0,
+    "inconsistent": 0,
+    "caseTruth": "READY",
+    "hasProblem": false,
+    "blockerCount": 0,
+    "statement": "Nessun problema: bozza TEST completa e verificata read-only."
+  },
+  "coBeneficiaryVerification": {
+    "identity": {
+      "name": "Raffaella",
+      "surname": "Guerra",
+      "taxCode": "GRRRFL89T54D643K"
+    },
+    "saveIntentAt": "2026-09-05T00:43:13.779Z",
+    "serverVerifiedAt": "2026-09-05T00:43:14.068Z",
+    "result": "saved_verified",
+    "oldFailureReproduced": false,
+    "trustedEnterFallbackExercisedForCoBeneficiary": false,
+    "interpretation": "La nuova generazione pulita ha salvato il cointestatario al primo intento verificato. Il ramo Enter resta provato dai test automatici positivo e negativo, ma non è stato necessario in questo replay reale."
+  },
+  "tripleVerification": {
+    "executionCheckpoint": {
+      "status": "completed",
+      "revision": 32,
+      "state": "saved",
+      "blockers": []
+    },
+    "sequencerReport": {
+      "status": "completed",
+      "saved": 1,
+      "operatorRequired": 0,
+      "technicalBlock": 0,
+      "inconsistent": 0
+    },
+    "caseTruth": {
+      "terminalSnapshotStatus": "READY",
+      "dashboardApiStatus": "READY",
+      "terminalConsistency": "CONSISTENT"
+    },
+    "sourcesConcordant": true
+  },
+  "timing": {
+    "startedAt": "2026-09-05T00:41:54.556Z",
+    "endedAt": "2026-09-05T00:45:27.107Z",
+    "elapsedSeconds": 212.551
+  },
+  "safety": {
+    "draftOnly": true,
+    "previewAttempted": false,
+    "submitAttempted": false,
+    "communicationsAttempted": false,
+    "keepaliveRunningAfterCompletion": true,
+    "chromeRunningAfterCompletion": true
+  },
+  "evidence": {
+    "executionCheckpoint": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3097-global-controller-luca-ronconi/enea-draft-execution/checkpoint.json",
+    "sequencerReport": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-ronconi-clean-r54/report.json",
+    "terminalSnapshot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-3097-global-controller-luca-ronconi.json",
+    "driverAudit": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3097-global-controller-luca-ronconi/enea-browser-worker/cdp-driver.json"
+  }
+}

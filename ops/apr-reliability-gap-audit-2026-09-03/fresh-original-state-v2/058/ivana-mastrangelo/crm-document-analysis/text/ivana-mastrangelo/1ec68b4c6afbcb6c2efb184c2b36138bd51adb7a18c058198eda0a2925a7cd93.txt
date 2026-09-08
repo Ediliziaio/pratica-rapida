@@ -1,0 +1,45 @@
+APR_OCR_ORIENTATION:0
+MILANO, 03 APRILE 2026
+OGGETTO: Ricevuta Pagamento Bonifico
+RIEPILOGO DATI
+TIPOLOGIA OPERAZIONE
+Bonifico per riqualificazione energetica L.296-06
+IMPORTO IN EURO
+3.743,33 €
+DATA VALUTA
+07/04/2026
+DATA CONTABILE
+07/04/2026
+DESCRIZIONE / CAUSALE
+Fattura primo acconto per produzione ed installazione infissi COMI
+DISPOSTO VIA
+Mob Android
+TRN
+STATO
+Inserito
+DATI ORDINANTE / ESECUTORE
+INTESTAZIONE
+IVANA MASTRANGELO
+IBAN ORDINANTE
+IT55T0347501605CC0010489786
+DATI BENEFICIARIO
+DENOMINAZIONE BENEFICIARIO
+INNOVA SERRAMENTI SOCIETA A RESPONSABILITA LIMITAT
+STATO RESIDENZA DEL BENEFICIARIO
+IT
+CODICE FISCALE/PARTITA IVA BENEFICIARIO
+12087331000
+IBAN BENEFICIARIO
+1T63N3689301600000000003268
+NOME ISTITUTO
+VIVID MONEY S.A.
+DATA VALUTA BENEFICIARIO
+07/04/2026
+ING BANK N.V. Milan Branch
+201 :02002 G0m
+e numero di iscrizione al Registro delle Imprese di Milono R E.A. Milaro 1446792, iscritto all'Albo delle banche tenuto dalla Bonco
+ING BANK NV Milan Bronch sede legole in Milano Viole Fulvio lesti 250. 20126. Tel 02-552261 tox 02-55226001. CF/P.IVA 11241140158
+dettogli vedi il «modulo per le informazioni do tornire ai depositonti» su ing.it/trosparenza), Capitole Versuto: 525.489 559,04 EUR.
+d'italia ol n 5229 oderisce tromite ING BANK N.V. ol tondo di diritto olandese "Nederlondse Depositogurentiestelsel' (per tutti i
+Scanned with
+CS CamScanner™

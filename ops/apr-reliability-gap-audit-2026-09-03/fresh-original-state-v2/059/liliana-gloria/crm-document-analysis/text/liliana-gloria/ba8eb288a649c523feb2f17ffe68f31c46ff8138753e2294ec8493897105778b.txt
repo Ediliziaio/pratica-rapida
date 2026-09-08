@@ -1,0 +1,118 @@
+APR_OCR_ORIENTATION:0
+INTESA
+non
+SANPAOLO
+Presa in carico - Bonifico per Agevolazioni Fiscali
+autorizzato in data 24.06.2026 12:36
+Di seguito il riepilogo dell'operazione:
+Numero operazione
+Operazione effettuata da
+INTER20260624BOSBE453848051
+LILIANA GLORIA
+N. C/C
+Intestato a
+1000/00010047
+GLORIA LILIANA
+Filiale
+Beneficiario
+GORGONZOLA - PIAZZA ITALIA 12
+Linea Sole Potito Srl
+Indirizzo
+Località
+-
+Paese
+Sede legale o residenza beneficiario
+IT
+IBAN
+Codice BIC/SWIFT
+IT25R0200801615000040530215
+UNCRITM1215
+Beneficiario effettivo
+Banca
+-
+UNICREDIT SPA
+C.F/P.IVA del beneficiario del bonifico
+C.F/P.IVA del fruitore della detrazione
+03397500962
+GLRLLN73B60A089P
+Tipologia di spese
+Tipologia di agevolazione
+Spese su beni di proprietà
+RISPARMIO ENERGETICO - L. 296/06
+Causale
+TRN
+Bonifico per lavori di risparmio
+0306913625027606S93316033160IT
+energetico. Acconto per acquisto e
+installazione tende da sole L.296/06 -
+fattura n.208/2026 del 23/06/2026
+Data regolamento beneficiario
+Data addebito ordinante
+25.06.2026
+24.06.2026
+Importo
+Commissioni
+1.831,50 Euro
+0,00 Euro
+Totale operazione
+1.831,50 Euro
+Sarà possibile revocare la disposizione fino alle ore 17:29 del 24.06.2026.
+L'operazione potrebbe essere conteggiata e assoggettata al pagamento del 'Costo unitario
+
+APR_OCR_ORIENTATION:0
+INTESA
+SANPAOLO
+Presa in carico - Bonifico per Agevolazioni Fiscali
+autorizzato in data 23.07.2026 16:41
+Di seguito il riepilogo dell'operazione:
+Numero operazione
+Operazione effettuata da
+INTER20260723BOSBE600996936
+LILIANA GLORIA
+N. C/C
+Intestato a
+1000/00010047
+GLORIA LILIANA
+Filiale
+Beneficiario
+GORGONZOLA - PIAZZA ITALIA 12
+Linea sole potito srl
+Indirizzo
+Località
+Paese
+Sede legale o residenza beneficiario
+IT
+IBAN
+Codice BIC/SWIFT
+IT25R0200801615000040530215
+UNCRITM1215
+Beneficiario effettivo
+Banca
+UNICREDIT SPA
+C.F/P.IVA del beneficiario del bonifico
+C.F/P.IVA del fruitore della detrazione
+03397500962
+GLRLLN73B60A089P
+Tipologia di spese
+Tipologia di agevolazione
+Spese su beni di proprietà
+RISPARMIO ENERGETICO - L. 296/06
+Causale
+TRN
+Pag. ft 252/2026 del 20/07/2026 saldo
+0306914616098004S93316033160I1
+acquisto e installazione tende da sole L.
+296/06
+Data regolamento beneficiario
+Data addebito ordinante
+24.07.2026
+23.07.2026
+Importo
+Commissioni
+1.831,50 Euro
+0,00 Euro
+Totale operazione
+1.831,50 Euro
+Sarà possibile revocare la disposizione fino alle ore 17:29 del 23.07.2026.
+L'operazione potrebbe essere conteggiata e assoggettata al pagamento del 'Costo unitario
+per operazione' secondo le modalità previste dal contratto di conto corrente o carta.

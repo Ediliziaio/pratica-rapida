@@ -1,0 +1,57 @@
+{
+  "version": "apr-sequencer-screening-canonical-absence-resume-r45-postinstall-attestation-v1",
+  "verifiedAt": "2026-09-04T09:07:37.730Z",
+  "status": "installed_selected_session_preserved_operational_replay_pending",
+  "versionId": "3ecfd0a7-canonical-absence-resume-r45-20260904",
+  "tripleVerification": {
+    "launchctlAndProcesses": {
+      "keepaliveLabel": "com.praticarapida.apr-enea-immortal-keepalive",
+      "state": "running",
+      "pid": 98419,
+      "chromeAprPid": 3785,
+      "chromeRestarted": false,
+      "keepaliveRestarted": false
+    },
+    "persistentCheckpointAndJournal": {
+      "serviceVersion": "apr-enea-worker-service-v1",
+      "revision": 15073,
+      "status": "setup_ready",
+      "heartbeatAt": "2026-09-04T09:07:35.684Z",
+      "reason": "Contratto DOM verde; auto-arm in attesa: apr_enea_worker_no_resumable_case.",
+      "contractObservedAt": "2026-09-04T09:06:35.879Z",
+      "contractEvidenceId": "cdp-server-6947-33756d8f8600bbeca4a6",
+      "forbiddenActionCount": 0,
+      "previewAttemptCount": 0,
+      "submitAttemptCount": 0,
+      "communicationAttemptCount": 0
+    },
+    "dashboardOrApi": {
+      "endpoint": "http://127.0.0.1:9331/json/list",
+      "targetId": "1C3153562376BE798125C283D8021102",
+      "pageTitle": "Bonus Fiscali - ENEA",
+      "pageUrl": "https://bonusfiscali.enea.it/dashboard",
+      "pageType": "page"
+    }
+  },
+  "activeBundleSha256": {
+    "apr-supervisor.mjs": "7a1e91ea0df31d832e76c2a16aca0159b167297ee7ca8a87fb970e0f2758633c",
+    "apr-enea-worker.mjs": "3ecfd0a7bd41d1e17b2529ac6cf389129d7bd547acd936acb5c334e97d8e811d",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "apr-pdf-ocr": "4c41c9a6832b11b9d19eace538100270a533dddc05e475e5842711968393327f"
+  },
+  "activationBoundary": {
+    "canonicalPointerSelected": true,
+    "existingKeepaliveProcessWasNotRestarted": true,
+    "residentKeepaliveCodePredatesR45": true,
+    "nextFreshAprProcessWillLoadR45": true,
+    "operationalR45ReplayPerformed": false
+  },
+  "safety": {
+    "eneaMutationPerformed": false,
+    "crmMutationPerformed": false,
+    "previewPerformed": false,
+    "savePerformed": false,
+    "submitPerformed": false,
+    "communicationPerformed": false
+  }
+}

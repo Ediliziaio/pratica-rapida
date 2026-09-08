@@ -1,0 +1,22 @@
+{
+  "version": "apr-screening-rounding-r15-gate-attestation-v1",
+  "recordedAt": "2026-08-31T16:48:48Z",
+  "sourceCommit": "4c5022032bea09c338e15ce26b761ff5025f0e58",
+  "sourceTree": "f090ea1f345e22eed1ce15fbe9cead005515ffa5",
+  "integratedRun": {
+    "status": "PASS",
+    "testFiles": 216,
+    "tests": 1606,
+    "failed": 0,
+    "durationSeconds": 411.83,
+    "typecheck": "PASS",
+    "productionBuild": "PASS"
+  },
+  "registryVersion": "enea-operational-registry-v97",
+  "matrixVersion": "apr-enea-rule-test-matrix-v74",
+  "priorFailedGate": {
+    "status": "FAIL",
+    "reason": "stale version assertion expected v96",
+    "resolution": "assertion updated to v97 and full integrated gate repeated"
+  }
+}

@@ -11,6 +11,14 @@ const doc = (patch: Partial<FinancialDocumentEvidence> = {}): FinancialDocumentE
 });
 
 describe("riconciliazione finanziaria tripla", () => {
+  it("esclude dalla terna una fattura di puro storno a zero e conserva la fattura economica precedente", () => {
+    const result = reconcileFinancialEvidence([
+      doc({ sourceId: "acconto", documentNumber: "434/2025", taxableAmount: 4518.63, vatAmount: 481.37, grossTotal: 5000, interventionGrossAmount: 5000 }),
+      doc({ sourceId: "saldo-zero", documentNumber: "99/2026", kind: "non_economic", taxableAmount: 0, vatAmount: 0, grossTotal: 0, interventionGrossAmount: 0, internalAdjustmentNote: "Fattura di puro storno integrale a zero." }),
+    ]);
+    expect(result).toMatchObject({ usable: true, total: 5000, candidateInvoiceSourceIds: ["acconto"], nonEconomicSourceIds: ["saldo-zero"] });
+  });
+
   it("accetta IVA negativa soltanto quando la terna si riconcilia col lordo", () => {
     const result = reconcileFinancialEvidence([doc({
       sourceId: "signed-vat",
@@ -23,7 +31,7 @@ describe("riconciliazione finanziaria tripla", () => {
     expect(result).toMatchObject({ usable: true, total: 680.14 });
   });
 
-  it("rifiuta IVA negativa quando la terna non si riconcilia col lordo", () => {
+  it("regola generale di Giuliano: accetta anche quando imponibile+IVA non torna col lordo, perché quella coerenza interna non viene più verificata", () => {
     const result = reconcileFinancialEvidence([doc({
       sourceId: "signed-vat-mismatch",
       documentNumber: "619",
@@ -32,8 +40,8 @@ describe("riconciliazione finanziaria tripla", () => {
       grossTotal: 680.14,
       interventionGrossAmount: 680.14,
     })]);
-    expect(result.usable).toBe(false);
-    expect(result.blockers).toContain("imponibile-iva-mismatch:signed-vat-mismatch");
+    expect(result).toMatchObject({ usable: true, total: 680.14 });
+    expect(result.blockers.some((code) => code.startsWith("imponibile-iva-mismatch"))).toBe(false);
   });
 
   it("riconcilia acconto e saldo senza perdere o duplicare l'acconto", () => {
@@ -92,6 +100,22 @@ describe("riconciliazione finanziaria tripla", () => {
     expect(result.blockers).toContain("terna-fattura-incerta:fattura-1");
   });
 
+  it("classifica come intervento operatore l'assenza di qualsiasi fattura economica candidata valida", () => {
+    const result = reconcileFinancialEvidence([doc({
+      sourceId: "planimetria",
+      kind: "non_economic",
+      documentNumber: "",
+      documentDate: "",
+      taxableAmount: null,
+      vatAmount: null,
+      grossTotal: null,
+      interventionGrossAmount: null,
+    })]);
+    expect(result).toMatchObject({ usable: false, total: null, candidateInvoiceSourceIds: [] });
+    expect(result.blockers).toContain("nessuna-fattura-economica-valida");
+    expect(result.nonEconomicSourceIds).toEqual(["planimetria"]);
+  });
+
   it("usa i lordi delle fatture Matteo e audita lo storno interno difforme senza bloccare", () => {
     const result = reconcileFinancialEvidence([
       doc({ sourceId: "acconto-490", documentNumber: "490/26", documentDate: "2026-05-26", kind: "advance", taxableAmount: 2545.45, vatAmount: 254.55, grossTotal: 2800, interventionGrossAmount: 2800 }),
@@ -112,10 +136,19 @@ describe("riconciliazione finanziaria tripla", () => {
     })]);
     expect(result).toMatchObject({
       usable: true, total: 100,
-      appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.rinaldiExplicitDeductibleTotal],
+      appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.invoiceGrossTotalNeverInternallyVerified, USER_AUTHORIZED_RULE_IDS.rinaldiExplicitDeductibleTotal],
       bonusCasaDraftAllowed: true,
     });
-    expect(result.auditNotes[0]).toContain("fattura=R-1|riga=12|testo=Totale massimo detraibile|importo=100.00|lordo_fattura=122.00");
+    expect(result.auditNotes[0]).toContain("fattura=R-1|riga=12|testo=Totale massimo detraibile|importo_pratica=100.00|lordi_fatture=122.00");
+  });
+
+  it("tratta la spesa congrua Rinaldi come totale della pratica e non come subtotale di fattura", () => {
+    const result = reconcileFinancialEvidence([
+      doc({ sourceId: "acconto", supplierId: "rinaldi", supplierName: "Rinaldi", documentNumber: "729/26", grossTotal: 858, taxableAmount: 780, vatAmount: 78, interventionGrossAmount: 858 }),
+      doc({ sourceId: "saldo", supplierId: "rinaldi", supplierName: "Rinaldi", documentNumber: "869/26", grossTotal: 2102, taxableAmount: 1910.91, vatAmount: 191.09, interventionGrossAmount: 2102,
+        explicitDeductibleLines: [{ lineId: "r43", lineNumber: 43, text: "TOTALE SPESE CONGRUE SOSTENUTE IN BASE AI MASSIMALI AMMESSI € 2276,06", amount: 2276.06, extractionConfidence: "certain" }] }),
+    ], { mode: "test", scheme: "ecobonus" });
+    expect(result).toMatchObject({ usable: true, total: 2276.06, candidateInvoiceSourceIds: ["acconto", "saldo"] });
   });
 
   it("non applica il totale detraibile Rinaldi ad altri rivenditori", () => {
@@ -123,7 +156,7 @@ describe("riconciliazione finanziaria tripla", () => {
       supplierId: "altro", supplierName: "Rinaldi Serramenti Rossi",
       explicitDeductibleLines: [{ lineId: "r1", text: "Totale da portare in detrazione", amount: 100, extractionConfidence: "certain" }],
     })]);
-    expect(result).toMatchObject({ usable: true, total: 122, appliedRuleIds: [] });
+    expect(result).toMatchObject({ usable: true, total: 122, appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.invoiceGrossTotalNeverInternallyVerified] });
   });
 
   it("blocca senza inferire una riga Rinaldi con dicitura o importo ambiguo", () => {
@@ -149,7 +182,7 @@ describe("riconciliazione finanziaria tripla", () => {
     expect(result).toMatchObject({
       usable: true, total: 1000, bonusCasaDraftAllowed: false,
       deferredVepaLineIds: ["vepa-1"],
-      appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.rinaldiPergolaVepaTestEcobonus],
+      appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.invoiceGrossTotalNeverInternallyVerified, USER_AUTHORIZED_RULE_IDS.rinaldiPergolaVepaTestEcobonus],
     });
     expect(result.auditNotes[0]).toContain("VEPA separata, Bonus Casa non ancora lavorato");
   });
@@ -165,7 +198,7 @@ describe("riconciliazione finanziaria tripla", () => {
     })], { mode: "test", scheme: "ecobonus" });
     expect(result).toMatchObject({
       usable: true, total: 1000,
-      appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.rinaldiPergolaVepaTestEcobonus],
+      appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.invoiceGrossTotalNeverInternallyVerified, USER_AUTHORIZED_RULE_IDS.rinaldiPergolaVepaTestEcobonus],
       deferredVepaLineIds: ["v"],
     });
     expect(result.appliedRuleIds).not.toContain(USER_AUTHORIZED_RULE_IDS.rinaldiExplicitDeductibleTotal);
@@ -178,9 +211,9 @@ describe("riconciliazione finanziaria tripla", () => {
     ];
     const base = { grossTotal: 1500, taxableAmount: 1229.51, vatAmount: 270.49, interventionGrossAmount: 1500, lineItems: lines };
     expect(reconcileFinancialEvidence([doc({ ...base, supplierId: "rinaldi" })], { mode: "production", scheme: "ecobonus" }))
-      .toMatchObject({ usable: true, total: 1500, appliedRuleIds: [], bonusCasaDraftAllowed: true });
+      .toMatchObject({ usable: true, total: 1500, appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.invoiceGrossTotalNeverInternallyVerified], bonusCasaDraftAllowed: true });
     expect(reconcileFinancialEvidence([doc({ ...base, supplierId: "altro", supplierName: "Altro" })], { mode: "test", scheme: "ecobonus" }))
-      .toMatchObject({ usable: true, total: 1500, appliedRuleIds: [], bonusCasaDraftAllowed: true });
+      .toMatchObject({ usable: true, total: 1500, appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.invoiceGrossTotalNeverInternallyVerified], bonusCasaDraftAllowed: true });
   });
 
   it("blocca l'attribuzione mista Rinaldi se una riga non è certa", () => {
@@ -200,8 +233,10 @@ describe("riconciliazione finanziaria tripla", () => {
     expect(reconcileFinancialEvidence([doc({ interventionGrossAmount: 121 })]).blockers).toContain("totali-metodi-non-coincidenti");
   });
 
-  it("blocca mismatch imponibile IVA e totale", () => {
-    expect(reconcileFinancialEvidence([doc({ grossTotal: 130 })]).blockers).toContain("imponibile-iva-mismatch:fattura-1");
+  it("regola generale di Giuliano: non blocca mai per un presunto mismatch imponibile+IVA, usa esclusivamente il lordo dichiarato", () => {
+    const result = reconcileFinancialEvidence([doc({ taxableAmount: 999, vatAmount: 1, grossTotal: 130, interventionGrossAmount: 130 })]);
+    expect(result).toMatchObject({ usable: true, total: 130 });
+    expect(result.blockers).toEqual([]);
   });
 
   it("blocca estrazione OCR incerta", () => {

@@ -53,6 +53,30 @@ Trasmittanza termica 1,07 W/m2K - EN 14351-1:2016
     });
   });
 
+  it("riconosce il valore termico etichettato con Uw tra parentesi in una DoP formale", () => {
+    const result = classifyAprInfissiTechnicalDocument({ storageKind: "additional", text: `
+Dichiarazione di prestazione (DoP) N° 74618-26
+Pos. 1 Q.tà 1 - Finestra ad 1 anta - da 720 x 670 mm.
+Fabbricante: Gruppo Cosmet
+Trasmittanza termica (Uw) 1.2 UNI EN ISO 10077-1
+Norma di prodotto: finestre e porte pedonali esterne - EN 14351-1:2016
+Firma del legale rappresentante
+` });
+    expect(result).toMatchObject({ verifiedKind: "third_party_certificate", profile: "formal_declaration", certificateScope: "installed_windows" });
+    expect(result.matchedCriteria).toContain("numeric_thermal_performance");
+  });
+
+  it("non promuove un testo con Uw tra parentesi se manca il profilo certificativo chiuso", () => {
+    const result = classifyAprInfissiTechnicalDocument({ storageKind: "additional", text: `
+Nota interna: finestra 720 x 670. Trasmittanza termica (Uw) 1.2.
+Valore riferito telefonicamente e da verificare.
+` });
+    expect(result).toMatchObject({ verifiedKind: "additional", profile: "none" });
+    expect(result.matchedCriteria).toContain("numeric_thermal_performance");
+    expect(result.missingCriteria).toContain("technical_standard");
+    expect(result.missingCriteria).toContain("declaring_party_or_signature");
+  });
+
   it("non promuove mai una appendice ENEA storica anche se contiene segnali tecnici", () => {
     const result = classifyAprInfissiTechnicalDocument({
       storageKind: "additional",

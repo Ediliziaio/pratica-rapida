@@ -1,0 +1,57 @@
+{
+  "version": "apr-r29-safety-stop-attestation-v1",
+  "observedAt": "2026-09-02T19:15:29Z",
+  "bundle": "versions/a93a1d16-financial-parser-r29-20260902",
+  "lot": {
+    "label": "com.praticarapida.apr-financial-parser-r29-reviewed-eight",
+    "manifestSha256": "1a15fa809e161424eff8c30fc5cb5f5289f0ec6d004244b747b8798827173b12",
+    "status": "safety_stopped",
+    "completedCasesPreserved": 3,
+    "nextCaseInterruptedBeforeVerdict": "claudia-sellati"
+  },
+  "reason": "Unexpected residual financial-parser blockers persisted in cases that the r29 correction was explicitly expected to resolve. The common test lot was stopped without starting lot 2 and without modifying code.",
+  "verifiedCases": [
+    {
+      "customerKey": "giovanna-atzeni",
+      "caseTruth": "blocked_case",
+      "residualFinancialBlockers": [
+        "bank_transfer_invoice_cross_check_failed",
+        "gross_triple_reconciliation_failed"
+      ],
+      "evidence": {
+        "checkpointSha256": "a32b79c5cd3f06acbd400a53aec6d52872270cf6190030d706a1d191db2a0f16",
+        "terminalTruthSha256": "15bd55c978f8db9fde9fbe4a18b8cdc83f9f7d882c58966ff0d2011b2c51f786",
+        "reportSha256": "b1f54f0690efac3116d47c66bc38fb5286ac2c530521b3b5cd46b3f8e43614e1"
+      }
+    },
+    {
+      "customerKey": "elena-marcella-berti",
+      "caseTruth": "blocked_case",
+      "residualFinancialBlockers": [
+        "bank_transfer_principal_exceeds_invoices"
+      ],
+      "evidence": {
+        "checkpointSha256": "089587801093ee47502f1168edced8fb23dbd5fb7b5a6558e77aadfa0ff64fd4",
+        "terminalTruthSha256": "c63f772c85f52f929669c787dfc1683eabad15734a8f6cf76d81a56751a1a957",
+        "reportSha256": "b1f54f0690efac3116d47c66bc38fb5286ac2c530521b3b5cd46b3f8e43614e1"
+      }
+    }
+  ],
+  "continuity": {
+    "lot1Stopped": true,
+    "lot2Started": false,
+    "keepaliveLabel": "com.praticarapida.apr-enea-immortal-keepalive",
+    "keepalivePid": 35873,
+    "keepaliveRunning": true,
+    "chromeAprPid": 3785,
+    "chromeCdpPort": 9331,
+    "chromeRunning": true
+  },
+  "safety": {
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false,
+    "codeModifiedDuringLot": false,
+    "notificationSent": false
+  }
+}

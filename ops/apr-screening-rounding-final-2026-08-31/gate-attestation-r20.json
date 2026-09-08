@@ -1,0 +1,10 @@
+{
+  "version": "apr-screening-rounding-r20-gate-attestation-v1",
+  "recordedAt": "2026-08-31T21:08:33Z",
+  "sourceCommit": "6137a229060c5348975700f665a1edbcc3c936d4",
+  "sourceTree": "e9f5d96cc51251bd3368b915536d98346e8e8a89",
+  "runtimeGate": { "status": "PASS", "testFiles": 216, "tests": 1610, "failed": 0, "durationSeconds": 409.00, "typecheck": "PASS", "productionBuild": "PASS" },
+  "focusedPreflightGate": { "status": "PASS", "nodeTests": 6, "terminalTruthAndObservabilityTests": 20, "dashboardHttpTests": 26, "moduleAwareInfissiRouting": "PASS", "terminalCaseTruthForBlockedPreflight": "PASS" },
+  "registryVersion": "enea-operational-registry-v97",
+  "matrixVersion": "apr-enea-rule-test-matrix-v74"
+}

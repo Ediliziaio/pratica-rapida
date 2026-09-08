@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "blind-product-review-v1",
+  "reviewer": "Claude Code",
+  "cases": [
+    {
+      "customerKey": "guido-calvacchi",
+      "displayName": "GUIDO CALVACCHI",
+      "classification": "AMBIGUOUS",
+      "exactCause": "Le tre misure L/H della fattura di saldo non coincidono con le misure senza/con coprifili della dichiarazione SIDEL riferita alla stessa fornitura; gli avvolgibili hanno invece L/H esplicite e coerenti.",
+      "visibleEvidence": ["fattura saldo: L 1060 x H 2320; L 940 x H 2320; L 680 x H 1400", "dichiarazione SIDEL: 1030 x 2269; 915 x 2269; 650 x 1384, oltre a misure comprensive di coprifili diverse"],
+      "missingDocumentType": "distinta di posa/as-built con misure definitive dei tre serramenti",
+      "operatorQuestion": "Per Guido Calvacchi, quali sono le misure definitive installate dei tre serramenti: quelle L/H della fattura di saldo oppure quelle senza/con coprifili della dichiarazione SIDEL?",
+      "onboardingGap": "Richiedere una riconciliazione esplicita tra misure commerciali, di produzione e finali di posa."
+    },
+    {
+      "customerKey": "marcella-capatti",
+      "displayName": "Marcella Capatti",
+      "classification": "EXPLICIT_PARTIAL",
+      "exactCause": "La fattura 260/2025 espone cinque righe e sette unità con L/H, ma non dichiara l'unità e non collega univocamente ogni riga ai sette certificati DoP.",
+      "visibleEvidence": ["N. 01 L 1400 X 2300 H", "N. 01 L 1180 X 1410 H", "N. 02 L 620 X 2300 H", "N. 02 L 1180 X 1260 H", "N. 01 L 680 X 1420 H"],
+      "missingDocumentType": "distinta tecnica con unità e collegamento riga-fattura/DoP",
+      "operatorQuestion": "Per Marcella Capatti, confermi che le quote L/H della fattura 260/2025 sono in millimetri e indichi quale certificato DoP corrisponde a ciascuna delle sette unità?",
+      "onboardingGap": "Richiedere unità di misura e cross-reference fra riga commerciale e certificato."
+    },
+    {
+      "customerKey": "nicla-biagioni",
+      "displayName": "Nicla Biagioni",
+      "classification": "EXPLICIT_PARTIAL",
+      "exactCause": "La DoP espone due serramenti 840x2235 e 995x2250 mm, ma cita ordine 92 mentre le fatture citano ordine 225; le zanzariere fatturate non hanno misure.",
+      "visibleEvidence": ["DoP Pos. 1 Q.tà 1 da 840 x 2235 mm", "DoP Pos. 2 Q.tà 1 da 995 x 2250 mm", "fatture: serramenti in pvc e zanzariere rif. ordine 225"],
+      "missingDocumentType": "ordine/distinta che colleghi ordine 92 a 225 e riporti le misure delle zanzariere",
+      "operatorQuestion": "Per Nicla Biagioni, l'ordine produttore 92 corrisponde all'ordine cliente 225 e quali sono quantità e misure delle zanzariere incluse?",
+      "onboardingGap": "Richiedere cross-reference degli ordini e righe tecniche anche per gli accessori agevolati."
+    },
+    {
+      "customerKey": "eugenio-codognato",
+      "displayName": "EUGENIO CODOGNATO",
+      "classification": "EXPLICIT_COMPLETE",
+      "exactCause": "La fattura 619 espone otto infissi, ciascuno su una riga con codice, quantità 1, L e A; la fattura 620 espone separatamente otto persiane. APR mantiene falsi blocker di dimensioni/righe perché il testo estratto separa le colonne quantità dalle descrizioni.",
+      "visibleEvidence": ["6K_F2_006, NR 1,00, (L=2.235;A=1.435;)", "6K_P2_010, NR 1,00, (L=2.695;A=2.405;)", "altre sei righe infissi con NR 1,00 e L/A esplicite"],
+      "missingDocumentType": null,
+      "operatorQuestion": null,
+      "onboardingGap": null
+    },
+    {
+      "customerKey": "gabriele-girelli",
+      "displayName": "Gabriele Girelli",
+      "classification": "GENUINELY_MISSING",
+      "exactCause": "L'unico file disponibile è il logo PraticaRapida e non contiene alcun dato prodotto.",
+      "visibleEvidence": ["PNG con solo logo PraticaRapida.it"],
+      "missingDocumentType": "ordine, preventivo o rilievo con righe prodotto e misure",
+      "operatorQuestion": "Inserisci il documento originale con le righe prodotto e le misure di Gabriele Girelli.",
+      "onboardingGap": "Rifiutare in acquisizione file privi di contenuto documentale utile."
+    },
+    {
+      "customerKey": "loretta-riviera",
+      "displayName": "Loretta Riviera",
+      "classification": "EXPLICIT_PARTIAL",
+      "exactCause": "La DoP contiene tre posizioni complete, ma usa un numero ordine diverso dalle fatture e manca il DDT 70 citato nella fattura di saldo che potrebbe collegarle.",
+      "visibleEvidence": ["DoP: Pos.1 2170x2353 mm; Pos.2 1270x2353 mm; Pos.3 1270x1353 mm", "fattura 641: 3 infissi, Contratto 62, DDT 70 del 05-06-2026"],
+      "missingDocumentType": "DDT 70 o distinta che colleghi le tre posizioni DoP al Contratto 62",
+      "operatorQuestion": "Per Loretta Riviera, confermi che le tre posizioni della DoP sono, nello stesso ordine, i tre infissi del Contratto 62 e puoi inserire il DDT 70 che lo dimostra?",
+      "onboardingGap": "Richiedere un riferimento univoco comune tra documento tecnico e documento commerciale."
+    }
+  ]
+}

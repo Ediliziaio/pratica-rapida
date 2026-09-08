@@ -1,0 +1,51 @@
+{
+  "version": "apr-flavia-screening-probe-race-incident-v1",
+  "observedAt": "2026-09-04T00:45:25.580Z",
+  "classification": "INCONSISTENT",
+  "severity": "serious_unexpected_technical_problem",
+  "practice": {
+    "practiceId": "9f785f33-491a-4954-8423-4316d6842dbb",
+    "customerKey": "flavia-cipriani",
+    "displayName": "Flavia Cipriani",
+    "cohort": 3061,
+    "draftId": "460574"
+  },
+  "exactCause": "Race generale tra worker e sequencer: recordUncertainPageSaveDetected rende immediatamente la pratica operator_intervention con uncertainPageSave.status=probing; il sequencer considera qualunque operator_intervention terminale, spegne il worker mentre probePageSaveReadOnly e ancora in corso e pubblica INCONSISTENT. La SIGTERM e arrivata alle 00:45:14.764Z; il checkpoint terminale conserva zero sonde. Non e un blocker documentale di Flavia e non dimostra che la riga screening:3 sia stata o non sia stata persistita.",
+  "pipelinePoint": {
+    "worker": "aprEneaBrowserWorker.handleUncertainPageSave: stato probing pubblicato prima dell'attesa delle sonde read-only",
+    "sequencer": "sequencer.mjs execution wait: operator_intervention non distingue uncertainPageSave.status=probing e finalizza la pratica",
+    "terminalFinalizer": "sequencerCaseFinalizer classifica operator_intervention come case_block dopo aver spento il worker"
+  },
+  "evidence": {
+    "executionCheckpointSha256": "cd7d906d8fbc735f1ba05a0ab5d4a2e009505f023d4fbcd0028d0f83cfc00665",
+    "dashboardStatusSha256": "3610510014c666b7eb704171d5ad5eec72f6318595c0481006e0d077d39ba1e8",
+    "sequencerCheckpointSha256": "df8ab2092e852541e7df9178eb0a1446365258b976594be77ce650cffeb417ec",
+    "sequencerReportSha256": "add638d0c947a1c8f265563a9518d55de78c409989b493dcc23c6108e1703e3d",
+    "executionRevision": 30,
+    "workerRevision": 45,
+    "completedPages": 5,
+    "expectedPages": 13,
+    "uncertainPage": "screening:3",
+    "uncertainStatus": "probing",
+    "persistedProbeCount": 0,
+    "workerStopRequestedAt": "2026-09-04T00:45:14.764Z",
+    "terminalSnapshot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-3061-global-controller-flavia-cipriani.json"
+  },
+  "tripleVerification": {
+    "processes": "sequencer and cohort services quiescent; immortal keepalive PID 98419 and Chrome APR PID 3785 alive",
+    "persistentState": "execution says operator_intervention with probing/zero probes; run report says inconsistent",
+    "dashboardOrTerminalSnapshot": "terminal snapshot and dashboard both publish INCONSISTENT with zero report blockers"
+  },
+  "safety": {
+    "previewAttempted": false,
+    "submitAttempted": false,
+    "communicationsAttempted": false,
+    "automaticRetryAttempted": false,
+    "sellatiStarted": false,
+    "overnightBatchStarted": false
+  },
+  "missingDocumentType": null,
+  "operatorQuestion": "Autorizzi la correzione generale del sequencer affinche uncertainPageSave in stato probing o recovery_queued non sia terminale e il worker possa completare le sole sonde read-only prima della classificazione, seguita da gate monotono e ripresa della stessa bozza Flavia 460574 senza nuovo salvataggio alla cieca?",
+  "onboardingGap": null,
+  "nextAction": "Attendere autorizzazione; non avviare Sellati o il lotto notturno e non ripetere alcun Salva su Flavia."
+}

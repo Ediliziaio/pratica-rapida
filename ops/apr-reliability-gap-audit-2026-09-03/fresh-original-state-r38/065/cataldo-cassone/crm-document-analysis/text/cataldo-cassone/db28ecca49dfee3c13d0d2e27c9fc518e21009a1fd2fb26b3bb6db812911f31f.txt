@@ -1,0 +1,50 @@
+FATTURA
+nr. FPR 387/26 del 22/07/2026
+Data invio: 22/07/2026
+FORNITORE
+LM TENDE DA SOLE E ZANZARIERE S.R.L.
+P.IVA: IT13223860969
+C.F.: 13223860969
+Via Della Resistenza
+20090 - Buccinasco (MI) - IT
+Telefono: 3348841668
+info@lmtende.it
+CLIENTE
+Cataldo Cassone
+C.F.: CSSCLD50E07C136Z
+Via Duccio di Buoninsegna 11/C
+20057 - Assago (MI) - IT
+PRODOTTI E SERVIZI
+NR DESCRIZIONE QUANTITA' PREZZO IMPORTO IVA NATURA IVA
+1 Fattura saldo per fornitura e posa di Tenda da sole a
+bracci estensibili con cassonetto modello MINI
+CHIOCCIOLA Colore struttura grigio - tessuto
+TEMPOTEST 242 mantovana a onda corta Manovra
+argano manuale attacco a soffitto - con piastra di
+fissaggio N° 1 da 273 x 140 cm (manovra a DX V.I.)
+asta 120 Schermatura superficie mq 3,822 , G tot 0.14
+classe 3 Data collaudo 22/06/2026
+1 575,00 € 575,00 € 22 % -
+METODO DI PAGAMENTO
+NR RATA MODALITÀ PAGAMENTO BANCA IBAN BIC/SWIFT DATA SCADENZA IMPORTO
+1 Bonifico Pagamento in
+unica soluzione
+Monte dei
+paschi di siena
+IT21X0103032650000007139314 22/07/2026 701,50 €
+REGIME FISCALE
+REGIME FISCALE
+RF01 - Ordinario
+IVA NATURA NORMATIVA 22% 575,00 € 126,50 €
+RIEPILOGO IVA CALCOLO FATTURA
+Importo prodotti o servizi 575,00 €
+Totale imponibile 575,00 €
+Totale IVA 126,50 €
+Totale documento 701,50 €
+ESIGIBILITA' IMPONIBILE IMPOSTA
+Netto a pagare 701,50 €
+effettuare bonifico per detrazione: Causale intervento di
+riqualificazione energetica L.296/2006
+Copia analogica della fattura elettronica inviata a SdI | Il documento xml originale è disponibile online sul portale "Fatture e Corrispettivi dell'Agenzia delle Entrate"
+Fattura Nr. FPR 387/26 del 22/07/2026 Fattura generata con:
+Pag.1/1

@@ -1,0 +1,314 @@
+{
+  "version": "apr-crm-local-preflight-v1",
+  "revision": 1,
+  "status": "completed",
+  "sourceFingerprint": "453d2dd59c10a6bf870b3b4dbbac0bbb5ec9c8f97987dd2b1803b1b0aa30eb8d",
+  "currentCustomerKey": null,
+  "items": [
+    {
+      "customerKey": "gianluigi-chiolini",
+      "displayName": "Gianluigi Chiolini",
+      "practiceId": "d77a8626-54ac-408c-b7c2-58fd10d3e25a",
+      "dossierPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3008-global-controller-gianluigi-chiolini/crm-acquisition/dossiers/gianluigi-chiolini.json",
+      "state": "ready_local_plan",
+      "attemptCount": 1,
+      "startedAt": null,
+      "endedAt": null,
+      "report": {
+        "outcome": "ready_local_plan",
+        "formAvailable": true,
+        "startDate": "2026-06-15",
+        "startDateSource": "da012be5f68b5ecf7d32a1ae1c02910f51fa5be0c038c0bc0afdae7b1217df24:invoice:264f0ccd0374",
+        "completionDate": "2026-07-22",
+        "completionDateSource": "b7a590e9c6afa8ee2f24f58a702dd09bec0429d1198b752697269109833e6393:invoice:264f0ccd0374",
+        "buildingQualification": "multi_unit",
+        "buildingUnitCount": 1,
+        "deductionRate": null,
+        "taxCodeStatus": "verified_original_document",
+        "resolvedTaxCode": "CHLGLG66A31F205C",
+        "taxCodeSourceIds": [
+          "b7a590e9c6afa8ee2f24f58a702dd09bec0429d1198b752697269109833e6393",
+          "da012be5f68b5ecf7d32a1ae1c02910f51fa5be0c038c0bc0afdae7b1217df24",
+          "e9018352144bc5fd8006d877ad4a52806b82a7d83407e7597126f31f153cc47b",
+          "ec55eafc6a0ec3700179d834d7935471f9a7ec93d2cae3f36c4ddcd8f88dd403"
+        ],
+        "primaryBeneficiaryResolution": {
+          "status": "verified_document",
+          "identity": {
+            "name": "Gianluigi",
+            "surname": "Chiolin",
+            "taxCode": "CHLGLG66A31F205C",
+            "birthDate": "1966-01-31",
+            "sex": "M"
+          },
+          "sourceIds": [
+            "b7a590e9c6afa8ee2f24f58a702dd09bec0429d1198b752697269109833e6393",
+            "da012be5f68b5ecf7d32a1ae1c02910f51fa5be0c038c0bc0afdae7b1217df24",
+            "e9018352144bc5fd8006d877ad4a52806b82a7d83407e7597126f31f153cc47b",
+            "ec55eafc6a0ec3700179d834d7935471f9a7ec93d2cae3f36c4ddcd8f88dd403"
+          ],
+          "authority": "fiscal_document"
+        },
+        "coBeneficiaryResolution": {
+          "status": "not_declared",
+          "present": false,
+          "identity": null,
+          "sourceIds": []
+        },
+        "products": [
+          {
+            "rowId": "b7a590e9c6afa8ee2f24f58a702dd09bec0429d1198b752697269109833e6393:invoice:264f0ccd0374:piece-1",
+            "sourceDocumentKey": "b7a590e9c6afa8ee2f24f58a702dd09bec0429d1198b752697269109833e6393:invoice:264f0ccd0374",
+            "description": "Tenda da sole motorizzata",
+            "pieceNumber": 1,
+            "widthMm": 3500,
+            "heightMm": 1850,
+            "surfaceM2": 6.475,
+            "exposure": "sud_est",
+            "exposureSource": null,
+            "protectedWindowSurfaceM2": null,
+            "protectedWindowSurfaceSource": null,
+            "supplementaryThermalResistance": null,
+            "declaredType": "tende_da_sole",
+            "formMappingSource": "group_inheritance",
+            "gTot": 0.08,
+            "gTotSource": "invoice_explicit",
+            "material": "Tessuto",
+            "materialSource": "authorized_fallback",
+            "movement": "Automatico",
+            "movementSource": "invoice_explicit",
+            "appliedRuleIds": [
+              "user-2026-08-31-documented-gtot-precedence-v1",
+              "user-2026-08-18-explicit-motorized-screening-movement",
+              "authorized-22-schermature-materiale",
+              "authorized-16-schermature-meccanismo",
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+              "user-2026-08-18-explicit-technical-surface-precision",
+              "user-2026-08-15-form-group-to-physical-products"
+            ]
+          },
+          {
+            "rowId": "b7a590e9c6afa8ee2f24f58a702dd09bec0429d1198b752697269109833e6393:invoice:264f0ccd0374:piece-2",
+            "sourceDocumentKey": "b7a590e9c6afa8ee2f24f58a702dd09bec0429d1198b752697269109833e6393:invoice:264f0ccd0374",
+            "description": "Tenda da sole a caduta",
+            "pieceNumber": 2,
+            "widthMm": 1050,
+            "heightMm": 2000,
+            "surfaceM2": 2.1,
+            "exposure": "sud_est",
+            "exposureSource": null,
+            "protectedWindowSurfaceM2": null,
+            "protectedWindowSurfaceSource": null,
+            "supplementaryThermalResistance": null,
+            "declaredType": "tende_da_sole",
+            "formMappingSource": "group_inheritance",
+            "gTot": 0.08,
+            "gTotSource": "invoice_explicit",
+            "material": "Tessuto",
+            "materialSource": "authorized_fallback",
+            "movement": "Manuale",
+            "movementSource": "authorized_fallback",
+            "appliedRuleIds": [
+              "user-2026-08-31-documented-gtot-precedence-v1",
+              "authorized-22-schermature-materiale",
+              "authorized-16-schermature-meccanismo",
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+              "user-2026-08-18-explicit-technical-surface-precision",
+              "user-2026-08-15-form-group-to-physical-products"
+            ]
+          }
+        ],
+        "financial": {
+          "invoiceTotal": 3172,
+          "eligibleExpense": 3172,
+          "tripleReconciliationVerified": true,
+          "reconciledTotal": 3172,
+          "evidence": [
+            {
+              "sourceId": "b7a590e9c6afa8ee2f24f58a702dd09bec0429d1198b752697269109833e6393:invoice:264f0ccd0374",
+              "kind": "balance",
+              "taxableAmount": 1300,
+              "vatAmount": 286,
+              "grossTotal": 1586,
+              "interventionGrossAmount": 1586,
+              "extractionConfidence": "certain",
+              "extractionIssues": []
+            },
+            {
+              "sourceId": "da012be5f68b5ecf7d32a1ae1c02910f51fa5be0c038c0bc0afdae7b1217df24:invoice:264f0ccd0374",
+              "kind": "advance",
+              "taxableAmount": 1300,
+              "vatAmount": 286,
+              "grossTotal": 1586,
+              "interventionGrossAmount": 1586,
+              "extractionConfidence": "certain",
+              "extractionIssues": []
+            }
+          ],
+          "bankTransfers": [],
+          "bankTransferReconciliation": {
+            "status": "not_provided",
+            "principalTotal": null,
+            "feesTotal": null,
+            "debitedTotal": null,
+            "difference": null,
+            "referenceStatus": "not_provided",
+            "missingInvoiceReferences": [],
+            "taxReliefTypes": []
+          },
+          "methods": [
+            {
+              "method": "structured_extraction",
+              "ok": true,
+              "total": 3172,
+              "sources": [
+                "b7a590e9c6afa8ee2f24f58a702dd09bec0429d1198b752697269109833e6393:invoice:264f0ccd0374",
+                "da012be5f68b5ecf7d32a1ae1c02910f51fa5be0c038c0bc0afdae7b1217df24:invoice:264f0ccd0374"
+              ],
+              "reason": "Ogni documento ha imponibile, IVA e totale verificati."
+            },
+            {
+              "method": "accounting_reconciliation",
+              "ok": true,
+              "total": 3172,
+              "sources": [
+                "b7a590e9c6afa8ee2f24f58a702dd09bec0429d1198b752697269109833e6393:invoice:264f0ccd0374",
+                "da012be5f68b5ecf7d32a1ae1c02910f51fa5be0c038c0bc0afdae7b1217df24:invoice:264f0ccd0374"
+              ],
+              "reason": "Somma dei totali lordi IVA inclusa delle fatture uniche deduplicate; gli storni interni sono solo note auditabili."
+            },
+            {
+              "method": "intervention_cross_check",
+              "ok": true,
+              "total": 3172,
+              "sources": [
+                "b7a590e9c6afa8ee2f24f58a702dd09bec0429d1198b752697269109833e6393:invoice:264f0ccd0374",
+                "da012be5f68b5ecf7d32a1ae1c02910f51fa5be0c038c0bc0afdae7b1217df24:invoice:264f0ccd0374"
+              ],
+              "reason": "Totale ricostruito esclusivamente dalle righe pertinenti all'intervento."
+            }
+          ],
+          "discardedDuplicateSourceIds": [],
+          "supersededTechnicalSourceIds": [],
+          "appliedRuleIds": [
+            "user-2026-08-16-invoice-gross-total-vat-included",
+            "user-2026-08-18-bundled-professional-expense-separation",
+            "user-2026-08-18-mandatory-bank-transfer-invoice-expense-cross-check",
+            "core-gross-triple-reconciliation",
+            "user-2026-08-14-preserve-technical-product-cardinality",
+            "system-explicit-advance-invoice-reference-marker-v1",
+            "user-2026-08-16-distinct-invoice-numbers-same-customer-sum"
+          ]
+        },
+        "warnings": [
+          {
+            "code": "primary_beneficiary_identity_overridden_by_invoice",
+            "reason": "Identita principale ricavata da documento fiscale per il CF verificato: Gianluigi Chiolin, nascita 1966-01-31, sesso M; prevale sui dati inseriti nel CRM e nel form cliente.",
+            "appliedRuleIds": [
+              "user-2026-09-03-official-identity-over-manual-crm-v1",
+              "user-2026-08-16-fiscal-code-identity-cross-check"
+            ]
+          },
+          {
+            "code": "explicit_building_type_over_apartment_count",
+            "reason": "La tipologia esplicita fino/oltre tre piani prevale sul numero appartamenti della singola pratica: edificio qualificato come plurimo.",
+            "appliedRuleIds": [
+              "user-2026-08-27-explicit-building-type-over-apartment-count-v2"
+            ]
+          },
+          {
+            "code": "product_cardinality_form_invoice_difference_resolved",
+            "reason": "Controllo incrociato ripetuto: form 1 righe/gruppi, fatture 2 prodotti fisici. La differenza e risolta in modo univoco dalla quantita esplicita di fattura e dall'eredita del solo gruppo form compatibile; piano APR richiesto: 2 righe distinte.",
+            "appliedRuleIds": [
+              "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "user-2026-08-15-form-group-to-physical-products"
+            ]
+          }
+        ],
+        "blockers": [],
+        "sourceIds": [
+          "b7a590e9c6afa8ee2f24f58a702dd09bec0429d1198b752697269109833e6393",
+          "da012be5f68b5ecf7d32a1ae1c02910f51fa5be0c038c0bc0afdae7b1217df24",
+          "e9018352144bc5fd8006d877ad4a52806b82a7d83407e7597126f31f153cc47b",
+          "ec55eafc6a0ec3700179d834d7935471f9a7ec93d2cae3f36c4ddcd8f88dd403"
+        ],
+        "eneaPayloadAudit": {
+          "status": "payload_complete",
+          "mappingFingerprint": "1ce2ctw",
+          "fieldSummary": {
+            "ready": 69,
+            "review": 0,
+            "missing": 0
+          },
+          "requiredPortalFieldCount": 61,
+          "blockerCount": 0,
+          "blockers": [],
+          "excludedUnverifiedFields": [
+            "beneficiario.provincia_nascita",
+            "immobile.provincia",
+            "immobile.codice_comune",
+            "immobile.zona_climatica",
+            "immobile.gradi_giorno",
+            "schermature.0.rsupp",
+            "schermature.1.rsupp",
+            "documenti.fatture",
+            "documenti.bonifico",
+            "documenti.tecnici"
+          ],
+          "draftReady": true,
+          "officialSubmissionAllowed": false,
+          "portalGate": {
+            "status": "ready",
+            "reason": null,
+            "workflowFingerprint": "1ce2ctw:61:2",
+            "supportedPages": [
+              "Generatore dell'impianto termico",
+              "Anagrafica Beneficiario",
+              "Immobile",
+              "Intervento",
+              "Impianto termico esistente",
+              "Schermature solari",
+              "Calcolo costi e detrazioni"
+            ],
+            "screeningItemCount": 2,
+            "saveAllowedOnlyBySeparateCapability": true,
+            "previewAllowed": false,
+            "submitAllowed": false
+          },
+          "externalActionAllowed": false,
+          "reason": "Payload TEST completo per la sola bozza salvata; anteprima e submit restano vietati."
+        },
+        "draftPlan": {
+          "status": "ready_before_external_action",
+          "externalActionAllowed": false,
+          "previewAllowed": false,
+          "submitAllowed": false,
+          "communicationsAllowed": false,
+          "nextAction": "Piano locale pronto; fermo prima di ENEA."
+        }
+      },
+      "reason": "Fresh replay dai documenti originali"
+    }
+  ],
+  "externalActionAllowed": false,
+  "reason": "Fresh replay locale",
+  "nextAction": "Nessuna azione esterna.",
+  "validationRevisionsApplied": [],
+  "sourceRevisionsApplied": [],
+  "operatorMeasurementResolutions": [],
+  "audit": [
+    {
+      "revision": 1,
+      "at": "2026-09-03T10:00:00.000Z",
+      "type": "completed",
+      "customerKey": null,
+      "reason": "Fresh replay locale",
+      "appliedRuleIds": [
+        "system-single-active-practice"
+      ]
+    }
+  ]
+}

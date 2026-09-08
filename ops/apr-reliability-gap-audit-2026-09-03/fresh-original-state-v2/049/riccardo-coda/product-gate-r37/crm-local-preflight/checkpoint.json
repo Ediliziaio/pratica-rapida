@@ -1,0 +1,443 @@
+{
+  "version": "apr-crm-local-preflight-v1",
+  "revision": 1,
+  "status": "completed",
+  "sourceFingerprint": "c4347d5485d92a6659de7cf02493beace516b8fd36365db516224508172ecb0c",
+  "currentCustomerKey": null,
+  "items": [
+    {
+      "customerKey": "riccardo-coda",
+      "displayName": "RICCARDO CODA",
+      "practiceId": "a29f9183-1e31-4295-b5c7-aa3f02803d79",
+      "dossierPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2969-global-controller-riccardo-coda/crm-acquisition/dossiers/riccardo-coda.json",
+      "state": "blocked_case",
+      "attemptCount": 1,
+      "startedAt": null,
+      "endedAt": null,
+      "report": {
+        "outcome": "blocked_case",
+        "formAvailable": true,
+        "startDate": "2026-04-24",
+        "startDateSource": "6c1f76247f7f75167d03bba588551f75d8891f18e47873e15c03e8f679aadedf:invoice:0fb1d493672b",
+        "completionDate": "2026-06-19",
+        "completionDateSource": "6c1f76247f7f75167d03bba588551f75d8891f18e47873e15c03e8f679aadedf:invoice:83d4b33044b2",
+        "buildingQualification": "single_unit",
+        "buildingUnitCount": 1,
+        "deductionRate": null,
+        "taxCodeStatus": "verified_form",
+        "resolvedTaxCode": "CDORCR50A30A859R",
+        "taxCodeSourceIds": [
+          "riccardo-coda"
+        ],
+        "primaryBeneficiaryResolution": {
+          "status": "not_found",
+          "identity": null,
+          "sourceIds": [],
+          "authority": null
+        },
+        "coBeneficiaryResolution": {
+          "status": "not_declared",
+          "present": false,
+          "identity": null,
+          "sourceIds": []
+        },
+        "products": [
+          {
+            "rowId": "6c1f76247f7f75167d03bba588551f75d8891f18e47873e15c03e8f679aadedf:invoice:83d4b33044b2:piece-1",
+            "sourceDocumentKey": "6c1f76247f7f75167d03bba588551f75d8891f18e47873e15c03e8f679aadedf:invoice:83d4b33044b2",
+            "description": "Tenda da sole a bracci",
+            "pieceNumber": 1,
+            "widthMm": 4600,
+            "heightMm": 2200,
+            "surfaceM2": 10.12,
+            "exposure": "sud",
+            "exposureSource": "linea_sole_potito_fallback",
+            "protectedWindowSurfaceM2": 2.3,
+            "protectedWindowSurfaceSource": "linea_sole_potito_fallback",
+            "supplementaryThermalResistance": null,
+            "declaredType": null,
+            "formMappingSource": null,
+            "gTot": 0.13,
+            "gTotSource": "invoice_explicit",
+            "material": "Tessuto",
+            "materialSource": "invoice_explicit",
+            "movement": "Automatico",
+            "movementSource": "invoice_explicit",
+            "appliedRuleIds": [
+              "user-2026-08-31-documented-gtot-precedence-v1",
+              "user-2026-08-18-explicit-motorized-screening-movement",
+              "authorized-22-schermature-materiale",
+              "authorized-16-schermature-meccanismo",
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+              "user-2026-08-18-explicit-technical-surface-precision",
+              "user-2026-08-17-linea-sole-potito-paper-form-fallbacks"
+            ]
+          }
+        ],
+        "financial": {
+          "invoiceTotal": null,
+          "eligibleExpense": null,
+          "tripleReconciliationVerified": false,
+          "reconciledTotal": null,
+          "evidence": [
+            {
+              "sourceId": "6c1f76247f7f75167d03bba588551f75d8891f18e47873e15c03e8f679aadedf:invoice:17381fdee994",
+              "kind": "invoice",
+              "taxableAmount": null,
+              "vatAmount": null,
+              "grossTotal": null,
+              "interventionGrossAmount": null,
+              "extractionConfidence": "uncertain",
+              "extractionIssues": []
+            },
+            {
+              "sourceId": "6c1f76247f7f75167d03bba588551f75d8891f18e47873e15c03e8f679aadedf:invoice:693b724dfb5a",
+              "kind": "invoice",
+              "taxableAmount": null,
+              "vatAmount": null,
+              "grossTotal": null,
+              "interventionGrossAmount": null,
+              "extractionConfidence": "uncertain",
+              "extractionIssues": []
+            },
+            {
+              "sourceId": "6c1f76247f7f75167d03bba588551f75d8891f18e47873e15c03e8f679aadedf:invoice:83d4b33044b2",
+              "kind": "invoice",
+              "taxableAmount": 955,
+              "vatAmount": 95.5,
+              "grossTotal": 1050.5,
+              "interventionGrossAmount": 1050.5,
+              "extractionConfidence": "certain",
+              "extractionIssues": []
+            },
+            {
+              "sourceId": "6c1f76247f7f75167d03bba588551f75d8891f18e47873e15c03e8f679aadedf:invoice:0fb1d493672b",
+              "kind": "invoice",
+              "taxableAmount": 955,
+              "vatAmount": 95.5,
+              "grossTotal": 1050.5,
+              "interventionGrossAmount": 1050.5,
+              "extractionConfidence": "certain",
+              "extractionIssues": []
+            }
+          ],
+          "bankTransfers": [],
+          "bankTransferReconciliation": {
+            "status": "not_provided",
+            "principalTotal": null,
+            "feesTotal": null,
+            "debitedTotal": null,
+            "difference": null,
+            "referenceStatus": "not_provided",
+            "missingInvoiceReferences": [],
+            "taxReliefTypes": []
+          },
+          "methods": [
+            {
+              "method": "structured_extraction",
+              "ok": false,
+              "total": null,
+              "sources": [
+                "6c1f76247f7f75167d03bba588551f75d8891f18e47873e15c03e8f679aadedf:invoice:83d4b33044b2",
+                "6c1f76247f7f75167d03bba588551f75d8891f18e47873e15c03e8f679aadedf:invoice:0fb1d493672b"
+              ],
+              "reason": "terna-fattura-incerta:6c1f76247f7f75167d03bba588551f75d8891f18e47873e15c03e8f679aadedf:invoice:17381fdee994, terna-fattura-incerta:6c1f76247f7f75167d03bba588551f75d8891f18e47873e15c03e8f679aadedf:invoice:693b724dfb5a"
+            },
+            {
+              "method": "accounting_reconciliation",
+              "ok": false,
+              "total": null,
+              "sources": [
+                "6c1f76247f7f75167d03bba588551f75d8891f18e47873e15c03e8f679aadedf:invoice:83d4b33044b2",
+                "6c1f76247f7f75167d03bba588551f75d8891f18e47873e15c03e8f679aadedf:invoice:0fb1d493672b"
+              ],
+              "reason": "terna-fattura-incerta:6c1f76247f7f75167d03bba588551f75d8891f18e47873e15c03e8f679aadedf:invoice:17381fdee994, terna-fattura-incerta:6c1f76247f7f75167d03bba588551f75d8891f18e47873e15c03e8f679aadedf:invoice:693b724dfb5a"
+            },
+            {
+              "method": "intervention_cross_check",
+              "ok": false,
+              "total": null,
+              "sources": [
+                "6c1f76247f7f75167d03bba588551f75d8891f18e47873e15c03e8f679aadedf:invoice:83d4b33044b2",
+                "6c1f76247f7f75167d03bba588551f75d8891f18e47873e15c03e8f679aadedf:invoice:0fb1d493672b"
+              ],
+              "reason": "righe-intervento-non-dimostrate:"
+            }
+          ],
+          "discardedDuplicateSourceIds": [],
+          "supersededTechnicalSourceIds": [],
+          "appliedRuleIds": [
+            "user-2026-08-16-invoice-gross-total-vat-included",
+            "user-2026-08-18-bundled-professional-expense-separation",
+            "user-2026-08-18-mandatory-bank-transfer-invoice-expense-cross-check",
+            "core-gross-triple-reconciliation",
+            "user-2026-08-14-preserve-technical-product-cardinality",
+            "system-explicit-advance-invoice-reference-marker-v1",
+            "user-2026-08-16-distinct-invoice-numbers-same-customer-sum"
+          ]
+        },
+        "warnings": [
+          {
+            "code": "linea_sole_potito_paper_form_accepted",
+            "reason": "Modulo cartaceo Linea Sole Potito riconosciuto come form originario da 6c1f76247f7f75167d03bba588551f75d8891f18e47873e15c03e8f679aadedf.",
+            "appliedRuleIds": [
+              "user-2026-08-17-linea-sole-potito-paper-form-fallbacks",
+              "core-form-first"
+            ]
+          },
+          {
+            "code": "paper_form_birth_date_separator_ocr_repaired",
+            "reason": "Separatore OCR della data di nascita ricomposto come 1950-01-30 soltanto dopo concordanza completa col CF valido della fattura; testo originario e valore usato restano auditabili.",
+            "appliedRuleIds": [
+              "system-paper-form-birth-date-leading-digit-ocr-repair",
+              "user-2026-08-16-fiscal-code-identity-cross-check"
+            ]
+          },
+          {
+            "code": "building_units_defaulted_to_one",
+            "reason": "Numero appartamenti non specificato o zero: impostata una unita immobiliare.",
+            "appliedRuleIds": [
+              "user-2026-08-16-default-single-unit-when-unspecified",
+              "user-2026-08-14-single-unit-building-over-floor-count"
+            ]
+          },
+          {
+            "code": "enea_2026_june_25_ninety_day_window_applied",
+            "reason": "Avviso ENEA 25/06/2026 applicato: inizio lavori 2026-04-24, fine lavori 2026-06-19; i 90 giorni decorrono dal 25/06/2026 e terminano il 23/09/2026.",
+            "appliedRuleIds": [
+              "user-2026-08-23-enea-2026-june-25-ninety-day-window"
+            ]
+          }
+        ],
+        "blockers": [
+          {
+            "code": "invoice_929a8665",
+            "field": "economic_sources",
+            "reason": "Il totale di almeno un documento fiscale non è stato riconosciuto.",
+            "sourceIds": [
+              "6c1f76247f7f75167d03bba588551f75d8891f18e47873e15c03e8f679aadedf",
+              "6c1f76247f7f75167d03bba588551f75d8891f18e47873e15c03e8f679aadedf"
+            ],
+            "appliedRuleIds": [
+              "core-economic-classification"
+            ]
+          },
+          {
+            "code": "gross_triple_reconciliation_failed",
+            "field": "economic_sources.total",
+            "reason": "Tripla riconciliazione non dimostrata: terna-fattura-incerta:6c1f76247f7f75167d03bba588551f75d8891f18e47873e15c03e8f679aadedf:invoice:17381fdee994, terna-fattura-incerta:6c1f76247f7f75167d03bba588551f75d8891f18e47873e15c03e8f679aadedf:invoice:693b724dfb5a.",
+            "sourceIds": [
+              "6c1f76247f7f75167d03bba588551f75d8891f18e47873e15c03e8f679aadedf",
+              "6c1f76247f7f75167d03bba588551f75d8891f18e47873e15c03e8f679aadedf"
+            ],
+            "appliedRuleIds": [
+              "user-2026-08-16-invoice-gross-total-vat-included",
+              "core-gross-triple-reconciliation",
+              "user-2026-08-16-distinct-invoice-numbers-same-customer-sum"
+            ]
+          }
+        ],
+        "sourceIds": [
+          "6c1f76247f7f75167d03bba588551f75d8891f18e47873e15c03e8f679aadedf",
+          "6c1f76247f7f75167d03bba588551f75d8891f18e47873e15c03e8f679aadedf"
+        ],
+        "eneaPayloadAudit": {
+          "status": "payload_incomplete",
+          "mappingFingerprint": "iho9xg",
+          "fieldSummary": {
+            "ready": 38,
+            "review": 0,
+            "missing": 21
+          },
+          "requiredPortalFieldCount": 31,
+          "blockerCount": 22,
+          "blockers": [
+            {
+              "code": "document-blocker-0",
+              "fieldId": "schermature.spesa",
+              "message": "Il totale di almeno un documento fiscale non è stato riconosciuto."
+            },
+            {
+              "code": "missing-beneficiario.nazione_residenza",
+              "fieldId": "beneficiario.nazione_residenza",
+              "message": "Nazione di residenza: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-beneficiario.comune_residenza",
+              "fieldId": "beneficiario.comune_residenza",
+              "message": "Comune di residenza: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-beneficiario.indirizzo_residenza",
+              "fieldId": "beneficiario.indirizzo_residenza",
+              "message": "Indirizzo di residenza: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-beneficiario.civico_residenza",
+              "fieldId": "beneficiario.civico_residenza",
+              "message": "Civico di residenza: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-beneficiario.cap_residenza",
+              "fieldId": "beneficiario.cap_residenza",
+              "message": "CAP di residenza: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-beneficiario.titolo",
+              "fieldId": "beneficiario.titolo",
+              "message": "Titolo sull'immobile: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-immobile.comune",
+              "fieldId": "immobile.comune",
+              "message": "Comune lavori: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-immobile.indirizzo",
+              "fieldId": "immobile.indirizzo",
+              "message": "Indirizzo lavori: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-immobile.civico",
+              "fieldId": "immobile.civico",
+              "message": "Civico lavori: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-immobile.cap",
+              "fieldId": "immobile.cap",
+              "message": "CAP lavori: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-immobile.foglio",
+              "fieldId": "immobile.foglio",
+              "message": "Foglio: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-immobile.mappale",
+              "fieldId": "immobile.mappale",
+              "message": "Particella / mappale: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-immobile.anno",
+              "fieldId": "immobile.anno",
+              "message": "Anno di costruzione: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-immobile.superficie",
+              "fieldId": "immobile.superficie",
+              "message": "Superficie utile: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-impianto.tipo",
+              "fieldId": "impianto.tipo",
+              "message": "Tipo impianto: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-impianto.terminali",
+              "fieldId": "impianto.terminali",
+              "message": "Terminali: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-impianto.generatore",
+              "fieldId": "impianto.generatore",
+              "message": "Tipo generatore: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-impianto.numero_generatori",
+              "fieldId": "impianto.numero_generatori",
+              "message": "Numero generatori: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-impianto.combustibile",
+              "fieldId": "impianto.combustibile",
+              "message": "Vettore energetico: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-impianto.condizionamento",
+              "fieldId": "impianto.condizionamento",
+              "message": "Climatizzazione estiva: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-schermature.spesa",
+              "fieldId": "schermature.spesa",
+              "message": "Spese congrue sostenute: Intervento umano richiesto."
+            }
+          ],
+          "excludedUnverifiedFields": [
+            "beneficiario.nazione_residenza",
+            "beneficiario.comune_residenza",
+            "beneficiario.indirizzo_residenza",
+            "beneficiario.civico_residenza",
+            "beneficiario.cap_residenza",
+            "beneficiario.titolo",
+            "immobile.comune",
+            "immobile.provincia",
+            "immobile.indirizzo",
+            "immobile.civico",
+            "immobile.cap",
+            "immobile.codice_comune",
+            "immobile.foglio",
+            "immobile.mappale",
+            "immobile.anno",
+            "immobile.superficie",
+            "immobile.zona_climatica",
+            "immobile.gradi_giorno",
+            "intervento.impianto_centralizzato",
+            "impianto.tipo",
+            "impianto.terminali",
+            "impianto.generatore",
+            "impianto.combustibile",
+            "impianto.condizionamento",
+            "schermature.0.rsupp",
+            "schermature.spesa",
+            "documenti.fatture",
+            "documenti.bonifico",
+            "documenti.tecnici"
+          ],
+          "draftReady": false,
+          "officialSubmissionAllowed": false,
+          "portalGate": {
+            "status": "blocked",
+            "reason": "draft-data-incomplete",
+            "workflowFingerprint": null,
+            "supportedPages": [],
+            "screeningItemCount": 0,
+            "saveAllowedOnlyBySeparateCapability": true,
+            "previewAllowed": false,
+            "submitAllowed": false
+          },
+          "externalActionAllowed": false,
+          "reason": "22 campi o controlli impediscono ancora il payload della bozza TEST."
+        },
+        "draftPlan": {
+          "status": "blocked",
+          "externalActionAllowed": false,
+          "previewAllowed": false,
+          "submitAllowed": false,
+          "communicationsAllowed": false,
+          "nextAction": "Risolvere i blocker con sole fonti originarie; la coda prosegue sugli altri casi."
+        }
+      },
+      "reason": "Fresh replay dai documenti originali"
+    }
+  ],
+  "externalActionAllowed": false,
+  "reason": "Fresh replay locale",
+  "nextAction": "Nessuna azione esterna.",
+  "validationRevisionsApplied": [],
+  "sourceRevisionsApplied": [],
+  "operatorMeasurementResolutions": [],
+  "audit": [
+    {
+      "revision": 1,
+      "at": "2026-09-03T10:00:00.000Z",
+      "type": "completed",
+      "customerKey": null,
+      "reason": "Fresh replay locale",
+      "appliedRuleIds": [
+        "system-single-active-practice"
+      ]
+    }
+  ]
+}

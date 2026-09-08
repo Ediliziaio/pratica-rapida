@@ -1,0 +1,403 @@
+{
+  "version": "apr-crm-local-preflight-v1",
+  "revision": 1,
+  "status": "completed",
+  "sourceFingerprint": "739d9d63d9094fb7dc84986bcacd5c6273d9ef04107ca8e05144d43bc5b4be98",
+  "currentCustomerKey": null,
+  "items": [
+    {
+      "customerKey": "antonino-formisabo",
+      "displayName": "Antonino Formisabo",
+      "practiceId": "ada3267b-29d0-4765-b15d-489e27b23ec6",
+      "dossierPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3019-global-controller-antonino-formisabo/crm-acquisition/dossiers/antonino-formisabo.json",
+      "state": "blocked_case",
+      "attemptCount": 1,
+      "startedAt": null,
+      "endedAt": null,
+      "report": {
+        "outcome": "blocked_case",
+        "formAvailable": true,
+        "startDate": "2025-10-01",
+        "startDateSource": "568a62961f82f78e5c34c3ad6e4def10bbc95cec453b022ba0613afdcd08a2aa:invoice:264f0ccd0374",
+        "completionDate": "2025-12-16",
+        "completionDateSource": "5c7877efb569c3ad9ac8344bdc007eebda66a5f4b73ead4cd2ff533d7eb87fba:invoice:264f0ccd0374",
+        "buildingQualification": "multi_unit",
+        "buildingUnitCount": 7,
+        "deductionRate": null,
+        "taxCodeStatus": "verified_original_document",
+        "resolvedTaxCode": "FRMNNN66P27L259X",
+        "taxCodeSourceIds": [
+          "1509bb91bc694983eaf380594c65f4d528123db9eaef908a7af0bece61ead0c2",
+          "568a62961f82f78e5c34c3ad6e4def10bbc95cec453b022ba0613afdcd08a2aa",
+          "5c7877efb569c3ad9ac8344bdc007eebda66a5f4b73ead4cd2ff533d7eb87fba"
+        ],
+        "primaryBeneficiaryResolution": {
+          "status": "verified_document",
+          "identity": {
+            "name": "Antonino",
+            "surname": "Formisano",
+            "taxCode": "FRMNNN66P27L259X",
+            "birthDate": "1966-09-27",
+            "sex": "M"
+          },
+          "sourceIds": [
+            "3f474befb0a10b53673324445535ebfcc82451255de8b100202149442a4bb706"
+          ],
+          "authority": "official_identity_document"
+        },
+        "coBeneficiaryResolution": {
+          "status": "excluded_by_invoice",
+          "present": false,
+          "identity": null,
+          "sourceIds": [
+            "1509bb91bc694983eaf380594c65f4d528123db9eaef908a7af0bece61ead0c2",
+            "568a62961f82f78e5c34c3ad6e4def10bbc95cec453b022ba0613afdcd08a2aa",
+            "5c7877efb569c3ad9ac8344bdc007eebda66a5f4b73ead4cd2ff533d7eb87fba"
+          ]
+        },
+        "products": [],
+        "financial": {
+          "invoiceTotal": null,
+          "eligibleExpense": null,
+          "tripleReconciliationVerified": false,
+          "reconciledTotal": null,
+          "evidence": [
+            {
+              "sourceId": "ee3d3fdf397708c7cf85de7519e55d39d79cea1c3e92995ac12f9ec8cf8bc7e2:invoice:264f0ccd0374",
+              "kind": "invoice",
+              "taxableAmount": null,
+              "vatAmount": null,
+              "grossTotal": null,
+              "interventionGrossAmount": null,
+              "extractionConfidence": "uncertain",
+              "extractionIssues": []
+            },
+            {
+              "sourceId": "568a62961f82f78e5c34c3ad6e4def10bbc95cec453b022ba0613afdcd08a2aa:invoice:264f0ccd0374",
+              "kind": "invoice",
+              "taxableAmount": 3739.12,
+              "vatAmount": 373.91,
+              "grossTotal": 4113.03,
+              "interventionGrossAmount": 4113.03,
+              "extractionConfidence": "certain",
+              "extractionIssues": []
+            },
+            {
+              "sourceId": "1509bb91bc694983eaf380594c65f4d528123db9eaef908a7af0bece61ead0c2:invoice:264f0ccd0374",
+              "kind": "invoice",
+              "taxableAmount": 2243.47,
+              "vatAmount": 224.35,
+              "grossTotal": 2467.82,
+              "interventionGrossAmount": 2467.82,
+              "extractionConfidence": "certain",
+              "extractionIssues": []
+            },
+            {
+              "sourceId": "5c7877efb569c3ad9ac8344bdc007eebda66a5f4b73ead4cd2ff533d7eb87fba:invoice:264f0ccd0374",
+              "kind": "invoice",
+              "taxableAmount": 1495.64,
+              "vatAmount": 149.56,
+              "grossTotal": 1645.2,
+              "interventionGrossAmount": 1645.2,
+              "extractionConfidence": "certain",
+              "extractionIssues": []
+            }
+          ],
+          "bankTransfers": [
+            {
+              "sourceId": "1d2e91d7354b3f46507070193131bba0a9ef198178392e64620469f95fe2b9f6",
+              "transactionReference": "0303227500160822zx6644066440it",
+              "principalAmount": 4113.03,
+              "fees": null,
+              "debitedTotal": null,
+              "invoiceReference": "225/FE",
+              "taxReliefType": null,
+              "appliedRuleIds": [
+                "user-2026-08-16-invoice-total-over-bank-transfers",
+                "user-2026-08-18-mandatory-bank-transfer-invoice-expense-cross-check",
+                "core-economic-classification"
+              ]
+            }
+          ],
+          "bankTransferReconciliation": {
+            "status": "unverified",
+            "principalTotal": null,
+            "feesTotal": null,
+            "debitedTotal": null,
+            "difference": null,
+            "referenceStatus": "incomplete",
+            "missingInvoiceReferences": [
+              "",
+              "274/FE",
+              "315/FE"
+            ],
+            "taxReliefTypes": []
+          },
+          "methods": [
+            {
+              "method": "structured_extraction",
+              "ok": false,
+              "total": null,
+              "sources": [
+                "568a62961f82f78e5c34c3ad6e4def10bbc95cec453b022ba0613afdcd08a2aa:invoice:264f0ccd0374",
+                "1509bb91bc694983eaf380594c65f4d528123db9eaef908a7af0bece61ead0c2:invoice:264f0ccd0374",
+                "5c7877efb569c3ad9ac8344bdc007eebda66a5f4b73ead4cd2ff533d7eb87fba:invoice:264f0ccd0374"
+              ],
+              "reason": "terna-fattura-incerta:ee3d3fdf397708c7cf85de7519e55d39d79cea1c3e92995ac12f9ec8cf8bc7e2:invoice:264f0ccd0374"
+            },
+            {
+              "method": "accounting_reconciliation",
+              "ok": false,
+              "total": null,
+              "sources": [
+                "568a62961f82f78e5c34c3ad6e4def10bbc95cec453b022ba0613afdcd08a2aa:invoice:264f0ccd0374",
+                "1509bb91bc694983eaf380594c65f4d528123db9eaef908a7af0bece61ead0c2:invoice:264f0ccd0374",
+                "5c7877efb569c3ad9ac8344bdc007eebda66a5f4b73ead4cd2ff533d7eb87fba:invoice:264f0ccd0374"
+              ],
+              "reason": "terna-fattura-incerta:ee3d3fdf397708c7cf85de7519e55d39d79cea1c3e92995ac12f9ec8cf8bc7e2:invoice:264f0ccd0374"
+            },
+            {
+              "method": "intervention_cross_check",
+              "ok": false,
+              "total": null,
+              "sources": [
+                "568a62961f82f78e5c34c3ad6e4def10bbc95cec453b022ba0613afdcd08a2aa:invoice:264f0ccd0374",
+                "1509bb91bc694983eaf380594c65f4d528123db9eaef908a7af0bece61ead0c2:invoice:264f0ccd0374",
+                "5c7877efb569c3ad9ac8344bdc007eebda66a5f4b73ead4cd2ff533d7eb87fba:invoice:264f0ccd0374"
+              ],
+              "reason": "righe-intervento-non-dimostrate:"
+            }
+          ],
+          "discardedDuplicateSourceIds": [],
+          "supersededTechnicalSourceIds": [],
+          "appliedRuleIds": [
+            "user-2026-08-16-invoice-gross-total-vat-included",
+            "user-2026-08-18-bundled-professional-expense-separation",
+            "user-2026-08-18-mandatory-bank-transfer-invoice-expense-cross-check",
+            "core-gross-triple-reconciliation",
+            "user-2026-08-14-preserve-technical-product-cardinality",
+            "system-explicit-advance-invoice-reference-marker-v1",
+            "user-2026-08-16-distinct-invoice-numbers-same-customer-sum"
+          ]
+        },
+        "warnings": [
+          {
+            "code": "primary_beneficiary_identity_overridden_by_invoice",
+            "reason": "Identita principale ricavata da documento ufficiale per il CF verificato: Antonino Formisano, nascita 1966-09-27, sesso M; prevale sui dati inseriti nel CRM e nel form cliente.",
+            "appliedRuleIds": [
+              "user-2026-09-03-official-identity-over-manual-crm-v1",
+              "user-2026-08-16-fiscal-code-identity-cross-check"
+            ]
+          },
+          {
+            "code": "co_beneficiary_form_overridden_by_invoice",
+            "reason": "Il cointestatario dichiarato nel form non compare nelle fatture originarie, che identificano un solo beneficiario: escluso dalla bozza per precedenza della fattura.",
+            "appliedRuleIds": [
+              "user-2026-08-16-invoice-identity-over-customer-form"
+            ]
+          }
+        ],
+        "blockers": [
+          {
+            "code": "screenings_missing",
+            "field": "screenings",
+            "reason": "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+            "sourceIds": [
+              "ee3d3fdf397708c7cf85de7519e55d39d79cea1c3e92995ac12f9ec8cf8bc7e2",
+              "1d2e91d7354b3f46507070193131bba0a9ef198178392e64620469f95fe2b9f6",
+              "4ce578f3ddf19e5bc9b0273c8d2e415171983659c5082adfcaf88c636f2dda7b",
+              "b9547f368ca2dda888c0cf2baafe159afc210d5cfef22df8b255ac9540ad75d4",
+              "7b0b698d39187b36cd71eda300bb147bea4e1502aeef1a0365ecc99c50e502f9",
+              "3f474befb0a10b53673324445535ebfcc82451255de8b100202149442a4bb706",
+              "d6234418d259872e3244b3c7cabd2fa15258dcbb8676a82fdd965192d4d8982b",
+              "568a62961f82f78e5c34c3ad6e4def10bbc95cec453b022ba0613afdcd08a2aa",
+              "1509bb91bc694983eaf380594c65f4d528123db9eaef908a7af0bece61ead0c2",
+              "5c7877efb569c3ad9ac8344bdc007eebda66a5f4b73ead4cd2ff533d7eb87fba"
+            ],
+            "appliedRuleIds": [
+              "user-2026-08-14-preserve-technical-product-cardinality"
+            ]
+          },
+          {
+            "code": "bank_transfer_invoice_cross_check_failed",
+            "field": "economic_sources.bankTransfers",
+            "reason": "Controllo incrociato bonifici/fatture non conclusivo: capitale non leggibile, lordo fatture € non verificato, riferimenti mancanti , 274/FE, 315/FE. Richiesto intervento operatore; nessun totale viene inventato.",
+            "sourceIds": [
+              "1d2e91d7354b3f46507070193131bba0a9ef198178392e64620469f95fe2b9f6"
+            ],
+            "appliedRuleIds": [
+              "user-2026-08-18-mandatory-bank-transfer-invoice-expense-cross-check",
+              "user-2026-08-16-invoice-total-over-bank-transfers",
+              "system-apr-operator-intervention-routing"
+            ]
+          },
+          {
+            "code": "completion_date_portal_year_mismatch",
+            "field": "dates.completion",
+            "reason": "Fine lavori 2025-12-16: anno 2025 incompatibile con il portale ENEA 2026. Selezionare il portale annuale corretto senza modificare la data.",
+            "sourceIds": [
+              "5c7877efb569c3ad9ac8344bdc007eebda66a5f4b73ead4cd2ff533d7eb87fba:invoice:264f0ccd0374",
+              "568a62961f82f78e5c34c3ad6e4def10bbc95cec453b022ba0613afdcd08a2aa:invoice:264f0ccd0374"
+            ],
+            "appliedRuleIds": [
+              "user-2026-08-23-completion-portal-year-operator-gate",
+              "user-2026-08-14-missing-completion-use-latest-invoice"
+            ]
+          },
+          {
+            "code": "completion_over_90_days_operator_required",
+            "field": "dates.completion",
+            "reason": "Fine lavori 2025-12-16: 261 giorni prima della lavorazione, oltre il limite di 90 giorni. Verificare la procedibilità e il portale annuale corretto.",
+            "sourceIds": [
+              "5c7877efb569c3ad9ac8344bdc007eebda66a5f4b73ead4cd2ff533d7eb87fba:invoice:264f0ccd0374",
+              "568a62961f82f78e5c34c3ad6e4def10bbc95cec453b022ba0613afdcd08a2aa:invoice:264f0ccd0374"
+            ],
+            "appliedRuleIds": [
+              "user-2026-08-23-completion-over-90-operator-gate",
+              "user-2026-08-14-missing-completion-use-latest-invoice"
+            ]
+          },
+          {
+            "code": "invoice_332a5af9",
+            "field": "economic_sources",
+            "reason": "Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture.",
+            "sourceIds": [
+              "ee3d3fdf397708c7cf85de7519e55d39d79cea1c3e92995ac12f9ec8cf8bc7e2",
+              "1d2e91d7354b3f46507070193131bba0a9ef198178392e64620469f95fe2b9f6",
+              "4ce578f3ddf19e5bc9b0273c8d2e415171983659c5082adfcaf88c636f2dda7b",
+              "b9547f368ca2dda888c0cf2baafe159afc210d5cfef22df8b255ac9540ad75d4",
+              "7b0b698d39187b36cd71eda300bb147bea4e1502aeef1a0365ecc99c50e502f9",
+              "3f474befb0a10b53673324445535ebfcc82451255de8b100202149442a4bb706",
+              "d6234418d259872e3244b3c7cabd2fa15258dcbb8676a82fdd965192d4d8982b",
+              "568a62961f82f78e5c34c3ad6e4def10bbc95cec453b022ba0613afdcd08a2aa",
+              "1509bb91bc694983eaf380594c65f4d528123db9eaef908a7af0bece61ead0c2",
+              "5c7877efb569c3ad9ac8344bdc007eebda66a5f4b73ead4cd2ff533d7eb87fba"
+            ],
+            "appliedRuleIds": [
+              "core-economic-classification"
+            ]
+          },
+          {
+            "code": "invoice_929a8665",
+            "field": "economic_sources",
+            "reason": "Il totale di almeno un documento fiscale non è stato riconosciuto.",
+            "sourceIds": [
+              "ee3d3fdf397708c7cf85de7519e55d39d79cea1c3e92995ac12f9ec8cf8bc7e2",
+              "1d2e91d7354b3f46507070193131bba0a9ef198178392e64620469f95fe2b9f6",
+              "4ce578f3ddf19e5bc9b0273c8d2e415171983659c5082adfcaf88c636f2dda7b",
+              "b9547f368ca2dda888c0cf2baafe159afc210d5cfef22df8b255ac9540ad75d4",
+              "7b0b698d39187b36cd71eda300bb147bea4e1502aeef1a0365ecc99c50e502f9",
+              "3f474befb0a10b53673324445535ebfcc82451255de8b100202149442a4bb706",
+              "d6234418d259872e3244b3c7cabd2fa15258dcbb8676a82fdd965192d4d8982b",
+              "568a62961f82f78e5c34c3ad6e4def10bbc95cec453b022ba0613afdcd08a2aa",
+              "1509bb91bc694983eaf380594c65f4d528123db9eaef908a7af0bece61ead0c2",
+              "5c7877efb569c3ad9ac8344bdc007eebda66a5f4b73ead4cd2ff533d7eb87fba"
+            ],
+            "appliedRuleIds": [
+              "core-economic-classification"
+            ]
+          },
+          {
+            "code": "gross_triple_reconciliation_failed",
+            "field": "economic_sources.total",
+            "reason": "Tripla riconciliazione non dimostrata: terna-fattura-incerta:ee3d3fdf397708c7cf85de7519e55d39d79cea1c3e92995ac12f9ec8cf8bc7e2:invoice:264f0ccd0374.",
+            "sourceIds": [
+              "ee3d3fdf397708c7cf85de7519e55d39d79cea1c3e92995ac12f9ec8cf8bc7e2",
+              "1d2e91d7354b3f46507070193131bba0a9ef198178392e64620469f95fe2b9f6",
+              "4ce578f3ddf19e5bc9b0273c8d2e415171983659c5082adfcaf88c636f2dda7b",
+              "b9547f368ca2dda888c0cf2baafe159afc210d5cfef22df8b255ac9540ad75d4",
+              "7b0b698d39187b36cd71eda300bb147bea4e1502aeef1a0365ecc99c50e502f9",
+              "3f474befb0a10b53673324445535ebfcc82451255de8b100202149442a4bb706",
+              "d6234418d259872e3244b3c7cabd2fa15258dcbb8676a82fdd965192d4d8982b",
+              "568a62961f82f78e5c34c3ad6e4def10bbc95cec453b022ba0613afdcd08a2aa",
+              "1509bb91bc694983eaf380594c65f4d528123db9eaef908a7af0bece61ead0c2",
+              "5c7877efb569c3ad9ac8344bdc007eebda66a5f4b73ead4cd2ff533d7eb87fba"
+            ],
+            "appliedRuleIds": [
+              "user-2026-08-16-invoice-gross-total-vat-included",
+              "core-gross-triple-reconciliation",
+              "user-2026-08-16-distinct-invoice-numbers-same-customer-sum"
+            ]
+          }
+        ],
+        "sourceIds": [
+          "ee3d3fdf397708c7cf85de7519e55d39d79cea1c3e92995ac12f9ec8cf8bc7e2",
+          "1d2e91d7354b3f46507070193131bba0a9ef198178392e64620469f95fe2b9f6",
+          "4ce578f3ddf19e5bc9b0273c8d2e415171983659c5082adfcaf88c636f2dda7b",
+          "b9547f368ca2dda888c0cf2baafe159afc210d5cfef22df8b255ac9540ad75d4",
+          "7b0b698d39187b36cd71eda300bb147bea4e1502aeef1a0365ecc99c50e502f9",
+          "3f474befb0a10b53673324445535ebfcc82451255de8b100202149442a4bb706",
+          "d6234418d259872e3244b3c7cabd2fa15258dcbb8676a82fdd965192d4d8982b",
+          "568a62961f82f78e5c34c3ad6e4def10bbc95cec453b022ba0613afdcd08a2aa",
+          "1509bb91bc694983eaf380594c65f4d528123db9eaef908a7af0bece61ead0c2",
+          "5c7877efb569c3ad9ac8344bdc007eebda66a5f4b73ead4cd2ff533d7eb87fba"
+        ],
+        "eneaPayloadAudit": {
+          "status": "payload_incomplete",
+          "mappingFingerprint": null,
+          "fieldSummary": {
+            "ready": 0,
+            "review": 0,
+            "missing": 0
+          },
+          "requiredPortalFieldCount": 0,
+          "blockerCount": 2,
+          "blockers": [
+            {
+              "code": "crm-source-not-screening",
+              "fieldId": null,
+              "message": "Il dossier non è mappabile come pratica schermature."
+            },
+            {
+              "code": "screenings_missing",
+              "fieldId": "screenings",
+              "message": "Nessun prodotto fisico riconciliato dalle fatture originarie."
+            }
+          ],
+          "excludedUnverifiedFields": [],
+          "draftReady": false,
+          "officialSubmissionAllowed": false,
+          "portalGate": {
+            "status": "blocked",
+            "reason": "screening-component-blocked",
+            "workflowFingerprint": null,
+            "supportedPages": [],
+            "screeningItemCount": 0,
+            "saveAllowedOnlyBySeparateCapability": true,
+            "previewAllowed": false,
+            "submitAllowed": false
+          },
+          "externalActionAllowed": false,
+          "reason": "1 blocker della componente Schermature invalidano il payload della bozza TEST."
+        },
+        "draftPlan": {
+          "status": "blocked",
+          "externalActionAllowed": false,
+          "previewAllowed": false,
+          "submitAllowed": false,
+          "communicationsAllowed": false,
+          "nextAction": "Risolvere i blocker con sole fonti originarie; la coda prosegue sugli altri casi."
+        }
+      },
+      "reason": "Fresh replay dai documenti originali"
+    }
+  ],
+  "externalActionAllowed": false,
+  "reason": "Fresh replay locale",
+  "nextAction": "Nessuna azione esterna.",
+  "validationRevisionsApplied": [],
+  "sourceRevisionsApplied": [],
+  "operatorMeasurementResolutions": [],
+  "audit": [
+    {
+      "revision": 1,
+      "at": "2026-09-03T10:00:00.000Z",
+      "type": "completed",
+      "customerKey": null,
+      "reason": "Fresh replay locale",
+      "appliedRuleIds": [
+        "system-single-active-practice"
+      ]
+    }
+  ]
+}

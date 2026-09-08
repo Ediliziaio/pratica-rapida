@@ -1,0 +1,17 @@
+{
+  "version": "apr-financial-parser-r31-bundle-install-receipt-v1",
+  "installedAt": "2026-09-02T21:34:41.477Z",
+  "status": "bundle_promoted_pending_runtime_gate",
+  "preinstallGateSha256": "31248b15bd1758cfc67f22b07acc715d909f5877c4a5a2cc5a668ded4ac0eebf",
+  "versionId": "5156569e-resolved-non-economic-blocker-r31-20260902",
+  "previousTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/68e367e2-rotated-fiscal-bank-layouts-r30-20260902",
+  "currentTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/5156569e-resolved-non-economic-blocker-r31-20260902",
+  "installedBundle": {
+    "apr-supervisor.mjs": "c3d9a4b91d319f28b4d0e0ac98cfaa2ff8bf94b92d118758c309cb476346c749",
+    "apr-enea-worker.mjs": "5156569e08740b09b3a35d39c9780c821059a9e20b3931bf5eec18253e283c4b",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "apr-pdf-ocr": "4c41c9a6832b11b9d19eace538100270a533dddc05e475e5842711968393327f"
+  },
+  "keepaliveRestartRequested": false,
+  "chromeRestartRequested": false
+}

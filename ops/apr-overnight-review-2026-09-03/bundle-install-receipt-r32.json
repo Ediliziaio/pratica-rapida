@@ -1,0 +1,17 @@
+{
+  "version": "apr-overnight-review-r32-bundle-install-receipt-v1",
+  "installedAt": "2026-09-03T12:42:08.837Z",
+  "status": "bundle_promoted_local_gate_verified",
+  "preinstallGateSha256": "a11adcfa0c67fb0200ad3034b3fdae20798317b9cd811fa271d8c463ac39cedf",
+  "versionId": "24fcd1bf-overnight-review-r32-20260903",
+  "previousTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/5156569e-resolved-non-economic-blocker-r31-20260902",
+  "currentTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/24fcd1bf-overnight-review-r32-20260903",
+  "installedBundle": {
+    "apr-supervisor.mjs": "868372e84c68ffa4cd16de4896c5425e7d3863586780eac6e5302a1a78f4a3db",
+    "apr-enea-worker.mjs": "24fcd1bf222fee8a472c5e3b2232784ea6d8150cda929d7b02a89be5e6dfdb57",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "apr-pdf-ocr": "4c41c9a6832b11b9d19eace538100270a533dddc05e475e5842711968393327f"
+  },
+  "keepaliveRestartRequested": false,
+  "chromeRestartRequested": false
+}

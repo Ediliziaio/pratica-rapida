@@ -1,0 +1,57 @@
+{
+  "version": "apr-uncertain-save-probe-lifecycle-r42-postinstall-attestation-v1",
+  "verifiedAt": "2026-09-04T07:35:14.655Z",
+  "status": "installed_selected_session_preserved_operational_replay_pending",
+  "versionId": "cc879457-probe-lifecycle-r42-20260904",
+  "tripleVerification": {
+    "launchctlAndProcesses": {
+      "keepaliveLabel": "com.praticarapida.apr-enea-immortal-keepalive",
+      "state": "running",
+      "pid": 98419,
+      "chromeAprPid": 3785,
+      "chromeRestarted": false,
+      "keepaliveRestarted": false
+    },
+    "persistentCheckpointAndJournal": {
+      "serviceVersion": "apr-enea-worker-service-v1",
+      "revision": 14929,
+      "status": "setup_ready",
+      "heartbeatAt": "2026-09-04T07:35:14.430Z",
+      "reason": "Contratto DOM verde; auto-arm in attesa: apr_enea_worker_no_resumable_case.",
+      "contractObservedAt": "2026-09-04T07:33:31.856Z",
+      "contractEvidenceId": "cdp-server-6874-33756d8f8600bbeca4a6",
+      "forbiddenActionCount": 0,
+      "previewAttemptCount": 0,
+      "submitAttemptCount": 0,
+      "communicationAttemptCount": 0
+    },
+    "dashboardOrApi": {
+      "endpoint": "http://127.0.0.1:9331/json/list",
+      "targetId": "1C3153562376BE798125C283D8021102",
+      "pageTitle": "Bonus Fiscali - ENEA",
+      "pageUrl": "https://bonusfiscali.enea.it/dashboard",
+      "pageType": "page"
+    }
+  },
+  "activeBundleSha256": {
+    "apr-supervisor.mjs": "02a837d47fa0390318a1fd0d2fb30df547569ea9f44ee1fe98d71e37195f1bf0",
+    "apr-enea-worker.mjs": "cc87945774e43fe3eb69e0aaed01d5478a8d71cca2cb08f268a518def7ea07f2",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "apr-pdf-ocr": "4c41c9a6832b11b9d19eace538100270a533dddc05e475e5842711968393327f"
+  },
+  "activationBoundary": {
+    "canonicalPointerSelected": true,
+    "existingKeepaliveProcessWasNotRestarted": true,
+    "residentKeepaliveCodePredatesR42": true,
+    "nextFreshAprProcessWillLoadR42": true,
+    "operationalR42ReplayPerformed": false
+  },
+  "safety": {
+    "eneaMutationPerformed": false,
+    "crmMutationPerformed": false,
+    "previewPerformed": false,
+    "savePerformed": false,
+    "submitPerformed": false,
+    "communicationPerformed": false
+  }
+}

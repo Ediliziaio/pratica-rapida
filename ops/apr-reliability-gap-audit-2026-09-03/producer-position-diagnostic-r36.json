@@ -1,0 +1,247 @@
+{
+  "observation": {
+    "candidates": [
+      {
+        "sourceId": "massimo-original-producer-declaration",
+        "sourceKind": "invoice",
+        "parser": "producer-position-table",
+        "rows": [
+          {
+            "lineId": "massimo-original-producer-declaration:producer-position-table:1",
+            "quantity": 1,
+            "widthM": 1.177,
+            "heightM": 1.497,
+            "thermalTransmittanceWm2K": 0.77,
+            "measurementKind": "documented_unspecified"
+          },
+          {
+            "lineId": "massimo-original-producer-declaration:producer-position-table:2",
+            "quantity": 1,
+            "widthM": 1.177,
+            "heightM": 1.497,
+            "thermalTransmittanceWm2K": 0.77,
+            "measurementKind": "documented_unspecified"
+          },
+          {
+            "lineId": "massimo-original-producer-declaration:producer-position-table:3",
+            "quantity": 1,
+            "widthM": 0.803,
+            "heightM": 2.333,
+            "thermalTransmittanceWm2K": 0.79,
+            "measurementKind": "documented_unspecified"
+          },
+          {
+            "lineId": "massimo-original-producer-declaration:producer-position-table:4",
+            "quantity": 1,
+            "widthM": 0.803,
+            "heightM": 2.333,
+            "thermalTransmittanceWm2K": 0.79,
+            "measurementKind": "documented_unspecified"
+          },
+          {
+            "lineId": "massimo-original-producer-declaration:producer-position-table:5",
+            "quantity": 1,
+            "widthM": 0.803,
+            "heightM": 2.333,
+            "thermalTransmittanceWm2K": 0.79,
+            "measurementKind": "documented_unspecified"
+          },
+          {
+            "lineId": "massimo-original-producer-declaration:producer-position-table:6",
+            "quantity": 1,
+            "widthM": 1.777,
+            "heightM": 1.497,
+            "thermalTransmittanceWm2K": 0.78,
+            "measurementKind": "documented_unspecified"
+          },
+          {
+            "lineId": "massimo-original-producer-declaration:producer-position-table:7",
+            "quantity": 1,
+            "widthM": 1.147,
+            "heightM": 2.333,
+            "thermalTransmittanceWm2K": 0.84,
+            "measurementKind": "documented_unspecified"
+          },
+          {
+            "lineId": "massimo-original-producer-declaration:producer-position-table:8",
+            "quantity": 1,
+            "widthM": 1.153,
+            "heightM": 1.493,
+            "thermalTransmittanceWm2K": 0.87,
+            "measurementKind": "documented_unspecified"
+          },
+          {
+            "lineId": "massimo-original-producer-declaration:producer-position-table:9",
+            "quantity": 1,
+            "widthM": 1.193,
+            "heightM": 0.893,
+            "thermalTransmittanceWm2K": 0.91,
+            "measurementKind": "documented_unspecified"
+          },
+          {
+            "lineId": "massimo-original-producer-declaration:producer-position-table:10",
+            "quantity": 1,
+            "widthM": 1.177,
+            "heightM": 1.493,
+            "thermalTransmittanceWm2K": 0.77,
+            "measurementKind": "documented_unspecified"
+          },
+          {
+            "lineId": "massimo-original-producer-declaration:producer-position-table:11",
+            "quantity": 1,
+            "widthM": 0.803,
+            "heightM": 2.333,
+            "thermalTransmittanceWm2K": 0.79,
+            "measurementKind": "documented_unspecified"
+          },
+          {
+            "lineId": "massimo-original-producer-declaration:producer-position-table:12",
+            "quantity": 1,
+            "widthM": 0.993,
+            "heightM": 0.895,
+            "thermalTransmittanceWm2K": 0.86,
+            "measurementKind": "documented_unspecified"
+          }
+        ],
+        "explicitUwCount": 12,
+        "declaredPerformancePageCount": null
+      }
+    ],
+    "excludedSources": [],
+    "appliedRuleIds": [
+      "user-2026-08-19-infissi-invoice-or-technical-source-resolution-v1",
+      "user-2026-08-19-infissi-transmittance-1-3-fallback-v1",
+      "user-2026-08-14-preserve-technical-product-cardinality",
+      "user-2026-08-25-crm-internal-technical-document-untrusted-v1",
+      "user-2026-08-25-test-ex-novo-original-sources-only-v1"
+    ]
+  },
+  "resolution": {
+    "version": "apr-infissi-automatic-document-evidence-v3",
+    "status": "ready",
+    "evidence": {
+      "kind": "invoice",
+      "sourceIds": [
+        "massimo-original-producer-declaration"
+      ],
+      "rows": [
+        {
+          "lineId": "massimo-original-producer-declaration:producer-position-table:1",
+          "quantity": 1,
+          "widthM": 1.177,
+          "heightM": 1.497,
+          "thermalTransmittanceWm2K": 0.77,
+          "measurementKind": "documented_unspecified"
+        },
+        {
+          "lineId": "massimo-original-producer-declaration:producer-position-table:2",
+          "quantity": 1,
+          "widthM": 1.177,
+          "heightM": 1.497,
+          "thermalTransmittanceWm2K": 0.77,
+          "measurementKind": "documented_unspecified"
+        },
+        {
+          "lineId": "massimo-original-producer-declaration:producer-position-table:3",
+          "quantity": 1,
+          "widthM": 0.803,
+          "heightM": 2.333,
+          "thermalTransmittanceWm2K": 0.79,
+          "measurementKind": "documented_unspecified"
+        },
+        {
+          "lineId": "massimo-original-producer-declaration:producer-position-table:4",
+          "quantity": 1,
+          "widthM": 0.803,
+          "heightM": 2.333,
+          "thermalTransmittanceWm2K": 0.79,
+          "measurementKind": "documented_unspecified"
+        },
+        {
+          "lineId": "massimo-original-producer-declaration:producer-position-table:5",
+          "quantity": 1,
+          "widthM": 0.803,
+          "heightM": 2.333,
+          "thermalTransmittanceWm2K": 0.79,
+          "measurementKind": "documented_unspecified"
+        },
+        {
+          "lineId": "massimo-original-producer-declaration:producer-position-table:6",
+          "quantity": 1,
+          "widthM": 1.777,
+          "heightM": 1.497,
+          "thermalTransmittanceWm2K": 0.78,
+          "measurementKind": "documented_unspecified"
+        },
+        {
+          "lineId": "massimo-original-producer-declaration:producer-position-table:7",
+          "quantity": 1,
+          "widthM": 1.147,
+          "heightM": 2.333,
+          "thermalTransmittanceWm2K": 0.84,
+          "measurementKind": "documented_unspecified"
+        },
+        {
+          "lineId": "massimo-original-producer-declaration:producer-position-table:8",
+          "quantity": 1,
+          "widthM": 1.153,
+          "heightM": 1.493,
+          "thermalTransmittanceWm2K": 0.87,
+          "measurementKind": "documented_unspecified"
+        },
+        {
+          "lineId": "massimo-original-producer-declaration:producer-position-table:9",
+          "quantity": 1,
+          "widthM": 1.193,
+          "heightM": 0.893,
+          "thermalTransmittanceWm2K": 0.91,
+          "measurementKind": "documented_unspecified"
+        },
+        {
+          "lineId": "massimo-original-producer-declaration:producer-position-table:10",
+          "quantity": 1,
+          "widthM": 1.177,
+          "heightM": 1.493,
+          "thermalTransmittanceWm2K": 0.77,
+          "measurementKind": "documented_unspecified"
+        },
+        {
+          "lineId": "massimo-original-producer-declaration:producer-position-table:11",
+          "quantity": 1,
+          "widthM": 0.803,
+          "heightM": 2.333,
+          "thermalTransmittanceWm2K": 0.79,
+          "measurementKind": "documented_unspecified"
+        },
+        {
+          "lineId": "massimo-original-producer-declaration:producer-position-table:12",
+          "quantity": 1,
+          "widthM": 0.993,
+          "heightM": 0.895,
+          "thermalTransmittanceWm2K": 0.86,
+          "measurementKind": "documented_unspecified"
+        }
+      ]
+    },
+    "blockers": [],
+    "audit": {
+      "selectedSourceId": "massimo-original-producer-declaration",
+      "selectedParser": "producer-position-table",
+      "candidateCounts": [
+        {
+          "sourceId": "massimo-original-producer-declaration",
+          "parser": "producer-position-table",
+          "rowCount": 12
+        }
+      ],
+      "excludedSources": [],
+      "appliedRuleIds": [
+        "user-2026-08-19-infissi-invoice-or-technical-source-resolution-v1",
+        "user-2026-08-19-infissi-transmittance-1-3-fallback-v1",
+        "user-2026-08-14-preserve-technical-product-cardinality",
+        "user-2026-08-25-crm-internal-technical-document-untrusted-v1",
+        "user-2026-08-25-test-ex-novo-original-sources-only-v1"
+      ]
+    }
+  }
+}

@@ -18,7 +18,11 @@ describe("LaunchAgent dedicati a una coorte APR", () => {
     expect(result.entries).toHaveLength(3);
     for (const entry of result.entries) {
       const contents = readFileSync(entry.path, "utf8");
-      expect(contents).toContain("<key>RunAtLoad</key><true/>"); expect(contents).toContain("<key>KeepAlive</key><true/>"); expect(contents).toContain(entry.label);
+      expect(contents).toContain("<key>RunAtLoad</key><true/>");
+      expect(contents).toContain(entry.role === "worker"
+        ? "<key>KeepAlive</key><dict><key>SuccessfulExit</key><false/></dict>"
+        : "<key>KeepAlive</key><true/>");
+      expect(contents).toContain(entry.label);
     }
     expect(readFileSync(result.entries.find((entry) => entry.role === "watchdog")!.path, "utf8")).toContain("com.praticarapida.apr-enea-cohort39-worker");
   });

@@ -1,0 +1,313 @@
+{
+  "version": "apr-crm-local-preflight-v1",
+  "revision": 1,
+  "status": "completed",
+  "sourceFingerprint": "048e0dc65928624ddba9fb1c4b74b64da7e107aa6979db2beeeb5a8612029b0c",
+  "currentCustomerKey": null,
+  "items": [
+    {
+      "customerKey": "mattia-vatieri",
+      "displayName": "Mattia Vatieri",
+      "practiceId": "c3a6a2ae-3244-4b4c-84fe-1e0bfcdd6c53",
+      "dossierPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3017-global-controller-mattia-vatieri/crm-acquisition/dossiers/mattia-vatieri.json",
+      "state": "blocked_case",
+      "attemptCount": 1,
+      "startedAt": null,
+      "endedAt": null,
+      "report": {
+        "outcome": "blocked_case",
+        "formAvailable": true,
+        "startDate": "2025-12-23",
+        "startDateSource": "cb0b42c620af2f9cf23fa1d9d6b8ea4e369f65e377bce84740506089bf893505:invoice:264f0ccd0374",
+        "completionDate": "2025-12-23",
+        "completionDateSource": "cb0b42c620af2f9cf23fa1d9d6b8ea4e369f65e377bce84740506089bf893505:invoice:264f0ccd0374",
+        "buildingQualification": "single_unit",
+        "buildingUnitCount": 1,
+        "deductionRate": null,
+        "taxCodeStatus": "verified_original_document",
+        "resolvedTaxCode": "VTRMTT89L01F205H",
+        "taxCodeSourceIds": [
+          "c8273a02bace7a3f8047e2a1e441cf7eb17f7af417b4b0c57998e8aef828d309",
+          "cb0b42c620af2f9cf23fa1d9d6b8ea4e369f65e377bce84740506089bf893505"
+        ],
+        "primaryBeneficiaryResolution": {
+          "status": "verified_document",
+          "identity": {
+            "name": "Mattia",
+            "surname": "Vatieri",
+            "taxCode": "VTRMTT89L01F205H",
+            "birthDate": "1989-07-01",
+            "sex": "M"
+          },
+          "sourceIds": [
+            "c8273a02bace7a3f8047e2a1e441cf7eb17f7af417b4b0c57998e8aef828d309",
+            "cb0b42c620af2f9cf23fa1d9d6b8ea4e369f65e377bce84740506089bf893505"
+          ],
+          "authority": "fiscal_document"
+        },
+        "coBeneficiaryResolution": {
+          "status": "not_declared",
+          "present": false,
+          "identity": null,
+          "sourceIds": []
+        },
+        "products": [],
+        "financial": {
+          "invoiceTotal": 12000,
+          "eligibleExpense": 12000,
+          "tripleReconciliationVerified": true,
+          "reconciledTotal": 12000,
+          "evidence": [
+            {
+              "sourceId": "cb0b42c620af2f9cf23fa1d9d6b8ea4e369f65e377bce84740506089bf893505:invoice:264f0ccd0374",
+              "kind": "invoice",
+              "taxableAmount": 10909.09,
+              "vatAmount": 1090.91,
+              "grossTotal": 12000,
+              "interventionGrossAmount": 12000,
+              "extractionConfidence": "certain",
+              "extractionIssues": []
+            }
+          ],
+          "bankTransfers": [],
+          "bankTransferReconciliation": {
+            "status": "not_provided",
+            "principalTotal": null,
+            "feesTotal": null,
+            "debitedTotal": null,
+            "difference": null,
+            "referenceStatus": "not_provided",
+            "missingInvoiceReferences": [],
+            "taxReliefTypes": []
+          },
+          "methods": [
+            {
+              "method": "structured_extraction",
+              "ok": true,
+              "total": 12000,
+              "sources": [
+                "cb0b42c620af2f9cf23fa1d9d6b8ea4e369f65e377bce84740506089bf893505:invoice:264f0ccd0374"
+              ],
+              "reason": "Ogni documento ha imponibile, IVA e totale verificati."
+            },
+            {
+              "method": "accounting_reconciliation",
+              "ok": true,
+              "total": 12000,
+              "sources": [
+                "cb0b42c620af2f9cf23fa1d9d6b8ea4e369f65e377bce84740506089bf893505:invoice:264f0ccd0374"
+              ],
+              "reason": "Somma dei totali lordi IVA inclusa delle fatture uniche deduplicate; gli storni interni sono solo note auditabili."
+            },
+            {
+              "method": "intervention_cross_check",
+              "ok": true,
+              "total": 12000,
+              "sources": [
+                "cb0b42c620af2f9cf23fa1d9d6b8ea4e369f65e377bce84740506089bf893505:invoice:264f0ccd0374"
+              ],
+              "reason": "Totale ricostruito esclusivamente dalle righe pertinenti all'intervento."
+            }
+          ],
+          "discardedDuplicateSourceIds": [],
+          "supersededTechnicalSourceIds": [],
+          "appliedRuleIds": [
+            "user-2026-08-16-invoice-gross-total-vat-included",
+            "user-2026-08-18-bundled-professional-expense-separation",
+            "user-2026-08-18-mandatory-bank-transfer-invoice-expense-cross-check",
+            "core-gross-triple-reconciliation",
+            "user-2026-08-14-preserve-technical-product-cardinality",
+            "system-explicit-advance-invoice-reference-marker-v1"
+          ]
+        },
+        "warnings": [
+          {
+            "code": "crm_fiscal_code_confirmed_by_invoice_customer_block",
+            "reason": "CF CRM VTRMTT89L01F205H confermato nel blocco CLIENTE di una fattura originaria, con checksum e prefissi fiscali di nome/cognome concordanti.",
+            "appliedRuleIds": [
+              "system-invoice-customer-block-crm-cf-v1",
+              "user-2026-08-16-fiscal-code-identity-cross-check"
+            ]
+          }
+        ],
+        "blockers": [
+          {
+            "code": "product_cardinality_form_invoice_mismatch",
+            "field": "screenings.quantity",
+            "reason": "Controllo incrociato ripetuto: il form descrive 4 righe e le fatture 0 prodotti fisici non riconciliabili in modo univoco per famiglia. Richiesto intervento operatore: confermare la cardinalita fisica e l'assegnazione degli attributi form.",
+            "sourceIds": [
+              "cb0b42c620af2f9cf23fa1d9d6b8ea4e369f65e377bce84740506089bf893505",
+              "c8273a02bace7a3f8047e2a1e441cf7eb17f7af417b4b0c57998e8aef828d309"
+            ],
+            "appliedRuleIds": [
+              "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "user-2026-08-15-form-group-to-physical-products",
+              "system-apr-operator-intervention-routing"
+            ]
+          },
+          {
+            "code": "screenings_missing",
+            "field": "screenings",
+            "reason": "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+            "sourceIds": [
+              "cb0b42c620af2f9cf23fa1d9d6b8ea4e369f65e377bce84740506089bf893505",
+              "c8273a02bace7a3f8047e2a1e441cf7eb17f7af417b4b0c57998e8aef828d309"
+            ],
+            "appliedRuleIds": [
+              "user-2026-08-14-preserve-technical-product-cardinality"
+            ]
+          },
+          {
+            "code": "completion_date_portal_year_mismatch",
+            "field": "dates.completion",
+            "reason": "Fine lavori 2025-12-23: anno 2025 incompatibile con il portale ENEA 2026. Selezionare il portale annuale corretto senza modificare la data.",
+            "sourceIds": [
+              "cb0b42c620af2f9cf23fa1d9d6b8ea4e369f65e377bce84740506089bf893505:invoice:264f0ccd0374"
+            ],
+            "appliedRuleIds": [
+              "user-2026-08-23-completion-portal-year-operator-gate",
+              "user-2026-08-14-missing-completion-use-latest-invoice"
+            ]
+          },
+          {
+            "code": "completion_over_90_days_operator_required",
+            "field": "dates.completion",
+            "reason": "Fine lavori 2025-12-23: 254 giorni prima della lavorazione, oltre il limite di 90 giorni. Verificare la procedibilità e il portale annuale corretto.",
+            "sourceIds": [
+              "cb0b42c620af2f9cf23fa1d9d6b8ea4e369f65e377bce84740506089bf893505:invoice:264f0ccd0374"
+            ],
+            "appliedRuleIds": [
+              "user-2026-08-23-completion-over-90-operator-gate",
+              "user-2026-08-14-missing-completion-use-latest-invoice"
+            ]
+          },
+          {
+            "code": "screening_primary_measurements_missing",
+            "field": "screenings.dimensions",
+            "reason": "La fattura descrive la schermatura ma nessuna fonte primaria riporta le misure fisiche del prodotto. APR non usa le misure della finestra protetta come misure del prodotto: acquisire o confermare le misure e rimettere la pratica in Pronte da fare.",
+            "sourceIds": [
+              "cb0b42c620af2f9cf23fa1d9d6b8ea4e369f65e377bce84740506089bf893505",
+              "c8273a02bace7a3f8047e2a1e441cf7eb17f7af417b4b0c57998e8aef828d309"
+            ],
+            "appliedRuleIds": [
+              "system-screening-primary-measurements-operator-routing",
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "system-apr-operator-intervention-routing"
+            ]
+          }
+        ],
+        "sourceIds": [
+          "cb0b42c620af2f9cf23fa1d9d6b8ea4e369f65e377bce84740506089bf893505",
+          "c8273a02bace7a3f8047e2a1e441cf7eb17f7af417b4b0c57998e8aef828d309"
+        ],
+        "eneaPayloadAudit": {
+          "status": "payload_incomplete",
+          "mappingFingerprint": "cphyid",
+          "fieldSummary": {
+            "ready": 46,
+            "review": 0,
+            "missing": 3
+          },
+          "requiredPortalFieldCount": 44,
+          "blockerCount": 8,
+          "blockers": [
+            {
+              "code": "screening-list-empty",
+              "fieldId": "schermature.numero",
+              "message": "Il modulo cliente non contiene l'elenco delle schermature."
+            },
+            {
+              "code": "document-blocker-0",
+              "fieldId": "schermature.0.dimensioni",
+              "message": "Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture."
+            },
+            {
+              "code": "missing-schermature.numero",
+              "fieldId": "schermature.numero",
+              "message": "Numero totale schermature: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-schermature.superficie_totale",
+              "fieldId": "schermature.superficie_totale",
+              "message": "Superficie totale schermature: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-schermature.risparmio_energia",
+              "fieldId": "schermature.risparmio_energia",
+              "message": "Risparmio energia primaria non rinnovabile: Intervento umano richiesto."
+            },
+            {
+              "code": "product_cardinality_form_invoice_mismatch",
+              "fieldId": "screenings.quantity",
+              "message": "Controllo incrociato ripetuto: il form descrive 4 righe e le fatture 0 prodotti fisici non riconciliabili in modo univoco per famiglia. Richiesto intervento operatore: confermare la cardinalita fisica e l'assegnazione degli attributi form."
+            },
+            {
+              "code": "screenings_missing",
+              "fieldId": "screenings",
+              "message": "Nessun prodotto fisico riconciliato dalle fatture originarie."
+            },
+            {
+              "code": "screening_primary_measurements_missing",
+              "fieldId": "screenings.dimensions",
+              "message": "La fattura descrive la schermatura ma nessuna fonte primaria riporta le misure fisiche del prodotto. APR non usa le misure della finestra protetta come misure del prodotto: acquisire o confermare le misure e rimettere la pratica in Pronte da fare."
+            }
+          ],
+          "excludedUnverifiedFields": [
+            "beneficiario.provincia_nascita",
+            "immobile.codice_comune",
+            "immobile.zona_climatica",
+            "immobile.gradi_giorno",
+            "schermature.numero",
+            "schermature.superficie_totale",
+            "schermature.risparmio_energia",
+            "documenti.fatture",
+            "documenti.bonifico",
+            "documenti.tecnici"
+          ],
+          "draftReady": false,
+          "officialSubmissionAllowed": false,
+          "portalGate": {
+            "status": "blocked",
+            "reason": "screening-component-blocked",
+            "workflowFingerprint": null,
+            "supportedPages": [],
+            "screeningItemCount": 0,
+            "saveAllowedOnlyBySeparateCapability": true,
+            "previewAllowed": false,
+            "submitAllowed": false
+          },
+          "externalActionAllowed": false,
+          "reason": "3 blocker della componente Schermature invalidano il payload della bozza TEST."
+        },
+        "draftPlan": {
+          "status": "blocked",
+          "externalActionAllowed": false,
+          "previewAllowed": false,
+          "submitAllowed": false,
+          "communicationsAllowed": false,
+          "nextAction": "Risolvere i blocker con sole fonti originarie; la coda prosegue sugli altri casi."
+        }
+      },
+      "reason": "Fresh replay dai documenti originali"
+    }
+  ],
+  "externalActionAllowed": false,
+  "reason": "Fresh replay locale",
+  "nextAction": "Nessuna azione esterna.",
+  "validationRevisionsApplied": [],
+  "sourceRevisionsApplied": [],
+  "operatorMeasurementResolutions": [],
+  "audit": [
+    {
+      "revision": 1,
+      "at": "2026-09-03T10:00:00.000Z",
+      "type": "completed",
+      "customerKey": null,
+      "reason": "Fresh replay locale",
+      "appliedRuleIds": [
+        "system-single-active-practice"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,303 @@
+{
+  "version": "apr-crm-local-preflight-v1",
+  "revision": 1,
+  "status": "completed",
+  "sourceFingerprint": "e5e2d7de4a149649a72cbf1821c25ad5b76c92fd0732deb0518d7ab89f420f8a",
+  "currentCustomerKey": null,
+  "items": [
+    {
+      "customerKey": "della-maria-carla-vigetti",
+      "displayName": "Della Maria Carla Vigetti",
+      "practiceId": "802a1cc1-c046-4c4b-a245-25401217740f",
+      "dossierPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2950-global-controller-della-maria-carla-vigetti/crm-acquisition/dossiers/della-maria-carla-vigetti.json",
+      "state": "blocked_case",
+      "attemptCount": 1,
+      "startedAt": null,
+      "endedAt": null,
+      "report": {
+        "outcome": "blocked_case",
+        "formAvailable": true,
+        "startDate": "2026-05-08",
+        "startDateSource": "a7c488ee907d388e255bc167682564023b60922425c4d14c9027ca90e57bd8e8:invoice:264f0ccd0374",
+        "completionDate": "2026-06-18",
+        "completionDateSource": "6e35f50314a63bff9189a5e99d252889833de06248cfde8167470e202fa77c71:invoice:264f0ccd0374",
+        "buildingQualification": "multi_unit",
+        "buildingUnitCount": 40,
+        "deductionRate": null,
+        "taxCodeStatus": "verified_original_document",
+        "resolvedTaxCode": "VGTDLM63T48F205X",
+        "taxCodeSourceIds": [
+          "6e35f50314a63bff9189a5e99d252889833de06248cfde8167470e202fa77c71",
+          "a7c488ee907d388e255bc167682564023b60922425c4d14c9027ca90e57bd8e8"
+        ],
+        "primaryBeneficiaryResolution": {
+          "status": "verified_document",
+          "identity": {
+            "name": "Della Mariacarla",
+            "surname": "Vigetti",
+            "taxCode": "VGTDLM63T48F205X",
+            "birthDate": "1963-12-08",
+            "sex": "F"
+          },
+          "sourceIds": [
+            "6e35f50314a63bff9189a5e99d252889833de06248cfde8167470e202fa77c71"
+          ],
+          "authority": "fiscal_document"
+        },
+        "coBeneficiaryResolution": {
+          "status": "not_declared",
+          "present": false,
+          "identity": null,
+          "sourceIds": []
+        },
+        "products": [],
+        "financial": {
+          "invoiceTotal": 4575,
+          "eligibleExpense": 4575,
+          "tripleReconciliationVerified": true,
+          "reconciledTotal": 4575,
+          "evidence": [
+            {
+              "sourceId": "a7c488ee907d388e255bc167682564023b60922425c4d14c9027ca90e57bd8e8:invoice:264f0ccd0374",
+              "kind": "advance",
+              "taxableAmount": 1875,
+              "vatAmount": 412.5,
+              "grossTotal": 2287.5,
+              "interventionGrossAmount": 2287.5,
+              "extractionConfidence": "certain",
+              "extractionIssues": []
+            },
+            {
+              "sourceId": "6e35f50314a63bff9189a5e99d252889833de06248cfde8167470e202fa77c71:invoice:264f0ccd0374",
+              "kind": "balance",
+              "taxableAmount": 1875,
+              "vatAmount": 412.5,
+              "grossTotal": 2287.5,
+              "interventionGrossAmount": 2287.5,
+              "extractionConfidence": "certain",
+              "extractionIssues": []
+            }
+          ],
+          "bankTransfers": [],
+          "bankTransferReconciliation": {
+            "status": "not_provided",
+            "principalTotal": null,
+            "feesTotal": null,
+            "debitedTotal": null,
+            "difference": null,
+            "referenceStatus": "not_provided",
+            "missingInvoiceReferences": [],
+            "taxReliefTypes": []
+          },
+          "methods": [
+            {
+              "method": "structured_extraction",
+              "ok": true,
+              "total": 4575,
+              "sources": [
+                "a7c488ee907d388e255bc167682564023b60922425c4d14c9027ca90e57bd8e8:invoice:264f0ccd0374",
+                "6e35f50314a63bff9189a5e99d252889833de06248cfde8167470e202fa77c71:invoice:264f0ccd0374"
+              ],
+              "reason": "Ogni documento ha imponibile, IVA e totale verificati."
+            },
+            {
+              "method": "accounting_reconciliation",
+              "ok": true,
+              "total": 4575,
+              "sources": [
+                "a7c488ee907d388e255bc167682564023b60922425c4d14c9027ca90e57bd8e8:invoice:264f0ccd0374",
+                "6e35f50314a63bff9189a5e99d252889833de06248cfde8167470e202fa77c71:invoice:264f0ccd0374"
+              ],
+              "reason": "Somma dei totali lordi IVA inclusa delle fatture uniche deduplicate; gli storni interni sono solo note auditabili."
+            },
+            {
+              "method": "intervention_cross_check",
+              "ok": true,
+              "total": 4575,
+              "sources": [
+                "a7c488ee907d388e255bc167682564023b60922425c4d14c9027ca90e57bd8e8:invoice:264f0ccd0374",
+                "6e35f50314a63bff9189a5e99d252889833de06248cfde8167470e202fa77c71:invoice:264f0ccd0374"
+              ],
+              "reason": "Totale ricostruito esclusivamente dalle righe pertinenti all'intervento."
+            }
+          ],
+          "discardedDuplicateSourceIds": [],
+          "supersededTechnicalSourceIds": [],
+          "appliedRuleIds": [
+            "user-2026-08-16-invoice-gross-total-vat-included",
+            "user-2026-08-18-bundled-professional-expense-separation",
+            "user-2026-08-18-mandatory-bank-transfer-invoice-expense-cross-check",
+            "core-gross-triple-reconciliation",
+            "user-2026-08-14-preserve-technical-product-cardinality",
+            "system-explicit-advance-invoice-reference-marker-v1",
+            "user-2026-08-16-distinct-invoice-numbers-same-customer-sum"
+          ]
+        },
+        "warnings": [
+          {
+            "code": "primary_beneficiary_identity_overridden_by_invoice",
+            "reason": "Identita principale ricavata da documento fiscale per il CF verificato: Della Mariacarla Vigetti, nascita 1963-12-08, sesso F; prevale sui dati inseriti nel CRM e nel form cliente.",
+            "appliedRuleIds": [
+              "user-2026-09-03-official-identity-over-manual-crm-v1",
+              "user-2026-08-16-fiscal-code-identity-cross-check"
+            ]
+          },
+          {
+            "code": "enea_2026_june_25_ninety_day_window_applied",
+            "reason": "Avviso ENEA 25/06/2026 applicato: inizio lavori 2026-05-08, fine lavori 2026-06-18; i 90 giorni decorrono dal 25/06/2026 e terminano il 23/09/2026.",
+            "appliedRuleIds": [
+              "user-2026-08-23-enea-2026-june-25-ninety-day-window"
+            ]
+          }
+        ],
+        "blockers": [
+          {
+            "code": "product_cardinality_form_invoice_mismatch",
+            "field": "screenings.quantity",
+            "reason": "Controllo incrociato ripetuto: il form descrive 1 righe e le fatture 0 prodotti fisici non riconciliabili in modo univoco per famiglia. Richiesto intervento operatore: confermare la cardinalita fisica e l'assegnazione degli attributi form.",
+            "sourceIds": [
+              "a7c488ee907d388e255bc167682564023b60922425c4d14c9027ca90e57bd8e8",
+              "6e35f50314a63bff9189a5e99d252889833de06248cfde8167470e202fa77c71"
+            ],
+            "appliedRuleIds": [
+              "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "user-2026-08-15-form-group-to-physical-products",
+              "system-apr-operator-intervention-routing"
+            ]
+          },
+          {
+            "code": "screenings_missing",
+            "field": "screenings",
+            "reason": "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+            "sourceIds": [
+              "a7c488ee907d388e255bc167682564023b60922425c4d14c9027ca90e57bd8e8",
+              "6e35f50314a63bff9189a5e99d252889833de06248cfde8167470e202fa77c71"
+            ],
+            "appliedRuleIds": [
+              "user-2026-08-14-preserve-technical-product-cardinality"
+            ]
+          },
+          {
+            "code": "invoice_332a5af9",
+            "field": "economic_sources",
+            "reason": "Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture.",
+            "sourceIds": [
+              "a7c488ee907d388e255bc167682564023b60922425c4d14c9027ca90e57bd8e8",
+              "6e35f50314a63bff9189a5e99d252889833de06248cfde8167470e202fa77c71"
+            ],
+            "appliedRuleIds": [
+              "core-economic-classification"
+            ]
+          }
+        ],
+        "sourceIds": [
+          "a7c488ee907d388e255bc167682564023b60922425c4d14c9027ca90e57bd8e8",
+          "6e35f50314a63bff9189a5e99d252889833de06248cfde8167470e202fa77c71"
+        ],
+        "eneaPayloadAudit": {
+          "status": "payload_incomplete",
+          "mappingFingerprint": "vufxv4",
+          "fieldSummary": {
+            "ready": 46,
+            "review": 0,
+            "missing": 3
+          },
+          "requiredPortalFieldCount": 44,
+          "blockerCount": 7,
+          "blockers": [
+            {
+              "code": "screening-list-empty",
+              "fieldId": "schermature.numero",
+              "message": "Il modulo cliente non contiene l'elenco delle schermature."
+            },
+            {
+              "code": "document-blocker-0",
+              "fieldId": "schermature.0.dimensioni",
+              "message": "Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture."
+            },
+            {
+              "code": "missing-schermature.numero",
+              "fieldId": "schermature.numero",
+              "message": "Numero totale schermature: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-schermature.superficie_totale",
+              "fieldId": "schermature.superficie_totale",
+              "message": "Superficie totale schermature: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-schermature.risparmio_energia",
+              "fieldId": "schermature.risparmio_energia",
+              "message": "Risparmio energia primaria non rinnovabile: Intervento umano richiesto."
+            },
+            {
+              "code": "product_cardinality_form_invoice_mismatch",
+              "fieldId": "screenings.quantity",
+              "message": "Controllo incrociato ripetuto: il form descrive 1 righe e le fatture 0 prodotti fisici non riconciliabili in modo univoco per famiglia. Richiesto intervento operatore: confermare la cardinalita fisica e l'assegnazione degli attributi form."
+            },
+            {
+              "code": "screenings_missing",
+              "fieldId": "screenings",
+              "message": "Nessun prodotto fisico riconciliato dalle fatture originarie."
+            }
+          ],
+          "excludedUnverifiedFields": [
+            "beneficiario.provincia_nascita",
+            "immobile.provincia",
+            "immobile.codice_comune",
+            "immobile.zona_climatica",
+            "immobile.gradi_giorno",
+            "schermature.numero",
+            "schermature.superficie_totale",
+            "schermature.risparmio_energia",
+            "documenti.fatture",
+            "documenti.bonifico",
+            "documenti.tecnici"
+          ],
+          "draftReady": false,
+          "officialSubmissionAllowed": false,
+          "portalGate": {
+            "status": "blocked",
+            "reason": "screening-component-blocked",
+            "workflowFingerprint": null,
+            "supportedPages": [],
+            "screeningItemCount": 0,
+            "saveAllowedOnlyBySeparateCapability": true,
+            "previewAllowed": false,
+            "submitAllowed": false
+          },
+          "externalActionAllowed": false,
+          "reason": "2 blocker della componente Schermature invalidano il payload della bozza TEST."
+        },
+        "draftPlan": {
+          "status": "blocked",
+          "externalActionAllowed": false,
+          "previewAllowed": false,
+          "submitAllowed": false,
+          "communicationsAllowed": false,
+          "nextAction": "Risolvere i blocker con sole fonti originarie; la coda prosegue sugli altri casi."
+        }
+      },
+      "reason": "Fresh replay dai documenti originali"
+    }
+  ],
+  "externalActionAllowed": false,
+  "reason": "Fresh replay locale",
+  "nextAction": "Nessuna azione esterna.",
+  "validationRevisionsApplied": [],
+  "sourceRevisionsApplied": [],
+  "operatorMeasurementResolutions": [],
+  "audit": [
+    {
+      "revision": 1,
+      "at": "2026-09-03T10:00:00.000Z",
+      "type": "completed",
+      "customerKey": null,
+      "reason": "Fresh replay locale",
+      "appliedRuleIds": [
+        "system-single-active-practice"
+      ]
+    }
+  ]
+}

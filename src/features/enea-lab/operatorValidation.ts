@@ -19,6 +19,11 @@ import {
   ENEA_SCREENING_REGULATION,
   ENEA_SCREENING_TYPE,
 } from "./screeningRules";
+import { USER_AUTHORIZED_RULE_IDS } from "@/features/enea-shadow-crm/operationalRegistry";
+
+// Regressione Manso (2026-09-07): riparazione della lettera "O" al posto
+// della cifra "0" in un CAP CRM. Vedi validateOperatorOverride piu' sotto.
+export const CAP_LETTER_O_ZERO_TYPO_REPAIR_RULE_ID = USER_AUTHORIZED_RULE_IDS.capLetterOZeroTypoRepair;
 
 export interface EneaLabOperatorValidation {
   valid: boolean;
@@ -177,8 +182,15 @@ export function validateOperatorOverride(
   }
 
   if (/^(?:immobile\.cap|beneficiario\.cap_residenza)$/.test(fieldId)) {
-    return /^\d{5}$/.test(value)
-      ? { valid: true, value }
+    if (/^\d{5}$/.test(value)) return { valid: true, value };
+    // Applica CAP_LETTER_O_ZERO_TYPO_REPAIR_RULE_ID: un CAP digitato nel CRM
+    // puo' confondere la lettera "O" con la cifra "0" (visivamente
+    // identiche). Un CAP e' sempre e soltanto numerico: se la sola
+    // sostituzione O/o -> 0 produce cinque cifre valide, usarla; altrimenti
+    // restare fail-closed come prima.
+    const digitsOnly = CAP_LETTER_O_ZERO_TYPO_REPAIR_RULE_ID ? value.replace(/[Oo]/g, "0") : value;
+    return /^\d{5}$/.test(digitsOnly)
+      ? { valid: true, value: digitsOnly }
       : invalid(value, "Il CAP deve contenere cinque cifre.");
   }
 

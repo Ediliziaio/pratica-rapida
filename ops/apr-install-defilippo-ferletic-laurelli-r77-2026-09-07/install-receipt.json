@@ -1,0 +1,23 @@
+{
+  "version": "apr-install-bundle-cli-receipt-v1",
+  "installedAt": "2026-09-07T13:27:21.208Z",
+  "label": "defilippo-ferletic-laurelli-r77",
+  "versionId": "120542f4-defilippo-ferletic-laurelli-r77-20260907",
+  "previousTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/1a36e81e-full-recalc-r76-20260907",
+  "currentTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/120542f4-defilippo-ferletic-laurelli-r77-20260907",
+  "installedBundle": {
+    "apr-supervisor.mjs": "a0fb3cf49d8dc85a2f80a93ce7103aa531ec5b8a646aeda3e1cb727f73e45d0a",
+    "apr-enea-worker.mjs": "e925230737251490adb94ce5774a20321f526340ca5ecde75e8dc7639979cb17",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0"
+  },
+  "gateResultArtifactId": "902febf2a8a58799bf23fb66174a490e8a6b4b8cee893edfb4f20f9a7309f434",
+  "gateStatus": "PASS",
+  "legacyGovernanceDebtNoticed": [
+    "user-2026-08-06-existing-plant-authoritative-mapping-v1",
+    "user-2026-08-06-intervention-authoritative-sources-and-defaults-v1",
+    "user-2026-08-06-portal-intermediary-physical-beneficiary-v1",
+    "user-2026-08-06-portal-municipality-controlled-selection-v1",
+    "user-2026-09-05-co-beneficiary-trusted-enter-delivery-v2",
+    "user-2026-09-05-terminal-cohort-browser-quiescence-v1"
+  ]
+}

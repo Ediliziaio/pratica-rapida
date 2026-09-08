@@ -1,0 +1,19 @@
+{
+  "version": "apr-screening-rounding-r15-activation-receipt-v1",
+  "activatedAt": "2026-08-31T16:51:33Z",
+  "freezeSha256": "ebf931a44b1e9bc1e97a10d7c3d0c0668d28ede8e954b19e4a23f308170609a7",
+  "bundleVersionId": "4b7bce9-screening-rounding-final-r15-20260831",
+  "previousBundleVersionId": "4b19704-authoritative-nested-finalizer-20260831",
+  "activationMethod": "ln-sfn-current-symlink",
+  "chromePidBefore": 42177,
+  "chromePidAfter": 42177,
+  "keepalivePidBefore": 89974,
+  "keepalivePidAfter": 89974,
+  "terminalObserverPidBefore": 47819,
+  "terminalObserverPidAfter": 47819,
+  "sessionVerification": {
+    "process": "PASS",
+    "persistentHeartbeat": "PASS",
+    "cdpAuthenticatedDashboard": "PASS"
+  }
+}

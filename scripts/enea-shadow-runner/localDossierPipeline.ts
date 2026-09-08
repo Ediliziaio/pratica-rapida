@@ -4,6 +4,7 @@ import path from "node:path";
 import { expandClassifiedProductRows, technicalCardinalityMatches } from "../../src/features/enea-shadow-crm/productCardinalityPolicy";
 import { applyRinaldiScopedFinancialRules, type RinaldiLineClassification } from "../../src/features/enea-shadow-crm/rinaldiFinancialPolicies";
 import { ENEA_OPERATIONAL_REGISTRY_VERSION, USER_AUTHORIZED_RULE_IDS, registryRule } from "../../src/features/enea-shadow-crm/operationalRegistry";
+import { resolveScreeningGTot } from "../../src/features/enea-shadow-crm/productClassifier";
 
 export const LOCAL_DOSSIER_VERSION = "crm-enea-local-dossier-v1" as const;
 export const LOCAL_DOSSIER_PIPELINE_VERSION = "crm-enea-local-pipeline-v1" as const;
@@ -179,14 +180,17 @@ function validDossier(value: LocalCrmDossier): boolean {
 }
 
 function classifyProduct(line: LocalDossierProductLine) {
-  if (line.classification === "pergola") return { productType: "pergola" as const, gTot: line.documentedGTot ?? 0.08,
-    gTotSource: line.documentedGTot == null ? "authorized_fallback" as const : "invoice_explicit" as const,
+  const gTot = resolveScreeningGTot(line.text, line.classification, line.documentedGTot);
+  if (gTot.value === null) return null;
+  const gTotSource = gTot.source === "invoice_explicit" ? "invoice_explicit" as const : "authorized_fallback" as const;
+  if (line.classification === "pergola") return { productType: "pergola" as const, gTot: gTot.value,
+    gTotSource,
     material: line.material ?? "Misto", movement: line.movement ?? "Manuale", ruleId: USER_AUTHORIZED_RULE_IDS.pergolaScreening };
-  if (line.classification === "zanzariera") return { productType: "zanzariera" as const, gTot: line.documentedGTot ?? 0.33,
-    gTotSource: line.documentedGTot == null ? "authorized_fallback" as const : "invoice_explicit" as const,
+  if (line.classification === "zanzariera") return { productType: "zanzariera" as const, gTot: gTot.value,
+    gTotSource,
     material: line.material ?? "Misto", movement: line.movement ?? "Manuale", ruleId: USER_AUTHORIZED_RULE_IDS.zanzarieraScreening };
-  if (line.classification === "tenda") return { productType: "tenda" as const, gTot: line.documentedGTot ?? 0.33,
-    gTotSource: line.documentedGTot == null ? "authorized_fallback" as const : "invoice_explicit" as const,
+  if (line.classification === "tenda") return { productType: "tenda" as const, gTot: gTot.value,
+    gTotSource,
     material: line.material ?? "Tessuto", movement: line.movement ?? "Manuale", ruleId: USER_AUTHORIZED_RULE_IDS.genericAwningScreening };
   return null;
 }
@@ -220,15 +224,19 @@ export function normalizeLocalDossier(dossier: LocalCrmDossier): { normalization
       const rinaldiVepa = rinaldi.deferredVepaLineIds.includes(line.lineId);
       const classified = classifyProduct(line);
       if (rinaldiVepa || !classified) {
+        const missingGTot = !rinaldiVepa && line.documentedGTot == null && ["tenda", "other"].includes(line.classification);
         const reason = rinaldiVepa ? "VEPA separata, Bonus Casa non ancora lavorato" : `Prodotto non qualificato per Ecobonus: ${line.classification}`;
         const ruleIds = rinaldiVepa ? [USER_AUTHORIZED_RULE_IDS.rinaldiPergolaVepaTestEcobonus, USER_AUTHORIZED_RULE_IDS.technicalProductCardinality]
-          : [USER_AUTHORIZED_RULE_IDS.technicalProductCardinality];
+          : missingGTot
+            ? [USER_AUTHORIZED_RULE_IDS.unknownScreeningMissingGTotOperator, USER_AUTHORIZED_RULE_IDS.technicalProductCardinality]
+            : [USER_AUTHORIZED_RULE_IDS.technicalProductCardinality];
         for (let pieceNumber = 1; pieceNumber <= line.quantity; pieceNumber += 1) excludedProducts.push({
           rowId: `${line.lineId}:piece-${pieceNumber}`, sourceId: invoice.sourceId, lineId: line.lineId,
           lineNumber: line.lineNumber, pieceNumber, text: line.text, grossAmount: money(line.grossAmount / line.quantity),
           reason, appliedRuleIds: ruleIds,
         });
         if (line.classification === "ambiguous") blockers.push(`ambiguous-product:${invoice.sourceId}:${line.lineId}`);
+        if (missingGTot) blockers.push(`missing-screening-gtot-operator-required:${invoice.sourceId}:${line.lineId}`);
         ruleIds.forEach((ruleId) => appliedRuleIds.add(ruleId));
         continue;
       }

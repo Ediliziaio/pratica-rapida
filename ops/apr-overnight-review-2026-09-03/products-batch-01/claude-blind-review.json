@@ -1,0 +1,76 @@
+{
+  "reviewer": "Claude Code",
+  "method": "blind_real_documents_and_rendered_pages",
+  "cases": [
+    {
+      "caseFolder": "01-mimosa-freni",
+      "finding": "six_persiane_with_explicit_dimensions",
+      "products": [
+        {"id":"P01","width":2445,"height":2405,"unit":"not_explicit_probable_mm","gTot":"0.09 class 4","source":"02-source.pdf p2"},
+        {"id":"P02","width":1060,"height":2405,"unit":"not_explicit_probable_mm","gTot":"0.09 class 4","source":"02-source.pdf p3"},
+        {"id":"P03","width":930,"height":1530,"unit":"not_explicit_probable_mm","gTot":"0.09 class 4","source":"02-source.pdf p4"},
+        {"id":"P04","width":1630,"height":2405,"unit":"not_explicit_probable_mm","gTot":"0.09 class 4","source":"02-source.pdf p5"},
+        {"id":"P05","width":840,"height":1510,"unit":"not_explicit_probable_mm","gTot":"0.09 class 4","source":"02-source.pdf p6"},
+        {"id":"P06","width":1060,"height":2405,"unit":"not_explicit_probable_mm","gTot":"0.09 class 4","source":"02-source.pdf p7"}
+      ],
+      "documentIssues": ["01-source.pdf and 03-source.pdf are identical", "measures are explicitly labelled as cutting measures"],
+      "confidence": "high"
+    },
+    {
+      "caseFolder": "02-elena-marcella-berti",
+      "finding": "one_awning_with_explicit_dimensions",
+      "products": [{"quantity":1,"width":3000,"heightOrProjection":2200,"unit":"not_explicit_probable_mm","gTot":"0.12","source":"01-source.pdf pp3-4"}],
+      "documentIssues": ["customer form only contains pages 2/5 and 3/5; solar-screen page absent"],
+      "confidence": "high"
+    },
+    {
+      "caseFolder": "03-nadia-ragni",
+      "finding": "pergotenda_measured_but_side_awnings_unquantified",
+      "products": [{"quantity":1,"width":500,"projection":290,"unit":"not_explicit_probable_cm","source":"02-source.pdf p1"}],
+      "documentIssues": ["side drop awnings have no quantity or dimensions", "fabric/color wording conflicts between invoice and fabric note"],
+      "confidence": "high_for_pergotenda_low_for_side_awnings"
+    },
+    {
+      "caseFolder": "04-riccardo-coda",
+      "finding": "one_awning_with_explicit_dimensions",
+      "products": [{"quantity":1,"width":4600,"heightOrProjection":2200,"unit":"not_explicit_probable_mm","gTot":"0.13","source":"01-source.pdf pp5-6"}],
+      "documentIssues": ["solar-screen page of customer form absent"],
+      "confidence": "high"
+    },
+    {
+      "caseFolder": "05-maria-sofia-tosatti",
+      "finding": "product_dimensions_absent_window_dimensions_only",
+      "products": [{"quantity":1,"width":null,"heightOrProjection":null,"gTot":"0.12","source":"01-source.pdf pp1-2"}],
+      "documentIssues": ["product-dimensions field blank", "140x240 cm is explicitly the protected-window dimension and must not be reused", "customer form page 4/5 absent", "tax-code discrepancy 207W vs 204W"],
+      "confidence": "high"
+    },
+    {
+      "caseFolder": "06-antonella-ferletic",
+      "finding": "two_dimension_lines_but_physical_cardinality_ambiguous",
+      "products": [{"width":75,"height":220,"unit":"not_explicit_probable_cm"},{"width":400,"height":220,"unit":"not_explicit_probable_cm"}],
+      "documentIssues": ["both dimension lines are numbered 1 and no quantity column exists"],
+      "confidence": "medium"
+    },
+    {
+      "caseFolder": "07-giulia-kasermann",
+      "finding": "dimensions_and_quantity_absent",
+      "products": [{"quantity":null,"width":null,"heightOrProjection":null,"gTot":"0.12 class 3","source":"01-source.pdf p1"}],
+      "documentIssues": ["350 is part of model name Dubai 350 and is not evidence of a dimension"],
+      "confidence": "high_for_absence"
+    },
+    {
+      "caseFolder": "08-sarah-mondini",
+      "finding": "dimensions_absent_and_documents_duplicated",
+      "products": [{"quantity":1,"width":null,"heightOrProjection":null,"source":"invoices 146 and 167"}],
+      "documentIssues": ["five files contain only two distinct invoices", "no dimensions anywhere"],
+      "confidence": "high"
+    },
+    {
+      "caseFolder": "09-roberta-di-cesare",
+      "finding": "dimensions_absent",
+      "products": [{"quantity":1,"width":null,"heightOrProjection":null,"gTot":"0.13","source":"01-source.pdf pp1-2"}],
+      "documentIssues": ["customer form stops at page 4/5; solar-screen page 5/5 absent"],
+      "confidence": "high"
+    }
+  ]
+}

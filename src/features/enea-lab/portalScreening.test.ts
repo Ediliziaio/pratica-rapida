@@ -10,6 +10,7 @@ import {
   buildEneaScreeningPortalScript,
 } from "./portalScreening";
 import { USER_AUTHORIZED_RULE_IDS } from "../enea-shadow-crm/operationalRegistry";
+import { PRODUCT_CLASSIFIER_RULE_IDS } from "../enea-shadow-crm/productClassifier";
 
 describe("compilazione finestra schermatura solare ENEA", () => {
   it("mappa tutti i controlli, inclusa la Rsupp richiesta per le persiane", () => {
@@ -154,7 +155,7 @@ describe("compilazione finestra schermatura solare ENEA", () => {
       resolvedScreeningGTot: [{
         value: 0.33,
         source: "authorized_fallback",
-        ruleId: "user-2026-08-14-tenda-screening-gtot-033-fallback",
+        ruleId: PRODUCT_CLASSIFIER_RULE_IDS.zanzarieraFallback,
       }],
     });
     const preparation = buildEneaScreeningPortalScript(mapped, 0, true);

@@ -1,0 +1,21 @@
+{
+  "version": "apr-screening-rounding-r17-activation-receipt-v1",
+  "activatedAt": "2026-08-31T17:37:04Z",
+  "bundleVersionId": "4b7bce9-screening-rounding-terminal-truth-r17-20260831",
+  "previousBundleVersionId": "4b7bce9-screening-rounding-final-r15-20260831",
+  "activationMethod": "atomic-current-symlink",
+  "chromePidBefore": 42177,
+  "chromePidAfter": 42177,
+  "keepalivePidBefore": 89974,
+  "keepalivePidAfter": 89974,
+  "sessionVerification": {
+    "launchctlKeepalive": "PASS",
+    "persistentHeartbeat": "PASS",
+    "cdpAuthenticatedDashboard": "PASS"
+  },
+  "bundleHashes": {
+    "supervisorSha256": "ee257c75ad1be4ab60a3e07f36d153615cc0e7763dbda34eb8d3b455a28b0ba7",
+    "workerSha256": "4b7bce90fd31382a9944270ee8732a6d42ef0a2642bc4d3954008abb32be8d19",
+    "watchdogSha256": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0"
+  }
+}

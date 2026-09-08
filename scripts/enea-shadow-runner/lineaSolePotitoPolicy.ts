@@ -12,6 +12,7 @@ const normalize = (value: string) => value.normalize("NFKD").replace(/[\u0300-\u
 export const LINEA_SOLE_POTITO_POLICY_VERSION = "linea-sole-potito-paper-form-v1" as const;
 export const LINEA_SOLE_POTITO_RULE_ID = USER_AUTHORIZED_RULE_IDS.lineaSolePotitoPaperForm;
 export const PAPER_FORM_BIRTH_DATE_OCR_REPAIR_RULE_ID = "system-paper-form-birth-date-leading-digit-ocr-repair" as const;
+export const ORIGINAL_PRACTICA_RAPIDA_PAPER_FORM_RULE_ID = "system-original-pratica-rapida-paper-form-explicit-values-v1" as const;
 
 export function lineaSolePotitoSupplierEvidence(rowValue: unknown) {
   const row = object(rowValue); const company = object(row?.companies);
@@ -68,12 +69,12 @@ export function parseLineaSolePotitoPaperForm(documentText: string, expectedIden
   if (!isLineaSolePotitoPaperForm(documentText)) return null;
   const person = documentText.match(/PERSONA\s+FISICA\s*\n\s*([^\n]+?)\s+([A-Z0-9]{16})\s*\n/i);
   const birth = documentText.match(/\n\s*([A-ZÀ-ÖØ-Ý' -]+)\s+([A-Z]{2})\s+(\d{1,2})\s+(\d{1,2})\s+(\d{4})\s*\n\s*Luogo\s+di\s+nascita/i);
-  const labelledBirth = documentText.match(/Data\s+di\s+nascita\s*(\d{1,2})\s*\/\s*(\d{1,2})\s*\/\s*(\d{4})/i);
+  const labelledBirth = documentText.match(/Data\s+di\s+nasci(?:ta|a)\s*(\d{1,2})\s*\/\s*(\d{1,2})\s*\/\s*(\d{4})/i);
   // Nei moduli cartacei la barra prima del mese puo essere letta come cifra
   // `1` e il separatore successivo come virgola (es. `18\n108,1934` per
   // 18/08/1934). Accettiamo questa sola deformazione strutturale; il valore
   // resta utilizzabile soltanto se la riconciliazione col CF valido concorda.
-  const wrappedLabelledBirth = documentText.match(/Data\s+di\s+nascita\s*(\d{1,2})[\s/.,_-]+1?(\d{2})[\s/.,_-]+(\d{4})/i);
+  const wrappedLabelledBirth = documentText.match(/Data\s+di\s+nasci(?:ta|a)\s*(\d{1,2})[\s/.,_-]+1?(\d{2})[\s/.,_-]+(\d{4})/i);
   const labelledBirthPlace = documentText.match(/Luogo\s+di\s+nascita\s*\n\s*([^\n]+?)\s*\n\s*Prov\.?\s*_?\s*\n?\s*([A-Z]{2})\b/i);
   const birthParts = birth ? { day: birth[3], month: birth[4], year: birth[5] }
     : labelledBirth ? { day: labelledBirth[1], month: labelledBirth[2], year: labelledBirth[3] }
@@ -81,8 +82,20 @@ export function parseLineaSolePotitoPaperForm(documentText: string, expectedIden
   const contact = documentText.match(/\n\s*([+\d][\d ]{6,})\s+([^\s@]+@[^\s@]+)\s*\n\s*N\.\s*telefono/i);
   const residence = documentText.match(/LUOGO\s+DI\s+RESIDENZA\s*\n\s*([^\n]+?)\s*\n(?:\s*([^\n]+?)\s*\n)?\s*Indirizzo[^\n]*\n\s*([A-ZÀ-ÖØ-Ý' -]+?)\s+([A-Z]{2})\s+(\d{5})\s*\n\s*Comune/i);
   const buildingAddress = documentText.match(/DATI\s+GENERALI\s+EDIFICIO\/ABITAZIONE\s+OGGETTO\s+D[’']INTERVENTO\s*\n\s*([^\n]+?)\s*\n(?:\s*([^\n]+?)\s*\n)?\s*Indirizzo[^\n]*\n\s*([A-ZÀ-ÖØ-Ý' -]+?)\s+([A-Z]{2})\s+(\d{5})\s*\n\s*Comune/i);
-  const cadastral = documentText.match(/DATI\s+CATASTALI\s*\n\s*([^\s\n]+)\s+([^\s\n]+)\s+([^\s\n]+)\s*\n\s*Foglio/i);
-  const building = documentText.match(/ANNO\s+DI\s+COSTRUZIONE\s+(\d{4})\s+([0-9]+(?:[,.][0-9]+)?)/i);
+  // Regressione Berti/Mocenighi (2026-09-07): il template reale stampa
+  // l'etichetta PRIMA del valore, non dopo ("Foglio\n553", non "553\nFoglio"),
+  // e "ANNO DI COSTRUZIONE" e' seguito da "(anche presunto)" prima del valore.
+  // Le vecchie espressioni non corrispondevano mai a nessun modulo reale.
+  // Ogni campo resta indipendente ed e' accettato solo se il valore e'
+  // sintatticamente plausibile (alfanumerico corto per foglio/mappale/
+  // subalterno, anno a 4 cifre, superficie numerica): un OCR troppo
+  // degradato (es. "19†5", "ý6 4") non produce mai un valore inventato,
+  // resta vuoto e richiede intervento operatore come prima.
+  const foglio = documentText.match(/Foglio\.?\s*\n?\s*([A-Za-z0-9][A-Za-z0-9/]{0,5})\s*\n/i)?.[1] ?? "";
+  const mappale = documentText.match(/Mappale\s+o\s+particella\s*_?\s*\n?\s*([A-Za-z0-9][A-Za-z0-9/]{0,5})\s*\n/i)?.[1] ?? "";
+  const subalterno = documentText.match(/Subalt[e]?rno\s*\n?\s*([A-Za-z0-9][A-Za-z0-9/]{0,5})\s*\n/i)?.[1] ?? "";
+  const annoCostruzione = documentText.match(/ANNO\s+DI\s+COSTRUZIONE\s*\(anche\s+presunto\)\s*\n?\s*(\d{4})\b/i)?.[1] ?? "";
+  const superficieMq = documentText.match(/superficie\s+utile\s+in\s+m[qa2]?\.?\s*[-_]?\s*\n?\s*(\d{1,4}(?:[,.]\d+)?)\b/i)?.[1] ?? "";
   const units = documentText.match(/NUMERO\s+DI\s+UNITA[’']?\s+IMMOBILIARI[^\n]*\n\s*(\d+)\s*\n/i);
   const explicitScreenings = [...documentText.matchAll(/Prodotto\s*[:=]\s*([^\n]+)[\s\S]{0,500}?Orientamento\s*[:=]\s*(Sud\s*\/\s*Est|Sud\s*\/\s*Ovest|Sud|Est|Ovest)[\s\S]{0,500}?Dimensioni\s+finestra\s+protetta\s*[:=]\s*([0-9]+(?:[,.][0-9]+)?)\s*[x×]\s*([0-9]+(?:[,.][0-9]+)?)\s*(mm|cm|m)?/gi)].map((match) => {
     const direction = normalize(match[2]).replace(/ /g, "_").replace("sud_est", "sud_est").replace("sud_ovest", "sud_ovest") as SchermaturaDirezione;
@@ -110,10 +123,13 @@ export function parseLineaSolePotitoPaperForm(documentText: string, expectedIden
     },
     residenza: { indirizzo: residence?.[1].trim() ?? "", civico: residence?.[2]?.trim() ?? "", comune: residence?.[3].trim() ?? "", provincia: residence?.[4] ?? "", cap: residence?.[5] ?? "" },
     appartamento_lavori: { indirizzo: buildingAddress?.[1].trim() ?? "", numero: buildingAddress?.[2]?.trim() ?? "", comune: buildingAddress?.[3].trim() ?? "", provincia: buildingAddress?.[4] ?? "", cap: buildingAddress?.[5] ?? "" },
-    catastali: { foglio: cadastral?.[1] ?? "", mappale: cadastral?.[2] ?? "", subalterno: cadastral?.[3] ?? "" },
-    edificio: { anno_costruzione: building?.[1] ?? "", superficie_mq: building?.[2]?.replace(",", ".") ?? "", numero_appartamenti: units?.[1] ?? "" },
+    catastali: { foglio, mappale, subalterno },
+    edificio: { anno_costruzione: annoCostruzione, superficie_mq: superficieMq.replace(",", "."), numero_appartamenti: units?.[1] ?? "" },
     prodotto: { tipo: "schermature" as const, schermature: explicitScreenings.map((item) => ({ tipo_prodotto: "", direzione: item.direzione })) },
-    _lineaSolePotito: { explicitScreenings, birthDateResolution, wrappedBirthOcrRepair: Boolean(!birth && !labelledBirth && wrappedLabelledBirth) },
+    _lineaSolePotito: {
+      explicitScreenings, birthDateResolution, wrappedBirthOcrRepair: Boolean(!birth && !labelledBirth && wrappedLabelledBirth),
+      cadastralBuildingRuleId: USER_AUTHORIZED_RULE_IDS.lineaSolePotitoCadastralBuildingLabelBeforeValue,
+    },
   };
 }
 

@@ -1,0 +1,35 @@
+{
+  "version": "apr-definitive-targeted-generator-manifest-v1",
+  "authorizationId": "user-2026-08-31-definitive-mandate-targeted-authorized-case",
+  "authorizedAt": "2026-08-31T02:30:00.000+02:00",
+  "mode": "real_enea_draft_only",
+  "safety": {
+    "draftOnly": true,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false,
+    "priorDraftPolicy": "preserve_and_ignore_for_new_test_draft"
+  },
+  "selection": {
+    "total": 1,
+    "selectionMethod": "targeted rerun of one already-authorized historical Generator regression case",
+    "sourceManifest": "/private/tmp/apr-promote-4e166ce/ops/apr-global-controller-test10-2026-08-29/manifest-autonomy30.json",
+    "moduleDistribution": {"infissi": 1, "screening": 0},
+    "complexityDistribution": {"simple": 0, "medium": 1, "complex": 0},
+    "allowedStages": ["archiviate", "recensione", "da inserire su excel"],
+    "excludedCustomerKeys": ["beatrice-ciotta"]
+  },
+  "cases": [
+    {
+      "cohort": 246,
+      "customerKey": "armando-ranzoni",
+      "displayName": "Armando Ranzoni",
+      "practiceId": "54fdcf5f-3092-4f43-a741-ff510c25f51f",
+      "stage": "archiviate",
+      "module": "infissi",
+      "invoiceCount": 2,
+      "complexity": "medium",
+      "historicalRetest": true
+    }
+  ]
+}

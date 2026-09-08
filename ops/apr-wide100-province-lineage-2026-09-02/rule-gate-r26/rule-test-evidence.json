@@ -1,0 +1,2047 @@
+{
+  "matrixVersion": "apr-enea-rule-test-matrix-v78",
+  "registryVersion": "enea-operational-registry-v100",
+  "verifiedAt": "2026-09-02T09:59:12.090Z",
+  "testCommand": "vitest run --maxWorkers=1 --testTimeout=30000 src/features/enea-shadow-crm src/features/enea-lab scripts/enea-shadow-runner",
+  "passedKeys": [
+    "co-beneficiary-single-intent-delivery",
+    "current-cohort-economic-bridge",
+    "apr-chrome-keepalive-immortal",
+    "sequencer-progress-watchdog",
+    "sequencer-manifest-contract",
+    "shared-screening-classifier-gtot",
+    "no-valid-economic-invoice",
+    "global-enea-browser-controller",
+    "fenced-browser-capability-v2",
+    "cdp-readonly-same-origin-navigation",
+    "chrome-instance-identity-receipt",
+    "cdp-explicit-operation-timeouts",
+    "nested-page-transaction",
+    "terminal-observability-snapshot",
+    "invoice-schedule-missing-amount",
+    "screening-dimension-unit-surface-coherence",
+    "infissi-third-party-certificate-classification",
+    "infissi-internal-technical-document-untrusted",
+    "test-ex-novo-original-sources-only",
+    "documented-product-module-over-label",
+    "screening-primary-measurements-operator-routing",
+    "missing-explicit-advance-invoice-reference",
+    "unique-invoice-base-reference-match",
+    "composite-invoice-bank-transfer-page-segmentation",
+    "draft-payload-mapping-completeness",
+    "paper-form-birth-date-leading-digit-ocr-repair",
+    "mixed-forty-case-reliability-test",
+    "foreign-birth-anpr-registry",
+    "infissi-portal-managed-energy-savings",
+    "infissi-old-window-transmittance-matrix",
+    "infissi-shared-screening-workflow",
+    "infissi-invoice-or-technical-source-resolution",
+    "infissi-invoice-certificate-cardinality",
+    "infissi-transmittance-fallback",
+    "infissi-portal-transmittance-131-to-13",
+    "infissi-portal-transmittance-over-max-to-13",
+    "infissi-enea-area-rounding",
+    "infissi-material-glass-fallbacks",
+    "infissi-shading-closures-form-flag",
+    "infissi-shading-closure-invoice-order-allocation",
+    "vepa-bonus-casa-routing-and-anagraphic-contract",
+    "persiana-screening-family",
+    "avvolgibile-screening-family",
+    "single-case-regression-test",
+    "invoice-work-date-chronology",
+    "screening-surface-material-over-support-structure",
+    "explicit-composite-screening-material",
+    "explicit-motorized-screening-movement",
+    "explicit-technical-surface-precision",
+    "learning-closure-gate",
+    "portal-municipality-controlled-selection",
+    "official-municipality-province-lineage",
+    "uncertain-save-single-recovery",
+    "post-draft-historical-benchmark-readonly",
+    "fifteen-case-intermezzo-repeat",
+    "linea-sole-potito-paper-form",
+    "narrative-invoice-product-extraction",
+    "invoice-gross-total-vat-included",
+    "distinct-invoice-numbers-same-customer-sum",
+    "missing-invoice-operator-requeue",
+    "default-single-unit",
+    "invoice-total-over-bank-transfers",
+    "mandatory-bank-transfer-invoice-expense-cross-check",
+    "operator-structured-question-resume",
+    "ten-case-monday-restart",
+    "random-pilot-five-of-fifteen",
+    "source-explicit-over-fallback",
+    "valid-original-document-cf",
+    "invoice-identity-over-form",
+    "fiscal-code-identity-cross-check",
+    "secondary-home-36-percent-allocation",
+    "completion-date-latest-invoice",
+    "cristal-explicit-or-operator",
+    "pergola-fallback",
+    "zanzariera-fallbacks",
+    "screening-fallback-material-category-guard",
+    "physical-cardinality",
+    "invoice-header-identity-over-body-reference",
+    "bundled-professional-expense",
+    "vepa-deferred-current-phase",
+    "single-house-floors",
+    "explicit-building-type-over-apartment-count",
+    "obvious-street-type-typo",
+    "rinaldi-scoped",
+    "test-stop-before-external",
+    "deduplicate-queue",
+    "manual-crm-comparison-scope",
+    "crm-readonly-adapter"
+  ],
+  "ruleProofs": {
+    "co-beneficiary-single-intent-delivery": {
+      "fixtureId": "scripts/enea-shadow-runner/cdpEneaBrowserDriver.test.ts#driver Chrome persistente di APR consegna lo stesso intento con Space solo quando il pointer non ha prodotto alcuna mutazione",
+      "independentAnalogFixtureId": "scripts/enea-shadow-runner/cdpEneaBrowserDriver.test.ts#driver Chrome persistente di APR non ripete l'attivazione quando il pointer ha gia prodotto una richiesta mutativa",
+      "sourceFingerprint": "3f4021ed1b3a074466fa20137f996d66d489e9cb2fa1f54dad8cd9f4449d099e",
+      "replayFingerprint": "a42668f21e7ab873ae451395c8173e1c07904bbe5cf003249190e15a07fde737",
+      "executionPath": [
+        "customer_form",
+        "checkpoint_persistence",
+        "runner_lifecycle"
+      ],
+      "producedFields": [
+        "user-2026-09-02-co-beneficiary-single-intent-delivery-v1",
+        "system-atomic-checkpoint-resume",
+        "system-single-active-practice"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "scripts/enea-shadow-runner/cdpEneaBrowserDriver.test.ts#driver Chrome persistente di APR consegna lo stesso intento con Space solo quando il pointer non ha prodotto alcuna mutazione",
+      "negativeTest": "scripts/enea-shadow-runner/cdpEneaBrowserDriver.test.ts#driver Chrome persistente di APR non ripete l'attivazione quando il pointer ha gia prodotto una richiesta mutativa",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:10.608Z"
+    },
+    "current-cohort-economic-bridge": {
+      "fixtureId": "scripts/enea-shadow-runner/aprEconomicCurrentCohort.test.ts#APR bridge economico dalla coorte corrente usa dossier e analisi correnti senza appartenenza a un corpus storico",
+      "independentAnalogFixtureId": "scripts/enea-shadow-runner/aprEconomicCurrentCohort.test.ts#APR bridge economico dalla coorte corrente fallisce chiuso se checkpoint e dossier non concordano sull'identita pratica",
+      "sourceFingerprint": "d02622e8697ed881ef81a334161a315754c5d71c36c8d54c33f6ba638aaef17c",
+      "replayFingerprint": "8919c243306b7b26af41f92564c9f4661a04a03dfcd0ebd28271b93577d71269",
+      "executionPath": [
+        "economic_sources",
+        "gross_reconciliation"
+      ],
+      "producedFields": [
+        "user-2026-09-02-current-cohort-economic-bridge-v1",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "scripts/enea-shadow-runner/aprEconomicCurrentCohort.test.ts#APR bridge economico dalla coorte corrente usa dossier e analisi correnti senza appartenenza a un corpus storico",
+      "negativeTest": "scripts/enea-shadow-runner/aprEconomicCurrentCohort.test.ts#APR bridge economico dalla coorte corrente fallisce chiuso se checkpoint e dossier non concordano sull'identita pratica",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:10.611Z"
+    },
+    "apr-chrome-keepalive-immortal": {
+      "fixtureId": "scripts/enea-shadow-runner/aprChromeKeepaliveProtection.test.ts#Chrome APR persistente non e' un target arrestabile quiescenza, arresto finale e residui non includono mai Chrome",
+      "independentAnalogFixtureId": "scripts/enea-shadow-runner/aprChromeKeepaliveProtection.test.ts#Chrome APR persistente non e' un target arrestabile riconosce l'identita' Chrome CDP e rifiuta fail-closed ogni segnale diretto",
+      "sourceFingerprint": "5ea7135badf76d6e7660958d05c015cd1a06f7df1ab5abb2da1680294cfc11dd",
+      "replayFingerprint": "dd0bba2a8740ed5b7a2e26bece08c623195e2dfab3735058ef44558f69a3aa88",
+      "executionPath": [
+        "runner_lifecycle"
+      ],
+      "producedFields": [
+        "system-apr-chrome-keepalive-immortal-v1",
+        "system-chrome-instance-identity-receipt-v1"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "scripts/enea-shadow-runner/aprChromeKeepaliveProtection.test.ts#Chrome APR persistente non e' un target arrestabile quiescenza, arresto finale e residui non includono mai Chrome",
+      "negativeTest": "scripts/enea-shadow-runner/aprChromeKeepaliveProtection.test.ts#Chrome APR persistente non e' un target arrestabile riconosce l'identita' Chrome CDP e rifiuta fail-closed ogni segnale diretto",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:10.615Z"
+    },
+    "sequencer-progress-watchdog": {
+      "fixtureId": "scripts/enea-shadow-runner/aprSequencerSessionGuard.test.ts#watchdog del sequencer senza attese di due ore azzera il timer quando il checkpoint avanza davvero",
+      "independentAnalogFixtureId": "scripts/enea-shadow-runner/aprSequencerSessionGuard.test.ts#watchdog del sequencer senza attese di due ore un timeout watchdog generico non diventa mai intervento operatore sulla pratica",
+      "sourceFingerprint": "84cc600f51078c806ce97a07d07ebdc417301b80828bc9dc8096f7ac41c3c777",
+      "replayFingerprint": "ddb3494edaa3ac2d78f661012120f74c2769a773da625aae7ce3785af511a7c7",
+      "executionPath": [
+        "runner_lifecycle",
+        "checkpoint_persistence"
+      ],
+      "producedFields": [
+        "system-sequencer-progress-watchdog-v1",
+        "system-terminal-observability-snapshot-v1"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "scripts/enea-shadow-runner/aprSequencerSessionGuard.test.ts#watchdog del sequencer senza attese di due ore azzera il timer quando il checkpoint avanza davvero",
+      "negativeTest": "scripts/enea-shadow-runner/aprSequencerSessionGuard.test.ts#watchdog del sequencer senza attese di due ore un timeout watchdog generico non diventa mai intervento operatore sulla pratica",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:10.620Z"
+    },
+    "sequencer-manifest-contract": {
+      "fixtureId": "scripts/enea-shadow-runner/aprSequencerManifestGuard.test.ts#contratto manifest del sequencer APR accetta il test mirato autorizzato quando stage e identita sono dichiarati",
+      "independentAnalogFixtureId": "scripts/enea-shadow-runner/aprSequencerManifestGuard.test.ts#contratto manifest del sequencer APR fallisce chiuso con un errore tipizzato se allowedStages manca",
+      "sourceFingerprint": "b070ca8bb8063d1855216b1f8834fe87f197c4845f0288b74433c04a66e453d0",
+      "replayFingerprint": "91dec488195855a70fe19b731126c697ecd2a4e9e0b3269366b2d75da32330ae",
+      "executionPath": [
+        "runner_lifecycle"
+      ],
+      "producedFields": [
+        "system-sequencer-manifest-contract-v1"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "scripts/enea-shadow-runner/aprSequencerManifestGuard.test.ts#contratto manifest del sequencer APR accetta il test mirato autorizzato quando stage e identita sono dichiarati",
+      "negativeTest": "scripts/enea-shadow-runner/aprSequencerManifestGuard.test.ts#contratto manifest del sequencer APR fallisce chiuso con un errore tipizzato se allowedStages manca",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:10.625Z"
+    },
+    "shared-screening-classifier-gtot": {
+      "fixtureId": "src/features/enea-shadow-crm/productClassifier.test.ts#classificatore condiviso e politica gTot applica un solo fallback per famiglia a Zanzariera plissettata",
+      "independentAnalogFixtureId": "src/features/enea-shadow-crm/productClassifier.test.ts#classificatore condiviso e politica gTot fallisce chiuso senza gTot per Tenda da sole",
+      "sourceFingerprint": "6d3a94e1f1a2a63d85f32601c0dedb80259f54c41c018af81b92da560e810b48",
+      "replayFingerprint": "ffca08131211effcd670007f31deee91f7b2de767dc1551b545131e32d4c0201",
+      "executionPath": [
+        "screenings"
+      ],
+      "producedFields": [
+        "user-2026-08-31-shared-screening-product-classifier-v1",
+        "user-2026-08-31-documented-gtot-precedence-v1",
+        "user-2026-08-31-zanzariera-missing-gtot-033-v1",
+        "user-2026-08-31-rigid-screening-missing-gtot-006-v1",
+        "user-2026-08-31-unknown-screening-missing-gtot-operator-v1"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "src/features/enea-shadow-crm/productClassifier.test.ts#classificatore condiviso e politica gTot applica un solo fallback per famiglia a Zanzariera plissettata",
+      "negativeTest": "src/features/enea-shadow-crm/productClassifier.test.ts#classificatore condiviso e politica gTot fallisce chiuso senza gTot per Tenda da sole",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:10.630Z"
+    },
+    "no-valid-economic-invoice": {
+      "fixtureId": "src/features/enea-shadow-crm/financialReconciliation.test.ts#riconciliazione finanziaria tripla classifica come intervento operatore l'assenza di qualsiasi fattura economica candidata valida",
+      "independentAnalogFixtureId": "src/features/enea-shadow-crm/financialReconciliation.test.ts#riconciliazione finanziaria tripla blocca fail-closed una fonte dichiarata fattura senza terna completa",
+      "sourceFingerprint": "d39a87e0b0c5711954d5e24597a7f399e3a5b84ce4f41266c8789917392cd564",
+      "replayFingerprint": "e785fcfa73960e1870199bbf7046715ba081f534a783f9d53463c0c502b05f34",
+      "executionPath": [
+        "economic_sources",
+        "gross_reconciliation"
+      ],
+      "producedFields": [
+        "user-2026-08-31-no-valid-economic-invoice-operator-v1",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "src/features/enea-shadow-crm/financialReconciliation.test.ts#riconciliazione finanziaria tripla classifica come intervento operatore l'assenza di qualsiasi fattura economica candidata valida",
+      "negativeTest": "src/features/enea-shadow-crm/financialReconciliation.test.ts#riconciliazione finanziaria tripla blocca fail-closed una fonte dichiarata fattura senza terna completa",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:10.635Z"
+    },
+    "global-enea-browser-controller": {
+      "fixtureId": "scripts/enea-shadow-runner/aprEneaGlobalBrowserController.test.ts#controllore globale esclusivo Chrome/ENEA collega isolamento, lease di pratica, terminazione timeout e finalizzazione quiescente",
+      "independentAnalogFixtureId": "scripts/enea-shadow-runner/aprEneaGlobalBrowserController.test.ts#controllore globale esclusivo Chrome/ENEA fallisce chiuso se il lock persistente è corrotto",
+      "sourceFingerprint": "7e9738644aa4503fcdcca76ac1fbee2f2b46880ff8b84c2420a4a240187c1f80",
+      "replayFingerprint": "a1bb6b8c4c6537e531a50cee20a04703fc3f8f9aa56073772cbadb81da12a277",
+      "executionPath": [
+        "runner_lifecycle",
+        "external_gate"
+      ],
+      "producedFields": [
+        "system-global-enea-browser-controller",
+        "user-2026-08-14-authenticated-enea-periodic-readonly-keepalive",
+        "system-single-active-practice"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "scripts/enea-shadow-runner/aprEneaGlobalBrowserController.test.ts#controllore globale esclusivo Chrome/ENEA collega isolamento, lease di pratica, terminazione timeout e finalizzazione quiescente",
+      "negativeTest": "scripts/enea-shadow-runner/aprEneaGlobalBrowserController.test.ts#controllore globale esclusivo Chrome/ENEA fallisce chiuso se il lock persistente è corrotto",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:10.640Z"
+    },
+    "fenced-browser-capability-v2": {
+      "fixtureId": "scripts/enea-shadow-runner/aprEneaGlobalBrowserController.test.ts#controllore globale esclusivo Chrome/ENEA fence un holder vivo ma con lease scaduta e invalida la capability precedente",
+      "independentAnalogFixtureId": "scripts/enea-shadow-runner/cdpClientTimeout.test.ts#timeout CDP con terminazione dell'esecuzione browser ricontrolla il fencing durante l'intera evaluate e termina il vecchio holder",
+      "sourceFingerprint": "8d2920469c0ab5ed61bf4f9501266bf660f9e8793d2cd32252560c8826aa19c6",
+      "replayFingerprint": "aff5339336cb9b8a021d98664fc292b39edb9318148596f1a616f2365d4a0478",
+      "executionPath": [
+        "runner_lifecycle"
+      ],
+      "producedFields": [
+        "system-global-enea-browser-controller-fenced-lease-v2"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "scripts/enea-shadow-runner/aprEneaGlobalBrowserController.test.ts#controllore globale esclusivo Chrome/ENEA fence un holder vivo ma con lease scaduta e invalida la capability precedente",
+      "negativeTest": "scripts/enea-shadow-runner/cdpClientTimeout.test.ts#timeout CDP con terminazione dell'esecuzione browser ricontrolla il fencing durante l'intera evaluate e termina il vecchio holder",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:10.646Z"
+    },
+    "cdp-readonly-same-origin-navigation": {
+      "fixtureId": "scripts/enea-shadow-runner/cdpClientIdentity.test.ts#identità Chrome e client CDP residui consente soltanto una navigazione GET read-only HTTPS sulla stessa origine",
+      "independentAnalogFixtureId": "scripts/enea-shadow-runner/cdpClientIdentity.test.ts#identità Chrome e client CDP residui rifiuta Page.navigate con una capability read-only prima di aprire il websocket",
+      "sourceFingerprint": "5b7523163b6ce33dd837b0bc77348565e784e0259aaa6bdf8028bf81f1967869",
+      "replayFingerprint": "ac09be4d8be9faa3c50f2aeb6f160f0831187183761f1774ebc5cd0e1ffff1d4",
+      "executionPath": [
+        "runner_lifecycle"
+      ],
+      "producedFields": [
+        "system-cdp-readonly-same-origin-navigation-v1",
+        "system-global-enea-browser-controller-fenced-lease-v2"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "scripts/enea-shadow-runner/cdpClientIdentity.test.ts#identità Chrome e client CDP residui consente soltanto una navigazione GET read-only HTTPS sulla stessa origine",
+      "negativeTest": "scripts/enea-shadow-runner/cdpClientIdentity.test.ts#identità Chrome e client CDP residui rifiuta Page.navigate con una capability read-only prima di aprire il websocket",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:10.652Z"
+    },
+    "chrome-instance-identity-receipt": {
+      "fixtureId": "scripts/enea-shadow-runner/cdpClientIdentity.test.ts#identità Chrome e client CDP residui scrive una receipt di attach legata a nonce, owner, epoch e /json/list",
+      "independentAnalogFixtureId": "scripts/enea-shadow-runner/cdpClientIdentity.test.ts#identità Chrome e client CDP residui rifiuta fail-closed un client vivo appartenente alla coorte precedente",
+      "sourceFingerprint": "19fcd137bdfa4ac3d2e5b49a28737d03dd406ce5b8ea605f5c334d112b4f6f58",
+      "replayFingerprint": "ffe0e7b57f4a71997a1acbfddb1fe36df73bcc0c0df1298a241cddab12e68010",
+      "executionPath": [
+        "runner_lifecycle"
+      ],
+      "producedFields": [
+        "system-chrome-instance-identity-receipt-v1"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "scripts/enea-shadow-runner/cdpClientIdentity.test.ts#identità Chrome e client CDP residui scrive una receipt di attach legata a nonce, owner, epoch e /json/list",
+      "negativeTest": "scripts/enea-shadow-runner/cdpClientIdentity.test.ts#identità Chrome e client CDP residui rifiuta fail-closed un client vivo appartenente alla coorte precedente",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:10.657Z"
+    },
+    "cdp-explicit-operation-timeouts": {
+      "fixtureId": "scripts/enea-shadow-runner/cdpClientTimeout.test.ts#timeout CDP con terminazione dell'esecuzione browser usa awaitPromise=false per DOM_READ e true per la riconciliazione dichiarata",
+      "independentAnalogFixtureId": "scripts/enea-shadow-runner/cdpEvaluateContract.test.ts#contratto AST dei timeout Runtime.evaluate impone probe DOM sincroni e polling Node per i marker React",
+      "sourceFingerprint": "de4b334616c6abbecc58afd6ce831bd8d9d78ef44ef8f3e93e0a8f760abcf5aa",
+      "replayFingerprint": "951fb79233611f761376cff0a52f38d46489f117b6189ffe966f7a901039b5cd",
+      "executionPath": [
+        "runner_lifecycle"
+      ],
+      "producedFields": [
+        "system-cdp-explicit-operation-timeouts-v1",
+        "system-cdp-authoritative-get-deadline-v1",
+        "system-cdp-react-remount-readonly-poll-v1"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "scripts/enea-shadow-runner/cdpClientTimeout.test.ts#timeout CDP con terminazione dell'esecuzione browser usa awaitPromise=false per DOM_READ e true per la riconciliazione dichiarata",
+      "negativeTest": "scripts/enea-shadow-runner/cdpEvaluateContract.test.ts#contratto AST dei timeout Runtime.evaluate impone probe DOM sincroni e polling Node per i marker React",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:10.664Z"
+    },
+    "nested-page-transaction": {
+      "fixtureId": "scripts/enea-shadow-runner/cdpEneaBrowserDriver.test.ts#driver Chrome persistente di APR riconosce una sola riga schermatura dal contenuto tecnico anche quando l'indice ordinale non è più disponibile",
+      "independentAnalogFixtureId": "scripts/enea-shadow-runner/aprEneaBrowserWorker.test.ts#APR browser worker persistente e autonomo resta fail-closed se la prova JSON server indipendente non conferma il Generatore",
+      "sourceFingerprint": "364c049d10ce86b49dc6a1e30642f5cd11697c6372fcbec05c9eec61690f2125",
+      "replayFingerprint": "76bdf72b91c087f65ec27ec0a1734b984553861c06d0823541e58482073d2f7e",
+      "executionPath": [
+        "checkpoint_persistence"
+      ],
+      "producedFields": [
+        "system-nested-page-transaction-v1",
+        "system-nested-server-envelope-proof-v1",
+        "system-screening-staged-server-rounding-v1"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "scripts/enea-shadow-runner/cdpEneaBrowserDriver.test.ts#driver Chrome persistente di APR riconosce una sola riga schermatura dal contenuto tecnico anche quando l'indice ordinale non è più disponibile",
+      "negativeTest": "scripts/enea-shadow-runner/aprEneaBrowserWorker.test.ts#APR browser worker persistente e autonomo resta fail-closed se la prova JSON server indipendente non conferma il Generatore",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:10.672Z"
+    },
+    "terminal-observability-snapshot": {
+      "fixtureId": "scripts/enea-shadow-runner/dashboardOperationalStatus.test.ts#verità operativa dashboard APR usa lo snapshot terminale del sequencer anche se il worker quiescente conserva operator_intervention",
+      "independentAnalogFixtureId": "scripts/enea-shadow-runner/dashboardOperationalStatus.test.ts#verità operativa dashboard APR resta fail-closed come INCONSISTENT se lo snapshot terminale non e coerente",
+      "sourceFingerprint": "335fd25ef14abdf3c187361e8a146befc9b674407c2aa06fa9b8830452640fbd",
+      "replayFingerprint": "2c17a55ae8af616f8b92827d921715dae0bda5a6bb29cc413df4e19fc53ad049",
+      "executionPath": [
+        "checkpoint_persistence"
+      ],
+      "producedFields": [
+        "system-terminal-observability-snapshot-v1",
+        "system-terminal-ambiguous-save-evidence-v1"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "scripts/enea-shadow-runner/dashboardOperationalStatus.test.ts#verità operativa dashboard APR usa lo snapshot terminale del sequencer anche se il worker quiescente conserva operator_intervention",
+      "negativeTest": "scripts/enea-shadow-runner/dashboardOperationalStatus.test.ts#verità operativa dashboard APR resta fail-closed come INCONSISTENT se lo snapshot terminale non e coerente",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:10.680Z"
+    },
+    "invoice-schedule-missing-amount": {
+      "fixtureId": "scripts/enea-shadow-runner/localInvoiceFinancialEvidence.test.ts#evidenza finanziaria da PDF originario locale preserva uno zero monetario esplicito nello scadenziario",
+      "independentAnalogFixtureId": "scripts/enea-shadow-runner/localInvoiceFinancialEvidence.test.ts#evidenza finanziaria da PDF originario locale riconosce la scadenza Beghini due righe dopo la data senza inventare zero",
+      "sourceFingerprint": "b2ff7d443073d23c1a28e3667c83905d25d04d90a7a1ed17e18caff57b482d11",
+      "replayFingerprint": "359e975e375365e6e8df1f4d688a436c3b2a70c99e502d61cb3b7b6b947b4094",
+      "executionPath": [
+        "gross_reconciliation"
+      ],
+      "producedFields": [
+        "user-2026-08-26-invoice-schedule-missing-amount-v1",
+        "user-2026-08-16-invoice-gross-total-vat-included",
+        "core-gross-triple-reconciliation"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "scripts/enea-shadow-runner/localInvoiceFinancialEvidence.test.ts#evidenza finanziaria da PDF originario locale preserva uno zero monetario esplicito nello scadenziario",
+      "negativeTest": "scripts/enea-shadow-runner/localInvoiceFinancialEvidence.test.ts#evidenza finanziaria da PDF originario locale riconosce la scadenza Beghini due righe dopo la data senza inventare zero",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:10.688Z"
+    },
+    "screening-dimension-unit-surface-coherence": {
+      "fixtureId": "src/features/enea-lab/invoiceParser.vendorFormats.test.ts#invoiceParser formati rivenditore originari blocca fail-closed quando unita esplicita e superficie dichiarata sono incoerenti",
+      "independentAnalogFixtureId": "src/features/enea-lab/invoiceParser.vendorFormats.test.ts#invoiceParser formati rivenditore originari risolve Teotino in centimetri tramite Tot mq e conserva audit di unita e superficie",
+      "sourceFingerprint": "6815d712c3d93d21473a735bfc627e6fd61e37767a066365100eb139362b4f40",
+      "replayFingerprint": "897a3f75bd923ce016cb8fa7b35d738ec5dc34fc529ee338ce876a6268b9b845",
+      "executionPath": [
+        "screenings"
+      ],
+      "producedFields": [
+        "user-2026-08-26-screening-dimension-unit-surface-coherence-v1",
+        "user-2026-08-18-explicit-technical-surface-precision"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "src/features/enea-lab/invoiceParser.vendorFormats.test.ts#invoiceParser formati rivenditore originari blocca fail-closed quando unita esplicita e superficie dichiarata sono incoerenti",
+      "negativeTest": "src/features/enea-lab/invoiceParser.vendorFormats.test.ts#invoiceParser formati rivenditore originari risolve Teotino in centimetri tramite Tot mq e conserva audit di unita e superficie",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:10.695Z"
+    },
+    "infissi-third-party-certificate-classification": {
+      "fixtureId": "src/features/enea-shadow-crm/infissiTechnicalDocumentClassifier.test.ts#classificazione semantica dei documenti tecnici Infissi non promuove un documento interno che menziona trasmittanza e numeri fuori da un certificato",
+      "independentAnalogFixtureId": "src/features/enea-shadow-crm/infissiTechnicalDocumentClassifier.test.ts#classificazione semantica dei documenti tecnici Infissi riconosce una vera dichiarazione tecnica di terza parte",
+      "sourceFingerprint": "ba6aa0f08cd10acb149f987eb1a58135fbfa59803d33c740b4bf3878572d387b",
+      "replayFingerprint": "e1d006f020eeb35cb2eb052455f8948a833c01abc9fbb46a1af967e425eb8762",
+      "executionPath": [
+        "economic_sources"
+      ],
+      "producedFields": [
+        "user-2026-08-26-third-party-technical-certificate-classification-v1",
+        "user-2026-08-25-crm-internal-technical-document-untrusted-v1"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "src/features/enea-shadow-crm/infissiTechnicalDocumentClassifier.test.ts#classificazione semantica dei documenti tecnici Infissi non promuove un documento interno che menziona trasmittanza e numeri fuori da un certificato",
+      "negativeTest": "src/features/enea-shadow-crm/infissiTechnicalDocumentClassifier.test.ts#classificazione semantica dei documenti tecnici Infissi riconosce una vera dichiarazione tecnica di terza parte",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:10.702Z"
+    },
+    "infissi-internal-technical-document-untrusted": {
+      "fixtureId": "src/features/enea-shadow-crm/infissiOriginalSourcePolicy.test.ts#fonti Infissi attendibili ed elaborazione ex novo ammette fattura e certificato terzo esplicito, escludendo il documento CRM interno",
+      "independentAnalogFixtureId": "src/features/enea-shadow-crm/infissiAutomaticDocumentEvidence.test.ts#APR Infissi · estrazione automatica documenti reali non interpreta parole o numeri generici come righe fisiche senza la sequenza quantita-da-misura",
+      "sourceFingerprint": "a1ace2a8b6936b753d1ece2e0eaa3b742d4fbfd116c50b787f6e3520965ad58e",
+      "replayFingerprint": "90ddd818cde7e9e40065acaed12e9e9507f04e899299f663980744fd98283a28",
+      "executionPath": [
+        "economic_sources"
+      ],
+      "producedFields": [
+        "user-2026-08-25-crm-internal-technical-document-untrusted-v1",
+        "user-2026-08-19-infissi-invoice-or-technical-source-resolution-v1"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "src/features/enea-shadow-crm/infissiOriginalSourcePolicy.test.ts#fonti Infissi attendibili ed elaborazione ex novo ammette fattura e certificato terzo esplicito, escludendo il documento CRM interno",
+      "negativeTest": "src/features/enea-shadow-crm/infissiAutomaticDocumentEvidence.test.ts#APR Infissi · estrazione automatica documenti reali non interpreta parole o numeri generici come righe fisiche senza la sequenza quantita-da-misura",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:10.709Z"
+    },
+    "test-ex-novo-original-sources-only": {
+      "fixtureId": "src/features/enea-shadow-crm/infissiOriginalSourcePolicy.test.ts#fonti Infissi attendibili ed elaborazione ex novo ignora stato operatore e storico ENEA: l'output tecnico resta identico",
+      "independentAnalogFixtureId": "src/features/enea-shadow-crm/infissiAutomaticDocumentEvidence.test.ts#APR Infissi · estrazione automatica documenti reali ricostruisce una riga per ciascuna pagina tecnica usando le misure esterne del diagramma",
+      "sourceFingerprint": "dd40afa301aaee5f71332504666e9c23a7158f8e04471c1a6171ffaa6f4ec65a",
+      "replayFingerprint": "1a17f51fc4c34c361b2c98cc3e701b44db83b6e3b86280d1cbec0b36e1b66a37",
+      "executionPath": [
+        "runner_lifecycle"
+      ],
+      "producedFields": [
+        "user-2026-08-25-test-ex-novo-original-sources-only-v1"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "src/features/enea-shadow-crm/infissiOriginalSourcePolicy.test.ts#fonti Infissi attendibili ed elaborazione ex novo ignora stato operatore e storico ENEA: l'output tecnico resta identico",
+      "negativeTest": "src/features/enea-shadow-crm/infissiAutomaticDocumentEvidence.test.ts#APR Infissi · estrazione automatica documenti reali ricostruisce una riga per ciascuna pagina tecnica usando le misure esterne del diagramma",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:10.718Z"
+    },
+    "documented-product-module-over-label": {
+      "fixtureId": "src/features/enea-shadow-crm/documentedProductRouting.test.ts#routing prodotto da fonti originarie instrada persiane al modulo schermature anche con etichetta Infissi",
+      "independentAnalogFixtureId": "src/features/enea-shadow-crm/documentedProductRouting.test.ts#routing prodotto da fonti originarie conserva entrambe le famiglie quando la fattura e realmente mista",
+      "sourceFingerprint": "2cd61557bf31f9e26119f479311841d11c296a83dd6bc5df985b93a9b5f0285b",
+      "replayFingerprint": "55cf5e71eaebbb0318cc9514c06c31780c626e371ed2af4c433e404188993d30",
+      "executionPath": [
+        "economic_sources",
+        "screenings"
+      ],
+      "producedFields": [
+        "user-2026-08-23-documented-product-module-over-label",
+        "user-2026-08-31-persiana-screening-contract-v2",
+        "user-2026-08-31-avvolgibile-screening-contract-v2"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "src/features/enea-shadow-crm/documentedProductRouting.test.ts#routing prodotto da fonti originarie instrada persiane al modulo schermature anche con etichetta Infissi",
+      "negativeTest": "src/features/enea-shadow-crm/documentedProductRouting.test.ts#routing prodotto da fonti originarie conserva entrambe le famiglie quando la fattura e realmente mista",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:10.727Z"
+    },
+    "screening-primary-measurements-operator-routing": {
+      "fixtureId": "scripts/enea-shadow-runner/crmLocalPreflight.test.ts#preflight locale durevole fino a quindici dossier CRM distingue misure prodotto mancanti dalle sole misure della finestra protetta",
+      "independentAnalogFixtureId": "scripts/enea-shadow-runner/deepCaseReview.test.ts#revisione profonda persistente APR classifica come operatore le misure prodotto realmente assenti dalle fonti primarie",
+      "sourceFingerprint": "3b13b9bea853da8cad83839c924788a2871cc0c5b6905a785cd64a6956abbacb",
+      "replayFingerprint": "37fb4c262510b769896ba72e61560f5b85f8de8fb0b93b8b7b5424dbaa2d8f30",
+      "executionPath": [
+        "screenings",
+        "runner_lifecycle"
+      ],
+      "producedFields": [
+        "system-screening-primary-measurements-operator-routing",
+        "user-2026-08-14-preserve-technical-product-cardinality",
+        "system-apr-operator-intervention-routing"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "scripts/enea-shadow-runner/crmLocalPreflight.test.ts#preflight locale durevole fino a quindici dossier CRM distingue misure prodotto mancanti dalle sole misure della finestra protetta",
+      "negativeTest": "scripts/enea-shadow-runner/deepCaseReview.test.ts#revisione profonda persistente APR classifica come operatore le misure prodotto realmente assenti dalle fonti primarie",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:10.737Z"
+    },
+    "missing-explicit-advance-invoice-reference": {
+      "fixtureId": "scripts/enea-shadow-runner/crmLocalPreflight.test.ts#preflight locale durevole fino a quindici dossier CRM non usa la stessa fattura di saldo per soddisfare il proprio riferimento acconto",
+      "independentAnalogFixtureId": "scripts/enea-shadow-runner/crmLocalPreflight.test.ts#preflight locale durevole fino a quindici dossier CRM richiede la fattura di acconto citata e sottratta quando non e presente fra le fonti fiscali",
+      "sourceFingerprint": "2691eb30951d887f0533f9452c93e777792588a53410b9343fb6d3b0b1ab7c77",
+      "replayFingerprint": "00c17ef95fb03d48e9133296559b4ec04cca19f2db48e8407b1396cea0d06bda",
+      "executionPath": [
+        "economic_sources",
+        "gross_reconciliation",
+        "runner_lifecycle"
+      ],
+      "producedFields": [
+        "user-2026-08-16-missing-invoice-operator-requeue",
+        "user-2026-08-16-distinct-invoice-numbers-same-customer-sum",
+        "core-economic-classification",
+        "system-apr-operator-intervention-routing"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "scripts/enea-shadow-runner/crmLocalPreflight.test.ts#preflight locale durevole fino a quindici dossier CRM non usa la stessa fattura di saldo per soddisfare il proprio riferimento acconto",
+      "negativeTest": "scripts/enea-shadow-runner/crmLocalPreflight.test.ts#preflight locale durevole fino a quindici dossier CRM richiede la fattura di acconto citata e sottratta quando non e presente fra le fonti fiscali",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:10.746Z"
+    },
+    "unique-invoice-base-reference-match": {
+      "fixtureId": "scripts/enea-shadow-runner/crmLocalPreflight.test.ts#preflight locale durevole fino a quindici dossier CRM risolve il suffisso fattura soltanto tramite un numero base univoco e auditabile",
+      "independentAnalogFixtureId": "scripts/enea-shadow-runner/crmLocalPreflight.test.ts#preflight locale durevole fino a quindici dossier CRM mantiene fail-closed il suffisso fattura quando piu serie condividono il numero base",
+      "sourceFingerprint": "aa61edc4624d9fe759276e2b7e7c1bbd86bdb402dc0f3fc239385f3119ab4594",
+      "replayFingerprint": "8270d0efd9ee438192cc7f272a5480acc1153defaf6e5edefbbb8a21d76c9859",
+      "executionPath": [
+        "economic_sources"
+      ],
+      "producedFields": [
+        "user-2026-08-26-unique-invoice-base-reference-match-v1",
+        "user-2026-08-16-missing-invoice-operator-requeue"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "scripts/enea-shadow-runner/crmLocalPreflight.test.ts#preflight locale durevole fino a quindici dossier CRM risolve il suffisso fattura soltanto tramite un numero base univoco e auditabile",
+      "negativeTest": "scripts/enea-shadow-runner/crmLocalPreflight.test.ts#preflight locale durevole fino a quindici dossier CRM mantiene fail-closed il suffisso fattura quando piu serie condividono il numero base",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:10.756Z"
+    },
+    "composite-invoice-bank-transfer-page-segmentation": {
+      "fixtureId": "scripts/enea-shadow-runner/crmEneaPayloadAudit.test.ts#audit payload ENEA da dossier CRM locale non trasforma un allegato esclusivamente bancario in una fattura tecnica",
+      "independentAnalogFixtureId": "scripts/enea-shadow-runner/crmEneaPayloadAudit.test.ts#audit payload ENEA da dossier CRM locale conserva la pagina fattura in un allegato composito fattura+bonifico e ne audita la regola",
+      "sourceFingerprint": "8691285d70d36db2da75da73af77a544ac63fefa3253b16e8b47ee2111042b6f",
+      "replayFingerprint": "41614aa0786aeb257fd2a647b3146c0c454e7df17a9b3f4c063402410fb71da3",
+      "executionPath": [
+        "economic_sources",
+        "gross_reconciliation"
+      ],
+      "producedFields": [
+        "system-composite-invoice-bank-transfer-page-segmentation",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "scripts/enea-shadow-runner/crmEneaPayloadAudit.test.ts#audit payload ENEA da dossier CRM locale non trasforma un allegato esclusivamente bancario in una fattura tecnica",
+      "negativeTest": "scripts/enea-shadow-runner/crmEneaPayloadAudit.test.ts#audit payload ENEA da dossier CRM locale conserva la pagina fattura in un allegato composito fattura+bonifico e ne audita la regola",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:10.767Z"
+    },
+    "draft-payload-mapping-completeness": {
+      "fixtureId": "scripts/enea-shadow-runner/crmLocalPreflight.test.ts#preflight locale durevole fino a quindici dossier CRM non trasforma un lordo con Pratica ENEA compresa in spesa tecnica senza ripartizione",
+      "independentAnalogFixtureId": "scripts/enea-shadow-runner/crmLocalPreflight.test.ts#preflight locale durevole fino a quindici dossier CRM ricalcola da una revisione locale delle fonti senza ripetere il caso o mutare sistemi esterni",
+      "sourceFingerprint": "00a8b186c55f950550771c5316b9757785cf2da23d8cad29250b2aaa94bad0db",
+      "replayFingerprint": "4be7f8ba1a4f8fc302b14515fe2d18dce8f8f2912e789e45d4e9eaa5564fabaa",
+      "executionPath": [
+        "enea_mapping",
+        "checkpoint_persistence"
+      ],
+      "producedFields": [
+        "system-draft-payload-mapping-completeness",
+        "system-apr-technical-repair-queue",
+        "core-mapping-complete"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "scripts/enea-shadow-runner/crmLocalPreflight.test.ts#preflight locale durevole fino a quindici dossier CRM non trasforma un lordo con Pratica ENEA compresa in spesa tecnica senza ripartizione",
+      "negativeTest": "scripts/enea-shadow-runner/crmLocalPreflight.test.ts#preflight locale durevole fino a quindici dossier CRM ricalcola da una revisione locale delle fonti senza ripetere il caso o mutare sistemi esterni",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:10.778Z"
+    },
+    "paper-form-birth-date-leading-digit-ocr-repair": {
+      "fixtureId": "scripts/enea-shadow-runner/lineaSolePotitoPolicy.test.ts#Linea Sole Potito — modulo cartaceo e fallback vendor-scoped ripara soltanto la cifra iniziale 1 della data persa dall'OCR quando il CF valido concorda",
+      "independentAnalogFixtureId": "scripts/enea-shadow-runner/lineaSolePotitoPolicy.test.ts#Linea Sole Potito — modulo cartaceo e fallback vendor-scoped non modifica date OCR che non hanno una sola ricostruzione concordante col CF",
+      "sourceFingerprint": "15e3acf32bbb013ed6b626dc807c7eab1e71894485eb50184d9c87ffdd93e16a",
+      "replayFingerprint": "eac8d5b67ae02133e86d17d641f2d348f6a6fbaea144f2d42d31f6f5e7f7e304",
+      "executionPath": [
+        "identity_property"
+      ],
+      "producedFields": [
+        "system-paper-form-birth-date-leading-digit-ocr-repair",
+        "user-2026-08-16-fiscal-code-identity-cross-check"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "scripts/enea-shadow-runner/lineaSolePotitoPolicy.test.ts#Linea Sole Potito — modulo cartaceo e fallback vendor-scoped ripara soltanto la cifra iniziale 1 della data persa dall'OCR quando il CF valido concorda",
+      "negativeTest": "scripts/enea-shadow-runner/lineaSolePotitoPolicy.test.ts#Linea Sole Potito — modulo cartaceo e fallback vendor-scoped non modifica date OCR che non hanno una sola ricostruzione concordante col CF",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:10.788Z"
+    },
+    "mixed-forty-case-reliability-test": {
+      "fixtureId": "scripts/enea-shadow-runner/crmAuthenticatedReadOnly.test.ts#acquisizione CRM autenticata e read-only APR applica risoluzioni operatore per duplicato eliminato e pipeline Archiviate senza ripetere gli altri dossier",
+      "independentAnalogFixtureId": "scripts/enea-shadow-runner/aprCrmArchivedMixedDiscovery.test.ts#discovery CRM misto 40 pratiche congela esattamente 20 schermature e 20 Infissi, con pipeline e ordine deterministici",
+      "sourceFingerprint": "50d770ff84329f7c37b55f987743bc25bcd6cbcb2a00eb2209f1ea22b74c7d65",
+      "replayFingerprint": "a3aef7fb04fb0b48446cec53bd4501632a4222b37e5966b482a1c26c873bc264",
+      "executionPath": [
+        "runner_lifecycle",
+        "checkpoint_persistence"
+      ],
+      "producedFields": [
+        "user-2026-08-23-mixed-forty-case-reliability-test",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "scripts/enea-shadow-runner/crmAuthenticatedReadOnly.test.ts#acquisizione CRM autenticata e read-only APR applica risoluzioni operatore per duplicato eliminato e pipeline Archiviate senza ripetere gli altri dossier",
+      "negativeTest": "scripts/enea-shadow-runner/aprCrmArchivedMixedDiscovery.test.ts#discovery CRM misto 40 pratiche congela esattamente 20 schermature e 20 Infissi, con pipeline e ordine deterministici",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:10.799Z"
+    },
+    "foreign-birth-anpr-registry": {
+      "fixtureId": "src/features/enea-lab/portalBeneficiary.test.ts#compilazione pagina beneficiario ENEA tratta il luogo di nascita estero come testo libero e conserva l'autocomplete per i Comuni italiani",
+      "independentAnalogFixtureId": "src/features/enea-lab/portalBeneficiary.test.ts#compilazione pagina beneficiario ENEA seleziona una nazione estera dal codice ISO3 ANPR anche quando l'etichetta ENEA differisce",
+      "sourceFingerprint": "9849ac17d04f86d8ca3e7cd153f2495b5097e245e4b496b33c619bf0b3b7465d",
+      "replayFingerprint": "4b4b0ec6892b959d5fbf756359a1397eefe75b479ba8c37f9c5eba8c87d1e8ac",
+      "executionPath": [
+        "identity_property"
+      ],
+      "producedFields": [
+        "user-2026-08-23-foreign-birth-anpr-registry-v1",
+        "user-2026-08-16-fiscal-code-identity-cross-check"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "src/features/enea-lab/portalBeneficiary.test.ts#compilazione pagina beneficiario ENEA tratta il luogo di nascita estero come testo libero e conserva l'autocomplete per i Comuni italiani",
+      "negativeTest": "src/features/enea-lab/portalBeneficiary.test.ts#compilazione pagina beneficiario ENEA seleziona una nazione estera dal codice ISO3 ANPR anche quando l'etichetta ENEA differisce",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:10.811Z"
+    },
+    "infissi-portal-managed-energy-savings": {
+      "fixtureId": "src/features/enea-shadow-crm/infissiEneaDraftPayload.test.ts#payload tecnico locale Infissi per ENEA registra in sola lettura il valore calcolato dal portale senza abilitarne la modifica",
+      "independentAnalogFixtureId": "src/features/enea-shadow-crm/infissiEneaDraftPayload.test.ts#payload tecnico locale Infissi per ENEA usa i fallback autorizzati e non produce mai un valore di risparmio energetico",
+      "sourceFingerprint": "93377b4e2e9655b0591b422213a104f56b58c8671a578f83e50d8deabf0291bb",
+      "replayFingerprint": "143fe0202d334a93d825b4e62dea488d6754fb9e746c2132e888e9adf05ba80c",
+      "executionPath": [
+        "enea_mapping"
+      ],
+      "producedFields": [
+        "user-2026-08-19-infissi-portal-managed-energy-savings-v1"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "src/features/enea-shadow-crm/infissiEneaDraftPayload.test.ts#payload tecnico locale Infissi per ENEA registra in sola lettura il valore calcolato dal portale senza abilitarne la modifica",
+      "negativeTest": "src/features/enea-shadow-crm/infissiEneaDraftPayload.test.ts#payload tecnico locale Infissi per ENEA usa i fallback autorizzati e non produce mai un valore di risparmio energetico",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:10.823Z"
+    },
+    "infissi-old-window-transmittance-matrix": {
+      "fixtureId": "src/features/enea-shadow-crm/infissiOldWindowTransmittance.test.ts#APR Infissi · trasmittanza termica del vecchio infisso usa il fallback prudenziale per materiale ambiguo",
+      "independentAnalogFixtureId": "src/features/enea-shadow-crm/infissiOldWindowTransmittance.test.ts#APR Infissi · trasmittanza termica del vecchio infisso usa il fallback prudenziale per materiale mancante",
+      "sourceFingerprint": "da14885beea31baccdf803af66505fde3799414869a02d65145f996822a9a6fd",
+      "replayFingerprint": "ae0c69c3f4415c1b1cdeccdf7410de098f524a2b14126a731803d0ebab805058",
+      "executionPath": [
+        "enea_mapping"
+      ],
+      "producedFields": [
+        "user-2026-08-19-infissi-old-window-transmittance-matrix-v1"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "src/features/enea-shadow-crm/infissiOldWindowTransmittance.test.ts#APR Infissi · trasmittanza termica del vecchio infisso usa il fallback prudenziale per materiale ambiguo",
+      "negativeTest": "src/features/enea-shadow-crm/infissiOldWindowTransmittance.test.ts#APR Infissi · trasmittanza termica del vecchio infisso usa il fallback prudenziale per materiale mancante",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:10.834Z"
+    },
+    "infissi-shared-screening-workflow": {
+      "fixtureId": "src/features/enea-shadow-crm/infissiModule.test.ts#APR modulo Infissi · gate flusso condiviso riusa tutte le sezioni comuni delle schermature cambiando soltanto il tipo intervento",
+      "independentAnalogFixtureId": "src/features/enea-shadow-crm/operationalRegistry.test.ts#registro operativo unico riusa per gli infissi la baseline schermature cambiando soltanto il tipo intervento",
+      "sourceFingerprint": "8597106c3b95be3c14a5fc6bd276f0f7ff0ba810730b3a3b81edbadf76605375",
+      "replayFingerprint": "b3eabbfe3c265f99c897941701015ccfb8892a446503e8aad03b1cf7bf0ac929",
+      "executionPath": [
+        "enea_mapping",
+        "identity_property",
+        "dates"
+      ],
+      "producedFields": [
+        "user-2026-08-18-infissi-shared-screening-workflow-v1",
+        "user-2026-08-16-invoice-identity-over-customer-form",
+        "user-2026-08-18-invoice-work-date-chronology",
+        "user-2026-08-16-secondary-home-36-percent-calculation-allocation"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "src/features/enea-shadow-crm/infissiModule.test.ts#APR modulo Infissi · gate flusso condiviso riusa tutte le sezioni comuni delle schermature cambiando soltanto il tipo intervento",
+      "negativeTest": "src/features/enea-shadow-crm/operationalRegistry.test.ts#registro operativo unico riusa per gli infissi la baseline schermature cambiando soltanto il tipo intervento",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:10.847Z"
+    },
+    "infissi-invoice-or-technical-source-resolution": {
+      "fixtureId": "src/features/enea-shadow-crm/infissiTechnicalSources.test.ts#APR Infissi · fattura e documenti tecnici originari non sceglie arbitrariamente quando fattura e documento tecnico confliggono",
+      "independentAnalogFixtureId": "src/features/enea-shadow-crm/infissiTechnicalSources.test.ts#APR Infissi · fattura e documenti tecnici originari usa numero, misure e trasmittanza espliciti della fattura ed espande ogni pezzo 1:1",
+      "sourceFingerprint": "2456a666899dd3841878c1393c6b0f1b6e8872cab299373d82b4eed4b942239d",
+      "replayFingerprint": "adfba39de6df06b7b74abcfd515fc435d916d7f0f1d440e470a5ae0e7bcfd33a",
+      "executionPath": [
+        "economic_sources",
+        "screenings"
+      ],
+      "producedFields": [
+        "user-2026-08-19-infissi-invoice-or-technical-source-resolution-v1",
+        "user-2026-08-14-preserve-technical-product-cardinality"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "src/features/enea-shadow-crm/infissiTechnicalSources.test.ts#APR Infissi · fattura e documenti tecnici originari non sceglie arbitrariamente quando fattura e documento tecnico confliggono",
+      "negativeTest": "src/features/enea-shadow-crm/infissiTechnicalSources.test.ts#APR Infissi · fattura e documenti tecnici originari usa numero, misure e trasmittanza espliciti della fattura ed espande ogni pezzo 1:1",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:10.861Z"
+    },
+    "infissi-invoice-certificate-cardinality": {
+      "fixtureId": "src/features/enea-shadow-crm/infissiInvoiceCertificateCardinality.test.ts#APR Infissi · cardinalità fattura contro certificato richiede operatore quando fattura e certificato discordano",
+      "independentAnalogFixtureId": "src/features/enea-shadow-crm/infissiInvoiceCertificateCardinality.test.ts#APR Infissi · cardinalità fattura contro certificato non inventa il controllo quando il certificato non è presente",
+      "sourceFingerprint": "0cd5fcff2520b01527104f9afefbd376d2bde38042377144e2fa42cc4fc121c5",
+      "replayFingerprint": "f5c75767f6ac2d8a122f697216ae2560a9bc6a26c43473475fc3040d00923937",
+      "executionPath": [
+        "enea_mapping",
+        "screenings"
+      ],
+      "producedFields": [
+        "user-2026-08-22-infissi-invoice-certificate-cardinality-match-v1",
+        "user-2026-08-14-preserve-technical-product-cardinality"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "src/features/enea-shadow-crm/infissiInvoiceCertificateCardinality.test.ts#APR Infissi · cardinalità fattura contro certificato richiede operatore quando fattura e certificato discordano",
+      "negativeTest": "src/features/enea-shadow-crm/infissiInvoiceCertificateCardinality.test.ts#APR Infissi · cardinalità fattura contro certificato non inventa il controllo quando il certificato non è presente",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:10.875Z"
+    },
+    "infissi-transmittance-fallback": {
+      "fixtureId": "src/features/enea-shadow-crm/infissiTechnicalSources.test.ts#APR Infissi · fattura e documenti tecnici originari usa il fallback 1,3 soltanto se la trasmittanza manca in entrambe le fonti",
+      "independentAnalogFixtureId": "src/features/enea-shadow-crm/infissiTechnicalSources.test.ts#APR Infissi · fattura e documenti tecnici originari non usa il fallback quando esiste una trasmittanza esplicita",
+      "sourceFingerprint": "76d299f0c9b7799d13856f53e6692943371d0dee1807de00f0b8434d47f255fb",
+      "replayFingerprint": "0c88b80c85e124c4d60b3bc9b833f3805aa4ecfbddca7b665e77809c3baa9d74",
+      "executionPath": [
+        "enea_mapping",
+        "economic_sources"
+      ],
+      "producedFields": [
+        "user-2026-08-19-infissi-transmittance-1-3-fallback-v1",
+        "user-2026-08-19-infissi-invoice-or-technical-source-resolution-v1"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "src/features/enea-shadow-crm/infissiTechnicalSources.test.ts#APR Infissi · fattura e documenti tecnici originari usa il fallback 1,3 soltanto se la trasmittanza manca in entrambe le fonti",
+      "negativeTest": "src/features/enea-shadow-crm/infissiTechnicalSources.test.ts#APR Infissi · fattura e documenti tecnici originari non usa il fallback quando esiste una trasmittanza esplicita",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:10.889Z"
+    },
+    "infissi-portal-transmittance-131-to-13": {
+      "fixtureId": "src/features/enea-shadow-crm/infissiEneaDraftPayload.test.ts#payload tecnico locale Infissi per ENEA non modifica valori espliciti minori o uguali al massimo ENEA",
+      "independentAnalogFixtureId": "src/features/enea-shadow-crm/infissiEneaDraftPayload.test.ts#payload tecnico locale Infissi per ENEA conserva 1,31 dalla fonte e invia 1,3 a ENEA con audit della regola specifica",
+      "sourceFingerprint": "d05838b739787a4d59d035ec12216dc691652eef588c066f772618b6582a038d",
+      "replayFingerprint": "88de67e613f27aa45babb38d66a51b87d988f9ef77178ffd3b715b1f1bb9dc39",
+      "executionPath": [
+        "enea_mapping"
+      ],
+      "producedFields": [
+        "user-2026-08-22-infissi-portal-transmittance-1-31-to-1-3-v1"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "src/features/enea-shadow-crm/infissiEneaDraftPayload.test.ts#payload tecnico locale Infissi per ENEA non modifica valori espliciti minori o uguali al massimo ENEA",
+      "negativeTest": "src/features/enea-shadow-crm/infissiEneaDraftPayload.test.ts#payload tecnico locale Infissi per ENEA conserva 1,31 dalla fonte e invia 1,3 a ENEA con audit della regola specifica",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:10.906Z"
+    },
+    "infissi-portal-transmittance-over-max-to-13": {
+      "fixtureId": "src/features/enea-shadow-crm/infissiEneaDraftPayload.test.ts#payload tecnico locale Infissi per ENEA non modifica valori espliciti minori o uguali al massimo ENEA",
+      "independentAnalogFixtureId": "src/features/enea-shadow-crm/infissiEneaDraftPayload.test.ts#payload tecnico locale Infissi per ENEA conserva 1,31 dalla fonte e invia 1,3 a ENEA con audit della regola specifica",
+      "sourceFingerprint": "d05838b739787a4d59d035ec12216dc691652eef588c066f772618b6582a038d",
+      "replayFingerprint": "88de67e613f27aa45babb38d66a51b87d988f9ef77178ffd3b715b1f1bb9dc39",
+      "executionPath": [
+        "enea_mapping"
+      ],
+      "producedFields": [
+        "user-2026-08-23-infissi-portal-transmittance-over-max-to-1-3-v1"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "src/features/enea-shadow-crm/infissiEneaDraftPayload.test.ts#payload tecnico locale Infissi per ENEA non modifica valori espliciti minori o uguali al massimo ENEA",
+      "negativeTest": "src/features/enea-shadow-crm/infissiEneaDraftPayload.test.ts#payload tecnico locale Infissi per ENEA conserva 1,31 dalla fonte e invia 1,3 a ENEA con audit della regola specifica",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:10.921Z"
+    },
+    "infissi-enea-area-rounding": {
+      "fixtureId": "src/features/enea-shadow-crm/infissiTechnicalSources.test.ts#APR Infissi · fattura e documenti tecnici originari accetta il normale arrotondamento ENEA della superficie a un decimale",
+      "independentAnalogFixtureId": "src/features/enea-shadow-crm/infissiTechnicalSources.test.ts#APR Infissi · fattura e documenti tecnici originari usa numero, misure e trasmittanza espliciti della fattura ed espande ogni pezzo 1:1",
+      "sourceFingerprint": "e4f8efc794411f7f99ad0df5ce203e3c637f3cd9612fbb34c623c94ace917bd4",
+      "replayFingerprint": "adfba39de6df06b7b74abcfd515fc435d916d7f0f1d440e470a5ae0e7bcfd33a",
+      "executionPath": [
+        "enea_mapping",
+        "screenings"
+      ],
+      "producedFields": [
+        "user-2026-08-19-infissi-enea-square-meter-rounding-v1",
+        "user-2026-08-14-preserve-technical-product-cardinality"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "src/features/enea-shadow-crm/infissiTechnicalSources.test.ts#APR Infissi · fattura e documenti tecnici originari accetta il normale arrotondamento ENEA della superficie a un decimale",
+      "negativeTest": "src/features/enea-shadow-crm/infissiTechnicalSources.test.ts#APR Infissi · fattura e documenti tecnici originari usa numero, misure e trasmittanza espliciti della fattura ed espande ogni pezzo 1:1",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:10.934Z"
+    },
+    "infissi-material-glass-fallbacks": {
+      "fixtureId": "src/features/enea-shadow-crm/infissiProductRules.test.ts#APR Infissi · materiale, vetro e chiusure oscuranti preserva i valori espliciti delle fonti originarie sopra i fallback",
+      "independentAnalogFixtureId": "src/features/enea-shadow-crm/infissiProductRules.test.ts#APR Infissi · materiale, vetro e chiusure oscuranti applica PVC e vetro basso-emissivo soltanto quando non sono specificati",
+      "sourceFingerprint": "40957c07c1223884f0acaa0bdd15e47463895fcd2c97bb55e4a3b77d31e2d80a",
+      "replayFingerprint": "56a3f1aadd894745891d6be679ec4ab9f64995645fc1860f3b93658a278be317",
+      "executionPath": [
+        "enea_mapping"
+      ],
+      "producedFields": [
+        "user-2026-08-19-infissi-pvc-low-e-fallbacks-v1"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "src/features/enea-shadow-crm/infissiProductRules.test.ts#APR Infissi · materiale, vetro e chiusure oscuranti preserva i valori espliciti delle fonti originarie sopra i fallback",
+      "negativeTest": "src/features/enea-shadow-crm/infissiProductRules.test.ts#APR Infissi · materiale, vetro e chiusure oscuranti applica PVC e vetro basso-emissivo soltanto quando non sono specificati",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:10.948Z"
+    },
+    "infissi-shading-closures-form-flag": {
+      "fixtureId": "src/features/enea-shadow-crm/infissiProductRules.test.ts#APR Infissi · materiale, vetro e chiusure oscuranti mappa SI su flag selezionato e NO su flag vuoto",
+      "independentAnalogFixtureId": "src/features/enea-shadow-crm/infissiProductRules.test.ts#APR Infissi · materiale, vetro e chiusure oscuranti non inventa la risposta quando il campo del form manca o e ambiguo",
+      "sourceFingerprint": "0e54612b5f3bf057155d799b715b791005fd2ceb96abcfe656e241c37675b623",
+      "replayFingerprint": "084a2dfb65b8c8b1d42e5b4edd35e19ceb2a490eff75cf6be9e2ce89d06f5e1a",
+      "executionPath": [
+        "enea_mapping"
+      ],
+      "producedFields": [
+        "user-2026-08-19-infissi-shading-closures-form-flag-v1"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "src/features/enea-shadow-crm/infissiProductRules.test.ts#APR Infissi · materiale, vetro e chiusure oscuranti mappa SI su flag selezionato e NO su flag vuoto",
+      "negativeTest": "src/features/enea-shadow-crm/infissiProductRules.test.ts#APR Infissi · materiale, vetro e chiusure oscuranti non inventa la risposta quando il campo del form manca o e ambiguo",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:10.963Z"
+    },
+    "infissi-shading-closure-invoice-order-allocation": {
+      "fixtureId": "src/features/enea-shadow-crm/infissiShadingClosureAllocation.test.ts#allocazione chiusure oscuranti Infissi in ordine fattura non assegna posizioni se le righe tecniche seguono l'ordine del certificato",
+      "independentAnalogFixtureId": "src/features/enea-shadow-crm/infissiShadingClosureAllocation.test.ts#allocazione chiusure oscuranti Infissi in ordine fattura assegna due chiusure ai primi due di tre infissi e deduplica acconto/saldo identici",
+      "sourceFingerprint": "70743f40f746ba30567a4bd46755d79c1a2460fa0bf568bb0b0b70e338ae051d",
+      "replayFingerprint": "dab1da7d84a8dd3a76db093b95c29dd5d6631ffbcf48e13b2372f91dacde2269",
+      "executionPath": [
+        "enea_mapping",
+        "screenings"
+      ],
+      "producedFields": [
+        "user-2026-08-25-infissi-shading-closure-invoice-order-allocation-v1",
+        "user-2026-08-14-preserve-technical-product-cardinality"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "src/features/enea-shadow-crm/infissiShadingClosureAllocation.test.ts#allocazione chiusure oscuranti Infissi in ordine fattura non assegna posizioni se le righe tecniche seguono l'ordine del certificato",
+      "negativeTest": "src/features/enea-shadow-crm/infissiShadingClosureAllocation.test.ts#allocazione chiusure oscuranti Infissi in ordine fattura assegna due chiusure ai primi due di tre infissi e deduplica acconto/saldo identici",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:10.979Z"
+    },
+    "vepa-bonus-casa-routing-and-anagraphic-contract": {
+      "fixtureId": "src/features/enea-shadow-crm/vepaModule.test.ts#APR modulo VEPA · gate locale riusa il contratto anagrafico condiviso ma non inventa campi Bonus Casa",
+      "independentAnalogFixtureId": "src/features/enea-shadow-crm/vepaModule.test.ts#APR modulo VEPA · gate locale dichiara esplicitamente non osservato il mapping portale",
+      "sourceFingerprint": "3277ff6e47926a2b67149e636e92330eb1d48a9a20e734b1e821dc022f88cbe9",
+      "replayFingerprint": "3ad968fec3e75aa7c454a39252151e6edf329d56415be33d0ae8f4ded433ceea",
+      "executionPath": [
+        "enea_mapping",
+        "identity_property"
+      ],
+      "producedFields": [
+        "user-2026-08-18-vepa-bonus-casa-only-routing-v1",
+        "user-2026-08-16-invoice-identity-over-customer-form",
+        "user-2026-08-17-invoice-co-beneficiary-person-flow",
+        "user-2026-08-16-fiscal-code-identity-cross-check"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "src/features/enea-shadow-crm/vepaModule.test.ts#APR modulo VEPA · gate locale riusa il contratto anagrafico condiviso ma non inventa campi Bonus Casa",
+      "negativeTest": "src/features/enea-shadow-crm/vepaModule.test.ts#APR modulo VEPA · gate locale dichiara esplicitamente non osservato il mapping portale",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:10.993Z"
+    },
+    "persiana-screening-family": {
+      "fixtureId": "src/features/enea-lab/invoiceParser.vendorFormats.test.ts#invoiceParser formati rivenditore originari normalizza cm e mm entro i limiti ampi di plausibilita refuso",
+      "independentAnalogFixtureId": "src/features/enea-lab/portalScreening.test.ts#compilazione finestra schermatura solare ENEA prepara i valori osservati e lascia fuori solo la superficie finestrata mancante",
+      "sourceFingerprint": "5b4f7814d4fa88a9869be653f7e4b733c79d64396bcee93f76195b82e38519f1",
+      "replayFingerprint": "2e58acd9fc47573c63e89803fff8b1f0c0f29cca50ab96470ac7772c219d1a24",
+      "executionPath": [
+        "screenings"
+      ],
+      "producedFields": [
+        "user-2026-08-31-persiana-screening-contract-v2",
+        "user-2026-08-31-rigid-screening-missing-gtot-006-v1",
+        "user-2026-08-14-preserve-technical-product-cardinality",
+        "user-2026-08-18-form-invoice-portal-cardinality-cross-check"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "src/features/enea-lab/invoiceParser.vendorFormats.test.ts#invoiceParser formati rivenditore originari normalizza cm e mm entro i limiti ampi di plausibilita refuso",
+      "negativeTest": "src/features/enea-lab/portalScreening.test.ts#compilazione finestra schermatura solare ENEA prepara i valori osservati e lascia fuori solo la superficie finestrata mancante",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:11.010Z"
+    },
+    "avvolgibile-screening-family": {
+      "fixtureId": "src/features/enea-lab/portalScreening.test.ts#compilazione finestra schermatura solare ENEA seleziona Persiane avvolgibili tramite l'etichetta esatta e compila Rsupp 0,17",
+      "independentAnalogFixtureId": "src/features/enea-lab/invoiceParser.vendorFormats.test.ts#invoiceParser formati rivenditore originari normalizza cm e mm entro i limiti ampi di plausibilita refuso",
+      "sourceFingerprint": "48402353e9c0361a7c54044788de15e481dccb1bfdf43415b26911a38ef81377",
+      "replayFingerprint": "583b1c8a7c641cfa2840789303f5f579fd83df7df474619452ec4314c15fc635",
+      "executionPath": [
+        "screenings"
+      ],
+      "producedFields": [
+        "user-2026-08-31-avvolgibile-screening-contract-v2",
+        "user-2026-08-31-rigid-screening-missing-gtot-006-v1",
+        "user-2026-08-14-preserve-technical-product-cardinality",
+        "user-2026-08-18-form-invoice-portal-cardinality-cross-check"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "src/features/enea-lab/portalScreening.test.ts#compilazione finestra schermatura solare ENEA seleziona Persiane avvolgibili tramite l'etichetta esatta e compila Rsupp 0,17",
+      "negativeTest": "src/features/enea-lab/invoiceParser.vendorFormats.test.ts#invoiceParser formati rivenditore originari normalizza cm e mm entro i limiti ampi di plausibilita refuso",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:11.027Z"
+    },
+    "single-case-regression-test": {
+      "fixtureId": "scripts/enea-shadow-runner/aprCohortSeed.test.ts#seed persistente di una nuova coorte APR consente due casi nuovi soltanto con autorizzazione small-batch esplicita",
+      "independentAnalogFixtureId": "scripts/enea-shadow-runner/aprCohortSeed.test.ts#seed persistente di una nuova coorte APR consente un solo repeat-test con autorizzazione dedicata e dichiara tutto lo storico",
+      "sourceFingerprint": "2e79034b2badbca2591c15d1cd27901fa2ecb57257de58dab1573b41b9391dca",
+      "replayFingerprint": "a68a3298ad327035633d178e98d5ef3423bc2f2e35b2141d9dd5737991d1f918",
+      "executionPath": [
+        "runner_lifecycle",
+        "checkpoint_persistence"
+      ],
+      "producedFields": [
+        "user-2026-08-18-single-case-regression-test",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "scripts/enea-shadow-runner/aprCohortSeed.test.ts#seed persistente di una nuova coorte APR consente due casi nuovi soltanto con autorizzazione small-batch esplicita",
+      "negativeTest": "scripts/enea-shadow-runner/aprCohortSeed.test.ts#seed persistente di una nuova coorte APR consente un solo repeat-test con autorizzazione dedicata e dichiara tutto lo storico",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:11.044Z"
+    },
+    "invoice-work-date-chronology": {
+      "fixtureId": "scripts/enea-shadow-runner/crmLocalPreflight.test.ts#preflight locale durevole fino a quindici dossier CRM usa tutte le fatture fiscali uniche per prima data di inizio e ultima data di fine",
+      "independentAnalogFixtureId": "scripts/enea-shadow-runner/crmEneaPayloadAudit.test.ts#audit payload ENEA da dossier CRM locale propaga la prima data fattura come inizio lavori con provenienza auditata",
+      "sourceFingerprint": "9e5e7816b98f87e31ddcab745b2dda4406a3487d056bea744f272bbb98ab330b",
+      "replayFingerprint": "8695199c83eb7cc21d17aa5c7dd0fcc616cc8de7722dce706c1dbdb28c9d3c5d",
+      "executionPath": [
+        "dates"
+      ],
+      "producedFields": [
+        "user-2026-08-18-invoice-work-date-chronology",
+        "user-2026-08-14-missing-completion-use-latest-invoice"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "scripts/enea-shadow-runner/crmLocalPreflight.test.ts#preflight locale durevole fino a quindici dossier CRM usa tutte le fatture fiscali uniche per prima data di inizio e ultima data di fine",
+      "negativeTest": "scripts/enea-shadow-runner/crmEneaPayloadAudit.test.ts#audit payload ENEA da dossier CRM locale propaga la prima data fattura come inizio lavori con provenienza auditata",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:11.061Z"
+    },
+    "screening-surface-material-over-support-structure": {
+      "fixtureId": "scripts/enea-shadow-runner/crmLocalPreflight.test.ts#preflight locale durevole fino a quindici dossier CRM non propaga motore e materiale di una riga LM alle zanzariere o alle righe manuali",
+      "independentAnalogFixtureId": "scripts/enea-shadow-runner/crmLocalPreflight.test.ts#preflight locale durevole fino a quindici dossier CRM separa la struttura in alluminio dal telo Tessuto e riconosce il motore nella regressione Tommaso Cecchi",
+      "sourceFingerprint": "8273a5a726715f28b9a9bb7a1674e57c1c8438f5431e9588315360bdcb13b9c0",
+      "replayFingerprint": "8e6636717743cd53f1cbe53c4bf33f7044e81c23e08290576071d8f12101664e",
+      "executionPath": [
+        "screenings"
+      ],
+      "producedFields": [
+        "user-2026-08-18-screening-surface-material-over-support-structure",
+        "authorized-22-schermature-materiale"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "scripts/enea-shadow-runner/crmLocalPreflight.test.ts#preflight locale durevole fino a quindici dossier CRM non propaga motore e materiale di una riga LM alle zanzariere o alle righe manuali",
+      "negativeTest": "scripts/enea-shadow-runner/crmLocalPreflight.test.ts#preflight locale durevole fino a quindici dossier CRM separa la struttura in alluminio dal telo Tessuto e riconosce il motore nella regressione Tommaso Cecchi",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:11.079Z"
+    },
+    "explicit-composite-screening-material": {
+      "fixtureId": "scripts/enea-shadow-runner/crmLocalPreflight.test.ts#preflight locale durevole fino a quindici dossier CRM usa Misto soltanto quando i materiali diversi appartengono alla schermatura stessa",
+      "independentAnalogFixtureId": "scripts/enea-shadow-runner/crmLocalPreflight.test.ts#preflight locale durevole fino a quindici dossier CRM separa la struttura in alluminio dal telo Tessuto e riconosce il motore nella regressione Tommaso Cecchi",
+      "sourceFingerprint": "1359872116e3a255058813386d6db9d31473c2fdd126c66c146c158c4991f1e8",
+      "replayFingerprint": "8e6636717743cd53f1cbe53c4bf33f7044e81c23e08290576071d8f12101664e",
+      "executionPath": [
+        "screenings"
+      ],
+      "producedFields": [
+        "user-2026-08-18-explicit-composite-screening-material",
+        "authorized-22-schermature-materiale"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "scripts/enea-shadow-runner/crmLocalPreflight.test.ts#preflight locale durevole fino a quindici dossier CRM usa Misto soltanto quando i materiali diversi appartengono alla schermatura stessa",
+      "negativeTest": "scripts/enea-shadow-runner/crmLocalPreflight.test.ts#preflight locale durevole fino a quindici dossier CRM separa la struttura in alluminio dal telo Tessuto e riconosce il motore nella regressione Tommaso Cecchi",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:11.096Z"
+    },
+    "explicit-motorized-screening-movement": {
+      "fixtureId": "scripts/enea-shadow-runner/crmLocalPreflight.test.ts#preflight locale durevole fino a quindici dossier CRM separa la struttura in alluminio dal telo Tessuto e riconosce il motore nella regressione Tommaso Cecchi",
+      "independentAnalogFixtureId": "scripts/enea-shadow-runner/crmLocalPreflight.test.ts#preflight locale durevole fino a quindici dossier CRM non propaga motore e materiale di una riga LM alle zanzariere o alle righe manuali",
+      "sourceFingerprint": "a5491751d017e5f512bfdafcf8d4cdcfe62c9a1835a0a5c4bcea57b00ea43156",
+      "replayFingerprint": "796ab87f7704fdd6eebd741d622cf81aca7c058da386476c816777dc573ad3ec",
+      "executionPath": [
+        "screenings"
+      ],
+      "producedFields": [
+        "user-2026-08-18-explicit-motorized-screening-movement",
+        "authorized-16-schermature-meccanismo"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "scripts/enea-shadow-runner/crmLocalPreflight.test.ts#preflight locale durevole fino a quindici dossier CRM separa la struttura in alluminio dal telo Tessuto e riconosce il motore nella regressione Tommaso Cecchi",
+      "negativeTest": "scripts/enea-shadow-runner/crmLocalPreflight.test.ts#preflight locale durevole fino a quindici dossier CRM non propaga motore e materiale di una riga LM alle zanzariere o alle righe manuali",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:11.114Z"
+    },
+    "explicit-technical-surface-precision": {
+      "fixtureId": "src/features/enea-lab/invoiceParser.vendorFormats.test.ts#invoiceParser formati rivenditore originari fa prevalere la superficie esplicita Rinaldi sul prodotto delle misure",
+      "independentAnalogFixtureId": "src/features/enea-lab/invoiceParser.vendorFormats.test.ts#invoiceParser formati rivenditore originari blocca fail-closed quando unita esplicita e superficie dichiarata sono incoerenti",
+      "sourceFingerprint": "5873babbf5e80a39eba39a5f84522209b9c83ddb68707dba147dd86010f88b09",
+      "replayFingerprint": "39dae28615d0372eda706726e8e795794a757dbe2bfd067c5972882a31a44c8a",
+      "executionPath": [
+        "screenings"
+      ],
+      "producedFields": [
+        "user-2026-08-18-explicit-technical-surface-precision",
+        "user-2026-08-14-preserve-technical-product-cardinality"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "src/features/enea-lab/invoiceParser.vendorFormats.test.ts#invoiceParser formati rivenditore originari fa prevalere la superficie esplicita Rinaldi sul prodotto delle misure",
+      "negativeTest": "src/features/enea-lab/invoiceParser.vendorFormats.test.ts#invoiceParser formati rivenditore originari blocca fail-closed quando unita esplicita e superficie dichiarata sono incoerenti",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:11.132Z"
+    },
+    "learning-closure-gate": {
+      "fixtureId": "scripts/enea-shadow-runner/ruleMatrixEvidence.test.ts#matrice regole APR non dichiara regole attive finche test e bundle installato non sono entrambi verificati",
+      "independentAnalogFixtureId": "scripts/enea-shadow-runner/ruleMatrixEvidence.test.ts#matrice regole APR rifiuta un deployment diverso dai bundle appena testati",
+      "sourceFingerprint": "fcedbe8b8fe2c4522ee258a710ac536f439ad7d439a38acc94346d7ec1f073f8",
+      "replayFingerprint": "dcea54e15d0f3682c8c636eacae623dcfa6054429595a8a3d757f430a3feb970",
+      "executionPath": [
+        "checkpoint_persistence"
+      ],
+      "producedFields": [
+        "system-apr-learning-closure-gate",
+        "system-atomic-checkpoint-resume"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "scripts/enea-shadow-runner/ruleMatrixEvidence.test.ts#matrice regole APR non dichiara regole attive finche test e bundle installato non sono entrambi verificati",
+      "negativeTest": "scripts/enea-shadow-runner/ruleMatrixEvidence.test.ts#matrice regole APR rifiuta un deployment diverso dai bundle appena testati",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:11.151Z"
+    },
+    "portal-municipality-controlled-selection": {
+      "fixtureId": "src/features/enea-lab/portalBeneficiary.test.ts#compilazione pagina beneficiario ENEA tratta il luogo di nascita estero come testo libero e conserva l'autocomplete per i Comuni italiani",
+      "independentAnalogFixtureId": "src/features/enea-lab/portalBuilding.test.ts#compilazione pagina immobile ENEA porta la provincia documentata come qualificatore dell'autocomplete Comune",
+      "sourceFingerprint": "9849ac17d04f86d8ca3e7cd153f2495b5097e245e4b496b33c619bf0b3b7465d",
+      "replayFingerprint": "5ebf6c3e580d1f6a9fa1ce21522815aa32a0d138d2cf989348eddf9c08710f06",
+      "executionPath": [
+        "enea_mapping",
+        "external_gate",
+        "checkpoint_persistence"
+      ],
+      "producedFields": [
+        "core-mapping-complete",
+        "system-operator-block-fail-closed",
+        "system-atomic-checkpoint-resume"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "src/features/enea-lab/portalBeneficiary.test.ts#compilazione pagina beneficiario ENEA tratta il luogo di nascita estero come testo libero e conserva l'autocomplete per i Comuni italiani",
+      "negativeTest": "src/features/enea-lab/portalBuilding.test.ts#compilazione pagina immobile ENEA porta la provincia documentata come qualificatore dell'autocomplete Comune",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:11.170Z"
+    },
+    "official-municipality-province-lineage": {
+      "fixtureId": "src/features/enea-shadow-crm/officialMunicipalityProvinceChanges.test.ts#official municipality province changes risolve La Maddalena da SS alla sigla corrente OT con codice ISTAT corrente",
+      "independentAnalogFixtureId": "src/features/enea-shadow-crm/officialMunicipalityProvinceChanges.test.ts#official municipality province changes resta fail-closed per provincia non storicamente collegata",
+      "sourceFingerprint": "7cea3d053132a647d80dc20166d2cb4b2401e7337457b94d2e4911847613f176",
+      "replayFingerprint": "bde54b82a748ff3fb0faaf8e125dd2f994ae9ab71fdecff615cb17d3bece88a8",
+      "executionPath": [
+        "identity_property",
+        "runner_lifecycle",
+        "enea_mapping"
+      ],
+      "producedFields": [
+        "user-2026-09-02-official-municipality-province-lineage-v1",
+        "system-cdp-authoritative-get-deadline-v1",
+        "core-mapping-complete"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "src/features/enea-shadow-crm/officialMunicipalityProvinceChanges.test.ts#official municipality province changes risolve La Maddalena da SS alla sigla corrente OT con codice ISTAT corrente",
+      "negativeTest": "src/features/enea-shadow-crm/officialMunicipalityProvinceChanges.test.ts#official municipality province changes resta fail-closed per provincia non storicamente collegata",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:11.190Z"
+    },
+    "uncertain-save-single-recovery": {
+      "fixtureId": "scripts/enea-shadow-runner/aprEneaBrowserWorkerService.test.ts#gate permanente del servizio browser APR ammette solo la verifica server dell'outer Save incerto e non un secondo recupero mutativo",
+      "independentAnalogFixtureId": "scripts/enea-shadow-runner/aprEneaBrowserWorkerService.test.ts#gate permanente del servizio browser APR persiste il gate coda e non arma due casi senza prova server read-only",
+      "sourceFingerprint": "440947ac2287408e443a38710224b9d92285308d433166fb80ae2714781a0140",
+      "replayFingerprint": "9121438e3e78d1124984e332ef11a4e3ee4ef30b24b4fb0e5ce1438ac890b27f",
+      "executionPath": [
+        "external_gate",
+        "runner_lifecycle",
+        "checkpoint_persistence"
+      ],
+      "producedFields": [
+        "system-operator-block-fail-closed",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "scripts/enea-shadow-runner/aprEneaBrowserWorkerService.test.ts#gate permanente del servizio browser APR ammette solo la verifica server dell'outer Save incerto e non un secondo recupero mutativo",
+      "negativeTest": "scripts/enea-shadow-runner/aprEneaBrowserWorkerService.test.ts#gate permanente del servizio browser APR persiste il gate coda e non arma due casi senza prova server read-only",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:11.211Z"
+    },
+    "post-draft-historical-benchmark-readonly": {
+      "fixtureId": "src/features/enea-shadow-crm/postPilotComparison.test.ts#matrice confronto post-pilot ammette il PDF storico dopo la bozza soltanto come benchmark isolato",
+      "independentAnalogFixtureId": "scripts/enea-shadow-runner/aprHistoricalBenchmark.test.ts#APR benchmark storico post-bozza confronta soltanto bozze salvate e non propaga valori storici",
+      "sourceFingerprint": "4c19c79b6733466d4fc153b4983f15bfddb97602c92401cbde6d76501e83f23a",
+      "replayFingerprint": "1aab14dd96be8de558337d332a0315a5f77a9714f5e75f2071b6b78430d2bf97",
+      "executionPath": [
+        "enea_mapping",
+        "external_gate",
+        "checkpoint_persistence"
+      ],
+      "producedFields": [
+        "user-2026-08-17-post-draft-historical-enea-benchmark-readonly",
+        "system-readonly-adapter-contract",
+        "system-atomic-checkpoint-resume"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "src/features/enea-shadow-crm/postPilotComparison.test.ts#matrice confronto post-pilot ammette il PDF storico dopo la bozza soltanto come benchmark isolato",
+      "negativeTest": "scripts/enea-shadow-runner/aprHistoricalBenchmark.test.ts#APR benchmark storico post-bozza confronta soltanto bozze salvate e non propaga valori storici",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:11.231Z"
+    },
+    "fifteen-case-intermezzo-repeat": {
+      "fixtureId": "scripts/enea-shadow-runner/aprCohortSeed.test.ts#seed persistente di una nuova coorte APR arma quindici repeat-test senza eliminare le bozze storiche quando l'autorizzazione lo prevede",
+      "independentAnalogFixtureId": "scripts/enea-shadow-runner/aprCohortSeed.test.ts#seed persistente di una nuova coorte APR consente tre clienti già lavorati soltanto come repeat-test auditato e resta bloccato fino alla prova di eliminazione",
+      "sourceFingerprint": "aa8faced8bc1c0291dff1d1e6d67898698f73fe846f002c0458564f8c2ba101d",
+      "replayFingerprint": "32260bd2571340b7be61e4b5c254693f668ee6bdbb5ceb9a0c4862bc6febf72f",
+      "executionPath": [
+        "runner_lifecycle",
+        "checkpoint_persistence"
+      ],
+      "producedFields": [
+        "user-2026-08-17-fifteen-case-intermezzo-repeat",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "scripts/enea-shadow-runner/aprCohortSeed.test.ts#seed persistente di una nuova coorte APR arma quindici repeat-test senza eliminare le bozze storiche quando l'autorizzazione lo prevede",
+      "negativeTest": "scripts/enea-shadow-runner/aprCohortSeed.test.ts#seed persistente di una nuova coorte APR consente tre clienti già lavorati soltanto come repeat-test auditato e resta bloccato fino alla prova di eliminazione",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:11.250Z"
+    },
+    "linea-sole-potito-paper-form": {
+      "fixtureId": "scripts/enea-shadow-runner/lineaSolePotitoPolicy.test.ts#Linea Sole Potito — modulo cartaceo e fallback vendor-scoped usa Sud solo in assenza di orientamento esplicito",
+      "independentAnalogFixtureId": "scripts/enea-shadow-runner/lineaSolePotitoPolicy.test.ts#Linea Sole Potito — modulo cartaceo e fallback vendor-scoped genera 2,0-2,9 in modo stabile per pratica+riga e lascia prevalere l'esplicito",
+      "sourceFingerprint": "d8acc137e0fa33ce4c5dc40071617a6c7af85505517ba2f505deea6ef0fc7435",
+      "replayFingerprint": "13cdbd0c2276c5fe383b30eac92b7bfa335d973fef710f09fde078174be44cf1",
+      "executionPath": [
+        "customer_form",
+        "enea_mapping"
+      ],
+      "producedFields": [
+        "user-2026-08-17-linea-sole-potito-paper-form-fallbacks",
+        "core-form-first",
+        "core-mapping-complete"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "scripts/enea-shadow-runner/lineaSolePotitoPolicy.test.ts#Linea Sole Potito — modulo cartaceo e fallback vendor-scoped usa Sud solo in assenza di orientamento esplicito",
+      "negativeTest": "scripts/enea-shadow-runner/lineaSolePotitoPolicy.test.ts#Linea Sole Potito — modulo cartaceo e fallback vendor-scoped genera 2,0-2,9 in modo stabile per pratica+riga e lascia prevalere l'esplicito",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:11.271Z"
+    },
+    "narrative-invoice-product-extraction": {
+      "fixtureId": "scripts/enea-shadow-runner/localInvoiceSegmentation.test.ts#segmentazione locale fatture acconto/saldo non attribuisce arbitrariamente due gTot diversi a una descrizione narrativa",
+      "independentAnalogFixtureId": "src/features/enea-shadow-crm/operationalRegistry.test.ts#registro operativo unico estrae prodotti anche dalla descrizione narrativa della fattura",
+      "sourceFingerprint": "daff8af0ad3814084d02050c81756d790dcc1f80aea97ebdfe46667c49b2aada",
+      "replayFingerprint": "3da96054910dfc006c26d824309fedce3ed658d9f96fa1e6c5e1356a75a0e3c1",
+      "executionPath": [
+        "screenings"
+      ],
+      "producedFields": [
+        "user-2026-08-16-narrative-invoice-product-extraction",
+        "user-2026-08-14-preserve-technical-product-cardinality",
+        "user-2026-08-15-form-group-to-physical-products"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "scripts/enea-shadow-runner/localInvoiceSegmentation.test.ts#segmentazione locale fatture acconto/saldo non attribuisce arbitrariamente due gTot diversi a una descrizione narrativa",
+      "negativeTest": "src/features/enea-shadow-crm/operationalRegistry.test.ts#registro operativo unico estrae prodotti anche dalla descrizione narrativa della fattura",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:11.292Z"
+    },
+    "invoice-gross-total-vat-included": {
+      "fixtureId": "src/features/enea-lab/invoiceParser.vendorFormats.test.ts#invoiceParser formati rivenditore originari non usa un importo isolato che non coincide con imponibile piu IVA",
+      "independentAnalogFixtureId": "src/features/enea-lab/invoiceParser.vendorFormats.test.ts#invoiceParser formati rivenditore originari riconosce il lordo S.A. Montaggi quando imponibile e' in coda alla riga aliquota",
+      "sourceFingerprint": "5f969bfa8b3c6563b1da73267d3ff7e315462f6c97eeff5c7e382a924be6c631",
+      "replayFingerprint": "a692b234985c0218c81956c60be139ae320716cb4f5fdeae33862eb2b2c984ba",
+      "executionPath": [
+        "gross_reconciliation",
+        "economic_sources"
+      ],
+      "producedFields": [
+        "user-2026-08-16-invoice-gross-total-vat-included",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "src/features/enea-lab/invoiceParser.vendorFormats.test.ts#invoiceParser formati rivenditore originari non usa un importo isolato che non coincide con imponibile piu IVA",
+      "negativeTest": "src/features/enea-lab/invoiceParser.vendorFormats.test.ts#invoiceParser formati rivenditore originari riconosce il lordo S.A. Montaggi quando imponibile e' in coda alla riga aliquota",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:11.314Z"
+    },
+    "distinct-invoice-numbers-same-customer-sum": {
+      "fixtureId": "src/features/enea-shadow-crm/financialReconciliation.test.ts#riconciliazione finanziaria tripla somma automaticamente due fatture OCR con numeri distinti e terne fiscali riconciliate",
+      "independentAnalogFixtureId": "scripts/enea-shadow-runner/crmLocalPreflight.test.ts#preflight locale durevole fino a quindici dossier CRM somma acconto e saldo economici ma conserva una sola riga tecnica",
+      "sourceFingerprint": "f6483be677e8d270727d72bc3b553df107315869f7f6005211c40c932d9b3fb9",
+      "replayFingerprint": "3bd7c1887ee045c22146d4838d9a2144996f8eb5c566afc7d133d3299f788f46",
+      "executionPath": [
+        "gross_reconciliation"
+      ],
+      "producedFields": [
+        "user-2026-08-16-distinct-invoice-numbers-same-customer-sum",
+        "user-2026-08-16-invoice-gross-total-vat-included",
+        "core-gross-triple-reconciliation"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "src/features/enea-shadow-crm/financialReconciliation.test.ts#riconciliazione finanziaria tripla somma automaticamente due fatture OCR con numeri distinti e terne fiscali riconciliate",
+      "negativeTest": "scripts/enea-shadow-runner/crmLocalPreflight.test.ts#preflight locale durevole fino a quindici dossier CRM somma acconto e saldo economici ma conserva una sola riga tecnica",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:11.335Z"
+    },
+    "missing-invoice-operator-requeue": {
+      "fixtureId": "scripts/enea-shadow-runner/crmLocalPreflight.test.ts#preflight locale durevole fino a quindici dossier CRM classifica la fattura assente come intervento operatore riprendibile",
+      "independentAnalogFixtureId": "scripts/enea-shadow-runner/crmLocalPreflight.test.ts#preflight locale durevole fino a quindici dossier CRM espande una riga form di gruppo e lascia prevalere il tipo esplicito della fattura",
+      "sourceFingerprint": "b23ed89b23916fa3cfd308f0ac6adeb669975f0b68fe5228d7aa3e39ab6e69fb",
+      "replayFingerprint": "ba3427401f8c88a7de5afd57a6b28ce80ddefb628227752f635bb58b82f6c46f",
+      "executionPath": [
+        "economic_sources",
+        "runner_lifecycle",
+        "checkpoint_persistence"
+      ],
+      "producedFields": [
+        "user-2026-08-16-missing-invoice-operator-requeue",
+        "system-apr-operator-intervention-routing",
+        "system-atomic-checkpoint-resume"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "scripts/enea-shadow-runner/crmLocalPreflight.test.ts#preflight locale durevole fino a quindici dossier CRM classifica la fattura assente come intervento operatore riprendibile",
+      "negativeTest": "scripts/enea-shadow-runner/crmLocalPreflight.test.ts#preflight locale durevole fino a quindici dossier CRM espande una riga form di gruppo e lascia prevalere il tipo esplicito della fattura",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:11.356Z"
+    },
+    "default-single-unit": {
+      "fixtureId": "scripts/enea-shadow-runner/crmLocalPreflight.test.ts#preflight locale durevole fino a quindici dossier CRM normalizza a una unita il numero appartamenti assente o zero e conserva il valore nel pacchetto",
+      "independentAnalogFixtureId": "scripts/enea-shadow-runner/crmLocalPreflight.test.ts#preflight locale durevole fino a quindici dossier CRM fa prevalere la tipologia esplicita oltre tre piani sul numero appartamenti della pratica",
+      "sourceFingerprint": "ba509532d9b9741e9d5cf8d0035d3750e11a222e177f0444f6962f800ca6ec85",
+      "replayFingerprint": "c8351e2bfed17cb9cf86820f13e18b111dc6ec538b3f04340bcda4a64d52c706",
+      "executionPath": [
+        "identity_property"
+      ],
+      "producedFields": [
+        "user-2026-08-16-default-single-unit-when-unspecified",
+        "user-2026-08-14-single-unit-building-over-floor-count"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "scripts/enea-shadow-runner/crmLocalPreflight.test.ts#preflight locale durevole fino a quindici dossier CRM normalizza a una unita il numero appartamenti assente o zero e conserva il valore nel pacchetto",
+      "negativeTest": "scripts/enea-shadow-runner/crmLocalPreflight.test.ts#preflight locale durevole fino a quindici dossier CRM fa prevalere la tipologia esplicita oltre tre piani sul numero appartamenti della pratica",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:11.377Z"
+    },
+    "invoice-total-over-bank-transfers": {
+      "fixtureId": "scripts/enea-shadow-runner/bankTransferEvidence.test.ts#evidenza bonifici separata dalle fatture estrae capitale, commissioni e totale senza classificare una fattura ordinaria",
+      "independentAnalogFixtureId": "scripts/enea-shadow-runner/bankTransferEvidence.test.ts#evidenza bonifici separata dalle fatture applica EUR 0,05 di tolleranza al capitale e blocca da EUR 0,06",
+      "sourceFingerprint": "1ff18ec00c054cae4688c29129340935daaf60b3be5cf021e0d5739611e8c74f",
+      "replayFingerprint": "10bb345776a6fbe48c07568ce77d8125ceb051726e9c7ba073ef85692f130029",
+      "executionPath": [
+        "gross_reconciliation",
+        "economic_sources"
+      ],
+      "producedFields": [
+        "user-2026-08-16-invoice-total-over-bank-transfers",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "scripts/enea-shadow-runner/bankTransferEvidence.test.ts#evidenza bonifici separata dalle fatture estrae capitale, commissioni e totale senza classificare una fattura ordinaria",
+      "negativeTest": "scripts/enea-shadow-runner/bankTransferEvidence.test.ts#evidenza bonifici separata dalle fatture applica EUR 0,05 di tolleranza al capitale e blocca da EUR 0,06",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:11.400Z"
+    },
+    "mandatory-bank-transfer-invoice-expense-cross-check": {
+      "fixtureId": "scripts/enea-shadow-runner/bankTransferEvidence.test.ts#evidenza bonifici separata dalle fatture riconosce la ricevuta BONIFICO AGEVOLAZIONE FISCALE senza trasformarla in fattura",
+      "independentAnalogFixtureId": "scripts/enea-shadow-runner/bankTransferEvidence.test.ts#evidenza bonifici separata dalle fatture estrae capitale, commissioni e totale senza classificare una fattura ordinaria",
+      "sourceFingerprint": "c60c57a10048785d52aa3c136f9e83737a55d225de282bb3e153185d17d432e5",
+      "replayFingerprint": "c7660d71b62959e75a142d675184f64da31fed5db88fa02ece26628afe2551fa",
+      "executionPath": [
+        "gross_reconciliation",
+        "runner_lifecycle"
+      ],
+      "producedFields": [
+        "user-2026-08-18-mandatory-bank-transfer-invoice-expense-cross-check",
+        "user-2026-08-16-invoice-total-over-bank-transfers",
+        "user-2026-08-18-bank-transfer-tax-relief-label-nonblocking",
+        "system-apr-operator-intervention-routing"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "scripts/enea-shadow-runner/bankTransferEvidence.test.ts#evidenza bonifici separata dalle fatture riconosce la ricevuta BONIFICO AGEVOLAZIONE FISCALE senza trasformarla in fattura",
+      "negativeTest": "scripts/enea-shadow-runner/bankTransferEvidence.test.ts#evidenza bonifici separata dalle fatture estrae capitale, commissioni e totale senza classificare una fattura ordinaria",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:11.423Z"
+    },
+    "operator-structured-question-resume": {
+      "fixtureId": "scripts/enea-shadow-runner/operatorQuestions.test.ts#PersistentAprOperatorQuestions persiste domanda, risposta e riaccodamento idempotente attraverso un riavvio",
+      "independentAnalogFixtureId": "scripts/enea-shadow-runner/operatorQuestions.test.ts#PersistentAprOperatorQuestions mantiene il caso bloccato quando l'operatore risponde non determinabile",
+      "sourceFingerprint": "9501ba6d6e6a052555956408a63f2cf14ecec25d7547220f0ea86b0f7b6779f4",
+      "replayFingerprint": "46ed847d44a91fd94775c627953547b21af480ebf7347f90f82d01cc3f9342af",
+      "executionPath": [
+        "runner_lifecycle",
+        "checkpoint_persistence"
+      ],
+      "producedFields": [
+        "user-2026-08-16-operator-structured-question-resume",
+        "system-apr-operator-intervention-routing",
+        "system-atomic-checkpoint-resume"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "scripts/enea-shadow-runner/operatorQuestions.test.ts#PersistentAprOperatorQuestions persiste domanda, risposta e riaccodamento idempotente attraverso un riavvio",
+      "negativeTest": "scripts/enea-shadow-runner/operatorQuestions.test.ts#PersistentAprOperatorQuestions mantiene il caso bloccato quando l'operatore risponde non determinabile",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:11.444Z"
+    },
+    "ten-case-monday-restart": {
+      "fixtureId": "scripts/enea-shadow-runner/eneaDraftExecution.test.ts#esecuzione persistente della sola bozza ENEA TEST distingue login globale da un blocco pratica e lo conserva al riavvio",
+      "independentAnalogFixtureId": "scripts/enea-shadow-runner/eneaDraftExecution.test.ts#esecuzione persistente della sola bozza ENEA TEST mantiene dieci casi ordinati e dopo un blocco riparte dal successivo senza duplicazioni",
+      "sourceFingerprint": "042a3e087c18f31b177d353f0a9d12f1887f2c0d941266eee9b3c14bf38222f8",
+      "replayFingerprint": "6eaf7bf27a70b965b9d96354866cf5f774fb7244d7ff247a81e5d2f66da0889d",
+      "executionPath": [
+        "runner_lifecycle",
+        "checkpoint_persistence"
+      ],
+      "producedFields": [
+        "user-2026-08-16-ten-case-monday-restart",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "scripts/enea-shadow-runner/eneaDraftExecution.test.ts#esecuzione persistente della sola bozza ENEA TEST distingue login globale da un blocco pratica e lo conserva al riavvio",
+      "negativeTest": "scripts/enea-shadow-runner/eneaDraftExecution.test.ts#esecuzione persistente della sola bozza ENEA TEST mantiene dieci casi ordinati e dopo un blocco riparte dal successivo senza duplicazioni",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:11.468Z"
+    },
+    "random-pilot-five-of-fifteen": {
+      "fixtureId": "scripts/enea-shadow-runner/pilotSample.test.ts#campione pilot APR 5-su-15 estrae cinque clienti univoci, congela la scelta e la riprende senza riselezionare",
+      "independentAnalogFixtureId": "scripts/enea-shadow-runner/pilotSample.test.ts#campione pilot APR 5-su-15 blocca elenchi incompleti o duplicati e consente il recupero con 15 identità valide",
+      "sourceFingerprint": "b190f08a082bbd85ba35023e6280a784a7dcb06c37b911f3564a8e198a39af9a",
+      "replayFingerprint": "1accad6d22bcb601cbf1df19211594a1fdcc5b32795652f5b2a03349d3d02e33",
+      "executionPath": [
+        "runner_lifecycle",
+        "checkpoint_persistence"
+      ],
+      "producedFields": [
+        "user-2026-08-15-random-pilot-five-of-fifteen",
+        "system-atomic-checkpoint-resume"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "scripts/enea-shadow-runner/pilotSample.test.ts#campione pilot APR 5-su-15 estrae cinque clienti univoci, congela la scelta e la riprende senza riselezionare",
+      "negativeTest": "scripts/enea-shadow-runner/pilotSample.test.ts#campione pilot APR 5-su-15 blocca elenchi incompleti o duplicati e consente il recupero con 15 identità valide",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:11.490Z"
+    },
+    "source-explicit-over-fallback": {
+      "fixtureId": "src/features/enea-shadow-crm/userAuthorizedPolicies.test.ts#policy utente schermature usa il gTot esplicito della fonte originaria prima del fallback Cristal",
+      "independentAnalogFixtureId": "src/features/enea-shadow-crm/userAuthorizedPolicies.test.ts#policy utente schermature usa il gTot esplicito della fonte originaria prima del fallback pergola",
+      "sourceFingerprint": "7d78fa53eeab8223064af92b976239ce5558108ae4800f1c074bc4aeab4fa49c",
+      "replayFingerprint": "2415f58b985534c2196d9436d0356a2a120f9901f33e5d41bc3ed2ee5023e9b4",
+      "executionPath": [
+        "screenings"
+      ],
+      "producedFields": [
+        "user-2026-08-31-pergola-screening-gtot-006-v2",
+        "user-2026-08-31-cristal-screening-explicit-gtot-v2",
+        "user-2026-08-14-zanzariera-altra-schermatura",
+        "user-2026-08-31-tenda-missing-gtot-operator-v2"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "src/features/enea-shadow-crm/userAuthorizedPolicies.test.ts#policy utente schermature usa il gTot esplicito della fonte originaria prima del fallback Cristal",
+      "negativeTest": "src/features/enea-shadow-crm/userAuthorizedPolicies.test.ts#policy utente schermature usa il gTot esplicito della fonte originaria prima del fallback pergola",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:11.515Z"
+    },
+    "valid-original-document-cf": {
+      "fixtureId": "scripts/enea-shadow-runner/crmLocalPreflight.test.ts#preflight locale durevole fino a quindici dossier CRM recupera il CF valido dalle fatture originarie solo se unico e coerente col form",
+      "independentAnalogFixtureId": "scripts/enea-shadow-runner/crmLocalPreflight.test.ts#preflight locale durevole fino a quindici dossier CRM corregge un solo carattere OCR confondibile del CF con anagrafica concordante",
+      "sourceFingerprint": "2712b408b05728fa56787ef4d18b0f731669cd6a8f28028764801d7ae43302d1",
+      "replayFingerprint": "34cce61262fdb95ec74ecb90ccc39203fb6f779e967b4ee4dc6d9b474ecb2554",
+      "executionPath": [
+        "identity_property"
+      ],
+      "producedFields": [
+        "user-2026-08-14-valid-original-document-cf-over-invalid-form"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "scripts/enea-shadow-runner/crmLocalPreflight.test.ts#preflight locale durevole fino a quindici dossier CRM recupera il CF valido dalle fatture originarie solo se unico e coerente col form",
+      "negativeTest": "scripts/enea-shadow-runner/crmLocalPreflight.test.ts#preflight locale durevole fino a quindici dossier CRM corregge un solo carattere OCR confondibile del CF con anagrafica concordante",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:11.540Z"
+    },
+    "invoice-identity-over-form": {
+      "fixtureId": "scripts/enea-shadow-runner/crmLocalPreflight.test.ts#preflight locale durevole fino a quindici dossier CRM esclude il cointestatario presente solo nel form quando le fatture identificano un solo beneficiario",
+      "independentAnalogFixtureId": "src/features/enea-shadow-crm/operationalRegistry.test.ts#registro operativo unico fa prevalere l'identita di fattura sul cointestatario presente solo nel form",
+      "sourceFingerprint": "db5f149c4c7080709dd487cb7b4893150d2c8ca8a57a70b57a3fc04600f900c8",
+      "replayFingerprint": "856ce3471b2fea4178e0f35402d288c4dfe138bcfda122342c3fc1e456567b1f",
+      "executionPath": [
+        "identity_property",
+        "enea_mapping"
+      ],
+      "producedFields": [
+        "user-2026-08-16-invoice-identity-over-customer-form",
+        "user-2026-08-17-invoice-co-beneficiary-person-flow",
+        "user-2026-08-16-fiscal-code-identity-cross-check"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "scripts/enea-shadow-runner/crmLocalPreflight.test.ts#preflight locale durevole fino a quindici dossier CRM esclude il cointestatario presente solo nel form quando le fatture identificano un solo beneficiario",
+      "negativeTest": "src/features/enea-shadow-crm/operationalRegistry.test.ts#registro operativo unico fa prevalere l'identita di fattura sul cointestatario presente solo nel form",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:11.563Z"
+    },
+    "fiscal-code-identity-cross-check": {
+      "fixtureId": "scripts/enea-shadow-runner/crmLocalPreflight.test.ts#preflight locale durevole fino a quindici dossier CRM recupera il CF valido dalle fatture originarie solo se unico e coerente col form",
+      "independentAnalogFixtureId": "scripts/enea-shadow-runner/crmLocalPreflight.test.ts#preflight locale durevole fino a quindici dossier CRM mantiene il blocco per un codice estero valido ma non presente nel registro verificato",
+      "sourceFingerprint": "2712b408b05728fa56787ef4d18b0f731669cd6a8f28028764801d7ae43302d1",
+      "replayFingerprint": "966003d1d509822c390880eaca245049c85cb097c9767736fd952a8343b44a86",
+      "executionPath": [
+        "identity_property"
+      ],
+      "producedFields": [
+        "user-2026-08-16-fiscal-code-identity-cross-check",
+        "user-2026-08-14-valid-original-document-cf-over-invalid-form"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "scripts/enea-shadow-runner/crmLocalPreflight.test.ts#preflight locale durevole fino a quindici dossier CRM recupera il CF valido dalle fatture originarie solo se unico e coerente col form",
+      "negativeTest": "scripts/enea-shadow-runner/crmLocalPreflight.test.ts#preflight locale durevole fino a quindici dossier CRM mantiene il blocco per un codice estero valido ma non presente nel registro verificato",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:11.588Z"
+    },
+    "secondary-home-36-percent-allocation": {
+      "fixtureId": "src/features/enea-lab/portalCalculation.test.ts#pagina calcolo ENEA prepara l'intero totale 2025-2026 al 36% per una seconda abitazione",
+      "independentAnalogFixtureId": "src/features/enea-shadow-crm/operationalRegistry.test.ts#registro operativo unico assegna la seconda abitazione al 36% per ogni intervento e verifica il risultato server",
+      "sourceFingerprint": "1a3076a683fd2988111b7f5a06204448974e2562d8cb18d9dc83ffbcbd86aa4d",
+      "replayFingerprint": "0d2b9e419c71bb48e80ad68f56ee4dba2b1c86a63269187fdc2b6864c779ceb7",
+      "executionPath": [
+        "enea_mapping",
+        "checkpoint_persistence",
+        "runner_lifecycle"
+      ],
+      "producedFields": [
+        "user-2026-08-16-secondary-home-36-percent-calculation-allocation",
+        "system-atomic-checkpoint-resume",
+        "system-apr-operator-intervention-routing"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "src/features/enea-lab/portalCalculation.test.ts#pagina calcolo ENEA prepara l'intero totale 2025-2026 al 36% per una seconda abitazione",
+      "negativeTest": "src/features/enea-shadow-crm/operationalRegistry.test.ts#registro operativo unico assegna la seconda abitazione al 36% per ogni intervento e verifica il risultato server",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:11.613Z"
+    },
+    "completion-date-latest-invoice": {
+      "fixtureId": "scripts/enea-shadow-runner/crmLocalPreflight.test.ts#preflight locale durevole fino a quindici dossier CRM manda all'operatore fine lavori oltre 90 giorni e anno portale incompatibile senza inventare date",
+      "independentAnalogFixtureId": "scripts/enea-shadow-runner/crmLocalPreflight.test.ts#preflight locale durevole fino a quindici dossier CRM classifica la fattura assente come intervento operatore riprendibile",
+      "sourceFingerprint": "de262453b1f6b752944b40123a1c0a7a777b7a70acca604bd921618b99acf54e",
+      "replayFingerprint": "138f18dba427769e1591f9c9c9dc3399676ac4768ccba87570382caa158c5984",
+      "executionPath": [
+        "dates"
+      ],
+      "producedFields": [
+        "user-2026-08-14-missing-completion-use-latest-invoice",
+        "user-2026-08-23-completion-over-90-operator-gate",
+        "user-2026-08-23-completion-portal-year-operator-gate",
+        "user-2026-08-23-enea-2026-june-25-ninety-day-window"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "scripts/enea-shadow-runner/crmLocalPreflight.test.ts#preflight locale durevole fino a quindici dossier CRM manda all'operatore fine lavori oltre 90 giorni e anno portale incompatibile senza inventare date",
+      "negativeTest": "scripts/enea-shadow-runner/crmLocalPreflight.test.ts#preflight locale durevole fino a quindici dossier CRM classifica la fattura assente come intervento operatore riprendibile",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:11.639Z"
+    },
+    "cristal-explicit-or-operator": {
+      "fixtureId": "src/features/enea-shadow-crm/userAuthorizedPolicies.test.ts#policy utente schermature usa il gTot esplicito della fonte originaria prima del fallback Cristal",
+      "independentAnalogFixtureId": "src/features/enea-shadow-crm/userAuthorizedPolicies.test.ts#policy utente schermature blocca Cristal senza gTot documentato",
+      "sourceFingerprint": "7d78fa53eeab8223064af92b976239ce5558108ae4800f1c074bc4aeab4fa49c",
+      "replayFingerprint": "a58663a58451853f8c9b42189cf2a16eb16e2f9db2b408bd6e4ef3c82d765115",
+      "executionPath": [
+        "screenings"
+      ],
+      "producedFields": [
+        "user-2026-08-31-cristal-screening-explicit-gtot-v2",
+        "user-2026-08-31-unknown-screening-missing-gtot-operator-v1"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "src/features/enea-shadow-crm/userAuthorizedPolicies.test.ts#policy utente schermature usa il gTot esplicito della fonte originaria prima del fallback Cristal",
+      "negativeTest": "src/features/enea-shadow-crm/userAuthorizedPolicies.test.ts#policy utente schermature blocca Cristal senza gTot documentato",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:11.665Z"
+    },
+    "pergola-fallback": {
+      "fixtureId": "src/features/enea-shadow-crm/userAuthorizedPolicies.test.ts#policy utente schermature usa il gTot esplicito della fonte originaria prima del fallback pergola",
+      "independentAnalogFixtureId": "src/features/enea-shadow-crm/userAuthorizedPolicies.test.ts#policy utente schermature usa il gTot esplicito della fonte originaria prima del fallback Cristal",
+      "sourceFingerprint": "308e919a6c86c3fd5d7c9b006b54634648efd2397ef4118bfb32ecfe4e0d9f7f",
+      "replayFingerprint": "faa90988fef0b34c5ab1d20bac2f0eeb38a8fd2fb4aa6abf4a5460be5b2371ad",
+      "executionPath": [
+        "screenings"
+      ],
+      "producedFields": [
+        "user-2026-08-31-pergola-screening-gtot-006-v2",
+        "user-2026-08-31-rigid-screening-missing-gtot-006-v1"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "src/features/enea-shadow-crm/userAuthorizedPolicies.test.ts#policy utente schermature usa il gTot esplicito della fonte originaria prima del fallback pergola",
+      "negativeTest": "src/features/enea-shadow-crm/userAuthorizedPolicies.test.ts#policy utente schermature usa il gTot esplicito della fonte originaria prima del fallback Cristal",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:11.691Z"
+    },
+    "zanzariera-fallbacks": {
+      "fixtureId": "scripts/enea-shadow-runner/localDossierPipeline.test.ts#pipeline dossier CRM locale APR applica i fallback autorizzati e isola la tenda senza gTot con un blocker per-pratica",
+      "independentAnalogFixtureId": "scripts/enea-shadow-runner/localDossierPipeline.test.ts#pipeline dossier CRM locale APR blocca una classificazione ambigua senza inventare valori",
+      "sourceFingerprint": "0046b74bfc8d2be272ed51e8e6d0f1468d82e7660b027a6beb5b3a17d623debc",
+      "replayFingerprint": "331e996d49e2297725d3b5767c0bcbc3f269bd5884a5edb96a5ffe0f82aa7eb2",
+      "executionPath": [
+        "screenings"
+      ],
+      "producedFields": [
+        "user-2026-08-14-zanzariera-altra-schermatura"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "scripts/enea-shadow-runner/localDossierPipeline.test.ts#pipeline dossier CRM locale APR applica i fallback autorizzati e isola la tenda senza gTot con un blocker per-pratica",
+      "negativeTest": "scripts/enea-shadow-runner/localDossierPipeline.test.ts#pipeline dossier CRM locale APR blocca una classificazione ambigua senza inventare valori",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:11.718Z"
+    },
+    "screening-fallback-material-category-guard": {
+      "fixtureId": "scripts/enea-shadow-runner/crmLocalPreflight.test.ts#preflight locale durevole fino a quindici dossier CRM blocca sempre una zanzariera generica se il materiale fallback non e Misto",
+      "independentAnalogFixtureId": "scripts/enea-shadow-runner/crmLocalPreflight.test.ts#preflight locale durevole fino a quindici dossier CRM lascia draftReady invariato quando il fallback della zanzariera e Misto",
+      "sourceFingerprint": "cea20ca6f8cd129dc413b0523ca94d67e2d19de87a44736153b10de072687a0b",
+      "replayFingerprint": "e3704c315b51359a91f743869b58a773022ea04cc660adcf4cc5994266d6ab15",
+      "executionPath": [
+        "screenings"
+      ],
+      "producedFields": [
+        "user-2026-08-26-screening-fallback-material-category-guard-v1",
+        "user-2026-08-14-zanzariera-altra-schermatura"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "scripts/enea-shadow-runner/crmLocalPreflight.test.ts#preflight locale durevole fino a quindici dossier CRM blocca sempre una zanzariera generica se il materiale fallback non e Misto",
+      "negativeTest": "scripts/enea-shadow-runner/crmLocalPreflight.test.ts#preflight locale durevole fino a quindici dossier CRM lascia draftReady invariato quando il fallback della zanzariera e Misto",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:11.745Z"
+    },
+    "physical-cardinality": {
+      "fixtureId": "src/features/enea-shadow-crm/productCardinalityPolicy.test.ts#cardinalità tecnica prodotti mantiene una sola riga per quantità uno e rifiuta quantità non deterministiche",
+      "independentAnalogFixtureId": "src/features/enea-shadow-crm/productCardinalityPolicy.test.ts#cardinalità tecnica prodotti espande ogni quantità in righe 1:1 senza aggregare la superficie",
+      "sourceFingerprint": "9c96c32f2bca8e5b160b0db0c1d1b14742c6ff8a834cfab71afbcfd439be2d85",
+      "replayFingerprint": "1c78316fc13ec8b50d16ed8d343a36a37ba90277238802e83296be2caed2e2c4",
+      "executionPath": [
+        "screenings",
+        "external_gate"
+      ],
+      "producedFields": [
+        "user-2026-08-14-preserve-technical-product-cardinality",
+        "user-2026-08-15-form-group-to-physical-products",
+        "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+        "system-final-draft-source-cardinality-and-cost-verification"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "src/features/enea-shadow-crm/productCardinalityPolicy.test.ts#cardinalità tecnica prodotti mantiene una sola riga per quantità uno e rifiuta quantità non deterministiche",
+      "negativeTest": "src/features/enea-shadow-crm/productCardinalityPolicy.test.ts#cardinalità tecnica prodotti espande ogni quantità in righe 1:1 senza aggregare la superficie",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:11.772Z"
+    },
+    "invoice-header-identity-over-body-reference": {
+      "fixtureId": "src/features/enea-lab/invoiceParser.test.ts#parseScreeningInvoiceText preferisce il numero nell'intestazione sfalsata al riferimento di acconto nel corpo",
+      "independentAnalogFixtureId": "src/features/enea-lab/invoiceParser.vendorFormats.test.ts#invoiceParser formati rivenditore originari preferisce l'intestazione cortesia al riferimento a una fattura dedotta",
+      "sourceFingerprint": "2e70cf4203988016acf2215fcadbb73c2c7ff0336c94fd24f83857e2035dc93c",
+      "replayFingerprint": "7edf1625e05801770ea630057a554def6cc84af1b7d3612ee6fba0efc44353a2",
+      "executionPath": [
+        "gross_reconciliation",
+        "screenings"
+      ],
+      "producedFields": [
+        "system-invoice-header-identity-over-body-reference",
+        "user-2026-08-14-preserve-technical-product-cardinality",
+        "user-2026-08-16-invoice-gross-total-vat-included"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "src/features/enea-lab/invoiceParser.test.ts#parseScreeningInvoiceText preferisce il numero nell'intestazione sfalsata al riferimento di acconto nel corpo",
+      "negativeTest": "src/features/enea-lab/invoiceParser.vendorFormats.test.ts#invoiceParser formati rivenditore originari preferisce l'intestazione cortesia al riferimento a una fattura dedotta",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:11.801Z"
+    },
+    "bundled-professional-expense": {
+      "fixtureId": "scripts/enea-shadow-runner/crmLocalPreflight.test.ts#preflight locale durevole fino a quindici dossier CRM non trasforma un lordo con Pratica ENEA compresa in spesa tecnica senza ripartizione",
+      "independentAnalogFixtureId": "scripts/enea-shadow-runner/crmLocalPreflight.test.ts#preflight locale durevole fino a quindici dossier CRM applica €1.250 a Elisa senza esclusioni come risoluzione caso-specifica auditata",
+      "sourceFingerprint": "00a8b186c55f950550771c5316b9757785cf2da23d8cad29250b2aaa94bad0db",
+      "replayFingerprint": "fc4858b4e18c3418beeda2032d8e264e0ee6ef397967606a3783cb1ad35f5087",
+      "executionPath": [
+        "gross_reconciliation",
+        "runner_lifecycle"
+      ],
+      "producedFields": [
+        "user-2026-08-18-bundled-professional-expense-separation",
+        "user-2026-08-16-operator-structured-question-resume",
+        "system-apr-operator-intervention-routing"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "scripts/enea-shadow-runner/crmLocalPreflight.test.ts#preflight locale durevole fino a quindici dossier CRM non trasforma un lordo con Pratica ENEA compresa in spesa tecnica senza ripartizione",
+      "negativeTest": "scripts/enea-shadow-runner/crmLocalPreflight.test.ts#preflight locale durevole fino a quindici dossier CRM applica €1.250 a Elisa senza esclusioni come risoluzione caso-specifica auditata",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:11.829Z"
+    },
+    "vepa-deferred-current-phase": {
+      "fixtureId": "src/features/enea-lab/invoiceParser.vendorFormats.test.ts#invoiceParser formati rivenditore originari riconosce una vetrata scorrevole VEPA senza abilitarne la classificazione ENEA",
+      "independentAnalogFixtureId": "src/features/enea-lab/invoiceParser.vendorFormats.test.ts#invoiceParser formati rivenditore originari legge il formato Vans L.xsp. senza perdere il gTot esplicito",
+      "sourceFingerprint": "61d7cd50e88b9dbc6834ffd7b488173d191a203287eb9afc2cd97f74b0de3aed",
+      "replayFingerprint": "cc9935972aef58972773a2db9e39e6d6a97034764f3c14c2c2d64aa2982e556a",
+      "executionPath": [
+        "screenings",
+        "runner_lifecycle"
+      ],
+      "producedFields": [
+        "user-2026-08-16-vepa-deferred-until-module-enabled",
+        "user-2026-08-14-preserve-technical-product-cardinality",
+        "system-apr-operator-intervention-routing"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "src/features/enea-lab/invoiceParser.vendorFormats.test.ts#invoiceParser formati rivenditore originari riconosce una vetrata scorrevole VEPA senza abilitarne la classificazione ENEA",
+      "negativeTest": "src/features/enea-lab/invoiceParser.vendorFormats.test.ts#invoiceParser formati rivenditore originari legge il formato Vans L.xsp. senza perdere il gTot esplicito",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:11.858Z"
+    },
+    "single-house-floors": {
+      "fixtureId": "src/features/enea-shadow-crm/operationalRegistry.test.ts#registro operativo unico fa prevalere l'unità unica esplicita sul numero descrittivo dei piani",
+      "independentAnalogFixtureId": "src/features/enea-shadow-crm/workflow.test.ts#workflow CRM ombra separa unità interessate e totale edificio e blocca incoerenze",
+      "sourceFingerprint": "61f552af1bd242653b50c4101c29c491b09179682b5b2b2cee88722abfc943f7",
+      "replayFingerprint": "1ea79b597dfebfcc5cd838c6fa65e5a4cad32ec85c3bff07e4a02897617316ca",
+      "executionPath": [
+        "identity_property"
+      ],
+      "producedFields": [
+        "user-2026-08-14-single-unit-building-over-floor-count"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "src/features/enea-shadow-crm/operationalRegistry.test.ts#registro operativo unico fa prevalere l'unità unica esplicita sul numero descrittivo dei piani",
+      "negativeTest": "src/features/enea-shadow-crm/workflow.test.ts#workflow CRM ombra separa unità interessate e totale edificio e blocca incoerenze",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:11.885Z"
+    },
+    "explicit-building-type-over-apartment-count": {
+      "fixtureId": "scripts/enea-shadow-runner/crmLocalPreflight.test.ts#preflight locale durevole fino a quindici dossier CRM fa prevalere la tipologia esplicita oltre tre piani sul numero appartamenti della pratica",
+      "independentAnalogFixtureId": "scripts/enea-shadow-runner/crmEneaPayloadAudit.test.ts#audit payload ENEA da dossier CRM locale usa edificio plurimo quando il form indica oltre tre piani anche con una unita nella pratica",
+      "sourceFingerprint": "6e142db25a3777e8279d2b81a4d816f9e646f828fbf4c2f16317e66b8e74635b",
+      "replayFingerprint": "e0ab9ab13d5c5c984bee61b794147bb939e8fd9ffed94ccd91b869f061d0b2a7",
+      "executionPath": [
+        "identity_property"
+      ],
+      "producedFields": [
+        "user-2026-08-27-explicit-building-type-over-apartment-count-v2",
+        "user-2026-08-14-single-unit-building-over-floor-count"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "scripts/enea-shadow-runner/crmLocalPreflight.test.ts#preflight locale durevole fino a quindici dossier CRM fa prevalere la tipologia esplicita oltre tre piani sul numero appartamenti della pratica",
+      "negativeTest": "scripts/enea-shadow-runner/crmEneaPayloadAudit.test.ts#audit payload ENEA da dossier CRM locale usa edificio plurimo quando il form indica oltre tre piani anche con una unita nella pratica",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:11.914Z"
+    },
+    "obvious-street-type-typo": {
+      "fixtureId": "src/features/enea-lab/mapper.test.ts#mapSchermaturaPractice corregge il solo refuso Viake in Viale su residenza e lavori",
+      "independentAnalogFixtureId": "src/features/enea-lab/mapper.test.ts#mapSchermaturaPractice non modifica parole o tipi stradali che non sono il token Viake",
+      "sourceFingerprint": "ebb820309a32f3be7a5f810e34099730e2435bad24f494114613165f8e971162",
+      "replayFingerprint": "a3ae6daf502c8135b063acf634a0b99d485cc49341ca72e2efb0389038e4c73a",
+      "executionPath": [
+        "identity_property"
+      ],
+      "producedFields": [
+        "user-2026-08-27-obvious-street-type-typo-correction-v1"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "src/features/enea-lab/mapper.test.ts#mapSchermaturaPractice corregge il solo refuso Viake in Viale su residenza e lavori",
+      "negativeTest": "src/features/enea-lab/mapper.test.ts#mapSchermaturaPractice non modifica parole o tipi stradali che non sono il token Viake",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:11.943Z"
+    },
+    "rinaldi-scoped": {
+      "fixtureId": "src/features/enea-shadow-crm/rinaldiFinancialPolicies.test.ts#regole finanziarie limitate a Rinaldi usa l'unico totale massimo detraibile certo",
+      "independentAnalogFixtureId": "src/features/enea-shadow-crm/rinaldiFinancialPolicies.test.ts#regole finanziarie limitate a Rinaldi separa VEPA dalla pergola soltanto nel TEST Ecobonus",
+      "sourceFingerprint": "026f0920972767fbc9c3210becacfd56da1f7bda2b810c9fcc12ae7e2ccea733",
+      "replayFingerprint": "5bde6114b64f421d5e0dd223adc0712010cdc8859f40238d08ec3678c9457d10",
+      "executionPath": [
+        "gross_reconciliation"
+      ],
+      "producedFields": [
+        "user-2026-08-14-rinaldi-explicit-deductible-total",
+        "user-2026-08-14-rinaldi-test-ecobonus-pergola-exclude-vepa"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "src/features/enea-shadow-crm/rinaldiFinancialPolicies.test.ts#regole finanziarie limitate a Rinaldi usa l'unico totale massimo detraibile certo",
+      "negativeTest": "src/features/enea-shadow-crm/rinaldiFinancialPolicies.test.ts#regole finanziarie limitate a Rinaldi separa VEPA dalla pergola soltanto nel TEST Ecobonus",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:11.972Z"
+    },
+    "test-stop-before-external": {
+      "fixtureId": "scripts/enea-shadow-runner/localDossierBatch.test.ts#batch locale APR ENEA riprende automaticamente un elemento reclamato dopo stop senza Codex, senza duplicati o perdite",
+      "independentAnalogFixtureId": "scripts/enea-shadow-runner/localDossierBatch.test.ts#batch locale APR ENEA gestisce 15 input con duplicato, blocchi per-pratica e riavvio senza perdite",
+      "sourceFingerprint": "14a451b9393a0c7f79ec9742ca3351b2bda2228e22979d2be524d1038a62fd6f",
+      "replayFingerprint": "5eedafb61867f5eac98ef57e5e7283d11a70f0831d7465db5aafd72a1730d018",
+      "executionPath": [
+        "preview",
+        "external_gate"
+      ],
+      "producedFields": [
+        "user-2026-08-14-test-stop-at-complete-saved-draft",
+        "system-readonly-adapter-contract"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "scripts/enea-shadow-runner/localDossierBatch.test.ts#batch locale APR ENEA riprende automaticamente un elemento reclamato dopo stop senza Codex, senza duplicati o perdite",
+      "negativeTest": "scripts/enea-shadow-runner/localDossierBatch.test.ts#batch locale APR ENEA gestisce 15 input con duplicato, blocchi per-pratica e riavvio senza perdite",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:12.000Z"
+    },
+    "deduplicate-queue": {
+      "fixtureId": "scripts/enea-shadow-runner/executionPlan.test.ts#piano di esecuzione locale indipendente dalla chat deduplica i nomi, non richiede bridge e sopravvive a una nuova istanza",
+      "independentAnalogFixtureId": "scripts/enea-shadow-runner/localDossierBatch.test.ts#batch locale APR ENEA gestisce 15 input con duplicato, blocchi per-pratica e riavvio senza perdite",
+      "sourceFingerprint": "ffd9c6c43d36eea106a255d88ad9203b394cf5bd51e5f9d821afc0b25834e03c",
+      "replayFingerprint": "5eedafb61867f5eac98ef57e5e7283d11a70f0831d7465db5aafd72a1730d018",
+      "executionPath": [
+        "runner_lifecycle",
+        "checkpoint_persistence"
+      ],
+      "producedFields": [
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "scripts/enea-shadow-runner/executionPlan.test.ts#piano di esecuzione locale indipendente dalla chat deduplica i nomi, non richiede bridge e sopravvive a una nuova istanza",
+      "negativeTest": "scripts/enea-shadow-runner/localDossierBatch.test.ts#batch locale APR ENEA gestisce 15 input con duplicato, blocchi per-pratica e riavvio senza perdite",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:12.030Z"
+    },
+    "manual-crm-comparison-scope": {
+      "fixtureId": "src/features/enea-shadow-crm/comparisonPolicy.test.ts#scope confronto CRM manuale non usa documenti ENEA storici e non esclude la data fuori TEST",
+      "independentAnalogFixtureId": "src/features/enea-shadow-crm/comparisonPolicy.test.ts#scope confronto CRM manuale esclude i quattro gruppi richiesti in TEST",
+      "sourceFingerprint": "4ed6433b01da8e630c25bc5067a7cbe5e0358bc59c78a00dea43bd17f6c7f290",
+      "replayFingerprint": "5cf105c24e3f3761beccb8d3be7bb826e4bfd52c4ac0c57e3a99437f8e2cb077",
+      "executionPath": [
+        "enea_mapping"
+      ],
+      "producedFields": [
+        "core-mapping-complete"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "src/features/enea-shadow-crm/comparisonPolicy.test.ts#scope confronto CRM manuale non usa documenti ENEA storici e non esclude la data fuori TEST",
+      "negativeTest": "src/features/enea-shadow-crm/comparisonPolicy.test.ts#scope confronto CRM manuale esclude i quattro gruppi richiesti in TEST",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:12.060Z"
+    },
+    "crm-readonly-adapter": {
+      "fixtureId": "scripts/enea-shadow-runner/crmReadOnlyAdapter.test.ts#adapter CRM APR persistente esclusivamente locale sostituisce il vecchio blocco bootstrap soltanto con prove GET autenticate reali",
+      "independentAnalogFixtureId": "src/features/enea-shadow-crm/aprCrmReadOnlyContract.test.ts#contratto adapter CRM APR read-only rifiuta chiavi sconosciute/credenziali e capability mancanti",
+      "sourceFingerprint": "dc03250e7386ba6b2eacf14142ca34bd0f32f4f6c2b0c1aa93c9cc9074fe42f7",
+      "replayFingerprint": "2b708c371c4261b278357f16f245b9ca3c8d897a5ea5d9258bb12eb4134acc59",
+      "executionPath": [
+        "external_gate"
+      ],
+      "producedFields": [
+        "system-apr-crm-readonly-adapter-contract",
+        "system-apr-crm-integration-boundary"
+      ],
+      "expectedOutcome": "PASS",
+      "actualOutcome": "PASS",
+      "positiveTest": "scripts/enea-shadow-runner/crmReadOnlyAdapter.test.ts#adapter CRM APR persistente esclusivamente locale sostituisce il vecchio blocco bootstrap soltanto con prove GET autenticate reali",
+      "negativeTest": "src/features/enea-shadow-crm/aprCrmReadOnlyContract.test.ts#contratto adapter CRM APR read-only rifiuta chiavi sconosciute/credenziali e capability mancanti",
+      "rawReportRef": "rule-evidence-runs/3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4.json",
+      "rawReportSha256": "3d8590960fc0f662caeeea9b6a18fc3e50591728959ccd091f39f771b90846f4",
+      "codeFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+      "verifiedAt": "2026-09-02T09:59:12.090Z"
+    }
+  },
+  "sourceFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+  "testExitCode": 0,
+  "deployment": {
+    "verifiedAt": "2026-09-02T10:03:01.939Z",
+    "builtBundleSha256": {
+      "apr-supervisor.mjs": "8f12038cb501f933720c01e90e5a0acb29d8d425503adbc2e534af906b9f94b3",
+      "apr-enea-worker.mjs": "5b282facd50626ca14c188a6a91dc31eac7e35760edd4158c13f3b9e5f7ecfb3",
+      "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0"
+    },
+    "installedBundleSha256": {
+      "apr-supervisor.mjs": "8f12038cb501f933720c01e90e5a0acb29d8d425503adbc2e534af906b9f94b3",
+      "apr-enea-worker.mjs": "5b282facd50626ca14c188a6a91dc31eac7e35760edd4158c13f3b9e5f7ecfb3",
+      "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0"
+    }
+  }
+}

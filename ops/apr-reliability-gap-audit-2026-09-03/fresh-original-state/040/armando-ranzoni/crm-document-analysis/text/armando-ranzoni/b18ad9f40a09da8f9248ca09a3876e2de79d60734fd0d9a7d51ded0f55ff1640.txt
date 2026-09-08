@@ -1,0 +1,50 @@
+FATTURA
+nr. FPR 176/26 del 23/04/2026
+Data invio: 23/04/2026
+FORNITORE
+LM TENDE DA SOLE E ZANZARIERE S.R.L.
+P.IVA: IT13223860969
+C.F.: 13223860969
+Via Della Resistenza
+20090 - Buccinasco (MI) - IT
+Telefono: 3348841668
+info@lmtende.it
+CLIENTE
+Armando Ranzoni
+C.F.: RNZRND49B18E072J
+Via Sanzio 5
+20094 - Corsico (MI) - IT
+PRODOTTI E SERVIZI
+NR DESCRIZIONE QUANTITA' PREZZO IMPORTO IVA NATURA IVA
+1 fattura acconto per fornitura e posa di Tapparella in
+alluminio media densità colore avorio A02 N° 1 da 143
+x 185 cm N° 1 da 283,5 x 185 cm N° 1 tubo completo in
+ferro L. 300 cm
+1 400,00 € 400,00 € 22 % -
+2 Infissi PVC esterno bianco massa interno 49233 1 da
+1390 x 1600 - 2 ante 1 da 1390 x 1600 - 2 ante 1 da
+1390 x 1600 - 2 ante 2 barra coprofilo 40mm
+1 2.425,00 € 2.425,00 € 22 % -
+METODO DI PAGAMENTO
+NR RATA MODALITÀ PAGAMENTO BANCA IBAN BIC/SWIFT DATA SCADENZA IMPORTO
+1 Bonifico Pagamento in
+unica soluzione
+Monte dei
+paschi di siena
+IT21X0103032650000007139314 23/04/2026 3.446,50 €
+REGIME FISCALE
+REGIME FISCALE
+RF01 - Ordinario
+IVA NATURA NORMATIVA 22% 2.825,00 € 621,50 €
+RIEPILOGO IVA CALCOLO FATTURA
+Importo prodotti o servizi 2.825,00 €
+Totale imponibile 2.825,00 €
+Totale IVA 621,50 €
+Totale documento 3.446,50 €
+ESIGIBILITA' IMPONIBILE IMPOSTA
+Netto a pagare 3.446,50 €
+effettuare bonifico per detrazione: Causale intervento di
+riqualificazione energetica L.296/2006
+Copia analogica della fattura elettronica inviata a SdI | Il documento xml originale è disponibile online sul portale "Fatture e Corrispettivi dell'Agenzia delle Entrate"
+Fattura Nr. FPR 176/26 del 23/04/2026 Fattura generata con:
+Pag.1/1

@@ -31,6 +31,7 @@ import type { PersistentAprInfissiLocalMappingPreflight } from "./infissiLocalMa
 import type { PersistentAprInfissiBatchPreflight } from "./infissiBatchPreflight";
 import type { PersistentAprDeepCaseReview } from "./deepCaseReview";
 import type { AprPublicRuntimeStatus } from "./aprWatchdog";
+import { sequencerTerminalIsCurrent, type AprTerminalObservabilitySnapshot } from "./aprTerminalObservability";
 import { aprShadowOperatingPlanSnapshot } from "../../src/features/enea-shadow-crm/shadowOperatingModel";
 
 type LocalDossierSnapshot = ReturnType<typeof localDossierDashboardSnapshot>;
@@ -90,13 +91,42 @@ function healthLabel(health: SupervisorSnapshot["health"]) {
 }
 
 export interface DashboardOperationalStatus {
-  publicStatus: AprPublicRuntimeStatus | null;
-  source: "watchdog" | "worker" | "legacy_runner";
+  publicStatus: AprPublicRuntimeStatus | "INCONSISTENT" | null;
+  source: "sequencer_finalizer" | "watchdog" | "worker" | "preflight" | "legacy_runner";
   health: SupervisorSnapshot["health"];
   title: string;
   reason: string;
   nextAction: string;
   currentPracticeId: string | null;
+}
+
+export function deriveTerminalDashboardOperationalStatus(
+  terminal?: AprTerminalObservabilitySnapshot | null,
+): DashboardOperationalStatus | null {
+  if (!terminal?.terminal || terminal.aprStatus.source !== "sequencer_finalizer") return null;
+  const allowed = new Set(["WORKING", "IDLE", "OPERATOR_REQUIRED", "TECHNICAL_BLOCK"]);
+  const rawStatus = terminal.aprStatus.publicStatus;
+  const publicStatus = terminal.aprStatus.consistency === "CONSISTENT" && rawStatus && allowed.has(rawStatus)
+    ? rawStatus as AprPublicRuntimeStatus
+    : "INCONSISTENT";
+  const health: SupervisorSnapshot["health"] = publicStatus === "OPERATOR_REQUIRED"
+    ? "operator_intervention"
+    : publicStatus === "IDLE" ? "run_completed" : publicStatus === "WORKING" ? "runner_active" : "technical_block";
+  const title = publicStatus === "INCONSISTENT"
+    ? "INCONSISTENT — fonti terminali non concordi"
+    : publicStatus === "IDLE" ? "IDLE — coda vuota"
+    : publicStatus === "OPERATOR_REQUIRED" ? "OPERATOR_REQUIRED — intervento registrato"
+    : publicStatus === "TECHNICAL_BLOCK" ? "TECHNICAL_BLOCK — controllo tecnico necessario"
+    : "WORKING — processo APR";
+  return {
+    publicStatus,
+    source: "sequencer_finalizer",
+    health,
+    title,
+    reason: terminal.aprStatus.reason,
+    nextAction: terminal.aprStatus.nextAction,
+    currentPracticeId: terminal.caseTruth?.customerKey ?? terminal.aprStatus.currentCustomerKey,
+  };
 }
 
 function observedAt(value: string | null | undefined) {
@@ -122,7 +152,14 @@ export function deriveDashboardOperationalStatus(
   eneaBrowserWorker?: EneaBrowserWorkerSnapshot | null,
   watchdog?: AprWatchdogSnapshot | null,
   eneaDraftExecution?: EneaDraftExecutionSnapshot | null,
+  crmLocalPreflight?: CrmLocalPreflightSnapshot | null,
+  terminal?: AprTerminalObservabilitySnapshot | null,
 ): DashboardOperationalStatus {
+  const currentTerminal = sequencerTerminalIsCurrent(terminal, eneaDraftExecution, eneaBrowserWorker?.service)
+    ? terminal
+    : null;
+  const terminalStatus = deriveTerminalDashboardOperationalStatus(currentTerminal);
+  if (terminalStatus) return terminalStatus;
   const service = eneaBrowserWorker?.service;
   const workerObservationIsNewer = Boolean(service)
     && observedAt(service?.heartbeatAt) >= observedAt(watchdog?.heartbeatAt);
@@ -193,6 +230,22 @@ export function deriveDashboardOperationalStatus(
     };
   }
 
+  if (eneaDraftExecution?.status === "blocked_preflight" && crmLocalPreflight?.status === "completed") {
+    const blockedCases = crmLocalPreflight.items.filter((item) => item.state === "blocked_case" && (item.report?.blockers?.length ?? 0) > 0);
+    if (blockedCases.length > 0) {
+      const blockerCount = blockedCases.reduce((total, item) => total + (item.report?.blockers?.length ?? 0), 0);
+      return {
+        publicStatus: "OPERATOR_REQUIRED",
+        source: "preflight",
+        health: "operator_intervention",
+        title: "OPERATOR_REQUIRED — preflight per-pratica terminale",
+        reason: `${blockedCases.length} pratiche blocked_case con ${blockerCount} blocker persistenti coerenti.`,
+        nextAction: "Consultare report.blockers e la verita caso; le altre pratiche eseguibili proseguono separatamente.",
+        currentPracticeId: blockedCases.length === 1 ? blockedCases[0]!.customerKey : null,
+      };
+    }
+  }
+
   return {
     publicStatus: null,
     source: "legacy_runner",
@@ -237,9 +290,10 @@ export function renderDashboardHtml(
   infissiBatchPreflight?: AprInfissiBatchPreflightSnapshot | null,
   deepCaseReview?: AprDeepCaseReviewSnapshot | null,
   operatorUnlocks?: AprOperatorUnlockSnapshot | null,
+  terminal?: AprTerminalObservabilitySnapshot | null,
 ) {
   const snapshot = supervise(state, now);
-  const operational = deriveDashboardOperationalStatus(snapshot, now, eneaBrowserWorker, watchdog, eneaDraftExecution);
+  const operational = deriveDashboardOperationalStatus(snapshot, now, eneaBrowserWorker, watchdog, eneaDraftExecution, crmLocalPreflight, terminal);
   const counts = state.queue.reduce<Record<string, number>>((result, job) => {
     result[job.executionState] = (result[job.executionState] ?? 0) + 1;
     return result;
@@ -357,7 +411,7 @@ export function renderDashboardHtml(
     ? `<section class="card section" id="apr-deep-case-review" aria-labelledby="apr-deep-case-review-title"><p class="label">APR · revisione profonda prima dell'operatore</p><h2 id="apr-deep-case-review-title">${escapeHtml(deepCaseReview.status.toUpperCase())} — ${deepCaseReview.progress.processed}/${deepCaseReview.progress.total}</h2><div class="stats readiness-stats"><div class="stat"><strong>${deepCaseReview.progress.technicalRepair}</strong><span>riparazioni tecniche</span></div><div class="stat"><strong>${deepCaseReview.progress.operatorRequired}</strong><span>prove operatore reali</span></div><div class="stat"><strong>${deepCaseReview.progress.businessRuleRequired}</strong><span>regole business mancanti</span></div><div class="stat"><strong>${deepCaseReview.progress.autoResolved}</strong><span>risolti con regole esistenti</span></div></div><p class="reason readiness-reason">${escapeHtml(deepCaseReview.reason)}</p><p class="next"><strong>Prossima azione</strong><br>${escapeHtml(deepCaseReview.nextAction)}</p><div class="table-wrap"><table><thead><tr><th>Cliente</th><th>Modulo</th><th>Classificazione</th><th>Prove</th><th>Motivo/prossima azione</th></tr></thead><tbody>${deepCaseReview.items.map((item) => `<tr><td>${escapeHtml(item.displayName)}</td><td>${escapeHtml(item.productModule)}</td><td><span class="state-pill">${escapeHtml(item.classification ?? item.state)}</span></td><td>${escapeHtml(item.evidencePasses.map((pass) => `${pass.id}:${pass.ok ? "ok" : "no"}`).join(" · ") || "in attesa")}</td><td>${escapeHtml(item.reason)}<br><strong>${escapeHtml(item.nextAction)}</strong></td></tr>`).join("")}</tbody></table></div><p class="footer">Checkpoint r${deepCaseReview.revision} · lock ${escapeHtml(deepCaseReview.currentCustomerKey ?? "nessuno")} · externalActionAllowed=false · ultimo evento ${escapeHtml(deepCaseReview.lastEvent.type)}</p></section>`
     : "";
   const operatorQuestionsMarkup = operatorQuestions
-    ? `<section class="card section" id="operator-questions" aria-labelledby="operator-questions-title"><p class="label">Richiesto intervento operatore · domande strutturate persistenti</p><h2 id="operator-questions-title">Decisioni aperte: ${operatorQuestions.openCount}</h2><p class="reason">APR mostra il dato e la fonte. La scelta vale solo per la pratica indicata; la nota libera e' facoltativa e non diventa una regola generale.</p><div class="table-wrap"><table><thead><tr><th>Pratica/campo</th><th>Domanda e fonte</th><th>Risposta</th><th>Stato</th></tr></thead><tbody>${operatorQuestions.questions.length ? operatorQuestions.questions.map((question) => `<tr><td><strong>${escapeHtml(question.displayName)}</strong><span>${escapeHtml(question.field)}</span></td><td>${escapeHtml(question.prompt)}<br><small>${escapeHtml(question.evidenceText)}</small></td><td>${question.status === "open" && csrfToken ? `<form method="post" action="/operator/questions/${encodeURIComponent(question.id)}/answer"><input type="hidden" name="csrf" value="${escapeHtml(csrfToken)}"><select name="answer" aria-label="Risposta" required>${question.choices.map((choice) => `<option value="${escapeHtml(choice.value)}">${escapeHtml(choice.label)}</option>`).join("")}</select><input name="note" type="text" maxlength="500" aria-label="Nota facoltativa" placeholder="Nota facoltativa, es. misure in millimetri"><button type="submit">Registra e riaccoda</button></form>` : escapeHtml(question.answer ? `${question.answer.value} · ${question.answer.note || "nessuna nota"}` : "—")}</td><td><span class="state-pill">${escapeHtml(question.status)}</span></td></tr>`).join("") : `<tr><td>—</td><td>Nessuna domanda aperta.</td><td>—</td><td><span class="state-pill">idle</span></td></tr>`}</tbody></table></div><p class="footer">Ultimo evento ${escapeHtml(operatorQuestions.lastEvent.type)} · checkpoint r${operatorQuestions.revision} · “non determinabile” mantiene il blocco.</p></section>`
+    ? `<section class="card section" id="operator-questions" aria-labelledby="operator-questions-title"><p class="label">Richiesto intervento operatore · domande strutturate persistenti</p><h2 id="operator-questions-title">Decisioni aperte: ${operatorQuestions.openCount}</h2><p class="reason">APR mostra il dato e la fonte. La risposta risolve la pratica indicata e viene registrata separatamente come candidata a regola generale; diventa attiva soltanto dopo prova, test, matrice e bundle certificato.</p><div class="table-wrap"><table><thead><tr><th>Pratica/campo</th><th>Domanda e fonte</th><th>Risposta</th><th>Stato</th></tr></thead><tbody>${operatorQuestions.questions.length ? operatorQuestions.questions.map((question) => `<tr><td><strong>${escapeHtml(question.displayName)}</strong><span>${escapeHtml(question.field)}</span></td><td>${escapeHtml(question.prompt)}<br><small>${escapeHtml(question.evidenceText)}</small></td><td>${question.status === "open" && csrfToken ? `<form method="post" action="/operator/questions/${encodeURIComponent(question.id)}/answer"><input type="hidden" name="csrf" value="${escapeHtml(csrfToken)}">${question.kind === "missing_measurement" ? `<input name="widthValue" type="number" min="0" step="0.1" aria-label="Larghezza" placeholder="Larghezza (lascia vuoto se non disponibile)"><input name="heightValue" type="number" min="0" step="0.1" aria-label="Altezza" placeholder="Altezza (lascia vuoto se non disponibile)">` : ""}<select name="answer" aria-label="Risposta" required>${question.choices.map((choice) => `<option value="${escapeHtml(choice.value)}">${escapeHtml(choice.label)}</option>`).join("")}</select><input name="note" type="text" maxlength="500" aria-label="Nota facoltativa" placeholder="Nota facoltativa, es. misure in millimetri"><button type="submit">Registra e riaccoda</button></form>` : escapeHtml(question.answer ? `${question.answer.value} · ${question.answer.note || "nessuna nota"}` : "—")}</td><td><span class="state-pill">${escapeHtml(question.status)}</span></td></tr>`).join("") : `<tr><td>—</td><td>Nessuna domanda aperta.</td><td>—</td><td><span class="state-pill">idle</span></td></tr>`}</tbody></table></div><p class="footer">Ultimo evento ${escapeHtml(operatorQuestions.lastEvent.type)} · checkpoint r${operatorQuestions.revision} · “non determinabile” mantiene il blocco.</p></section>`
     : "";
   const operatorUnlocksMarkup = operatorUnlocks
     ? `<section class="card section" id="operator-unlocks" aria-labelledby="operator-unlocks-title"><p class="label">APR · sblocco operatore canonico · checkpoint persistente</p><h2 id="operator-unlocks-title">${operatorUnlocks.progress.open} aperti · ${operatorUnlocks.progress.answeredPendingVerification} risposte da verificare</h2><p class="reason">La risposta viene salvata come evidenza limitata alla singola pratica e generazione. Non riaccoda la pratica e non crea bozze finché APR non la verifica nel Commit 3.</p><div class="table-wrap"><table><thead><tr><th>Pratica/generazione</th><th>Blocco e prova</th><th>Ripresa prevista</th><th>Risposta</th><th>Stato</th></tr></thead><tbody>${operatorUnlocks.records.length ? operatorUnlocks.records.map((record) => { const block = record.descriptor; const form = block.status === "open" && csrfToken ? `<form method="post" action="/operator/unlocks/${encodeURIComponent(block.blockId)}/submit"><input type="hidden" name="csrf" value="${escapeHtml(csrfToken)}">${block.answerSchema.kind === "controlled_choice" ? `<select name="answer" aria-label="Risposta" required>${block.answerSchema.choices.map((choice) => `<option value="${escapeHtml(choice.value)}">${escapeHtml(choice.label)}</option>`).join("")}</select>` : `<input name="answer" type="text" maxlength="500" aria-label="Risposta" required>`}<input name="note" type="text" maxlength="1000" aria-label="Nota operatore" placeholder="Nota${block.answerSchema.noteRequired ? " obbligatoria" : " facoltativa"}" ${block.answerSchema.noteRequired ? "required" : ""}><button type="submit">Registra evidenza</button></form>` : escapeHtml(record.evidence ? `${record.evidence.answer} · ${record.evidence.note}` : "—"); return `<tr><td><strong>${escapeHtml(block.scope.customerKey)}</strong><span>${escapeHtml(block.scope.practiceId)} · ${escapeHtml(block.scope.generationId)}</span></td><td>${escapeHtml(block.question)}<br><small>${escapeHtml(block.evidenceText)} · ${escapeHtml(block.code)}</small></td><td>${escapeHtml(block.resumePolicy)}<br><small>${escapeHtml(record.crmSimulation.nextAction)}</small></td><td>${form}</td><td><span class="state-pill">${escapeHtml(block.status)}</span><br><small>${escapeHtml(record.evidence?.verificationStatus ?? "attesa operatore")}</small></td></tr>`; }).join("") : `<tr><td>—</td><td>Nessun blocco canonico registrato.</td><td>—</td><td>—</td><td><span class="state-pill">idle</span></td></tr>`}</tbody></table></div><p class="footer">Checkpoint r${operatorUnlocks.revision} · externalActionAllowed=false · ultimo evento ${escapeHtml(operatorUnlocks.lastEvent.type)} · scope non propagabile practiceId+customerKey+generationId.</p></section>`
@@ -490,11 +544,12 @@ export function writeLocalDashboard(
   infissiBatchPreflight?: AprInfissiBatchPreflightSnapshot | null,
   deepCaseReview?: AprDeepCaseReviewSnapshot | null,
   operatorUnlocks?: AprOperatorUnlockSnapshot | null,
+  terminal?: AprTerminalObservabilitySnapshot | null,
 ) {
   const directory = path.join(path.resolve(rootDirectory), "dashboard");
   mkdirSync(directory, { recursive: true, mode: 0o700 });
   const snapshot = supervise(state, now);
-  const operational = deriveDashboardOperationalStatus(snapshot, now, eneaBrowserWorker, watchdog, eneaDraftExecution);
+  const operational = deriveDashboardOperationalStatus(snapshot, now, eneaBrowserWorker, watchdog, eneaDraftExecution, crmLocalPreflight, terminal);
   const publicSnapshot = operational.source === "legacy_runner" ? {
     ...snapshot,
     publicStatus: operational.publicStatus,
@@ -511,7 +566,7 @@ export function writeLocalDashboard(
     legacyRunner: snapshot,
   };
   atomicWrite(path.join(directory, "status.json"), `${JSON.stringify(publicSnapshot, null, 2)}\n`);
-  atomicWrite(path.join(directory, "index.html"), renderDashboardHtml(state, now, runtime, null, readiness, adapter, executionPlan, localDossier, batchReport, ruleMatrix, crmReadOnlyAdapter, pilotSample, notifications, crmAuth, crmAcquisition, crmDocuments, crmDocumentAnalysis, crmLocalPreflight, eneaDraftExecution, eneaBrowserWorker, watchdog, operatorQuestions, csrfToken, crmWorkflow, crmIncoming, crmLiveProcessing, shadowComparison, shadowControl, infissiLocalMapping, infissiBatchPreflight, deepCaseReview, operatorUnlocks));
+  atomicWrite(path.join(directory, "index.html"), renderDashboardHtml(state, now, runtime, null, readiness, adapter, executionPlan, localDossier, batchReport, ruleMatrix, crmReadOnlyAdapter, pilotSample, notifications, crmAuth, crmAcquisition, crmDocuments, crmDocumentAnalysis, crmLocalPreflight, eneaDraftExecution, eneaBrowserWorker, watchdog, operatorQuestions, csrfToken, crmWorkflow, crmIncoming, crmLiveProcessing, shadowComparison, shadowControl, infissiLocalMapping, infissiBatchPreflight, deepCaseReview, operatorUnlocks, terminal));
   return snapshot;
 }
 
@@ -525,8 +580,10 @@ export function writeStoppedAprOperationalDashboard(
   eneaDraftExecution: EneaDraftExecutionSnapshot,
   eneaBrowserWorker: EneaBrowserWorkerSnapshot,
   watchdog: AprWatchdogSnapshot,
+  terminal?: AprTerminalObservabilitySnapshot | null,
 ) {
   return writeLocalDashboard(rootDirectory, state, now, runtime, readiness, adapter,
     undefined, undefined, undefined, null, null, null, null, null, null, null, null, null,
-    eneaDraftExecution, eneaBrowserWorker, watchdog);
+    eneaDraftExecution, eneaBrowserWorker, watchdog, undefined, undefined, undefined, undefined,
+    undefined, undefined, undefined, undefined, undefined, undefined, undefined, terminal);
 }

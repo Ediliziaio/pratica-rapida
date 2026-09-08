@@ -1,0 +1,103 @@
+{
+  "originalDocument": {
+    "path": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3005-global-controller-gemma-minore/crm-original-documents/files/gemma-minore/a75be295c3555dc16c2de327e6e4d129abceacdf20a56e4909b3d9273d63f880.pdf",
+    "sha256": "ef0258bf8c7aee1a85d650c2b6ad4c367d676c8d7967fcbccb581745396caaf9",
+    "pageCount": 5
+  },
+  "visibleOriginalFields": {
+    "model": "HOME-B2AS",
+    "widthMm": 1090,
+    "heightMm": 2075,
+    "quantity": 1,
+    "uw": 1.29
+  },
+  "sourceTextExcerpt": [
+    "Dichiarazione di conformità energetica",
+    "alla legislazione nazionale in ambito di risparmio energetico in edilizia",
+    "[D.Lgs. 192 del 19 agosto 2005 e successive modificazioni ed integrazioni]",
+    "Il sottoscritto ALFREDO COMITINO, rappresentante legale della ditta \"STARPUR S.R.L.\", in qualità di costruttore",
+    "dei prodotti:",
+    "Rif. tipologia: 15040/2026 01 Modello: HOME-B2AS, Portafinestra 2 ante con soglia ribassata, dimensioni: 1090 x 2075, pezzi: 1;",
+    "D I C H I A R A",
+    "che i serramenti e le vetrazioni, di cui alla fornitura n°15040/2026 del cliente CISAM INFISSI S.R.L., VIA PIEMONTE,",
+    "7/9 Castel San Pietro Terme (BO), con cantiere in VIA PIEMONTE, 7/9 Castel San Pietro Terme (BO), prodotti nello",
+    "stabilimento situato in VIA F.LLI BUSCETTO 54/56, 84014, NOCERA INFERIORE (SA), sono conformi a quanto",
+    "previsto dal D.Lgs. 192/2005 e successive modificazioni ed integrazioni e dall'Allegato C del D.Lgs. 192/2005 e",
+    "successive modificazioni ed integrazioni e che:",
+    "1. i serramenti di fornitura sono impiegabili in edifici ubicati in Comuni appartenenti fino alla zona climatica \"E\".",
+    "2. la trasmittanza termica complessiva dei serramenti è stata determinata mediante metodologia di calcolo",
+    "semplificato così come previsto dalla norma UNI EN ISO 10077-1:2018 e corrisponde a 1,29 W/m²K. Tale valore",
+    "è stato determinato numericamente sulla base dei singoli valori di trasmittanza termica dei componenti",
+    "costituenti il serramento così come dichiarati dalla ditta produttrice dei profili sistema REHAU della serie S 799",
+    "BRILLANT DESIGN e dalla ditta produttrice di Vetro camera SATINATO 33.1 -15 Argon W.E.- 33.1 B.E. (Ug 1.0);"
+  ],
+  "observation": {
+    "candidates": [
+      {
+        "sourceId": "a75be295c3555dc16c2de327e6e4d129abceacdf20a56e4909b3d9273d63f880",
+        "sourceKind": "third_party_certificate",
+        "parser": "single-product-energy-declaration",
+        "rows": [
+          {
+            "lineId": "a75be295c3555dc16c2de327e6e4d129abceacdf20a56e4909b3d9273d63f880:single-product-energy-declaration:1",
+            "quantity": 1,
+            "widthM": 1.09,
+            "heightM": 2.075,
+            "thermalTransmittanceWm2K": 1.29,
+            "measurementKind": "documented_unspecified"
+          }
+        ],
+        "explicitUwCount": 1,
+        "declaredPerformancePageCount": null
+      }
+    ],
+    "excludedSources": [],
+    "appliedRuleIds": [
+      "user-2026-08-19-infissi-invoice-or-technical-source-resolution-v1",
+      "user-2026-08-19-infissi-transmittance-1-3-fallback-v1",
+      "user-2026-08-14-preserve-technical-product-cardinality",
+      "user-2026-08-25-crm-internal-technical-document-untrusted-v1",
+      "user-2026-08-25-test-ex-novo-original-sources-only-v1"
+    ]
+  },
+  "resolution": {
+    "version": "apr-infissi-automatic-document-evidence-v4",
+    "status": "ready",
+    "evidence": {
+      "kind": "technical_document",
+      "sourceIds": [
+        "a75be295c3555dc16c2de327e6e4d129abceacdf20a56e4909b3d9273d63f880"
+      ],
+      "rows": [
+        {
+          "lineId": "a75be295c3555dc16c2de327e6e4d129abceacdf20a56e4909b3d9273d63f880:single-product-energy-declaration:1",
+          "quantity": 1,
+          "widthM": 1.09,
+          "heightM": 2.075,
+          "thermalTransmittanceWm2K": 1.29,
+          "measurementKind": "documented_unspecified"
+        }
+      ]
+    },
+    "blockers": [],
+    "audit": {
+      "selectedSourceId": "a75be295c3555dc16c2de327e6e4d129abceacdf20a56e4909b3d9273d63f880",
+      "selectedParser": "single-product-energy-declaration",
+      "candidateCounts": [
+        {
+          "sourceId": "a75be295c3555dc16c2de327e6e4d129abceacdf20a56e4909b3d9273d63f880",
+          "parser": "single-product-energy-declaration",
+          "rowCount": 1
+        }
+      ],
+      "excludedSources": [],
+      "appliedRuleIds": [
+        "user-2026-08-19-infissi-invoice-or-technical-source-resolution-v1",
+        "user-2026-08-19-infissi-transmittance-1-3-fallback-v1",
+        "user-2026-08-14-preserve-technical-product-cardinality",
+        "user-2026-08-25-crm-internal-technical-document-untrusted-v1",
+        "user-2026-08-25-test-ex-novo-original-sources-only-v1"
+      ]
+    }
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "apr-blind-case-documents-v1",
+  "caseId": "case-02",
+  "displayName": "Francesca Monti",
+  "documentCount": 2,
+  "documents": [
+    {
+      "filename": "01-fiscal-or-payment.pdf",
+      "sha256": "c7e7acde035efe4c3f770c0645e45963949507c9ec33dba741daec442e18e154",
+      "byteLength": 8166487,
+      "mediaType": "application/pdf",
+      "neutralKind": "fiscal-or-payment",
+      "renderedPages": [
+        "01-1.png",
+        "01-2.png",
+        "01-3.png",
+        "01-4.png",
+        "01-5.png",
+        "01-6.png"
+      ]
+    },
+    {
+      "filename": "02-supporting.pdf",
+      "sha256": "c7e7acde035efe4c3f770c0645e45963949507c9ec33dba741daec442e18e154",
+      "byteLength": 8166487,
+      "mediaType": "application/pdf",
+      "neutralKind": "supporting",
+      "renderedPages": [
+        "02-1.png",
+        "02-2.png",
+        "02-3.png",
+        "02-4.png",
+        "02-5.png",
+        "02-6.png"
+      ]
+    }
+  ],
+  "instructions": "Verificare esclusivamente dai documenti se identità e codice fiscale del beneficiario sono espliciti, leggibili e coerenti."
+}

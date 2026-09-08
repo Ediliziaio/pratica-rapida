@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.praticarapida.apr-wide100-r97</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/usr/local/bin/node</string>
+    <string>/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-wide100-final-r67-2026-09-06/simple-independent-runner.mjs</string>
+  </array>
+  <key>WorkingDirectory</key>
+  <string>/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida</string>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>APR_BATCH_RUN_ID</key>
+    <string>apr-wide100-r97-20260908</string>
+    <key>APR_BATCH_REPORT_TITLE</key>
+    <string>APR — test operativo completo 100 pratiche originali, r97</string>
+    <key>APR_BATCH_RUN_ROOT</key>
+    <string>/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r97-20260908</string>
+    <key>APR_BATCH_MANIFEST</key>
+    <string>/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-wide100-province-lineage-2026-09-02/manifest.json</string>
+    <key>APR_BATCH_MANIFEST_SHA256</key>
+    <string>51842252f71cabb6714f78923fe59ec9789ad06739393f61a553bb4bdb9154e0</string>
+    <key>APR_BATCH_EXPECTED_COUNT</key>
+    <string>100</string>
+    <key>APR_BATCH_BUNDLE</key>
+    <string>/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/83a102d1-reseller-addressee-batch-r97-2026-09-08-20260908</string>
+    <key>APR_BATCH_WORKER_SHA256</key>
+    <string>433bcc0e1d4f9c374c47951e24b6314bcc4a7066ee5803ef01238063e8728762</string>
+    <key>APR_BATCH_COHORT_OFFSET</key>
+    <string>3600</string>
+  </dict>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <false/>
+  <key>ProcessType</key>
+  <string>Background</string>
+  <key>StandardOutPath</key>
+  <string>/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r97-20260908/runner.stdout.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r97-20260908/runner.stderr.log</string>
+</dict>
+</plist>

@@ -1,0 +1,679 @@
+Dichiarazione di conformità energetica
+alla legislazione nazionale in ambito di risparmio energetico in edilizia
+[D.Lgs. 192 del 19 agosto 2005 e successive modificazioni ed integrazioni]
+Il sottoscritto , rappresentante legale della ditta "Innova Serramenti S.r.l.s.", in qualità di costruttore dei
+prodotti:
+Rif. tipologia: 921/2025 01 Modello: FIN2 THERMOFIBRA, FINESTRA A DUE ANTE, dimensioni: 1635 x 1200, pezzi: 1;
+Rif. tipologia: 921/2025 02 Modello: FIN2 THERMOFIBRA, FINESTRA A DUE ANTE, dimensioni: 1085 x 1200, pezzi: 1;
+Rif. tipologia: 921/2025 03 Modello: FIN2 THERMOFIBRA, FINESTRA A DUE ANTE, dimensioni: 1635 x 1200, pezzi: 1;
+Rif. tipologia: 921/2025 04 Modello: FIN2 THERMOFIBRA, FINESTRA A DUE ANTE, dimensioni: 1085 x 1200, pezzi: 1;
+Rif. tipologia: 921/2025 05 Modello: PFIN-RIB2 SOGLIA+1DX THERMOFIBRA, PORTA FINESTRA A DUE ANTE + ANTA SINGOLA A DESTRA, dimensioni: 1880 x 2020,
+pezzi: 1;
+D I C H I A R A
+che i serramenti e le vetrazioni, di cui alla fornitura n°921/2025 del cliente GIUGA SANTO, C.F.:
+GGISNT65C08E532K, VIA DEI GIRASOLI 81 Guidonia Montecelio (RM), con cantiere in GUIDONIA GUIDONIA (RM),
+prodotti nello stabilimento situato in Via del Mandrione, 105 - 00181 Roma, sono conformi a quanto previsto dal
+D.Lgs. 192/2005 e successive modificazioni ed integrazioni e dall'Allegato C del D.Lgs. 192/2005 e successive
+modificazioni ed integrazioni e che:
+1. i serramenti di fornitura sono impiegabili in edifici ubicati in Comuni appartenenti fino alla zona climatica "".
+2. la trasmittanza termica complessiva dei serramenti è stata determinata mediante metodologia di calcolo
+semplificato così come previsto dalla norma UNI EN ISO 10077-1:2018 e corrisponde a 1,2 W/m²K. Tale valore
+è stato determinato numericamente sulla base dei singoli valori di trasmittanza termica dei componenti
+costituenti il serramento così come dichiarati dalla ditta produttrice dei profili sistema DECEUNINCK e dalla
+ditta produttrice di Vetro 33.1-22-4 ECO UNI-7697 Ug=1,0 - Fs=60 ARGON, Vetro 33.1-22-4 STC ECO
+UNI-7697 Ug=1,1 - Fs=60, Vetro 33.1-20-33.1 selettivo UNI-7697 Ug=1,1 - Fs=60 ARGON;
+3. la permeabilità all'aria dei serramenti corrisponde alla classe 2 per le finestre e classe 1 per le portefinestre
+come definito dalla norma EN 14351-1;
+4. la trasmittanza termica delle vetrazioni è pari rispettivamente a 1W/m²K per il vetro V33.1-22-4 ECO (tipologie
+01, 03, 04), 1,5W/m²K per il vetro V33.1-22-4 STC ECO (tipologia 02), 1W/m²K per il vetro XXV33.1-20-33.1
+selettivo (tipologia 05).
+Si allegano alla presente dichiarazione di conformità i seguenti documenti:
+Allegato A: Determinazione numerica della trasmittanza termica complessiva dei serramenti eseguita secondo la
+metodologia di calcolo semplificata descritta dalla norma UNI EN ISO 10077-1:2018
+Allegato B: Certificazione, da parte del produttore dei profili sistema DECEUNINCK, serie THERMOFIBRA dei valori
+di trasmittanza termica serie;
+Allegato C: Certificazione, da parte del produttore dei profili sistema DECEUNINCK, serie ELEGANT dei valori di
+trasmittanza termica serie;
+
+Allegato D: Certificazione, da parte del produttore di XXV33.1-20-33.1 selettivo del valore di isolamento acustico.
+Roma, 09/07/2026
+Timbro e firma
+pag 2
+
+Tabelle e metodologie di calcolo
+Tabella conforme ai valori limite della trasmittanza termica U dettati dai decreti ministeriali e legislativi relativi alle chiusure
+trasparenti comprensive degli infissi espressa in W/m²K
+Zona climatica 01/10/2015 01/10/2015 01/01/2021 Superbonus/Ecobonus
+D.Lgs. 192/2005
+Appendice A
+D.Lgs. 192/2005
+Appendice B
+DM 26 Giugno 2015
+(CAM e Bonus Casa)
+DM 06 Agosto 2020
+Allegato E
+A 3,2 3,2 3,0 2,6
+B 3,2 3,2 3,0 2,6
+C 2,4 2,4 2,0 1,75
+D 2,0 2,1 1,8 1,67
+E 1,8 1,9 1,4 1,3
+F 1,5 1,7 1,0 1,0
+Tabella conforme alla Tabella 4b - Allegato C del D.Lgs. 192/2005 e s.m. e i. contenente i valori limite della trasmittanza centrale
+termica U dei vetri espressa in W/m²K
+Zona climatica Dall' 1° luglio 2011
+A 3,7
+B 2,7
+C 2,1
+D 1,9
+E 1,7
+F 1,3
+I limiti possono subire variazioni dettate dal progettista
+Formule utilizzate per il calcolo trasmittanza termica
+Calcolo della trasmittanza termica infissi secondo EN 10077-1:2018
+Effetto di eventuali chiusure oscuranti secondo norma TS 11300-1:2014
+pag 3
+
+921/2025 Allegato A (pag. 1/3)
+01
+Zone trasmittanza
+Serie DECEUNINCK - THERMOFIBRA 0.67 m² × 0,88 W/m²K = 0.59 W/K 26.1%
+Riempimento V33.1-22-4 ECO 1.29 m² × 1 W/m²K = 1.29 W/K 56.6%
+ISO 10077-1:2018 Table G.2 6.58m × 0,06 W/mK = 0.39 W/K 17.3%
+1
+0,88
+W/m²K
+1635
+W/mK
+0,06
+1200
+Potenza trasmessa: 2,28 W/K
+Superficie: 1,962 m²
+Trasmittanza termica: 1,15993 W/m²K
+Uw: 1,16 W/m²K
+02
+Zone trasmittanza
+1085
+Serie DECEUNINCK - THERMOFIBRA 0.57 m² × 0,88 W/m²K = 0.50 W/K 24.4%
+Riempimento V33.1-22-4 STC ECO 0.74 m² × 1,5 W/m²K = 1.10 W/K 54.1%
+ISO 10077-1:2018 Table G.1 5.48m × 0,08 W/mK = 0.44 W/K 21.5%
+1,5
+0,88
+W/m²K
+W/mK
+0,08
+1200
+Potenza trasmessa: 2,04 W/K
+Superficie: 1,302 m²
+Trasmittanza termica: 1,56735 W/m²K
+Uw: 1,57 W/m²K
+
+921/2025 Allegato A (pag. 2/3)
+03
+Zone trasmittanza
+Serie DECEUNINCK - THERMOFIBRA 0.67 m² × 0,88 W/m²K = 0.59 W/K 26.1%
+Riempimento V33.1-22-4 ECO 1.29 m² × 1 W/m²K = 1.29 W/K 56.6%
+ISO 10077-1:2018 Table G.2 6.58m × 0,06 W/mK = 0.39 W/K 17.3%
+1
+0,88
+W/m²K
+1635
+W/mK
+0,06
+1200
+Potenza trasmessa: 2,28 W/K
+Superficie: 1,962 m²
+Trasmittanza termica: 1,15993 W/m²K
+Uw: 1,16 W/m²K
+04
+Zone trasmittanza
+1085
+Serie DECEUNINCK - THERMOFIBRA 0.57 m² × 0,88 W/m²K = 0.50 W/K 31.8%
+Riempimento V33.1-22-4 ECO 0.74 m² × 1 W/m²K = 0.74 W/K 47.1%
+ISO 10077-1:2018 Table G.2 5.48m × 0,06 W/mK = 0.33 W/K 21.1%
+1
+0,88
+W/m²K
+W/mK
+0,06
+1200
+Potenza trasmessa: 1,56 W/K
+Superficie: 1,302 m²
+Trasmittanza termica: 1,20035 W/m²K
+Uw: 1,2 W/m²K
+
+921/2025 Allegato A (pag. 3/3)
+05
+Zone trasmittanza
+1880
+1242 638
+Serie DECEUNINCK - ELEGANT 1.31 m² × 0,88 W/m²K = 1.15 W/K 26.9%
+Riempimento XXV33.1-20-33.1 selettivo 2.49 m² × 1 W/m²K = 2.49 W/K 58.3%
+Riempimento XXV33.1-20-33.1 selettivo 13.73m × 0,046 W/mK = 0.63 W/K 14.8%
+1
+0,88
+W/m²K
+W/mK
+0,046
+2020
+Potenza trasmessa: 4,27 W/K
+Superficie: 3,797 m²
+Trasmittanza termica: 1,12498 W/m²K
+Uw: 1,12 W/m²K
+
+APR_OCR_ORIENTATION:0
+921/2025
+Allegato B (pag. 1/1)
+INSTITUT PRO TESTOVÁNÍ A CERTIFIKAÇI, a. s.
+®
+DIVIZE CSI - CENTRUM STAVEBNÍHO INŽENÝRSTVÍ
+sede di Zlín, K Cihelně 304, 764 32 Zlín - Louky
+rilascia
+Al richiedente:
+Deceuninck nv
+Bruggesteenweg 360, 8830 Hooglede-Gits, Belgium
+CERTIFICATO
+di caratteristica di prodotto
+n. CV - 19 - 633/Z
+Prodotto:
+Finestre in PVC ad un'anta ribalta serie Elegant ThermoFibra Infinity 76 X
+Produttore:
+vedi richiedente
+Descrizione:
+Telaio ed anta
+Telaio: P5101 / rinforzi del telaio: P5202 (NT1)
+anta: P5709 / rinforzo integrato: fibre di vetro continue incorporate nel profilo in PVC
+rinforzo con pareti in PVC rigido, cavi d'acciaio e PVC espanso ;
+Altri profili
+Fermavetro P5313 (GP32)
+Riempimento
+Panello sandwich isolante dello spessore di 43,6 mm
+isolante
+composto da: 1,4 mm PVC - 40,8 mm XPS - 1,4 mm PVC
+Guarnizione
+Interna: 16998 (DEA84); esterna: 16990 (DEV1); centrale: 3297 (MD184);
+esterna vetro: 16992; interna vetro: 15562 (DG11);
+tutte le guarnizioni sono saldate agli angoli
+Ferramenta
+Ferramenta GU su tutto il perimetro, chiusura a 7 punti,
+2 cerniere apribili e ribaltabili, maniglia con blocco di sicurezza
+Risultato:
+Denominazione del parametro esaminato
+Metodo di prova
+Risultato
+Coefficiente di transmittanza termica U,
+UNI EN 12 412-2
+0,88 W/(m?.K)
+alori stabiliti dalla norma.
+con il presente certificato si attesta che le proprietà del prodotto di cui sopra sono conformi a
+L'esito di U, risponde ai requisiti prescritti dalla norma tecnica ceca ČSN 73 0540, parte 2, per quanto
+riguarda il coefficiente di transmittanza termica raccomandato per edifici passivi:
+U, = 0,88 ≤ Upas, 20 = (0,90 - 0,70) W/(m?.K)
+Documentazione: Verbale di prova n. 353/19, AZL 8. 1007.1, ITC, a.s.
+Il presente certificato è valido solo per il prodotto, le cui specifiche sono descritte in dettaglio nel verbale di prova
+Attesta solo le proprietà sopra riportate del prodotto e non costituisce né sostituisce certificazione secondo I
+legge n. 22/1997 Racc. sui requisiti tecnici per i prodotti
+Data di rilascio: 06.01.2020
+Redatto da:
+Ing. Nizar Al-Hajjar
+
+APR_OCR_ORIENTATION:90
+921/2025
+Elegant
+112
+• Anta:
+• Vetratura:
+• Telaio fisso:
+ELEGANT:
+• Aletta battuta (telaio):
+• Aletta battuta (anta):
+• Aletta appoggio vetro:
+• Sormonto anta-telalo:
+Dimensioni base del sistema:
+Scheda tecnica di sistema
+billco orizzontale, antaribalta, portondini, aperture a libro.
+21mm
+9mm
+spessore vetro:
+40mm e 65mm
+(Per I ilmiti dimensionali, in base al profilo utilizzato, consultare il manuale tecnico)
+sezione da 76mm
+89
+24
+23mm su ante - 25mm su telat
+il sistema Elegant permette la realizzazione di: finestre, portefinestre, wasistas, aperture a sporgere,
+112
+- da 12-13mm a 54-55mm su telai
+- da 28-29mm a 70-71mm su ante complanan
+- da 16-17mm a 58-59mm su ante a gradino
+sezione da 80mm (anta gradino) e 92mm (anta complanare)
+www.deceunincku
+deceuninck
+Finestre & Porte
+89
+Allegato C (pag. 1/8)
+
+APR_OCR_ORIENTATION:0
+921/2025
+Allegato C (pag. 2/8)
+ELEGANT:
+deceuninck
+Prestazioni: trasmittanza termica
+Pida Toriate Bat 293 Loug 763 02 20r, Ceska reptalika
+INSTITUTE FOR TESTING AND CERTIFICATION, a.s.
+ITC
+Dision CSI - Centreot Gral engineenng
+irsuce
+CERTIFICATE
+of tho charactoristics.
+No. 22 098 CV
+Applicant:
+Deccuninch spal. 5 E.D., Tuianka 15191150, 627 00 Brng Slotina, Czech Republic
+VAT: 0249445663
+Issued for
+VAT: PL7781913551
+Deceuninch Poland Sp. zoo. Jasin. al. Poenaricka 34, 62-020 Swarzęrt, Poland,
+Product:
+The frame profile of Elegent Infini; 76 eyelem PVC TaLand Tura window
+Manufacturer: Deccuninch av, Bruggesteenweg 360, B430 Hoogledo-Gits, Belgium
+Produrt specitication:
+Frame ancast
+Fame FE132 LP 6C MDy frane re niccomer: P17043 (KA0104) dick 2.0
+molsash P5150i2P1001/ sast renfacemert P17242 iNA2104:592k20i
+Cithar pre-le:
+Marng beod 1S2 10 /P449
+Irculahng pano
+the nal herlacon KM5 - 0 mm PVC:
+Coatle pardaich panel 17,6 methck of composton. 2x (1,1 mm VC - 21,0 ri
+Fasling
+Inner 8958126481, outer 60010E1 central 3307IMOM oucer gping
+na pasket 5532 0015) cu i La come s
+Al Peripte adere Segnia o port desue 2, card ter times, contrer-
+ing by harde
+Produce characteristic:
+Title of tested parametor
+Testing method
+Resulte
+Themmel Pomar Mance- Li
+CEN EN 24122.2024
+10 ster Ki
+above product:
+Thla certificale confirms the result of the teat of the charpcteristic of the testod specimen of the
+The tà rasut compie sim CoN 73 0043-22011 Pre Wormende marna cansm Parce:
+0= 1.0- 0621
+Documents: Test easil of comeds aguro ho. 116800:70-03, AT_ No. 1007.1 F0-0S Deisor
+fair 2022 35 10
+cecliss consentin del rest
+Prapara by: Ing. Nizar AI Hallar
+Velid until-
+tasued in Zin, dated:
+09 05.2025
+10.05.2022
+Director di dice/o (SI
+Elegan
+Finestre & Porte
+www.deceuninckt
+
+APR_OCR_ORIENTATION:180
+www.deceunincklt
+Flnestre & Porte
+Elegante
+Ine. Y asilil Kudera, Pn.D.
+Drector of dir sien CEl
+2ii5
+08.12.2026
+Issued in Zlin, dated: 09.12.2022
+valid until:
+Prepared by: Ing. Nizar Al-Hager
+mordance with tre acciable iccolens poverare thrg
+ad the procict.
+menutasturer b: camy out a covort assesol
+merelice of nasciminn product io the ret
+ne cercale orivale for the tend speemen ef the cour te speufseto office celied in Uis alore
+Documente: Tesi reper of accredien laboratory No. 11560063-01, ATL No. 10071, ITO - CSIDhson,
+o Ile day 2022-12-09
+The D resusang e anth CSh 70 0540-2:201 1 Tre recorner dec henel wanemillance
+this corricate confirms the result of the test of the charactoristic of the tested specimen of the
+above product:
+CSN EN 12412 2.2004
+Thenral Trarsricanco Ll
+Resulle
+Testing mettod
+Title of testeri parameter
+Product chara steristic:
+Al Penpheral Hardware Segena 8 pont wosore, 2 ull sue lum hriges, condor
+ing by handle
+Надета
+her 16988 (DEA54), valer. 18900 (DEV1) canra3297 (AD 18-1:, outerglezing
+gusker: 18697 (DEV184) all smaina prodes an elded inte correre, inner ula-
+ra gasket: 15582 0011, cul in the corrers
+Seal ng
+Coahlo cardaict inculalion ponel 41.0 mm Ick (10:0x1230 mm size of car-
+1,4 num PVC)
+arsilion 2x (* 4 ma PVC - 21,2 mm thomel ingu alian KP$
+lescla. ne pare
+2 az ng bend P15822 (GSF44;
+Other procles
+Frame. PE103 (LP1:60 MD: / frame rei orcement 75203 (NT1-N: Ibernel relr-
+comment sas B5150 2P eas meriforcement: meiiforcemend: NAC NAQ0120
+Fone ard sast
+Product specification:
+Manufacturer: Deceuninek nv. Gruggesteenweg 300, 8830 Hooglede-Gits, Belgium
+The frame profiles of Elegant Infinity 76 X system PVC Tilt and Turn window
+with insulating infill sandwich panel
+Product:
+Deceuninck Germany GrißH, Bayerwaldetreße 18, D-84327 Bogen, Germany,
+ИДТ: DE811163563
+wewed for.
+Deseuminch epol e rio. Turanke 15191159, 827 00 Bmo-Sletine, Czec/ Republie,
+TAT: 9E49410529
+Applicant:
+No. 22 269 CV
+of the characteristice
+CERTIFICATE
+Irida Tomase Bali 299, Leuky, 7B2 C2 Zin, Geaka repubita
+Dision CSi - Cente of Ovil Ergineenng
+SI
+ITC
+INSTITUTE FOR TESTING AND CERTIFICATION. a.B.
+Prestazioni: trasmittanza termica
+deceuninck
+ELEGANT:
+Allegato C (pag. 3/8)
+921/2025
+
+APR_OCR_ORIENTATION:180
+Finestre & Porte
+I risultati ottenuti con anta 5150 (profondita 80mm) si possono estendere anche affianta 5153 (profondità 92mm) in quarto le due otte hom
+essa larghezza df seziome, stesse gamlaloni, stepd rinforz
+LEGNOLEGNO
+CONSORZIO
+Соперно 24/06/2020
+rimane, heltali nella premere amast voro? il Destre Traves
+RESISTENZA AL VENTO SECONDO EN 12211 E UNI EN 12210: C4
+PERMEABILITA ALL'ARIA SECONDO EN 1026 E UNI EN 12207: 4
+TENUTA ALL'ACQUA SECONDO EN 1027 E UNI EN 12208; E750
+CLASSIFICAZIONE CONSEGUITA:
+FINESTRA A 1 ANTA ELEGANT INFINITY 76 X (ANTA DA 8OMM ART. 5150)
+DENOMINAZIONE COMVERCIALE DEL MODELLO:
+A NORMA
+ATTESTAZIONE DI CONFORMITA
+Primaha serie 532 m
+Siporto totale 90 m
+Dimensione compione:
+Resistenza al vento (EN 12211 - UNI EN 12210)
+(EN 1027 - UNI EN 12208)
+Permeabilita all'aria (EN 1026 - UNI EN 12207)
+Tenuta all'acqua
+PROVE ESEGUITE:
+DECEUNINCK ITALIA SRL UNIPERSONALE
+Rilasciato alla ditta:
+SINTESI DI RESOCONTO DI PROVA 0003/20
+Finestra a 1 anta con anta 5150
+Prestazioni: Acqua, Aria, Vento
+deceuninck
+ELEGANT:
+Allegato C (pag. 4/8)
+921/2025
+
+APR_OCR_ORIENTATION:180
+Finestre & Porte
+i risultati ottenuti con anta 5150 (profondita 80mm) si possono estendere anche affianta 5153 (profondità 92mm) in quarto le due otte han
+sea larghezza di sealome, stesse gambalon, sinodi rinfora
+LEGNOLEGNO
+CONSORZIO
+Согороо 24/06/2020
+rimane, heltali nella premere amast voro? il Destre Traves
+fatti nahnefame, con vece intanas apem
+RESISTENZA AL VENTO SECONDO EN 12211 E UNI EN 12210: C4
+PERMEABILITA ALL'ARIA SECONDO EN 1026 E UNI EN 12207: 4
+TENUTA ALL'ACQUA SECONDO EN 1027 E UNI EN 12208: 9A
+CLASSIFICAZIONE CONSEGUITA:
+FINESTRA A 2 ANTE ELEGANT INFINITY 76 X (ANTA DA SOMM ART. 5150)
+DENOMIMAZIONE COMVERCIALE DEL MODELLO:
+A NORMA
+ATTESTAZIONE DI CONFORMITA
+Primaha seran 5,75 m
+Siporto totale 9 m
+Dimensione compione:
+Resistenza al vento (EN 12211 - UNI EN 12210)
+(EN 1027 - UNI EN 12208)
+Permeabilita all'aria (EN 1026 - UNI EN 12207)
+Tenuta all'acqua
+PROVE ESEGUITE:
+DECEUNINCK ITALIA SRL UNIPERSONALE
+Rilasciato alla ditta:
+SINTESI DI RESOCONTO DI PROVA 0004/20
+Finestra a 2 ante con anta 5150
+Prestazioni: Acqua, Aria, Vento
+deceuninck
+ELEGANT:
+Allegato C (pag. 5/8)
+921/2025
+
+APR_OCR_ORIENTATION:0
+921/2025
+Allegato C (pag. 6/8)
+ELEGANT:
+deceuninck
+Prestazioni: Acqua, Aria, Vento
+Finestra a 2 ante con anta 5153
+SINTESI DI RESOCONTO DI PROVA 0005/20
+Riasclato alla ditta:
+DECEUNINCK ITALIA SRL UNIPERSONALE
+PROVE ESEGUITE
+Permeabilita all'aria (EN 1026 - UNI EN 12207)
+Resistenza al vento (EN 12211 - UNI EN 12210)
+Tenuta all'acqua
+(EN 1027 - UNI EN 12208)
+Dimensione campione!
+Peinho sertan 5,75 m
+ATTESTAZIONE DI CONFORMITA
+A NORMA
+Suportos oise 91r
+DENOMINAZIONE COMVERCIALE DEL MODELLO:
+FINESTRA A 2 ANTE ELEGANT ABSTRACT 7$ X (ANTA DA 92MM ART. 5153)
+CLASSIFICAZIONE CONSEGUITA:
+PERMEABILITA ALL'ARIA SECONDO EN 1026 E UNI EN 12207: 4
+RESISTENZA AL VENTO SECONDO EN 12211 E UNI EN 12210: C4
+TENUTA ALL'ACQUA SECONDO EN 1027 E UNI EN 12208: 9A
+востний мої пасло до : дово
+de seres ante de gesto Latostra
+Coneogio 24:06/2020
+LEGNOLEGNO
+CONSORZIO
+Elegant
+Finestre & Porte
+
+APR_OCR_ORIENTATION:90
+921/2025
+Elegant
+ELEGANT:
+allontanatal;
+Bulking a sustainable Nome
+alimenta viene allontanata.=
+Deceuninck
+Pontedere, 24/09/2020
+deceuninck
+- CLASSE Deininflammabile:
+livello, si suddivide in sei classi specifiche:
+inquinanti stabilizzati con Calcio-Zince.
+Prestazioni: Reazione al fuoco
+-CLASSE 5: materiali infiammabili:
+classificazione, requisiti e metodi di prova')
+Italia
+-CLASSE 4: materiali ad alta combustione;
+s.r.l.
+T+39 0SA7 F9900 - F +3N0587 54432
+Deceuninck itala saL - er unipersooale
+UNI non sono obbligatorie a meno che no siano recepite da qualche atto legislativo).
+Va Pata Eugenio Basao, 1 56/025 Plstadioca (PI) ITALY
+- CLASSE 3: materiali a lenta combustione (che prosegue dopo aver tolto la fiammal:
+indicato il grado di partecipazione di un materiale combustibile al fuoco al quale e sottoposto tale
+al prodotto, Nella certificazione di reazione al fuoco definita dal DIM, 30 novembre 1983, viene
+prima della autoestinzione. Tutti questi parametri permettono di assegnare una classe determinata
+tempo di innesco della fiamma, il tempo di combustione, il verificarsi o meno del gocciolamento
+state recepite nella legislazione dello Stato con Decreto Ministeriale del 26 giugno 1984 de norme
+"Profili di Polivinilcloruro non plastificato (PVC-U) per la fabbricazione di porte e finestre:
+spagnolo AENOR, soddistano I requisiti richiesti dalla vigente normativa europea (UNI EN 126D8 -
+Standard/Premium. Elegant, Elegant Premier ed Elegant Thermofibra certificati dall'ente notificato
+AUTOCERTIFICAZIONE REAZIONE AL FUOCO
+La normativa attualmente in vigore è quella Europea recepita dallo Stato Italiano con la UNI
+- CLASSE 2: autoestinguente (la combustione cessa 20 secondi dopo che la fiamma cha la
+- CLASSE 1: autoestinguente (la combustione cesse quando la fiamma che la alimenta viene
+I livelli di autoestinguenza, vengono classificati sulla base di alcuni precisi parametri come il
+La certificazione al fuoco in Italia è eseguita in conformita ad alcune norme UNI che sono
+I suddetti profili, sono estrusi esclusivamente con componenti eco-compatibili e non
+attesta che i profili delle serie Zendow, Zendow#nen
+deceuninck
+Finestre & Porte
+Allegato C (pag. 7/8)
+
+APR_OCR_ORIENTATION:90
+921/2025
+Elegant
+ELEGANT:
+- C
+- B
+- A2
+deceuninck
+Prestazioni: Reazione al fuoco
+Classe Italiana
+Classe 3
+ClaSse 2
+Classe 1
+ed Elegant ThermoFibra sono classificati alla resistenza al fuoco in classer
+T+39 0587 FS420 - F +380587 54432
+La correlazione, stabilita con DM 15 marzo 2005, stabilisce che:
+Deceuninck itala saL - er unipersooale
+EN 13501-1:2007 e le classificazione peri prodotti da costruzione è la seguente:
+secondo la norma europea EN 13501-1, equivalente alla classe 1 italiana.
+52,d1)
+Va Pat Eugenio Basuar0, 1 568025 Plotaca (PI) ITALY
+Classe europea
+00). (C-s1, di), (C-s2,d1)
+B-52,00
+1 profili in PVC della serie Zendow, Zendownneo Standard/Premium, Elegant, Elegant Premier
+Impiego a Parete
+1D-51, d0L. (D-52, 001. (D-51, d1), kD-52,d1
+(C-33,00), (C-33,01), (C-31, d2), (C-32, d2), (C-33, d2).
+(1), (8-51,d2), (8-s2,d2), (B-s3, d2), (C-51, d0), IC-52,
+(A2-s1, d2), (A2-52, d2.A2-s3, d2), (B-s3,d0), (B-s3.
+92,d1) (A2-53,01), (B-s1,40), (B-s2, d0), (B-s1,d1), (B-
+(A2-51, dD) (A2-52, d0) LA2-53, d0), (A2-s1, 011(A2.
+Mirko Anesi
+Ag 202
+Tuo sin
+deceuninck
+www.dezknnoc.ht
+Finestre & Porte
+Allegato C (pag. 8/8)
+
+APR_OCR_ORIENTATION:0
+921/2025
+Allegato D (pag. 1/1)
+Eurovetro®
+TRASPARENTI E SICURI
+*FS 40%
+Scheda Tecnica
+*TL 65%
+Prodotto:
+33.1Selettivo/20BCN (Argon 90%)/33.1
+*RE 36%
+Norma armonizzata:
+EN UNI 1279-5:2018
+*RL 25%
+Vetrata isolante
+Per uso in edilizia e nelle costruzioni
+Sicurezza in caso di incendio
+Resistenza al fuoco
+EN 13501-2
+NPD
+Reazione al fuoco
+EN 13501-1
+NPD
+Sicurezza nell'uso
+Resistenza ai proiettili
+EN 1063
+NPD
+Resistenza agli attacchi manuali
+EN 356
+NPD
+Resistenza agli urti (Prova del pendolo)
+EN 12600
+2B2/2B2
+Protezione contro il rumore
+Isolamento al rumore aereo diretto
+EN 12758
+Rw (C;Ctr) Stimato - dB
+37 (-1,-5)
+Propietà termiche
+Valore Ug
+EN 673
+W/(m2.K)
+1.1
+Proprietà di irraggiamento
+Trasmissione luminosa - Tv
+EN 410
+(%)
+65
+Riflessione luminosa - Pv
+EN 410
+(%)
+25
+Riflessione interna - Pvi
+EN 410
+(%)
+24
+Indice di resa dei colori - RD65 - Ra
+EN 410
+(%)
+96
+Proprietà energetiche
+Fattore solare - g
+EN 410
+(%)
+40
+Riflessione energetica - Pe
+EN 410
+(%)|
+36
+Trasmissione energetica diretta - Te
+EN 410
+(%)
+37
+Assorbimento energetico singolo
+EN 410
+25 / 2 / NPD
+Coefficiente di shading - SC
+EN 410.
+(%)
+0.46
+Assorbimento energetico totale
+EN 410
+(%)
+27
+Trasmissione dei raggi ultravioletti - UV
+EN 410
+(%)
+0
+Varie
+Spessore
+mm
+32.8
+. I dati sono calcolati sulla base delle misure spettrali conformi alle norme EN 410 (1998). L
+dell'emissività è conforme alle norme EN 673 (allegato A) e EN 12898.
+2. Il coefficiente Ug (in precedenza detto valore k) è calcolato in base alla norma EN 673. La misura
+olleranza dei dati pubblicati in relazione alle proprietà fotometriche è di +/- 3 pun
+3. Il presente documento non valuta il rischio di rotture causato da shock termico. Per i vetri temprati
+non si risponde delle eventuali rotture spontanee
+Eurovetro srl
+5. Il presente documento è solo puramente informativo.
+documento e sono soggette a cambiamenti - variazioni senza preavviso.
+4. Le specifiche tecniche ed altri dati sono basati al momento dell'elaborazione del presente
+Tel:0961 964909 - Fax:
+Via Carroccello, 16 - 88050 Sellia Marina (CZ)
+6. L'indice acustico fornito, deve essere ritenuto puramente indicativo, se non indicato diversamente
+e-mail.info@eurovetro.it
+della stanza, delle sorgenti di rumore etc. La tolleranza sul dato è di +/- 2 dB.
+7. Le effettive prestazioni in opera possono variare in funzione delle reali dimensioni della vetrata e
+Domenico Aloisi 21/01/2026 09:26

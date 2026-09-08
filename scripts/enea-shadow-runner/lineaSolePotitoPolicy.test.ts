@@ -22,6 +22,11 @@ PraticaRapida
 Pag. 2/5`)).toBe(true);
   });
 
+  // Regressione Berti/Mocenighi (2026-09-07): questo fixture usava un layout
+  // catastale/edificio (valore prima dell'etichetta) mai osservato in un
+  // modulo reale. Il layout reale, verificato su piu' pratiche, mette
+  // sempre l'etichetta prima del valore ed "ANNO DI COSTRUZIONE" e' seguito
+  // da "(anche presunto)" prima del valore.
   it("estrae soltanto i valori testuali inequivoci del modulo cartaceo", () => {
     const parsed = parseLineaSolePotitoPaperForm(`Compilazione a cura del richiedente la detrazione
 PERSONA FISICA
@@ -44,9 +49,16 @@ Indirizzo ____
 MILANO MI 20146
 Comune ____ Prov. ____ Cap ____
 DATI CATASTALI
-511 257 157
-Foglio ____ Mappale o particella ____ Subalterno ____
-ANNO DI COSTRUZIONE 1973 36
+Foglio
+511
+Mappale o particella
+257
+Subalterno
+157
+ANNO DI COSTRUZIONE (anche presunto)
+1973
+superficie utile in mq
+36
 NUMERO DI UNITA’ IMMOBILIARI PRESENTI NELL’INTERO EDIFICIO
 80
 INSTALLAZIONE DI SCHERMATURE SOLARI
@@ -58,6 +70,56 @@ Pag. 5/5`, { name: "Liliana", surname: "Gloria" });
       edificio: { anno_costruzione: "1973", superficie_mq: "36", numero_appartamenti: "80" },
     });
   });
+
+  it("regressione Berti/Mocenighi: estrae singolarmente ogni campo catastale/edificio anche se un campo vicino e' vuoto o l'anno di costruzione e' incompleto", () => {
+    const bertiStyle = parseLineaSolePotitoPaperForm(`Compilazione a cura del richiedente la detrazione
+PERSONA FISICA
+ELENA MARCELLA BERTI BRTLMR63C57F205P
+Nome ____ Cognome ____ Codice Fiscale ____
+MILANO MI 17 03 1963
+Luogo di nascita ____ Prov. ____ Data di nascita
+DATI GENERALI EDIFICIO/ABITAZIONE OGGETTO D'INTERVENTO
+DATI CATASTALI
+Foglio
+553
+Mappale o particella
+220
+Subalterno
+16
+ANNO DI COSTRUZIONE (anche presunto)
+19
+superficie utile in mq
+60
+INSTALLAZIONE DI SCHERMATURE SOLARI
+Pag. 5/5`, { name: "Elena Marcella", surname: "Berti" });
+    expect(bertiStyle).toMatchObject({
+      catastali: { foglio: "553", mappale: "220", subalterno: "16" },
+      edificio: { anno_costruzione: "", superficie_mq: "60" },
+    });
+  });
+
+  it("non estrae un valore catastale/edificio quando l'OCR e' troppo degradato per essere plausibile", () => {
+    const codaStyle = parseLineaSolePotitoPaperForm(`Compilazione a cura del richiedente la detrazione
+PERSONA FISICA
+RICCARDO CODA CDORCR50A30A859R
+Nome ____ Cognome ____ Codice Fiscale ____
+MILANO MI 30 01 1950
+Luogo di nascita ____ Prov. ____ Data di nascita
+DATI GENERALI EDIFICIO/ABITAZIONE OGGETTO D'INTERVENTO
+DATI CATASTALI
+Foglio ý6 4
+Mappale o particella 2 gP
+Subaltemo 7 o 7
+ANNO DI COSTRUZIONE (anche presunto) 19†5
+superficie utile in ma i3a
+INSTALLAZIONE DI SCHERMATURE SOLARI
+Pag. 5/5`, { name: "Riccardo", surname: "Coda" });
+    expect(codaStyle).toMatchObject({
+      catastali: { foglio: "", mappale: "", subalterno: "" },
+      edificio: { anno_costruzione: "", superficie_mq: "" },
+    });
+  });
+
   it("legge orientamento e finestra quando la pagina prodotto e' compilata esplicitamente", () => {
     const parsed = parseLineaSolePotitoPaperForm(`Compilazione a cura del richiedente la detrazione
 DATI GENERALI EDIFICIO/ABITAZIONE OGGETTO D’INTERVENTO

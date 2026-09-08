@@ -1,0 +1,17 @@
+{
+  "version": "apr-sequencer-screening-recovery-filling-lifecycle-r46-bundle-install-receipt-v1",
+  "installedAt": "2026-09-04T09:21:40.339Z",
+  "status": "bundle_promoted_local_gate_verified",
+  "preinstallGateSha256": "303242d70efaa0c284a0c3ef177080b46699d7816764ff10f93686b2e6ece9d1",
+  "versionId": "ad840540-recovery-filling-lifecycle-r46-20260904",
+  "previousTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/3ecfd0a7-canonical-absence-resume-r45-20260904",
+  "currentTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/ad840540-recovery-filling-lifecycle-r46-20260904",
+  "installedBundle": {
+    "apr-supervisor.mjs": "035c069c7c053be9fc7e0ef79ab1de98f5f9d7d3d3c59ef2dce418f8da0562c8",
+    "apr-enea-worker.mjs": "ad8405401fb306e0343988d5f42ecdbd6e6877d9b51c2355cca2f17771de6a0d",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "apr-pdf-ocr": "4c41c9a6832b11b9d19eace538100270a533dddc05e475e5842711968393327f"
+  },
+  "keepaliveRestartRequested": false,
+  "chromeRestartRequested": false
+}

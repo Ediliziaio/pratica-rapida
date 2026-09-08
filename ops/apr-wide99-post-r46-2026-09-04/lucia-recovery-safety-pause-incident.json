@@ -1,0 +1,56 @@
+{
+  "version": "apr-wide99-recovery-safety-pause-incident-v1",
+  "observedAt": "2026-09-04T17:06:00Z",
+  "classification": "INCONSISTENT",
+  "scope": {
+    "run": "apr-wide99-post-r46",
+    "manifestSha256": "64359dcc161726abd05d272e237e759b6b6b6684b4ad414ef3a807eef535f0b3",
+    "customerKey": "lucia-droghetti",
+    "displayName": "LUCIA DROGHETTI",
+    "cohort": 3070,
+    "draftId": "464067"
+  },
+  "exactCause": "Le fonti terminali non concordano: il sequencer registra technical_block/recovery_filling_checkpoint_invalid; il checkpoint esecutivo registra operator_intervention dopo una seconda GET not_saved; /api/status espone TECHNICAL_BLOCK, mentre /api/case-truth espone BLOCKED con execution_case_operator_required. La causa interna precisa non viene attribuita finché l'automa recovery non è auditato su questo percorso.",
+  "evidence": {
+    "sequencer": {
+      "state": "technical_block",
+      "reason": "lucia-droghetti:uncertain_save_lifecycle_invalid:recovery_filling_checkpoint_invalid",
+      "completedPages": 5,
+      "expectedPages": 8
+    },
+    "executionCheckpoint": {
+      "status": "completed",
+      "revision": 34,
+      "itemState": "operator_intervention",
+      "uncertainPageId": "screening:1",
+      "uncertainStatus": "operator_required",
+      "primarySaveAttemptCount": 1,
+      "recoverySaveAttemptCount": 1,
+      "serverProofOutcome": "not_saved",
+      "reason": "La GET canonica dimostra che anche l'unico recupero non è persistito."
+    },
+    "dashboardApi": {
+      "apiStatus": "TECHNICAL_BLOCK",
+      "caseTruthStatus": "BLOCKED",
+      "caseTruthBlockerCodes": ["execution_case_operator_required"]
+    },
+    "processes": {
+      "cohortWorker": "running_after_terminal_checkpoint",
+      "cohortSupervisor": "running",
+      "sequencerAfterSafetyPause": "not running"
+    }
+  },
+  "patternRisk": "Lo stesso simbolo recovery_filling_checkpoint_invalid era apparso su Angelina, ma ora si manifesta su una pratica Schermature localmente READY; pertanto non è sicuro attribuirlo al solo grado di complessità di Angelina.",
+  "safetyAction": {
+    "wideSequencerStopped": true,
+    "newCasesPrevented": true,
+    "keepaliveStopped": false,
+    "chromeStopped": false,
+    "additionalEneaMutationPerformed": false,
+    "codeModified": false
+  },
+  "missingDocumentType": null,
+  "operatorQuestion": "Autorizzi l'audit e la correzione generale del percorso recovery dopo Salva non persistito, prima di riprendere il lotto dalla pratica successiva senza ritentare Lucia?",
+  "onboardingGap": null,
+  "nextAction": "Mantenere il lotto fermo e la sessione viva; non riprendere né ritentare Lucia finché la divergenza di stato e il contratto recovery non sono risolti con prova positiva, negativa e gate monotono."
+}

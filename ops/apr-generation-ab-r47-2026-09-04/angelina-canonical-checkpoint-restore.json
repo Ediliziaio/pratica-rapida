@@ -1,0 +1,80 @@
+{
+  "version": "apr-canonical-draft-checkpoint-restore-v1",
+  "createdAt": "2026-09-04T15:30:00+02:00",
+  "stateDirectory": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3063-global-controller-angelina-stricelli",
+  "authorization": {
+    "source": "user-2026-09-04-explicit-roundtrip-repair-and-existing-generation-restore",
+    "scope": "same_generation_same_canonical_draft",
+    "customerKey": "angelina-stricelli",
+    "generationId": "generation-8f2843ab5ddf4fee25c1ec65",
+    "draftId": "462287"
+  },
+  "preRestore": {
+    "checkpointRevision": 1,
+    "checkpointSha256": "590a4eb4c2e7faeaecd3b907932c6885f2c53c15b67688bf5df12bafc80a29a6",
+    "state": "queued",
+    "draftId": null,
+    "canonicalDraftId": null
+  },
+  "evidence": {
+    "cdpDriverSha256": "280f6152d04b5a0adb53a566f881150ca9c57ce3674c1f78ed041a15898ce2b2",
+    "workerCheckpointSha256": "3bb5887e230d5d69f35509e596dbc7037c75bb3a727623bfce89519a7fa6b3ba",
+    "workerServiceSha256": "83a5904de78fe4d9137a139d2c82d81e4d9a717f1aeb0d910470a6dbb16ceee2",
+    "mapping": {
+      "customerKey": "angelina-stricelli",
+      "draftId": "462287",
+      "packageFingerprint": "81eb525b4372e6a0ae7b8454b608091484a61601adc0b2807cea5d8fc151bdce",
+      "mappedAt": "2026-09-04T10:26:42.608Z"
+    },
+    "workerJournalRevision": 56,
+    "serviceRepairRevision": 77,
+    "lastCdpRevision": 36
+  },
+  "safety": {
+    "browserActionAllowed": false,
+    "newDraftAllowed": false,
+    "saveAllowed": false,
+    "nextActionMustBe": "verify_page_saved_state_readonly"
+  },
+  "restore": {
+    "customerKey": "angelina-stricelli",
+    "generationId": "generation-8f2843ab5ddf4fee25c1ec65",
+    "draftId": "462287",
+    "portalUrl": "https://bonusfiscali.enea.it/pratica/ecobonus/2026/beneficiario/462287",
+    "pageId": "page:Anagrafica Beneficiario",
+    "createdAt": "2026-09-04T10:26:42.608Z",
+    "preparedEvidenceId": "cdp-server-27-0dfffba3e0cc0f783867",
+    "recoveryAuthorizedEvidenceId": "cdp-server-25-0dfffba3e0cc0f783867",
+    "sourceFingerprintEvidence": "55a8ae12ab4de7ad7736ddcacf54dbe5f44b19100e8540dd816c98fe5c54542c",
+    "driverMappingEvidenceId": "cdp-driver-sha256-280f6152d04b5a0adb53a566f881150ca9c57ce3674c1f78ed041a15898ce2b2-mapping-462287",
+    "workerJournalEvidenceId": "worker-checkpoint-sha256-3bb5887e230d5d69f35509e596dbc7037c75bb3a727623bfce89519a7fa6b3ba-audit-56",
+    "serviceRepairEvidenceId": "worker-service-sha256-83a5904de78fe4d9137a139d2c82d81e4d9a717f1aeb0d910470a6dbb16ceee2-audit-77",
+    "probes": [
+      {
+        "method": "server_redirect",
+        "outcome": "inconclusive",
+        "evidenceId": "cdp-server-12-0dfffba3e0cc0f783867",
+        "observedAt": "2026-09-04T11:52:45.401Z",
+        "reason": "Il Salva non ha prodotto un redirect server conclusivo sulla stessa bozza.",
+        "url": "https://bonusfiscali.enea.it/pratica/ecobonus/2026/beneficiario/462287"
+      },
+      {
+        "method": "persisted_fields_get",
+        "outcome": "not_saved",
+        "evidenceId": "cdp-server-14-0dfffba3e0cc0f783867",
+        "observedAt": "2026-09-04T11:53:25.930Z",
+        "reason": "La GET canonica ha rilevato vuoti o assenti tutti i campi significativi della pagina Beneficiario.",
+        "url": "https://bonusfiscali.enea.it/pratica/ecobonus/2026/beneficiario/462287"
+      },
+      {
+        "method": "server_metadata_get",
+        "outcome": "inconclusive",
+        "evidenceId": "cdp-server-16-0dfffba3e0cc0f783867",
+        "observedAt": "2026-09-04T11:53:26.067Z",
+        "reason": "I metadati server non hanno fornito una prova conclusiva di persistenza.",
+        "url": "https://bonusfiscali.enea.it/pratica/ecobonus/2026/beneficiario/462287"
+      }
+    ],
+    "commandId": "checkpoint-recovery:angelina-stricelli:generation-8f2843ab5ddf4fee25c1ec65:draft-462287:v1"
+  }
+}

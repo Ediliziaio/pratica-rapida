@@ -1,0 +1,23 @@
+{
+  "version": "apr-targeted-excel-ready-bundle-install-receipt-r70-v1",
+  "installedAt": "2026-09-06T18:17:56.707Z",
+  "status": "bundle_promoted_formal_governance_verified",
+  "governanceAttestationSha256": "889c497cda46b0a688984b0878ca21e64fbf2280187e3f2deebe4a3faf2aab1d",
+  "versionId": "3a865dd6-gestionale-formal-governance-r70-20260906",
+  "previousTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/90435679-comune-rinaldi-alt-verified-r69-20260906",
+  "currentTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/3a865dd6-gestionale-formal-governance-r70-20260906",
+  "installedBundle": {
+    "apr-supervisor.mjs": "a981158615a5dba89e19731951ede4eaaf77763c3736c58426ecdc43b590e547",
+    "apr-enea-worker.mjs": "3a865dd6153c967c1fe6a02d2236bbafa6305a36c627819b46d398a6c0e75ded",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "apr-rule-governance-attestation.json": "889c497cda46b0a688984b0878ca21e64fbf2280187e3f2deebe4a3faf2aab1d"
+  },
+  "correctionsIncluded": [
+    "fase CRM gestionale ammessa dal seed APR con identita pratica e stage verificati fail-closed",
+    "catalogo prove formali riallineato ai nomi correnti delle fixture",
+    "matrice della spesa professionale riallineata alla decisione superseding del 2026-09-06"
+  ],
+  "keepaliveRestartRequested": false,
+  "chromeRestartRequested": false,
+  "operationalReplayPerformed": false
+}

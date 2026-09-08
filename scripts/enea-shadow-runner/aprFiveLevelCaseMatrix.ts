@@ -4,7 +4,7 @@ import {
   type AprBusinessDecisionsArtifact,
   type AprCanonicalFactsArtifact,
 } from "./aprLevelSeparationContracts";
-import { verifyL1AcquisitionObservation, type AprL1AcquisitionObservation } from "./aprAcquisitionLevelObservation";
+import { verifyAcquisitionArtifact, type AprAcquisitionArtifact } from "./aprAcquisitionLevelObservation";
 import { APR_ENEA_PURE_MAPPER_VERSION, type AprEneaMappingArtifact } from "./aprEneaPureMapper";
 import {
   canonicalSha256,
@@ -39,7 +39,7 @@ export interface AprFiveLevelCaseMatrixPayload {
 export type AprFiveLevelCaseMatrixArtifact = AprImmutableArtifactEnvelope<AprFiveLevelCaseMatrixPayload>;
 
 export interface AprFiveLevelCaseMatrixInput {
-  acquisitionArtifact: AprL1AcquisitionObservation;
+  acquisitionArtifact: AprAcquisitionArtifact;
   factsArtifacts: readonly AprCanonicalFactsArtifact[];
   decisionArtifacts: readonly AprBusinessDecisionsArtifact[];
   mappingArtifacts: readonly AprEneaMappingArtifact[];
@@ -82,11 +82,11 @@ function verifyMappingArtifact(artifact: AprEneaMappingArtifact) {
  * artefatti gia prodotti. L5 e intenzionalmente non eseguito in questa slice.
  */
 export function buildFiveLevelCaseMatrix(input: AprFiveLevelCaseMatrixInput): AprFiveLevelCaseMatrixArtifact {
-  if (!verifyL1AcquisitionObservation(input.acquisitionArtifact)) throw new Error("apr_matrix_l1_artifact_invalid");
-  const { customerKey, practiceId } = input.acquisitionArtifact;
+  if (!verifyAcquisitionArtifact(input.acquisitionArtifact)) throw new Error("apr_matrix_l1_artifact_invalid");
+  const { customerKey, practiceId } = input.acquisitionArtifact.payload;
   const matrixBlockers: string[] = [];
 
-  const l1 = level("L1", input.acquisitionArtifact.status, [input.acquisitionArtifact.artifactId], input.acquisitionArtifact.blockerCodes);
+  const l1 = level("L1", input.acquisitionArtifact.payload.status, [input.acquisitionArtifact.artifactId], input.acquisitionArtifact.payload.blockerCodes);
 
   const validFacts = input.factsArtifacts.filter((artifact) => verifyCanonicalFactsArtifact(artifact)
     && sameCase(customerKey, practiceId, artifact.payload.customerKey, artifact.payload.practiceId));
@@ -94,6 +94,7 @@ export function buildFiveLevelCaseMatrix(input: AprFiveLevelCaseMatrixInput): Ap
   if (l2Invalid) matrixBlockers.push("apr_matrix_inconsistent_l2_invalid_or_foreign_artifact");
   const l2Missing = input.factsArtifacts.length === 0;
   if (l1.status === "completed" && l2Missing) matrixBlockers.push("apr_matrix_inconsistent_l1_completed_l2_missing");
+  if (l1.status === "blocked" && !l2Missing) matrixBlockers.push("apr_matrix_inconsistent_l1_blocked_l2_present");
   const l2 = l1.status === "blocked" && l2Missing
     ? level("L2", "not_applicable", [], [])
     : level("L2", l2Invalid || l2Missing ? "blocked" : "completed", input.factsArtifacts.map((artifact) => artifact.artifactId), l2Invalid ? ["apr_matrix_l2_artifact_invalid"] : l2Missing ? ["apr_matrix_l2_artifact_missing"] : []);
@@ -132,7 +133,7 @@ export function buildFiveLevelCaseMatrix(input: AprFiveLevelCaseMatrixInput): Ap
   if (l3.status === "completed" && l4HasBlocked) matrixBlockers.push("apr_matrix_inconsistent_l3_completed_l4_blocked");
   if (l3.status === "blocked" && l4HasMapped) matrixBlockers.push("apr_matrix_inconsistent_l3_blocked_l4_mapped");
   if (l4HasMapped && l4HasBlocked) matrixBlockers.push("apr_matrix_inconsistent_l4_mixed_status");
-  const l4 = l3.status === "blocked" && l4Missing
+  const l4 = l3.status !== "completed" && l4Missing
     ? level("L4", "not_applicable", [], [])
     : level("L4", l4Invalid || l4Missing || l4HasBlocked ? "blocked" : "completed", input.mappingArtifacts.map((artifact) => artifact.artifactId), [
       ...(l4Invalid ? ["apr_matrix_l4_artifact_invalid"] : []),

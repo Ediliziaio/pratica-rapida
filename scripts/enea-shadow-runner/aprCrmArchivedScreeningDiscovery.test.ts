@@ -60,6 +60,14 @@ describe("discovery CRM read-only delle 10 schermature archiviate", () => {
     expect(result.audit[0].appliedRuleIds).toContain("user-2026-08-18-future-test-exclusions");
   });
 
+  it("esclude per relazione societaria una pratica RM Legno anche se il cliente non e escluso", async () => {
+    const root = mkdtempSync(path.join(tmpdir(), "apr-discovery-supplier-exclusion-"));
+    const rows = [{ ...row(80), cliente_nome: "Massimiliano", cliente_cognome: "Montemorra", companies: { ragione_sociale: "RM LEGNO" } }, ...Array.from({ length: 10 }, (_, index) => row(index + 120))];
+    const result = await new PersistentAprCrmArchivedScreeningDiscovery(root, transport(rows), mkdtempSync(path.join(tmpdir(), "apr-discovery-supplier-history-"))).discover();
+    expect(result.selected.some((candidate) => candidate.customerKey === "massimiliano-montemorra")).toBe(false);
+    expect(result.excluded.futureTestPolicy).toBe(1);
+  });
+
   it("sorteggia dieci schermature includendo casi con bozze precedenti e conserva il seed auditabile", async () => {
     const root = mkdtempSync(path.join(tmpdir(), "apr-discovery-random-"));
     const history = mkdtempSync(path.join(tmpdir(), "apr-discovery-random-history-"));

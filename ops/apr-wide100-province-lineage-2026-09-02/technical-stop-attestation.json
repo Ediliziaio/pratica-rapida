@@ -1,0 +1,85 @@
+{
+  "schemaVersion": "apr-wide-technical-stop-attestation-v1",
+  "observedAt": "2026-09-02T07:08:55Z",
+  "authorizationId": "user-2026-09-02-wide-infissi-screening-single-run-v2",
+  "runLabel": "com.praticarapida.apr-wide100-province-lineage-r24",
+  "runRoot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-province-lineage-r24",
+  "disposition": "STOPPED_SERIOUS_UNEXPECTED_COMMON_TECHNICAL_DEFECT",
+  "runSnapshot": {
+    "total": 100,
+    "processedTerminalResults": 5,
+    "nextCaseStartedBeforeQuiescence": "filippo-bigalli",
+    "saved": 0,
+    "reportClassifiedOperatorRequired": 4,
+    "technicalBlock": 1,
+    "remaining": 95,
+    "previewAttempted": false,
+    "submitAttempted": false,
+    "communicationsAttempted": false
+  },
+  "technicalCase": {
+    "displayName": "LUCIA DROGHETTI",
+    "customerKey": "lucia-droghetti",
+    "practiceId": "652f820b-9d49-4706-a8bc-87931bec5148",
+    "cohort": 2823,
+    "error": "apr_economic_manifest_case_missing:lucia-droghetti",
+    "caseDataTruth": "READY_NO_CASE_BLOCKERS",
+    "caseDataEvidence": {
+      "crmLocalPreflightState": "ready_local_plan",
+      "crmLocalPreflightBlockers": [],
+      "draftExecutionState": "queued",
+      "draftExecutionOperatorGateBlockers": [],
+      "dashboardPublicStatus": "TECHNICAL_BLOCK"
+    }
+  },
+  "rootCause": {
+    "class": "HARDCODED_HISTORICAL_ECONOMIC_CORPUS_DEPENDENCY",
+    "sequencerSourceManifest": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/reports/apr-wide-blocker-snapshot-2026-08-26-e30a7f6.json",
+    "lookup": "exact customerKey",
+    "immediateMismatch": {
+      "requested": "lucia-droghetti",
+      "historicalCorpusEntry": "luci-adroghetti"
+    },
+    "scopeMeasurement": {
+      "selected": 100,
+      "historicalCorpusCases": 126,
+      "selectedPresentInHistoricalCorpus": 52,
+      "selectedAbsentFromHistoricalCorpus": 48
+    },
+    "conclusion": "The operational bridge is not capable of preparing the frozen wide cohort generically. It replays an old closed corpus and fails closed for current keys absent from that corpus. The Lucia spelling mismatch is the first manifestation, not a safe one-case exception."
+  },
+  "quiescence": {
+    "sequencerLoaded": false,
+    "sequencerProcessPresent": false,
+    "cohort2826ServicesLoaded": false,
+    "cohort2826ProcessPresent": false,
+    "keepalive": {
+      "label": "com.praticarapida.apr-enea-immortal-keepalive",
+      "state": "running",
+      "pid": 3784,
+      "runs": 1
+    },
+    "chrome": {
+      "pid": 3785,
+      "cdpPort": 9331,
+      "browser": "Chrome/152.0.7977.65",
+      "protocolVersion": "1.3"
+    }
+  },
+  "evidenceSha256": {
+    "luciaDashboardStatus": "e1fb3197485a5066b9b89a7c36653be3a354036d6284afa167e96f750589ee6c",
+    "luciaDraftExecutionCheckpoint": "203b5134082a1c9e544384c59d97c19a935433bedad75082577254e475a16cb3",
+    "luciaCrmLocalPreflightCheckpoint": "5b4f98a15d92dbf72f7c6a929d6c49623d89dbfdad1c805c73b64e81f46bcf1c",
+    "runReport": "6815d300ca213e36aeec7ee1c54a1dbf481cc833684edf41a63c8f1b0ce38d42",
+    "runCheckpoint": "59744257e5c7025ebdf2ebb4074f2f506dfd94678c99bf572c8145570f28faf8",
+    "sequencerLog": "ad0d01ecd7c9c10d5e98be56c3c9847d3ff985bc525dcec7b354b4626127a098",
+    "hardcodedHistoricalManifest": "5dd703d3dc4712454968ca16f99d9cb524d29476934c7ea1fcace88243b745a2"
+  },
+  "actionsNotTaken": {
+    "codeCorrection": true,
+    "relaunch": true,
+    "ntfyNotification": true,
+    "finalBlockerClassification": true
+  },
+  "requiredNextAuthority": "Explicit approval for a general bridge fix that derives the economic mapping from the current acquired dossier/analysis instead of requiring membership in the August 26 historical corpus, followed by gates and relaunch of the same authorized frozen cohort."
+}

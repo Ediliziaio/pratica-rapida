@@ -1,3 +1,5 @@
+import { AUTO_CURRENT_VALIDATION_REVISION } from "../../src/features/enea-shadow-crm/operationalRegistry";
+
 export const APR_REQUIRED_INFISSI_VALIDATION_REVISIONS = [
   "infissi-transmittance-131-to-13-v1",
   "infissi-old-window-invoice-over-form-v2",
@@ -27,6 +29,46 @@ export function applyRequiredInfissiValidationRevisions(
   for (const revision of APR_REQUIRED_INFISSI_VALIDATION_REVISIONS) {
     applyAndSettle(revision);
   }
+  // Difetto strutturale (2026-09-08): l'elenco sopra e' scritto a mano ed e'
+  // gia' rimasto indietro rispetto a elenchi paralleli in altri file (stessa
+  // stringa duplicata su piu' file, mai tenuta sincronizzata). Un
+  // identificatore derivato dal contenuto del registro chiude il ricalcolo
+  // senza richiedere una nuova riga per ogni correzione futura.
+  applyAndSettle(AUTO_CURRENT_VALIDATION_REVISION);
+}
+
+export function missingRequiredInfissiValidationRevisions(snapshot: {
+  validationRevisionsApplied?: readonly string[];
+}) {
+  const applied = new Set(snapshot.validationRevisionsApplied ?? []);
+  // AUTO_CURRENT_VALIDATION_REVISION e' incluso qui (non solo applicato da chi
+  // scrive) cosi' che questa funzione stessa - usata per decidere se un
+  // checkpoint e' davvero aggiornato - non possa mai dichiararlo pronto sulla
+  // base di un elenco scritto a mano rimasto indietro rispetto al registro
+  // corrente (difetto strutturale 2026-09-08).
+  return [...APR_REQUIRED_INFISSI_VALIDATION_REVISIONS, AUTO_CURRENT_VALIDATION_REVISION].filter((revision) => !applied.has(revision));
+}
+
+/**
+ * A second checkpoint writer can finish a validation from a stale snapshot and
+ * overwrite one marker while the CLI is settling the next revision. Re-read
+ * the durable checkpoint after every pass and re-apply only missing markers.
+ * The execution gate remains unchanged and fail-closed.
+ */
+export function convergeRequiredInfissiValidationRevisions(
+  readSnapshot: () => { validationRevisionsApplied?: readonly string[] },
+  applyAndSettle: (revision: string) => void,
+  maxPasses = 3,
+) {
+  for (let pass = 0; pass < maxPasses; pass += 1) {
+    const missing = missingRequiredInfissiValidationRevisions(readSnapshot());
+    if (missing.length === 0) return readSnapshot();
+    for (const revision of missing) applyAndSettle(revision);
+  }
+  const finalSnapshot = readSnapshot();
+  const missing = missingRequiredInfissiValidationRevisions(finalSnapshot);
+  if (missing.length > 0) throw new Error(`infissi_required_validation_revisions_not_durable:${missing.join(",")}`);
+  return finalSnapshot;
 }
 
 export function infissiExecutionGateReady(snapshot: {
@@ -37,7 +79,8 @@ export function infissiExecutionGateReady(snapshot: {
   const applied = new Set(snapshot.validationRevisionsApplied ?? []);
   return snapshot.status === "completed"
     && Boolean(snapshot.sourceFingerprint)
-    && APR_REQUIRED_INFISSI_VALIDATION_REVISIONS.every((revision) => applied.has(revision));
+    && APR_REQUIRED_INFISSI_VALIDATION_REVISIONS.every((revision) => applied.has(revision))
+    && applied.has(AUTO_CURRENT_VALIDATION_REVISION);
 }
 
 export function dateGateReleaseReadyCustomerKeys(

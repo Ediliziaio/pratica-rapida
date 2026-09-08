@@ -1,0 +1,869 @@
+APR_OCR_ORIENTATION:0
+COGNOME
+NOME
+CITTÀ
+[PIANO
+MUNAFO'
+ROSSELLA
+BOLLATE (MI)
+TELEFONO
+AUTOSCALA SI NO
+INDIRIZZO
+Autoscala Brianza lato
+366-3074389
+cortile
+VIA LA PIRA, 7
+NUMERO - DATA FT
+NOTE
+IMPONIBILE - PROW (Ste) FINANZ POSA
+Acc.to inc. il9/04/26
+146
+31/03/26
+COMPRESO ELETTRICISTA
+23.636,36
+MERCE
+PZ
+FORNITORE
+N.ORDINE
+ARRIVO
+IMPORTO
+VETRATE
+4
+Giezcio
+Ok apu
+3105
+15.48
+PERGOLA
+1
+SUNROOM
+260688 0914
+9.750
+TUBOLARI
+12
+LAMICANO
+13/4
+LEGNO BOCCONE
+2
+SALANDiNI
+13/4
+LAMIERE
+7
+RB
+1314
+
+APR_OCR_ORIENTATION:180
+Firma Cliente
+APERTURA VERTICALE
+APERTURA ORIZZONTALE
+FINITURA
+GRATE DI SICUREZZA n°
+COIBENTAZIONE:
+ALTRA FINITURA
+FINITURA:
+COLORE
+CASSONETTO Tot. pezzi n°
+ZANZARIERE Totale pezzi n°
+Manigya:
+FINITURA
+NOTE
+CON TELAIO 3 LATI
+INT.
+MOTORIDUTTORI n°
+SU TELAIO ESISTENTE
+PANNELLO:/EST.
+TELAIO A SPORGERE n°
+CON CARDINI A MURO
+PORTE/BLINDATE
+SOSTITUZIONE ACCESSORI
+MANIGLIA:
+FISSAGGIO
+TINTA LEGNO
+ORIENTABILI
+COLORE RAL
+FISSE APERTE
+FINITURA:
+ALLUMINIO
+LAMELLE
+PORTA INTERNA
+PVC
+Totale pezzi n°
+PORTE
+TAPPARELLE Totale pezzi n°
+PERSIANE IN ALLUMINIO
+RIMOZIONE VECCHIO TELAIO
+POCO
+INTERNO:
+FALSO TELAIO PREDISPOSTO
+STRISCE BLU
+SOVRAPPOSIZIONE
+ESTERNO:
+Х ок
+N°
+POSA SU:
+POSSIBILITA' PARCHEGGIO
+1 PERGOLE
+ALTRO:
+INQUILINO
+TENDE
+STANDARD:
+PACCHETTO
+CANTIERE
+4 SCORREVOLI
+MANIGLIA
+CASA ABITATA
+DEHOR
+SERRAMENTI
+FACCIAMO NOI IMPIANTO ELETTRICO
+1 BIO + 4 VETRATE + TUBOLARI
+n° 3 UOMINI
+NECESSITA UNA SQUADRA CON
+AUTOSCLALA BRIANZA LATO CORTILE
+DETRAZIONE
+ZONA ZTL
+X NECESSITA' UTILIZZO AUTOGRU
+POSA 3 GG
+X ASCENSORE/MONTACARICHI
+NECESSITA' UTILIZZO TRABATTELLO
+4 PIANO DI POSA
+ZONA CLIMATICA: E
+PROV. MI
+CITTA': BOLLATE
+INDIRIZZO: VIA LA PIRA 7
+TELEFONO:
+CLIENTE: MUFANO' ROSSELLA
+Ordine n.
+SERRAMENTI
+RILIEVO ESECUTIVO
+COMMERCIALE STEFANO
+BRIANZA
+Pagina 1 di: 11
+Rilievo effettuato da: LORUSSO
+DATA RILIEVO 18/03/26
+Milano, li 25/03/26
+
+APR_OCR_ORIENTATION:270
+2/11
+2Pt
+( CONTRO PARETE CON CAPPOTTO )
+N°2X2800
+DA POSARE SOLO ALL'INTERNO IN BASSO
+LEGNO IDONEO PER UMIDITA' ( DEVE RESTARE A CONTATTO CON IL PAVIMENTO)
+- TUBOLARE 20X100X2 N° 2X3000+N°2X4500 (LAMILANO ) VERNICIARE 8019 OPACO
+- TUBOLARE 40X100X3 N°4X2100+ N°2X3900 (LAMILANO) VERNICIARE 8019 OPACO
+N° 4X270 ( LATERALI SUPERIORI CONTRO MURO )
+N° 1X4400 ( SCOSSALINA CONTRO MURO IN ALTO )
+- TUBOLARE 100X100X2 N° 4X3000 (LAMILANO) VERNICIARE 8019 OPACO
+100
+- PROFILO LM 6590 Nº2X4000 (LAMILANO ) VERNICIARE 8019 OPACO
+SU POSIZIONE C e D
+32
+32
+LM6590
+MATERIALE NECESSARIO PER LA POSA:
+LAMIERE ALLUMINIO 8019 OPACO
+30X90 N°2X2700
+MUFANO' BOLLATE
+80
+40
+70
+100
+
+APR_OCR_ORIENTATION:0
+MUFANO' BOLLATE
+3/11
+POSARE PROLUNGHE PLUVIALI X SCARICO ACQUA
+VISTA LATERALE
+VISTA FRONTALE
+•
+GRADINO
+PAVIMENTO
+
+APR_OCR_ORIENTATION:0
+4/11
+FIRMA DEL CLIENTE:
+ANELLO
+AZIONATORE:
+Round opening
+AUTOBLOCCO:
+device.
+Finitura:
+INOX
+satinato.
+Nero Opaco.
+chiusura
+standard
+di apertura
+che permette
+l'apertura
+soltanto
+dall'interno.
+H
+20-
+Sistema 3 vie
+H150
+2815
+1980
+TUBOLARI SUP E INF 40X100 DA SCANTONARE
+STRUTTURA COLORE 8019 OPACO
+VETRATE FRONTALI POS A SX
+GUIDA INFERIORE OX ARGENTO
+CHIUSURA INTERNA A PEDALE
+MUFANO' BOLLATE
+3 ANTE SX
+
+APR_OCR_ORIENTATION:0
+5/11
+FIRMA DEL CLIENTE:
+Round opening
+AUTOBLOCCO:
+ANELLO
+AZIONATORE:
+device.
+Finitura:
+INOX
+Sero Opaco.
+chiusura
+standard
+di apertura
+che permette
+l'apertura
+soltanto
+dall'interno.
+H
+20,
+Sistema 3 vle
+72
+H150
+2815
+1980
+TUBOLARI SUP E INF 40X100 DA SCANTONARE
+STRUTTURA COLORE 8019 OPACO
+VETRATE FRONTALI POS B DX
+GUIDA INFERIORE OX ARGENTO
+CHIUSURA INTERNA A PEDALE
+MUFANO' BOLLATE
+3 ANTE DX
+
+APR_OCR_ORIENTATION:90
+MUNAFO' BOLLATE
+6/11
+POS C LATERALE SX
+STRUTTURA 8019 OPACO
+VETRI STRATIFICATI
+Sistema 4 vie
+4 ANTE SX
+CHIUSURA INTERNA A PEDALE
+GUIDA INFERIORE OX ARGENTO
+TUBOLARI
+8
+100X100
+LEGNO +
+LAMIERA
+CAPP. TTO
+CAPP.TTO
+8
++
+93
+40X100
+FIRMA DEL CLIENTE:
+
+APR_OCR_ORIENTATION:90
+MUNAFO' BOLLATE
+7/11
+POS D LATERALE DX
+STRUTTURA 8019 OPACO
+VETRI STRATIFICATI
+4 ANTE DX
+CHIUSURA INTERNA A PEDALE
+GUIDA INFERIORE OX ARGENTO
+TUBOLARI
+Sistema 4 vie
+93
+100X100
+CAPPOTTO
+=
+CAPPOTTO
+LAMIERA + EGNO
+93
+40X100
+FIRMA DEL CLIENTE:
+
+APR_OCR_ORIENTATION:0
+MODULO ORDINE OSKURA 2.0 - OSKURA XL
+PERGOLA BIOCLIMATICA RETRAIBILE
+SUNROOMIIII
+LIVE YOUR DREAM
+CLIENTE
+RIF.
+DATA
+Sunroom S.p.A.
+Via Mercadante, 10 - 47841 Cattolica (RN) ITALIA
+Tel. +39 0541.834011 - fax+39 0541.833085
+BRIANZA SERRAMENTI
+MUFANO
+25/03/26
+info@sunroom.it| sunroom.it
+MODELLO
+COLORE
+OSKURA 2.0
+COLORE STRUTTURA PORTANTE 8019 opac………………....
+OSKURA XL
+COLORE LAME RETRAIBILI
+8019 opaco
+Classe di esecuzione EN 1090-1:EXC2 | Materiali Acciaio AISI304 - Alluminio AL6060 T6
+TIPOLOGIA ORIENTAMENTO
+SISTEMA DI MOVIMENTAZIONE
+STANDARD
+BECKER - STANDARD
+SOMFY IO - CON SUPPLEMENTO
+REVERSE
+SENSORI CLIMATICI
+TIPOLOGIA SCARICO ACQUE POSIZIONE P1-P2-P3-P4
+SENSORE VENTO
+SENSORE PIOGGIA
+SENZA DISCENDENTE
+SCARICO A DISPERSIONE
+IN PVC
+ILLUMINAZIONE LED PERIMETRALE
+SCARICO CON DISCENDENTE P3P4
+J PVC / 75 mm
+BIANCO CALDO 3.200 K
+[Inserire H dove indicato
+RGB
+SCARICO SOTTO PAVIMENTO
+USCITA
+CAVO
+NATURALE 4000K
+X
+IN PVC @ 75 mm
+CON DISCENDENTE
+MURO
+Indicare posizione P1 - P2- P3 - P4 con X su disegno
+NB: Indicare direzione di uscita su disegno
+, PI
+LATO MOTORE/PACCO LAME
+P2
+DIMENSIONI (mm)
+LARGHEZZA
+4260
+PERGOLA
+APPOGGIATA
+PROFONDITÀ
+2910
+SOPRA A
+Profondità
+ALTEZZA SOTTO GRONDA
+STRUTTURA
+H (P1)
+ESISTENTE
+H(P2)
+SENZA
+Altezza sotto gronda (H)
+H (P3)
+PILASTRI
+H (P4)
+NB: In caso di installazione con altezza sotto gronda inferiore a
+P3
+Larghezza
+P4
+funzionamento a UOMO PRESENTE
+2.380 mm dal piano di calpestio il prodotto sarà fornito con
+*[H.
+Eventuali danni subiti dalla merce durante il trasporto, saranno riconosciuti solo se il ddt. riporta "riserva" del cliente e se il danno viene
+comunicato entro 8 giorni dal ricevimento del materiale.
+La presente richiesta dovrà essere confermata da Sunroom S.p.A.
+FIRMA
+PER iNTO PEENCHE
+NB: FORNIRE PROLUNGHE PLUVIALE:
+6 CURVE
+Nº2X3000 + N°1X1000
+Mino 3407619683
+
+APR_OCR_ORIENTATION:270
+8/11
+Compilare per C3 Systems
+seeglass run
+Data: 26/03/26
+Ordine N°:
+TRASPORTO
+• Trasporto C3 Systems
+Nome: BRIANZA SERRAMENTI
+1 Trasporto Cliente
+_ Con vostri mezzi (senza agenzia)
+V Ordine • Preventivo
+Città/Paese: ITALIA
+Firma e timbro
+presupuestos@c3systems.es
+Riferimento: MUNAFO' POS A
+Misure della vetrata
+Numero di vie
+Larghezza (L) 1980
+Altezza (H)'' 2730
+Interne
+[] 3 vie
+4 vie
+5 vie
+6 vie
+'''Misure totali a fabbricare incluisi i profili superiori e inferiori, con eccezione del profilo incassato.
+Esterne
+V Totali
+Profilo inferiore
+Tipo di vetro e finiture
+N° Ante
+V In superficie
+Incassato
+Completo (con vetro)
+8 mm
+Trasparente
+Permetere al produttore decidere
+il n° di ante
+Indicare la misure luce
+Semi-lavorato (senza vetro)
+10 mm
+Altri
+STRATIFICATO
+Desidero specificare
+Posizionamento delle ante sul profilo
+il n° di ante
+3
+Colore profili alluminio
+Tipi di guarnizioni
+Colore tappi
+Bianco
+RAL/Altri
+PROFILO SUPERIORE
+8019 OPACO
+Trasparente PLUS
+V Sinistra
+Centrale
+Destra
+PROFILO INFERIORE
+OX ARGENTO
+| Bianco
+Nero
+Alluminio decorativo(2)
+Nota: Vista interna della vetrata
+PROFILO ANTA
+8019 OPACO
+• Nero
+Grigio
+Cromo
+"Maniglia e azionamenti
+Sistemi di chiusura/apertura
+opaco
+PROFILO LATERALE
+8019 OPACO
+• Colore della vetrata
+1'' Non disponibile in vetro di 8mm
+V Auto-Blocco
+Serratura
+Serratura
+CD-6
+CD-4
+Decor. stilo industriale
+l Sempio
+• Cromo Opaco
+• Cromo Opaco
+• Nero Opaco
+• Nero Opaco
+• Cromo Opaco
+• Cromo Lucida
+Si
+Con spazzolino
+Non tagliare profili(3)
+• Doppio
+Nero
+(interno
+& esterno)
+Senza spazzolino
+'"|l trasporto di sistemi oltre i 2850 mm suppone un
+supplemento nel costo totale.
+• Chiusura inferiore
+7 Tirante
+anello
+Pomo fisso Seeglass
+7 Cromo Opaco
+• Semplice
+• Nero Opaco
+(interno)
+• Nero Opaco
+• Cromo Opaco
+• Doppio
+(interno
+E esterno) (
+, Altezza degli azionamenti
+Permettere al fabbriccante
+scegliere altezza degli azionamenti
+1100
+mm. 1r7/777
+Nota: L'altezza degli azionamenti non può essere inferiore a 265mm.
+A; Obbligatorio! Se si desidera che gli azionamenti selezionati siano allineati
+alla stessa altezza in diverse sezioni, è necessario indicarlo espressamente.
+Ed. 24
+
+APR_OCR_ORIENTATION:90
+Ed. 24
+alla stessa altezza in diverse sezioni, è necessario indicarlo espressamente.
+A Obbligatorio! Se si desidera che gli azionamenti selezionati siano allineati
+Nota: L'altezza degli azionamenti non può essere inferiore a 265mm.
+1100
+scegliere altezza degli azionamenti
+Permettere al fabbriccante
+Altezza degli azionamenti
+E esterno)
+(interno
+• Doppio
+• Nero Opaco
+• Nero Opaco
+• Cromo Opaco
+(intemo) (
+•Semplice
+E Cromo Opaco
+Pomo fisso Seeglass
+anello
+Tirante
+7 Chiusura inferiore
+supplemento nel costo totale.
+& esterno)
+"'| trasporto di sistemi oltre i 2850 mm suppone un
+] Senza spazzolino
+VINO
+(interno
+Nero
+• Doppio
+Non tagliare profili(3)
+Con spazzolino
+• Cromo Lucida
+• Nero Opaco
+• Nero Opaco
+• Cromo Opaco
+• Cromo Opaco
+Vl Cromo Opaco
+(interno) (
+7 Semplice
+Decor. stilo industriale
+CD-4
+CD-6
+Serratura
+Serratura
+Auto-Blocco
+12'Non disponibile in vetro di 8mm
+• Colore della vetrata
+8019 OPACO
+PROFILO LATERALE
+Sistemi di chiusura/apertura
+«Maniglia e azionamenti
+Cromo
+Grigio
+•] Nero
+8019 OPACO
+PROFILO ANTA
+Nota: Vista interna della vetrata
+Alluminio decorativo(?)
+Nero
+Bianco
+OX ARGENTO
+PROFILO INFERIORE
+V Destra
+Centrale
+Sinistra
+/ Trasparente PLUS
+8019 OPACO
+PROFILO SUPERIORE
+RAL/Altri
+Bianco
+Colore tappi
+Tipi di guarnizioni
+Colore profili alluminio
+il n° di ante
+Posizionamento delle ante sul profilo
+Desidero specificare
+Altri STATiRitTO
+10 mm
+Semi-lavorato (senza vetro)
+Indicare la misure luce
+( Incassato
+V In superficie
+Permetere al produttore decidere
+X il n° di ante
+Trasparente
+8 mm
+Completo (con vetro)
+N° Ante
+Tipo di vetro e finiture
+Profilo inferiore
+6 vie
+5 vie
+4 vie
+V 3 vie
+V Totali
+Esterne
+"''Misure totali a fabbricare incluisi i profili superiori e inferiori, con eccezione del profilo incassato.
+Interne
+Altezza (H)'' 2730
+Larghezza (L) 1980
+Numero di vie
+Misure della vetrata
+Riferimento: MUNAFO' POS B
+presupuestos@c3systems.es
+Firma e timbro
+Città/Paese: ITALIA
+• Preventivo
+VI Ordine
+• Con vostri mezzi (senza agenzia)
+• Trasporto Cliente
+Nome: BRIANZA SERRAMENTI
+2
+• Trasporto C3 Systems
+TRASPORTO
+Ordine N°:
+Data: 26/03/26
+seeglass run
+Compilare per C3 Systems
+9/11
+
+APR_OCR_ORIENTATION:0
+PROFILO LATERALE
+PROFILO ANTA
+PROFILO INFERIORE
+PROFILO SUPERIORE
+Larghezza (L) 3665
+VI No
+Semi-lavorato (senza vetro)
+Completo (con vetro)
+presupuestos@c3systems.es
+•Ordine LI Preventivo
+seeglass run
+Nero
+Bianco
+Colore profili alluminio
+'''Misure totali a fabbricare incluisi i profili superiori e inferiori, con eccezione del profilo incassato.
+Decor. stilo industriale
+Tipo di vetro e finiture
+8019 OPACO
+8019 OPACO
+OX ARGENTO
+8019 OPACO
+RAL/Altri
+10 mm
+8 mm
+Altezza (H)''
+2575
+Senza spazzolino
+Con spazzolino
+Altri
+Trasparente
+Data: 26/03/26
+LI Nero
+Misure della vetrata
+Città/Paese: ITALIA
+Trasparente PLUS
+STRATIFICATO
+'''Non disponibile in vetro di 8mm
+• Colore della vetrata
+Alluminio decorativo(2)
+Tipi di guarnizioni
+Nome: BRIANZASERRAMENTI
+Riferimento: MUNAFO' POS C LATO SX
+Interne
+il n° di ante
+Desidero specificare
+Ordine N°:
+supplemento nel costo totale.
+'"Il trasporto di sistemi oltre i 2850 mm suppone un
+/ Non tagliare profili(3)
+Grigio
+Bianco
+X Pinetare al produttore decidere
+N° Ante
+Esterne
+Colore tappi
+opaco
+Cromo
+Nero
+V Totali
+Compilare per C3 Systems
+/ Auto-Blocco
+V Sinistra
+Firma e timbro
+Chiusura inferiore
+& esterno)
+(interno
+• Doppio
+(intemo)
+E Semplice
+Profilo inferiore
+Numero di vie
+TRASPORTO
+13 vie
+Permettere al fabbriccante
+'Maniglia e azionamenti
+scegliere altezza degli azionamenti
+Altezza degli azionamenti
+• Nero Opaco
+EI Cromo Opaco
+V In superficie
+Posizionamento delle ante sul profilo
+V 4 vie
+anello
+alla stessa altezza in diverse sezioni, è necessario indicarlo espressamente.
+Ai Obbligatorio! Se si desidera che gli azionamenti selezionati siano allineati
+Tirante
+• Nero Opaco
+I Cromo Opaco
+Nota: L'altezza degli azionamenti non può essere inferiore a 265mm.
+CD-6
+Centrale
+1100
+Serratura
+5 vie
+- Trasporto Cliente
+L Trasporto C3 Systems
+• Nero Opaco
+Incassato
+• Cromo Opaco
+Indicare la misure luce
+Con vostri mezzi (senza agenzia)
+& esterno)
+(interno
+• Doppio
+• Semplice
+Pomo fisso Seeglass
+Sistemi di chiusura/apertura
+Nota: Vista interna della vetrata
+6 vie
+CD-4
+17177777777
+Serratura
+Destra
+• Nero Opaco
+• Cromo Opaco
+• Cromo Lucido
+• Cromo Opaco
+Ed. 24
+10/11
+
+APR_OCR_ORIENTATION:90
+Ed. 24
+alla stessa altezza in diverse sezioni, è necessario indicarlo espressamente.
+A; Obbligatorio! Se si desidera che gli azionamenti selezionati siano allineati
+Nota: L'altezza degli azionamenti non può essere inferiore a 265mm.
+mm. 1117771777777
+1100
+scegliere altezza degli azionamenti
+Permettere al fabbriccante
+Altezza degli azionamenti
+é esternol
+(interno
+[ Doppio
+• Nero Opaco
+• Nero Opaco
+• Cromo Opaco
+(intemo)
+J Semplice
+E cromo Opaco
+Pomo fisso Seeglass
+anello
+Tirante
+Chiusura inferiore
+supplemento nel costo totale.
+& esterno) i
+'l trasporto di sistemi oltre i 2850 mm suppone un
+Senza spazzolino
+fintero
+Nero
+• Doppio
+Non tagliare profili(3)
+Con spazzolino
+1 Cromo Lucido
+Si
+• Cromo Opaco
+• Nero Opaco
+• Cromo Opaco
+• Nero Opaco
+2 Cromo Opaco
+7 Semplice
+(interno)
+Decor. stilo industriale
+CD-4
+CD-6
+Serratura
+Serratura
+Auto-Blocco
+12' Non disponibile in vetro di 8mm
+opaco
+• Colore della vetrata
+8019 OPACO
+PROFILO LATERALE
+Sistemi di chiusura/apertura
+"Maniglia e azionamenti
+~ Cromo
+Grigio
+• Nero
+8019 OPACO
+PROFILO ANTA
+Nota: Vista interna della vetrata
+Alluminio decorativo 2›
+• Nero
+Bianco
+OX ARGENTO
+PROFILO INFERIORE
+Destra
+Centrale
+Sinistra
+/ Trasparente PLUS
+8019 OPACO
+PROFILO SUPERIORE
+RAL/Altri
+Bianco
+Colore tappi
+Tipi di guarnizioni
+Colore profili alluminio
+4
+il nº di ante
+Posizionamento delle ante sul profilo
+Desidero specificare
+STRATIFICATO
+Altri
+10 mm
+Semi-lavorato (senza vetro)
+Indicare la misure luce
+| Incassato
+/ In superficie
+permetere al produttore decidere
+X il n° di ante
+Trasparente
+8 mm
+Completo (con vetro)
+N° Ante
+Tipo di vetro e finiture
+Profilo inferiore
+_ 6 vie
+•] 5 vie
+/ 4 vie
+_ 3 vie
+V Totali
+Esterne
+'''Misure totali a fabbricare incluisi i profili superiori e inferiori, con eccezione del profilo incassato.
+Interne
+Altezza (H)'' 2570
+Langhezza (L) 3665
+Numero di vie
+Misure della vetrata
+Firma e timbro
+Riferimento: MUNAFO' POS D LATO DX
+presupuestos@c3systems.es
+— Con vostri mezzi (senza agenzia)
+Città/Paese: ITALIA
+• Preventivo
+M Ordine
+• Trasporto Cliente
+Nome: BRIANZA SERRAMENTI
+2
+• Trasporto C3 Systems
+TRASPORTO
+Ordine N°:
+Data: 26/03/26
+seeglass run
+Compilare per C3 Systems
+11/11

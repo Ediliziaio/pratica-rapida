@@ -1,0 +1,24 @@
+{
+  "version": "apr-screening-rounding-r17-gate-attestation-v1",
+  "recordedAt": "2026-08-31T17:35:59Z",
+  "sourceCommit": "abae74ad0f86829c4759684b637081a080ad394c",
+  "sourceTree": "4e8b34249ef7367da3be893f47ffd06ea55ab64e",
+  "runtimeGate": {
+    "status": "PASS",
+    "testFiles": 216,
+    "tests": 1608,
+    "failed": 0,
+    "durationSeconds": 414.89,
+    "typecheck": "PASS",
+    "productionBuild": "PASS"
+  },
+  "terminalTruthFocusedGate": {
+    "status": "PASS",
+    "testFile": "scripts/enea-shadow-runner/sequencerTerminalTruth.test.ts",
+    "tests": 5,
+    "failed": 0,
+    "failClosedIdentityMismatch": "PASS"
+  },
+  "registryVersion": "enea-operational-registry-v97",
+  "matrixVersion": "apr-enea-rule-test-matrix-v74"
+}

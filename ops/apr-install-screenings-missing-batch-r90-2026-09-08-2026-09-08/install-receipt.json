@@ -1,0 +1,23 @@
+{
+  "version": "apr-install-bundle-cli-receipt-v1",
+  "installedAt": "2026-09-08T13:45:44.492Z",
+  "label": "screenings-missing-batch-r90-2026-09-08",
+  "versionId": "cb5ef959-screenings-missing-batch-r90-2026-09-08-20260908",
+  "previousTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/d303533f-overnight-batch-parser-fixes-r89-2026-09-08-20260908",
+  "currentTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/cb5ef959-screenings-missing-batch-r90-2026-09-08-20260908",
+  "installedBundle": {
+    "apr-supervisor.mjs": "db0834f674e244efa54cc78aca9111c875964d7e202fab1a2115205ce4508627",
+    "apr-enea-worker.mjs": "169ca3e677980cad1503841b4d27d8aa2c79afd6cbe2d046f94d31431a5dd14e",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0"
+  },
+  "gateResultArtifactId": "427d9fd7404cc8a3ac0a6b7ad444ac012083bdf89fc952ba6424743dbb666820",
+  "gateStatus": "PASS",
+  "legacyGovernanceDebtNoticed": [
+    "user-2026-08-06-existing-plant-authoritative-mapping-v1",
+    "user-2026-08-06-intervention-authoritative-sources-and-defaults-v1",
+    "user-2026-08-06-portal-intermediary-physical-beneficiary-v1",
+    "user-2026-08-06-portal-municipality-controlled-selection-v1",
+    "user-2026-09-05-co-beneficiary-trusted-enter-delivery-v2",
+    "user-2026-09-05-terminal-cohort-browser-quiescence-v1"
+  ]
+}

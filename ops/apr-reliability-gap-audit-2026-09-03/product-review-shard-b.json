@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "blind-product-review-v1",
+  "reviewer": "Claude Code",
+  "cases": [
+    {
+      "customerKey": "cesare-imperiali",
+      "displayName": "Cesare Imperiali",
+      "classification": "EXPLICIT_PARTIAL",
+      "exactCause": "La fattura dichiara tre serramenti e il rilievo manoscritto mostra tre righe Q.TA 1 con misure, ma contiene sovrascritture e una quarta annotazione non classificabile con certezza.",
+      "missingDocumentType": "distinta stampata che confermi le tre misure e chiarisca la quarta annotazione",
+      "operatorQuestion": "Per Cesare Imperiali, confermi le tre misure 1190x2390, 2690x2385 e 1190x2385 mm e chiarisci se la nota 'PORTICATO T.1A Bagno 80x160' indica un quarto serramento?",
+      "onboardingGap": "Richiedere un rilievo leggibile e strutturato, con una riga e una destinazione per ogni serramento."
+    },
+    {
+      "customerKey": "massimo-cappello",
+      "displayName": "Massimo Cappello",
+      "classification": "EXPLICIT_COMPLETE",
+      "exactCause": "La dichiarazione Internorm contiene dodici posizioni con quantità, Largh., Alt. e Uw univoci; il falso blocco è già eliminato dalla regola r36.",
+      "missingDocumentType": null,
+      "operatorQuestion": null,
+      "onboardingGap": null
+    },
+    {
+      "customerKey": "stefano-buosi",
+      "displayName": "Stefano Buosi",
+      "classification": "GENUINELY_MISSING",
+      "exactCause": "Le fatture riportano solo 'Sostituzione finestre - Greenevo 76 3D' e importi, senza quantità o misure; gli altri file sono documenti d'identità duplicati.",
+      "missingDocumentType": "preventivo, ordine o scheda tecnica con quantità e misure dei serramenti",
+      "operatorQuestion": "Inserisci per Stefano Buosi il preventivo, l'ordine o la scheda tecnica Greenevo 76 3D con quantità e misure di ogni serramento.",
+      "onboardingGap": "Richiedere sempre un documento tecnico distinto dalla fattura generica."
+    },
+    {
+      "customerKey": "prova-rivenditore-1-30-04",
+      "displayName": "prova rivenditore 1 30/04",
+      "classification": "AMBIGUOUS_INTERNAL_TEST",
+      "exactCause": "L'unico file è materiale promozionale interno PraticaRapida sui climatizzatori e non un documento cliente.",
+      "missingDocumentType": null,
+      "operatorQuestion": "Confermi che 'prova rivenditore 1 30/04' è una pratica interna da escludere permanentemente dall'automazione?",
+      "onboardingGap": "Marcare esplicitamente i casi interni/test nel CRM."
+    },
+    {
+      "customerKey": "claudia-sellati",
+      "displayName": "CLAUDIA SELLATI",
+      "classification": "EXPLICIT_COMPLETE",
+      "exactCause": "Ordine, fatture e DoP mostrano concordemente sei serramenti; la DoP contiene sei posizioni con quantità, misura e Uw. Il falso blocco è eliminato dalla regola r38.",
+      "missingDocumentType": null,
+      "operatorQuestion": null,
+      "onboardingGap": null
+    },
+    {
+      "customerKey": "mauro-leonardi",
+      "displayName": "Mauro Leonardi",
+      "classification": "AMBIGUOUS_SOURCE_ASSOCIATION",
+      "exactCause": "L'ordine WnD contiene quattro posizioni complete, ma è intestato a Brianza Serramenti e indica consegna a Bovisio Masciago; la fattura di Mauro riguarda Valganna. La coincidenza di quattro pezzi non prova che l'ordine appartenga al suo cantiere. Mancano inoltre le misure delle quattro persiane fatturate.",
+      "missingDocumentType": "conferma che colleghi l'ordine WnD al cantiere di Mauro Leonardi e scheda misure delle quattro persiane",
+      "operatorQuestion": "L'ordine WnD 260062615000004 con destinazione Bovisio Masciago appartiene davvero al cantiere di Mauro Leonardi a Valganna? Se sì, indica anche le misure delle quattro persiane fatturate.",
+      "onboardingGap": "Richiedere un riferimento univoco al cliente/cantiere sui documenti del produttore e una scheda tecnica per ogni categoria fatturata."
+    }
+  ]
+}

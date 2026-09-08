@@ -1,0 +1,23 @@
+{
+  "version": "apr-install-bundle-cli-receipt-v1",
+  "installedAt": "2026-09-08T09:11:25.262Z",
+  "label": "bank-transfer-triple-fix-r87-2026-09-08",
+  "versionId": "15355efa-bank-transfer-triple-fix-r87-2026-09-08-20260908",
+  "previousTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/f6f8e746-full-reconstruction-verified-r86-20260908",
+  "currentTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/15355efa-bank-transfer-triple-fix-r87-2026-09-08-20260908",
+  "installedBundle": {
+    "apr-supervisor.mjs": "f3a5f592614d63427529ea2b904038da000ed9beb85609bd963c3049a4d84a38",
+    "apr-enea-worker.mjs": "eeedd4eea212fb3d5ba0d1394476eb414b930c07c9f87784d218e80066b06e77",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0"
+  },
+  "gateResultArtifactId": "04d732c00d44eabe9a64d8005a548a724303e3d65eb7bd84a60609149dac826e",
+  "gateStatus": "PASS",
+  "legacyGovernanceDebtNoticed": [
+    "user-2026-08-06-existing-plant-authoritative-mapping-v1",
+    "user-2026-08-06-intervention-authoritative-sources-and-defaults-v1",
+    "user-2026-08-06-portal-intermediary-physical-beneficiary-v1",
+    "user-2026-08-06-portal-municipality-controlled-selection-v1",
+    "user-2026-09-05-co-beneficiary-trusted-enter-delivery-v2",
+    "user-2026-09-05-terminal-cohort-browser-quiescence-v1"
+  ]
+}

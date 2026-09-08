@@ -1,0 +1,59 @@
+{
+  "version": "apr-product-evidence-r38-preinstall-gate-v1",
+  "attestedAt": "2026-09-03T18:29:29.088Z",
+  "status": "tested_not_deployed",
+  "monotonicGate": {
+    "baseline": {
+      "suites": 444,
+      "tests": 1698,
+      "reportSha256": "65e208fae669becb1a87b88319a1b161984af7ed6aea4cd2cc6bd49e0f47ed19"
+    },
+    "candidate": {
+      "suites": 444,
+      "tests": 1704,
+      "reportSha256": "a2146f93ae1fdf78ee719143387ec73ede81ac869ffa101c7905581129835f97"
+    },
+    "registryVersion": "enea-operational-registry-v114",
+    "matrixVersion": "apr-enea-rule-test-matrix-v92",
+    "rulesProved": 113,
+    "ruleEvidenceSha256": "77be0716f56a9604a9651ee21db59c0e80211f499ed7349b51149c7b6ef5d849"
+  },
+  "verifiedOriginalReplay": {
+    "status": "passed_reclassification_of_hash_verified_original_extractions",
+    "beforeSha256": "faa01023d8631d2cf40c2de8788baa441a367528c529c6891aa3c45cbb33297c",
+    "afterSha256": "50c388f87b146eb35d752447539c42ff5843ff087c3033481c6f7439d55995fb",
+    "diagnosticSha256": {
+      "singleProduct": "7703f51dceea0bc45d7aa329dc83f06385409c9b36c8b99c90bb5fc9bd73ab55",
+      "parenthesizedUw": "042ee4e7c93712e99b65e34c35612891cde78aec7dc843988370cf1e0164ecb3"
+    },
+    "residualReviewSha256": "eb5d0675377eddb76bafe201734574f219110621c63efd0d4b721c0f5065897a",
+    "documents": 359,
+    "bytes": 293624565,
+    "improvedCases": [
+      "claudia-sellati",
+      "gemma-minore"
+    ],
+    "unchangedCases": 98,
+    "externalActionAllowed": false
+  },
+  "excludedInvalidFreshOcrAttempt": {
+    "status": "invalid_for_verdict_test_tool_limitation",
+    "reportSha256": "f3b4b9efcf8368aafbb0b6ce000a7b390c82139ed5ad032303ad3496615e3479",
+    "casesWithAnalysisFailure": 64,
+    "reason": "The current replay OCR binary cannot reopen a subset of valid encrypted/copy-disabled PDFs. This result is excluded from APR verdicts and installation evidence."
+  },
+  "stagedBundle": {
+    "apr-supervisor.mjs": "282039a9523bc5dc685e1fb0e0e84a7a5143aa4cb2c0a95f754769914b0f7da2",
+    "apr-enea-worker.mjs": "16521498a8ce76c26422553d5db54ee3d601f36322f8d2dfef74ebf1e36d5ca5",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "apr-pdf-ocr": "4c41c9a6832b11b9d19eace538100270a533dddc05e475e5842711968393327f"
+  },
+  "safety": {
+    "localOnly": true,
+    "externalActionAllowed": false,
+    "previewAllowed": false,
+    "saveAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false
+  }
+}

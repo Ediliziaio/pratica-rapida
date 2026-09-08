@@ -1,0 +1,65 @@
+Cedente/prestatore (fornitore)
+Identificativo fiscale ai fini IVA:
+IT02998550210
+Codice fiscale: CTLPLA75M13F537D
+Denominazione: MULTISERVICE HOME DI
+PAOLO CUTULI
+RF19
+Regime fiscale: Regime forfettario
+Indirizzo: Via dei vigneti 49
+Comune: Provincia:
+LAIVES BZ
+Cap: Nazione:
+39055 IT
+Email: atlantide.lu@gmail.com
+Cessionario/committente (cliente)
+Codice fiscale: PDNGLR62C70A952K
+Denominazione: Gloria Padoani
+Indirizzo: Via J.F. Kennedy 244/D
+Comune: Provincia:
+LAIVES BZ
+Cap: Nazione:
+39055 IT
+Tipologia documento Art. 73 Numero documento Data documento Codice destinatario
+TD01 fattura 42/00 03-08-2026
+Causale
+Operazione senza applicazione dell'IVA, effettuata ai sensi dell'articolo 1, commi da 54 a 89, l. n. 190 del 2014 così
+come modificato dalla l. n. 208 del 2015 e dalla l. n. 145 del 2018
+Cod. articolo Descrizione Quantità Prezzo unitario UM Sconto o
+magg.
+%IVA Prezzo totale
+Fattura per la
+fornitura ed
+istallazione di 2 tende
+da sole a caduta con
+cassonetto di cui 1
+con guide laterali e
+motore con
+telecomando ed 1
+con ganci a ringhiera,
+misure 396x241 ed
+182x241 colore
+struttura bianco soft
+elegance ed telo
+tempotest 6234/197 .
+Schermature solari
+dinamiche ai sensi
+del D.L.S 311/2006
+allegato M
+Bollo al cliente 1,00 2.781,00 N2.2 2.781,00 €
+1,00 2,00 N2.2 2,00 €
+RIEPILOGHI IVA E TOTALI
+esigibilità iva / riferimenti normativi %IVA Spese
+accessorie Arr. Totale imponibile Totale imposta
+Esigib. non dich. (si presume
+immediata)
+N2.2 2.783,00 0
+
+N2.2 (non soggette - altri casi)
+Imposta bollo Sconto/Maggiorazione Arr. Totale documento
+SI 2.783,00 €
+Modalità pagamento Dettagli Scadenze Importo
+MP05 Bonifico IBAN
+IT02E03646016005264316
+57911
+Data scadenza 07-08-2026 2.783,00 €

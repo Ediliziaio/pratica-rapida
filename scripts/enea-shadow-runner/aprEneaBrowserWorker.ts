@@ -61,6 +61,8 @@ export interface AprEneaDraftEvidence extends AprEneaDriverEvidence {
   draftId: string;
 }
 
+export type AprEneaDraftDiscoveryScope = "resume_generation" | "pending_create_only";
+
 export interface AprEneaDraftCreationAbsenceProof {
   customerKey: string;
   packageFingerprint: string;
@@ -79,7 +81,7 @@ export interface AprEneaBrowserDriver {
   readonly kind: "simulated" | "cdp_chrome";
   readonly identity: string;
   verifySession(): Promise<AprEneaSessionEvidence>;
-  discoverExistingDraft(draftPackage: AprEneaDraftPackage): Promise<AprEneaDraftEvidence | null>;
+  discoverExistingDraft(draftPackage: AprEneaDraftPackage, scope?: AprEneaDraftDiscoveryScope): Promise<AprEneaDraftEvidence | null>;
   verifyPendingCreateAbsentReadOnly?(draftPackage: AprEneaDraftPackage): Promise<AprEneaDraftCreationAbsenceProof>;
   authorizeSingleCreateRetryAfterAbsence?(draftPackage: AprEneaDraftPackage, proof: AprEneaDraftCreationAbsenceProof): AprEneaDriverEvidence;
   quarantinePendingCreateAfterInconclusive?(draftPackage: AprEneaDraftPackage, proof: AprEneaDraftCreationAbsenceProof): AprEneaDriverEvidence;
@@ -89,6 +91,7 @@ export interface AprEneaBrowserDriver {
   savePage(draftPackage: AprEneaDraftPackage, draftId: string, pageId: string): Promise<AprEneaDriverEvidence>;
   verifyPageSaved(draftPackage: AprEneaDraftPackage, draftId: string, pageId: string): Promise<AprEneaDriverEvidence | null>;
   verifyNestedPageSavedCanonicalReadOnly?(draftPackage: AprEneaDraftPackage, draftId: string, pageId: string): Promise<AprEneaDriverEvidence | null>;
+  verifyNestedPageSavedServerReadOnly?(draftPackage: AprEneaDraftPackage, draftId: string, pageId: string): Promise<AprEneaDriverEvidence | null>;
   probePageSaveReadOnly?(draftPackage: AprEneaDraftPackage, draftId: string, pageId: string): Promise<AprEneaPageSaveProbeEvidence[]>;
   verifyDraftSaved(draftPackage: AprEneaDraftPackage, draftId: string): Promise<AprEneaDriverEvidence | null>;
   pendingCreationBarrier?(): { customerKey: string; evidenceId: string } | null;
@@ -336,6 +339,10 @@ export class PersistentSimulatedEneaPortalDriver implements AprEneaBrowserDriver
     return this.verifyPageSaved(draftPackage, draftId, pageId);
   }
 
+  async verifyNestedPageSavedServerReadOnly(draftPackage: AprEneaDraftPackage, draftId: string, pageId: string): Promise<AprEneaDriverEvidence | null> {
+    return this.verifyPageSaved(draftPackage, draftId, pageId);
+  }
+
   async probePageSaveReadOnly(draftPackage: AprEneaDraftPackage, draftId: string, pageId: string): Promise<AprEneaPageSaveProbeEvidence[]> {
     const state = this.load();
     const draft = state.drafts.find((item) => item.draftId === draftId && item.packageFingerprint === draftPackage.packageFingerprint);
@@ -447,6 +454,22 @@ export class PersistentAprEneaBrowserWorker {
   }
 
   private async verifyNestedPageSavedAfterOuterSave(draftPackage: AprEneaDraftPackage, draftId: string, pageId: string, recoveredScreening = false) {
+    if (/Generatore/.test(pageId)) {
+      const verifyServer = this.driver.verifyNestedPageSavedServerReadOnly?.bind(this.driver);
+      if (!verifyServer) throw new Error("apr_enea_generator_server_verifier_missing");
+      const evidence = await verifyServer(draftPackage, draftId, pageId);
+      this.record({
+        commandId: this.actionId(draftPackage.customerKey, evidence ? "generator-server-persistence-confirmed" : "generator-server-persistence-not-confirmed", `${draftId}:${pageId}`),
+        event: "action_completed",
+        customerKey: draftPackage.customerKey,
+        action: evidence ? "generator_server_persistence_confirmed" : "generator_server_persistence_not_confirmed",
+        evidenceId: evidence?.evidenceId ?? null,
+        reason: evidence
+          ? `GET JSON autenticata e senza cache del draft ${draftId}: il sottoalbero del Generatore contiene i valori attesi.`
+          : `GET JSON autenticata e senza cache del draft ${draftId}: nessun sottoalbero del Generatore contiene tutti i valori attesi; nessun secondo click.`
+      }, "running");
+      return evidence;
+    }
     const verifyCanonical = this.driver.verifyNestedPageSavedCanonicalReadOnly?.bind(this.driver)
       ?? this.driver.verifyPageSaved.bind(this.driver);
     const firstEvidence = await verifyCanonical(draftPackage, draftId, pageId);
@@ -476,35 +499,7 @@ export class PersistentAprEneaBrowserWorker {
       }, "running");
       return concordant ? secondEvidence : null;
     }
-    if (firstEvidence || !/Generatore/.test(pageId)) return firstEvidence;
-
-    // ENEA can expose the saved Impianto page before the nested generator row
-    // reaches its canonical summary.  A single immediate miss is therefore not
-    // conclusive: only two negative reads, separated by the observed
-    // consistency window, may produce the fail-closed outcome.
-    const retryDelayMs = this.options.generatorPersistenceVerificationRetryDelayMs ?? 500;
-    const retryDiscriminator = `${draftId}:${pageId}`;
-    this.record({
-      commandId: this.actionId(draftPackage.customerKey, "generator-persistence-verification-retry-started", retryDiscriminator),
-      event: "action_started",
-      customerKey: draftPackage.customerKey,
-      action: "generator_persistence_verification_retry",
-      evidenceId: null,
-      reason: `Generatore assente alla prima lettura post-Impianto; APR attende ${retryDelayMs} ms prima della seconda lettura read-only.`,
-    }, "running");
-    if (retryDelayMs > 0) await new Promise((resolve) => setTimeout(resolve, retryDelayMs));
-    const secondEvidence = await this.driver.verifyPageSaved(draftPackage, draftId, pageId);
-    this.record({
-      commandId: this.actionId(draftPackage.customerKey, secondEvidence ? "generator-persistence-verification-retry-succeeded" : "generator-persistence-verification-retry-exhausted", retryDiscriminator),
-      event: "action_completed",
-      customerKey: draftPackage.customerKey,
-      action: secondEvidence ? "generator_persistence_verification_retry_succeeded" : "generator_persistence_verification_retry_exhausted",
-      evidenceId: secondEvidence?.evidenceId ?? null,
-      reason: secondEvidence
-        ? `La seconda lettura read-only dopo ${retryDelayMs} ms conferma il generatore persistito.`
-        : `Due letture read-only separate da ${retryDelayMs} ms non mostrano il generatore; il fail-closed resta obbligatorio.`,
-    }, "running");
-    return secondEvidence;
+    return firstEvidence;
   }
 
   private startAction(customerKey: string | null, action: string, discriminator: string) {
@@ -519,8 +514,9 @@ export class PersistentAprEneaBrowserWorker {
     const now = this.now();
     this.record({ commandId: `worker:start:${this.instanceId()}`, event: "worker_started", customerKey: null, action: "worker_start", evidenceId: null, reason: "Processo APR worker attivo con identità persistente; la lease ENEA è verificata separatamente dal keepalive read-only." }, "running");
     let execution = this.execution.snapshot(now);
+    const pendingProbe = execution.items.find((item) => item.state === "operator_intervention" && item.uncertainPageSave?.status === "probing");
     if (execution.status === "blocked_preflight") return this.record({ commandId: this.actionId(null, "heartbeat-waiting", `${execution.revision}:${this.instanceId()}`), event: "heartbeat", customerKey: null, action: "waiting_for_queue", evidenceId: null, reason: "IDLE — coda vuota; nessuna pratica in esecuzione. Il keepalive ENEA resta separato e attivo." }, "idle");
-    if (execution.status === "completed") return this.markCompleted(execution);
+    if (execution.status === "completed" && !pendingProbe) return this.markCompleted(execution);
 
     if (!execution.sessionEvidenceId || execution.status === "login_required") {
       this.startAction(null, "verify_session_readonly", String(execution.revision));
@@ -537,6 +533,16 @@ export class PersistentAprEneaBrowserWorker {
 
     execution = this.execution.snapshot(this.now());
     if (!execution.currentCustomerKey) {
+      const probing = execution.items.find((item) => item.state === "operator_intervention" && item.uncertainPageSave?.status === "probing");
+      if (probing?.draftId && probing.uncertainPageSave) {
+        return this.handleUncertainPageSave(
+          probing.customerKey,
+          probing.draftId,
+          probing.uncertainPageSave.pageId,
+          probing.uncertainPageSave.reason,
+          probing.uncertainPageSave.detectedEvidenceId,
+        );
+      }
       const recovery = execution.items.find((item) => item.state === "recovery_queued");
       if (recovery) {
         const uncertain = Boolean(recovery.uncertainPageSave);
@@ -575,7 +581,10 @@ export class PersistentAprEneaBrowserWorker {
       const draftPackage = await this.packageFor(current.customerKey);
       if (current.state === "create_intent_recorded") {
         this.startAction(current.customerKey, "discover_or_create_draft", draftPackage.packageFingerprint);
-        const discovered = await this.driver.discoverExistingDraft(draftPackage);
+        const discovered = await this.driver.discoverExistingDraft(
+          draftPackage,
+          current.requiresFreshDraft ? "pending_create_only" : "resume_generation",
+        );
         const created = discovered ?? await this.driver.createDraft(draftPackage);
         this.execution.recordDraftCreated(current.customerKey, created.draftId, created.url, created.evidenceId, this.actionId(current.customerKey, "execution-draft-created", created.draftId), this.now());
         this.completeAction(current.customerKey, "discover_or_create_draft", draftPackage.packageFingerprint, created.evidenceId);
@@ -710,8 +719,13 @@ export class PersistentAprEneaBrowserWorker {
   }
 
   private async handleUncertainPageSave(customerKey: string, draftId: string, pageId: string, reason: string, evidenceId: string) {
-    const commandId = this.actionId(customerKey, "execution-uncertain-page-save-detected", evidenceId);
-    this.execution.recordUncertainPageSaveDetected(customerKey, pageId, reason, evidenceId, commandId, this.now());
+    const existing = this.execution.snapshot(this.now()).items.find((item) => item.customerKey === customerKey)?.uncertainPageSave;
+    if (existing) {
+      if (existing.status !== "probing" || existing.pageId !== pageId || existing.detectedEvidenceId !== evidenceId) throw new Error("apr_enea_uncertain_page_save_resume_state_invalid");
+    } else {
+      const commandId = this.actionId(customerKey, "execution-uncertain-page-save-detected", evidenceId);
+      this.execution.recordUncertainPageSaveDetected(customerKey, pageId, reason, evidenceId, commandId, this.now());
+    }
     let probes: AprEneaPageSaveProbeEvidence[] = [];
     if (this.driver.probePageSaveReadOnly) {
       const draftPackage = await this.packageFor(customerKey);
@@ -722,14 +736,33 @@ export class PersistentAprEneaBrowserWorker {
         probes = [{ method: "persisted_fields_get", outcome: "inconclusive", reason: `La sonda read-only non ha risposto: ${probeReason}`, evidenceId: `probe-error-${digest(probeReason).slice(0, 16)}`, observedAt: this.now().toISOString(), url: "https://bonusfiscali.enea.it/" }];
       }
     }
+    const returnedMethods = new Set(probes.map((probe) => probe.method));
+    for (const method of ["server_redirect", "persisted_fields_get", "server_metadata_get"] as const) {
+      if (!returnedMethods.has(method)) probes.push({
+        method,
+        outcome: "inconclusive",
+        reason: `La sonda read-only ${method} non e disponibile nel driver corrente; nessun Salva autorizzato.`,
+        evidenceId: `probe-unavailable-${method}-${digest(`${customerKey}:${draftId}:${pageId}`).slice(0, 16)}`,
+        observedAt: this.now().toISOString(),
+        url: "https://bonusfiscali.enea.it/",
+      });
+    }
     for (const probe of probes) {
       const before = this.execution.snapshot(this.now()).items.find((item) => item.customerKey === customerKey)?.uncertainPageSave;
       if (!before || !["probing", "operator_required"].includes(before.status)) break;
+      if (before.probes.some((candidate) => candidate.method === probe.method)) continue;
       this.execution.recordUncertainPageSaveProbe(customerKey, probe, this.actionId(customerKey, "execution-uncertain-page-save-probe", `${pageId}:${probe.method}:${probe.evidenceId}`), this.now());
     }
     const resolution = this.execution.snapshot(this.now()).items.find((item) => item.customerKey === customerKey)?.uncertainPageSave;
     if (resolution?.status === "resolved_saved") {
       return this.record({ commandId: this.actionId(customerKey, "uncertain-page-save-auto-resolved", evidenceId), event: "action_completed", customerKey, action: "uncertain_page_save_auto_resolved", evidenceId: resolution.probes.find((probe) => probe.outcome === "saved")?.evidenceId ?? evidenceId, reason: `${pageId} verificata salvata con prove read-only; nessun secondo Salva.` }, "running");
+    }
+    if (resolution?.status === "recovery_authorized") {
+      const authorizationEvidenceId = resolution.probes.find((probe) => probe.method === "persisted_fields_get" && probe.outcome === "not_saved")?.evidenceId ?? evidenceId;
+      return this.record({ commandId: this.actionId(customerKey, "uncertain-page-save-recovery-authorized", authorizationEvidenceId), event: "action_completed", customerKey, action: "uncertain_page_save_recovery_authorized", evidenceId: authorizationEvidenceId, reason: `${pageId}: GET canonica sulla stessa bozza prova not_saved; autorizzato un solo Salva di recupero con budget residuo uno.`, appliedRuleIds: [...RULE_IDS, "system-worker-recovery-queued-continuation-v1", "system-sequencer-recovery-queued-server-proof-v1"] }, "running");
+    }
+    if (resolution?.status === "probing") {
+      return this.record({ commandId: this.actionId(customerKey, "uncertain-page-save-probes-incomplete", evidenceId), event: "heartbeat", customerKey, action: "uncertain_page_save_probes_incomplete", evidenceId, reason: `${pageId}: ciclo di sonde read-only non ancora terminale; nessun verdetto e nessun Salva.` }, "running");
     }
     const state = this.record({ commandId: this.actionId(customerKey, "uncertain-page-save-operator-required", evidenceId), event: "case_isolated", customerKey, action: "uncertain_page_save_operator_required", evidenceId, reason: `${pageId}: prove read-only non conclusive; richiesta decisione operatore, nessun retry.` }, "running");
     if (!state.blockedCustomerKeys.includes(customerKey)) { state.blockedCustomerKeys.push(customerKey); this.write(state); }

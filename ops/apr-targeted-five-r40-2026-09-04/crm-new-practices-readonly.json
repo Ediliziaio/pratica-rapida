@@ -1,0 +1,62 @@
+{
+  "version": "apr-crm-new-practices-readonly-v1",
+  "observedAt": "2026-09-03T23:19:23.911Z",
+  "baselineAt": "2026-09-02T06:57:46.749Z",
+  "endpoint": "/rest/v1/enea_practices_public",
+  "method": "GET",
+  "mutationAllowed": false,
+  "totalNew": 4,
+  "stageCounts": {
+    "Archiviate": 0,
+    "Da inserire su Excel": 0,
+    "Recensione": 4
+  },
+  "cases": [
+    {
+      "practiceId": "c532a65b-221b-4576-976a-75fe0211ea73",
+      "displayName": "FRANCESCO FUMAGALLI",
+      "stage": "Recensione",
+      "createdAt": "2026-09-02T12:06:30.994239+00:00"
+    },
+    {
+      "practiceId": "8be58e61-262c-457d-b52f-f73dd6993050",
+      "displayName": "Milena Malavolta",
+      "stage": "Recensione",
+      "createdAt": "2026-09-02T13:41:18.644349+00:00"
+    },
+    {
+      "practiceId": "6471e17a-5951-4a74-82d8-3298d0b56ba7",
+      "displayName": "GIOVANNA CONTI",
+      "stage": "Recensione",
+      "createdAt": "2026-09-02T14:53:46.864851+00:00"
+    },
+    {
+      "practiceId": "e51021fc-bb79-4c16-a1a2-f5c717c3a5d5",
+      "displayName": "Nelson Malagoli",
+      "stage": "Recensione",
+      "createdAt": "2026-09-02T15:42:12.894252+00:00"
+    }
+  ],
+  "verification": [
+    {
+      "method": "server-side created_at filter per stage",
+      "archiviateResponseSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "gestionaleResponseSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "recensioneResponseSha256": "999155578668c0551567dcf3001f5862e230ad28f4faf768c0c3e6d9c8d87132"
+    },
+    {
+      "method": "full-stage query then local created_at filter",
+      "result": { "Archiviate": 0, "Da inserire su Excel": 0, "Recensione": 4 },
+      "responseSha256": {
+        "Archiviate": "ad8d454f78170f3adb2aa3da2b4340c0e7a96c2d6724ecfe861885ef8449db99",
+        "Da inserire su Excel": "da56b5843f0c1d1c375ff7759916600e6c35648930d79a8052271e2d87c5111c",
+        "Recensione": "b171faf0f4aaff048956a63ed12ae3e83fc8d1d55345300791ed9206bd35fd9c"
+      }
+    },
+    {
+      "method": "combined three-stage query then local stage/date partition",
+      "result": { "total": 4 },
+      "responseSha256": "55603d236fa8d556216a26c2b157277361c904ad06e39209d64b2a3b815d62ec"
+    }
+  ]
+}

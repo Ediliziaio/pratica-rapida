@@ -1,0 +1,248 @@
+{
+  "version": "apr-rinaldi-internal-exclusion-diagnostic-r40-v1",
+  "generatedAt": "2026-09-03T22:13:12.407Z",
+  "manifestSha256": "51842252f71cabb6714f78923fe59ec9789ad06739393f61a553bb4bdb9154e0",
+  "safety": {
+    "localOnly": true,
+    "originalExtractedTextsOnly": true,
+    "eneaAccessed": false,
+    "externalActionAllowed": false
+  },
+  "rinaldi": {
+    "caseCount": 11,
+    "cases": [
+      {
+        "customerKey": "lucia-droghetti",
+        "displayName": "LUCIA DROGHETTI",
+        "invoiceEvidenceCount": 2,
+        "explicitDeductibleLines": [],
+        "result": {
+          "usable": true,
+          "total": 2000,
+          "blockers": [],
+          "appliedRuleIds": [],
+          "auditNotes": []
+        }
+      },
+      {
+        "customerKey": "filippo-bigalli",
+        "displayName": "Filippo Bigalli",
+        "invoiceEvidenceCount": 0,
+        "explicitDeductibleLines": [],
+        "result": {
+          "usable": false,
+          "total": null,
+          "blockers": [
+            "fonti-assenti",
+            "nessuna-fattura-economica-valida"
+          ],
+          "appliedRuleIds": [
+            "user-2026-08-31-no-valid-economic-invoice-operator-v1"
+          ],
+          "auditNotes": []
+        }
+      },
+      {
+        "customerKey": "alessandro-zaniboni",
+        "displayName": "Alessandro Zaniboni",
+        "invoiceEvidenceCount": 0,
+        "explicitDeductibleLines": [],
+        "result": {
+          "usable": false,
+          "total": null,
+          "blockers": [
+            "fonti-assenti",
+            "nessuna-fattura-economica-valida"
+          ],
+          "appliedRuleIds": [
+            "user-2026-08-31-no-valid-economic-invoice-operator-v1"
+          ],
+          "auditNotes": []
+        }
+      },
+      {
+        "customerKey": "luca-ronconi",
+        "displayName": "Luca Ronconi",
+        "invoiceEvidenceCount": 2,
+        "explicitDeductibleLines": [],
+        "result": {
+          "usable": true,
+          "total": 1575.01,
+          "blockers": [],
+          "appliedRuleIds": [],
+          "auditNotes": []
+        }
+      },
+      {
+        "customerKey": "lia-chiericati",
+        "displayName": "Lia Chiericati",
+        "invoiceEvidenceCount": 2,
+        "explicitDeductibleLines": [
+          {
+            "sourceId": "767690a408c59fd003f6881c000d4e6640f437c65796b9d411b42eb66b72e8a2:invoice:23ef6cb1c979",
+            "lineId": "767690a408c59fd003f6881c000d4e6640f437c65796b9d411b42eb66b72e8a2:invoice:23ef6cb1c979:deductible:57",
+            "lineNumber": 57,
+            "text": "TOTALE SPESE CONGRUE SOSTENUTE IN BASE AI MASSIMALI AMMESSI € 4793,20",
+            "amount": 4793.2,
+            "extractionConfidence": "certain"
+          }
+        ],
+        "result": {
+          "usable": true,
+          "total": 4793.2,
+          "blockers": [],
+          "appliedRuleIds": [
+            "user-2026-08-14-rinaldi-explicit-deductible-total"
+          ],
+          "auditNotes": [
+            "767690a408c59fd003f6881c000d4e6640f437c65796b9d411b42eb66b72e8a2:invoice:23ef6cb1c979|fattura=758/26|riga=57|testo=TOTALE SPESE CONGRUE SOSTENUTE IN BASE AI MASSIMALI AMMESSI € 4793,20|importo_pratica=4793.20|lordi_fatture=8070.01|scope=insieme_fatture_pratica_rinaldi|regola=user-2026-08-14-rinaldi-explicit-deductible-total"
+          ]
+        }
+      },
+      {
+        "customerKey": "claudia-campagna",
+        "displayName": "Claudia Campagna",
+        "invoiceEvidenceCount": 2,
+        "explicitDeductibleLines": [
+          {
+            "sourceId": "bc1c47d94bba13b01b0576c9d4edea5b892cb570726f2528e5d66c813b751cbe:invoice:954feed02bfb",
+            "lineId": "bc1c47d94bba13b01b0576c9d4edea5b892cb570726f2528e5d66c813b751cbe:invoice:954feed02bfb:deductible:43",
+            "lineNumber": 43,
+            "text": "TOTALE SPESE CONGRUE SOSTENUTE IN BASE AI MASSIMALI AMMESSI € 2276,06",
+            "amount": 2276.06,
+            "extractionConfidence": "certain"
+          }
+        ],
+        "result": {
+          "usable": true,
+          "total": 2276.06,
+          "blockers": [],
+          "appliedRuleIds": [
+            "user-2026-08-16-distinct-invoice-numbers-same-customer-sum",
+            "user-2026-08-14-rinaldi-explicit-deductible-total"
+          ],
+          "auditNotes": [
+            "fatture-distinte-stesso-dossier:729/26=858.00|869/26=2102.00|somma=2960.00",
+            "bc1c47d94bba13b01b0576c9d4edea5b892cb570726f2528e5d66c813b751cbe:invoice:954feed02bfb|fattura=869/26|riga=43|testo=TOTALE SPESE CONGRUE SOSTENUTE IN BASE AI MASSIMALI AMMESSI € 2276,06|importo_pratica=2276.06|lordi_fatture=2960.00|scope=insieme_fatture_pratica_rinaldi|regola=user-2026-08-14-rinaldi-explicit-deductible-total"
+          ]
+        }
+      },
+      {
+        "customerKey": "paolino-bellini",
+        "displayName": "Paolino Bellini",
+        "invoiceEvidenceCount": 1,
+        "explicitDeductibleLines": [],
+        "result": {
+          "usable": false,
+          "total": null,
+          "blockers": [
+            "terna-fattura-incerta:4ea2c1911aa83f18aae00ac2a9ba9b7cb9039896a82f3474b9c1ede95bbd4487:invoice:264f0ccd0374",
+            "nessuna-fattura-economica-valida"
+          ],
+          "appliedRuleIds": [
+            "user-2026-08-31-no-valid-economic-invoice-operator-v1"
+          ],
+          "auditNotes": []
+        }
+      },
+      {
+        "customerKey": "romeo-ropa",
+        "displayName": "Romeo Ropa",
+        "invoiceEvidenceCount": 2,
+        "explicitDeductibleLines": [
+          {
+            "sourceId": "c40a3c574209edbc74dfa65c86cd66a2a747e23c4d28beb50045ac2aac3efb24:invoice:4fc39536cbdc",
+            "lineId": "c40a3c574209edbc74dfa65c86cd66a2a747e23c4d28beb50045ac2aac3efb24:invoice:4fc39536cbdc:deductible:43",
+            "lineNumber": 43,
+            "text": "TOTALE SPESE CONGRUE SOSTENUTE IN BASE AI MASSIMALI AMMESSI € 2826,81",
+            "amount": 2826.81,
+            "extractionConfidence": "certain"
+          }
+        ],
+        "result": {
+          "usable": true,
+          "total": 2826.81,
+          "blockers": [],
+          "appliedRuleIds": [
+            "user-2026-08-16-distinct-invoice-numbers-same-customer-sum",
+            "user-2026-08-14-rinaldi-explicit-deductible-total"
+          ],
+          "auditNotes": [
+            "fatture-distinte-stesso-dossier:583/26=930.00|802/26=2320.01|somma=3250.01",
+            "c40a3c574209edbc74dfa65c86cd66a2a747e23c4d28beb50045ac2aac3efb24:invoice:4fc39536cbdc|fattura=802/26|riga=43|testo=TOTALE SPESE CONGRUE SOSTENUTE IN BASE AI MASSIMALI AMMESSI € 2826,81|importo_pratica=2826.81|lordi_fatture=3250.01|scope=insieme_fatture_pratica_rinaldi|regola=user-2026-08-14-rinaldi-explicit-deductible-total"
+          ]
+        }
+      },
+      {
+        "customerKey": "rocco-giacotto",
+        "displayName": "Rocco Giacotto",
+        "invoiceEvidenceCount": 0,
+        "explicitDeductibleLines": [],
+        "result": {
+          "usable": false,
+          "total": null,
+          "blockers": [
+            "fonti-assenti",
+            "nessuna-fattura-economica-valida"
+          ],
+          "appliedRuleIds": [
+            "user-2026-08-31-no-valid-economic-invoice-operator-v1"
+          ],
+          "auditNotes": []
+        }
+      },
+      {
+        "customerKey": "danila-serpa",
+        "displayName": "Danila Serpa",
+        "invoiceEvidenceCount": 1,
+        "explicitDeductibleLines": [],
+        "result": {
+          "usable": true,
+          "total": 1160.01,
+          "blockers": [],
+          "appliedRuleIds": [],
+          "auditNotes": []
+        }
+      },
+      {
+        "customerKey": "franco-screpanti",
+        "displayName": "Franco Screpanti",
+        "invoiceEvidenceCount": 0,
+        "explicitDeductibleLines": [],
+        "result": {
+          "usable": false,
+          "total": null,
+          "blockers": [
+            "fonti-assenti",
+            "nessuna-fattura-economica-valida"
+          ],
+          "appliedRuleIds": [
+            "user-2026-08-31-no-valid-economic-invoice-operator-v1"
+          ],
+          "auditNotes": []
+        }
+      }
+    ]
+  },
+  "permanentInternalExclusion": {
+    "version": "apr-future-test-exclusions-v6",
+    "exact": {
+      "kind": "customer",
+      "canonicalKey": "prova-rivenditore-1-30-04",
+      "displayName": "PROVA RIVENDITORE 1 30/04",
+      "reason": "Pratica interna confermata dall'utente ed esclusa permanentemente dall'automazione APR.",
+      "sourceField": "customerKey",
+      "sourceValue": "prova-rivenditore-1-30-04"
+    },
+    "nearMisses": [
+      {
+        "displayName": "PROVA RIVENDITORE 1 30/05",
+        "exclusion": null
+      },
+      {
+        "displayName": "RIVENDITORE 1 30/04",
+        "exclusion": null
+      }
+    ]
+  }
+}

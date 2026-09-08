@@ -1,0 +1,46 @@
+{
+  "version": "apr-official-municipality-preinstall-gate-r55-v1",
+  "verifiedAt": "2026-09-05T02:30:00Z",
+  "status": "tested_not_deployed",
+  "corrections": [
+    "user-2026-09-05-official-municipality-canonical-identity-v1",
+    "system-dashboard-in-process-sandbox-test-transport-v1"
+  ],
+  "monotonicGate": {
+    "testSuites": 446,
+    "tests": 1764,
+    "failedSuites": 0,
+    "failedTests": 0,
+    "rulesProved": 135,
+    "typecheck": "green",
+    "fullReportSha256": "419c891b4fcd57dd35d0ffcb3ad1b37b9a340e9173c5a039810d20ca086581b2",
+    "ruleProofSha256": "0c8b8b35eeb4cfcedc0e03fcb3863032a6306c0aa5736b404abe2bda1f8d2ddd",
+    "sourceFingerprint": "86f1a7e800b7644df828842d74c552d98d0862f22788730845831fd828e49822"
+  },
+  "municipalityEvidence": {
+    "officialSource": "https://www.istat.it/storage/codici-unita-amministrative/Elenco-comuni-italiani.xlsx",
+    "sourceSha256": "83842076860450f7e482daecea6b7a769f5f93d0bf5b0d48802b44896d7a26d5",
+    "catalogDate": "2026-02-21",
+    "municipalityCount": 7894,
+    "sellatiInput": "MONTECOMPATRI (RM)",
+    "canonicalResult": "Monte Compatri (RM)",
+    "istatCode": "058060",
+    "cadastralCode": "F477",
+    "negativeGates": ["omonimia senza provincia", "provincia discordante", "refuso lessicale non grafico"]
+  },
+  "dashboardTestEnvironment": {
+    "sandbox": "442/442 suite logiche e 1688/1688 test verdi senza socket dashboard",
+    "socketChrome": "2/2 file e 76/76 test verdi, seriali, su fixture locali reali",
+    "permanentCommands": ["npm run test:apr:sandbox", "npm run test:apr:socket-integration"],
+    "regressionGuard": "localDashboardSandboxContract.test.ts"
+  },
+  "stagedBundle": {
+    "apr-supervisor.mjs": "2a3a7ff8f673de1d193572fb655adc2a8705b9bf688bff26804352733b01e447",
+    "apr-enea-worker.mjs": "92da8433d4225ecc50a0536e450329693a2279283104ab577695863fe4227df7",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "apr-pdf-ocr": "4c41c9a6832b11b9d19eace538100270a533dddc05e475e5842711968393327f"
+  },
+  "previousCanonicalVersion": "be4fdbe8-sellati-ronconi-general-r54-20260905",
+  "candidateVersion": "92da8433-official-municipality-r55-20260905",
+  "sellatiCleanReplayAuthorized": true
+}

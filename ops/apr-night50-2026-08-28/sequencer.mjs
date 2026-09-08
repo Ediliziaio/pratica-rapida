@@ -6,14 +6,14 @@ import {
   executionProgressFingerprint,
   observeSessionWait,
 } from "./sequencerSessionGuard.mjs";
-import { classifySequencerFailure, createVerifiedCommonTechnicalFailure } from "./sequencerFailurePolicy.mjs";
+import { createVerifiedCommonTechnicalFailure, executeSequencerCaseBulkhead } from "./sequencerFailurePolicy.mjs";
 import { buildPreflightWaitHeartbeat, resolveCommonPreflightBlock, resolveInfissiPreflightDisposition } from "./sequencerPreflightGuard.mjs";
+import { protectedCohortBootout } from "../../scripts/enea-shadow-runner/aprChromeKeepaliveProtection.mjs";
 
 const cohortsRoot = "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts";
 const runRoot = "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-night50-2026-08-28";
 const cleanSource = realpathSync(process.env.APR_SOURCE_ROOT ?? process.cwd());
 const sourceRoot = `${cohortsRoot}/apr-pilot-84-five-simple-tommasina`;
-const sourceManifest = "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/reports/apr-wide-blocker-snapshot-2026-08-26-e30a7f6.json";
 const canonicalBundles = realpathSync("/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/current");
 const loader = "/private/tmp/apr-ts-loader.mjs";
 const node = "/usr/local/bin/node";
@@ -124,7 +124,9 @@ function bootstrap(plist, label) {
   if (!loaded(label)) command("launchctl", ["bootstrap", "gui/501", plist], { name: `bootstrap_${label}` });
 }
 function bootout(label) {
-  if (loaded(label)) command("launchctl", ["bootout", `gui/501/${label}`], { name: `bootout_${label}`, allowFailure: true });
+  protectedCohortBootout(label, (safeLabel) => {
+    if (loaded(safeLabel)) command("launchctl", ["bootout", `gui/501/${safeLabel}`], { name: `bootout_${safeLabel}`, allowFailure: true });
+  });
 }
 function label(item, role) { return `com.praticarapida.apr-enea-cohort${item.cohort}-${role}`; }
 function cohortRoot(item) { return `${cohortsRoot}/apr-pilot-${item.cohort}-night50-${item.customerKey}`; }
@@ -219,7 +221,7 @@ async function prepare(item) {
     return null;
   }, 20 * 60 * 1000, createPreflightWaitHeartbeat(item, "execution-preflight"));
   const mappingPath = `${root}/enea-operational-bridge/${item.customerKey}-mapping.json`;
-  if (!existsSync(mappingPath)) command(node, ["--experimental-transform-types", `--experimental-loader=${loader}`, "scripts/enea-shadow-runner/apr-enea-operational-bridge-prepare-cli.ts", "--source-manifest", sourceManifest, "--customer-key", item.customerKey, "--output", mappingPath], { name: "bridge_prepare" });
+  if (!existsSync(mappingPath)) command(node, ["--experimental-transform-types", `--experimental-loader=${loader}`, "scripts/enea-shadow-runner/apr-enea-operational-bridge-prepare-cli.ts", "--state-dir", root, "--customer-key", item.customerKey, "--output", mappingPath], { name: "bridge_prepare" });
   if (!existsSync(`${root}/enea-operational-bridge/checkpoint.json`)) command(node, [`${install}/apr-enea-worker.mjs`, "bridge-arm", "--state-dir", root, "--customer-key", item.customerKey, "--mapping-artifact", mappingPath, "--authorization-id", authorizationId], { name: "bridge_arm", cwd: install });
   return { root, install };
 }
@@ -297,9 +299,9 @@ async function runCaseUnsafe(item, previous) {
     return item;
   }
   if (terminal.kind === "case_block") {
-    const result = resultFromEntry(item, terminal.entry);
+    const result = resultFromEntry(item, terminal.entry, terminal.entry?.state === "technical_block" ? "technical_block" : "operator_required");
     state.results.push(result);
-    persist("case_operator_required", result);
+    persist(result.state === "technical_block" ? "case_technical_block" : "case_operator_required", result);
     return item;
   }
   throw createVerifiedCommonTechnicalFailure(
@@ -315,27 +317,26 @@ async function runCase(item, previous) {
   state.phaseHeartbeatAt = new Date().toISOString();
   state.nextAction = `Preparare i controlli locali per ${item.displayName}.`;
   persist("case_preparing", { customerKey: item.customerKey, cohort: item.cohort });
-  try {
-    return await runCaseUnsafe(item, previous);
-  } catch (error) {
-    const failure = classifySequencerFailure(error);
-    if (failure.scope === "common_technical") throw error;
-    bootout(label(item, "watchdog"));
-    bootout(label(item, "worker"));
-    const execution = readJson(`${cohortRoot(item)}/enea-draft-execution/checkpoint.json`);
-    const entry = execution?.items?.find((candidate) => candidate.customerKey === item.customerKey);
-    const existing = state.results.find((candidate) => candidate.customerKey === item.customerKey);
-    const result = existing ?? {
-      ...resultFromEntry(item, entry ?? { reason: failure.reason }),
-      reason: failure.reason,
-      question: failure.question,
-      technicalReason: failure.technicalReason,
-      appliedRuleIds: failure.appliedRuleIds,
-    };
-    if (!existing) state.results.push(result);
-    persist("case_operator_required_from_unresolved_inconsistency", result);
-    return item;
-  }
+  const boundary = await executeSequencerCaseBulkhead({
+    runCase: () => runCaseUnsafe(item, previous),
+    isolateCase: async (failure) => {
+      bootout(label(item, "watchdog"));
+      bootout(label(item, "worker"));
+      const execution = readJson(`${cohortRoot(item)}/enea-draft-execution/checkpoint.json`);
+      const entry = execution?.items?.find((candidate) => candidate.customerKey === item.customerKey);
+      const existing = state.results.find((candidate) => candidate.customerKey === item.customerKey);
+      const result = existing ?? {
+        ...resultFromEntry(item, entry ?? { reason: failure.reason }, "technical_block"),
+        reason: failure.reason,
+        technicalReason: failure.technicalReason,
+        appliedRuleIds: failure.appliedRuleIds,
+      };
+      if (!existing) state.results.push(result);
+      persist("case_technical_block_after_isolation", result);
+    },
+  });
+  if (boundary.action === "stop_batch") throw boundary.error;
+  return boundary.action === "completed" ? boundary.value : item;
 }
 
 try {

@@ -1,8 +1,8 @@
 import { createHash, randomUUID } from "node:crypto";
 import { closeSync, existsSync, fsyncSync, mkdirSync, openSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { registryRule } from "../../src/features/enea-shadow-crm/operationalRegistry";
-import { PersistentAprCrmAuthenticatedReadOnly } from "./crmAuthenticatedReadOnly";
+import { AUTO_CURRENT_VALIDATION_REVISION, registryRule } from "../../src/features/enea-shadow-crm/operationalRegistry";
+import { aprDocumentProcessingDossiers, PersistentAprCrmAuthenticatedReadOnly } from "./crmAuthenticatedReadOnly";
 import type { PersistentAprCrmAuth } from "./crmAuth";
 import { PersistentAprCrmDocumentAnalysis, type LocalPdfAnalyzer } from "./crmDocumentAnalysis";
 import type { PersistentAprCrmIncomingReadOnly } from "./crmIncomingReadOnly";
@@ -36,6 +36,8 @@ const PARSER_REVISIONS = [
   "invoice-parser-v30-explicit-surface-and-lm-cardinality",
   "invoice-parser-v31-rinaldi-sp-dot-and-vat-layout",
   "invoice-parser-v36-screening-unit-surface-coherence",
+  "invoice-parser-v37-financial-document-layouts-r29",
+  "invoice-parser-v38-rotated-fiscal-bank-layouts-r30",
 ] as const;
 const VALIDATION_REVISIONS = [
   "form-group-product-inheritance-v1", "full-enea-payload-audit-v1", "authorized-gtot-payload-provenance-v2", "test-draft-payload-gate-v3",
@@ -252,8 +254,7 @@ export class PersistentAprCrmLiveProcessing {
     if (this.acquisition.snapshot(now).status !== "completed") await this.acquisition.tick(now);
     const acquisition = this.acquisition.snapshot(now);
     if (acquisition.status === "completed") {
-      const dossiers = acquisition.items.filter((item) => item.state === "acquired" && item.practiceId && item.dossierPath)
-        .map((item) => ({ customerKey: item.customerKey, practiceId: item.practiceId!, dossierPath: item.dossierPath! }));
+      const dossiers = aprDocumentProcessingDossiers(acquisition.items);
       if (this.documents.snapshot(now).status === "unprepared") this.documents.prepare(dossiers, now);
     }
     this.documents.applyOriginalImageSupport("original-images-png-jpeg-v1", now);
@@ -271,8 +272,16 @@ export class PersistentAprCrmLiveProcessing {
     }
     this.analysis.applyAnalyzerRepair("pdf-analyzer-live-runtime-path-v2", now);
     this.analysis.applyNonFiscalImageRepair("original-image-non-fiscal-classification-v3", now);
+    this.analysis.applyOcrOrientationRevision("document-ocr-orientation-normalization-v1", now);
     if (this.analysis.snapshot(now).status !== "completed") await this.analysis.tick(now);
     if (this.analysis.snapshot(now).status === "completed") for (const revision of PARSER_REVISIONS) this.analysis.applyParserRevision(revision, now);
+    // Difetto strutturale (2026-09-08): PARSER_REVISIONS era un elenco scritto
+    // a mano fermo a una correzione vecchia (ferma molto prima delle decine di
+    // correzioni piu' recenti, incluse quelle di oggi) mentre elenchi paralleli
+    // in altri file arrivavano molto piu' avanti - una divergenza reale, non
+    // ipotetica. Questa riga sostituisce la necessita' di estendere l'elenco a
+    // mano: l'identificatore cambia da solo a ogni modifica del registro.
+    if (this.analysis.snapshot(now).status === "completed") this.analysis.applyParserRevision(AUTO_CURRENT_VALIDATION_REVISION, now);
     const analysis = this.analysis.snapshot(now);
     if (acquisition.status === "completed" && analysis.status === "completed") {
       const acquired = acquisition.items.filter((item) => item.state === "acquired");
@@ -288,6 +297,9 @@ export class PersistentAprCrmLiveProcessing {
     }
     if (this.preflight.snapshot(now).status !== "completed") this.preflight.tick(now);
     if (this.preflight.snapshot(now).status === "completed") for (const revision of VALIDATION_REVISIONS) this.preflight.applyValidationRevision(revision, now);
+    // Vedi la nota su PARSER_REVISIONS sopra: stessa correzione, stessa
+    // ragione. Nessuna riga da aggiungere qui per le correzioni future.
+    if (this.preflight.snapshot(now).status === "completed") this.preflight.applyValidationRevision(AUTO_CURRENT_VALIDATION_REVISION, now);
     if (this.preflight.snapshot(now).status === "completed") this.draftPackages.synchronize(now);
     if (this.draftPackages.snapshot(now).status === "completed") this.draftHandoff.synchronize(now);
     if (this.draftHandoff.snapshot(now).status === "staged_fail_closed") this.executorIntake.tick(now);

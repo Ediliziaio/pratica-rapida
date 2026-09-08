@@ -1,0 +1,10 @@
+{
+  "version": "apr-screening-rounding-r19-gate-attestation-v1",
+  "recordedAt": "2026-08-31T18:19:29Z",
+  "sourceCommit": "4b5d427cf06dfed43a190ce3888413b61172de36",
+  "sourceTree": "508921baaa561703117f587ffc1f8b1b5af9b972",
+  "runtimeGate": { "status": "PASS", "testFiles": 216, "tests": 1609, "failed": 0, "durationSeconds": 405.61, "typecheck": "PASS", "productionBuild": "PASS" },
+  "terminalTruthFocusedGate": { "status": "PASS", "testFiles": 3, "tests": 36, "failed": 0, "immutableSameSourceRewrite": "PASS" },
+  "registryVersion": "enea-operational-registry-v97",
+  "matrixVersion": "apr-enea-rule-test-matrix-v74"
+}

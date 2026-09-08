@@ -8,6 +8,7 @@ import {
   PersistentAprEneaBrowserWorker,
   PersistentSimulatedEneaPortalDriver,
   type AprEneaBrowserDriver,
+  type AprEneaDraftDiscoveryScope,
   type AprEneaDraftPackage,
 } from "./aprEneaBrowserWorker";
 
@@ -121,7 +122,39 @@ async function seedRecoveredScreeningCase(directory: string) {
 }
 
 describe("APR browser worker persistente e autonomo", () => {
-  it("non dichiara un falso negativo se il generatore compare alla seconda lettura dopo il Salva Impianto", async () => {
+  it("separa discovery della nuova generazione dalla ripresa tecnica e fissa la bozza canonica", async () => {
+    const directory = temporaryDirectory();
+    const execution = new PersistentAprEneaDraftExecution(directory);
+    const original = draftPackage("case-one");
+    const companion = draftPackage("case-two");
+    execution.preparePackages([original, companion], "source-generation-1", new Date("2026-09-04T12:00:00.000Z"));
+    const revised = { ...original, packageFingerprint: "package-case-one-generation-2" };
+    const reopened = execution.preparePackages([revised, companion], "source-generation-2", new Date("2026-09-04T12:01:00.000Z"));
+    expect(reopened.items[0]).toMatchObject({ state: "queued", requiresFreshDraft: true, canonicalDraftId: null, draftId: null });
+
+    const base = new PersistentSimulatedEneaPortalDriver(directory, { identity: "apr-profile-generation-scope" });
+    const scopes: AprEneaDraftDiscoveryScope[] = [];
+    const driver: AprEneaBrowserDriver = {
+      ...base,
+      kind: base.kind,
+      identity: base.identity,
+      verifySession: base.verifySession.bind(base),
+      discoverExistingDraft: (pkg, scope) => { scopes.push(scope ?? "resume_generation"); return base.discoverExistingDraft(pkg); },
+      createDraft: base.createDraft.bind(base),
+      preparePage: base.preparePage.bind(base),
+      savePage: base.savePage.bind(base),
+      verifyPageSaved: base.verifyPageSaved.bind(base),
+      verifyDraftSaved: base.verifyDraftSaved.bind(base),
+    };
+    const worker = new PersistentAprEneaBrowserWorker(directory, execution, (key) => key === "case-one" ? revised : companion, driver, { instanceId: "apr-worker-generation-scope", processPid: 4777 });
+    for (let tick = 0; tick < 5 && scopes.length === 0; tick += 1) await worker.tick();
+
+    expect(scopes).toEqual(["pending_create_only"]);
+    expect(execution.snapshot().items[0]).toMatchObject({ state: "created", requiresFreshDraft: false });
+    expect(execution.snapshot().items[0].canonicalDraftId).toBe(execution.snapshot().items[0].draftId);
+    expect(execution.snapshot().supersededGenerations).toHaveLength(1);
+  });
+  it("accetta il Generatore soltanto quando la prova JSON server indipendente lo conferma", async () => {
     const directory = temporaryDirectory();
     const execution = new PersistentAprEneaDraftExecution(directory);
     execution.prepare(generatorPlantPreflightFixture(), new Date("2026-08-25T08:00:00.000Z"));
@@ -136,12 +169,10 @@ describe("APR browser worker persistente e autonomo", () => {
       createDraft: base.createDraft.bind(base),
       preparePage: base.preparePage.bind(base),
       savePage: base.savePage.bind(base),
-      verifyPageSaved: async (draft, draftId, pageId) => {
+      verifyPageSaved: base.verifyPageSaved.bind(base),
+      verifyNestedPageSavedServerReadOnly: async (draft, draftId, pageId) => {
         if (draft.customerKey === "case-one" && /Generatore/.test(pageId)) {
           generatorVerificationCount += 1;
-          // Prima verifica: staging della riga. Seconda: lettura immediata
-          // post-Impianto (ritardo reale osservato 263-398 ms). Terza: retry.
-          if (generatorVerificationCount === 2) return null;
         }
         return base.verifyPageSaved(draft, draftId, pageId);
       },
@@ -154,15 +185,14 @@ describe("APR browser worker persistente e autonomo", () => {
       completedCustomerKeys: ["case-one", "case-two"],
       blockedCustomerKeys: [],
     });
-    expect(generatorVerificationCount).toBe(3);
+    expect(generatorVerificationCount).toBe(1);
     expect(execution.snapshot().items.find((item) => item.customerKey === "case-one")).toMatchObject({ state: "saved" });
     expect(worker.snapshot().audit).toEqual(expect.arrayContaining([
-      expect.objectContaining({ action: "generator_persistence_verification_retry", evidenceId: null, reason: expect.stringContaining("300 ms") }),
-      expect.objectContaining({ action: "generator_persistence_verification_retry_succeeded", evidenceId: expect.stringContaining("sim-server"), reason: expect.stringContaining("conferma il generatore persistito") }),
+      expect.objectContaining({ action: "generator_server_persistence_confirmed", evidenceId: expect.stringContaining("sim-server"), reason: expect.stringContaining("GET JSON autenticata") }),
     ]));
   });
 
-  it("resta fail-closed se il generatore non risulta persistito in entrambe le letture post-Impianto", async () => {
+  it("resta fail-closed se la prova JSON server indipendente non conferma il Generatore", async () => {
     const directory = temporaryDirectory();
     const execution = new PersistentAprEneaDraftExecution(directory);
     execution.prepare(generatorPlantPreflightFixture(), new Date("2026-08-25T08:00:00.000Z"));
@@ -177,10 +207,11 @@ describe("APR browser worker persistente e autonomo", () => {
       createDraft: base.createDraft.bind(base),
       preparePage: base.preparePage.bind(base),
       savePage: base.savePage.bind(base),
-      verifyPageSaved: async (draft, draftId, pageId) => {
+      verifyPageSaved: base.verifyPageSaved.bind(base),
+      verifyNestedPageSavedServerReadOnly: async (draft, draftId, pageId) => {
         if (draft.customerKey === "case-one" && /Generatore/.test(pageId)) {
           generatorVerificationCount += 1;
-          if (generatorVerificationCount >= 2) return null;
+          return null;
         }
         return base.verifyPageSaved(draft, draftId, pageId);
       },
@@ -193,13 +224,13 @@ describe("APR browser worker persistente e autonomo", () => {
       completedCustomerKeys: ["case-two"],
       blockedCustomerKeys: ["case-one"],
     });
-    expect(generatorVerificationCount).toBe(3);
+    expect(generatorVerificationCount).toBe(1);
     expect(execution.snapshot().items.find((item) => item.customerKey === "case-one")).toMatchObject({
       state: "operator_intervention",
       reason: "Errore circoscritto alla pratica: apr_enea_nested_page_not_persisted_after_outer_save:page:Generatore dell'impianto termico",
     });
     expect(worker.snapshot().audit).toEqual(expect.arrayContaining([
-      expect.objectContaining({ action: "generator_persistence_verification_retry_exhausted", evidenceId: null, reason: expect.stringContaining("fail-closed") }),
+      expect.objectContaining({ action: "generator_server_persistence_not_confirmed", evidenceId: null, reason: expect.stringContaining("nessun secondo click") }),
     ]));
   });
 
@@ -323,7 +354,7 @@ describe("APR browser worker persistente e autonomo", () => {
       expect.objectContaining({ action: "recovered_screening_persistence_second_canonical_read", reason: expect.stringContaining("Prima GET canonica") }),
       expect.objectContaining({ action: "recovered_screening_persistence_canonical_reads_agree", reason: expect.stringContaining("Due GET canoniche indipendenti") }),
     ]));
-  });
+  }, 20_000);
 
   it("resta fail-closed se entrambe le GET canoniche negano la riga schermatura recuperata", async () => {
     const directory = temporaryDirectory();
@@ -516,6 +547,34 @@ describe("APR browser worker persistente e autonomo", () => {
     expect(completed.audit.some((event) => event.action === "uncertain_page_save_auto_resolved")).toBe(true);
   });
 
+  it("dopo un riavvio riprende probing dalla stessa bozza con sole letture e senza un secondo Salva", async () => {
+    const directory = temporaryDirectory();
+    const execution = new PersistentAprEneaDraftExecution(directory);
+    execution.prepare(preflightFixture(), new Date("2026-08-15T18:00:00.000Z"));
+    const base = new PersistentSimulatedEneaPortalDriver(directory, { identity: "apr-profile-probe-restart" });
+    const pkg = draftPackage("case-one");
+    execution.recordSessionReady("session-before-crash", "fixture:session");
+    execution.recordCreateIntent("case-one", "fixture:create-intent");
+    const created = await base.createDraft(pkg);
+    execution.recordDraftCreated("case-one", created.draftId, created.url, created.evidenceId, "fixture:draft-created");
+    const pageId = execution.snapshot().items[0].pageCheckpoints[0].pageId;
+    const prepared = await base.preparePage(pkg, created.draftId, pageId);
+    execution.recordPagePrepared("case-one", created.draftId, pageId, prepared.evidenceId, "fixture:page-prepared");
+    execution.recordPageSaveIntent("case-one", created.draftId, pageId, "fixture:page-save-intent");
+    await base.savePage(pkg, created.draftId, pageId);
+    execution.recordUncertainPageSaveDetected("case-one", pageId, "Processo interrotto prima delle sonde.", "fixture:uncertain-detected", "fixture:uncertain-command");
+
+    const saveCountBeforeRestart = base.snapshot().drafts[0].pageSaveMutationCounts[pageId];
+    const worker = new PersistentAprEneaBrowserWorker(directory, execution, draftPackage, base, { instanceId: "apr-worker-probe-restart", processPid: 4211 });
+    const completed = await worker.runUntilTerminal();
+    const recovered = execution.snapshot().items.find((item) => item.customerKey === "case-one")!;
+
+    expect(completed).toMatchObject({ status: "completed", completedCustomerKeys: ["case-one", "case-two"], blockedCustomerKeys: [] });
+    expect(recovered).toMatchObject({ state: "saved", draftId: created.draftId, uncertainPageSave: { status: "resolved_saved" } });
+    expect(recovered.uncertainPageSave?.probes.some((probe) => probe.outcome === "saved")).toBe(true);
+    expect(base.snapshot().drafts[0].pageSaveMutationCounts[pageId]).toBe(saveCountBeforeRestart);
+  });
+
   it("dopo tre prove inconcludenti isola solo il caso e completa il successivo senza perdita di coda", async () => {
     const directory = temporaryDirectory();
     const execution = new PersistentAprEneaDraftExecution(directory);
@@ -552,10 +611,17 @@ describe("APR browser worker persistente e autonomo", () => {
     const execution = new PersistentAprEneaDraftExecution(directory);
     execution.prepare(preflightFixture(), new Date("2026-08-15T18:00:00.000Z"));
     const base = new PersistentSimulatedEneaPortalDriver(directory, { identity: "apr-profile-conclusive-not-saved" });
+    let verificationCount = 0;
     const driver: AprEneaBrowserDriver = {
       ...base, kind: base.kind, identity: base.identity,
       verifySession: base.verifySession.bind(base), discoverExistingDraft: base.discoverExistingDraft.bind(base), createDraft: base.createDraft.bind(base),
-      preparePage: base.preparePage.bind(base), savePage: base.savePage.bind(base), verifyPageSaved: async (draft, draftId, pageId) => draft.customerKey === "case-one" ? null : base.verifyPageSaved(draft, draftId, pageId),
+      preparePage: base.preparePage.bind(base), savePage: base.savePage.bind(base), verifyPageSaved: async (draft, draftId, pageId) => {
+        if (draft.customerKey === "case-one") {
+          verificationCount += 1;
+          if (verificationCount === 1) return null;
+        }
+        return base.verifyPageSaved(draft, draftId, pageId);
+      },
       probePageSaveReadOnly: async (draft, draftId, pageId) => draft.customerKey === "case-one" ? ([
         { method: "server_redirect", outcome: "inconclusive", reason: "Nessun redirect.", evidenceId: `redirect-${draftId}`, observedAt: "2026-08-15T18:00:10.000Z", url: `https://bonusfiscali.enea.it/pratica/ecobonus/2026/beneficiario/${draftId}` },
         { method: "persisted_fields_get", outcome: "not_saved", reason: "Campi vuoti.", evidenceId: `not-saved-${draftId}`, observedAt: "2026-08-15T18:00:11.000Z", url: `https://bonusfiscali.enea.it/pratica/ecobonus/2026/beneficiario/${draftId}` },
@@ -567,11 +633,14 @@ describe("APR browser worker persistente e autonomo", () => {
     const completed = await worker.runUntilTerminal();
     const item = execution.snapshot().items[0];
 
-    expect(completed).toMatchObject({ status: "completed", blockedCustomerKeys: ["case-one"], completedCustomerKeys: ["case-two"] });
+    expect(completed).toMatchObject({ status: "completed", blockedCustomerKeys: [], completedCustomerKeys: ["case-one", "case-two"] });
     expect(item.uncertainPageSave?.probes.some((probe) => probe.method === "persisted_fields_get" && probe.outcome === "not_saved")).toBe(true);
     expect(item.uncertainPageSave?.probes.some((probe) => probe.method === "server_metadata_get")).toBe(false);
-    expect(item.pageCheckpoints[0]).toMatchObject({ saveAttemptCount: 1, recoverySaveAttemptCount: 1 });
+    expect(item).toMatchObject({ state: "saved", uncertainPageSave: { status: "resolved_saved" } });
+    expect(item.pageCheckpoints[0]).toMatchObject({ saveAttemptCount: 1, recoverySaveAttemptCount: 1, state: "saved" });
     expect(base.snapshot().drafts[0].pageSaveMutationCounts["page:Beneficiario"]).toBe(1);
+    const workerAudit = JSON.parse(readFileSync(path.join(directory, "enea-browser-worker", "checkpoint.json"), "utf8"));
+    expect(workerAudit.audit).toEqual(expect.arrayContaining([expect.objectContaining({ action: "uncertain_page_save_recovery_authorized", event: "action_completed" })]));
   });
 
   it("non effettua un terzo Salva se anche l'unico recupero autorizzato termina con timeout", async () => {

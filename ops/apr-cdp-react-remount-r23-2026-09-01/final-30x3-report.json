@@ -1,0 +1,48 @@
+{
+  "version": "apr-cdp-react-remount-r23-final-30x3-report-v1",
+  "verifiedAt": "2026-09-01T23:16:00Z",
+  "status": "PASS_WITH_TECHNICAL_BLOCKS",
+  "totalRuns": 3,
+  "totalCaseExecutions": 90,
+  "rounds": [
+    {"round": 1, "saved": 17, "operatorRequired": 11, "technicalBlock": 2, "total": 30, "tripleVerification": "PASS"},
+    {"round": 2, "saved": 17, "operatorRequired": 11, "technicalBlock": 2, "total": 30, "tripleVerification": "PASS"},
+    {"round": 3, "saved": 16, "operatorRequired": 11, "technicalBlock": 3, "total": 30, "tripleVerification": "PASS"}
+  ],
+  "comparison": {
+    "round1VsRound2MismatchCount": 0,
+    "round2VsRound3MismatchCount": 1,
+    "changedCases": [
+      {
+        "customerKey": "roberto-marcello",
+        "displayName": "Roberto Marcello",
+        "round1": "saved",
+        "round2": "saved",
+        "round3": "technical_block",
+        "round3Reason": "apr_cdp_enea_field_verification_failed:id-comune_nascita"
+      }
+    ]
+  },
+  "verification": {
+    "reportVsCheckpointMismatchCountByRound": [0, 0, 0],
+    "journalVsCheckpointMismatchCountByRound": [0, 0, 0],
+    "terminalSnapshotsPresentByRound": [30, 30, 30],
+    "terminalSnapshotsConsistentByRound": [30, 30, 30],
+    "terminalSnapshotVsCheckpointMismatchCountByRound": [0, 0, 0],
+    "round3StaticDashboardVsCheckpointMismatchCount": 0
+  },
+  "integrity": {
+    "baseFreezeSha256": "d7d0a8c42260a0bfd773a2350524658929de84a57c2e7867bbfb7f9f60c39652",
+    "round3ObservabilityFixFreezeSha256": "dd75f41096444c7d46852901c7d7b833dcc5987ca53e4da3eb0aca9d0b8b46ad",
+    "manifestSha256": "55521654d4d859ad4014b599f951892e46397e11c95ca4a94cf643d612efb6fd",
+    "bundleVersionId": "e52389f5-terminal-observability-r23-fix-20260901"
+  },
+  "safety": {
+    "previewAttempted": false,
+    "submitAttempted": false,
+    "protocolAttempted": false,
+    "receiptsAttempted": false,
+    "emailAttempted": false,
+    "communicationsAttempted": false
+  }
+}

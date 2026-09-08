@@ -3,6 +3,7 @@ import { mapSchermaturaPractice } from "./mapper";
 import { ENEA_LAB_MOCK_PRACTICES } from "./mockPractices";
 import { buildEneaScreeningPortalScript } from "./portalScreening";
 import { buildEneaPayload, validatePreparedPractice } from "./preparation";
+import { PRODUCT_CLASSIFIER_RULE_IDS } from "../enea-shadow-crm/productClassifier";
 
 describe("sicurezza gTot ENEA", () => {
   it("blocca e non compila sul portale un gTot sostitutivo non documentato", () => {
@@ -65,16 +66,34 @@ describe("sicurezza gTot ENEA", () => {
     if (source.form.prodotto.tipo !== "schermature") throw new Error("Mock non schermature");
     source.form.prodotto.items = [source.form.prodotto.items[0]];
     const analysis = {
-      items: [{ widthMm: 1200, heightMm: 1000, surfaceM2: 1.2, gTot: null, description: "Tenda da sole", sourcePath: "fattura.pdf" }],
+      items: [{ widthMm: 1200, heightMm: 1000, surfaceM2: 1.2, gTot: null, description: "Zanzariera", sourcePath: "fattura.pdf" }],
       invoiceTotal: 1000, creditTotal: 0, eligibleExpense: 1000, firstInvoiceDate: "2026-07-01", lastInvoiceDate: "2026-07-01", documents: [], blockers: [], warnings: [],
     };
     const mapped = mapSchermaturaPractice(source, analysis, {
-      resolvedScreeningGTot: [{ value: 0.33, source: "authorized_fallback", ruleId: "user-2026-08-14-tenda-screening-gtot-033-fallback" }],
+      resolvedScreeningGTot: [{ value: 0.33, source: "authorized_fallback", ruleId: PRODUCT_CLASSIFIER_RULE_IDS.zanzarieraFallback }],
     });
     const issues = validatePreparedPractice(source, mapped, analysis);
     const field = mapped.sections.flatMap((section) => section.fields).find(({ id }) => id === "schermature.0.gtot");
 
-    expect(field).toMatchObject({ value: "0,33", source: "Regola controllata", appliedRuleIds: ["user-2026-08-14-tenda-screening-gtot-033-fallback"] });
+    expect(field).toMatchObject({ value: "0,33", source: "Regola controllata", appliedRuleIds: [PRODUCT_CLASSIFIER_RULE_IDS.zanzarieraFallback] });
     expect(issues.some(({ code }) => code === "unverified-gtot-0" || code === "invalid-gtot-0")).toBe(false);
+  });
+
+  it("consegna al piano portale il fallback tenda 0,13 soltanto con la regola certificata", () => {
+    const source = structuredClone(ENEA_LAB_MOCK_PRACTICES[0]);
+    if (source.form.prodotto.tipo !== "schermature") throw new Error("Mock non schermature");
+    source.form.prodotto.items = [source.form.prodotto.items[0]];
+    const analysis = {
+      items: [{ widthMm: 2650, heightMm: 2200, surfaceM2: 5.83, gTot: null, description: "Tenda da sole", sourcePath: "fattura-260.pdf" }],
+      invoiceTotal: 980, creditTotal: 0, eligibleExpense: 980, firstInvoiceDate: "2026-07-07", lastInvoiceDate: "2026-07-07", documents: [], blockers: [], warnings: [],
+    };
+    const mapped = mapSchermaturaPractice(source, analysis, {
+      resolvedScreeningGTot: [{ value: 0.13, source: "authorized_fallback", ruleId: PRODUCT_CLASSIFIER_RULE_IDS.genericAwningFallback }],
+    });
+    const issues = validatePreparedPractice(source, mapped, analysis);
+    const preparation = buildEneaScreeningPortalScript(mapped, 0);
+
+    expect(issues.some(({ code }) => code === "unverified-gtot-0" || code === "invalid-gtot-0")).toBe(false);
+    expect(preparation.runtime.fields).toContainEqual(expect.objectContaining({ portalId: "id-gtot", value: "0,13" }));
   });
 });

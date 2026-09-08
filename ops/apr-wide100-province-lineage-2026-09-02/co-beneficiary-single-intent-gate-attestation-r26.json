@@ -1,0 +1,53 @@
+{
+  "version": "apr-co-beneficiary-single-intent-gate-attestation-v1",
+  "recordedAt": "2026-09-02T10:03:25Z",
+  "status": "PASS",
+  "ruleId": "user-2026-09-02-co-beneficiary-single-intent-delivery-v1",
+  "diagnosis": {
+    "error": "apr_cdp_enea_co_beneficiary_save_unverified",
+    "cause": "A single persisted intent used pointer delivery without post-scroll remeasurement, hit-testing, mutation observation, or a guarded trusted-key delivery fallback; after some React remounts the pointer sequence caused no React click and no mutation.",
+    "caseDataExcluded": true,
+    "failClosed": true,
+    "singleIntent": true
+  },
+  "sourceHashes": {
+    "cdpEneaBrowserDriver.ts": "b49b33a42c5e36a4e4eb42a05c30bdbbc991ead3cc05ce72ea29725568775bbf",
+    "cdpEneaBrowserDriver.test.ts": "02aeb5c199e5f32e0fc4fa0e270dd4b076ad3daf79b940f1787336257133ae88",
+    "aprRuleEvidenceCatalog.ts": "99f9ed35f732852dc746b1f93b021371f4c0a9c50db56cf39e1d0913a5c8496a"
+  },
+  "verification": {
+    "integratedTestsPassed": 1630,
+    "integratedTestsFailed": 0,
+    "integratedTestsSkipped": 0,
+    "integratedReportSha256": "61e2f60f6b6eecb320f50b6524612cfed12253ee879bc90ddf46823a629f2e40",
+    "typecheck": "PASS",
+    "productionBuild": "PASS",
+    "runnerTypecheck": "PASS",
+    "registryVersion": "enea-operational-registry-v100",
+    "matrixVersion": "apr-enea-rule-test-matrix-v78",
+    "verifiedRuleCount": 88,
+    "gateStatus": "active_tested_deployed",
+    "sourceFingerprint": "5554931fc8671369a585eb4a9aa5e805b70c58fc87a95ff06374adbd2e79336f",
+    "gateEvidenceSha256": "0c4efffe9c093d9e5ac33efc2972f9aa87d1e3b1ccc5ceaa8714db0c8fb0ce08"
+  },
+  "deployment": {
+    "canonicalVersion": "versions/5b282fac-co-beneficiary-single-intent-r26-20260902",
+    "apr-enea-worker.mjs": "5b282facd50626ca14c188a6a91dc31eac7e35760edd4158c13f3b9e5f7ecfb3",
+    "apr-supervisor.mjs": "8f12038cb501f933720c01e90e5a0acb29d8d425503adbc2e534af906b9f94b3",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "builtMatchesInstalled": true
+  },
+  "frozenWideTest": {
+    "manifestSha256": "51842252f71cabb6714f78923fe59ec9789ad06739393f61a553bb4bdb9154e0",
+    "freezeSha256": "123899be794f49b763ccbe429ee922318fae5970198e4b6dfb0239d734e2afde",
+    "completedResultsPreserved": 22,
+    "resumeAtOneBasedCase": 23
+  },
+  "safety": {
+    "keepalivePid": 3784,
+    "chromePid": 3785,
+    "previewAttemptCount": 0,
+    "submitAttemptCount": 0,
+    "communicationAttemptCount": 0
+  }
+}

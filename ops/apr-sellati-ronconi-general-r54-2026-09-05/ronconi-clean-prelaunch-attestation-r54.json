@@ -1,0 +1,41 @@
+{
+  "version": "apr-ronconi-clean-prelaunch-attestation-r54-v1",
+  "createdAt": "2026-09-05T00:40:00Z",
+  "authorizationId": "user-2026-09-05-ronconi-new-clean-draft-r54",
+  "cohort": 3097,
+  "customerKey": "luca-ronconi",
+  "practiceId": "98d44d99-86af-4fec-ba55-ffe24d208e83",
+  "generationMode": "fresh_generation",
+  "historicalRetest": true,
+  "priorDraft": {
+    "draftId": "464262",
+    "disposition": "superseded_forbidden",
+    "resumeAuthorized": false,
+    "mutationAuthorized": false
+  },
+  "installedBundle": {
+    "versionId": "be4fdbe8-sellati-ronconi-general-r54-20260905",
+    "verification": "postinstall-verification-r54.json",
+    "status": "active_tested_deployed"
+  },
+  "preconditions": {
+    "cohortDirectoryAbsent": true,
+    "concurrentOperationalSequencerProcessAbsent": true,
+    "keepaliveRequired": true,
+    "chromeRequired": true
+  },
+  "allowedActions": [
+    "create_new_test_draft",
+    "fill_new_test_draft",
+    "save_new_test_draft"
+  ],
+  "forbiddenActions": [
+    "resume_draft_464262",
+    "mutate_draft_464262",
+    "preview",
+    "submit",
+    "protocol",
+    "receipt",
+    "communication"
+  ]
+}

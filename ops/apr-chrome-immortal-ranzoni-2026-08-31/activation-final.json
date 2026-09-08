@@ -1,0 +1,27 @@
+{
+  "version": "apr-final-bundle-activation-receipt-v1",
+  "activatedAt": "2026-08-31T14:23:51Z",
+  "freezeSha256": "9b883697bcf7a42b687ab2f4f60c4fbda5f2d3d73a38e7cd073ff8629e42d0ab",
+  "bundleVersionId": "4b19704-authoritative-nested-finalizer-20260831",
+  "currentSymlink": "versions/4b19704-authoritative-nested-finalizer-20260831",
+  "keepalive": {
+    "label": "com.praticarapida.apr-enea-immortal-keepalive",
+    "processPid": 89974,
+    "state": "running",
+    "heartbeatAt": "2026-08-31T14:23:51.849Z"
+  },
+  "chrome": {
+    "pidBefore": 42177,
+    "pidAfter": 42177,
+    "startedAt": "2026-08-31T10:39:02+02:00",
+    "debugPort": 9331,
+    "dashboardUrl": "https://bonusfiscali.enea.it/dashboard",
+    "continuityPreserved": true
+  },
+  "tripleVerification": {
+    "launchdProcess": "PASS",
+    "persistentHeartbeat": "PASS",
+    "dashboardCdp": "PASS",
+    "forbiddenActionCount": 0
+  }
+}

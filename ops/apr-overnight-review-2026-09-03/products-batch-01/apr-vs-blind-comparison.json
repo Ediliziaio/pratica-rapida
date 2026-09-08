@@ -1,0 +1,77 @@
+{
+  "schemaVersion": "apr-manual-review-comparison-v1",
+  "scope": "local_only_no_enea_actions",
+  "cases": [
+    {
+      "displayName": "Mimosa Freni",
+      "comparison": "APR_FALSE_BLOCKER",
+      "cause": "APR ignored an original technical order whose six P01-P06 positions contain explicit quantity, L/H and gTot.",
+      "missingDocumentType": null,
+      "operatorQuestion": null,
+      "candidateGeneralRule": "positioned-technical-order-products"
+    },
+    {
+      "displayName": "Elena Marcella Berti",
+      "comparison": "APR_FALSE_PRODUCT_BLOCKER",
+      "cause": "The invoices explicitly state one awning L3000x2200 and gTot 0.12; APR's existing Linea Sole parser expected L/H on a separate line.",
+      "missingDocumentType": null,
+      "operatorQuestion": null,
+      "candidateGeneralRule": "inline-description-product-measurements"
+    },
+    {
+      "displayName": "Nadia Ragni",
+      "comparison": "LEGITIMATE_AMBIGUITY",
+      "cause": "The main pergotenda is explicitly 500x290, but the separately mentioned side drop awnings have no quantity or dimensions and the fabric note conflicts with invoice wording.",
+      "missingDocumentType": "technical schedule or order detail for side drop awnings",
+      "operatorQuestion": "Inserisci la scheda tecnica o il dettaglio d’ordine con quantità e misure delle tende a caduta laterali e conferma quale tessuto/colore è stato effettivamente installato."
+    },
+    {
+      "displayName": "Riccardo Coda",
+      "comparison": "APR_FALSE_PRODUCT_BLOCKER",
+      "cause": "The invoices explicitly state one awning L4600x2200 and gTot 0.13; APR's existing parser expected L/H on a separate line.",
+      "missingDocumentType": null,
+      "operatorQuestion": null,
+      "candidateGeneralRule": "inline-description-product-measurements"
+    },
+    {
+      "displayName": "Maria Sofia Tosatti",
+      "comparison": "LEGITIMATE_BLOCKER",
+      "cause": "Product dimensions are blank; 140x240 cm is explicitly the protected-window dimension and cannot be substituted.",
+      "missingDocumentType": "product technical dimensions and customer-form page 4/5",
+      "operatorQuestion": "Inserisci le dimensioni effettive della tenda e la pagina 4/5 del modulo cliente; conferma inoltre il codice fiscale corretto tra quello terminante 207W e quello terminante 204W."
+    },
+    {
+      "displayName": "Antonella Ferletic",
+      "comparison": "LEGITIMATE_AMBIGUITY",
+      "cause": "Two different LxH lines are both numbered 1 and no quantity column states whether this is one two-module product or two products.",
+      "missingDocumentType": "supplier cardinality clarification",
+      "operatorQuestion": "Conferma se le misure 75x220 e 400x220 si riferiscono a due tende distinte oppure a un’unica tenda composta da due moduli."
+    },
+    {
+      "displayName": "Giulia Kasermann",
+      "comparison": "LEGITIMATE_BLOCKER",
+      "cause": "No quantity or dimensions are documented; 350 is only part of the model name Dubai 350.",
+      "missingDocumentType": "product technical schedule with quantity and dimensions",
+      "operatorQuestion": "Inserisci la scheda tecnica o il dettaglio d’ordine con quantità, larghezza e altezza/sporgenza della tenda Dubai 350."
+    },
+    {
+      "displayName": "Sarah Mondini",
+      "comparison": "LEGITIMATE_BLOCKER",
+      "cause": "Five uploads contain only two distinct invoices and neither includes product dimensions.",
+      "missingDocumentType": "technical schedule or estimate with product dimensions",
+      "operatorQuestion": "Inserisci il preventivo o la scheda tecnica con le dimensioni della schermatura/pergotenda; i file attuali sono duplicati e non riportano misure."
+    },
+    {
+      "displayName": "Roberta Di Cesare",
+      "comparison": "LEGITIMATE_BLOCKER",
+      "cause": "The product is identified and quantity is one, but no L/H appears and customer-form page 5/5 is absent.",
+      "missingDocumentType": "customer-form page 5/5 and/or product technical dimensions",
+      "operatorQuestion": "Inserisci la pagina 5/5 del modulo cliente e/o un documento tecnico che riporti larghezza e altezza/sporgenza della tenda."
+    }
+  ],
+  "aggregate": {
+    "aprFalseOrPartiallyFalseProductBlockers": 3,
+    "legitimateOrUnresolvedProductBlockers": 6,
+    "note": "Nadia has a valid measured main product but unresolved additional side awnings, therefore remains fail-closed."
+  }
+}

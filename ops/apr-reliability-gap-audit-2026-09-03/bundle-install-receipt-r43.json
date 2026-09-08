@@ -1,0 +1,23 @@
+{
+  "version": "apr-uncertain-save-stale-result-retirement-r43-bundle-install-receipt-v1",
+  "installedAt": "2026-09-04T08:02:05.638Z",
+  "status": "bundle_promoted_local_gate_verified",
+  "preinstallGateSha256": "451c9711d8dffe22d66258084631eab11c47968eb468d61674a904c0cb0ffdda",
+  "versionId": "1af2d3b0-stale-probe-resume-r43-20260904",
+  "previousTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/cc879457-probe-lifecycle-r42-20260904",
+  "currentTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/1af2d3b0-stale-probe-resume-r43-20260904",
+  "installedBundle": {
+    "apr-supervisor.mjs": "c2c909cfc01b94e82f2a87a3d9324c953eea7b48a46d7ae81334e545d8990faa",
+    "apr-enea-worker.mjs": "1af2d3b00de3b0943c7422c4c7e4657de1bd985bc57e9bfa6f1971b239e6a364",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "apr-pdf-ocr": "4c41c9a6832b11b9d19eace538100270a533dddc05e475e5842711968393327f"
+  },
+  "sequencer": {
+    "path": "ops/apr-global-controller-test10-2026-08-29/sequencer.mjs",
+    "sha256": "434455570a8fa4ad0f5ceb3fc5bee9ce49a800dd5b0e59364a67180cda82f746",
+    "sessionGuardPath": "ops/apr-global-controller-test10-2026-08-29/sequencerSessionGuard.mjs",
+    "sessionGuardSha256": "ca71aba4558b1cf59866995e8bbd2c19273490897826c132933f304bac216841"
+  },
+  "keepaliveRestartRequested": false,
+  "chromeRestartRequested": false
+}

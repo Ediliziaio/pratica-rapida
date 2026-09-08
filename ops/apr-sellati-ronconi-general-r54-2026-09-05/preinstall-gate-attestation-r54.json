@@ -1,0 +1,34 @@
+{
+  "version": "apr-sellati-ronconi-general-preinstall-gate-r54-v1",
+  "verifiedAt": "2026-09-05T00:30:23Z",
+  "status": "tested_not_deployed",
+  "corrections": [
+    "system-infissi-required-revisions-durable-convergence-v1",
+    "user-2026-09-05-co-beneficiary-trusted-enter-delivery-v2"
+  ],
+  "monotonicGate": {
+    "testSuites": 444,
+    "tests": 1755,
+    "failedSuites": 0,
+    "failedTests": 0,
+    "rulesProved": 134,
+    "typecheck": "green",
+    "fullReportSha256": "36ebbd23040e049bb134b504354b550d154f64d37cfb5e3fbaaa3516fa057c85",
+    "ruleProofSha256": "e98101c7a93f0e3c34351a482a73d4b30f1fb8bc55a6a7cd35ccef1758e14530",
+    "sourceFingerprint": "c4aa4cd589e2142991eccf1a56cbdfc83bf61da88e4578b68a4449382e523455"
+  },
+  "caseEvidence": {
+    "sellatiLocalReplay": "ready_local_plan; 20/20 revisioni; 6 prodotti; EUR 6230; zero blocker",
+    "ronconiPositiveFixture": "pointer senza mutazione seguito da Enter: riga persistita; un solo intent",
+    "ronconiNegativeFixture": "POST osservata senza commit: nessun fallback e fail-closed"
+  },
+  "stagedBundle": {
+    "apr-supervisor.mjs": "6a60b79ff962e66cbf71c0498609f458ad4ad5344d463a62fd9364710a2fcff9",
+    "apr-enea-worker.mjs": "be4fdbe81bbbf9487533ffde13715f227edb94b1fa82dec8abf8505778a27177",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "apr-pdf-ocr": "4c41c9a6832b11b9d19eace538100270a533dddc05e475e5842711968393327f"
+  },
+  "previousCanonicalVersion": "67afeee3-fresh-generation-seed-r51-20260904",
+  "candidateVersion": "be4fdbe8-sellati-ronconi-general-r54-20260905",
+  "ronconiOperationalReplayAuthorized": false
+}

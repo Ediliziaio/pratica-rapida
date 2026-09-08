@@ -1,0 +1,21 @@
+{
+  "version": "apr-five-discordance-review-v1",
+  "mode": "strict_sequential_user_review_before_verdict",
+  "safety": {
+    "draftOnly": true,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false,
+    "midRunDiagnosisAllowed": false,
+    "midRunCorrectionAllowed": false
+  },
+  "cases": [
+    { "order": 1, "customerKey": "annalisa-lanzo", "displayName": "Annalisa Lanzo", "practiceId": "b51df57d-dae2-4ddc-bf99-904673ebe50d" },
+    { "order": 2, "customerKey": "nadia-ragni", "displayName": "Nadia Ragni", "practiceId": "47ef4b16-d334-4acf-8c1f-c7c341281771" },
+    { "order": 3, "customerKey": "davide-papetti", "displayName": "Davide Papetti", "practiceId": "f4d2eb7d-8a29-4949-9f74-427e3a3319c0" },
+    { "order": 4, "customerKey": "franca-grassilli", "displayName": "Franca Grassilli", "practiceId": "6225b43c-0376-4c51-bc51-845ad249b26b" },
+    { "order": 5, "customerKey": "carlotta-ceniti", "displayName": "Carlotta Ceniti", "practiceId": "da8e73a3-132b-4a4d-ade0-ad282d98655c" }
+  ],
+  "currentCase": "annalisa-lanzo",
+  "nextCaseNotStarted": true
+}

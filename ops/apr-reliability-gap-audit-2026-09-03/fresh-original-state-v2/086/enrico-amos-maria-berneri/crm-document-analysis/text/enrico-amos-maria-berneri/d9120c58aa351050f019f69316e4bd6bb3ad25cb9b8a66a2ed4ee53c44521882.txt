@@ -1,0 +1,215 @@
+APR_OCR_ORIENTATION:0
+FATTURA
+nr. FATTURA196/2026 del 13/06/2026
+Data invio: 13/06/2026
+FORNITORE
+CLIENTE
+LINEA SOLE POTITO SRL
+ENRICO AMOS MARIA BERNERI
+P.IVA: IT03397500962
+C.F.: BRNNCM64B11F205G
+C.F.: 03397500962
+Via Giambellino 119
+Via F. Brunelleschi 2
+20146 - Milano (MI) - IT
+20146 - Milano (MI) - IT
+lineapotitosole3@libero.it
+PRODOTTI E SERVIZI
+NR
+DESCRIZIONE
+QUANTITA'
+PREZZO
+IMPORTO IVA NATURA IVA
+1
+Tenda da Sole MODELLO CASSONETTO A
+2
+1.200,00 €
+2.400,00 € 10%
+2400X2500/12300X2000
+SCOMPARSA MOTORIZZATE I
+2
+rts/telecomando/Anemometro/impianto elettrico
+Motori radiocomando
+2
+300,00 €
+600,00 € 10 %
+3
+Posa tende da sole
+2
+100,00 €
+200,00 € 10 %
+4
+Pratica enea
+1
+100,00 €
+100,00 € 10 %
+METODO DI PAGAMENTO
+NR RATA MODALITÀ
+PAGAMENTO
+BANCA
+IBAN
+BIC/SWIFT DATA SCADENZA
+IMPORTO
+Bonifico
+Pagamento in
+unica soluzione
+IT25R0200801615000040530215
+3.630,00 €
+REGIME FISCALE
+• REGIME FISCALE
+RF01 - Ordinario
+DATI AGGIUNTIVI
+•
+CAUSALE DOCUMENTO
+Descrizione causale DETRAZIONE 50%IN ANNI 10/BONIFICO
+RISPARMIO ENERGETICO L296
+RIEPILOGO IVA
+CALCOLO FATTURA
+IVA NATURA NORMATIVA ESIGIBILITA' IMPONIBILE IMPOSTA
+Importo prodotti o servizi
+3.300,00 €
+Totale imponibile
+3.300,00 €
+10%
+Immediata
+3.300,00 €
+330,00 €
+Totale IVA
+330,00 €
+Totale documento
+3.630,00 €
+Netto a pagare
+3.630,00 €
+Copia analogica della fattura elettronica inviata a Sdl | Il documento xml originale è disponibile online sul portale "Fatture e Corrispettivi dell'Agenzia delle Entrate"
+Fattura Nr. FATTURA196/2026 del 13/06/2026
+Fattura generata con:
+Pag.1/1
+Aruba PEC
+arubatt
+
+APR_OCR_ORIENTATION:0
+ServiziYou
+BANCO BPM
+Dettaglio disposizione: Bonifico per detrazioni
+Ordinante
+Beneficiario
+Conto di addebito
+00032486
+IBAN
+IT25R0200801615000040530215
+Intestato a
+BERNERI ENRICO AMOS MARIA
+Intestato a
+LINEA SOLE POTITO SRL
+Filiale
+FILIALE DEL PERSONALE - 0755
+- 0755
+P.IVA/Codice fiscale
+03397500962
+Banca beneficiario
+UNICREDIT SPA - MILANO
+FRATTINI
+Dati disposizione
+Dati esecuzione
+Importo
+3.630,00
+Stato e descrizione
+In attesa
+Commissioni e spese
+0,00
+Data esecuzione
+17/06/2026
+Importo totale
+3.630,00
+beneficiario
+Data accredito al
+18/06/2026
+Codice CRO/TRN
+5034004903486168ZX01600016
+50IT
+Data e ora inserimento
+17/06/2026 13.43.09
+Causale del bonifico parlante
+Bonifico relativo a lavori edilizi che danno diritto alla detrazione prevista per_
+RISPARMIO ENERGETICO - N.296/2006 ART.1/344 E SEGG.
+Pagamento fattura o ordine n°
+196/2026
+del
+13/06/2026
+A favore di (P.iva o CF)
+03397500962
+Tipologia fruitore della detrazione
+PERSONA FISICA
+SALDO FATTURA 196/2026 DEL 13/06/2026 PER FORNITURA E POSA 2 TENDE DA SOLE, MOTORI E
+CF
+BRNNCM64B11F205G
+Dati Aggiuntivi
+PRATICA ENEA
+Bisogno di aiuto?
+?
+800.024.024
+assistenza.clienti@bancobpm.it
+Le informazioni contenute in questa pagina non sostituiscono nè integrano le rendicontazioni periodiche che la Banca fornisce ai sensi di legge.
+17.06.2026
+Pagina 1 di 1
+
+APR_OCR_ORIENTATION:0
+BANCO BPM
+Gruppi Bancari - Imposta di bollo assolta in modo virtuale Aut. Ag. delle Entrate Ufficio di Milano 5-n. 3358 del 10/01/2017
+di Tutela dei Depositi e al Fondo Nazionale di Garanzia - Iscritto all'Albo delle Banche della Banca d'Italia e all'Albo de
+BONIFICO
+RICEVUTA PER ORDINANTE INTERNET
+BANKING
+06003
+00755
+BERNERI ENRICO AMOS MARIA
+2
+BANCO BPM
+VIA GIAMBELLINO 119
+AIRC
+PARTNER ISTITUZIONALE DI AIRC
+20146 MILANO MI
+DATA
+17/06/2026
+RIF. INTERNO
+MBWT99090028
+RIF. OPERAZIONE
+503400490348616870160001650IT
+REGISTRIAMO A VOSTRO DEBITO A FAVORE DI:
+LINEA SOLE POTITO SRL
+IBAN BENEFICIARIO
+IT25R0200801615000040530215
+DATI
+DATA
+17/06/2026
+OPERAZIONE
+DATA VALUTA
+17/06/2026
+IMPORTO
+EUR 3.630,00
+SUL CONTO CORRENTE N.
+00755 000000032486
+PRESSO
+FILIALE DEL PERSONALE
+CAUSALE
+Fatt: 196/2026 - 13/06/2026 - SALDO FATTURA 196/2026 DEL 13/06/2026 PER FORNITURA E POSA 2 TENDE DA
+SOLE, MOTORI E PRATICA ENEA
+CAUSALE
+AGGIUNTIVA
+C.F./P.IVA BENEFICIARIO: 03397500962
+RISPARMIO ENERGETICO ART 1/344 N.296/06
+C.F. FRUITORE: BRNNCM64B11F205G
+DESCRIZIONE
+IMPORTO
+VALUTA
+FAVORE LINEA SOLE POTITO SRL
+VS.DISP. RIF. MBWT99090028/00542016
+3.630,00 -
+17/06/2026
+OPERAZIONE
+AMMINISTRATORE DELEGATO
+BANCO BPM S.p.A.
+Giuseppe Castagna
+Huefuntg
+EUR234 - MB234005
+INDEX: :05034:20022052;00755:001:000000032486;00000;N;MB; MB234005:17/06/2026;7:N: 3630.00:90028:88608

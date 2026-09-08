@@ -1,0 +1,44 @@
+{
+  "version": "apr-l5-phase1-confirmation-freeze-v1",
+  "frozenAt": "2026-08-30T16:57:59.000Z",
+  "authorizationId": "user-2026-08-30-integrate-claude-phase1-rerun-same-canary30",
+  "portalMode": "real_enea_draft_only",
+  "roundCount": 3,
+  "caseCount": 30,
+  "manifestPath": "/private/tmp/apr-promote-4e166ce/ops/apr-global-controller-test10-2026-08-29/manifest-autonomy30.json",
+  "manifestSha256": "6c684df774a48899a6ff4e2a6e52dfe83c2b9c357a81a6c6c52034abe687a953",
+  "requiredCustomerKeys": ["cristina-ricchi", "zeno-righetti"],
+  "sourceSnapshot": {
+    "path": "/private/tmp/apr-promote-4e166ce",
+    "gitCommit": "e200ebd4a8979f15c8ea3c5fc31eaea5d4f1c088"
+  },
+  "sequencer": {
+    "path": "/private/tmp/apr-promote-4e166ce/ops/apr-global-controller-test10-2026-08-29/sequencer.mjs",
+    "sha256": "528a9e6964e9067ffa5ac9a809260bd3b91a0a2fd433d7c0c843b0efb6f55286"
+  },
+  "structuralFixes": {
+    "wholeCaseLeaseAndOldCohortQuiescence": ["4e166ce680982f0c97b7137777a5d30083271faf", "e200ebd4a8979f15c8ea3c5fc31eaea5d4f1c088"],
+    "timeoutExecutionTermination": "4e166ce680982f0c97b7137777a5d30083271faf",
+    "singleAuthoritativeFinalizer": "4e166ce680982f0c97b7137777a5d30083271faf"
+  },
+  "canonicalBundle": {
+    "versionId": "c66cc0f6f25bea5270b6a619aed50aa7b6aa2e705e29a624d4c997b710b4fa69-l5-structural-4e166ce",
+    "certificateId": "c66cc0f6f25bea5270b6a619aed50aa7b6aa2e705e29a624d4c997b710b4fa69",
+    "receiptStatus": "PASS"
+  },
+  "rounds": [
+    {"round": 1, "cohortOffset": 382, "cohortRange": "600-629", "runRoot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-l5-phase1-confirmation-round1"},
+    {"round": 2, "cohortOffset": 412, "cohortRange": "630-659", "runRoot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-l5-phase1-confirmation-round2"},
+    {"round": 3, "cohortOffset": 442, "cohortRange": "660-689", "runRoot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-l5-phase1-confirmation-round3"}
+  ],
+  "constraints": {
+    "noCodeChangesBetweenRounds": true,
+    "sameBundleHashesRequired": true,
+    "sameManifestRequired": true,
+    "sameExpectedPagesRequired": true,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false,
+    "correctionsDuringTestAllowed": false
+  }
+}

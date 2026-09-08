@@ -1,0 +1,48 @@
+{
+  "version": "apr-vendor-identity-r34-postinstall-attestation-v1",
+  "verifiedAt": "2026-09-03T14:20:58.353Z",
+  "status": "installed_and_operationally_verified",
+  "versionId": "a5883f66-documentary-demographics-r34-20260903",
+  "tripleVerification": {
+    "launchctlAndProcesses": {
+      "keepaliveLabel": "com.praticarapida.apr-enea-immortal-keepalive",
+      "state": "running",
+      "pid": 98419,
+      "runs": 6,
+      "lastExitCode": 0,
+      "chromeAprPid": 3785,
+      "chromeAprStartedAt": "2026-09-01T16:00:32+02:00",
+      "chromeRestarted": false
+    },
+    "persistentCheckpointAndJournal": {
+      "serviceVersion": "apr-enea-worker-service-v1",
+      "revision": 13377,
+      "status": "setup_ready",
+      "heartbeatAt": "2026-09-03T14:20:58.353Z",
+      "reason": "Contratto DOM verde; auto-arm in attesa: apr_enea_worker_no_resumable_case.",
+      "forbiddenActionCount": 0,
+      "previewAttemptCount": 0,
+      "submitAttemptCount": 0,
+      "communicationAttemptCount": 0
+    },
+    "dashboardOrApi": {
+      "endpoint": "http://127.0.0.1:9331/json/list",
+      "pageTitle": "Bonus Fiscali - ENEA",
+      "pageUrl": "https://bonusfiscali.enea.it/dashboard",
+      "pageType": "page"
+    }
+  },
+  "activeBundleSha256": {
+    "apr-supervisor.mjs": "45c88dc0ca86eed80638e81db48c04ff09bc79f469c8fe9729fe9d8539c730d9",
+    "apr-enea-worker.mjs": "a5883f667e1090375960a4355a5545c374fc2b94e753006fcc94ebbfd8d4aba8",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "apr-pdf-ocr": "4c41c9a6832b11b9d19eace538100270a533dddc05e475e5842711968393327f"
+  },
+  "safety": {
+    "eneaMutationPerformed": false,
+    "crmMutationPerformed": false,
+    "previewPerformed": false,
+    "submitPerformed": false,
+    "communicationPerformed": false
+  }
+}

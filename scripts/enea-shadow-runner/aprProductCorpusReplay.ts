@@ -21,6 +21,7 @@ interface ReplayCase { practiceId: string; customerKey: string }
 interface ManifestCase {
   practiceId: string;
   customerKey: string;
+  displayName?: string;
   module: "screening" | "infissi";
   evidence: { dossierPath: string; analysisCheckpoint: string; sourceSha256: string[] };
 }
@@ -148,21 +149,22 @@ function screeningInput(item: ManifestCase, dossier: unknown, analysis: Analysis
   };
 }
 
-function infissiSources(customerKey: string, analysis: AnalysisCheckpoint): AprInfissiTextSource[] {
+function infissiSources(customerKey: string, practiceCustomerName: string, analysis: AnalysisCheckpoint): AprInfissiTextSource[] {
   return sourceTexts(customerKey, analysis).map(({ item, value }) => {
     const scope = item.documentClassification?.certificateScope;
     return {
       sourceId: item.documentKey,
       kind: item.semanticKind ?? item.kind,
       certificateScope: scope === "installed_windows" || scope === "removed_windows" ? scope : null,
+      practiceCustomerName,
       text: value,
     };
   });
 }
 
 function infissiInput(item: ManifestCase, analysis: AnalysisCheckpoint): { input: AprProductFactsInput; legacy: unknown } {
-  const sources = infissiSources(item.customerKey, analysis);
-  const automatic = resolveAprInfissiTechnicalCandidates(observeAprInfissiTechnicalCandidates(sources));
+  const sources = infissiSources(item.customerKey, item.displayName ?? item.customerKey.replace(/-/gu, " "), analysis);
+  const automatic = resolveAprInfissiTechnicalCandidates(observeAprInfissiTechnicalCandidates(sources), { requirePracticeBinding: true });
   const technical = resolveInfissiTechnicalSources({
     practiceId: item.practiceId,
     invoice: automatic.evidence?.kind === "invoice" ? automatic.evidence : undefined,

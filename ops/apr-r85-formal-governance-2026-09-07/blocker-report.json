@@ -1,0 +1,53 @@
+{
+  "version": "apr-r85-formal-governance-blocker-v1",
+  "classification": "technical_block",
+  "exactCause": "La suite r85 e' interamente verde, ma il catalogo formale delle prove non coincide con la matrice corrente: 151 voci catalogate contro 173 regole, con una chiave obsoleta e 23 chiavi correnti mancanti.",
+  "automaticTests": {
+    "total": 1863,
+    "passed": 1863,
+    "failed": 0,
+    "suites": 444,
+    "report": "rule-activation/vitest-1788802128313-0e35b602-9d19-4c1c-882a-5e7bfbecf1d9.json"
+  },
+  "formalEvidenceCatalog": {
+    "catalogEntries": 151,
+    "matrixEntries": 173,
+    "obsoleteKeys": [
+      "technical-document-practice-binding"
+    ],
+    "missingCurrentKeys": [
+      "technical-document-practice-binding-product-signature-only",
+      "portoncino-recognized-as-infisso",
+      "invoice-gross-total-never-internally-verified",
+      "screening-invoice-description-inherits-uniform-form-family",
+      "multiple-measurement-pairs-always-distinct-products",
+      "last-bare-totale-occurrence-wins",
+      "unlabelled-unambiguous-measurement-pair",
+      "ocr-typo-double-period-schedule-amount",
+      "zanzasol-plural-header-and-gtot-period-tolerance",
+      "bank-transfer-reconciliation-gate-suspended",
+      "cap-letter-o-zero-typo-repair",
+      "linea-sole-potito-cadastral-building-label-before-value",
+      "birth-residence-nation-fallback-to-comune-when-province-non-standard",
+      "partial-scan-same-invoice-number-duplicate-merge",
+      "lm-tende-narrative-awning-measurement",
+      "enea-2026-june30-completion-date-only-window",
+      "form-declared-product-module-priority",
+      "duplicate-invoice-ocr-variant-deduplication",
+      "generic-two-measurement-screening-area-fallback",
+      "form-declared-type-resolves-classification-ambiguity",
+      "linea-sole-potito-scomparsa-totale-model-code-tolerance",
+      "finestra-italia-positional-dimension-notation",
+      "mixed-infissi-screening-distinct-invoice-orders-not-conflict"
+    ]
+  },
+  "safetyDisposition": {
+    "attestationGenerated": false,
+    "workerRestarted": false,
+    "bertiOperationalAdmissionRetried": false,
+    "manifest104Started": false,
+    "eneaActionsPerformed": false
+  },
+  "operatorQuestion": "Autorizzi l'allineamento generale del catalogo formale delle prove alle 173 regole r85, seguito dalla ripetizione completa del gate?",
+  "onboardingGap": null
+}

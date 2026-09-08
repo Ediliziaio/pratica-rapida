@@ -1,0 +1,40 @@
+{
+  "version": "apr-vendor-identity-r33-preinstall-gate-v1",
+  "attestedAt": "2026-09-03T13:54:04.505Z",
+  "status": "tested_not_deployed",
+  "monotonicGate": {
+    "baseline": {
+      "suites": 442,
+      "tests": 1679,
+      "reportSha256": "f1b3055eb6b800b762af66cce7b354cd9ff35977dff33749b736049ab20a0192"
+    },
+    "candidate": {
+      "suites": 444,
+      "tests": 1690,
+      "reportSha256": "bbee494245ec3218b638c56c94c8e9b04a5df9c4a9193789a331dcefe7e1c724"
+    },
+    "registryVersion": "enea-operational-registry-v109",
+    "matrixVersion": "apr-enea-rule-test-matrix-v87",
+    "rulesProved": 108,
+    "ruleEvidenceSha256": "cd3695d328019870eb994f3997438ca144ccf3647ed8a7139601695d7deca85c"
+  },
+  "localReplay": {
+    "status": "passed",
+    "replaySha256": "9d35f56bc3f43e8bcd0c6c45691702159730023bbc02f82d46c01e9919d13626",
+    "identityScanSha256": "f6724aac59998c9cca6eadb2bfd5ad5ff143b38801f900d8611372170bba3186",
+    "externalActionAllowed": false
+  },
+  "stagedBundle": {
+    "apr-supervisor.mjs": "beaad63b2458e577a7f18da646e50bd03a5ad3823b17d0fc4d5662b57a13635b",
+    "apr-enea-worker.mjs": "17ed7b5913658a42fb70141a5d99a987f48d16196d4d974cf534f0e8e979abce",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "apr-pdf-ocr": "4c41c9a6832b11b9d19eace538100270a533dddc05e475e5842711968393327f"
+  },
+  "safety": {
+    "localOnly": true,
+    "externalActionAllowed": false,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false
+  }
+}

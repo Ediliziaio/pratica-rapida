@@ -1,0 +1,40 @@
+{
+  "version": "apr-clean-generation-manifest-v1",
+  "experimentId": "apr-angelina-clean-generation-r48-2026-09-04",
+  "authorizationId": "user-2026-09-04-angelina-clean-after-readonly-proof",
+  "authorizedAt": "2026-09-04T17:35:00.000+02:00",
+  "mode": "real_enea_draft_only",
+  "selection": {
+    "total": 1,
+    "allowedStages": ["archiviate"],
+    "excludedCustomerKeys": [
+      "beatrice-ciotta",
+      "samuele-beretta",
+      "prova-rivenditore-1-30-04"
+    ],
+    "method": "Rilancio della stessa pratica gia autorizzata dopo prova server read-only che la precedente bozza canonica 462287 non contiene dati beneficiario."
+  },
+  "cases": [
+    {
+      "cohort": 1,
+      "practiceId": "ae88aed9-0b83-42c7-87fb-a03c76a46113",
+      "customerKey": "angelina-stricelli",
+      "displayName": "Angelina Stricelli",
+      "stage": "archiviate",
+      "module": "infissi",
+      "invoiceCount": 6,
+      "complexity": "complex",
+      "historicalRetest": true,
+      "generationMode": "fresh_generation",
+      "supersedesGenerationId": "generation-8f2843ab5ddf4fee25c1ec65",
+      "mustNotAdoptDraftId": "462287"
+    }
+  ],
+  "safety": {
+    "draftOnly": true,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false,
+    "priorDraftPolicy": "new_generation_never_adopts_prior_mapping"
+  }
+}

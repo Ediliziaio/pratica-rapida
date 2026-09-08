@@ -99,7 +99,7 @@ describe("APR resume checkpoint guard generale", () => {
     new PersistentEneaRunner(root).initialize(DEFAULT_AUDITED_OPERATOR_QUEUE);
     const baseline = new LocalDashboardSupervisor(root, { port: 0, heartbeatIntervalMs: 60_000, checkpointMode: "resume" });
     supervisors.push(baseline);
-    await baseline.start();
+    await baseline.startInProcessForTest();
     await baseline.stop("Baseline quiescente pronta.");
     supervisors.splice(supervisors.indexOf(baseline), 1);
 
@@ -116,7 +116,7 @@ describe("APR resume checkpoint guard generale", () => {
     const before = checkpointBytes(root);
     const resumed = new LocalDashboardSupervisor(root, { port: 0, heartbeatIntervalMs: 60_000, checkpointMode: "resume" });
     supervisors.push(resumed);
-    await resumed.start();
+    await resumed.startInProcessForTest();
     await resumed.stop("Resume quiescente verificato.");
     supervisors.splice(supervisors.indexOf(resumed), 1);
     const after = checkpointBytes(root);

@@ -1,0 +1,35 @@
+{
+  "version": "apr-clean-generation-manifest-v1",
+  "experimentId": "apr-lucia-clean-generation-r50-2026-09-04",
+  "authorizationId": "user-2026-09-04-lucia-clean-after-consumed-recovery",
+  "authorizedAt": "2026-09-04T22:20:00.000+02:00",
+  "mode": "real_enea_draft_only",
+  "selection": {
+    "total": 1,
+    "allowedStages": ["archiviate"],
+    "excludedCustomerKeys": ["beatrice-ciotta", "samuele-beretta", "prova-rivenditore-1-30-04"],
+    "method": "Nuova generazione pulita della stessa pratica gia autorizzata; la bozza 464067 resta intatta e non viene adottata."
+  },
+  "cases": [
+    {
+      "cohort": 1,
+      "practiceId": "652f820b-9d49-4706-a8bc-87931bec5148",
+      "customerKey": "lucia-droghetti",
+      "displayName": "Lucia Droghetti",
+      "stage": "archiviate",
+      "module": "screening",
+      "complexity": "complex",
+      "historicalRetest": true,
+      "generationMode": "fresh_generation",
+      "supersedesGenerationId": "generation-749f9ceab0c2a5565250ace2",
+      "mustNotAdoptDraftId": "464067"
+    }
+  ],
+  "safety": {
+    "draftOnly": true,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false,
+    "priorDraftPolicy": "new_generation_never_adopts_prior_mapping"
+  }
+}

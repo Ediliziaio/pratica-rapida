@@ -1,0 +1,14 @@
+{
+  "version": "apr-wide100-gate-diagnosis-v1",
+  "observedAt": "2026-09-02T06:58:02.321Z",
+  "manifestSha256": "51842252f71cabb6714f78923fe59ec9789ad06739393f61a553bb4bdb9154e0",
+  "stageCases": [],
+  "legacyExclusionCases": [],
+  "allCaseValidation": {
+    "total": 100,
+    "accepted": 100,
+    "rejected": []
+  },
+  "finding": "no_reproduced_gate_block",
+  "externalActionAttempted": false
+}

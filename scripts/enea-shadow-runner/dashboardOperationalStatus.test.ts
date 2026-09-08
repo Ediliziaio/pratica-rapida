@@ -2,7 +2,7 @@ import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { deriveDashboardOperationalStatus, writeLocalDashboard } from "./dashboard";
+import { deriveDashboardOperationalStatus, deriveTerminalDashboardOperationalStatus, writeLocalDashboard } from "./dashboard";
 import type { SupervisorSnapshot } from "./supervisor";
 import { PersistentEneaRunner } from "./runner";
 import { PersistentAprWatchdog } from "./aprWatchdog";
@@ -32,7 +32,55 @@ const legacy: SupervisorSnapshot = {
   observedAt: now.toISOString(),
 };
 
+const terminalSnapshot = (publicStatus: string, consistency: "CONSISTENT" | "INCONSISTENT" = "CONSISTENT") => ({
+  terminal: true,
+  lifecycleState: "technical_stop",
+  aprStatus: {
+    publicStatus,
+    source: "sequencer_finalizer",
+    executionStatus: "operator_intervention",
+    workerStatus: "quiesced",
+    currentCustomerKey: null,
+    reason: "Errore tecnico tipizzato persistito.",
+    nextAction: "Correggere la causa generale.",
+    consistency,
+  },
+  caseTruth: { customerKey: "fixture-terminal", status: "TECHNICAL_BLOCK" },
+}) as never;
+
 describe("verità operativa dashboard APR", () => {
+  it("ignora il terminale storico quando un checkpoint successivo ha una pratica attiva", () => {
+    const stale = {
+      ...(terminalSnapshot("TECHNICAL_BLOCK") as unknown as Record<string, unknown>),
+      sourceRevisions: { journal: 1, execution: 26, worker: 34 },
+      sourceFingerprints: { execution: "same-source", workerIdentity: "worker-old" },
+    } as never;
+    const result = deriveDashboardOperationalStatus(legacy, now, {
+      service: { revision: 62, instanceId: "worker-new", status: "stopped", processPid: 0, heartbeatAt: now.toISOString(), reason: "Worker congelato.", nextAction: "Audit locale." },
+    } as never, null, {
+      revision: 3, status: "ready", currentCustomerKey: "angelina-stricelli", sourceFingerprint: "same-source",
+      items: [{ customerKey: "angelina-stricelli", displayName: "Angelina Stricelli", state: "save_intent_recorded" }],
+    } as never, null, stale);
+    expect(result).toMatchObject({ publicStatus: "TECHNICAL_BLOCK", source: "worker", currentPracticeId: "angelina-stricelli" });
+    expect(result.reason).not.toContain("Errore tecnico tipizzato persistito");
+  });
+
+  it("usa lo snapshot terminale del sequencer anche se il worker quiescente conserva operator_intervention", () => {
+    expect(deriveTerminalDashboardOperationalStatus(terminalSnapshot("TECHNICAL_BLOCK"))).toMatchObject({
+      publicStatus: "TECHNICAL_BLOCK",
+      source: "sequencer_finalizer",
+      health: "technical_block",
+      currentPracticeId: "fixture-terminal",
+    });
+  });
+
+  it("resta fail-closed come INCONSISTENT se lo snapshot terminale non e coerente", () => {
+    expect(deriveTerminalDashboardOperationalStatus(terminalSnapshot("OPERATOR_REQUIRED", "INCONSISTENT"))).toMatchObject({
+      publicStatus: "INCONSISTENT",
+      source: "sequencer_finalizer",
+      health: "technical_block",
+    });
+  });
   it("preferisce il watchdog vivo al runner storico spento", () => {
     const result = deriveDashboardOperationalStatus(legacy, now, null, {
       version: "apr-watchdog-v1",
@@ -195,6 +243,39 @@ describe("verità operativa dashboard APR", () => {
     } as never);
 
     expect(result).toMatchObject({ publicStatus: "TECHNICAL_BLOCK", source: "worker", health: "technical_block", currentPracticeId: "fixture" });
+  });
+
+  it("pubblica OPERATOR_REQUIRED per un preflight terminale con blocked_case e blocker persistenti", () => {
+    const result = deriveDashboardOperationalStatus(legacy, now, {
+      service: { status: "disabled", processPid: 0, heartbeatAt: now.toISOString(), reason: "Non avviato.", nextAction: "Nessuna." },
+    } as never, null, {
+      status: "blocked_preflight",
+      currentCustomerKey: null,
+      items: [],
+    } as never, {
+      status: "completed",
+      items: [{ customerKey: "fixture", state: "blocked_case", report: { blockers: [{ code: "fixture_blocker", reason: "Fonte mancante." }] } }],
+    } as never);
+
+    expect(result).toMatchObject({
+      publicStatus: "OPERATOR_REQUIRED",
+      source: "preflight",
+      health: "operator_intervention",
+      currentPracticeId: "fixture",
+    });
+  });
+
+  it("non inventa un esito pubblico se blocked_preflight non ha blocker coerenti", () => {
+    const result = deriveDashboardOperationalStatus(legacy, now, null, null, {
+      status: "blocked_preflight",
+      currentCustomerKey: null,
+      items: [],
+    } as never, {
+      status: "completed",
+      items: [{ customerKey: "fixture", state: "blocked_case", report: { blockers: [] } }],
+    } as never);
+
+    expect(result).toMatchObject({ publicStatus: null, source: "legacy_runner" });
   });
 
   it("scrive status.json dalla verità watchdog invece del journal storico", () => {

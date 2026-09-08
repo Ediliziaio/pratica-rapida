@@ -1,0 +1,58 @@
+{
+  "version": "apr-province-lineage-roberto-replay-attestation-v1",
+  "observedAt": "2026-09-02T00:43:09.000Z",
+  "customerKey": "roberto-marcello",
+  "practiceId": "e170a382-7145-4c52-ba6f-1726daed50bf",
+  "cohort": 2820,
+  "state": "saved",
+  "draftId": "452111",
+  "completedPages": 16,
+  "expectedPages": 16,
+  "tripleVerification": {
+    "process": {
+      "sequencerLabel": "com.praticarapida.apr-province-lineage-r24-roberto-replay",
+      "state": "not running",
+      "runs": 1,
+      "lastExitCode": 0
+    },
+    "persistent": {
+      "runStatus": "completed",
+      "saved": 1,
+      "operatorRequired": 0,
+      "technicalBlock": 0,
+      "inconsistent": 0,
+      "draftCheckpointState": "saved",
+      "savedPageCount": 16,
+      "blockers": []
+    },
+    "dashboardSnapshot": {
+      "health": "run_completed",
+      "publicStatus": "IDLE",
+      "statusSource": "sequencer_finalizer",
+      "reason": "Bozza TEST completa e verificata read-only dal finalizzatore."
+    }
+  },
+  "safety": {
+    "previewAttempted": false,
+    "submitAttempted": false,
+    "communicationsAttempted": false,
+    "forbiddenActionCount": 0
+  },
+  "continuity": {
+    "keepaliveLabel": "com.praticarapida.apr-enea-immortal-keepalive",
+    "keepalivePid": 3784,
+    "chromePid": 3785,
+    "chromeCdpPort": 9331,
+    "unchanged": true
+  },
+  "sha256": {
+    "runCheckpoint": "26bdec621d24e555a78ac0616643990a0d870c80d4c66738d47f44ef57a3d66a",
+    "runReport": "7f6e052fbaa4402e1be093adeab3d47d5ed0b65591f413786ecc58b0e69afafa",
+    "sequencerLog": "eb8ba1b9f8c0c517f53b31d08de05dbc5e55f90d1b2968b87cbff4f938a6240d",
+    "draftCheckpoint": "9d2369e19562325229bd8b19664ed22946da5729ea1b300ceae3707c94c80ef6",
+    "workerCheckpoint": "22c8a60dc5420d7dc2481f8d935ef1609a1f96dc45fed3fc8a33128d92c81ea2",
+    "dashboardSnapshot": "765d6bbfe247474a28b35b90a5d608fb1ceffcc362d6d05242ba742d33ea8368",
+    "commonPreflight": "28dad018fddb44f3d6ffef07cf278789686cc8192597a139ac951b22a5d556db",
+    "infissiPreflight": "c9aa0a284385e09936dcebaa0e70830bb53e80fee4ca17bda7a94816cf666472"
+  }
+}

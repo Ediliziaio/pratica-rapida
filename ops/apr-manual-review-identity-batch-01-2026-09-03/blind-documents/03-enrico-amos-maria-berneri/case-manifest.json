@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "apr-blind-case-documents-v1",
+  "caseId": "case-03",
+  "displayName": "Enrico Amos Maria Berneri",
+  "documentCount": 3,
+  "documents": [
+    {
+      "filename": "01-fiscal-or-payment.pdf",
+      "sha256": "e6c84194a62d83c2f0db41fd86e29e5bd459e50fff2e63f9cd3468ceb7e60ab4",
+      "byteLength": 3402520,
+      "mediaType": "application/pdf",
+      "neutralKind": "fiscal-or-payment",
+      "renderedPages": [
+        "01-1.png",
+        "01-2.png",
+        "01-3.png"
+      ]
+    },
+    {
+      "filename": "02-supporting.pdf",
+      "sha256": "d347275329a518f744851f6d9c075c6e56fb95ea78ad0922e0cda419f7599572",
+      "byteLength": 1367179,
+      "mediaType": "application/pdf",
+      "neutralKind": "supporting",
+      "renderedPages": [
+        "02-1.png"
+      ]
+    },
+    {
+      "filename": "03-supporting.pdf",
+      "sha256": "40dee26cc354f663b15b1b22ef849321e87af7e22aa883df52e2763207478c9c",
+      "byteLength": 3850396,
+      "mediaType": "application/pdf",
+      "neutralKind": "supporting",
+      "renderedPages": [
+        "03-1.png",
+        "03-2.png"
+      ]
+    }
+  ],
+  "instructions": "Verificare esclusivamente dai documenti se identità e codice fiscale del beneficiario sono espliciti, leggibili e coerenti."
+}

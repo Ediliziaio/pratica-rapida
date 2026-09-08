@@ -1,0 +1,75 @@
+{
+  "version": "apr-enea-draft-readonly-attestation-v1",
+  "observedAt": "2026-09-04T15:22:10.633Z",
+  "customerKey": "angelina-stricelli",
+  "draftId": "462287",
+  "generationId": "generation-8f2843ab5ddf4fee25c1ec65",
+  "authorizationScope": "read_only_existing_draft_only",
+  "verdict": "NO_BENEFICIARY_DATA_PERSISTED",
+  "serverEvidence": {
+    "endpoint": "https://bonusfiscali.enea.it/api/pratica/ecobonus/2026/462287",
+    "method": "GET",
+    "independentFreshReads": 3,
+    "httpStatus": 200,
+    "contentType": "application/json; charset=UTF-8",
+    "matchingPayloadFingerprint": "4ce54cb71a63952b5f3f1373b44f064e27b0e127ef0d69f6983c1dac0d10e5c5",
+    "practiceKeys": ["ver"],
+    "practiceVersion": 0,
+    "beneficiaryPresent": false,
+    "status": "lavorazione",
+    "createdAt": "2026-09-04 10:26:43",
+    "modifiedAt": "2026-09-04 10:26:43",
+    "versions": [],
+    "interpretation": "Le tre letture fresche concordano: la pratica contiene soltanto la versione iniziale e non contiene la sezione beneficiario. La data di modifica coincide con la creazione, quindi nessuno dei tre tentativi save_page_once ha prodotto una persistenza server della pagina Beneficiario."
+  },
+  "networkSafetyEvidence": {
+    "finalProbeRequests": 3,
+    "methodsObserved": ["GET", "GET", "GET"],
+    "blockedRequests": 0,
+    "postPutPatchDeleteObserved": 0,
+    "requestBodiesSent": 0,
+    "navigationPerformed": false,
+    "draftFormLoadedInUi": false,
+    "tabCreated": false,
+    "domEventsEmitted": [],
+    "autosavePossibleOnChosenPath": false,
+    "preventiveGuard": "Fetch interception installed before the probe; only GET/HEAD on the exact ENEA origin may continue. POST, PUT, PATCH and DELETE are failed before dispatch."
+  },
+  "localIntegrityAfterProbe": {
+    "executionCheckpointSha256": "0b05ec3dfaf0c087c27397cbd31ca68a27beaef92c64f838d57cd9a8ad89f205",
+    "workerCheckpointSha256": "31cc231c49147b421b402f3975b2bbbec6c85e723644b8e5c9d9f8a1ad92f192",
+    "cdpLedgerSha256": "3140c6d764c8408de6438c37026daec8085e7553c3d14f6561271547eeaaff39",
+    "matchesPreProbeAudit": true,
+    "angelinaWorkerLoaded": false,
+    "newDraftCreated": false,
+    "fourthMutationPerformed": false
+  },
+  "continuity": {
+    "keepalive": {"status": "running", "pid": 42593},
+    "chrome": {"status": "running", "pid": 3785, "remoteDebuggingPort": 9331},
+    "supervisor": {"status": "running", "pid": 95781},
+    "watchdog": {"status": "running", "pid": 44343}
+  },
+  "caseTruth": {
+    "status": "INCONSISTENT",
+    "hasProblem": null,
+    "blockerCount": 0,
+    "statement": "Checkpoint esecuzione e stato worker corrente non concordano; nessun verdetto attribuibile alla pratica.",
+    "interpretation": "Il verdetto di persistenza della bozza proviene dalla sonda server autorizzata; non modifica né riclassifica lo stato pubblico della pratica, che resta INCONSISTENT e quarantinato."
+  },
+  "quarantine": {
+    "currentGenerationMayResume": false,
+    "canonicalDraftId": "462287",
+    "nextGenerationCreated": false,
+    "decisionDeferred": "Qualunque nuova generazione pulita richiede il consolidamento del ledger mutativo e una successiva autorizzazione esplicita."
+  },
+  "testCategories": {
+    "automaticLocalGuardTests": "PASS",
+    "operationalReadOnlyEneaVerification": "PASS",
+    "operationalMutationTest": "NOT_PERFORMED_AND_NOT_AUTHORIZED",
+    "productionAvailability": "NOT_ASSERTED"
+  },
+  "missingDocumentType": null,
+  "operatorQuestion": null,
+  "onboardingGap": null
+}

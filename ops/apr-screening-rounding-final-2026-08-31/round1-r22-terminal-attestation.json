@@ -1,0 +1,19 @@
+{
+  "version": "apr-screening-rounding-r22-round1-terminal-attestation-v1",
+  "verifiedAt": "2026-09-01T06:53:36Z",
+  "freezeSha256": "c2f3cb76c1bae4d02260622a82afa33028dde4e3c01277d11b5a9bd19a9970dc",
+  "reportSha256": "36d362c1a52a9bfcd30ac1a535ecce9a20afde1a7a9c5e6b64200df6e5293581",
+  "checkpointSha256": "e7a9fa2ff8f35544ab3becaf20094ef0d8e1b43574d239d8870b74a9baa4c51b",
+  "journalSha256": "3daeccca4e4e92f7b04292a8c25eb2986ded6ffa2266d306634bdcbba4218f86",
+  "processEvidence": {"sequencerExitCode": 0, "chromePid": 42177, "keepalivePid": 89974, "terminalObserverPid": 37354},
+  "summary": {"total": 30, "saved": 17, "operatorRequired": 11, "technicalBlock": 2, "inconsistent": 0},
+  "tripleVerification": {
+    "reportVsJournalMismatchCount": 0,
+    "reportVsCaseTruthMismatchCount": 0,
+    "operatorCasesWithMissingBlockers": 0,
+    "savedCasesWithUnexpectedBlockers": 0,
+    "status": "PASS"
+  },
+  "savedNames": ["Barbara Melis", "Mara Elena Maddiotto", "Claudio Beghini", "Kitenge Ebambi", "Gabriella Bruno", "Milena Albertoni", "Lucia Lagrasta", "Daniela Guidotti", "Zeno Righetti", "Luca Cigognetti", "Cristina Ricchi", "Emanuela Parolo", "Roberto Marcello", "Flavia Cipriani", "Amelia Lerose", "Eleonora Meggiarin", "Armando Ranzoni"],
+  "safety": {"previewAttempted": false, "submitAttempted": false, "communicationsAttempted": false}
+}

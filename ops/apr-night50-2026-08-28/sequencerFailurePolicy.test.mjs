@@ -9,13 +9,12 @@ import {
   SEQUENCER_OPERATOR_ISOLATION_RULE_IDS,
 } from "./sequencerFailurePolicy.mjs";
 
-test("isola per default qualunque incoerenza non classificata e conserva una domanda leggibile", () => {
+test("isola per default qualunque eccezione non classificata come difetto tecnico della sola pratica", () => {
   const result = classifySequencerFailure(new Error("preflight_sources_disagree"));
-  assert.equal(result.scope, "case_operator_required");
-  assert.equal(result.code, "unresolved_case_inconsistency");
-  assert.match(result.reason, /Richiesto intervento operatore/);
+  assert.equal(result.scope, "case_technical");
+  assert.equal(result.code, "isolated_case_technical_failure");
+  assert.doesNotMatch(result.reason, /Richiesto intervento operatore/);
   assert.match(result.reason, /pratiche successive proseguono/);
-  assert.match(result.question, /Verificare i dati e la classificazione/);
   assert.deepEqual(result.appliedRuleIds, SEQUENCER_OPERATOR_ISOLATION_RULE_IDS);
 });
 
@@ -37,18 +36,14 @@ test("ferma globalmente solo un problema comune marcato dopo verifica", () => {
   });
 });
 
-test("ferma immediatamente il lotto quando ricompare un timeout CDP nel collaudo del controllore globale", () => {
-  const error = createVerifiedCommonTechnicalFailure(
-    "global_controller_verification_symptom_recurred",
-    "mara-fixture:structural_symptom_recurred:apr_cdp_command_timeout:Runtime.evaluate",
-    { customerKey: "mara-fixture", evidence: "apr_cdp_command_timeout:Runtime.evaluate" },
+test("un sintomo portale circoscritto a una pratica non puo essere elevato a stop globale", () => {
+  assert.throws(
+    () => createVerifiedCommonTechnicalFailure(
+      "global_controller_verification_symptom_recurred",
+      "mara-fixture:structural_symptom_recurred:apr_cdp_command_timeout:Runtime.evaluate",
+    ),
+    /sequencer_common_failure_code_not_allowed/,
   );
-  assert.deepEqual(classifySequencerFailure(error), {
-    scope: "common_technical",
-    code: "global_controller_verification_symptom_recurred",
-    reason: "mara-fixture:structural_symptom_recurred:apr_cdp_command_timeout:Runtime.evaluate",
-    evidence: { customerKey: "mara-fixture", evidence: "apr_cdp_command_timeout:Runtime.evaluate" },
-  });
 });
 
 test("registra tutti i codici di arresto comune usati dai sequencer versionati", () => {
@@ -64,6 +59,13 @@ test("rifiuta di marcare come comune una categoria non ammessa", () => {
   );
 });
 
+test("un errore che falsifica scope e codice comuni resta isolato senza il marchio del costruttore", () => {
+  const forged = new Error("tentativo di aggirare il fail-safe default");
+  forged.aprFailureScope = "common_technical";
+  forged.aprFailureCode = "system_crash_verified";
+  expectCaseIsolation(forged);
+});
+
 function expectCaseIsolation(error) {
-  assert.equal(classifySequencerFailure(error).scope, "case_operator_required");
+  assert.equal(classifySequencerFailure(error).scope, "case_technical");
 }

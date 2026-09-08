@@ -1,0 +1,59 @@
+{
+  "version": "apr-sellati-ronconi-general-diagnosis-r54-v1",
+  "verifiedAt": "2026-09-05T00:30:23Z",
+  "status": "causes_proved_locally",
+  "cases": [
+    {
+      "customerKey": "claudia-sellati",
+      "classification": "technical_block",
+      "exactCause": "Il checkpoint Infissi completato era verde ma conteneva 19/20 revisioni obbligatorie: infissi-grk-financial-and-assembly-pages-v4 era stata persa. Due eventi case_claimed consecutivi alle revisioni 14 e 15 provano writer concorrenti sullo stesso checkpoint. Il bridge ha correttamente rifiutato lo snapshot incompleto.",
+      "pipelinePoint": "infissi-batch-preflight-cli -> applicazione revisioni -> checkpoint concorrente -> infissiCommonApplicabilityBridge",
+      "originalEvidence": {
+        "checkpointSha256": "f7ae60d57a65cd3426d6b6f5a164cee93bdccbdfa079393148969bdd72b42f18",
+        "runReportSha256": "d9f9a33ff956b1e6a68a27044d9bfaf6a8403b470d107133f055c8e4a72e9704",
+        "terminalSnapshotSha256": "0dd6f4097a121cc6f2c83c29619f9f2a40c770c65a368096996f1de62e684fe2",
+        "caseTruth": "TECHNICAL_BLOCK",
+        "reportBlockers": []
+      },
+      "generalCorrection": "Rilettura durevole e convergenza limitata delle revisioni obbligatorie; vengono riapplicati soltanto i marker mancanti e il gate resta chiuso se la postcondizione non converge.",
+      "ruleId": "system-infissi-required-revisions-durable-convergence-v1",
+      "localReplay": {
+        "kind": "isolated_copy_no_enea",
+        "beforeRevision": 81,
+        "afterRevision": 85,
+        "restoredRevision": "infissi-grk-financial-and-assembly-pages-v4",
+        "state": "ready_local_plan",
+        "physicalProducts": 6,
+        "invoiceGrossTotal": 6230,
+        "blockers": []
+      }
+    },
+    {
+      "customerKey": "luca-ronconi",
+      "classification": "technical_block",
+      "exactCause": "Il co-beneficiario era assente, i tre campi del modale erano validi, ma sia il pointer sia il fallback Space non hanno generato alcuna richiesta mutativa; il modale è rimasto aperto e la tabella invariata. Non è un errore dei dati né una risposta server incerta: è mancata la consegna attendibile dell'unico intento al controllo ENEA.",
+      "pipelinePoint": "cdpEneaBrowserDriver.ensureCoBeneficiary -> trusted pointer -> fallback tastiera -> verifica tabella",
+      "originalEvidence": {
+        "driverCheckpointSha256": "822d39cdb879a1f86f4bf143137604364787f4037c736c24e85d91fded116ded",
+        "executionCheckpointSha256": "5e3e6ce01f21c1b583bcb06c0f1ffb17acb482fc474bc4704f1617490d8117d2",
+        "runReportSha256": "646f62a0c2b5885891539345e3fc3a511739911dc4fd56396dafcc0211af389c",
+        "terminalSnapshotSha256": "97e40f625abd6b301c1021996e2baac0dd229f82a53e1fb236ae435a17972ce5",
+        "draftId": "464262",
+        "mutationTraces": [],
+        "dialogOpen": true,
+        "caseTruth": "TECHNICAL_BLOCK",
+        "reportBlockers": []
+      },
+      "generalCorrection": "Dopo zero traffico mutativo e riga ancora assente, focalizzare nuovamente l'unico controllo valido e consegnare lo stesso intento una sola volta con Enter. Se esiste qualunque richiesta mutativa, il fallback è vietato e il caso resta fail-closed.",
+      "ruleId": "user-2026-09-05-co-beneficiary-trusted-enter-delivery-v2",
+      "operationalVerification": "not_performed_requires_explicit_user_authorization"
+    }
+  ],
+  "safety": {
+    "eneaReadOnlyDuringDiagnosis": true,
+    "eneaWritesDuringDiagnosis": 0,
+    "preview": false,
+    "submit": false,
+    "communications": false
+  }
+}

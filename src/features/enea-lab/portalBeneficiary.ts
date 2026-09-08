@@ -1,5 +1,7 @@
 import type { EneaLabMappedPractice } from "./types";
 import { resolveOfficialMunicipalityIdentity } from "@/features/enea-shadow-crm/officialMunicipalityChanges";
+import { resolveOfficialMunicipalityProvinceChange } from "@/features/enea-shadow-crm/officialMunicipalityProvinceChanges";
+import { resolveOfficialMunicipalityCanonicalIdentity } from "@/features/enea-shadow-crm/officialMunicipalities";
 import { resolveForeignBirthCountryFromFiscalCode } from "@/features/enea-shadow-crm/operationalRules";
 import {
   buildEneaPortalRuntimeScript,
@@ -88,13 +90,32 @@ export function buildEneaBeneficiaryPortalScript(
       : definition.fieldId === "beneficiario.nazione_residenza" && nationIsItaly("beneficiario.nazione_residenza")
         ? "ita"
         : undefined;
-    const officialMunicipality = definition.fieldId === "beneficiario.comune_nascita"
+    const isBirthMunicipality = definition.fieldId === "beneficiario.comune_nascita";
+    const isResidenceMunicipality = definition.fieldId === "beneficiario.comune_residenza";
+    const officialMunicipality = isBirthMunicipality
       ? resolveOfficialMunicipalityIdentity({
         name: field.value,
         province: fieldsById.get("beneficiario.provincia_nascita")?.value ?? "",
       })
       : null;
-    const autocompleteQualifier = officialMunicipality?.provinceCode ?? (definition.fieldId === "beneficiario.comune_nascita"
+    const officialProvinceChange = isBirthMunicipality
+      ? resolveOfficialMunicipalityProvinceChange({
+        name: field.value,
+        province: fieldsById.get("beneficiario.provincia_nascita")?.value ?? "",
+      })
+      : null;
+    const supportingProvince = isBirthMunicipality
+      ? fieldsById.get("beneficiario.provincia_nascita")?.value ?? ""
+      : isResidenceMunicipality
+        ? mapped.source.form.residenza.provincia
+        : "";
+    const officialCanonical = isBirthMunicipality || isResidenceMunicipality
+      ? resolveOfficialMunicipalityCanonicalIdentity({
+        name: field.value,
+        province: officialProvinceChange?.currentProvinceCode ?? officialMunicipality?.provinceCode ?? supportingProvince,
+      })
+      : null;
+    const autocompleteQualifier = officialCanonical?.provinceCode ?? officialProvinceChange?.currentProvinceCode ?? officialMunicipality?.provinceCode ?? (isBirthMunicipality
       && nationIsItaly("beneficiario.nazione_nascita")
       && fieldsById.get("beneficiario.provincia_nascita")?.status === "ready"
       ? fieldsById.get("beneficiario.provincia_nascita")!.value.trim().toUpperCase()
@@ -102,9 +123,10 @@ export function buildEneaBeneficiaryPortalScript(
     return [{
       ...definition,
       control,
-      value: field.value,
+      value: officialCanonical?.canonicalName ?? field.value,
       ...(selectValue ? { selectValue } : {}),
       ...(autocompleteQualifier ? { autocompleteQualifier } : {}),
+      ...(officialCanonical ? { autocompleteAuthoritativeIstatCode: officialCanonical.istatCode } : officialProvinceChange ? { autocompleteAuthoritativeIstatCode: officialProvinceChange.currentIstatCode } : {}),
     }];
   });
   const readyFieldIds = readyFields.map(({ fieldId }) => fieldId);
@@ -112,12 +134,13 @@ export function buildEneaBeneficiaryPortalScript(
   const skippedFieldIds = ENEA_BENEFICIARY_PORTAL_FIELDS
     .map(({ fieldId }) => fieldId)
     .filter((fieldId) => !readySet.has(fieldId));
-  const data = JSON.stringify(readyFields.map(({ portalId, control, value, selectValue, autocompleteQualifier }) => ({
+  const data = JSON.stringify(readyFields.map(({ portalId, control, value, selectValue, autocompleteQualifier, autocompleteAuthoritativeIstatCode }) => ({
     portalId,
     control,
     value,
     ...(selectValue ? { selectValue } : {}),
     ...(autocompleteQualifier ? { autocompleteQualifier } : {}),
+    ...(autocompleteAuthoritativeIstatCode ? { autocompleteAuthoritativeIstatCode } : {}),
   })));
   const coBeneficiary = coBeneficiaryPerson(fieldsById);
 

@@ -1,0 +1,246 @@
+{
+  "generatedAt": "2026-09-02T20:30:54.493Z",
+  "results": [
+    {
+      "customerKey": "giovanna-atzeni",
+      "cohort": "apr-pilot-3021-global-controller-giovanna-atzeni",
+      "outcome": "RESOLVED",
+      "eligibleExpense": 7900,
+      "invoiceReconciliation": {
+        "policyVersion": "financial-triple-gross-invoices-v5",
+        "toleranceEur": 0.05,
+        "methods": [
+          {
+            "method": "structured_extraction",
+            "ok": true,
+            "total": 7900,
+            "sources": [
+              "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:invoice:a0807c8f37ed",
+              "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:invoice:a9de80b81628"
+            ],
+            "reason": "Ogni documento ha imponibile, IVA e totale verificati."
+          },
+          {
+            "method": "accounting_reconciliation",
+            "ok": true,
+            "total": 7900,
+            "sources": [
+              "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:invoice:a0807c8f37ed",
+              "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:invoice:a9de80b81628"
+            ],
+            "reason": "Somma dei totali lordi IVA inclusa delle fatture uniche deduplicate; gli storni interni sono solo note auditabili."
+          },
+          {
+            "method": "intervention_cross_check",
+            "ok": true,
+            "total": 7900,
+            "sources": [
+              "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:invoice:a0807c8f37ed",
+              "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:invoice:a9de80b81628"
+            ],
+            "reason": "Totale ricostruito esclusivamente dalle righe pertinenti all'intervento."
+          }
+        ],
+        "usable": true,
+        "total": 7900,
+        "blockers": [],
+        "candidateInvoiceSourceIds": [
+          "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:invoice:a0807c8f37ed",
+          "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:invoice:a9de80b81628"
+        ],
+        "discardedDuplicateSourceIds": [],
+        "nonEconomicSourceIds": [],
+        "auditNotes": [
+          "fatture-distinte-stesso-dossier:715/00=3950.00|630/00=3950.00|somma=7900.00"
+        ],
+        "appliedRuleIds": [
+          "user-2026-08-16-distinct-invoice-numbers-same-customer-sum"
+        ],
+        "deferredVepaLineIds": [],
+        "bonusCasaDraftAllowed": true
+      },
+      "bankTransferReconciliation": {
+        "status": "reconciled",
+        "principalTotal": 7900,
+        "feesTotal": 0.5,
+        "debitedTotal": null,
+        "difference": 0,
+        "referenceStatus": "verified",
+        "missingInvoiceReferences": [],
+        "taxReliefTypes": [
+          "energy_saving"
+        ]
+      },
+      "invoices": [
+        {
+          "sourceId": "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:invoice:a9de80b81628",
+          "supplierId": "local-0498d0d2e892f651",
+          "supplierName": null,
+          "documentNumber": "630/00",
+          "documentDate": "2025-11-26",
+          "kind": "invoice",
+          "taxableAmount": 3590.91,
+          "vatAmount": 359.09,
+          "grossTotal": 3950,
+          "referencedAdvanceIds": [],
+          "interventionGrossAmount": 3950,
+          "extractionConfidence": "certain",
+          "extractionIssues": [],
+          "explicitDeductibleLines": [],
+          "internalAdjustmentNote": null,
+          "locator": {
+            "sourceId": "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:invoice:a9de80b81628",
+            "pageNumber": null,
+            "contentSha256": "f79d014ab2f69c6334788059658a4e483a19f0711a5e8bfcbab9a0088f064559",
+            "excerptSha256": "c1321b05691ecc26f00edff24973a9679c5600547728c2927673b58d1fafcab1"
+          }
+        },
+        {
+          "sourceId": "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:invoice:a0807c8f37ed",
+          "supplierId": "local-0498d0d2e892f651",
+          "supplierName": null,
+          "documentNumber": "715/00",
+          "documentDate": "2025-12-31",
+          "kind": "invoice",
+          "taxableAmount": 3566.37,
+          "vatAmount": 383.63,
+          "grossTotal": 3950,
+          "referencedAdvanceIds": [],
+          "interventionGrossAmount": 3950,
+          "extractionConfidence": "certain",
+          "extractionIssues": [],
+          "explicitDeductibleLines": [],
+          "internalAdjustmentNote": null,
+          "locator": {
+            "sourceId": "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:invoice:a0807c8f37ed",
+            "pageNumber": null,
+            "contentSha256": "f79d014ab2f69c6334788059658a4e483a19f0711a5e8bfcbab9a0088f064559",
+            "excerptSha256": "d28321ffe617bd6b3735df3a08a1ea04854b2fbe7b83418e34fc398441416368"
+          }
+        }
+      ]
+    },
+    {
+      "customerKey": "elena-marcella-berti",
+      "cohort": "apr-pilot-3022-global-controller-elena-marcella-berti",
+      "outcome": "RESOLVED",
+      "eligibleExpense": 1320,
+      "invoiceReconciliation": {
+        "policyVersion": "financial-triple-gross-invoices-v5",
+        "toleranceEur": 0.05,
+        "methods": [
+          {
+            "method": "structured_extraction",
+            "ok": true,
+            "total": 1320,
+            "sources": [
+              "37938446ac7888c640cb0ff2cec7401a064a0d191f91b39425691fbd7f50d83c:invoice:20bb095ecbc3",
+              "37938446ac7888c640cb0ff2cec7401a064a0d191f91b39425691fbd7f50d83c:invoice:fd397bf09139"
+            ],
+            "reason": "Ogni documento ha imponibile, IVA e totale verificati."
+          },
+          {
+            "method": "accounting_reconciliation",
+            "ok": true,
+            "total": 1320,
+            "sources": [
+              "37938446ac7888c640cb0ff2cec7401a064a0d191f91b39425691fbd7f50d83c:invoice:20bb095ecbc3",
+              "37938446ac7888c640cb0ff2cec7401a064a0d191f91b39425691fbd7f50d83c:invoice:fd397bf09139"
+            ],
+            "reason": "Somma dei totali lordi IVA inclusa delle fatture uniche deduplicate; gli storni interni sono solo note auditabili."
+          },
+          {
+            "method": "intervention_cross_check",
+            "ok": true,
+            "total": 1320,
+            "sources": [
+              "37938446ac7888c640cb0ff2cec7401a064a0d191f91b39425691fbd7f50d83c:invoice:20bb095ecbc3",
+              "37938446ac7888c640cb0ff2cec7401a064a0d191f91b39425691fbd7f50d83c:invoice:fd397bf09139"
+            ],
+            "reason": "Totale ricostruito esclusivamente dalle righe pertinenti all'intervento."
+          }
+        ],
+        "usable": true,
+        "total": 1320,
+        "blockers": [],
+        "candidateInvoiceSourceIds": [
+          "37938446ac7888c640cb0ff2cec7401a064a0d191f91b39425691fbd7f50d83c:invoice:20bb095ecbc3",
+          "37938446ac7888c640cb0ff2cec7401a064a0d191f91b39425691fbd7f50d83c:invoice:fd397bf09139"
+        ],
+        "discardedDuplicateSourceIds": [],
+        "nonEconomicSourceIds": [],
+        "auditNotes": [
+          "fatture-distinte-stesso-dossier:FATTURA195/2026=660.00|FATTURA129/2026=660.00|somma=1320.00"
+        ],
+        "appliedRuleIds": [
+          "user-2026-08-16-distinct-invoice-numbers-same-customer-sum"
+        ],
+        "deferredVepaLineIds": [],
+        "bonusCasaDraftAllowed": true
+      },
+      "bankTransferReconciliation": {
+        "status": "reconciled",
+        "principalTotal": 1320,
+        "feesTotal": 1.2,
+        "debitedTotal": 1321.2,
+        "difference": 0,
+        "referenceStatus": "incomplete",
+        "missingInvoiceReferences": [
+          "FATTURA195/2026",
+          "FATTURA129/2026"
+        ],
+        "taxReliefTypes": [
+          "energy_saving"
+        ]
+      },
+      "invoices": [
+        {
+          "sourceId": "37938446ac7888c640cb0ff2cec7401a064a0d191f91b39425691fbd7f50d83c:invoice:20bb095ecbc3",
+          "supplierId": "local-37938446ac7888c6",
+          "supplierName": null,
+          "documentNumber": "FATTURA195/2026",
+          "documentDate": "2026-06-13",
+          "kind": "invoice",
+          "taxableAmount": 600,
+          "vatAmount": 60,
+          "grossTotal": 660,
+          "referencedAdvanceIds": [],
+          "interventionGrossAmount": 660,
+          "extractionConfidence": "certain",
+          "extractionIssues": [],
+          "explicitDeductibleLines": [],
+          "internalAdjustmentNote": null,
+          "locator": {
+            "sourceId": "37938446ac7888c640cb0ff2cec7401a064a0d191f91b39425691fbd7f50d83c:invoice:20bb095ecbc3",
+            "pageNumber": null,
+            "contentSha256": "fc7154c81c1b09f4226b61db57e1db638d6472f746fe1609609c7a8fc12f04bb",
+            "excerptSha256": "adfc6d468e3c954fc2dc91159bbe8caeac92d6f416659ad1d846938954e88623"
+          }
+        },
+        {
+          "sourceId": "37938446ac7888c640cb0ff2cec7401a064a0d191f91b39425691fbd7f50d83c:invoice:fd397bf09139",
+          "supplierId": "local-37938446ac7888c6",
+          "supplierName": null,
+          "documentNumber": "FATTURA129/2026",
+          "documentDate": "2026-04-23",
+          "kind": "invoice",
+          "taxableAmount": 600,
+          "vatAmount": 60,
+          "grossTotal": 660,
+          "referencedAdvanceIds": [],
+          "interventionGrossAmount": 660,
+          "extractionConfidence": "certain",
+          "extractionIssues": [],
+          "explicitDeductibleLines": [],
+          "internalAdjustmentNote": null,
+          "locator": {
+            "sourceId": "37938446ac7888c640cb0ff2cec7401a064a0d191f91b39425691fbd7f50d83c:invoice:fd397bf09139",
+            "pageNumber": null,
+            "contentSha256": "fc7154c81c1b09f4226b61db57e1db638d6472f746fe1609609c7a8fc12f04bb",
+            "excerptSha256": "16ad849de639a4a4ca80b6147a741c51caedb640f9664a5413a8d7c5e3cfff7c"
+          }
+        }
+      ]
+    }
+  ]
+}

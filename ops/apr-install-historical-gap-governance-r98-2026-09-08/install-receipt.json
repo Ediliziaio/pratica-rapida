@@ -1,0 +1,26 @@
+{
+  "version": "apr-install-bundle-cli-receipt-v1",
+  "installedAt": "2026-09-08T19:49:12.326Z",
+  "label": "historical-gap-governance-r98",
+  "versionId": "58161914-historical-gap-governance-r98-20260908",
+  "previousTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/83a102d1-reseller-addressee-batch-r97-2026-09-08-20260908",
+  "currentTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/58161914-historical-gap-governance-r98-20260908",
+  "installedBundle": {
+    "apr-supervisor.mjs": "b5ea3235be1a3fbc96555714187abc250d99ad2ae2bce228a5a11c348d41068e",
+    "apr-enea-worker.mjs": "53f4a5c032c96e26264b330e16a029b6eafcf689793f381982cd9213de946f9d",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "apr-rule-governance-attestation.json": "d331184783d21a1553ff0c8861d64f721ec64ffa18a3ba37e13bc25dba692655"
+  },
+  "gateResultArtifactId": "545af9fd32f9b05ccbb64f0b2bfb5f170c6e3deab5052a9308b09d1224d6ed5b",
+  "gateStatus": "PASS",
+  "governanceAttestation": {
+    "path": "apr-rule-governance-attestation.json",
+    "sha256": "d331184783d21a1553ff0c8861d64f721ec64ffa18a3ba37e13bc25dba692655",
+    "historicalAuditReport": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-install-reseller-addressee-batch-r97-2026-09-08-2026-09-08/historical-audit-report-r97.json",
+    "authorizedHistoricalGap": true
+  },
+  "legacyGovernanceDebtNoticed": [
+    "user-2026-09-05-co-beneficiary-trusted-enter-delivery-v2",
+    "user-2026-09-05-terminal-cohort-browser-quiescence-v1"
+  ]
+}

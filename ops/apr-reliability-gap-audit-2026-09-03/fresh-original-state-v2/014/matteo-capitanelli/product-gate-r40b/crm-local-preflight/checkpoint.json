@@ -1,0 +1,422 @@
+{
+  "version": "apr-crm-local-preflight-v1",
+  "revision": 1,
+  "status": "completed",
+  "sourceFingerprint": "b933af670f89f658029195014420f22f46d1497880b404b3ac3b9cd5e6931fa9",
+  "currentCustomerKey": null,
+  "items": [
+    {
+      "customerKey": "matteo-capitanelli",
+      "displayName": "MATTEO CAPITANELLI",
+      "practiceId": "61b0dc51-4959-46e7-bd6d-37c8f1981c52",
+      "dossierPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2934-global-controller-matteo-capitanelli/crm-acquisition/dossiers/matteo-capitanelli.json",
+      "state": "blocked_case",
+      "attemptCount": 1,
+      "startedAt": null,
+      "endedAt": null,
+      "report": {
+        "outcome": "blocked_case",
+        "formAvailable": true,
+        "startDate": "2026-03-14",
+        "startDateSource": "609f6ae05bcb588a6188c5f76aafb7ccee3d38a10062151f0a99a080e925979b:invoice:30fb786f6af2",
+        "completionDate": "2026-05-06",
+        "completionDateSource": "ac77f054f603a1c3d82fdd0cbf178edaba0e464a9a37a7e63089ee43eb288ce6:invoice:7c5831248096",
+        "buildingQualification": "multi_unit",
+        "buildingUnitCount": 10,
+        "deductionRate": 36,
+        "taxCodeStatus": "verified_original_document",
+        "resolvedTaxCode": "CPTMTT78R02H501H",
+        "taxCodeSourceIds": [
+          "7bac9907862b7b808796d5b2976058abaacfe8f747c43baad7c6c2acf6465ea4"
+        ],
+        "primaryBeneficiaryResolution": {
+          "status": "not_found",
+          "identity": null,
+          "sourceIds": [],
+          "authority": null
+        },
+        "coBeneficiaryResolution": {
+          "status": "not_declared",
+          "present": false,
+          "identity": null,
+          "sourceIds": []
+        },
+        "products": [
+          {
+            "rowId": "6781692dabf322f468e8ea4306f0b9ad69d821ebc547062db157e29264dc1a82:invoice:a15d7fe94061:piece-1",
+            "sourceDocumentKey": "6781692dabf322f468e8ea4306f0b9ad69d821ebc547062db157e29264dc1a82:invoice:a15d7fe94061",
+            "description": "Avvolgibile in alluminio",
+            "pieceNumber": 1,
+            "widthMm": 750,
+            "heightMm": 2450,
+            "surfaceM2": 1.8375,
+            "exposure": null,
+            "exposureSource": null,
+            "protectedWindowSurfaceM2": 1.8375,
+            "protectedWindowSurfaceSource": "derived_product_surface",
+            "supplementaryThermalResistance": 0.17,
+            "declaredType": "avvolgibile",
+            "formMappingSource": null,
+            "gTot": 0.06,
+            "gTotSource": "authorized_fallback",
+            "material": "Metallo",
+            "materialSource": "invoice_explicit",
+            "movement": "Automatico",
+            "movementSource": "invoice_explicit",
+            "appliedRuleIds": [
+              "user-2026-08-31-rigid-screening-missing-gtot-006-v1",
+              "user-2026-08-31-avvolgibile-screening-contract-v2",
+              "user-2026-08-18-screening-surface-material-over-support-structure",
+              "user-2026-08-18-explicit-motorized-screening-movement",
+              "authorized-22-schermature-materiale",
+              "authorized-16-schermature-meccanismo",
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+              "user-2026-08-18-explicit-technical-surface-precision"
+            ]
+          },
+          {
+            "rowId": "609f6ae05bcb588a6188c5f76aafb7ccee3d38a10062151f0a99a080e925979b:invoice:30fb786f6af2:piece-2",
+            "sourceDocumentKey": "609f6ae05bcb588a6188c5f76aafb7ccee3d38a10062151f0a99a080e925979b:invoice:30fb786f6af2",
+            "description": "Avvolgibile in alluminio",
+            "pieceNumber": 2,
+            "widthMm": 755,
+            "heightMm": 2450,
+            "surfaceM2": 1.8498,
+            "exposure": null,
+            "exposureSource": null,
+            "protectedWindowSurfaceM2": 1.8498,
+            "protectedWindowSurfaceSource": "derived_product_surface",
+            "supplementaryThermalResistance": 0.17,
+            "declaredType": "avvolgibile",
+            "formMappingSource": null,
+            "gTot": 0.06,
+            "gTotSource": "authorized_fallback",
+            "material": "Metallo",
+            "materialSource": "invoice_explicit",
+            "movement": "Automatico",
+            "movementSource": "invoice_explicit",
+            "appliedRuleIds": [
+              "user-2026-08-31-rigid-screening-missing-gtot-006-v1",
+              "user-2026-08-31-avvolgibile-screening-contract-v2",
+              "user-2026-08-18-screening-surface-material-over-support-structure",
+              "user-2026-08-18-explicit-motorized-screening-movement",
+              "authorized-22-schermature-materiale",
+              "authorized-16-schermature-meccanismo",
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+              "user-2026-08-18-explicit-technical-surface-precision"
+            ]
+          },
+          {
+            "rowId": "ac77f054f603a1c3d82fdd0cbf178edaba0e464a9a37a7e63089ee43eb288ce6:invoice:7c5831248096:piece-3",
+            "sourceDocumentKey": "ac77f054f603a1c3d82fdd0cbf178edaba0e464a9a37a7e63089ee43eb288ce6:invoice:7c5831248096",
+            "description": "Avvolgibile in alluminio",
+            "pieceNumber": 3,
+            "widthMm": 755,
+            "heightMm": 2450,
+            "surfaceM2": 1.8498,
+            "exposure": null,
+            "exposureSource": null,
+            "protectedWindowSurfaceM2": 1.8498,
+            "protectedWindowSurfaceSource": "derived_product_surface",
+            "supplementaryThermalResistance": 0.17,
+            "declaredType": "avvolgibile",
+            "formMappingSource": null,
+            "gTot": 0.06,
+            "gTotSource": "authorized_fallback",
+            "material": "Metallo",
+            "materialSource": "invoice_explicit",
+            "movement": "Automatico",
+            "movementSource": "invoice_explicit",
+            "appliedRuleIds": [
+              "user-2026-08-31-rigid-screening-missing-gtot-006-v1",
+              "user-2026-08-31-avvolgibile-screening-contract-v2",
+              "user-2026-08-18-screening-surface-material-over-support-structure",
+              "user-2026-08-18-explicit-motorized-screening-movement",
+              "authorized-22-schermature-materiale",
+              "authorized-16-schermature-meccanismo",
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+              "user-2026-08-18-explicit-technical-surface-precision"
+            ]
+          },
+          {
+            "rowId": "14e5ea34db2eb7efd27fa71a27352692d5c9848069c89d7978f7b0362fc81266:invoice:cafd45390c48:piece-4",
+            "sourceDocumentKey": "14e5ea34db2eb7efd27fa71a27352692d5c9848069c89d7978f7b0362fc81266:invoice:cafd45390c48",
+            "description": "Avvolgibile in alluminio",
+            "pieceNumber": 4,
+            "widthMm": 750,
+            "heightMm": 2450,
+            "surfaceM2": 1.8375,
+            "exposure": null,
+            "exposureSource": null,
+            "protectedWindowSurfaceM2": 1.8375,
+            "protectedWindowSurfaceSource": "derived_product_surface",
+            "supplementaryThermalResistance": 0.17,
+            "declaredType": "avvolgibile",
+            "formMappingSource": null,
+            "gTot": 0.06,
+            "gTotSource": "authorized_fallback",
+            "material": "Metallo",
+            "materialSource": "invoice_explicit",
+            "movement": "Automatico",
+            "movementSource": "invoice_explicit",
+            "appliedRuleIds": [
+              "user-2026-08-31-rigid-screening-missing-gtot-006-v1",
+              "user-2026-08-31-avvolgibile-screening-contract-v2",
+              "user-2026-08-18-screening-surface-material-over-support-structure",
+              "user-2026-08-18-explicit-motorized-screening-movement",
+              "authorized-22-schermature-materiale",
+              "authorized-16-schermature-meccanismo",
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+              "user-2026-08-18-explicit-technical-surface-precision"
+            ]
+          }
+        ],
+        "financial": {
+          "invoiceTotal": 7885,
+          "eligibleExpense": 7885,
+          "tripleReconciliationVerified": false,
+          "reconciledTotal": 7885,
+          "evidence": [
+            {
+              "sourceId": "6781692dabf322f468e8ea4306f0b9ad69d821ebc547062db157e29264dc1a82:invoice:a15d7fe94061",
+              "kind": "invoice",
+              "taxableAmount": 2049.18,
+              "vatAmount": 450.82,
+              "grossTotal": 2500,
+              "interventionGrossAmount": 2500,
+              "extractionConfidence": "certain",
+              "extractionIssues": []
+            },
+            {
+              "sourceId": "609f6ae05bcb588a6188c5f76aafb7ccee3d38a10062151f0a99a080e925979b:invoice:30fb786f6af2",
+              "kind": "invoice",
+              "taxableAmount": 404.55,
+              "vatAmount": 40.45,
+              "grossTotal": 445,
+              "interventionGrossAmount": 445,
+              "extractionConfidence": "certain",
+              "extractionIssues": []
+            },
+            {
+              "sourceId": "ac77f054f603a1c3d82fdd0cbf178edaba0e464a9a37a7e63089ee43eb288ce6:invoice:7c5831248096",
+              "kind": "invoice",
+              "taxableAmount": 945.45,
+              "vatAmount": 94.55,
+              "grossTotal": 1040,
+              "interventionGrossAmount": 1040,
+              "extractionConfidence": "certain",
+              "extractionIssues": []
+            },
+            {
+              "sourceId": "14e5ea34db2eb7efd27fa71a27352692d5c9848069c89d7978f7b0362fc81266:invoice:cafd45390c48",
+              "kind": "invoice",
+              "taxableAmount": 5249.05,
+              "vatAmount": 584.95,
+              "grossTotal": 3900,
+              "interventionGrossAmount": 5834,
+              "extractionConfidence": "certain",
+              "extractionIssues": []
+            }
+          ],
+          "bankTransfers": [],
+          "bankTransferReconciliation": {
+            "status": "not_provided",
+            "principalTotal": null,
+            "feesTotal": null,
+            "debitedTotal": null,
+            "difference": null,
+            "referenceStatus": "not_provided",
+            "missingInvoiceReferences": [],
+            "taxReliefTypes": []
+          },
+          "methods": [
+            {
+              "method": "structured_extraction",
+              "ok": false,
+              "total": null,
+              "sources": [
+                "6781692dabf322f468e8ea4306f0b9ad69d821ebc547062db157e29264dc1a82:invoice:a15d7fe94061",
+                "609f6ae05bcb588a6188c5f76aafb7ccee3d38a10062151f0a99a080e925979b:invoice:30fb786f6af2",
+                "ac77f054f603a1c3d82fdd0cbf178edaba0e464a9a37a7e63089ee43eb288ce6:invoice:7c5831248096",
+                "14e5ea34db2eb7efd27fa71a27352692d5c9848069c89d7978f7b0362fc81266:invoice:cafd45390c48"
+              ],
+              "reason": "imponibile-iva-mismatch:14e5ea34db2eb7efd27fa71a27352692d5c9848069c89d7978f7b0362fc81266:invoice:cafd45390c48"
+            },
+            {
+              "method": "accounting_reconciliation",
+              "ok": false,
+              "total": null,
+              "sources": [
+                "6781692dabf322f468e8ea4306f0b9ad69d821ebc547062db157e29264dc1a82:invoice:a15d7fe94061",
+                "609f6ae05bcb588a6188c5f76aafb7ccee3d38a10062151f0a99a080e925979b:invoice:30fb786f6af2",
+                "ac77f054f603a1c3d82fdd0cbf178edaba0e464a9a37a7e63089ee43eb288ce6:invoice:7c5831248096",
+                "14e5ea34db2eb7efd27fa71a27352692d5c9848069c89d7978f7b0362fc81266:invoice:cafd45390c48"
+              ],
+              "reason": "imponibile-iva-mismatch:14e5ea34db2eb7efd27fa71a27352692d5c9848069c89d7978f7b0362fc81266:invoice:cafd45390c48"
+            },
+            {
+              "method": "intervention_cross_check",
+              "ok": false,
+              "total": null,
+              "sources": [
+                "6781692dabf322f468e8ea4306f0b9ad69d821ebc547062db157e29264dc1a82:invoice:a15d7fe94061",
+                "609f6ae05bcb588a6188c5f76aafb7ccee3d38a10062151f0a99a080e925979b:invoice:30fb786f6af2",
+                "ac77f054f603a1c3d82fdd0cbf178edaba0e464a9a37a7e63089ee43eb288ce6:invoice:7c5831248096",
+                "14e5ea34db2eb7efd27fa71a27352692d5c9848069c89d7978f7b0362fc81266:invoice:cafd45390c48"
+              ],
+              "reason": "righe-intervento-non-dimostrate:"
+            }
+          ],
+          "discardedDuplicateSourceIds": [],
+          "supersededTechnicalSourceIds": [],
+          "appliedRuleIds": [
+            "user-2026-08-16-invoice-gross-total-vat-included",
+            "user-2026-08-18-bundled-professional-expense-separation",
+            "user-2026-08-18-mandatory-bank-transfer-invoice-expense-cross-check",
+            "core-gross-triple-reconciliation",
+            "user-2026-08-14-preserve-technical-product-cardinality",
+            "system-explicit-advance-invoice-reference-marker-v1"
+          ]
+        },
+        "warnings": [
+          {
+            "code": "secondary_home_36_percent_allocation_planned",
+            "reason": "Abitazione principale = NO: APR assegnera' l'intero totale congruo 2025-2026 alla colonna 36%, verifichera' 50%=0 e totale invariato dopo l'unico Salva.",
+            "appliedRuleIds": [
+              "user-2026-08-16-secondary-home-36-percent-calculation-allocation",
+              "system-atomic-checkpoint-resume"
+            ]
+          },
+          {
+            "code": "enea_2026_june_25_ninety_day_window_applied",
+            "reason": "Avviso ENEA 25/06/2026 applicato: inizio lavori 2026-03-14, fine lavori 2026-05-06; i 90 giorni decorrono dal 25/06/2026 e terminano il 23/09/2026.",
+            "appliedRuleIds": [
+              "user-2026-08-23-enea-2026-june-25-ninety-day-window"
+            ]
+          }
+        ],
+        "blockers": [
+          {
+            "code": "gross_triple_reconciliation_failed",
+            "field": "economic_sources.total",
+            "reason": "Tripla riconciliazione non dimostrata: imponibile-iva-mismatch:14e5ea34db2eb7efd27fa71a27352692d5c9848069c89d7978f7b0362fc81266:invoice:cafd45390c48.",
+            "sourceIds": [
+              "6781692dabf322f468e8ea4306f0b9ad69d821ebc547062db157e29264dc1a82",
+              "609f6ae05bcb588a6188c5f76aafb7ccee3d38a10062151f0a99a080e925979b",
+              "ac77f054f603a1c3d82fdd0cbf178edaba0e464a9a37a7e63089ee43eb288ce6",
+              "14e5ea34db2eb7efd27fa71a27352692d5c9848069c89d7978f7b0362fc81266",
+              "5aae377dafc445c1af2692f2cb017a29458b52a7c289e06cddf8aeba9dc7f19f",
+              "fb2784fd5925f93d09a63e261c96c316550e6fe56acd001d4f981e4f10716afe",
+              "75fd7f84d63efc4deb35e7cbb213414993b1866676584d96d9841494ec3f7aaf",
+              "debe84dba0fe33d6c6edec642007c046c3584919031c842150525502496fbfee",
+              "7bac9907862b7b808796d5b2976058abaacfe8f747c43baad7c6c2acf6465ea4",
+              "11a1e6e9b02f62c5d26d7d0f4a5f4019463ed72d31dc5c702318613384dd541e",
+              "01301d00277361881f987811051003b16005266d7e90c87b8b9f06a7a76944cd",
+              "26c9acccbc3e481a15a3ce6359908ed3682dc6bb8b7cfd9969526aba6b4ffc94",
+              "b08f5f63c2f7dff5ae672cd39f4ba3b1131c226d308bba9ee14e9570837dda05"
+            ],
+            "appliedRuleIds": [
+              "user-2026-08-16-invoice-gross-total-vat-included",
+              "core-gross-triple-reconciliation"
+            ]
+          }
+        ],
+        "sourceIds": [
+          "6781692dabf322f468e8ea4306f0b9ad69d821ebc547062db157e29264dc1a82",
+          "609f6ae05bcb588a6188c5f76aafb7ccee3d38a10062151f0a99a080e925979b",
+          "ac77f054f603a1c3d82fdd0cbf178edaba0e464a9a37a7e63089ee43eb288ce6",
+          "14e5ea34db2eb7efd27fa71a27352692d5c9848069c89d7978f7b0362fc81266",
+          "5aae377dafc445c1af2692f2cb017a29458b52a7c289e06cddf8aeba9dc7f19f",
+          "fb2784fd5925f93d09a63e261c96c316550e6fe56acd001d4f981e4f10716afe",
+          "75fd7f84d63efc4deb35e7cbb213414993b1866676584d96d9841494ec3f7aaf",
+          "debe84dba0fe33d6c6edec642007c046c3584919031c842150525502496fbfee",
+          "7bac9907862b7b808796d5b2976058abaacfe8f747c43baad7c6c2acf6465ea4",
+          "11a1e6e9b02f62c5d26d7d0f4a5f4019463ed72d31dc5c702318613384dd541e",
+          "01301d00277361881f987811051003b16005266d7e90c87b8b9f06a7a76944cd",
+          "26c9acccbc3e481a15a3ce6359908ed3682dc6bb8b7cfd9969526aba6b4ffc94",
+          "b08f5f63c2f7dff5ae672cd39f4ba3b1131c226d308bba9ee14e9570837dda05"
+        ],
+        "eneaPayloadAudit": {
+          "status": "payload_incomplete",
+          "mappingFingerprint": "hpdrr6",
+          "fieldSummary": {
+            "ready": 91,
+            "review": 0,
+            "missing": 2
+          },
+          "requiredPortalFieldCount": 83,
+          "blockerCount": 2,
+          "blockers": [
+            {
+              "code": "missing-beneficiario.nazione_nascita",
+              "fieldId": "beneficiario.nazione_nascita",
+              "message": "Nazione di nascita: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-schermature.spesa",
+              "fieldId": "schermature.spesa",
+              "message": "Spese congrue sostenute: Intervento umano richiesto."
+            }
+          ],
+          "excludedUnverifiedFields": [
+            "beneficiario.nazione_nascita",
+            "beneficiario.provincia_nascita",
+            "immobile.provincia",
+            "immobile.codice_comune",
+            "immobile.zona_climatica",
+            "immobile.gradi_giorno",
+            "schermature.spesa",
+            "documenti.fatture",
+            "documenti.bonifico",
+            "documenti.tecnici"
+          ],
+          "draftReady": false,
+          "officialSubmissionAllowed": false,
+          "portalGate": {
+            "status": "blocked",
+            "reason": "draft-data-incomplete",
+            "workflowFingerprint": null,
+            "supportedPages": [],
+            "screeningItemCount": 0,
+            "saveAllowedOnlyBySeparateCapability": true,
+            "previewAllowed": false,
+            "submitAllowed": false
+          },
+          "externalActionAllowed": false,
+          "reason": "2 campi o controlli impediscono ancora il payload della bozza TEST."
+        },
+        "draftPlan": {
+          "status": "blocked",
+          "externalActionAllowed": false,
+          "previewAllowed": false,
+          "submitAllowed": false,
+          "communicationsAllowed": false,
+          "nextAction": "Risolvere i blocker con sole fonti originarie; la coda prosegue sugli altri casi."
+        }
+      },
+      "reason": "Fresh replay dai documenti originali"
+    }
+  ],
+  "externalActionAllowed": false,
+  "reason": "Fresh replay locale",
+  "nextAction": "Nessuna azione esterna.",
+  "validationRevisionsApplied": [],
+  "sourceRevisionsApplied": [],
+  "operatorMeasurementResolutions": [],
+  "audit": [
+    {
+      "revision": 1,
+      "at": "2026-09-03T10:00:00.000Z",
+      "type": "completed",
+      "customerKey": null,
+      "reason": "Fresh replay locale",
+      "appliedRuleIds": [
+        "system-single-active-practice"
+      ]
+    }
+  ]
+}

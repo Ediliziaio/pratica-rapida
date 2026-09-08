@@ -1,0 +1,18 @@
+{
+  "version": "apr-official-municipality-bundle-install-receipt-r55-v1",
+  "installedAt": "2026-09-05T02:27:37.817Z",
+  "status": "bundle_promoted_local_gate_verified",
+  "preinstallGateSha256": "4a3f01597f7590d94e5bd3544c519ed3c527484715b8165a1902f54bf6b18bc3",
+  "versionId": "92da8433-official-municipality-r55-20260905",
+  "previousTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/be4fdbe8-sellati-ronconi-general-r54-20260905",
+  "currentTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/92da8433-official-municipality-r55-20260905",
+  "installedBundle": {
+    "apr-supervisor.mjs": "2a3a7ff8f673de1d193572fb655adc2a8705b9bf688bff26804352733b01e447",
+    "apr-enea-worker.mjs": "92da8433d4225ecc50a0536e450329693a2279283104ab577695863fe4227df7",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "apr-pdf-ocr": "4c41c9a6832b11b9d19eace538100270a533dddc05e475e5842711968393327f"
+  },
+  "keepaliveRestartRequested": false,
+  "chromeRestartRequested": false,
+  "sellatiOperationalReplayPerformed": false
+}

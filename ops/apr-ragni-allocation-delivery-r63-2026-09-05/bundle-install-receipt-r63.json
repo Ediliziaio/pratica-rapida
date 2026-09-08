@@ -1,0 +1,18 @@
+{
+  "version": "apr-allocation-single-intent-bundle-install-receipt-r63-v1",
+  "installedAt": "2026-09-05T19:28:06.987Z",
+  "status": "bundle_promoted_local_gate_verified",
+  "governanceAttestationSha256": "6244c9b76809a9e9ff1eee1dec0db2bcce5b8d4dd4553f0c6350f83f81229046",
+  "versionId": "322df1b9-allocation-single-intent-r63-20260905",
+  "previousTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/1bd5ada3-save-material-delivery-r62-20260905",
+  "currentTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/322df1b9-allocation-single-intent-r63-20260905",
+  "installedBundle": {
+    "apr-supervisor.mjs": "b1de7ecd62606485e775f3c43d8eabab079a39212d7587d2a391245b904e5708",
+    "apr-enea-worker.mjs": "322df1b95eb90823241dd9988dcbcd54774f326d454caed12b9b5ceb918deadf",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "apr-rule-governance-attestation.json": "6244c9b76809a9e9ff1eee1dec0db2bcce5b8d4dd4553f0c6350f83f81229046"
+  },
+  "keepaliveRestartRequested": false,
+  "chromeRestartRequested": false,
+  "operationalReplayPerformed": false
+}

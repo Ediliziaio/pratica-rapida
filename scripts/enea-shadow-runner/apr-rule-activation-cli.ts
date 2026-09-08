@@ -7,6 +7,7 @@ import { ENEA_OPERATIONAL_REGISTRY } from "../../src/features/enea-shadow-crm/op
 import { APR_RULE_SOURCE_FINGERPRINT, APR_RULE_TEST_MATRIX } from "../../src/features/enea-shadow-crm/ruleTestMatrix";
 import { PersistentRuleMatrixEvidence } from "./ruleMatrixEvidence";
 import { materializeAprRuleProofs } from "./aprRuleProofMaterializer";
+import { assertCompleteBusinessDecisionCoverage } from "../../src/features/enea-shadow-crm/businessDecisionLedger";
 
 const args = process.argv.slice(2);
 const option = (name: string) => {
@@ -48,6 +49,10 @@ function assertRegistryCoverage(): void {
   const registryIds = new Set(ENEA_OPERATIONAL_REGISTRY.map((rule) => rule.id));
   const missing = APR_RULE_TEST_MATRIX.flatMap((entry) => entry.registryRuleIds.filter((id) => !registryIds.has(id)).map((id) => `${entry.key}:${id}`));
   if (missing.length) throw new Error(`Matrice collegata a ID regola inesistenti: ${missing.join(", ")}`);
+  // Copertura bidirezionale: non basta che la matrice punti a regole valide.
+  // Ogni decisione utente dichiarata deve anche possedere almeno una prova
+  // positiva/negativa nella matrice, altrimenti l'attivazione si chiude.
+  assertCompleteBusinessDecisionCoverage(APR_RULE_TEST_MATRIX);
 }
 
 function assertBundlesContainRules(directory: string): void {

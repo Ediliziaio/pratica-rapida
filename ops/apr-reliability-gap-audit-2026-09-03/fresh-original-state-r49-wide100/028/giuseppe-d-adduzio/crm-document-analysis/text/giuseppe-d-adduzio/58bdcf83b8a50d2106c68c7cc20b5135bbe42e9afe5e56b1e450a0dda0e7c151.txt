@@ -1,0 +1,355 @@
+ERREEMME srl
+ERREEMME srl
+13
+13
+EN 14351-1:2006+A2:2016
+EN 14351-1:2006+A2:2016
+05001210001
+[1580X2440]PortaFinestra a taglio termico a 2 A/R - RC3 WS75THI
+05001220001
+[600X1440]Finestra a taglio termico a 1 A/R - RC3 WS75THI
+Uso previsto: USO RESIDENZIALE. COMMERCIALE. SCOLASTICO
+E OSPEDALIERO
+Uso previsto: USO RESIDENZIALE. COMMERCIALE. SCOLASTICO
+E OSPEDALIERO
+00005-CPR-2025-07-28
+00005-CPR-2025-07-28
+- Altezza e Larghezza 2440x1580 mm
+- Capacità portante dei dispositivi di sicurezza n.p.d.
+- Fattore solare(P5A_34MM) 0,36
+- Forze d'azionamento n.p.d.
+- Permeabilità all'aria 4
+- Potere fonoisolante n.p.d.
+- Resistenza al carico del vento C5
+- Resistenza all’urto n.p.d.
+- Resistenza all'effrazione RC3
+- Sostanze pericolose n.p.d.
+- Tenuta all'acqua E1500
+- Trasmissione luminosa(P5A_34MM) 70
+- Trasmittanza termica 1,2 W/m²K
+- Altezza e Larghezza 1440x600 mm
+- Capacità portante dei dispositivi di sicurezza n.p.d.
+- Fattore solare(P5A_34MM) 0,36
+- Forze d'azionamento n.p.d.
+- Permeabilità all'aria 4
+- Potere fonoisolante n.p.d.
+- Resistenza al carico del vento C5
+- Resistenza all’urto n.p.d.
+- Resistenza all'effrazione RC3
+- Sostanze pericolose n.p.d.
+- Tenuta all'acqua E1500
+- Trasmissione luminosa(P5A_34MM) 70
+- Trasmittanza termica 1,3 W/m²K
+D'Adduzio Giuseppe - Fatt.196F del 08/07/2025
+
+ERREEMME srl
+ERREEMME srl
+13
+13
+EN 14351-1:2006+A2:2016
+EN 14351-1:2006+A2:2016
+05001230001
+[830X2440]PortaFinestra a taglio termico a 1 A/R - RC3 WS75THI
+05001240001
+[1080X1440]Finestra a taglio termico a 2 A/R WS75THI
+Uso previsto: USO RESIDENZIALE. COMMERCIALE. SCOLASTICO
+E OSPEDALIERO
+Uso previsto: USO RESIDENZIALE. COMMERCIALE. SCOLASTICO
+E OSPEDALIERO
+00005-CPR-2025-07-28
+00005-CPR-2025-07-28
+- Altezza e Larghezza 2440x830 mm
+- Capacità portante dei dispositivi di sicurezza n.p.d.
+- Fattore solare(P5A_34MM) 0,36
+- Forze d'azionamento n.p.d.
+- Permeabilità all'aria 4
+- Potere fonoisolante n.p.d.
+- Resistenza al carico del vento C5
+- Resistenza all’urto n.p.d.
+- Resistenza all'effrazione RC3
+- Sostanze pericolose n.p.d.
+- Tenuta all'acqua E1500
+- Trasmissione luminosa(P5A_34MM) 70
+- Trasmittanza termica 1,2 W/m²K
+- Altezza e Larghezza 1440x1080 mm
+- Capacità portante dei dispositivi di sicurezza n.p.d.
+- Fattore solare(P5A_34MM) 0,36
+- Forze d'azionamento n.p.d.
+- Permeabilità all'aria 4
+- Potere fonoisolante n.p.d.
+- Resistenza al carico del vento C5
+- Resistenza all’urto n.p.d.
+- Resistenza all'effrazione RC3
+- Sostanze pericolose n.p.d.
+- Tenuta all'acqua E1500
+- Trasmissione luminosa(P5A_34MM) 70
+- Trasmittanza termica 1,3 W/m²K
+D'Adduzio Giuseppe - Fatt.196F del 08/07/2025
+
+ERREEMME srl
+13
+ERREEMME srl
+13
+EN 14351-1:2006+A2:2016
+EN 14351-1:2006+A2:2016
+05001260001
+[1580X1440]Finestra a taglio termico a 2 A/R - RC3 WS75THI
+05001270001
+[830X1440]Finestra a taglio termico a 1 A/R - RC3 WS75THI
+Uso previsto: USO RESIDENZIALE. COMMERCIALE. SCOLASTICO
+E OSPEDALIERO
+Uso previsto: USO RESIDENZIALE. COMMERCIALE. SCOLASTICO
+E OSPEDALIERO
+00005-CPR-2025-07-28
+00005-CPR-2025-07-28
+- Altezza e Larghezza 1440x1580 mm
+- Capacità portante dei dispositivi di sicurezza n.p.d.
+- Fattore solare(P5A_34MM) 0,36
+- Forze d'azionamento n.p.d.
+- Permeabilità all'aria 4
+- Potere fonoisolante n.p.d.
+- Resistenza al carico del vento C5
+- Resistenza all’urto n.p.d.
+- Resistenza all'effrazione RC3
+- Sostanze pericolose n.p.d.
+- Tenuta all'acqua E1500
+- Trasmissione luminosa(P5A_34MM) 70
+- Trasmittanza termica 1,2 W/m²K
+- Altezza e Larghezza 1440x830 mm
+- Capacità portante dei dispositivi di sicurezza n.p.d.
+- Fattore solare(P5A_34MM) 0,36
+- Forze d'azionamento n.p.d.
+- Permeabilità all'aria 4
+- Potere fonoisolante n.p.d.
+- Resistenza al carico del vento C5
+- Resistenza all’urto n.p.d.
+- Resistenza all'effrazione RC3
+- Sostanze pericolose n.p.d.
+- Tenuta all'acqua E1500
+- Trasmissione luminosa(P5A_34MM) 70
+- Trasmittanza termica 1,2 W/m²K
+D'Adduzio Giuseppe - Fatt.196F del 08/07/2025
+
+ERREEMME srl
+13
+EN 14351-1:2006+A2:2016
+05001280001
+[1580X1440]Finestra a taglio termico a 2 A/R - RC3 WS75THI
+Uso previsto: USO RESIDENZIALE. COMMERCIALE. SCOLASTICO
+E OSPEDALIERO
+00005-CPR-2025-07-28
+- Altezza e Larghezza 1440x1580 mm
+- Capacità portante dei dispositivi di sicurezza n.p.d.
+- Fattore solare(P5A_34MM) 0,36
+- Forze d'azionamento n.p.d.
+- Permeabilità all'aria 4
+- Potere fonoisolante n.p.d.
+- Resistenza al carico del vento C5
+- Resistenza all’urto n.p.d.
+- Resistenza all'effrazione RC3
+- Sostanze pericolose n.p.d.
+- Tenuta all'acqua E1500
+- Trasmissione luminosa(P5A_34MM) 70
+- Trasmittanza termica 1,2 W/m²K
+D'Adduzio Giuseppe - Fatt.196F del 08/07/2025
+
+ERREEMME srl
+EN 14351-1:2006+A2:2016
+ERREEMME srl
+EN 14351-1:2006+A2:2016
+ERREEMME srl
+EN 14351-1:2006+A2:2016
+ERREEMME srl
+EN 14351-1:2006+A2:2016
+ERREEMME srl
+EN 14351-1:2006+A2:2016
+ERREEMME srl
+EN 14351-1:2006+A2:2016
+ERREEMME srl
+EN 14351-1:2006+A2:2016
+D'Adduzio Giuseppe - Fatt.196F del 08/07/2025
+
+ERREEMME srl
+LAVORAZIONI IN LEGNO
+Via Manzoni , 30 - 71121 Foggia
+Tel. e Fax 0881 724650
+P.Iva 03265930713
+DICHIARAZIONE DI PRESTAZIONE
+N. 00005-CPR-2025-07-28
+1. Codice di identificazione unico del prodotto-tipo:
+2. Uso o usi previsti:
+PONZIO WS75THI
+USO RESIDENZIALE. COMMERCIALE. SCOLASTICO E OSPEDALIERO
+3. Fabbricante:
+ERREEMME srl
+4. Mandatario:
+5. Sistema VVCP:
+Sistema 3
+6. Norma armonizzata:
+UNI EN 14351-1
+7. Prestazione dichiarata
+Vedi Tabella 1 in allegato
+Accertate a mezzo di prove di laboratorio e/o calcoli eseguiti presso gli/l’Ente Notificati/o:
+IRCCOS (N.B. 1994)
+8. Documentazione tecnica appropriata e/o documentazione tecnica specifica:
+-
+Il presente documento è disponibile anche sul sito:
+La prestazione del prodotto sopra indicato è conforme all’insieme delle prestazioni dichiarate. La presente dichiarazione di
+responsabilità viene emessa, in conformità al regolamento (UE) n 305/2011, sotto la responsabilità del fabbricante sopra
+indicato.
+Firmato a nome e per conto del produttore da:
+………………………………………………………………………………………………………
+(nome e funzione)
+…………………………………..…………… …………………………………..……………
+(luogo e data) (firma)
+D'Adduzio Giuseppe - Fatt.196F del 08/07/2025
+
+ERREEMME srl
+LAVORAZIONI IN LEGNO
+Via Manzoni , 30 - 71121 Foggia
+Tel. e Fax 0881 724650
+P.Iva 03265930713
+Etichetta
+Altezza e Larghezza
+Capacità portante dei
+dispositivi di sicurezza
+Fattore solare P5A
+34MM
+_
+Forze d'azionamento
+1 2440x1580
+mm n.p.d. 0,36 n.p.d. 2 1440x600
+mm n.p.d. 0,36 n.p.d. 3 2440x830
+mm n.p.d. 0,36 n.p.d. 4 1440x1080
+mm n.p.d. 0,36 n.p.d. 6 1440x1580
+mm n.p.d. 0,36 n.p.d. 7 1440x830
+mm n.p.d. 0,36 n.p.d. 8 1440x1580
+mm n.p.d. 0,36 n.p.d. Permeabilità all'aria
+Potere fonoisolante
+Resistenza al carico del
+vento
+Resistenza all’urto
+Resistenza all'effrazione
+4 n.p.d. C5 n.p.d. RC3 4 n.p.d. C5 n.p.d. RC3 4 n.p.d. C5 n.p.d. RC3 4 n.p.d. C5 n.p.d. RC3 4 n.p.d. C5 n.p.d. RC3 4 n.p.d. C5 n.p.d. RC3 4 n.p.d. C5 n.p.d. RC3 Tabella 1
+D'Adduzio Giuseppe - Fatt.196F del 08/07/2025
+Sostanze pericolose
+n.p.d. n.p.d. n.p.d. n.p.d. n.p.d. n.p.d. n.p.d. Tenuta all'acqua
+E1500 E1500 E1500 E1500 E1500 E1500 E1500 Trasmissione luminosa
+P5A
+34MM
+_
+70 70 70 70 70 70 70 Trasmittanza termica
+1,2 W/m²K
+1,3 W/m²K
+1,2 W/m²K
+1,3 W/m²K
+1,2 W/m²K
+1,2 W/m²K
+1,2 W/m²K
+Specifica tecnica
+armonizzata
+EN
+14351-1:20
+06+A2:2016
+
+ERREEMME srl
+LAVORAZIONI IN LEGNO
+Via Manzoni , 30 - 71121 Foggia
+Tel. e Fax 0881 724650
+P.Iva 03265930713
+Istruzioni di uso e manutenzione
+TRASPORTO
+Per il trasporto e la manipolazione procedere con cautela, utilizzando mezzi idonei e
+un numero di persone sufficienti a garantire la movimentazione in sicurezza dei
+prodotti.
+Far viaggiare il prodotto in posizione verticale, avendo cura di assicurarlo saldamente
+alla struttura del mezzo di trasporto e ripararlo in modo opportuno per garantirne
+l'integrità.
+Stoccare il prodotto in posizione verticale, in luoghi idonei a preservarlo in modo
+ottimale. Assicurarsi che la zona di stoccaggio sia ben delimitata, evitare che i prodotti
+possano recare danni in modo accidentale e che l'accesso sia interdetto ai non addetti
+ai lavori.
+INSTALLAZIONE
+L'eventuale installazione del prodotto deve essere eseguita da personale competente,
+utilizzando procedure, attrezzature e materiali indicati nelle apposite istruzioni di
+installazione. La mancata osservanza di queste regole mette a rischio l'incolumità
+degli utilizzatori e di terzi.
+RIPARAZIONE
+La riparazione del prodotto deve essere eseguita da personale competente, per non
+compromettere i requisiti di sicurezza per l'utilizzatore.
+DISINSTALLAZIONE
+La disinstallazione del prodotto deve essere eseguita da personale competente. Una
+volta dismesso o non più utilizzato, il prodotto, comprensivo di tutti i suoi componenti
+ed accessori, NON deve essere disperso nell'ambiente, ma deve essere consegnato
+ai locali sistemi pubblici o privati di smaltimento conformi alle disposizioni normative
+vigenti.
+PRECAUZIONI DI IMPIEGO
+Per evitare che manovre improprie possano trasformarsi in situazioni di pericolo,
+leggere attentamente le seguenti indicazioni.
+PERICOLI POTENZIALI
+Schiacciamento dita: prestare particolare attenzione allo schiacciamento delle dita
+nelle operazioni di apertura e chiusura dell'infisso.
+Caduta Persone: con le ante aperte prestare attenzione al pericolo di caduta nel
+vuoto. Non lasciare gli infissi aperti incustoditi.
+Caduta oggetti: le correnti d'aria possono provocare la chiusura delle ante lasciateD'Adduzio Giuseppe - Fatt.196F del 08/07/2025
+
+aperte e causare la caduta degli oggetti lasciati sul davanzale.
+Ferite a causa di ante aperte: urti contro le ante aperte possono causare ferite. Non
+lasciare le ante aperte in presenza di bambini.
+Ferite a causa dell'apertura o della chiusura accidentale dell'anta: ante a vasistas
+possono aprirsi accidentalmente per lo sganciamento dei bracci limitatori, provocando
+rischio di ferite.
+Fare attenzione durante le operazioni di apertura e chiusura completa delle ante a
+bilico orizzontale o verticale.
+MANOVRE NON CORRETTE
+Non applicare carichi supplementari sulle ante.
+Non applicare sulle maniglie sforzi diversi da quelli di apertura e chiusura dell'infisso.
+Non forzare l'anta o le ante oltre il limite di apertura ed evitare sbattimenti.
+Non inserire oggetti fra l'anta e il telaio: improvvise correnti d'aria potrebbero causare
+urti pericolosi per la struttura dell'infisso.
+Non chiudere l'infisso con la maniglia in posizione di chiusura: l'urto con la ferramenta
+potrebbe danneggiare l'infisso.
+PULIZIA E MANUTENZIONE DEL PRODOTTO
+Sul serramento occorre effettuare periodicamente le operazioni di pulizia. La
+frequenza con cui va effettuata la pulizia è in relazione all'aggressività dell'atmosfera
+del luogo dove viene installato.
+La frequenza della manutenzione dipende dall'uso del serramento.
+In caso di serramenti con accessori elettrici, prima di ogni operazione di manutenzione
+o di qualsiasi intervento, assicurarsi che questi non siano sotto tensione.
+Prima di ridare tensione, assicurarsi che nessuno stia ancora operando, che non ci
+siano zone umide sul prodotto, al suolo e sulle pareti. Accertarsi che non vi sia alcuna
+situazione di potenziale pericolo.
+Per la pulizia utilizzare acqua e detergente neutro non abrasivo. Canaline di drenaggio
+otturate possono essere pulite con un'astina sottile di legno o plastica. Le guarnizioni
+devono essere ispezionate per verificarne la tenuta e la mancanza di danni, in caso
+contrario richiedere l'intervento di personale esperto.
+In caso di malfunzionamenti della ferramenta è sempre opportuno contattare
+personale competente per una verifica e un'eventuale riparazione.
+D'Adduzio Giuseppe - Fatt.196F del 08/07/2025
+
+ERREEMME srl
+LAVORAZIONI IN LEGNO
+Via Manzoni , 30 - 71121 Foggia
+Tel. e Fax 0881 724650
+P.Iva 03265930713
+DICHIARAZIONE CE DI CONFORMITA’ PER FINESTRE E
+PORTE PEDONALI ESTERNE
+(rif. Direttiva 89/106/CEE, Norma EN 14351-1, Sistema di
+Attestazione di Conformità 3)
+Il sottoscritto
+Legale Rappresentante dell’azienda:
+ERREEMME srl
+dichiara sotto la propria responsabilità che:
+i prodotti FINESTRE e PORTE PEDONALI ESTERNE della commessa
+codice 251 sono conformi a quanto previsto dalla Direttiva
+89/106/CEE e dalla Norma EN 14351-1 (Allegato ZA);
+i prodotti sono stati progettati e realizzati per assicurare la massima
+sicurezza in funzione delle loro caratteristiche specifiche;
+i materiali che compongono i prodotti non rilasciano sostanze pericolose.
+Le prove iniziali di tipo (ITT) sono state eseguite su campioni di prova
+presso il Laboratorio Notificato [S3]
+Le informazioni specifiche riguardanti tipologie di prodotto, destinazioni
+d'uso e caratteristiche prestazionali sono riportate sulle etichette CE
+consegnate unitamente alla documentazione accompagnatoria.
+Data Il Dichiarante (timbro e firma)
+D'Adduzio Giuseppe - Fatt.196F del 08/07/2025

@@ -1,0 +1,40 @@
+{
+  "version": "apr-lanzo-r59-single-manifest-v1",
+  "experimentId": "apr-lanzo-r59-clean-generation-2026-09-05",
+  "authorizationId": "user-2026-09-05-replay-lanzo-r56-clean-generation",
+  "authorizedAt": "2026-09-05T14:45:00.000+02:00",
+  "mode": "real_enea_draft_only",
+  "selection": {
+    "total": 1,
+    "allowedStages": ["archiviate"],
+    "selectionSeed": "same-authorized-case-annalisa-lanzo-r59",
+    "excludedCustomerKeys": ["beatrice-ciotta", "samuele-beretta", "prova-rivenditore-1-30-04"],
+    "excludedResellers": ["Vans", "Erre Emme", "RM Legno", "Overthemol"]
+  },
+  "cases": [
+    {
+      "cohort": 3131,
+      "practiceId": "b51df57d-dae2-4ddc-bf99-904673ebe50d",
+      "customerKey": "annalisa-lanzo",
+      "displayName": "ANNALISA LANZO",
+      "stage": "archiviate",
+      "stageName": "Archiviate",
+      "module": "screening",
+      "productEvidence": "Schermature Solari",
+      "reseller": "cor tende",
+      "invoiceCount": 2,
+      "complexity": "medium",
+      "historicalRetest": true,
+      "generationMode": "fresh_generation"
+    }
+  ],
+  "safety": {
+    "draftOnly": true,
+    "previewForbidden": true,
+    "submitForbidden": true,
+    "protocolForbidden": true,
+    "receiptsForbidden": true,
+    "communicationsForbidden": true,
+    "singleCaseStrictSequence": true
+  }
+}

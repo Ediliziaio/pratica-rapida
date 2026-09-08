@@ -9,6 +9,7 @@ export const SEQUENCER_OPERATOR_ISOLATION_RULE_IDS = Object.freeze([
 export const SEQUENCER_COMMON_FAILURE_CODES = Object.freeze([
   "session_unavailable_after_stall_threshold",
   "worker_unavailable_after_stall_threshold",
+  "execution_stalled_after_watchdog_threshold",
   "system_crash_verified",
 ]);
 
@@ -40,11 +41,11 @@ export function classifySequencerFailure(error) {
   }
   const technicalReason = error instanceof Error ? error.message : String(error);
   return Object.freeze({
-    scope: "case_operator_required",
-    code: "unresolved_case_inconsistency",
-    reason: `APR non ha potuto classificare o completare questa pratica in sicurezza: ${technicalReason}. Richiesto intervento operatore; le pratiche successive proseguono.`,
+    scope: "case_technical",
+    code: "isolated_case_technical_failure",
+    reason: `Difetto tecnico circoscritto alla pratica: ${technicalReason}. Le pratiche successive proseguono.`,
     technicalReason,
-    question: "Verificare i dati e la classificazione della pratica, quindi rimetterla in coda dopo la correzione.",
+    nextAction: "Correggere il difetto tecnico e rimettere in coda la sola pratica interessata.",
     appliedRuleIds: SEQUENCER_OPERATOR_ISOLATION_RULE_IDS,
   });
 }

@@ -1,0 +1,334 @@
+{
+  "version": "apr-crm-local-preflight-v1",
+  "revision": 1,
+  "status": "completed",
+  "sourceFingerprint": "74bf4876361c24abbf1e7861068929461ed8320b575db5d4f34ecb02913c8cab",
+  "currentCustomerKey": null,
+  "items": [
+    {
+      "customerKey": "caterina-claudia-garbato",
+      "displayName": "caterina Claudia garbato",
+      "practiceId": "9f44491c-30f7-44ef-84db-14877259d716",
+      "dossierPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2997-global-controller-caterina-claudia-garbato/crm-acquisition/dossiers/caterina-claudia-garbato.json",
+      "state": "blocked_case",
+      "attemptCount": 1,
+      "startedAt": null,
+      "endedAt": null,
+      "report": {
+        "outcome": "blocked_case",
+        "formAvailable": true,
+        "startDate": "2025-04-04",
+        "startDateSource": "9d09e19fc92b8fa27a2be0467b9a1136595fc6f848c83de3f81cdb2b473a10c7:invoice:264f0ccd0374",
+        "completionDate": "2025-04-04",
+        "completionDateSource": "9d09e19fc92b8fa27a2be0467b9a1136595fc6f848c83de3f81cdb2b473a10c7:invoice:264f0ccd0374",
+        "buildingQualification": "single_unit",
+        "buildingUnitCount": 1,
+        "deductionRate": null,
+        "taxCodeStatus": "verified_original_document",
+        "resolvedTaxCode": "GRBCRN71P44Z700C",
+        "taxCodeSourceIds": [
+          "9d09e19fc92b8fa27a2be0467b9a1136595fc6f848c83de3f81cdb2b473a10c7",
+          "d86d5d9cef31d404f419447fc0e14c212bb9f9b3a6479a7297ed0a2cce3de50a"
+        ],
+        "primaryBeneficiaryResolution": {
+          "status": "verified_document",
+          "identity": {
+            "name": "Caterina Claudia",
+            "surname": "Garbato",
+            "taxCode": "GRBCRN71P44Z700C",
+            "birthDate": "1971-09-04",
+            "sex": "F"
+          },
+          "sourceIds": [
+            "9d09e19fc92b8fa27a2be0467b9a1136595fc6f848c83de3f81cdb2b473a10c7",
+            "d86d5d9cef31d404f419447fc0e14c212bb9f9b3a6479a7297ed0a2cce3de50a"
+          ],
+          "authority": "fiscal_document"
+        },
+        "coBeneficiaryResolution": {
+          "status": "not_declared",
+          "present": false,
+          "identity": null,
+          "sourceIds": []
+        },
+        "products": [],
+        "financial": {
+          "invoiceTotal": 4800,
+          "eligibleExpense": 4800,
+          "tripleReconciliationVerified": true,
+          "reconciledTotal": 4800,
+          "evidence": [
+            {
+              "sourceId": "9d09e19fc92b8fa27a2be0467b9a1136595fc6f848c83de3f81cdb2b473a10c7:invoice:264f0ccd0374",
+              "kind": "invoice",
+              "taxableAmount": 4363.64,
+              "vatAmount": 436.36,
+              "grossTotal": 4800,
+              "interventionGrossAmount": 4800,
+              "extractionConfidence": "certain",
+              "extractionIssues": []
+            }
+          ],
+          "bankTransfers": [],
+          "bankTransferReconciliation": {
+            "status": "not_provided",
+            "principalTotal": null,
+            "feesTotal": null,
+            "debitedTotal": null,
+            "difference": null,
+            "referenceStatus": "not_provided",
+            "missingInvoiceReferences": [],
+            "taxReliefTypes": []
+          },
+          "methods": [
+            {
+              "method": "structured_extraction",
+              "ok": true,
+              "total": 4800,
+              "sources": [
+                "9d09e19fc92b8fa27a2be0467b9a1136595fc6f848c83de3f81cdb2b473a10c7:invoice:264f0ccd0374"
+              ],
+              "reason": "Ogni documento ha imponibile, IVA e totale verificati."
+            },
+            {
+              "method": "accounting_reconciliation",
+              "ok": true,
+              "total": 4800,
+              "sources": [
+                "9d09e19fc92b8fa27a2be0467b9a1136595fc6f848c83de3f81cdb2b473a10c7:invoice:264f0ccd0374"
+              ],
+              "reason": "Somma dei totali lordi IVA inclusa delle fatture uniche deduplicate; gli storni interni sono solo note auditabili."
+            },
+            {
+              "method": "intervention_cross_check",
+              "ok": true,
+              "total": 4800,
+              "sources": [
+                "9d09e19fc92b8fa27a2be0467b9a1136595fc6f848c83de3f81cdb2b473a10c7:invoice:264f0ccd0374"
+              ],
+              "reason": "Totale ricostruito esclusivamente dalle righe pertinenti all'intervento."
+            }
+          ],
+          "discardedDuplicateSourceIds": [],
+          "supersededTechnicalSourceIds": [],
+          "appliedRuleIds": [
+            "user-2026-08-16-invoice-gross-total-vat-included",
+            "user-2026-08-18-bundled-professional-expense-separation",
+            "user-2026-08-18-mandatory-bank-transfer-invoice-expense-cross-check",
+            "core-gross-triple-reconciliation",
+            "user-2026-08-14-preserve-technical-product-cardinality",
+            "system-explicit-advance-invoice-reference-marker-v1"
+          ]
+        },
+        "warnings": [
+          {
+            "code": "crm_fiscal_code_confirmed_by_invoice_customer_block",
+            "reason": "CF CRM GRBCRN71P44Z700C confermato nel blocco CLIENTE di una fattura originaria, con checksum e prefissi fiscali di nome/cognome concordanti.",
+            "appliedRuleIds": [
+              "system-invoice-customer-block-crm-cf-v1",
+              "user-2026-08-16-fiscal-code-identity-cross-check"
+            ]
+          },
+          {
+            "code": "primary_beneficiary_identity_overridden_by_invoice",
+            "reason": "Identita principale ricavata da documento fiscale per il CF verificato: Caterina Claudia Garbato, nascita 1971-09-04, sesso F; prevale sui dati inseriti nel CRM e nel form cliente.",
+            "appliedRuleIds": [
+              "user-2026-09-03-official-identity-over-manual-crm-v1",
+              "user-2026-08-16-fiscal-code-identity-cross-check"
+            ]
+          },
+          {
+            "code": "birth_country_resolved_from_reliable_belfiore_registry",
+            "reason": "Australia risolta dal codice catastale Z700 del CF tramite ANPR / MAECI (anpr-stati-esteri-maeci-z700); la provincia italiana incompatibile del form non prevale.",
+            "appliedRuleIds": [
+              "user-2026-08-16-fiscal-code-identity-cross-check",
+              "user-2026-08-23-foreign-birth-anpr-registry-v1",
+              "core-form-first"
+            ]
+          }
+        ],
+        "blockers": [
+          {
+            "code": "product_cardinality_form_invoice_mismatch",
+            "field": "screenings.quantity",
+            "reason": "Controllo incrociato ripetuto: il form descrive 1 righe e le fatture 0 prodotti fisici non riconciliabili in modo univoco per famiglia. Richiesto intervento operatore: confermare la cardinalita fisica e l'assegnazione degli attributi form.",
+            "sourceIds": [
+              "9d09e19fc92b8fa27a2be0467b9a1136595fc6f848c83de3f81cdb2b473a10c7",
+              "e59116771bb008119f8b830b04212ea1d53ec2ab3028010789673cbc91a6dab5",
+              "d86d5d9cef31d404f419447fc0e14c212bb9f9b3a6479a7297ed0a2cce3de50a"
+            ],
+            "appliedRuleIds": [
+              "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "user-2026-08-15-form-group-to-physical-products",
+              "system-apr-operator-intervention-routing"
+            ]
+          },
+          {
+            "code": "screenings_missing",
+            "field": "screenings",
+            "reason": "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+            "sourceIds": [
+              "9d09e19fc92b8fa27a2be0467b9a1136595fc6f848c83de3f81cdb2b473a10c7",
+              "e59116771bb008119f8b830b04212ea1d53ec2ab3028010789673cbc91a6dab5",
+              "d86d5d9cef31d404f419447fc0e14c212bb9f9b3a6479a7297ed0a2cce3de50a"
+            ],
+            "appliedRuleIds": [
+              "user-2026-08-14-preserve-technical-product-cardinality"
+            ]
+          },
+          {
+            "code": "completion_date_portal_year_mismatch",
+            "field": "dates.completion",
+            "reason": "Fine lavori 2025-04-04: anno 2025 incompatibile con il portale ENEA 2026. Selezionare il portale annuale corretto senza modificare la data.",
+            "sourceIds": [
+              "9d09e19fc92b8fa27a2be0467b9a1136595fc6f848c83de3f81cdb2b473a10c7:invoice:264f0ccd0374"
+            ],
+            "appliedRuleIds": [
+              "user-2026-08-23-completion-portal-year-operator-gate",
+              "user-2026-08-14-missing-completion-use-latest-invoice"
+            ]
+          },
+          {
+            "code": "completion_over_90_days_operator_required",
+            "field": "dates.completion",
+            "reason": "Fine lavori 2025-04-04: 517 giorni prima della lavorazione, oltre il limite di 90 giorni. Verificare la procedibilità e il portale annuale corretto.",
+            "sourceIds": [
+              "9d09e19fc92b8fa27a2be0467b9a1136595fc6f848c83de3f81cdb2b473a10c7:invoice:264f0ccd0374"
+            ],
+            "appliedRuleIds": [
+              "user-2026-08-23-completion-over-90-operator-gate",
+              "user-2026-08-14-missing-completion-use-latest-invoice"
+            ]
+          },
+          {
+            "code": "screening_primary_measurements_missing",
+            "field": "screenings.dimensions",
+            "reason": "La fattura descrive la schermatura ma nessuna fonte primaria riporta le misure fisiche del prodotto. APR non usa le misure della finestra protetta come misure del prodotto: acquisire o confermare le misure e rimettere la pratica in Pronte da fare.",
+            "sourceIds": [
+              "9d09e19fc92b8fa27a2be0467b9a1136595fc6f848c83de3f81cdb2b473a10c7",
+              "e59116771bb008119f8b830b04212ea1d53ec2ab3028010789673cbc91a6dab5",
+              "d86d5d9cef31d404f419447fc0e14c212bb9f9b3a6479a7297ed0a2cce3de50a"
+            ],
+            "appliedRuleIds": [
+              "system-screening-primary-measurements-operator-routing",
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "system-apr-operator-intervention-routing"
+            ]
+          }
+        ],
+        "sourceIds": [
+          "9d09e19fc92b8fa27a2be0467b9a1136595fc6f848c83de3f81cdb2b473a10c7",
+          "e59116771bb008119f8b830b04212ea1d53ec2ab3028010789673cbc91a6dab5",
+          "d86d5d9cef31d404f419447fc0e14c212bb9f9b3a6479a7297ed0a2cce3de50a"
+        ],
+        "eneaPayloadAudit": {
+          "status": "payload_incomplete",
+          "mappingFingerprint": "1o05hdq",
+          "fieldSummary": {
+            "ready": 46,
+            "review": 0,
+            "missing": 3
+          },
+          "requiredPortalFieldCount": 43,
+          "blockerCount": 8,
+          "blockers": [
+            {
+              "code": "screening-list-empty",
+              "fieldId": "schermature.numero",
+              "message": "Il modulo cliente non contiene l'elenco delle schermature."
+            },
+            {
+              "code": "document-blocker-0",
+              "fieldId": "schermature.0.dimensioni",
+              "message": "Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture."
+            },
+            {
+              "code": "missing-schermature.numero",
+              "fieldId": "schermature.numero",
+              "message": "Numero totale schermature: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-schermature.superficie_totale",
+              "fieldId": "schermature.superficie_totale",
+              "message": "Superficie totale schermature: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-schermature.risparmio_energia",
+              "fieldId": "schermature.risparmio_energia",
+              "message": "Risparmio energia primaria non rinnovabile: Intervento umano richiesto."
+            },
+            {
+              "code": "product_cardinality_form_invoice_mismatch",
+              "fieldId": "screenings.quantity",
+              "message": "Controllo incrociato ripetuto: il form descrive 1 righe e le fatture 0 prodotti fisici non riconciliabili in modo univoco per famiglia. Richiesto intervento operatore: confermare la cardinalita fisica e l'assegnazione degli attributi form."
+            },
+            {
+              "code": "screenings_missing",
+              "fieldId": "screenings",
+              "message": "Nessun prodotto fisico riconciliato dalle fatture originarie."
+            },
+            {
+              "code": "screening_primary_measurements_missing",
+              "fieldId": "screenings.dimensions",
+              "message": "La fattura descrive la schermatura ma nessuna fonte primaria riporta le misure fisiche del prodotto. APR non usa le misure della finestra protetta come misure del prodotto: acquisire o confermare le misure e rimettere la pratica in Pronte da fare."
+            }
+          ],
+          "excludedUnverifiedFields": [
+            "immobile.provincia",
+            "immobile.codice_comune",
+            "immobile.zona_climatica",
+            "immobile.gradi_giorno",
+            "schermature.numero",
+            "schermature.superficie_totale",
+            "schermature.risparmio_energia",
+            "documenti.fatture",
+            "documenti.bonifico",
+            "documenti.tecnici"
+          ],
+          "draftReady": false,
+          "officialSubmissionAllowed": false,
+          "portalGate": {
+            "status": "blocked",
+            "reason": "screening-component-blocked",
+            "workflowFingerprint": null,
+            "supportedPages": [],
+            "screeningItemCount": 0,
+            "saveAllowedOnlyBySeparateCapability": true,
+            "previewAllowed": false,
+            "submitAllowed": false
+          },
+          "externalActionAllowed": false,
+          "reason": "3 blocker della componente Schermature invalidano il payload della bozza TEST."
+        },
+        "draftPlan": {
+          "status": "blocked",
+          "externalActionAllowed": false,
+          "previewAllowed": false,
+          "submitAllowed": false,
+          "communicationsAllowed": false,
+          "nextAction": "Risolvere i blocker con sole fonti originarie; la coda prosegue sugli altri casi."
+        }
+      },
+      "reason": "Fresh replay dai documenti originali"
+    }
+  ],
+  "externalActionAllowed": false,
+  "reason": "Fresh replay locale",
+  "nextAction": "Nessuna azione esterna.",
+  "validationRevisionsApplied": [],
+  "sourceRevisionsApplied": [],
+  "operatorMeasurementResolutions": [],
+  "audit": [
+    {
+      "revision": 1,
+      "at": "2026-09-03T10:00:00.000Z",
+      "type": "completed",
+      "customerKey": null,
+      "reason": "Fresh replay locale",
+      "appliedRuleIds": [
+        "system-single-active-practice"
+      ]
+    }
+  ]
+}

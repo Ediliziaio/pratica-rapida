@@ -1,0 +1,47 @@
+{
+  "version": "apr-cdp-react-remount-r23-target4-freeze-v1",
+  "frozenAt": "2026-09-01T14:14:15Z",
+  "authorizationId": "user-2026-08-29-apr-autonomy-random30-v1",
+  "purpose": "Targeted operational regression of the Node-side read-only DOM polling correction for four previously authorized R22 cases",
+  "source": {
+    "root": "/private/tmp/apr-promote-r23.XeVzz4/source",
+    "commit": "e2066cb4f0969633838424d5efb76d604a938617",
+    "tree": "721b140e9d308706499dca869e790ffd6af18930",
+    "workingTree": "clean",
+    "sequencerSha256": "1af06dee2d2e5ab699f5745d0ee7bdf040497a333e1c3860e34f65bb0927bd81"
+  },
+  "bundle": {
+    "version": "aae9775a-cdp-react-remount-r23-20260901",
+    "supervisorSha256": "62b80bf8acab5e8e5a1a0bb8b1d15685771d03708442fbb7c6f4967776b78973",
+    "workerSha256": "aae9775a07fff90039c1db761f373e1a4f75968e6df1a9fbedf642f7bea24871",
+    "watchdogSha256": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0"
+  },
+  "gate": {
+    "attestationPath": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-cdp-react-remount-r23-2026-09-01/gate-attestation.json",
+    "attestationSha256": "0960d0cbd661b195cb1629943d041d173c7e915396771475254939575a823b91",
+    "status": "PASS",
+    "testFiles": 216,
+    "tests": 1616
+  },
+  "manifest": {
+    "path": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-cdp-react-remount-r23-2026-09-01/manifest-target4.json",
+    "sha256": "4489d085f4d3924b92a3a6f56db7e744b2d52de5bac7768fc2e9d968a98d624f",
+    "caseCount": 4,
+    "customerKeys": ["lucia-lagrasta", "luca-cigognetti", "emanuela-parolo", "amelia-lerose"]
+  },
+  "run": {
+    "label": "com.praticarapida.apr-cdp-react-remount-r23-target4",
+    "plistPath": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-cdp-react-remount-r23-2026-09-01/target4.plist",
+    "plistSha256": "234064182544defbfb1e20820b4d13ef6f0935ece26c809d66f2451102e9021b",
+    "runRoot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-cdp-react-remount-r23-target4",
+    "cohortOffset": 2460
+  },
+  "constraints": {
+    "chromeKeepaliveMayTerminate": false,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false,
+    "testMayStartOnlyAfterTripleSessionVerification": true,
+    "callegariAndMeggiarinMayBeModified": false
+  }
+}

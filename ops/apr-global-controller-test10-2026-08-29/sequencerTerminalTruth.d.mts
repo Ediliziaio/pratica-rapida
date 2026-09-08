@@ -1,0 +1,3 @@
+export function classifySequencerTerminalTruth(input: { kind: string; entry?: any; verified?: boolean; reason?: string }): { lifecycleState: string; publicStatus: string; consistency: string; reason: string; nextAction: string };
+export function reportStateForSequencerTerminalTruth(input: { kind: string; entry?: any; verified?: boolean; reason?: string }): "saved" | "operator_required" | "technical_block" | "inconsistent";
+export function publishSequencerTerminalTruth(input: { cohortRoot: string; customerKey?: string; kind: string; entry?: any; verified?: boolean; reason?: string; observedAt?: string; journalRevision?: number; executionRevision?: number; workerRevision?: number; executionFingerprint?: string | null; workerIdentity?: string | null }): any;

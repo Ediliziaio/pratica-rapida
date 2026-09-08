@@ -1,0 +1,313 @@
+APR_OCR_ORIENTATION:180
+arubatt
+Aruba PEC
+Pag. 1/1
+Fattura generata con:
+Fattura Nr. FATTURA232/2026 del 01/07/2026
+Copia analogica della fattura elettronica inviata a Sdi | Il documento xml originale è disponibile online sul portale "Fatture e Corrispettivi dell'Agenzia delle Entrate"
+800,00 €
+Netto a pagare
+800,00 €
+Totale documento
+72,73 €
+727,27€
+Immediata
+10%
+72,73 €
+Totale IVA
+0,00 €
+0,00 €
+22%
+727,27 €
+Totale imponibile
+727,27 €
+Importo prodotti o servizi
+IVA NATURA NORMATIVA ESIGIBILITA' IMPONIBILE IMPOSTA
+CALCOLO FATTURA
+RIEPILOGO IVA
+Descrizione causale DETRAZIONE DEL 50%IN ANNI 10/BONIFICO
+RISPARMIO ENERGETICO L296
+• CAUSALE DOCUMENTO
+DATI AGGIUNTIVI
+RF01 - Ordinario
+REGIME FISCALE
+•
+REGIME FISCALE
+Beneficiario: LINEA SOLE POTITO SRL
+800,00 €
+01/07/2026
+UNICREDITBA IT25R0200801615000040530215
+NCA
+unica soluzione •
+Pagamento in
+Bonifico
+1
+IMPORTO
+BIC/SWIFT DATA SCADENZA
+IBAN
+BANCA
+PAGAMENTO
+NR RATA MODALITÀ
+METODO DI PAGAMENTO
+22%
+0,00 €
+0,00 €
+1
+GHOT ENEA 0,13
+10%
+0,00 €
+0,00 €
+1
+Pratica ENEA saldo
+5
+10 %
+0,00 €
+0,00 €
+1
+Trasporto saldo
+4
+10 %
+50,00 €
+50,00 €
+1
+Posa in opera saldo
+10 %
+227,27 €
+227,27 €
+1
+Eventuale motore rts + telecomando ed impianto
+elettrico saldo
+2
+10 %
+450,00 €
+450,00 €
+1
+Tenda da Sole S/88 Pantografo a bracci Saldo
+1
+IMPORTO IVA NATURA IVA
+PREZZO
+QUANTITA'
+DESCRIZIONE
+NR
+PRODOTTI E SERVIZI
+lineapotitosole3@libero.it
+20146 - Milano (MI) - IT
+20147 - Milano (MI) - IT
+Via F. Brunelleschi 2
+VIA DELLA CAPINERA N5
+C.F.: 03397500962
+C.F.: DCSRRT74S53F205D
+P.IVA: IT03397500962
+ROBERTA DI CESARE
+LINEA SOLE POTITO SRL
+CLIENTE
+FORNITORE
+Data invio: 01/07/2026
+nr. FATTURA232/2026 del 01/07/2026
+FATTURA
+
+APR_OCR_ORIENTATION:180
+aroba.ft
+ruba PEC
+Pag. 1/1
+Fattura generata con
+Fattura Nr. FATTURA191/2026 del 12/06/2026
+Copia analogica della fattura elettronica inviata a Sdi | Il documento xmi originale è disponibile online sul portale "Fatture e Corrispettivi dell'Agenzia delle Entrate"
+800,00 €
+Netto a pagare
+800,00 €
+Totale documento
+72,73 €
+Totale IVA
+72,73 €
+727,27 €
+Immediata
+10%
+727,27 €
+Totale imponibile
+727,27 €
+Importo prodotti o servizi
+IMPOSTA
+IVA NATURA NORMATIVA ESIGIBILITA' IMPONIBILE
+CALCOLO FATTURA
+RIEPILOGO IVA
+Descrizione causale DETRAZIONE DEL 50%IN ANNI 10/BONIFICO
+RISPARMIO ENERGETICO L296
+CAUSALE DOCUMENTO
+•
+DATI AGGIUNTIVI
+RF01 - Ordinario
+REGIME FISCALE
+•
+REGIME FISCALE
+800,00 €
+IT25R0200801615000040530215
+Pagamento a rate
+Bonifico
+IMPORTO
+BIC/SWIFT DATA SCADENZA
+IBAN
+BANCA
+PAGAMENTO
+NR RATA MODALITÀ
+METODO DI PAGAMENTO
+10 %
+0,00 €
+0,00 €
+1
+Pratica ENEA (acconto 50%)
+5
+10 %
+0,00 €
+0,00 €
+1
+Trasporto (acconto 50%)
+4
+10 %
+50,00 €
+50,00 €
+1
+Posa in opera (acconto 50%)
+3
+10 %
+227,27 €
+227,27 €
+1
+Eventuale motore rts + telecomando ed impianto
+elettrico (acconto 50%)
+2
+10 %
+450,00 €
+450,00 €
+1
+Tenda da Sole S/88 Pantografo a bracci (acconto 50%)
+1
+IMPORTO IVA NATURA IVA
+PREZZO
+QUANTITA'
+DESCRIZIONE
+NR
+PRODOTTI E SERVIZI
+lineapotitosole3@libero.it
+20146 - Milano (MI) - IT
+20147 - Milano (MI) - IT
+Via F. Brunelleschi 2
+VIA DELLA CAPINERA N5
+C.F.: 03397500962
+C.F.: DCSRRT74S53F205D
+P.IVA: IT03397500962
+ROBERTA DI CESARE
+LINEA SOLE POTITO SRL
+CLIENTE
+FORNITORE
+Data invio: 12/06/2026
+nr. FATTURA191/2026 del 12/06/2026
+FATTURA
+
+APR_OCR_ORIENTATION:0
+MEDIOBANCA
+Data, 15/06/2026
+PREMIER
+Rif/Trnid : 221396586 / 2606151439281099ZX0160401600IT21991
+Mediobanca Premier 5.p.A. - Sede Legale: Vicle Bodio 37, Palazzo 4, 20158 Milano - Capitale Sociale
+€ 506.250.000,00 L.v. - Partita IVA n° 10536040966 - Codice Fiscale e Iscrizione al Registro delle Imprese
+di Milano n° 10359360152 - Codice ABI 03058.5 - Banca Iscritta all'Albo delle Banche e apportenente
+al Gruppo Bancario Monte del Paschi di Siena iscritto all'Albo del Gruppi Bancari al n° 1030 - Banca
+Vi informiamo che, da istruzioni ricevute, vi è stata
+iscritta al Registro Unico degli Intermediari Assicurativi e Riassicurativi - Socio unico: Mediobanca
+5.p.A. - Direzione e coordinamento: Banca Monte del Paschi di Siena S.p.A. - Aderente al Fondo
+addebitata la presente disposizione di bonifico sul
+conto
+Interbancarlo di Tutela del Depostti e al Fondo Nazionale di Garanzia. Mediobanca Premier° è un
+marchio registrato di Mediobanca S.p.A
+sottoindicato.
+CONTO
+c/c
+ADDEBITO BONIFICO
+COORDINATE BANCARIE NAZIONALI (BBAN)
+J0305801604570003083686
+COORDINATE BANCARIE INTERNAZIONALI (IBAN)
+DI CESARE ROBERTA
+IT27J0305801604100573083686
+VIA VAL BAVONA 3
+20147 MILANO MI
+Ordinante :
+DI CESARE ROBERTA
+Valuta benef. : 16/06/2026
+Beneficiario :
+LINEA SOLE POTITO SRL
+IBAN beneficiario: IT25R0200801615000040530215 Bic/Swift: UNCRITM1215
+Il nome fornito corrisponde con il nome del beneficiario del C/C
+IMPORTO
+VALUTA
+Causale :
+RST RIF. ART. 1 L. 296 DEL 27.12.06
+Importo Bonifico
+EUR
+800,00
+NUMFAT 191 2026 DATFAT 12062026 TIPSPE B
+Spese/Commissioni
+PIDES 03397500962 CFDES
+Importo addebitato
+EUR
+800,00
+15/06/2026
+CFORO DCSRRT74S53F205D
+Distinti saluti
+La lan Eu
+LBO09001
+Direttore Generale
+
+APR_OCR_ORIENTATION:270
+stata
+LBO09001
+07/07/2026
+Rif/Trnid: 223035989 / 2607062237457152ZX0160401600IT65949
+800,00
+800,00
+addebitata la presente disposizione di bonifico sul conto
+IMPORTO
+Vi informiamo che, da istruzioni ricevute, vi è
+EUR
+EUR
+Distinti saluti
+Ca Von Lar
+Direttore Generale
+DI CESARE ROBERTA
+VIA VAL BAVONA 3
+20147 MILANO MI
+Data, 07/07/2026
+sottoindicato.
+Importo Bonifico
+Spese/Commissioni
+Importo addebitato
+IBAN beneficiario: IT25R0200801615000040530215 Bic/Swift: UNCRITM1215
+Mediobanca Premier 5.p.A. - Sede Legale: Viale Bodio 37. Palazzo 4. 20158 Milano - Capitale Sociale
+€ 506.250.000.00 L.v. - Partita IVA n° 10536040966 - Codice Fiscale e Iscrizione al Registro delle Imprese
+di Milano n° 10359360152 - Codice ABI 03058.5 - Banca Iscritta all'Albo delle Banche e appartenente
+al Gruppo Bancario Monte dei Paschi di Siena iscritto all'Albo del Gruppl Bancari al n° 1030 - Banca
+iscritta al Registro Unico degli Intermediari Assicurativi e Riassicurativi - Socio unico: Mediobanca
+S.p.A. - Direzione e coordinamento: Banca Monte del Paschi di Siena S.p.A. - Aderente al Fondo
+Interbancario di Tutela del Depositi e al Fondo Nazionale di Garanzia. Mediobanca Premier° è un
+Il nome fornito corrisponde con il nome del beneficiario del C/C
+DATFAT 01072026 TIPSPE B
+ADDEBITO BONIFICO
+COORDINATE BANCARIE NAZIONALI (BBAN)
+J0305801604570003083686
+COORDINATE BANCARIE INTERNAZIONALI (IBAN)
+IT27J0305801604100573083686
+MEDIOBANCA
+PREMIER
+CONTO
+RST RIF. ART. 1 L. 296 DEL 27.12.06
+marchio registrato di Mediobanca S.p.A.
+Valuta benef. : 08/07/2026
+PIDES 03397500962 CFDES
+CFORO DCSRRT74S53F205D
+DI CESARE ROBERTA
+LINEA SOLE POTITO SRL
+c/c
+Ordinante :
+Beneficiario :
+Causale :
+NUMFAT 232

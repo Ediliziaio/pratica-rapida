@@ -1,0 +1,206 @@
+APR_OCR_ORIENTATION:180
+. , 4/12
+VAILA
+VEPA 3
+ØNØ495
+#TIMPANIS
+POSATO
+ØL1377 0 14/10
+VAILA
+PERGOTENDA
+RRIVO
+N.ORDINE
++ POLICARBONATO
+FORNITORE
+MERCE
+853 del 10/10/25
+NUMERO E DATA FATTURA
+NOTE
+AUTOSCALA SI
+archivorld. it
+v.chinaco_arc@
+333.4435.154
+PIANO ABITAZIONE
+MAIL
+TELEFONO
+MILANO
+VIA AYRAGHI N. 44
+IDA
+GIGLIOTTI
+INDIRIZZO
+NOME
+COGNOME
+In re
+
+APR_OCR_ORIENTATION:270
+MODULO ORDINE VETRATE Scorrevoli
+Cliente:
+Riferimento: GIGLIOTTI IDA
+VAILA. S.p.A.
+BRIANZA SERRAMENTI
+Tel. 06-9559571 r.a
+Data:
+4/12/25
+email: ordini@vailatende.it
+Modello Vetrata scorrevole
+Qta
+Tipo di Apertrura
+Colore Struttura
+OPTIONAL
+Marrone 8017
+Larghezza
+Misura FINITA
+Cm2660
+Singola SX
+Serratura per apertura singola
+Bianco 9010
+Altezza
+Misura FINITA
+Cm 25041
+Singola DX
+Avorio 1013
+Serratura per apertura doppia
+Antracite DR703
+NOTE
+Maniglia quadra interna - esterna
+X
+APRRINA
+Doppia Centrale
+Corten
+Kit chiusura ad angolo
+•
+CENTRALE
+Doppia Laterale
+Ly
+Altro
+Sublimato
+Spessore livellamento 4 vie
+Pz
+SPAZIO LIBERO PER SCHEMI VETRATE
+-
+1/3
+
+APR_OCR_ORIENTATION:270
+MODULO ORDINE VETRATE Scorrevoli
+Cliente:
+Riferimento: GIGLiOTTI 1D4
+VA.ILA. S.p.A.
+BRIANZA SERRAMENTI
+Tel. 06-9559571 r.a
+Data:
+4/12125
+email: ordini@vailatende.it
+Modello Vetrata scorrevole
+Qta
+Colore Struttura
+Tipo di Apertrura
+OPTIONAL
+Marrone 8017
+Larghezza
+Misura FINITA
+Cm 2355
+Singola SX
+*
+Serratura per apertura singola
+•
+Bianco 9010
+Altezza
+Misura FINITA Cm 2500
+Singola DX
+Avorio 1013
+Serratura per apertura doppia
+•
+NOTE
+Antracite DR703
+X
+Doppia Centrale
+Maniglia quadra interna - esterna
+Corten
+Doppia Laterale
+•
+Kit chiusura ad angolo
+Altro
+Sublimato
+Spessore livellamento 4 vie
+Pz
+SPAZIO LIBERO PER SCHEMI VETRATE
+2/3
+
+APR_OCR_ORIENTATION:270
+MODULO ORDINE VETRATE Scorrevoli
+Cliente:
+Riferimento:
+GIGLiOTTI
+VA.ILA. S.p.A.
+BRIANZA SERRAMENTI
+Tel. 06-9559571 r.a
+Data:
+4/12|25
+email: ordini@vailatende.it
+Modello Vetrata scorrevole
+Qta
+Colore Struttura
+Tipo di Apertura
+OPTIONAL
+Marrone 8017
+Larghezza
+Misura FINITA
+• Cm2360
+Singola SX
+Д
+Serratura per apertura singola
+Bianco 9010
+Altezza
+Misura FINITA Cm 2SOS
+Singola DX
+Avorio 1013
+Serratura per apertura doppia
+•
+NOTE
+Antracite DR703
+X
+Doppia Centrale
+•
+Maniglia quadra interna - esterna A
+Corten
+•
+Doppia Laterale
+•
+Kit chiusura ad angolo
+Altro
+Sublimato
+Spessore livellamento 4 vie
+Pz
+SPAZIO LIBERO PER SCHEMI VETRATE
+-
+→
+→
+→
+3/3
+
+APR_OCR_ORIENTATION:180
+di
+Pag._
+#santias
+FIRMA DEL TECNICO
+FIRMA DIRETTORE LAVORI
+FIRMA DEL CLIENTE
+131113 / 1Peo PAl 7001
+FARE PROFICI AlLuMINIO 3010 L.160 kas 700
+LATO CENTRALE
+L=2660 x H= 2504
+L-2360x M=2505
+CATo 5t
+LATO DX
+L: 2355 x 1=2500
+*
+13 30 13 L= 1900
+10110 l=1900
+con le Fool
+1 PRofno
+,l 700°
+Tutte le misure devono essere espresse in mm.
+FAIELA
+TECNICO Sig.
+DATA MISURE 27 11 1 25
+(O15) ALLEGATO: RIF. GIGLIORI IDA

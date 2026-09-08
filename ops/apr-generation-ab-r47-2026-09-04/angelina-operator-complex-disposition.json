@@ -1,0 +1,25 @@
+{
+  "version": "apr-case-specific-operator-disposition-v1",
+  "practiceId": "ae88aed9-0b83-42c7-87fb-a03c76a46113",
+  "customerKey": "angelina-stricelli",
+  "displayName": "Angelina Stricelli",
+  "classification": "OPERATOR_REQUIRED_COMPLEX_CASE",
+  "decisionSource": "user_explicit",
+  "decidedAt": "2026-09-04",
+  "propagation": "forbidden",
+  "automaticRetryAllowed": false,
+  "canonicalDraftId": "464009",
+  "completedPages": 5,
+  "expectedPages": 14,
+  "exactCause": "Pratica complessa con mancata persistenza del primo infisso anche dopo l'unico recupero autorizzato e verità terminali divergenti; Giuliano ha deciso di non inseguire ulteriormente il caso con APR e di destinarlo all'operatore umano.",
+  "missingDocumentType": null,
+  "operatorQuestion": "Quale operatore prende in carico manualmente Angelina Stricelli dalla bozza 464009, senza riattivare APR su questa pratica?",
+  "onboardingGap": null,
+  "safety": {
+    "furtherEneaMutationAuthorized": false,
+    "automaticResumeForbidden": true,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false
+  }
+}

@@ -14,14 +14,17 @@ import type {
   EneaLabSourcePractice,
 } from "./types";
 import { USER_AUTHORIZED_RULE_IDS } from "@/features/enea-shadow-crm/operationalRegistry";
+import { PRODUCT_CLASSIFIER_RULE_IDS } from "@/features/enea-shadow-crm/productClassifier";
 
 const AUTHORIZED_GTOT_FALLBACK_RULES = new Set<string>([
   USER_AUTHORIZED_RULE_IDS.pergolaScreening,
-  USER_AUTHORIZED_RULE_IDS.cristalScreening,
   USER_AUTHORIZED_RULE_IDS.zanzarieraScreening,
-  USER_AUTHORIZED_RULE_IDS.genericAwningScreening,
   USER_AUTHORIZED_RULE_IDS.persianaScreening,
   USER_AUTHORIZED_RULE_IDS.avvolgibileScreening,
+  PRODUCT_CLASSIFIER_RULE_IDS.zanzarieraFallback,
+  PRODUCT_CLASSIFIER_RULE_IDS.rigidScreeningFallback,
+  PRODUCT_CLASSIFIER_RULE_IDS.genericAwningFallback,
+  PRODUCT_CLASSIFIER_RULE_IDS.formDeclaredTypeResolvesClassificationAmbiguity,
 ]);
 
 function authorizedGTotFallback(field: ReturnType<typeof fieldById>): boolean {

@@ -1,0 +1,58 @@
+{
+  "version": "apr-fresh-generation-initialization-writer-audit-r51-v1",
+  "verifiedAt": "2026-09-04T21:00:00.000Z",
+  "scope": "Tutti i sorgenti runtime che costruiscono, inizializzano, preparano, estendono o leggono enea-draft-execution.",
+  "writers": [
+    {
+      "path": "PersistentAprEneaDraftExecution.prepare",
+      "risk": "creazione iniziale item comuni con default memorizzato",
+      "resolution": "rilegge cohort seed al confine di preparazione"
+    },
+    {
+      "path": "PersistentAprEneaDraftExecution.preparePackages",
+      "risk": "creazione iniziale item Infissi con default memorizzato",
+      "resolution": "rilegge cohort seed al confine di preparazione"
+    },
+    {
+      "path": "PersistentAprEneaDraftExecution.appendNewEligibleFromValidation",
+      "risk": "aggiunta tardiva di item comuni con default false",
+      "resolution": "rilegge cohort seed prima della transizione di append"
+    },
+    {
+      "path": "PersistentAprEneaDraftExecution.appendEligiblePackages",
+      "risk": "aggiunta tardiva di item Infissi con default false",
+      "resolution": "rilegge cohort seed prima della transizione di append"
+    }
+  ],
+  "alreadySafeWriters": [
+    {
+      "path": "reopenUpdatedPreflightGenerations/reopenUpdatedPackageGenerations",
+      "reason": "creano esplicitamente una nuova generazione con requiresFreshDraft=true"
+    },
+    {
+      "path": "operatorUnlockGenerationTransaction",
+      "reason": "non inizializza item dal default; attiva una generazione gia descritta da una transazione verificata"
+    }
+  ],
+  "readersOnly": [
+    "watchdog runtime",
+    "sequencer e finalizzatori",
+    "case observation collector",
+    "learning baseline e confronti",
+    "checkpoint migration transaction"
+  ],
+  "constructorCallSites": [
+    "supervisor-cli.ts",
+    "localDashboardServer.ts",
+    "apr-enea-worker-cli.ts",
+    "operatorUnlockGenerationTransaction.ts"
+  ],
+  "sharedProtection": "Tutti i constructor call site confluiscono in resolveAprInitialFreshGenerationPolicy; initialize valida il seed, mentre ogni writer di nuovi item lo rilegge senza usare un valore catturato dal costruttore.",
+  "failClosed": [
+    "JSON seed illeggibile",
+    "policy diversa da fresh_generation",
+    "experimentId invalido",
+    "override esplicito discordante dal seed"
+  ],
+  "residualInitializationRisk": "Nessun ulteriore writer diretto individuato nei sorgenti runtime. I bundle e gli artefatti storici sono output immutabili, non entry point sorgente."
+}

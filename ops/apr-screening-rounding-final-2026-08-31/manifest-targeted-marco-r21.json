@@ -1,0 +1,42 @@
+{
+  "version": "apr-screening-rounding-targeted-marco-r21-v1",
+  "authorizationId": "user-2026-08-31-definitive-mandate-same-authorized-corpus",
+  "authorizedAt": "2026-08-31T00:00:00.000Z",
+  "mode": "real_enea_draft_only",
+  "safety": {
+    "draftOnly": true,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false,
+    "priorDraftPolicy": "preserve_and_ignore_for_new_test_draft"
+  },
+  "selection": {
+    "total": 1,
+    "selectionMethod": "targeted regression replay from the already-authorized 30-case corpus",
+    "moduleDistribution": {
+      "infissi": 1
+    },
+    "complexityDistribution": {
+      "simple": 1
+    },
+    "allowedStages": [
+      "archiviate"
+    ],
+    "excludedCustomerKeys": [
+      "beatrice-ciotta"
+    ]
+  },
+  "cases": [
+    {
+      "cohort": 241,
+      "customerKey": "marco-colombo",
+      "displayName": "Marco Colombo",
+      "practiceId": "c3508cf4-1807-45e6-abf6-c41f605cf8d6",
+      "stage": "archiviate",
+      "module": "infissi",
+      "invoiceCount": 1,
+      "complexity": "simple",
+      "historicalRetest": true
+    }
+  ]
+}

@@ -6,5 +6,13 @@ export function settleCaseTruthAfterWorkerQuiescence(input: {
   readObservation: () => AprCaseObservation;
   wait: (milliseconds: number) => Promise<void>;
   quiescenceTimeoutMs?: number;
+  publishTerminalTruth?: (truth: { kind: string; entry: any; verified: boolean }) => void | Promise<void>;
   stabilityIntervalMs?: number;
 }): Promise<{ kind: "saved" | "case_block" | "unresolved"; entry: Record<string, any> }>;
+export function settleCaseTruthWhileWorkerContinues(input: {
+  readObservation: () => AprCaseObservation;
+  wait: (milliseconds: number) => Promise<void>;
+  onUnresolved?: (truth: { kind: "unresolved"; entry: Record<string, any> }) => void | Promise<void>;
+  publishTerminalTruth?: (truth: { kind: string; entry: any; verified: boolean }) => void | Promise<void>;
+  stabilityIntervalMs?: number;
+}): Promise<{ kind: "saved" | "case_block"; entry: Record<string, any> }>;

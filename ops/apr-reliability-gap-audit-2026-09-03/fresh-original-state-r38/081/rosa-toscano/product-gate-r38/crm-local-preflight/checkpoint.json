@@ -1,0 +1,341 @@
+{
+  "version": "apr-crm-local-preflight-v1",
+  "revision": 1,
+  "status": "completed",
+  "sourceFingerprint": "990b20f5166851a9b45e0dc645a463d3d53b71961a2376bf49e78cfb1a9b413c",
+  "currentCustomerKey": null,
+  "items": [
+    {
+      "customerKey": "rosa-toscano",
+      "displayName": "rosa toscano",
+      "practiceId": "48098402-2621-40d9-92ae-eb3d5befe380",
+      "dossierPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3001-global-controller-rosa-toscano/crm-acquisition/dossiers/rosa-toscano.json",
+      "state": "blocked_case",
+      "attemptCount": 1,
+      "startedAt": null,
+      "endedAt": null,
+      "report": {
+        "outcome": "blocked_case",
+        "formAvailable": true,
+        "startDate": "2026-05-11",
+        "startDateSource": "eb24b59449eaf5cd22d431740dcce338f98f879cffa5b3ce2d302c5e6845e49e:invoice:25e97dabb1cc",
+        "completionDate": "2026-05-28",
+        "completionDateSource": "28eac72c7ed3a27245b7900b6fdccdae35ca6c2ca73a5a0dd551d23a28609859:invoice:7f320559623a",
+        "buildingQualification": "single_unit",
+        "buildingUnitCount": 1,
+        "deductionRate": null,
+        "taxCodeStatus": "verified_original_document",
+        "resolvedTaxCode": "TSCRSO77B66D122F",
+        "taxCodeSourceIds": [
+          "28eac72c7ed3a27245b7900b6fdccdae35ca6c2ca73a5a0dd551d23a28609859",
+          "eb24b59449eaf5cd22d431740dcce338f98f879cffa5b3ce2d302c5e6845e49e"
+        ],
+        "primaryBeneficiaryResolution": {
+          "status": "not_found",
+          "identity": null,
+          "sourceIds": [],
+          "authority": null
+        },
+        "coBeneficiaryResolution": {
+          "status": "not_declared",
+          "present": false,
+          "identity": null,
+          "sourceIds": []
+        },
+        "products": [],
+        "financial": {
+          "invoiceTotal": 4350,
+          "eligibleExpense": 4350,
+          "tripleReconciliationVerified": true,
+          "reconciledTotal": 4350,
+          "evidence": [
+            {
+              "sourceId": "eb24b59449eaf5cd22d431740dcce338f98f879cffa5b3ce2d302c5e6845e49e:invoice:25e97dabb1cc",
+              "kind": "advance",
+              "taxableAmount": 1500,
+              "vatAmount": 330,
+              "grossTotal": 1830,
+              "interventionGrossAmount": 1830,
+              "extractionConfidence": "certain",
+              "extractionIssues": []
+            },
+            {
+              "sourceId": "28eac72c7ed3a27245b7900b6fdccdae35ca6c2ca73a5a0dd551d23a28609859:invoice:7f320559623a",
+              "kind": "advance",
+              "taxableAmount": 2065.57,
+              "vatAmount": 454.43,
+              "grossTotal": 2520,
+              "interventionGrossAmount": 2520,
+              "extractionConfidence": "certain",
+              "extractionIssues": []
+            }
+          ],
+          "bankTransfers": [],
+          "bankTransferReconciliation": {
+            "status": "not_provided",
+            "principalTotal": null,
+            "feesTotal": null,
+            "debitedTotal": null,
+            "difference": null,
+            "referenceStatus": "not_provided",
+            "missingInvoiceReferences": [],
+            "taxReliefTypes": []
+          },
+          "methods": [
+            {
+              "method": "structured_extraction",
+              "ok": true,
+              "total": 4350,
+              "sources": [
+                "eb24b59449eaf5cd22d431740dcce338f98f879cffa5b3ce2d302c5e6845e49e:invoice:25e97dabb1cc",
+                "28eac72c7ed3a27245b7900b6fdccdae35ca6c2ca73a5a0dd551d23a28609859:invoice:7f320559623a"
+              ],
+              "reason": "Ogni documento ha imponibile, IVA e totale verificati."
+            },
+            {
+              "method": "accounting_reconciliation",
+              "ok": true,
+              "total": 4350,
+              "sources": [
+                "eb24b59449eaf5cd22d431740dcce338f98f879cffa5b3ce2d302c5e6845e49e:invoice:25e97dabb1cc",
+                "28eac72c7ed3a27245b7900b6fdccdae35ca6c2ca73a5a0dd551d23a28609859:invoice:7f320559623a"
+              ],
+              "reason": "Somma dei totali lordi IVA inclusa delle fatture uniche deduplicate; gli storni interni sono solo note auditabili."
+            },
+            {
+              "method": "intervention_cross_check",
+              "ok": true,
+              "total": 4350,
+              "sources": [
+                "eb24b59449eaf5cd22d431740dcce338f98f879cffa5b3ce2d302c5e6845e49e:invoice:25e97dabb1cc",
+                "28eac72c7ed3a27245b7900b6fdccdae35ca6c2ca73a5a0dd551d23a28609859:invoice:7f320559623a"
+              ],
+              "reason": "Totale ricostruito esclusivamente dalle righe pertinenti all'intervento."
+            }
+          ],
+          "discardedDuplicateSourceIds": [],
+          "supersededTechnicalSourceIds": [],
+          "appliedRuleIds": [
+            "user-2026-08-16-invoice-gross-total-vat-included",
+            "user-2026-08-18-bundled-professional-expense-separation",
+            "user-2026-08-18-mandatory-bank-transfer-invoice-expense-cross-check",
+            "core-gross-triple-reconciliation",
+            "user-2026-08-14-preserve-technical-product-cardinality",
+            "system-explicit-advance-invoice-reference-marker-v1",
+            "user-2026-08-26-unique-invoice-base-reference-match-v1",
+            "user-2026-08-16-distinct-invoice-numbers-same-customer-sum"
+          ]
+        },
+        "warnings": [
+          {
+            "code": "invoice_reference_unique_base_matched",
+            "reason": "Riferimenti fattura risolti tramite numero base univoco: 4/26 -> 4. Riferimento e numero documento completi restano separati nell'audit.",
+            "appliedRuleIds": [
+              "user-2026-08-26-unique-invoice-base-reference-match-v1",
+              "user-2026-08-16-missing-invoice-operator-requeue"
+            ]
+          },
+          {
+            "code": "product_cardinality_form_invoice_difference_resolved",
+            "reason": "Controllo incrociato ripetuto: form 1 righe/gruppi, fatture 2 prodotti fisici. La differenza e risolta in modo univoco dalla quantita esplicita di fattura e dall'eredita del solo gruppo form compatibile; piano APR richiesto: 2 righe distinte.",
+            "appliedRuleIds": [
+              "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "user-2026-08-15-form-group-to-physical-products"
+            ]
+          },
+          {
+            "code": "enea_2026_june_25_ninety_day_window_applied",
+            "reason": "Avviso ENEA 25/06/2026 applicato: inizio lavori 2026-05-11, fine lavori 2026-05-28; i 90 giorni decorrono dal 25/06/2026 e terminano il 23/09/2026.",
+            "appliedRuleIds": [
+              "user-2026-08-23-enea-2026-june-25-ninety-day-window"
+            ]
+          }
+        ],
+        "blockers": [
+          {
+            "code": "original_invoice_missing_or_unavailable",
+            "field": "economic_sources",
+            "reason": "La fattura presente detrae o richiama una fattura di acconto non acquisita (1.500); APR non puo ricostruire il totale documentale completo senza la fonte fiscale originaria.",
+            "sourceIds": [
+              "eb24b59449eaf5cd22d431740dcce338f98f879cffa5b3ce2d302c5e6845e49e:invoice:25e97dabb1cc"
+            ],
+            "appliedRuleIds": [
+              "user-2026-08-16-missing-invoice-operator-requeue",
+              "user-2026-08-16-distinct-invoice-numbers-same-customer-sum",
+              "core-economic-classification",
+              "system-apr-operator-intervention-routing"
+            ]
+          },
+          {
+            "code": "screening_gtot_missing_operator_required_1",
+            "field": "screenings.1.gTot",
+            "reason": "gTot non documentato per famiglia tenda: nessun fallback autorizzato. Richiesto intervento operatore per questa pratica; la coda prosegue.",
+            "sourceIds": [
+              "eb24b59449eaf5cd22d431740dcce338f98f879cffa5b3ce2d302c5e6845e49e:invoice:25e97dabb1cc"
+            ],
+            "appliedRuleIds": [
+              "user-2026-08-31-unknown-screening-missing-gtot-operator-v1",
+              "user-2026-08-31-shared-screening-product-classifier-v1",
+              "system-apr-operator-intervention-routing",
+              "system-atomic-checkpoint-resume"
+            ]
+          },
+          {
+            "code": "screening_gtot_missing_operator_required_2",
+            "field": "screenings.2.gTot",
+            "reason": "gTot non documentato per famiglia tenda: nessun fallback autorizzato. Richiesto intervento operatore per questa pratica; la coda prosegue.",
+            "sourceIds": [
+              "28eac72c7ed3a27245b7900b6fdccdae35ca6c2ca73a5a0dd551d23a28609859:invoice:7f320559623a"
+            ],
+            "appliedRuleIds": [
+              "user-2026-08-31-unknown-screening-missing-gtot-operator-v1",
+              "user-2026-08-31-shared-screening-product-classifier-v1",
+              "system-apr-operator-intervention-routing",
+              "system-atomic-checkpoint-resume"
+            ]
+          },
+          {
+            "code": "screenings_missing",
+            "field": "screenings",
+            "reason": "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+            "sourceIds": [
+              "eb24b59449eaf5cd22d431740dcce338f98f879cffa5b3ce2d302c5e6845e49e",
+              "28eac72c7ed3a27245b7900b6fdccdae35ca6c2ca73a5a0dd551d23a28609859"
+            ],
+            "appliedRuleIds": [
+              "user-2026-08-14-preserve-technical-product-cardinality"
+            ]
+          }
+        ],
+        "sourceIds": [
+          "eb24b59449eaf5cd22d431740dcce338f98f879cffa5b3ce2d302c5e6845e49e",
+          "28eac72c7ed3a27245b7900b6fdccdae35ca6c2ca73a5a0dd551d23a28609859"
+        ],
+        "eneaPayloadAudit": {
+          "status": "payload_incomplete",
+          "mappingFingerprint": "k1awjw",
+          "fieldSummary": {
+            "ready": 66,
+            "review": 1,
+            "missing": 2
+          },
+          "requiredPortalFieldCount": 59,
+          "blockerCount": 11,
+          "blockers": [
+            {
+              "code": "screening-list-empty",
+              "fieldId": "schermature.numero",
+              "message": "Il modulo cliente non contiene l'elenco delle schermature."
+            },
+            {
+              "code": "unverified-gtot-0",
+              "fieldId": "schermature.0.gtot",
+              "message": "Elemento 1: il gTot non è documentato. Verificare fattura o scheda tecnica oppure inserirlo dopo controllo umano."
+            },
+            {
+              "code": "unverified-gtot-1",
+              "fieldId": "schermature.1.gtot",
+              "message": "Elemento 2: il gTot non è documentato. Verificare fattura o scheda tecnica oppure inserirlo dopo controllo umano."
+            },
+            {
+              "code": "invalid-gtot-0",
+              "fieldId": "schermature.0.gtot",
+              "message": "Elemento 1: il gTot deve essere documentato e non superiore a 0,35."
+            },
+            {
+              "code": "invalid-gtot-1",
+              "fieldId": "schermature.1.gtot",
+              "message": "Elemento 2: il gTot deve essere documentato e non superiore a 0,35."
+            },
+            {
+              "code": "missing-schermature.0.gtot",
+              "fieldId": "schermature.0.gtot",
+              "message": "Elemento 1 · gTot: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-schermature.1.gtot",
+              "fieldId": "schermature.1.gtot",
+              "message": "Elemento 2 · gTot: Intervento umano richiesto."
+            },
+            {
+              "code": "review-schermature.numero",
+              "fieldId": "schermature.numero",
+              "message": "Numero totale schermature: controllo operatore da confermare."
+            },
+            {
+              "code": "screening_gtot_missing_operator_required_1",
+              "fieldId": "screenings.1.gTot",
+              "message": "gTot non documentato per famiglia tenda: nessun fallback autorizzato. Richiesto intervento operatore per questa pratica; la coda prosegue."
+            },
+            {
+              "code": "screening_gtot_missing_operator_required_2",
+              "fieldId": "screenings.2.gTot",
+              "message": "gTot non documentato per famiglia tenda: nessun fallback autorizzato. Richiesto intervento operatore per questa pratica; la coda prosegue."
+            },
+            {
+              "code": "screenings_missing",
+              "fieldId": "screenings",
+              "message": "Nessun prodotto fisico riconciliato dalle fatture originarie."
+            }
+          ],
+          "excludedUnverifiedFields": [
+            "immobile.provincia",
+            "immobile.codice_comune",
+            "immobile.zona_climatica",
+            "immobile.gradi_giorno",
+            "schermature.0.rsupp",
+            "schermature.0.gtot",
+            "schermature.1.rsupp",
+            "schermature.1.gtot",
+            "schermature.numero",
+            "documenti.fatture",
+            "documenti.bonifico",
+            "documenti.tecnici"
+          ],
+          "draftReady": false,
+          "officialSubmissionAllowed": false,
+          "portalGate": {
+            "status": "blocked",
+            "reason": "screening-component-blocked",
+            "workflowFingerprint": null,
+            "supportedPages": [],
+            "screeningItemCount": 0,
+            "saveAllowedOnlyBySeparateCapability": true,
+            "previewAllowed": false,
+            "submitAllowed": false
+          },
+          "externalActionAllowed": false,
+          "reason": "3 blocker della componente Schermature invalidano il payload della bozza TEST."
+        },
+        "draftPlan": {
+          "status": "blocked",
+          "externalActionAllowed": false,
+          "previewAllowed": false,
+          "submitAllowed": false,
+          "communicationsAllowed": false,
+          "nextAction": "Richiesto intervento operatore: acquisire la fattura; al ritorno in Pronte da fare APR riprende dal nuovo fingerprint."
+        }
+      },
+      "reason": "Fresh replay dai documenti originali"
+    }
+  ],
+  "externalActionAllowed": false,
+  "reason": "Fresh replay locale",
+  "nextAction": "Nessuna azione esterna.",
+  "validationRevisionsApplied": [],
+  "sourceRevisionsApplied": [],
+  "operatorMeasurementResolutions": [],
+  "audit": [
+    {
+      "revision": 1,
+      "at": "2026-09-03T10:00:00.000Z",
+      "type": "completed",
+      "customerKey": null,
+      "reason": "Fresh replay locale",
+      "appliedRuleIds": [
+        "system-single-active-practice"
+      ]
+    }
+  ]
+}

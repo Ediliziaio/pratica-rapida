@@ -1,0 +1,41 @@
+{
+  "version": "apr-vendor-identity-r34-preinstall-gate-v1",
+  "attestedAt": "2026-09-03T14:20:10.312Z",
+  "status": "tested_not_deployed",
+  "monotonicGate": {
+    "baseline": {
+      "suites": 444,
+      "tests": 1690,
+      "reportSha256": "bbee494245ec3218b638c56c94c8e9b04a5df9c4a9193789a331dcefe7e1c724"
+    },
+    "candidate": {
+      "suites": 444,
+      "tests": 1693,
+      "reportSha256": "3aa2091d82fa253cf0efd822029c24a3dc0e9d3e6afaa48ef5c8a2aa8b90bdba"
+    },
+    "registryVersion": "enea-operational-registry-v110",
+    "matrixVersion": "apr-enea-rule-test-matrix-v88",
+    "rulesProved": 108,
+    "ruleEvidenceSha256": "535e9fc33fa60d7b34d530358ade26e667b20427feccfa0c28bab0393d6db422"
+  },
+  "localReplay": {
+    "status": "passed",
+    "replaySha256": "3f7320624202f32f81e56baa8c3f2c7acd7ab1776ee6ac84d8c2b3de768ac06d",
+    "demographicReplaySha256": "b49d3aa2bbacbb311554149a0893c04b6993f330759f51afa4a9bfa33c3d4958",
+    "identityScanSha256": "3a5ceb8d811786d09c496377bd42dc7af601a1809b90aa8fa9877738c9edb9eb",
+    "externalActionAllowed": false
+  },
+  "stagedBundle": {
+    "apr-supervisor.mjs": "45c88dc0ca86eed80638e81db48c04ff09bc79f469c8fe9729fe9d8539c730d9",
+    "apr-enea-worker.mjs": "a5883f667e1090375960a4355a5545c374fc2b94e753006fcc94ebbfd8d4aba8",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "apr-pdf-ocr": "4c41c9a6832b11b9d19eace538100270a533dddc05e475e5842711968393327f"
+  },
+  "safety": {
+    "localOnly": true,
+    "externalActionAllowed": false,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false
+  }
+}

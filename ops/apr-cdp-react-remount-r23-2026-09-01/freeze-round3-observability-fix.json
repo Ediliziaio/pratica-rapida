@@ -1,0 +1,41 @@
+{
+  "version": "apr-cdp-react-remount-r23-round3-observability-fix-freeze-v1",
+  "frozenAt": "2026-09-01T20:54:56Z",
+  "supersedesForRound3Only": "freeze-30x3.json",
+  "supersededFreezeSha256": "d7d0a8c42260a0bfd773a2350524658929de84a57c2e7867bbfb7f9f60c39652",
+  "reason": "Correzione generale richiesta dall'utente dopo la discrepanza INCONSISTENT del giro 2 fra snapshot terminale e dashboard statica.",
+  "authorizationId": "same-authorized-corpus-retest-2026-09-01",
+  "round": {
+    "number": 3,
+    "label": "com.praticarapida.apr-cdp-react-remount-r23-round3",
+    "cohortRange": "2790-2819",
+    "cohortOffset": 2572,
+    "runRoot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-cdp-react-remount-r23-round3",
+    "plistPath": "ops/apr-cdp-react-remount-r23-2026-09-01/round3.plist",
+    "plistSha256": "5e6a78d637b76e649261bbc86ef3e9af0e08a78a7a30ddb560f39645a4691e67"
+  },
+  "manifest": {
+    "path": "ops/apr-global-controller-test10-2026-08-29/manifest-autonomy30.json",
+    "sha256": "55521654d4d859ad4014b599f951892e46397e11c95ca4a94cf643d612efb6fd",
+    "caseCount": 30
+  },
+  "bundle": {
+    "versionId": "e52389f5-terminal-observability-r23-fix-20260901",
+    "supervisorSha256": "e52389f558623e9fe6fe989fb2d005c9898e81fa7566b94522ffc2613e1a1e2c",
+    "workerSha256": "9d38522d7e25b191b356bb7cabe9ef4fee178c51a53bb1ba2bad8ee34945745b",
+    "watchdogSha256": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0"
+  },
+  "attestationPath": "ops/apr-cdp-react-remount-r23-2026-09-01/round3-observability-fix-attestation.json",
+  "constraints": {
+    "singleRoundOnly": true,
+    "roundsMayOverlap": false,
+    "chromeKeepaliveMayTerminate": false,
+    "sameManifestAsR23": true,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "receiptsAllowed": false,
+    "emailAllowed": false,
+    "communicationsAllowed": false,
+    "tripleVerificationRequired": true
+  }
+}

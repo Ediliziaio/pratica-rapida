@@ -1,0 +1,281 @@
+Erre Emme s.r.l
+Via Manfredonia, Km 3
+71122 Foggia
+FG Italia
+(+39) 0881776903 / (+39) 0881753337
+rmlegno@rmlegno.it
+www.rmlegno.it
+03265930713
+DICHIARAZIONE DELLE PRESTAZIONI TERMICHE DEL
+SERRAMENTO
+Il sottoscritto
+Mannatrizio Raffaele
+rappresentante legale della ditta
+con sede operativa
+Erre Emme s.r.l
+Via Manfredonia, Km 3 - Foggia FG
+DICHIARA
+che i seguenti manufatti relativi alla fornitura Commessa Fattura n° 217 F del 20/07/2026 per conto di Spina Stefania
+(Codice fiscale: SPNSFN88R53B519S) nell'unità immobiliare ubicata in Via Domenico Menichella, 16 - 3° piano sono
+conformi a quanto previsto da
+L. 10/91, D.Lgs 192/05, D.Lgs. 311/06, D.M. 12/02/07,
+rispettando i limiti previsti per la zona climatica D a cui appartiene il Comune di Foggia (FG)
+come da D.M. 26/01/10 tabella 2.
+In particolare si dichiara che:
+1. Il valore di trasmittanza dei serramenti corrisponde a quanto di seguito riportato:
+Riferimento Descrizione Qt L X H Uw Campione
+Fattura n° 217
+F del
+20/07/2026 - 1
+PB2 SALA - Portabalcone 2 ante
+1 1515 X 2430 1,25
+Fattura n° 217
+F del
+20/07/2026 - 2
+F2 CUCINA - Finestra 2 ante
+1 1310 X 1430 1,3
+Fattura n° 217
+F del
+20/07/2026 - 3
+PB2 CAMERA - Portabalcone 2 ante
+2 1270 X 2430 1,28
+Fattura n° 217
+F del
+20/07/2026 - 4
+F1 WC - Finestra 1 anta
+1 800 X 1430 1,28
+Fattura n° 217
+F del
+20/07/2026 - 5
+F1 WC - Finestra 1 anta
+1 500 X 1430 1,38
+Fattura n° 217
+F del
+20/07/2026 - 6
+F2 CAMERA - Finestra 2 ante
+1 1110 X 1430 1,34
+Fattura n° 217
+F del
+20/07/2026 - 7
+PB1 SALA - Portabalcone 1 anta
+1 710 X 2430 1,28
+Pag
+1/5
+
+Erre Emme s.r.l
+Via Manfredonia, Km 3
+71122 Foggia
+FG Italia
+(+39) 0881776903 / (+39) 0881753337
+rmlegno@rmlegno.it
+www.rmlegno.it
+03265930713
+La conduttanza termica complessiva è stata determinata in accordo con la metodologia semplificata descritta dalla
+norma UNI EN ISO 10077-1:2007 Trasmittanza termica di finestre, porte e schemi e sulla base dei singoli valori di
+trasmittanza termica dei componenti costituenti i serramenti, così come dichiarato dalla ditta fornitrice.
+2. La trasmittanza termica delle finestre esistenti nell'unità immobiliare sopra indicata corrisponde a
+5.0 W/m²K ed è stata calcolata secondo UNI EN ISO10077-1 (Annex F)
+Allegati alla presente dichiarazione:
+1. Certificazione, da parte del produttore dei vetri camera, dei valori di trasmittanza termica dei prodotti vetrati facenti
+parte della presente fornitura.
+2. Certificazione, da parte del produttore dei profili per finestra delle serie sopracitate, dei valori di trasmittanza termica
+dei prodotti facenti parte della presente fornitura.
+3. Allegato dichiarazione delle prestazioni termiche del serramento
+Foggia, 04/08/2026 Firma
+Pag
+2/5
+
+Erre Emme s.r.l
+Via Manfredonia, Km 3
+71122 Foggia
+FG Italia
+(+39) 0881776903 / (+39) 0881753337
+rmlegno@rmlegno.it
+www.rmlegno.it
+03265930713
+ALLEGATO ALLA DICHIARAZIONE DELLE PRESTAZIONI TERMICHE
+DEL SERRAMENTO
+Determinazione numerica della trasmittanza termica complessiva dei serramenti, secondo la norma UNI EN ISO
+10077-1:2007 Trasmittanza termica di finestre, porte e schemi.
+La trasmittanza termica Uw dei singoli serramenti oggetto della presente dichiarazione di conformità è stata determinata
+numericamente secondo la seguente espressione:
+[W/m²K]
+Dove:
+Uf : trasmittanza termica del telaio metallico in W/m²K
+Ug : trasmittanza termica dell'elemento vetrato (o pannellatura) in W/m²K
+Ψ : trasmittanza lineare in W/mK (da considerare solo nel caso del vetro camera) dovuta alla presenza del
+distanziatore posto tra i due vetri
+Af : area del telaio in m²
+Ag : area della vetrazione in m²
+lg : perimetro della vetrazione in m
+Ap : area dei pannelli opachi in m² (se presenti)
+lp : perimetro dei pannelli opachi in m (se presenti)
+I valori di trasmittanza relativi alla fornitura Commessa Fattura n° 217 F del 20/07/2026 del corrispondono a quanto di
+seguito riportato:
+Riferimento Descrizione Qt L X H Uw Campione
+Fattura n° 217
+F del
+20/07/2026 - 1
+PB2 SALA - Portabalcone 2 ante
+1 1515 X 2430 1,25
+Fattura n° 217
+F del
+20/07/2026 - 2
+F2 CUCINA - Finestra 2 ante
+1 1310 X 1430 1,3
+Fattura n° 217
+F del
+20/07/2026 - 3
+PB2 CAMERA - Portabalcone 2 ante
+2 1270 X 2430 1,28
+Fattura n° 217
+F del
+20/07/2026 - 4
+F1 WC - Finestra 1 anta
+1 800 X 1430 1,28
+Fattura n° 217
+F del
+20/07/2026 - 5
+F1 WC - Finestra 1 anta
+1 500 X 1430 1,38
+Fattura n° 217
+F del
+20/07/2026 - 6
+F2 CAMERA - Finestra 2 ante
+1 1110 X 1430 1,34
+Fattura n° 217
+F del
+20/07/2026 - 7
+PB1 SALA - Portabalcone 1 anta
+1 710 X 2430 1,28
+Pag
+3/5
+
+Erre Emme s.r.l
+Via Manfredonia, Km 3
+71122 Foggia
+FG Italia
+(+39) 0881776903 / (+39) 0881753337
+rmlegno@rmlegno.it
+www.rmlegno.it
+03265930713
+NODI
+● [Fattura n° 217 F del 20/07/2026 - 1] Portabalcone 2 ante (1515 X 2430) Uw=1,25
+Nodo Certificato
+Af Uf
+FD201_50 + LA791 + FD601N + LA1140 0,65 1,33
+FD603N + LA1140 + LA1096 + FD601N +
+LA1140
+0,26 1,34
+PA289T + FD601N + LA1140 + LA837 0,11 0,00
+● [Fattura n° 217 F del 20/07/2026 - 5] Finestra 2 ante (1310 X 1430) Uw=1,30
+Nodo Certificato
+Af Uf
+FD201_50 + LA786 + LA791C + FD601N +
+LA1140
+0,13 1,34
+FD201_50 + LA791 + FD601N + LA1140 0,41 1,33
+FD603N + LA1140 + LA1096 + FD601N +
+LA1140
+0,14 1,34
+● [Fattura n° 217 F del 20/07/2026 - 3] Portabalcone 2 ante (1270 X 2430) Uw=1,28
+Nodo Certificato
+Af Uf
+FD201_50 + LA791 + FD601N + LA1140 0,62 1,33
+FD603N + LA1140 + LA1096 + FD601N +
+LA1140
+0,26 1,34
+PA289T + FD601N + LA1140 + LA837 0,09 0,00
+● [Fattura n° 217 F del 20/07/2026 - 7] Finestra 1 anta ( 800 X 1430) Uw=1,28
+Nodo Certificato
+Af Uf
+FD201_50 + LA786 + LA791C + FD601N +
+LA1140
+0,07 1,34
+FD201_50 + LA791 + FD601N + LA1140 0,36 1,33
+● [Fattura n° 217 F del 20/07/2026 - 8] Finestra 1 anta ( 500 X 1430) Uw=1,38
+Nodo Certificato
+Af Uf
+FD201_50 + LA786 + LA791C + FD601N +
+LA1140
+0,04 1,34
+FD201_50 + LA791 + FD601N + LA1140 0,32 1,33
+● [Fattura n° 217 F del 20/07/2026 - 6] Finestra 2 ante (1110 X 1430) Uw=1,34
+Nodo Certificato
+Af Uf
+FD201_50 + LA786 + LA791C + FD601N +
+LA1140
+0,11 1,34
+FD201_50 + LA791 + FD601N + LA1140 0,39 1,33
+FD603N + LA1140 + LA1096 + FD601N +
+LA1140
+0,14 1,34
+● [Fattura n° 217 F del 20/07/2026 - 9] Portabalcone 1 anta ( 710 X 2430) Uw=1,28
+Nodo Certificato
+Af Uf
+FD201_50 + LA791 + FD601N + LA1140 0,56 1,33
+PA289T + FD601N + LA1140 + LA837 0,04 0,00
+Pag
+4/5
+
+Erre Emme s.r.l
+Via Manfredonia, Km 3
+71122 Foggia
+FG Italia
+(+39) 0881776903 / (+39) 0881753337
+rmlegno@rmlegno.it
+www.rmlegno.it
+03265930713
+VETRI
+● [Fattura n° 217 F del 20/07/2026 - 1] Portabalcone 2 ante (1515 X 2430) Uw=1,25
+Vetro Certificato
+lg
+Ag Ug Ψ g Certificato
+28-INFINITY 2,67 1,00
+11,36
+0,05
+● [Fattura n° 217 F del 20/07/2026 - 5] Finestra 2 ante (1310 X 1430) Uw=1,30
+Vetro Certificato
+lg
+Ag Ug Ψ g Certificato
+28-INFINITY 1,19 1,00
+6,83
+0,05
+● [Fattura n° 217 F del 20/07/2026 - 3] Portabalcone 2 ante (1270 X 2430) Uw=1,28
+Vetro Certificato
+lg
+Ag Ug Ψ g Certificato
+28-INFINITY 2,11 1,00
+10,88
+0,05
+● [Fattura n° 217 F del 20/07/2026 - 7] Finestra 1 anta ( 800 X 1430) Uw=1,28
+Vetro Certificato
+lg
+Ag Ug Ψ g Certificato
+28-INFINITY_SAT 0,71 1,00
+3,61
+0,05
+● [Fattura n° 217 F del 20/07/2026 - 8] Finestra 1 anta ( 500 X 1430) Uw=1,38
+Vetro Certificato
+lg
+Ag Ug Ψ g Certificato
+28-INFINITY_SAT 0,35 1,00
+3,01
+0,05
+● [Fattura n° 217 F del 20/07/2026 - 6] Finestra 2 ante (1110 X 1430) Uw=1,34
+Vetro Certificato
+lg
+Ag Ug Ψ g Certificato
+28-INFINITY 0,95 1,00
+6,43
+0,05
+● [Fattura n° 217 F del 20/07/2026 - 9] Portabalcone 1 anta ( 710 X 2430) Uw=1,28
+Vetro Certificato
+lg
+Ag Ug Ψ g Certificato
+28-INFINITY 1,12 1,00
+5,49
+0,05
+Foggia, 04/08/2026 Firma
+Pag
+5/5

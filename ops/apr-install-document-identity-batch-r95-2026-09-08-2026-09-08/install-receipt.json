@@ -1,0 +1,23 @@
+{
+  "version": "apr-install-bundle-cli-receipt-v1",
+  "installedAt": "2026-09-08T17:25:20.854Z",
+  "label": "document-identity-batch-r95-2026-09-08",
+  "versionId": "90dfb410-document-identity-batch-r95-2026-09-08-20260908",
+  "previousTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/8e96db26-customer-form-batch-r94-2026-09-08-20260908",
+  "currentTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/90dfb410-document-identity-batch-r95-2026-09-08-20260908",
+  "installedBundle": {
+    "apr-supervisor.mjs": "91f9b2fd73de94ad96acf28519e51304efb7a1d9e27d5f1566ce8056daef4853",
+    "apr-enea-worker.mjs": "f483cd806eff530bc365219462f3b974179c87dfa4288d3ab661b3b6321afc48",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0"
+  },
+  "gateResultArtifactId": "1a9eea16b062729f6b0f350b14aac0b98a40323fe4cc6aff4dc26b30d04b5bd4",
+  "gateStatus": "PASS",
+  "legacyGovernanceDebtNoticed": [
+    "user-2026-08-06-existing-plant-authoritative-mapping-v1",
+    "user-2026-08-06-intervention-authoritative-sources-and-defaults-v1",
+    "user-2026-08-06-portal-intermediary-physical-beneficiary-v1",
+    "user-2026-08-06-portal-municipality-controlled-selection-v1",
+    "user-2026-09-05-co-beneficiary-trusted-enter-delivery-v2",
+    "user-2026-09-05-terminal-cohort-browser-quiescence-v1"
+  ]
+}

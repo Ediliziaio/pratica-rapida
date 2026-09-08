@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "apr-reliability-autonomous-audit-attestation-v1",
+  "attestedAt": "2026-09-03T19:00:00Z",
+  "status": "STOPPED_SAFELY_OPERATOR_AUTHORIZATION_REQUIRED",
+  "activeBundle": "versions/de26daa2-producer-position-r36-20260903",
+  "nonActiveCandidates": {
+    "r37": "tested source candidate, never selected canonically on its own",
+    "r38": "versions/a7f4c2d1-product-evidence-r38-20260903 — installed briefly, then quarantined"
+  },
+  "exactCause": "Blind original-document review proved that the r37 single-product evidence path can accept a manufacturer/reseller job not uniquely bound to the customer invoice and product. r38 incorporates r37, so both are quarantined pending a general source-binding gate.",
+  "operatorQuestion": "Autorizzi lo sviluppo di un gate generale che accetti una fonte tecnica soltanto quando cliente/cantiere, ordine o commessa e prodotto sono collegati univocamente ai documenti fiscali della pratica?",
+  "localBaseline": {
+    "bundle": "r36",
+    "readyLocal": 29,
+    "operatorRequiredLocal": 71,
+    "analysisFailures": 0,
+    "sourceDocuments": 359,
+    "sourceHashMismatches": 0,
+    "testSuites": 444,
+    "tests": 1698,
+    "failedTests": 0,
+    "registryVersion": "enea-operational-registry-v112",
+    "matrixVersion": "apr-enea-rule-test-matrix-v90",
+    "provedRules": 111
+  },
+  "candidateR38": {
+    "testSuites": 444,
+    "tests": 1704,
+    "failedTests": 0,
+    "status": "QUARANTINED_DESPITE_GREEN_AUTOMATIC_SUITE",
+    "reason": "The gate lacked a negative fixture for cross-document source binding."
+  },
+  "productBlindReview": {
+    "cases": 17,
+    "shards": 3,
+    "falseBlockersOrUnsafeFalseResolutionFound": [
+      "massimo-cappello",
+      "claudia-sellati",
+      "eugenio-codognato",
+      "leo-manini",
+      "gemma-minore"
+    ]
+  },
+  "artifactsSha256": {
+    "report": "74d723a335e2f91c84831fee95d5ddf5067c0428b37eb2b4831fed779f3b9bce",
+    "productReviewShardA": "df12af23036abc6706d042465e9777c54289e1eed3cd1b8feb1f3792e415859f",
+    "productReviewShardB": "47852d1f6f41f31f30805700381f55997143ec73bea422cd92caebd3cd89c2be",
+    "productReviewShardC": "84606caf0f7a0758408d3b9acff09888e6d05af96413237c962143891bce023d",
+    "quarantineReceipt": "64bc069935a9299e9930476d965c67b2fa9408bfbef4aa7c3b3ecce3b84ff390",
+    "postRollbackTripleVerification": "580ec65a7b95085831b4d26d4586c467f28f924bfc82b90c2efc2b27a521ca11"
+  },
+  "safety": {
+    "eneaAccessedForMutation": false,
+    "draftCreated": false,
+    "previewPerformed": false,
+    "savePerformed": false,
+    "submitPerformed": false,
+    "communicationPerformed": false,
+    "keepaliveRestarted": false,
+    "chromeRestarted": false
+  },
+  "notification": {
+    "kind": "urgent_authorization_required",
+    "ntfyMessageId": "C0oLo0mi99KR"
+  }
+}

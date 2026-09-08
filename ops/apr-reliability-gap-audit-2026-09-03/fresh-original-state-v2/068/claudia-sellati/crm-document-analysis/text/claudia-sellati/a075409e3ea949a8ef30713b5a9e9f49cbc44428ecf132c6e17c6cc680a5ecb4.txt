@@ -1,0 +1,317 @@
+Fideal s.r.l.
+Sede Leg.: Svincolo Val D'Agri - Statale 106 Km 428,5
+75020 Scanzano Jonico (MT) - Area Artigianale
+Tel: 0835848262
+P.IVA 01388490771
+Stabilimento:Area Artigianale 75026 Rotondella 2 (MT)
+Indirizzo di Fatturazione STELLINO DESIGN SRL
+VIA FRANCESCO BARACCA, 80 00177 ROMA tel 0670306862
+fax 0670309668
+Indirizzo di Destinazione
+VIA CARLO MEZZACAPO, 19
+ROMA - CASALBERTONE
+Prestazioni Energetiche CO 74618 Rif:Sellati Claudia 2026 17.02.26
+Il sottoscritto, Nicola Elio Rubolino, in qualità di Amministratore Delegato della ditta COSMET S.r.l F.lli Rubolino sita in
+Svincolo Val D'Agri - Statale 106 Km 428,5 Cap. 75020 Scanzano Jonico (MT), Partita Iva 00623350774
+Assevera e dichiara
+che, ai sensi della legge 10/91 art. 32, dal DM 2 Aprile 1998 ed all'art. 1 comma 345 della Legge del 27 dicembre 2006 n.
+296, corretta ed integrata dal Decreto ministeriale del 19 Febbraio 2007; e conformi a quantoprescritto dal Dm 11/3/08
+come modificato dal DM 26/1/10 (calcolo della trasmittanza su infisso normalizzato e regole di estensione della UNI EN
+14351-1)
+- la trasmittanza termica complessiva (U) è stata determinata numericamente considerando una finestra tipo
+rappresentativa, utilizzando la metodologia di calcolo semplificato prevista dalla norma UNI EN 10077-1 sulla base dei
+singoli valori di trasmittanza termica dei componenti costituenti la finestra tipo considerata così come rilevabile dai
+certificati di prova in nostro possesso e dai dati dichiarti dalla società produttrice del vetro camera (il tipo di vetro
+utilizzato ed il relativo valore di trasmittanza termica è riportato a margine di ogni posizione). La trasmittanza termica
+delle finestre, di cui alla fornitura menzionata rispetta i limiti previsti dall'Allegato D del Decreto ministeriale del 19
+Febbraio 2007; e dagli allegati A ed E del Decreto di Efficienza Energetica del 06/08/2020.
+- la trasmissione luminosa (TL) dei serramenti è rilevata dalle schede tecniche del fornitore di vetro camera
+- la permeabilità all'aria dei serramenti corrisponde alle classi indicate nella tabella in calce così come definite dalla
+norma UNI 12207.
+
+Prestazioni Energetiche CO 74618 / 2026 / pag. 2 / 17.02.26
+Certificazione energetica secondo le norme UNI EN 10077-1
+Comune: ROMA - CASALBERTONE Uw richiesto dal comune : 1.3 W/m2K
+Zona climatica: E Alt. sul livello del mare: 831 metri
+Trasmissione luminosa: TL = 69 %
+Pos.1 Pezzi 1 Tipologia F1AR 01 Mis. 720 x 670 UTot. Serramento: 1.2 W/m²K
+Telaio/anta 261 SmartWood 68 F/PF L Uf Nodo : 1.23 W/m²K
+Vetro / Pann. 33.1 ONE-20G-33.1 Opaco Ug Vetro/Pann: 1.10 W/m²K
+Schermatura Senza Schermo gtot 0.43 W/m²K
+Serramento Valore stimato vecchi serramenti Uw 0 W/m²K
+Pos.2 Pezzi 1 Tipologia F2AR 01 Mis. 1080 x 1435 UTot. Serramento: 1.3 W/m²K
+Telaio/anta 261 SmartWood 68 F/PF L Uf Nodo : 1.23 W/m²K
+Vetro / Pann. 33.1 ONE-20G-33.1 Ug Vetro/Pann: 1.10 W/m²K
+Schermatura Senza Schermo gtot 0.43 W/m²K
+Serramento Valore stimato vecchi serramenti Uw 0 W/m²K
+Pos.3 Pezzi 1 Tipologia F1AR 01 Mis. 600 x 915 UTot. Serramento: 1.2 W/m²K
+Telaio/anta 261 SmartWood 68 F/PF L Uf Nodo : 1.23 W/m²K
+Vetro / Pann. 33.1 ONE-20G-33.1 Ug Vetro/Pann: 1.10 W/m²K
+Schermatura Senza Schermo gtot 0.43 W/m²K
+Serramento Valore stimato vecchi serramenti Uw 0 W/m²K
+Pos.4 Pezzi 1 Tipologia F1AR 01 Mis. 570 x 915 UTot. Serramento: 1.2 W/m²K
+Telaio/anta 261 SmartWood 68 F/PF L Uf Nodo : 1.23 W/m²K
+Vetro / Pann. 33.1 ONE-20G-33.1 Ug Vetro/Pann: 1.10 W/m²K
+Schermatura Senza Schermo gtot 0.43 W/m²K
+Serramento Valore stimato vecchi serramenti Uw 0 W/m²K
+Pos.5 Pezzi 1 Tipologia F2AR 01 Mis. 1480 x 915 UTot. Serramento: 1.3 W/m²K
+Telaio/anta 261 SmartWood 68 F/PF L Uf Nodo : 1.23 W/m²K
+Vetro / Pann. 33.1 ONE-20G-33.1 Ug Vetro/Pann: 1.10 W/m²K
+Schermatura Senza Schermo gtot 0.43 W/m²K
+Serramento Valore stimato vecchi serramenti Uw 0 W/m²K
+Pos.6 Pezzi 1 Tipologia F2AR 01 Mis. 1480 x 915 UTot. Serramento: 1.3 W/m²K
+Telaio/anta 261 SmartWood 68 F/PF L Uf Nodo : 1.23 W/m²K
+Vetro / Pann. 33.1 ONE-20G-33.1 Ug Vetro/Pann: 1.10 W/m²K
+Schermatura Senza Schermo gtot 0.43 W/m²K
+Serramento Valore stimato vecchi serramenti Uw 0 W/m²K
+Trasmittanza termica totale
+Uw effettivo = 1.2 W/m2K
+Uw richiesto = 1.3 W/m2K
+Gruppo Cosmet
+Amministratore Delegato
+Nicola Elio Rubolino
+
+APR_OCR_ORIENTATION:0
+ALWO.
+FIDEAL
+CERTIFICATO DI GARANZIA
+GARAN
+COSMET GROUP
+COSMET
+10
+ANNI
+CERTIFICATO DI GARANZIA SERRAMENTI
+Cosmet Group offre la garanzia sui prodotti serramenti in PVC, alluminio e legno e legno/alluminio
+dalla stessa sviluppati e commercializzati per un periodo di 10 anni (dieci).
+La Garanzia si applica unicamente ai prodotti commercializzati e installati sul territorio italiano.
+Oggetto della garanzia sono tutte quelle parti che, ad insindacabile giudizio della casa costruttrice,
+saranno ritenute inidonee, difettate o da sostituire. L'intervento di personale non specializzato e/o
+non autorizzato dalla casa costruttrice comporta la decadenza immediata della garanzia.
+La garanzia dei serramenti COSMET GROUP è valida a condizione che l'utilizzatore si attenga alle
+indicazioni riportate nel Manuale di Uso e Manutenzione e nel Documento di Garanzia Infissi del
+prodotto acquistato che dovrà richiedere al rivenditore autorizzato.
+La garanzia decorre dalla data di consegna dell'ordine ed è valida solo se compilato in ogni sua
+parte e completa di timbro e firma del rivenditore.
+Dati cliente
+Nome
+Cognome
+Residente in
+Città
+Provincia
+CAP
+Recapito telefonico
+e-mail
+Codice Fiscale
+Commessa n.
+74618
+del
+Dati rivenditore
+Rivenditore STELLINO DESIGN SRL
+P:IVA
+11785951002
+Firma del cliente
+Data
+RIVENDITORE AUTORIZZATO
+SEDE LEGALE/SEDE OPERATIVA
+Svincolo Val d'Agri Zona D2 - Statale 106, km 428.500 - 75020 Scanzano Jonico (MT)
+www.cosmetgroup.it
+Tel. +39 0835 848262 - E-mail: info@cosmetgroup.it
+P.IVA 00623350774
+
+APR_OCR_ORIENTATION:0
+*FS 43%
+Scheda Tecnica
+*TL 69%
+Prodotto:
+33.1 One/20BCN (Argon 90%)/33.1
+*RE 35%
+Norma armonizzata:
+EN UNI 1279-5:2010
+*RL 22%
+Vetrata isolante
+Per uso in edilizia e nelle costruzioni
+Sicurezza in caso di incendio
+Pesistenza al fuoco
+EN 13501-2
+NPD
+Reazione al fuoco
+EN 13501-1
+NPD
+Sicurezza nell'uso
+Resistenza ai proiettili
+EN 1063
+NPD
+Resistenza agli attacchi manuali
+EN 356
+NPD
+Resistenza agli urti (Prova del pendolo)
+EN 12600
+2B2/2B2
+Protezione contro il rumore
+Isolamento al rumore aereo diretto
+EN 12758
+Piw (C;Ctr) Stimato - dB
+37 (-1;-5)
+Propietà termiche
+Valore Ug
+EN 673
+W(m2.K)
+1.1
+Proprietà di irraggiamento
+Trasmissione luminosa - Tv
+EN 410
+(%)
+69
+Riflessione luminosa - Pv
+EN 410
+(%)
+22
+Riflessione interna - Pvi
+EN 410
+(%)
+20
+Indice di resa dei colori - RD65 - Ra
+EN 410
+(%)
+95
+Proprietà energetiche
+Fattore solare - g
+EN 410
+(%)
+43
+Piflessione energetica - Pe
+EN 410
+(%)
+35
+Trasmissione energetica diretta - Te
+EN 410
+(%)
+39
+Assorbimento energetico singolo
+EN 410
+(%)
+23 / 3/NPD
+Coefficiente di shading - SC
+0.49
+Assorbimento energetico totale
+EN 410
+(%)
+26
+Trasmissione dei raggi ultravioletti - UV
+EN 410
+(%)
+0
+Spessore
+mm
+32.8
+1. I dati sono calcolati sulla base delle misure spettrali conformi alle norme EN 410 (1998). La
+tolleranza dei dati pubblicati in relazione alle proprietà fotometriche è di +/- 3 punti.
+dell'emissività è conforme alle norme EN 673 (allegato A) e EN 12898.
+2. Il coefficiente Ug (in precedenza detto valore k) é calcolato in base alla norma EN 673. La misura
+non si rispond e delle eventuali rotture spontanee.
+3. Il presente documento non valuta il rischio di rotture causato da shock termico. Per i vetri temprati
+4. Le specifiche tecniche ed altri dati sono basati al momento dell'elaborazione del presente
+5. Il presente documento è solo puramente informativo.
+documento e sono soggette a cambiamenti - variazioni senza preavviso.
+6. L'indice acustico fornito, deve essere ritenuto puramente indicativo, se non indicato diversamente
+della stanza, delle sorgenti di rumore etc. La tolleranza sul dato e di +/- 2 dB.
+7. Le effettive prestazioni in opera possono variare in funzione delle reali dimensioni della vetrata e
+
+APR_OCR_ORIENTATION:0
+*FS 43%
+Scheda Tecnica
+*TL 69%
+Prodotto:
+33.1 One/20BCN (Argon 90%)/33.1 Satinato
+*RE 35%
+Norma armonizzata:
+EN UNI 1279-5:2010
+*RL 22%
+Vetrata isolante
+Per uso in edilizia e nelle costruzioni
+Sicurezza in caso di incendio
+Pesistenza al fuoco
+EN 13501-2
+NPD
+Reazione al fuoco
+EN 13501-1
+NPD
+Sicurezza nell'uso
+Resistenza ai proiettili
+EN 1063
+NPD
+Resistenza agli attacchi manuali
+EN 356
+NPD
+Resistenza agli urti (Prova del pendolo)
+EN 12600
+2B2/2B2
+Protezione contro il rumore
+Isolamento al rumore aereo diretto
+EN 12758
+Piw (C;Ctr) Stimato - dB
+37 (-1;-5)
+Propietà termiche
+Valore Ug
+EN 673
+W(m2.K)
+1.1
+Proprietà di irraggiamento
+Trasmissione luminosa - Tv
+EN 410
+(%)
+69
+Riflessione luminosa - Pv
+EN 410
+(%)
+22
+Riflessione interna - Pvi
+EN 410
+(%)
+19
+Indice di resa dei colori - RD65 - Ra
+EN 410
+(%)
+95
+Proprietà energetiche
+Fattore solare - g
+EN 410
+(%)
+43
+Piflessione energetica - Pe
+EN 410
+(%)
+35
+Trasmissione energetica diretta - Te
+EN 410
+(%)
+39
+Assorbimento energetico singolo
+EN 410
+(%)
+23 / 3/NPD
+Coefficiente di shading - SC
+0.49
+Assorbimento energetico totale
+EN 410
+(%)
+26
+Trasmissione dei raggi ultravioletti - UV
+EN 410
+(%)
+0
+Spessore
+mm
+32.8
+1. I dati sono calcolati sulla base delle misure spettrali conformi alle norme EN 410 (1998). La
+tolleranza dei dati pubblicati in relazione alle proprietà fotometriche è di +/- 3 punti.
+dell'emissività è conforme alle norme EN 673 (allegato A) e EN 12898.
+2. Il coefficiente Ug (in precedenza detto valore k) é calcolato in base alla norma EN 673. La misura
+non si rispond e delle eventuali rotture spontanee.
+3. Il presente documento non valuta il rischio di rotture causato da shock termico. Per i vetri temprati
+4. Le specifiche tecniche ed altri dati sono basati al momento dell'elaborazione del presente
+5. Il presente documento è solo puramente informativo.
+documento e sono soggette a cambiamenti - variazioni senza preavviso.
+6. L'indice acustico fornito, deve essere ritenuto puramente indicativo, se non indicato diversamente
+della stanza, delle sorgenti di rumore etc. La tolleranza sul dato e di +/- 2 dB.
+7. Le effettive prestazioni in opera possono variare in funzione delle reali dimensioni della vetrata e

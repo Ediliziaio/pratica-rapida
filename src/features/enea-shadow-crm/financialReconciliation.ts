@@ -4,8 +4,10 @@ import {
   type RinaldiInvoiceLineEvidence,
   type RinaldiPolicyContext,
 } from "./rinaldiFinancialPolicies";
+import { USER_AUTHORIZED_RULE_IDS } from "./operationalRegistry";
 
-export const FINANCIAL_RECONCILIATION_POLICY_VERSION = "financial-triple-gross-invoices-v4";
+export const FINANCIAL_RECONCILIATION_POLICY_VERSION = "financial-triple-gross-invoices-v5";
+export const NO_VALID_ECONOMIC_INVOICE_RULE_ID = "user-2026-08-31-no-valid-economic-invoice-operator-v1" as const;
 export const MONEY_TOLERANCE_EUR = 0.05;
 
 export type FinancialDocumentKind = "invoice" | "advance" | "balance" | "credit_note" | "non_economic" | "unknown";
@@ -60,14 +62,18 @@ export interface TripleFinancialReconciliation {
 
 const money = (value: number): number => Math.round((value + Number.EPSILON) * 100) / 100;
 const validMoney = (value: number | null): value is number => typeof value === "number" && Number.isFinite(value) && value >= 0;
-const validSignedMoney = (value: number | null): value is number => typeof value === "number" && Number.isFinite(value);
 const hasInvoiceTriple = (doc: FinancialDocumentEvidence): boolean => Boolean(doc.documentNumber.trim() && doc.documentDate.trim() && validMoney(doc.grossTotal));
 const identity = (doc: FinancialDocumentEvidence): string => [doc.documentNumber.trim(), doc.documentDate.trim(), doc.grossTotal].join("|").toLowerCase();
-const internallyReconciled = (doc: FinancialDocumentEvidence): boolean => validMoney(doc.taxableAmount)
-  && validSignedMoney(doc.vatAmount)
-  && validMoney(doc.grossTotal)
+// Regola generale di Giuliano (2026-09-07): APR non deve mai calcolare,
+// verificare o incrociare i dati economici interni della fattura (aliquote
+// IVA, singole voci, coerenza imponibile+IVA=lordo) — soltanto il totale
+// finale/netto dichiarato (grossTotal) e' autorevole. Una fattura con piu'
+// aliquote IVA sulla stessa riga di documento (es. prodotto al 10% e una
+// riga servizi/pratica ENEA al 22%) e' perfettamente valida anche se la
+// somma imponibile+IVA a bassa fedelta' non torna esattamente: quel confronto
+// non va mai fatto.
+const internallyReconciled = (doc: FinancialDocumentEvidence): boolean => validMoney(doc.grossTotal)
   && validMoney(doc.interventionGrossAmount)
-  && money(Math.abs(money(doc.taxableAmount + doc.vatAmount) - doc.grossTotal)) <= MONEY_TOLERANCE_EUR
   && money(Math.abs(doc.interventionGrossAmount - doc.grossTotal)) <= MONEY_TOLERANCE_EUR;
 
 export function reconcileFinancialEvidence(
@@ -85,6 +91,7 @@ export function reconcileFinancialEvidence(
   incompleteInvoiceSources.forEach((sourceId) => blockers.push(`terna-fattura-incerta:${sourceId}`));
 
   const candidates = economic.filter(hasInvoiceTriple);
+  if (candidates.length === 0) blockers.push("nessuna-fattura-economica-valida");
   const duplicateSources: string[] = [];
   const uniqueByIdentity = new Map<string, FinancialDocumentEvidence>();
   for (const doc of candidates) {
@@ -105,8 +112,7 @@ export function reconcileFinancialEvidence(
     && unique.every((doc) => ["invoice", "advance", "balance"].includes(doc.kind) && internallyReconciled(doc));
   for (const doc of unique) {
     if (doc.extractionConfidence !== "certain" && !distinctSameDossierInvoiceSum) blockers.push(`estrazione-incerta:${doc.sourceId}`);
-    if (!validMoney(doc.taxableAmount) || !validSignedMoney(doc.vatAmount) || !validMoney(doc.grossTotal)) blockers.push(`totali-incompleti:${doc.sourceId}`);
-    else if (money(Math.abs(money(doc.taxableAmount + doc.vatAmount) - doc.grossTotal)) > MONEY_TOLERANCE_EUR) blockers.push(`imponibile-iva-mismatch:${doc.sourceId}`);
+    if (!validMoney(doc.grossTotal)) blockers.push(`totali-incompleti:${doc.sourceId}`);
   }
   const rinaldiPolicy = applyRinaldiScopedFinancialRules(unique, context);
   blockers.push(...rinaldiPolicy.blockers);
@@ -155,6 +161,8 @@ export function reconcileFinancialEvidence(
       ...rinaldiPolicy.auditNotes,
     ],
     appliedRuleIds: [
+      USER_AUTHORIZED_RULE_IDS.invoiceGrossTotalNeverInternallyVerified,
+      ...(candidates.length === 0 ? [NO_VALID_ECONOMIC_INVOICE_RULE_ID] : []),
       ...(scheduleAmountMissingSources.length ? ["user-2026-08-26-invoice-schedule-missing-amount-v1"] : []),
       ...(distinctSameDossierInvoiceSum ? ["user-2026-08-16-distinct-invoice-numbers-same-customer-sum"] : []),
       ...rinaldiPolicy.appliedRuleIds,

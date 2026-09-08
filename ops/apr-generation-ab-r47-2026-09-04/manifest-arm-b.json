@@ -1,0 +1,22 @@
+{
+  "version": "apr-generation-ab-manifest-v1",
+  "experimentId": "apr-generation-ab-r47-2026-09-04",
+  "authorizationId": "user-2026-09-04-generation-ab-real-10",
+  "authorizedAt": "2026-09-04T11:45:00.000+02:00",
+  "mode": "real_enea_draft_only",
+  "arm": "B_resume_generation",
+  "selection": {
+    "total": 5,
+    "allowedStages": ["archiviate"],
+    "excludedCustomerKeys": ["beatrice-ciotta", "samuele-beretta", "flavia-cipriani", "prova-rivenditore-1-30-04"],
+    "method": "checkpoint tecnici non terminali gia autorizzati; ripresa della stessa bozza canonica"
+  },
+  "cases": [
+    { "cohort": 3059, "practiceId": "58f03680-c716-42e7-ad7d-e3ceaee5573d", "customerKey": "claudia-sellati", "displayName": "Claudia Sellati", "stage": "archiviate", "module": "infissi", "invoiceCount": 6, "complexity": "complex", "historicalRetest": true },
+    { "cohort": 917, "practiceId": "77c5e8b6-34f8-4f1b-830a-526addefdd7d", "customerKey": "luca-cigognetti", "displayName": "Luca Cigognetti", "stage": "archiviate", "module": "infissi", "invoiceCount": 3, "complexity": "medium", "historicalRetest": true },
+    { "cohort": 370, "practiceId": "70957fc0-0c8b-45d4-98e0-90e038fbf611", "customerKey": "gabriella-bruno", "displayName": "Gabriella Bruno", "stage": "archiviate", "module": "screening", "invoiceCount": 3, "complexity": "medium", "historicalRetest": true },
+    { "cohort": 346, "practiceId": "513b7f1e-d79f-4efc-86f0-20e4018c9155", "customerKey": "zeno-righetti", "displayName": "Zeno Righetti", "stage": "archiviate", "module": "screening", "invoiceCount": 2, "complexity": "medium", "historicalRetest": true },
+    { "cohort": 266, "practiceId": "5c8cc7a8-048f-49d1-a59f-adee919ab3ea", "customerKey": "cristina-ricchi", "displayName": "Cristina Ricchi", "stage": "archiviate", "module": "screening", "invoiceCount": 1, "complexity": "simple", "historicalRetest": true }
+  ],
+  "safety": { "draftOnly": true, "previewAllowed": false, "submitAllowed": false, "communicationsAllowed": false, "priorDraftPolicy": "resume_same_generation_only" }
+}

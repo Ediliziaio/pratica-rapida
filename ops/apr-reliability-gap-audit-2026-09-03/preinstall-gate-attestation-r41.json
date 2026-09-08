@@ -1,0 +1,49 @@
+{
+  "version": "apr-recovery-continuation-and-scoped-binding-r41-preinstall-gate-v1",
+  "attestedAt": "2026-09-04T00:34:57.838Z",
+  "status": "tested_not_deployed",
+  "monotonicGate": {
+    "baseline": {
+      "suites": 444,
+      "tests": 1719,
+      "reportSha256": "cc3a5a1981b2be49a4da44dfece91bf5af5c668d6ffc9257a1e978a6053230e5"
+    },
+    "candidate": {
+      "suites": 444,
+      "tests": 1719,
+      "reportSha256": "dff8373ab58976aa5cc7fa638ea08fd12a24a258af5630d1746ff6cdea7a5bc9"
+    },
+    "registryVersion": "enea-operational-registry-v118",
+    "matrixVersion": "apr-enea-rule-test-matrix-v95",
+    "rulesProved": 116,
+    "ruleEvidenceSha256": "dbab6c3584129d0b73f07714927450d5d04a4df9bb0b39b1b25eeec1b67c16cb"
+  },
+  "corrections": {
+    "recoveryQueued": {
+      "status": "proved_positive_and_fail_closed",
+      "ruleId": "system-worker-recovery-queued-continuation-v1"
+    },
+    "operatorBindingResolution": {
+      "status": "practice_source_and_hash_scoped",
+      "propagation": "forbidden"
+    }
+  },
+  "stagedBundle": {
+    "apr-supervisor.mjs": "0ebe09b584f7edc95a15ef481088fc8a386a69e3d4fc2dff63d96fba5bbd68f3",
+    "apr-enea-worker.mjs": "1c193d9bdbf4551f9309aeeccedab1a328f07fd757fac5ee059da12113f507c3",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "apr-pdf-ocr": "4c41c9a6832b11b9d19eace538100270a533dddc05e475e5842711968393327f"
+  },
+  "sequencer": {
+    "path": "ops/apr-global-controller-test10-2026-08-29/sequencer.mjs",
+    "sha256": "0ea14724843a045dc38b938f736df92086f20839eec6b70d82a44f9068b70a7c"
+  },
+  "safety": {
+    "localTestsOnly": true,
+    "eneaAccessed": false,
+    "mutationPerformed": false,
+    "previewPerformed": false,
+    "submitPerformed": false,
+    "communicationPerformed": false
+  }
+}

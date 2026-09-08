@@ -1,0 +1,823 @@
+{
+  "schemaVersion": "apr-blind-document-review-batch-v1",
+  "generatedAt": "2026-09-02T22:51:47.587Z",
+  "selection": {
+    "method": "sha256_rank",
+    "seed": "manual-dates-batch-01-2026-09-03",
+    "candidateCount": 15,
+    "selectedCount": 14
+  },
+  "reviewScope": "dates_procedurability",
+  "safety": {
+    "sourceReadOnly": true,
+    "crmWrite": false,
+    "portalAccess": false,
+    "communications": false
+  },
+  "cases": [
+    {
+      "caseId": "case-01",
+      "directory": "01-mattia-vatieri",
+      "displayName": "Mattia Vatieri",
+      "cohort": 3017,
+      "module": "screening",
+      "complexity": "simple",
+      "rank": "0b1f7e67d6efc9554b4d29dfe0e634bafa1ec50c7cb72c5cd77c4ed708c563a8",
+      "documentCount": 3,
+      "documents": [
+        {
+          "filename": "01-source.pdf",
+          "sha256": "ff17b4ecafa9cfae4ed548a1294e37c6900034dca6a8f4e91730f0e33cda7b42",
+          "byteLength": 54576,
+          "renderedPages": [
+            "01-1.png"
+          ]
+        },
+        {
+          "filename": "02-source.pdf",
+          "sha256": "56e47107b3a22611e42af7bf121d47b8b342e3b70dd80f50f627734410e6f67a",
+          "byteLength": 54885,
+          "renderedPages": [
+            "02-1.png"
+          ]
+        },
+        {
+          "filename": "03-source.pdf",
+          "sha256": "624e86ff2eb571b0fdf4a86a92e33e665c2e00a9b790fe0362644a28987a5745",
+          "byteLength": 576790,
+          "renderedPages": [
+            "03-1.png",
+            "03-2.png",
+            "03-3.png",
+            "03-4.png",
+            "03-5.png"
+          ]
+        }
+      ]
+    },
+    {
+      "caseId": "case-02",
+      "directory": "02-leo-manini",
+      "displayName": "Leo Manini",
+      "cohort": 3020,
+      "module": "infissi",
+      "complexity": "simple",
+      "rank": "0c64c5f90f673b63c4d54593275bd6bef515f94e0c6f9f4456b828a02999f6fc",
+      "documentCount": 1,
+      "documents": [
+        {
+          "filename": "01-source.pdf",
+          "sha256": "5ab6540787d9ca1e273c763752edf83c9a600933bbe63cb792e737ee33661986",
+          "byteLength": 382829,
+          "renderedPages": [
+            "01-1.png",
+            "01-2.png",
+            "01-3.png"
+          ]
+        }
+      ]
+    },
+    {
+      "caseId": "case-03",
+      "directory": "03-maurizia-coreggioli",
+      "displayName": "Maurizia Coreggioli",
+      "cohort": 2990,
+      "module": "infissi",
+      "complexity": "medium",
+      "rank": "288fa1b7b8554bd7b9aaf8b9d9d18a30e3ca08f8050d96b18044e83d0416663f",
+      "documentCount": 4,
+      "documents": [
+        {
+          "filename": "01-source.pdf",
+          "sha256": "72b5842c0c7bda39eb617559c7ea2844f96455b072def5c56b81bb8b946b9ea4",
+          "byteLength": 121663,
+          "renderedPages": [
+            "01-1.png",
+            "01-2.png"
+          ]
+        },
+        {
+          "filename": "02-source.pdf",
+          "sha256": "8c45a4ce62bd2a401987a749f1fa3d175a5a4e2a39910553d42fac633c32bc48",
+          "byteLength": 82256,
+          "renderedPages": [
+            "02-1.png"
+          ]
+        },
+        {
+          "filename": "03-source.pdf",
+          "sha256": "6c0542a73a4f48ac7e9c7919d9e40790b8613b30b6914da9f508bdd00b878997",
+          "byteLength": 1681777,
+          "renderedPages": [
+            "03-1.png",
+            "03-2.png",
+            "03-3.png",
+            "03-4.png"
+          ]
+        },
+        {
+          "filename": "04-source.pdf",
+          "sha256": "726e63a32f4d3dff5ab6663eb587ae05bf8a59a5b8b226b55bb52795de3ed65d",
+          "byteLength": 1312705,
+          "renderedPages": [
+            "04-1.png",
+            "04-2.png",
+            "04-3.png"
+          ]
+        }
+      ]
+    },
+    {
+      "caseId": "case-04",
+      "directory": "04-antonino-formisabo",
+      "displayName": "Antonino Formisabo",
+      "cohort": 3019,
+      "module": "infissi",
+      "complexity": "complex",
+      "rank": "4f80144b2e8a33de7edbe2c3db488faaf30d9523b6494dfcb4adbb1555ee9d86",
+      "documentCount": 14,
+      "documents": [
+        {
+          "filename": "01-source.jpg",
+          "sha256": "47f0df98d267b9c46c3d4a197710bbbda2662d95e83540f1149204e621a1f397",
+          "byteLength": 61904,
+          "renderedPages": [
+            "01-1.jpg"
+          ]
+        },
+        {
+          "filename": "02-source.jpg",
+          "sha256": "9ee0f1587d928df259e775ef8eac609e03511f81b95d91c67e3aeac3aefd585e",
+          "byteLength": 62162,
+          "renderedPages": [
+            "02-1.jpg"
+          ]
+        },
+        {
+          "filename": "03-source.jpg",
+          "sha256": "c2d7cc234cb4e589b6a4f3a22cccc55b73d06153a231458d9140b0c192323295",
+          "byteLength": 62128,
+          "renderedPages": [
+            "03-1.jpg"
+          ]
+        },
+        {
+          "filename": "04-source.jpg",
+          "sha256": "7b5a83bd767b6684bfc712273487f0fe35c026951d0a0b6026f73beec147e058",
+          "byteLength": 235867,
+          "renderedPages": [
+            "04-1.jpg"
+          ]
+        },
+        {
+          "filename": "05-source.jpg",
+          "sha256": "76f96d3ae2890c202ca60702d532b36afb3291972771cd7a8e9a471ceaed8766",
+          "byteLength": 305446,
+          "renderedPages": [
+            "05-1.jpg"
+          ]
+        },
+        {
+          "filename": "06-source.jpg",
+          "sha256": "f6eb64594286c14ca9cc28260358e588155fe00f5a73cadf61b1f99013d06036",
+          "byteLength": 309490,
+          "renderedPages": [
+            "06-1.jpg"
+          ]
+        },
+        {
+          "filename": "07-source.jpg",
+          "sha256": "550aa9e2391da3fe3b51564da3f6e7ea7cdabb8f303af051e0c12ee96d0f143b",
+          "byteLength": 206787,
+          "renderedPages": [
+            "07-1.jpg"
+          ]
+        },
+        {
+          "filename": "08-source.pdf",
+          "sha256": "7d0dcaecfadb6dce4b908e1737c491faef08e16f9b9d45398bc46f098e052e54",
+          "byteLength": 67411,
+          "renderedPages": [
+            "08-1.png"
+          ]
+        },
+        {
+          "filename": "09-source.pdf",
+          "sha256": "dbe04286cb6c57dabef458a5d3672afa588d7f7d02ae84ab529c439d807403a2",
+          "byteLength": 67686,
+          "renderedPages": [
+            "09-1.png"
+          ]
+        },
+        {
+          "filename": "10-source.pdf",
+          "sha256": "26342aa5ed50051dc5730a9aaaacffdd009c8414131a8cc8b06c88803635b102",
+          "byteLength": 67452,
+          "renderedPages": [
+            "10-1.png"
+          ]
+        },
+        {
+          "filename": "11-source.pdf",
+          "sha256": "2d43cb7be53a8fcba0cd731ce22903ff62e05137609a5e5c258538f5409bb5f8",
+          "byteLength": 2671339,
+          "renderedPages": [
+            "11-1.png",
+            "11-2.png",
+            "11-3.png",
+            "11-4.png",
+            "11-5.png",
+            "11-6.png",
+            "11-7.png",
+            "11-8.png",
+            "11-9.png"
+          ]
+        },
+        {
+          "filename": "12-source.pdf",
+          "sha256": "7c03aaa1695610152bd8fd6c4fd9b2f09fb29b3cbe654bbc90941545eb17e1bc",
+          "byteLength": 737033,
+          "renderedPages": [
+            "12-1.png",
+            "12-2.png",
+            "12-3.png",
+            "12-4.png",
+            "12-5.png",
+            "12-6.png",
+            "12-7.png"
+          ]
+        },
+        {
+          "filename": "13-source.pdf",
+          "sha256": "fb27a38851a71ef38b509ea33f420772a847fe4b4fd066ca181d51628d6b9915",
+          "byteLength": 600572,
+          "renderedPages": [
+            "13-1.png",
+            "13-2.png"
+          ]
+        },
+        {
+          "filename": "14-source.pdf",
+          "sha256": "8240ed748a25a31596576b6ab3a85f3f90a3dc81910e7116640fffdd2403121d",
+          "byteLength": 659846,
+          "renderedPages": [
+            "14-1.png",
+            "14-2.png",
+            "14-3.png",
+            "14-4.png",
+            "14-5.png"
+          ]
+        }
+      ]
+    },
+    {
+      "caseId": "case-05",
+      "directory": "05-gianfranco-lavezzi",
+      "displayName": "Gianfranco Lavezzi",
+      "cohort": 2930,
+      "module": "screening",
+      "complexity": "medium",
+      "rank": "6a229f74f7168f01aadc5fe8484dd6748df1bc745a6272800d2ef11694f489c3",
+      "documentCount": 3,
+      "documents": [
+        {
+          "filename": "01-source.pdf",
+          "sha256": "1f2697c9ca12ddbaa4a03ebd73e793fad60001ea98f7e0847414981412c1a819",
+          "byteLength": 191011,
+          "renderedPages": [
+            "01-1.png"
+          ]
+        },
+        {
+          "filename": "02-source.pdf",
+          "sha256": "9505ecb38e75cdadf42158ff53a8d82ade4ee1fc85a2a596a4958edc55a8f5a8",
+          "byteLength": 191019,
+          "renderedPages": [
+            "02-1.png"
+          ]
+        },
+        {
+          "filename": "03-source.pdf",
+          "sha256": "0548902f4301cb65c954ab6f02c9dcd59cb2d38cecdd7051b169c25fa25d5a44",
+          "byteLength": 121713,
+          "renderedPages": [
+            "03-1.png"
+          ]
+        }
+      ]
+    },
+    {
+      "caseId": "case-06",
+      "directory": "06-andreea-ioana-olteanu",
+      "displayName": "Andreea Ioana Olteanu",
+      "cohort": 2925,
+      "module": "infissi",
+      "complexity": "medium",
+      "rank": "94f9b60cdbfa1422093bd0ede9490012877cd10efa53d834184e6b9382d87d34",
+      "documentCount": 2,
+      "documents": [
+        {
+          "filename": "01-source.pdf",
+          "sha256": "11ed6543ccf13f8fc426e066fbb3104d2754b8f629af1a2a48b497a9da6b7c13",
+          "byteLength": 489784,
+          "renderedPages": [
+            "01-1.png",
+            "01-2.png",
+            "01-3.png",
+            "01-4.png",
+            "01-5.png",
+            "01-6.png"
+          ]
+        },
+        {
+          "filename": "02-source.pdf",
+          "sha256": "0fac6383b48090503aa8c1c24c534047a47d7fd0dd82687c45ae6b0229f866eb",
+          "byteLength": 59614,
+          "renderedPages": [
+            "02-1.png"
+          ]
+        }
+      ]
+    },
+    {
+      "caseId": "case-07",
+      "directory": "07-vito-fusillo",
+      "displayName": "Vito Fusillo",
+      "cohort": 2976,
+      "module": "screening",
+      "complexity": "simple",
+      "rank": "9854ccdf7b8edcc325ea3233ea545137bbf35a9b4c28ef89524141e5f438f0a3",
+      "documentCount": 2,
+      "documents": [
+        {
+          "filename": "01-source.pdf",
+          "sha256": "781f7b304521eef9e5b82d332388620412a4ee61ad06415aed7891bb5bc83847",
+          "byteLength": 59488,
+          "renderedPages": [
+            "01-1.png"
+          ]
+        },
+        {
+          "filename": "02-source.pdf",
+          "sha256": "d13c4f59c2574f9c74ec52d7a5017ae18c8ab85b618585be30f6a95d025cc6f2",
+          "byteLength": 59490,
+          "renderedPages": [
+            "02-1.png"
+          ]
+        }
+      ]
+    },
+    {
+      "caseId": "case-08",
+      "directory": "08-giovanni-amadu",
+      "displayName": "Giovanni Amadu",
+      "cohort": 2999,
+      "module": "infissi",
+      "complexity": "simple",
+      "rank": "99f43532f891b1795396c7c7d2e09c4459362e7bd99b854b70affff6068fd199",
+      "documentCount": 3,
+      "documents": [
+        {
+          "filename": "01-source.pdf",
+          "sha256": "089d9e324bfaebd24aeec9edd57a640d463986a4f4b3e4239d6502e50de87d10",
+          "byteLength": 6548807,
+          "renderedPages": [
+            "01-01.png",
+            "01-02.png",
+            "01-03.png",
+            "01-04.png",
+            "01-05.png",
+            "01-06.png",
+            "01-07.png",
+            "01-08.png",
+            "01-09.png",
+            "01-10.png",
+            "01-11.png",
+            "01-12.png",
+            "01-13.png",
+            "01-14.png"
+          ]
+        },
+        {
+          "filename": "02-source.pdf",
+          "sha256": "089d9e324bfaebd24aeec9edd57a640d463986a4f4b3e4239d6502e50de87d10",
+          "byteLength": 6548807,
+          "renderedPages": [
+            "02-01.png",
+            "02-02.png",
+            "02-03.png",
+            "02-04.png",
+            "02-05.png",
+            "02-06.png",
+            "02-07.png",
+            "02-08.png",
+            "02-09.png",
+            "02-10.png",
+            "02-11.png",
+            "02-12.png",
+            "02-13.png",
+            "02-14.png"
+          ]
+        },
+        {
+          "filename": "03-source.pdf",
+          "sha256": "089d9e324bfaebd24aeec9edd57a640d463986a4f4b3e4239d6502e50de87d10",
+          "byteLength": 6548807,
+          "renderedPages": [
+            "03-01.png",
+            "03-02.png",
+            "03-03.png",
+            "03-04.png",
+            "03-05.png",
+            "03-06.png",
+            "03-07.png",
+            "03-08.png",
+            "03-09.png",
+            "03-10.png",
+            "03-11.png",
+            "03-12.png",
+            "03-13.png",
+            "03-14.png"
+          ]
+        }
+      ]
+    },
+    {
+      "caseId": "case-09",
+      "directory": "09-ida-gigliotti",
+      "displayName": "Ida Gigliotti",
+      "cohort": 2956,
+      "module": "screening",
+      "complexity": "medium",
+      "rank": "a9d4e038b6f8517c5aa35cedf4bb14b03c68dbba39c4a80b2a110a6e1b19fb4f",
+      "documentCount": 4,
+      "documents": [
+        {
+          "filename": "01-source.pdf",
+          "sha256": "774dcc88d7a8b4c23a0a5a2ff894a35c88207e8c12b995dac4aa0f3a1d74037e",
+          "byteLength": 54620,
+          "renderedPages": [
+            "01-1.png"
+          ]
+        },
+        {
+          "filename": "02-source.pdf",
+          "sha256": "4dc5b180c384eddd283a2dd2a02a84da1fe259c589fa9fd858006a1d5866e495",
+          "byteLength": 290275,
+          "renderedPages": [
+            "02-1.png",
+            "02-2.png",
+            "02-3.png",
+            "02-4.png"
+          ]
+        },
+        {
+          "filename": "03-source.pdf",
+          "sha256": "32717f3d1726c104c9dab3197f1a1d9a89d8368f01bc5ea45d3869c1b99837bb",
+          "byteLength": 376731,
+          "renderedPages": [
+            "03-1.png",
+            "03-2.png",
+            "03-3.png",
+            "03-4.png",
+            "03-5.png"
+          ]
+        },
+        {
+          "filename": "04-source.pdf",
+          "sha256": "774dcc88d7a8b4c23a0a5a2ff894a35c88207e8c12b995dac4aa0f3a1d74037e",
+          "byteLength": 54620,
+          "renderedPages": [
+            "04-1.png"
+          ]
+        }
+      ]
+    },
+    {
+      "caseId": "case-10",
+      "directory": "10-giuseppe-d-adduzio",
+      "displayName": "Giuseppe D'Adduzio",
+      "cohort": 2948,
+      "module": "infissi",
+      "complexity": "complex",
+      "rank": "b24bd1bc4cdc9e75a5dce21357ec40faa84a66625a240fc7a05de6795a0f1b2a",
+      "documentCount": 10,
+      "documents": [
+        {
+          "filename": "01-source.pdf",
+          "sha256": "e45fcb2d73ad27305818194a2e99a724c497d0c938223a15aa3453cd3a0dcbf9",
+          "byteLength": 215406,
+          "renderedPages": [
+            "01-1.png"
+          ]
+        },
+        {
+          "filename": "02-source.pdf",
+          "sha256": "769c325275c71b94232980028dbe1bf5ca9049818fcf32501daf106a632a6e18",
+          "byteLength": 702389,
+          "renderedPages": [
+            "02-1.png"
+          ]
+        },
+        {
+          "filename": "03-source.pdf",
+          "sha256": "8006e603607767c8a82290ff5d3fffe4309d4a0e283cfa4f913006ccb2babd3b",
+          "byteLength": 516632,
+          "renderedPages": [
+            "03-1.png"
+          ]
+        },
+        {
+          "filename": "04-source.pdf",
+          "sha256": "1800ddf47ca1b56f753ee2c4b13a723170bcea519bae294cf30ea4dec2eacc2d",
+          "byteLength": 270379,
+          "renderedPages": [
+            "04-1.png"
+          ]
+        },
+        {
+          "filename": "05-source.pdf",
+          "sha256": "04cf125e8e4fe6abe0fdfd73113da95a0062e34b399f3a8dc859505d0a602f4f",
+          "byteLength": 182310,
+          "renderedPages": [
+            "05-1.png"
+          ]
+        },
+        {
+          "filename": "06-source.pdf",
+          "sha256": "f28cdee2e33938044f6804a0bdff74c734ae5375303e9e3a9bc5877e6ae6fc53",
+          "byteLength": 182150,
+          "renderedPages": [
+            "06-1.png"
+          ]
+        },
+        {
+          "filename": "07-source.pdf",
+          "sha256": "7e1978be5636a07bc45bc56c72afdcf3d99e772bbed80f0de74f83f147e528ea",
+          "byteLength": 448199,
+          "renderedPages": [
+            "07-1.png",
+            "07-2.png",
+            "07-3.png"
+          ]
+        },
+        {
+          "filename": "08-source.pdf",
+          "sha256": "2702acc8fb0ac1d7dd950e805538b1352cd175b8c7384fa3392fcf04ca280a26",
+          "byteLength": 893166,
+          "renderedPages": [
+            "08-1.png",
+            "08-2.png",
+            "08-3.png"
+          ]
+        },
+        {
+          "filename": "09-source.pdf",
+          "sha256": "2357b6a99d2715dbcc0908e7a9d34f64027c56d80eaf7719684eb94125547944",
+          "byteLength": 470343,
+          "renderedPages": [
+            "09-01.png",
+            "09-02.png",
+            "09-03.png",
+            "09-04.png",
+            "09-05.png",
+            "09-06.png",
+            "09-07.png",
+            "09-08.png",
+            "09-09.png",
+            "09-10.png"
+          ]
+        },
+        {
+          "filename": "10-source.pdf",
+          "sha256": "694b13e01bab2b363ed92930859f0c33202341f48e4bfd9b8ac052073ccd13c7",
+          "byteLength": 793588,
+          "renderedPages": [
+            "10-1.png",
+            "10-2.png",
+            "10-3.png",
+            "10-4.png",
+            "10-5.png",
+            "10-6.png",
+            "10-7.png"
+          ]
+        }
+      ]
+    },
+    {
+      "caseId": "case-11",
+      "directory": "11-giovanna-atzeni",
+      "displayName": "Giovanna Atzeni",
+      "cohort": 2943,
+      "module": "infissi",
+      "complexity": "simple",
+      "rank": "b9bc1655ef85dca070fe9a36e0d0204ff12f0bd0bfe8b0a1c2c7fccff2ba2c58",
+      "documentCount": 3,
+      "documents": [
+        {
+          "filename": "01-source.pdf",
+          "sha256": "f79d014ab2f69c6334788059658a4e483a19f0711a5e8bfcbab9a0088f064559",
+          "byteLength": 7433021,
+          "renderedPages": [
+            "01-01.png",
+            "01-02.png",
+            "01-03.png",
+            "01-04.png",
+            "01-05.png",
+            "01-06.png",
+            "01-07.png",
+            "01-08.png",
+            "01-09.png",
+            "01-10.png",
+            "01-11.png",
+            "01-12.png",
+            "01-13.png",
+            "01-14.png",
+            "01-15.png",
+            "01-16.png",
+            "01-17.png",
+            "01-18.png",
+            "01-19.png",
+            "01-20.png",
+            "01-21.png"
+          ]
+        },
+        {
+          "filename": "02-source.pdf",
+          "sha256": "f79d014ab2f69c6334788059658a4e483a19f0711a5e8bfcbab9a0088f064559",
+          "byteLength": 7433021,
+          "renderedPages": [
+            "02-01.png",
+            "02-02.png",
+            "02-03.png",
+            "02-04.png",
+            "02-05.png",
+            "02-06.png",
+            "02-07.png",
+            "02-08.png",
+            "02-09.png",
+            "02-10.png",
+            "02-11.png",
+            "02-12.png",
+            "02-13.png",
+            "02-14.png",
+            "02-15.png",
+            "02-16.png",
+            "02-17.png",
+            "02-18.png",
+            "02-19.png",
+            "02-20.png",
+            "02-21.png"
+          ]
+        },
+        {
+          "filename": "03-source.pdf",
+          "sha256": "f79d014ab2f69c6334788059658a4e483a19f0711a5e8bfcbab9a0088f064559",
+          "byteLength": 7433021,
+          "renderedPages": [
+            "03-01.png",
+            "03-02.png",
+            "03-03.png",
+            "03-04.png",
+            "03-05.png",
+            "03-06.png",
+            "03-07.png",
+            "03-08.png",
+            "03-09.png",
+            "03-10.png",
+            "03-11.png",
+            "03-12.png",
+            "03-13.png",
+            "03-14.png",
+            "03-15.png",
+            "03-16.png",
+            "03-17.png",
+            "03-18.png",
+            "03-19.png",
+            "03-20.png",
+            "03-21.png"
+          ]
+        }
+      ]
+    },
+    {
+      "caseId": "case-12",
+      "directory": "12-marcella-capatti",
+      "displayName": "Marcella Capatti",
+      "cohort": 2933,
+      "module": "infissi",
+      "complexity": "medium",
+      "rank": "c22bb84d1ede26bc3cb22596f11872847c0e75fb4e7b6b27a91504152e2a19bc",
+      "documentCount": 4,
+      "documents": [
+        {
+          "filename": "01-source.pdf",
+          "sha256": "26e8dbdca4a92e7648cc4ba33bb204aa063e30d8e876459774a17136b4af61fa",
+          "byteLength": 82133,
+          "renderedPages": [
+            "01-1.png"
+          ]
+        },
+        {
+          "filename": "02-source.pdf",
+          "sha256": "71c4c18d9f3d6a0b42ccfe142b3a0e120c1ddc013bf15e1d1cd8ebf70c7781dc",
+          "byteLength": 83481,
+          "renderedPages": [
+            "02-1.png",
+            "02-2.png"
+          ]
+        },
+        {
+          "filename": "03-source.pdf",
+          "sha256": "727dbe320f6920749384d51c1e940906c4a270c7979dde4f8ef2acf58972546c",
+          "byteLength": 505982,
+          "renderedPages": [
+            "03-1.png",
+            "03-2.png",
+            "03-3.png",
+            "03-4.png",
+            "03-5.png",
+            "03-6.png",
+            "03-7.png",
+            "03-8.png"
+          ]
+        },
+        {
+          "filename": "04-source.pdf",
+          "sha256": "1e0b461a0baa6cdd92701e0b7e30850d32fb677abed63dc4becff24a78d08e22",
+          "byteLength": 90849,
+          "renderedPages": [
+            "04-1.png"
+          ]
+        }
+      ]
+    },
+    {
+      "caseId": "case-13",
+      "directory": "13-caterina-claudia-garbato",
+      "displayName": "Caterina Claudia Garbato",
+      "cohort": 2997,
+      "module": "screening",
+      "complexity": "medium",
+      "rank": "eb0efedf5618c94b6b43ad753285c4c3b14817ef55d25bb8748cc2f84421bd39",
+      "documentCount": 3,
+      "documents": [
+        {
+          "filename": "01-source.pdf",
+          "sha256": "471f8604d84ab1e925de635b2dcd063fb3fd1e5a4b9ae51ee8c6784f58ceb92e",
+          "byteLength": 54561,
+          "renderedPages": [
+            "01-1.png"
+          ]
+        },
+        {
+          "filename": "02-source.pdf",
+          "sha256": "35a030a78988ddd1b498f582c275de768bd3d63d33e29f5f1a2027bea03fc643",
+          "byteLength": 45040,
+          "renderedPages": [
+            "02-1.png"
+          ]
+        },
+        {
+          "filename": "03-source.pdf",
+          "sha256": "7862f51e321b93e60242bb9495b4a16bcde6e937b28d7a3cc166d46c5f5dcae1",
+          "byteLength": 54561,
+          "renderedPages": [
+            "03-1.png"
+          ]
+        }
+      ]
+    },
+    {
+      "caseId": "case-14",
+      "directory": "14-mauro-leonardi",
+      "displayName": "Mauro Leonardi",
+      "cohort": 2996,
+      "module": "infissi",
+      "complexity": "medium",
+      "rank": "f33a763d4607a8b7439167b4d1624255936adc54edeb3d4258f8a12cef319410",
+      "documentCount": 2,
+      "documents": [
+        {
+          "filename": "01-source.pdf",
+          "sha256": "da2a2f3facd3772c1076eec5c7efaf6c9e4b856c8af9459cb997279f546e8838",
+          "byteLength": 54528,
+          "renderedPages": [
+            "01-1.png"
+          ]
+        },
+        {
+          "filename": "02-source.pdf",
+          "sha256": "75c246350c452b3807f3939a3de242005c4608b4f56fc22ec9c897d1b9818506",
+          "byteLength": 304015,
+          "renderedPages": [
+            "02-1.png",
+            "02-2.png",
+            "02-3.png",
+            "02-4.png"
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -28,10 +28,10 @@ test("pubblica preflight_wait con heartbeat mentre un gate legittimo e in attesa
 
 test("isola ogni errore non marcato come comune e continua la coda", () => {
   const source = readFileSync(new URL("./sequencer.mjs", import.meta.url), "utf8");
-  assert.match(source, /const failure = classifySequencerFailure\(error\)/);
-  assert.match(source, /if \(failure\.scope === "common_technical"\) throw error/);
+  assert.match(source, /executeSequencerCaseBulkhead\(\{/);
+  assert.doesNotMatch(source, /classifySequencerFailure\(error\)/);
   assert.match(source, /case_operator_required_from_unresolved_inconsistency/);
-  assert.match(source, /return item/);
+  assert.match(source, /boundary\.action === "completed" \? boundary\.value : item/);
 });
 
 test("usa una sorgente installabile configurata e non un vecchio worktree temporaneo hardcoded", () => {

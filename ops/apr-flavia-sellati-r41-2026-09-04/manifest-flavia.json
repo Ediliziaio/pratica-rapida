@@ -1,0 +1,47 @@
+{
+  "version": "apr-flavia-direct-r41-manifest-v1",
+  "authorizationId": "user-2026-09-04-flavia-direct-draft-only",
+  "authorizedAt": "2026-09-04T00:36:00.000Z",
+  "sourceManifest": "ops/apr-wide100-province-lineage-2026-09-02/manifest.json",
+  "sourceManifestSha256": "51842252f71cabb6714f78923fe59ec9789ad06739393f61a553bb4bdb9154e0",
+  "mode": "real_enea_draft_only",
+  "safety": {
+    "draftOnly": true,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false,
+    "priorDraftPolicy": "preserve_and_ignore_for_new_test_draft",
+    "stopOnUncoveredAmbiguity": true
+  },
+  "selection": {
+    "reason": "Direct operational verification requested by Giuliano after the exact practice-document binding question was answered.",
+    "total": 1,
+    "expectedReady": ["flavia-cipriani"],
+    "expectedFailClosed": [],
+    "allowedStages": ["archiviate"],
+    "excludedCustomerKeys": ["beatrice-ciotta", "nicoletta-garbarino", "vittorio-paolinelli", "samuele-beretta"]
+  },
+  "cases": [
+    {
+      "cohort": 1,
+      "practiceId": "9f785f33-491a-4954-8423-4316d6842dbb",
+      "customerKey": "flavia-cipriani",
+      "displayName": "Flavia Cipriani",
+      "stage": "archiviate",
+      "stageName": "Archiviate",
+      "module": "infissi",
+      "productEvidence": "Infissi / Serramenti",
+      "reseller": "Innova Serramenti",
+      "invoiceCount": 7,
+      "complexity": "complex",
+      "historicalRetest": true,
+      "operatorPracticeBindingResolution": {
+        "answer": "confirmed_same_practice_products",
+        "operatorId": "giuliano",
+        "commandId": "user-2026-09-04-flavia-direct-binding-confirmed",
+        "answeredAt": "2026-09-04T00:36:00.000Z",
+        "note": "Giuliano ha stabilito che non resta un'ambiguita da risolvere sulla carta e ha autorizzato il test diretto della stessa pratica; la conferma vale soltanto per questa pratica e per l'impronta esatta della fonte tecnica gia bloccata."
+      }
+    }
+  ]
+}

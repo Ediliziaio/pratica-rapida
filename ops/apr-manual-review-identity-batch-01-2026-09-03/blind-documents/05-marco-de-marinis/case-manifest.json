@@ -1,0 +1,132 @@
+{
+  "schemaVersion": "apr-blind-case-documents-v1",
+  "caseId": "case-05",
+  "displayName": "Marco De Marinis",
+  "documentCount": 10,
+  "documents": [
+    {
+      "filename": "01-fiscal-or-payment.jpg",
+      "sha256": "a2547d49ead807dcf2334bcfb714c65d4c92b67aa52ce08f4114552cd11e2fd1",
+      "byteLength": 281693,
+      "mediaType": "image/jpeg",
+      "neutralKind": "fiscal-or-payment",
+      "renderedPages": [
+        "01-1.jpg"
+      ]
+    },
+    {
+      "filename": "02-fiscal-or-payment.pdf",
+      "sha256": "124b63d490ec53b598a09d6a080165bd883a595d51844fa681cca9e714410928",
+      "byteLength": 14033,
+      "mediaType": "application/pdf",
+      "neutralKind": "fiscal-or-payment",
+      "renderedPages": [
+        "02-1.png"
+      ]
+    },
+    {
+      "filename": "03-fiscal-or-payment.pdf",
+      "sha256": "a279213146591784d0a206b11f543e615ee1996ce5caf6664e0931a9f275a191",
+      "byteLength": 58182,
+      "mediaType": "application/pdf",
+      "neutralKind": "fiscal-or-payment",
+      "renderedPages": [
+        "03-1.png",
+        "03-2.png"
+      ]
+    },
+    {
+      "filename": "04-fiscal-or-payment.jpg",
+      "sha256": "e4f3366d5253ea18769a3da5f1c35fd5fbedb3185e8bd39b1c9a23fccf9a7e7a",
+      "byteLength": 294343,
+      "mediaType": "image/jpeg",
+      "neutralKind": "fiscal-or-payment",
+      "renderedPages": [
+        "04-1.jpg"
+      ]
+    },
+    {
+      "filename": "05-fiscal-or-payment.pdf",
+      "sha256": "f96589cb3d816735cfd18c84adf678c2137b664b432777fe7decb0a13188db1b",
+      "byteLength": 67447,
+      "mediaType": "application/pdf",
+      "neutralKind": "fiscal-or-payment",
+      "renderedPages": [
+        "05-1.png"
+      ]
+    },
+    {
+      "filename": "06-fiscal-or-payment.pdf",
+      "sha256": "426b259fe2575f156eac68fc8af889ed705dcc141816fab650c77a8168520eaf",
+      "byteLength": 67580,
+      "mediaType": "application/pdf",
+      "neutralKind": "fiscal-or-payment",
+      "renderedPages": [
+        "06-1.png"
+      ]
+    },
+    {
+      "filename": "07-supporting.pdf",
+      "sha256": "f3e588adaced70f1fd59ab612fd35aa7fbdc5388ee621f4b018995cdbefb61fd",
+      "byteLength": 2286333,
+      "mediaType": "application/pdf",
+      "neutralKind": "supporting",
+      "renderedPages": [
+        "07-1.png",
+        "07-2.png",
+        "07-3.png",
+        "07-4.png",
+        "07-5.png",
+        "07-6.png",
+        "07-7.png",
+        "07-8.png",
+        "07-9.png"
+      ]
+    },
+    {
+      "filename": "08-supporting.pdf",
+      "sha256": "e044f840233915ce64f7b0e845109d4e654aafd90900adf512d2a540c059a6f6",
+      "byteLength": 817141,
+      "mediaType": "application/pdf",
+      "neutralKind": "supporting",
+      "renderedPages": [
+        "08-1.png",
+        "08-2.png",
+        "08-3.png",
+        "08-4.png",
+        "08-5.png",
+        "08-6.png",
+        "08-7.png",
+        "08-8.png",
+        "08-9.png"
+      ]
+    },
+    {
+      "filename": "09-supporting.pdf",
+      "sha256": "7d21c2aba0e06d038fbd7007a120c3cddbf9e29be1b46e769fc1ffc8ef688c23",
+      "byteLength": 719820,
+      "mediaType": "application/pdf",
+      "neutralKind": "supporting",
+      "renderedPages": [
+        "09-1.png",
+        "09-2.png",
+        "09-3.png",
+        "09-4.png",
+        "09-5.png"
+      ]
+    },
+    {
+      "filename": "10-supporting.pdf",
+      "sha256": "2bdca4367988ce15eb78efabe7b5297b8222bce3d6ead6c98c5680903a4bef48",
+      "byteLength": 612663,
+      "mediaType": "application/pdf",
+      "neutralKind": "supporting",
+      "renderedPages": [
+        "10-1.png",
+        "10-2.png",
+        "10-3.png"
+      ]
+    }
+  ],
+  "instructions": "Individuare nei documenti ogni occorrenza di 4.090/4.090,91 e stabilirne la funzione contabile leggendo etichette, righe e totali circostanti."
+}

@@ -8,6 +8,19 @@ import {
 } from "./portalBeneficiary";
 
 describe("compilazione pagina beneficiario ENEA", () => {
+  it("consegna nome, provincia e codice ISTAT canonici per la residenza", () => {
+    const source = structuredClone(ENEA_LAB_MOCK_PRACTICES[0]);
+    source.form.residenza.comune = "MONTECOMPATRI (RM)";
+    source.form.residenza.provincia = "ROMA";
+    const preparation = buildEneaBeneficiaryPortalScript(mapSchermaturaPractice(source));
+    expect(preparation.runtime.fields).toEqual(expect.arrayContaining([expect.objectContaining({
+      portalId: "id-comune_residenza",
+      value: "Monte Compatri",
+      autocompleteQualifier: "RM",
+      autocompleteAuthoritativeIstatCode: "058060",
+    })]));
+  });
+
   it("consegna al widget ENEA il nome corrente e la sigla ufficiale per Godiasco", () => {
     const source = structuredClone(ENEA_LAB_MOCK_PRACTICES[0]);
     source.form.richiedente.cf = "RNZRND49B18E072J";
@@ -22,6 +35,24 @@ describe("compilazione pagina beneficiario ENEA", () => {
         control: "autocomplete",
         value: "Godiasco Salice Terme",
         autocompleteQualifier: "PV",
+      }),
+    ]));
+  });
+
+  it("sostituisce la provincia storica soltanto tramite la linea ISTAT ufficiale", () => {
+    const source = structuredClone(ENEA_LAB_MOCK_PRACTICES[0]);
+    source.form.richiedente.cf = "RSSMRA80A01H501U";
+    source.form.richiedente.data_nascita = "1980-01-01";
+    source.form.richiedente.comune_nascita = "La Maddalena";
+    source.form.richiedente.provincia_nascita = "SS";
+    const preparation = buildEneaBeneficiaryPortalScript(mapSchermaturaPractice(source));
+
+    expect(preparation.runtime.fields).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        portalId: "id-comune_nascita",
+        value: "La Maddalena",
+        autocompleteQualifier: "OT",
+        autocompleteAuthoritativeIstatCode: "113012",
       }),
     ]));
   });

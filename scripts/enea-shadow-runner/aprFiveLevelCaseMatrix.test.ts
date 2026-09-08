@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { USER_AUTHORIZED_RULE_IDS } from "../../src/features/enea-shadow-crm/operationalRegistry";
-import { APR_L1_ACQUISITION_OBSERVATION_VERSION } from "./aprAcquisitionLevelObservation";
+import { createAcquisitionArtifact } from "./aprAcquisitionLevelObservation";
 import { runEconomicVertical } from "./aprEconomicVertical";
 import { buildFiveLevelCaseMatrix } from "./aprFiveLevelCaseMatrix";
 import { createBusinessDecisionsArtifact } from "./aprLevelSeparationContracts";
@@ -24,7 +24,11 @@ function resolvedInput() {
     screeningFormObservations: [{ sequence: 0, sourceId: "form", declaredType: "tenda_da_sole", locator: locator("form") }],
   });
   return {
-    acquisitionArtifact: { schemaVersion: APR_L1_ACQUISITION_OBSERVATION_VERSION, customerKey, practiceId, artifactId: canonicalSha256("l1-matrix-complete"), status: "completed" as const, blockerCodes: [] },
+    acquisitionArtifact: createAcquisitionArtifact({
+      customerKey,
+      practiceId,
+      documents: [{ documentId: "invoice", pages: [{ pageId: "invoice:1", pageNumber: 1, contentSha256: HASH, acquisitionMethod: "text_extraction", outcome: "complete" }] }],
+    }),
     factsArtifacts: [economic.factsArtifact, product.factsArtifact],
     decisionArtifacts: [economic.decisionsArtifact, product.decisionsArtifact],
     mappingArtifacts: [mapBusinessDecisionArtifactToEnea(economic.decisionsArtifact), mapBusinessDecisionArtifactToEnea(product.decisionsArtifact)],
@@ -49,15 +53,30 @@ describe("APR Slice 5 five-level case matrix", () => {
   it("propaga un blocco L3 senza nasconderlo o tentare L4", () => {
     const input = resolvedInput();
     const economic = runEconomicVertical({
-      customerKey: input.acquisitionArtifact.customerKey,
-      practiceId: input.acquisitionArtifact.practiceId,
+      customerKey: input.acquisitionArtifact.payload.customerKey,
+      practiceId: input.acquisitionArtifact.payload.practiceId,
       sourceFingerprint: canonicalSha256("blocked-economic"), replacements: [], bankTransfers: [],
-      invoices: [{ sourceId: "invoice", supplierId: "supplier", supplierName: null, documentNumber: "2", documentDate: "2026-01-01", kind: "invoice", taxableAmount: 90, vatAmount: 10, grossTotal: 110, referencedAdvanceIds: [], interventionGrossAmount: 110, extractionConfidence: "certain", extractionIssues: [], internalAdjustmentNote: null, explicitDeductibleLines: [], lineItems: [], locator: locator("invoice") }],
+      invoices: [{ sourceId: "invoice", supplierId: "supplier", supplierName: null, documentNumber: "2", documentDate: "2026-01-01", kind: "invoice", taxableAmount: 100, vatAmount: 10, grossTotal: 110, referencedAdvanceIds: [], interventionGrossAmount: 90, extractionConfidence: "certain", extractionIssues: [], internalAdjustmentNote: null, explicitDeductibleLines: [], lineItems: [], locator: locator("invoice") }],
     });
     const matrix = buildFiveLevelCaseMatrix({ ...input, factsArtifacts: [economic.factsArtifact], decisionArtifacts: [economic.decisionsArtifact], mappingArtifacts: [] });
     expect(matrix.payload.status).toBe("blocked");
     expect(matrix.payload.levels[2]).toMatchObject({ level: "L3", status: "blocked", blockerCodes: ["gross_triple_reconciliation_failed"] });
     expect(matrix.payload.levels[3]).toEqual({ level: "L4", status: "not_applicable", artifactIds: [], blockerCodes: [] });
+    expect(matrix.payload.matrixBlockers).toEqual([]);
+  });
+
+  it("propaga una pagina L1 mancante e rende i livelli successivi non applicabili", () => {
+    const customerKey = "matrix-l1-missing";
+    const practiceId = "practice-matrix-l1-missing";
+    const acquisitionArtifact = createAcquisitionArtifact({
+      customerKey,
+      practiceId,
+      documents: [{ documentId: "technical", pages: [{ pageId: "technical:1", pageNumber: 1, contentSha256: null, acquisitionMethod: null, outcome: "missing" }] }],
+    });
+    const matrix = buildFiveLevelCaseMatrix({ acquisitionArtifact, factsArtifacts: [], decisionArtifacts: [], mappingArtifacts: [] });
+    expect(matrix.payload.status).toBe("blocked");
+    expect(matrix.payload.levels[0]).toMatchObject({ status: "blocked", blockerCodes: ["apr_l1_page_missing:technical:technical:1"] });
+    expect(matrix.payload.levels.slice(1).map(({ status }) => status)).toEqual(["not_applicable", "not_applicable", "not_applicable", "not_applicable"]);
     expect(matrix.payload.matrixBlockers).toEqual([]);
   });
 
@@ -77,6 +96,20 @@ describe("APR Slice 5 five-level case matrix", () => {
     expect(matrix.payload.levels[2].status).toBe("completed");
     expect(matrix.payload.levels[3]).toMatchObject({ status: "blocked", blockerCodes: ["apr_l4_mapping_value_invalid:product.screening.physical_rows"] });
     expect(matrix.payload.matrixBlockers).toContain("apr_matrix_inconsistent_l3_completed_l4_blocked");
+  });
+
+  it("segnala simmetricamente L1 blocked quando L2 e gia presente", () => {
+    const input = resolvedInput();
+    const blockedAcquisition = createAcquisitionArtifact({
+      customerKey: input.acquisitionArtifact.payload.customerKey,
+      practiceId: input.acquisitionArtifact.payload.practiceId,
+      documents: [{ documentId: "invoice", pages: [{ pageId: "invoice:1", pageNumber: 1, contentSha256: HASH, acquisitionMethod: "ocr", outcome: "unreadable" }] }],
+    });
+    const matrix = buildFiveLevelCaseMatrix({ ...input, acquisitionArtifact: blockedAcquisition });
+    expect(matrix.payload.status).toBe("inconsistent");
+    expect(matrix.payload.levels[0]).toMatchObject({ status: "blocked", blockerCodes: ["apr_l1_page_unreadable:invoice:invoice:1"] });
+    expect(matrix.payload.levels[1].status).toBe("completed");
+    expect(matrix.payload.matrixBlockers).toContain("apr_matrix_inconsistent_l1_blocked_l2_present");
   });
 
   it("produce esattamente la stessa matrice per gli stessi artefatti", () => {

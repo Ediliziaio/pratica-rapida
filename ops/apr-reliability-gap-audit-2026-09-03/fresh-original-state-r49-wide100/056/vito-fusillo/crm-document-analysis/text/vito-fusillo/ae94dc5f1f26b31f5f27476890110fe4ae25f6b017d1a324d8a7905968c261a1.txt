@@ -1,0 +1,43 @@
+FATTURA
+nr. FPR 180/20 del 05/10/2020
+Data invio: 13/10/2020
+FORNITORE
+UNION STEEL SRL
+P.IVA: IT07436650969
+C.F.: 07436650969
+via vignazzola 154
+20822 - Seveso (MB) - IT
+brianzaserramenti@libero.it
+CLIENTE
+VITO FUSILLO
+C.F.: FSLVTI68C06G220F
+Via Monte Pasubio 18
+20900 - Monza (MB) - IT
+PRODOTTI E SERVIZI
+NR DESCRIZIONE QUANTITA' PREZZO SC/MG IMPORTO IVA NATURA IVA
+1 FORNITURA E POSA
+PERGOTENDA MOTORIZZATA RIF.
+CONFERMA D'ORDINE 2908R -
+ACCONTO 50%
+1 2.090,16 € - 2.090,16 € 22 % -
+METODO DI PAGAMENTO
+NR RATA METODO PAGAMENTO BANCA IBAN BIC/SWIFT DATA SCADENZA IMPORTO
+1 MP05 - Bonifico Pagamento
+completo
+BCC DI
+BARLASSINA
+IT03A0837433870000001068993 13/10/2020 2.550,00 €
+REGIME FISCALE
+REGIME FISCALE
+RF01 - Ordinario
+IVA NATURA NORMATIVA 22% 2.090,16 € 459,84 €
+RIEPILOGO IVA CALCOLO FATTURA
+Importo prodotti o servizi 2.090,16 €
+Totale imponibile 2.090,16 €
+Totale IVA 459,84 €
+Totale documento 2.550,00 €
+ESIGIBILITA' IMPONIBILE IMPOSTA
+Netto a pagare 2.550,00 €
+Copia analogica della fattura elettronica inviata a SdI | Il documento xml originale è disponibile online sul portale "Fatture e Corrispettivi dell'Agenzia delle Entrate"
+Fattura Nr. FPR 180/20 del 05/10/2020 Fattura generata con:
+Pag.1/1

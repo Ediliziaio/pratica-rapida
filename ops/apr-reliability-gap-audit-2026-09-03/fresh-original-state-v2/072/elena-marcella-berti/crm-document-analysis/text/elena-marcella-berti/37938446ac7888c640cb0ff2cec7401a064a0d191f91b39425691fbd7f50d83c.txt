@@ -1,0 +1,298 @@
+APR_OCR_ORIENTATION:0
+INTESA
+nnl
+SANPAOLO
+Presa in carico - Bonifico per Agevolazioni Fiscali
+autorizzato in data 17.06.2026 12:45
+Di seguito il riepilogo dell'operazione:
+Numero operazione
+Operazione effettuata da
+INTER20260617BOSBE459248478
+ELENA MARCELLA BERTI
+N. C/C
+Intestato a
+1000/00016961
+BERTI ELENA MARCELLA
+Filiale
+Beneficiario
+MILANO CORSO ITALIA
+Linea sole potito srl
+Indirizzo
+Località
+Paese
+Sede legale o residenza beneficiario
+IT
+IBAN
+Codice BIC/SWIFT
+IT25R0200801615000040530215
+UNCRITM1215
+Beneficiario effettivo
+Banca
+UNICREDIT SPA
+C.F/P.IVA del beneficiario del bonifico
+C.F/P.IVA del fruitore della detrazione
+03397500962
+BRTLMR63C57F205P
+Tipologia di spese
+Tipologia di agevolazione
+Spese su beni di proprietà
+RISPARMIO ENERGETICO - L. 296/06
+Causale
+TRN
+SALDO TENDA DA SOLE
+0306913432570507S90179101791IT
+Data regolamento beneficiario
+Data addebito ordinante
+18.06.2026
+17.06.2026
+Importo
+Commissioni
+660,00 Euro
+0,60 Euro
+Totale operazione
+660,60 Euro
+Sarà possibile revocare la disposizione fino alle ore 17:29 del 17.06.2026.
+L'operazione potrebbe essere conteggiata e assoggettata al pagamento del 'Costo unitario
+per operazione' secondo le modalità previste dal contratto di conto corrente o carta.
+Le operazioni disposte nelle giornate festive si considerano ricevute il primo giorno
+lavorativo successivo.
+
+APR_OCR_ORIENTATION:0
+INTESA
+SANPAOLO
+Presa in carico - Bonifico per Agevolazioni Fiscali
+autorizzato in data 24.04.2026 10:38
+Di seguito il riepilogo dell'operazione:
+Numero operazione
+Operazione effettuata da
+INTER20260424BOSBE383099605
+ELENA MARCELLA BERTI
+N. C/C
+Intestato a
+1000/00016961
+BERTI ELENA MARCELLA
+Filiale
+Beneficiario
+MILANO CORSO ITALIA
+LINEA SOLE POTITO SRL
+Indirizzo
+Località
+Paese
+Sede legale o residenza beneficiario
+IT
+IBAN
+Codice BIC/SWIFT
+IT25R0200801615000040530215
+UNCRITM1215
+Beneficiario effettivo
+Banca
+UNICREDIT SPA
+C.F/P.IVA del beneficiario del bonifico
+C.F/P.IVA del fruitore della detrazione
+03397500962
+BRTLMR63C57F205P
+Tipologia di spese
+Tipologia di agevolazione
+Spese su beni di proprietà
+RISPARMIO ENERGETICO - L. 296/06
+Causale
+TRN
+Acconto Tenda da Sole
+0306911673065805S90179101791IT
+Data regolamento beneficiario
+Data addebito ordinante
+27.04.2026
+24.04.2026
+Importo
+Commissioni
+660,00 Euro
+0,60 Euro
+Totale operazione
+660,60 Euro
+Sarà possibile revocare la disposizione fino alle ore 17:29 del 24.04.2026.
+L'operazione potrebbe essere conteggiata e assoggettata al pagamento del 'Costo unitario
+per operazione' secondo le modalità previste dal contratto di conto corrente o carta.
+Le operazioni disposte nelle giornate festive si considerano ricevute il primo giorno
+lavorativo successivo.
+
+APR_OCR_ORIENTATION:0
+FATTURA
+nr. FATTURA195/2026 del 13/06/2026
+Data invio: 13/06/2026
+FORNITORE
+CLIENTE
+LINEA SOLE POTITO SRL
+Elena Marcella Berti
+P.IVA: IT03397500962
+C.F.: BRTLMR63C57F205P
+C.F.: 03397500962
+Via VALLARSA 26
+Via F. Brunelleschi 2
+20139 - Milano (MI) - IT
+20146 - Milano (MI) - IT
+lineapotitosole3@libero.it
+PRODOTTI E SERVIZI
+NR
+DESCRIZIONE
+QUANTITA'
+PREZZO
+IMPORTO IVA NATURA IVA
+Tenda da Sole S/88 Pantografo a bracci L3000x2200
+tempotest 15/52 mantovana onda lunga bordino in tinta
+1
+525,00 €
+525,00 € 10 %
+struttura 7035 Saldo
+Posa in opera Saldo
+0,00 €
+0,00 € 10 %
+Trasporto Saldo
+0,00 €
+0,00 € 10 %
+Pratica ENEA Saldo
+1
+75,00 €
+75,00 €
+10 %
+5
+GHOT TENDA 0,12
+0,00 €
+0,00 €
+22 %
+METODO DI PAGAMENTO
+NR RATA MODALITÀ
+PAGAMENTO
+BANCA
+IBAN
+BIC/SWIFT DATA SCADENZA
+IMPORTO
+Bonifico
+Pagamento in
+unica soluzione
+NCA
+UNICREDITBA IT25R0200801615000040530215
+13/06/2026
+660,00 €
+Beneficiario: LINEA SOLE POTITO SRL
+REGIME FISCALE
+• REGIME FISCALE
+RF01 - Ordinario
+DATI AGGIUNTIVI
+CAUSALE DOCUMENTO
+RISPARMIO ENERGETICO L296
+Descrizione causale DETRAZIONE 50%IN ANNI 10/BONIFICO
+RIEPILOGO IVA
+CALCOLO FATTURA
+IVA NATURA NORMATIVA ESIGIBILITA' IMPONIBILE IMPOSTA
+Importo prodotti o servizi
+600,00 €
+Totale imponibile
+600,00 €
+22%
+0,00 €
+0,00 €
+Totale IVA
+60,00 €
+10%
+Immediata
+600,00 €
+60,00 €
+Totale documento
+660,00 €
+Netto a pagare
+660,00 €
+Copia analogica della fattura elettronica inviata a Sdl | Il documento xmi originale è disponibile online sul portale "Fatture e Corrispettivi dell'Agenzia delle Entrate"
+Fattura Nr. FATTURA195/2026 del 13/06/2026
+Fattura generata con:
+Pag.1/1
+Aruba PEC
+arubait
+
+APR_OCR_ORIENTATION:180
+aruba it
+mbe PEC
+Pag.1/1
+Fattura generata con:
+Fattura Nr. FATTURA129/2026 del 23/04/2026
+Copia analogica della fattura elettronica inviata a Sdl | Il documento xml originale è disponibile online sul portale "Fatture e Corrispettivi dell'Agenzia delle Entrate"
+660,00 €
+Netto a pagare
+660,00 €
+Totale documento
+60,00 €
+Totale IVA
+60,00 €
+600,00 €
+Immediata
+10%
+600,00 €
+Totale imponibile
+600,00 €
+Importo prodotti o servizi
+IVA NATURA NORMATIVA ESIGIBILITA' IMPONIBILE IMPOSTA
+CALCOLO FATTURA
+RIEPILOGO IVA
+Descrizione causale DETRAZIONE 50%IN ANNI 10/BONIFICO
+RISPARMIO ENERGETICO L296
+CAUSALE DOCUMENTO
+DATI AGGIUNTIVI
+RF01 - Ordinario
+REGIME FISCALE
+REGIME FISCALE
+Beneficiario: LINEA SOLE POTITO SRL
+660,00 €
+UNICREDITBA IT25R0200801615000040530215
+NCA
+unica soluzione
+Pagamento in
+Bonifico
+IMPORTO
+BIC/SWIFT DATA SCADENZA
+BANCA IBAN
+PAGAMENTO
+NR RATA MODALITA
+METODO DI PAGAMENTO
+10%
+75,00 €
+75,00 €
+1
+Pratica ENEA (acconto 50%)
+4
+10 %
+0,00 €
+0,00 €
+1
+Trasporto (acconto 50%)
+10 %
+0,00 €
+0,00 €
+1
+Posa in opera (acconto 50%)
+2
+525,00 € 10 %
+525,00 €
+1
+tempotest 15/52 mantovana onda lunga bordino in tinta
+struttura 7035 (acconto 50%)
+Tenda da Sole S/88 Pantografo a bracci L3000x2200
+IMPORTO IVA NATURA IVA
+PREZZO
+QUANTITA'
+DESCRIZIONE
+NR
+PRODOTTI E SERVIZI
+lineapotitosole3@libero.it
+20146 - Milano (MI) - IT
+20139 - Milano (MI) - IT
+Via F. Brunelleschi 2
+Via VALLARSA 26
+C.F.: 03397500962
+C.F.: BRTLMR63C57F205P
+P.IVA: IT03397500962
+Elena Marcella Berti
+LINEA SOLE POTITO SRL
+CLIENTE
+FORNITORE
+Data invio: 23/04/2026
+nr. FATTURA129/2026 del 23/04/2026
+FATTURA

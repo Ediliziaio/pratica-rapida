@@ -1,0 +1,856 @@
+{
+  "version": "apr-crm-document-analysis-v1",
+  "revision": 24,
+  "status": "completed",
+  "sourceFingerprint": "f15b1fc61a58316bc13e705f0ea5fc2ab830e81e172b405a5213fe5258048545",
+  "currentDocumentKey": null,
+  "items": [
+    {
+      "documentKey": "999dacb3892373828d676b96b4a417fb40d2216df6831698557fbce17bbe27eb",
+      "customerKey": "massimiliano-montemorra",
+      "kind": "invoice",
+      "semanticKind": "invoice",
+      "documentClassification": {
+        "version": "apr-infissi-technical-document-classifier-v1",
+        "storageKind": "invoice",
+        "verifiedKind": "invoice",
+        "profile": "invoice_passthrough",
+        "certificateScope": null,
+        "matchedCriteria": [],
+        "missingCriteria": [],
+        "appliedRuleIds": [
+          "user-2026-08-26-third-party-technical-certificate-classification-v1",
+          "user-2026-08-25-crm-internal-technical-document-untrusted-v1"
+        ]
+      },
+      "localPdfPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2962-global-controller-massimiliano-montemorra/crm-original-documents/files/massimiliano-montemorra/999dacb3892373828d676b96b4a417fb40d2216df6831698557fbce17bbe27eb.pdf",
+      "sourceSha256": "7b6e61093bea74c64febf0646480d40532e36b26fb9a106c856975cbb27a0146",
+      "state": "analyzed",
+      "attemptCount": 1,
+      "extractionMode": "native_text",
+      "pageCount": 1,
+      "textCharacterCount": 1948,
+      "textSha256": "f63442057676db75ee824555a88910c683cd91fc6e2a9dc49e476d652949f67a",
+      "textPath": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-reliability-gap-audit-2026-09-03/fresh-original-state/042/massimiliano-montemorra/crm-document-analysis/text/massimiliano-montemorra/999dacb3892373828d676b96b4a417fb40d2216df6831698557fbce17bbe27eb.txt",
+      "invoiceResult": {
+        "path": "999dacb3892373828d676b96b4a417fb40d2216df6831698557fbce17bbe27eb",
+        "status": "parsed",
+        "documentType": "unknown",
+        "total": null,
+        "itemCount": 0
+      },
+      "screeningItems": [],
+      "historicalEneaAppendixExcluded": false,
+      "nonFiscalImageExcluded": false,
+      "reason": "Testo gia' estratto localmente; 0 righe schermatura rilevate.",
+      "startedAt": "2026-09-03T16:01:32.703Z",
+      "endedAt": "2026-09-03T16:01:32.703Z"
+    },
+    {
+      "documentKey": "4710033b38d6f6a4c8ad5dcac4c298c4f51ffd9f129f37496f291da6faea7093",
+      "customerKey": "massimiliano-montemorra",
+      "kind": "invoice",
+      "semanticKind": "invoice",
+      "documentClassification": {
+        "version": "apr-infissi-technical-document-classifier-v1",
+        "storageKind": "invoice",
+        "verifiedKind": "invoice",
+        "profile": "invoice_passthrough",
+        "certificateScope": null,
+        "matchedCriteria": [],
+        "missingCriteria": [],
+        "appliedRuleIds": [
+          "user-2026-08-26-third-party-technical-certificate-classification-v1",
+          "user-2026-08-25-crm-internal-technical-document-untrusted-v1"
+        ]
+      },
+      "localPdfPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2962-global-controller-massimiliano-montemorra/crm-original-documents/files/massimiliano-montemorra/4710033b38d6f6a4c8ad5dcac4c298c4f51ffd9f129f37496f291da6faea7093.pdf",
+      "sourceSha256": "607960764f17c3a6fc0b4a77d7c16d52027daea9f5b07d31e31f469ae32a24b2",
+      "state": "analyzed",
+      "attemptCount": 1,
+      "extractionMode": "native_text",
+      "pageCount": 2,
+      "textCharacterCount": 1842,
+      "textSha256": "83f03b2cda90d2f49ec833c98b497718f92ba8cfbb7ee04f5c9e1ae2e54dca45",
+      "textPath": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-reliability-gap-audit-2026-09-03/fresh-original-state/042/massimiliano-montemorra/crm-document-analysis/text/massimiliano-montemorra/4710033b38d6f6a4c8ad5dcac4c298c4f51ffd9f129f37496f291da6faea7093.txt",
+      "invoiceResult": {
+        "path": "4710033b38d6f6a4c8ad5dcac4c298c4f51ffd9f129f37496f291da6faea7093",
+        "status": "parsed",
+        "documentType": "unknown",
+        "total": null,
+        "itemCount": 0
+      },
+      "screeningItems": [],
+      "historicalEneaAppendixExcluded": false,
+      "nonFiscalImageExcluded": false,
+      "reason": "Testo gia' estratto localmente; 0 righe schermatura rilevate.",
+      "startedAt": "2026-09-03T16:01:32.767Z",
+      "endedAt": "2026-09-03T16:01:32.767Z"
+    },
+    {
+      "documentKey": "07abb1b5c61b9411c8b6b79b8935498a81cc5af1afd55f594d1c3040c6aac636",
+      "customerKey": "massimiliano-montemorra",
+      "kind": "invoice",
+      "semanticKind": "invoice",
+      "documentClassification": null,
+      "localPdfPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2962-global-controller-massimiliano-montemorra/crm-original-documents/files/massimiliano-montemorra/07abb1b5c61b9411c8b6b79b8935498a81cc5af1afd55f594d1c3040c6aac636.jpg",
+      "sourceSha256": "5ccffd442696949327175284913b83a1cd27b1a7c2d2f2dcf15880e11e5795f3",
+      "state": "blocked_analysis",
+      "attemptCount": 1,
+      "extractionMode": null,
+      "pageCount": 0,
+      "textCharacterCount": 0,
+      "textSha256": null,
+      "textPath": null,
+      "invoiceResult": null,
+      "screeningItems": [],
+      "historicalEneaAppendixExcluded": false,
+      "nonFiscalImageExcluded": false,
+      "reason": "Analisi locale non riuscita: Command failed: /Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/current/apr-pdf-ocr /Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2962-global-controller-massimilian",
+      "startedAt": "2026-09-03T16:01:32.838Z",
+      "endedAt": "2026-09-03T16:01:32.838Z"
+    },
+    {
+      "documentKey": "56e9306e6dfbf15f9422765693438241d26df1c2bfdf7143042b8e55e51e9d00",
+      "customerKey": "massimiliano-montemorra",
+      "kind": "invoice",
+      "semanticKind": "invoice",
+      "documentClassification": {
+        "version": "apr-infissi-technical-document-classifier-v1",
+        "storageKind": "invoice",
+        "verifiedKind": "invoice",
+        "profile": "invoice_passthrough",
+        "certificateScope": null,
+        "matchedCriteria": [],
+        "missingCriteria": [],
+        "appliedRuleIds": [
+          "user-2026-08-26-third-party-technical-certificate-classification-v1",
+          "user-2026-08-25-crm-internal-technical-document-untrusted-v1"
+        ]
+      },
+      "localPdfPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2962-global-controller-massimiliano-montemorra/crm-original-documents/files/massimiliano-montemorra/56e9306e6dfbf15f9422765693438241d26df1c2bfdf7143042b8e55e51e9d00.pdf",
+      "sourceSha256": "793b9aa14b4db155aa3fa1898de3af09f6127ccafb603b0adf097a0bb8a82dd9",
+      "state": "analyzed",
+      "attemptCount": 1,
+      "extractionMode": "native_text",
+      "pageCount": 1,
+      "textCharacterCount": 2463,
+      "textSha256": "669bd4d7ec042c533b234ef32b91dd853fda395ef76441665db23081d6c7d6ae",
+      "textPath": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-reliability-gap-audit-2026-09-03/fresh-original-state/042/massimiliano-montemorra/crm-document-analysis/text/massimiliano-montemorra/56e9306e6dfbf15f9422765693438241d26df1c2bfdf7143042b8e55e51e9d00.txt",
+      "invoiceResult": {
+        "path": "56e9306e6dfbf15f9422765693438241d26df1c2bfdf7143042b8e55e51e9d00",
+        "status": "parsed",
+        "documentType": "invoice",
+        "total": 5000,
+        "itemCount": 6,
+        "documentNumber": "87F",
+        "documentDate": "2026-03-31"
+      },
+      "screeningItems": [
+        {
+          "widthMm": 1300,
+          "heightMm": 1800,
+          "surfaceM2": 2.34,
+          "gTot": null,
+          "description": "Avvolgibile in alluminio",
+          "sourcePath": "56e9306e6dfbf15f9422765693438241d26df1c2bfdf7143042b8e55e51e9d00",
+          "measurementAudit": {
+            "widthOriginal": 1300,
+            "heightOriginal": 1800,
+            "explicitUnit": null,
+            "widthResolution": "inferred_mm",
+            "heightResolution": "inferred_mm",
+            "ruleId": "user-2026-08-31-avvolgibile-screening-contract-v2"
+          }
+        },
+        {
+          "widthMm": 1300,
+          "heightMm": 1800,
+          "surfaceM2": 2.34,
+          "gTot": null,
+          "description": "Avvolgibile in alluminio",
+          "sourcePath": "56e9306e6dfbf15f9422765693438241d26df1c2bfdf7143042b8e55e51e9d00",
+          "measurementAudit": {
+            "widthOriginal": 1300,
+            "heightOriginal": 1800,
+            "explicitUnit": null,
+            "widthResolution": "inferred_mm",
+            "heightResolution": "inferred_mm",
+            "ruleId": "user-2026-08-31-avvolgibile-screening-contract-v2"
+          }
+        },
+        {
+          "widthMm": 900,
+          "heightMm": 1800,
+          "surfaceM2": 1.62,
+          "gTot": null,
+          "description": "Avvolgibile in alluminio",
+          "sourcePath": "56e9306e6dfbf15f9422765693438241d26df1c2bfdf7143042b8e55e51e9d00",
+          "measurementAudit": {
+            "widthOriginal": 900,
+            "heightOriginal": 1800,
+            "explicitUnit": null,
+            "widthResolution": "inferred_mm",
+            "heightResolution": "inferred_mm",
+            "ruleId": "user-2026-08-31-avvolgibile-screening-contract-v2"
+          }
+        },
+        {
+          "widthMm": 900,
+          "heightMm": 1800,
+          "surfaceM2": 1.62,
+          "gTot": null,
+          "description": "Avvolgibile in alluminio",
+          "sourcePath": "56e9306e6dfbf15f9422765693438241d26df1c2bfdf7143042b8e55e51e9d00",
+          "measurementAudit": {
+            "widthOriginal": 900,
+            "heightOriginal": 1800,
+            "explicitUnit": null,
+            "widthResolution": "inferred_mm",
+            "heightResolution": "inferred_mm",
+            "ruleId": "user-2026-08-31-avvolgibile-screening-contract-v2"
+          }
+        },
+        {
+          "widthMm": 1700,
+          "heightMm": 2800,
+          "surfaceM2": 4.76,
+          "gTot": null,
+          "description": "Avvolgibile in alluminio",
+          "sourcePath": "56e9306e6dfbf15f9422765693438241d26df1c2bfdf7143042b8e55e51e9d00",
+          "measurementAudit": {
+            "widthOriginal": 1700,
+            "heightOriginal": 2800,
+            "explicitUnit": null,
+            "widthResolution": "inferred_mm",
+            "heightResolution": "inferred_mm",
+            "ruleId": "user-2026-08-31-avvolgibile-screening-contract-v2"
+          }
+        },
+        {
+          "widthMm": 1700,
+          "heightMm": 2800,
+          "surfaceM2": 4.76,
+          "gTot": null,
+          "description": "Avvolgibile in alluminio",
+          "sourcePath": "56e9306e6dfbf15f9422765693438241d26df1c2bfdf7143042b8e55e51e9d00",
+          "measurementAudit": {
+            "widthOriginal": 1700,
+            "heightOriginal": 2800,
+            "explicitUnit": null,
+            "widthResolution": "inferred_mm",
+            "heightResolution": "inferred_mm",
+            "ruleId": "user-2026-08-31-avvolgibile-screening-contract-v2"
+          }
+        }
+      ],
+      "historicalEneaAppendixExcluded": false,
+      "nonFiscalImageExcluded": false,
+      "reason": "Testo gia' estratto localmente; 6 righe schermatura rilevate.",
+      "startedAt": "2026-09-03T16:01:33.187Z",
+      "endedAt": "2026-09-03T16:01:33.187Z"
+    },
+    {
+      "documentKey": "7c74eaed5fd55a16ccd3b61ef37ad174fff310260528b883b4ab34091a3e8424",
+      "customerKey": "massimiliano-montemorra",
+      "kind": "invoice",
+      "semanticKind": "invoice",
+      "documentClassification": {
+        "version": "apr-infissi-technical-document-classifier-v1",
+        "storageKind": "invoice",
+        "verifiedKind": "invoice",
+        "profile": "invoice_passthrough",
+        "certificateScope": null,
+        "matchedCriteria": [],
+        "missingCriteria": [],
+        "appliedRuleIds": [
+          "user-2026-08-26-third-party-technical-certificate-classification-v1",
+          "user-2026-08-25-crm-internal-technical-document-untrusted-v1"
+        ]
+      },
+      "localPdfPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2962-global-controller-massimiliano-montemorra/crm-original-documents/files/massimiliano-montemorra/7c74eaed5fd55a16ccd3b61ef37ad174fff310260528b883b4ab34091a3e8424.pdf",
+      "sourceSha256": "208f381847aadeafa59855f65ad0a3b289c00e2714f20a32992d514e376c2dc7",
+      "state": "analyzed",
+      "attemptCount": 1,
+      "extractionMode": "native_text",
+      "pageCount": 2,
+      "textCharacterCount": 3425,
+      "textSha256": "0e2c00517d6f2344e82b19d2e20bb9c0c597e923df82e318912cedd74c6710ce",
+      "textPath": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-reliability-gap-audit-2026-09-03/fresh-original-state/042/massimiliano-montemorra/crm-document-analysis/text/massimiliano-montemorra/7c74eaed5fd55a16ccd3b61ef37ad174fff310260528b883b4ab34091a3e8424.txt",
+      "invoiceResult": {
+        "path": "7c74eaed5fd55a16ccd3b61ef37ad174fff310260528b883b4ab34091a3e8424",
+        "status": "parsed",
+        "documentType": "invoice",
+        "total": 4700,
+        "itemCount": 6,
+        "documentNumber": "87F",
+        "documentDate": "2026-03-31"
+      },
+      "screeningItems": [
+        {
+          "widthMm": 1300,
+          "heightMm": 1800,
+          "surfaceM2": 2.34,
+          "gTot": null,
+          "description": "Avvolgibile in alluminio",
+          "sourcePath": "7c74eaed5fd55a16ccd3b61ef37ad174fff310260528b883b4ab34091a3e8424",
+          "measurementAudit": {
+            "widthOriginal": 1300,
+            "heightOriginal": 1800,
+            "explicitUnit": null,
+            "widthResolution": "inferred_mm",
+            "heightResolution": "inferred_mm",
+            "ruleId": "user-2026-08-31-avvolgibile-screening-contract-v2"
+          }
+        },
+        {
+          "widthMm": 1300,
+          "heightMm": 1800,
+          "surfaceM2": 2.34,
+          "gTot": null,
+          "description": "Avvolgibile in alluminio",
+          "sourcePath": "7c74eaed5fd55a16ccd3b61ef37ad174fff310260528b883b4ab34091a3e8424",
+          "measurementAudit": {
+            "widthOriginal": 1300,
+            "heightOriginal": 1800,
+            "explicitUnit": null,
+            "widthResolution": "inferred_mm",
+            "heightResolution": "inferred_mm",
+            "ruleId": "user-2026-08-31-avvolgibile-screening-contract-v2"
+          }
+        },
+        {
+          "widthMm": 900,
+          "heightMm": 1800,
+          "surfaceM2": 1.62,
+          "gTot": null,
+          "description": "Avvolgibile in alluminio",
+          "sourcePath": "7c74eaed5fd55a16ccd3b61ef37ad174fff310260528b883b4ab34091a3e8424",
+          "measurementAudit": {
+            "widthOriginal": 900,
+            "heightOriginal": 1800,
+            "explicitUnit": null,
+            "widthResolution": "inferred_mm",
+            "heightResolution": "inferred_mm",
+            "ruleId": "user-2026-08-31-avvolgibile-screening-contract-v2"
+          }
+        },
+        {
+          "widthMm": 900,
+          "heightMm": 1800,
+          "surfaceM2": 1.62,
+          "gTot": null,
+          "description": "Avvolgibile in alluminio",
+          "sourcePath": "7c74eaed5fd55a16ccd3b61ef37ad174fff310260528b883b4ab34091a3e8424",
+          "measurementAudit": {
+            "widthOriginal": 900,
+            "heightOriginal": 1800,
+            "explicitUnit": null,
+            "widthResolution": "inferred_mm",
+            "heightResolution": "inferred_mm",
+            "ruleId": "user-2026-08-31-avvolgibile-screening-contract-v2"
+          }
+        },
+        {
+          "widthMm": 1700,
+          "heightMm": 2800,
+          "surfaceM2": 4.76,
+          "gTot": null,
+          "description": "Avvolgibile in alluminio",
+          "sourcePath": "7c74eaed5fd55a16ccd3b61ef37ad174fff310260528b883b4ab34091a3e8424",
+          "measurementAudit": {
+            "widthOriginal": 1700,
+            "heightOriginal": 2800,
+            "explicitUnit": null,
+            "widthResolution": "inferred_mm",
+            "heightResolution": "inferred_mm",
+            "ruleId": "user-2026-08-31-avvolgibile-screening-contract-v2"
+          }
+        },
+        {
+          "widthMm": 1700,
+          "heightMm": 2800,
+          "surfaceM2": 4.76,
+          "gTot": null,
+          "description": "Avvolgibile in alluminio",
+          "sourcePath": "7c74eaed5fd55a16ccd3b61ef37ad174fff310260528b883b4ab34091a3e8424",
+          "measurementAudit": {
+            "widthOriginal": 1700,
+            "heightOriginal": 2800,
+            "explicitUnit": null,
+            "widthResolution": "inferred_mm",
+            "heightResolution": "inferred_mm",
+            "ruleId": "user-2026-08-31-avvolgibile-screening-contract-v2"
+          }
+        }
+      ],
+      "historicalEneaAppendixExcluded": false,
+      "nonFiscalImageExcluded": false,
+      "reason": "Testo gia' estratto localmente; 6 righe schermatura rilevate.",
+      "startedAt": "2026-09-03T16:01:33.250Z",
+      "endedAt": "2026-09-03T16:01:33.250Z"
+    },
+    {
+      "documentKey": "571b0f51ff37ab6529a3945384a393d6e11a89c8a5af9c3fa0ace07f40eddba5",
+      "customerKey": "massimiliano-montemorra",
+      "kind": "additional",
+      "semanticKind": "third_party_certificate",
+      "documentClassification": {
+        "version": "apr-infissi-technical-document-classifier-v1",
+        "storageKind": "additional",
+        "verifiedKind": "third_party_certificate",
+        "profile": "structured_product_dop",
+        "certificateScope": "installed_windows",
+        "matchedCriteria": [
+          "window_product_family",
+          "numeric_thermal_performance",
+          "en_14351_product_standard",
+          "product_reference_and_model",
+          "labelled_dimensions_mm",
+          "at_least_two_structured_product_blocks"
+        ],
+        "missingCriteria": [],
+        "appliedRuleIds": [
+          "user-2026-08-26-third-party-technical-certificate-classification-v1",
+          "user-2026-08-25-crm-internal-technical-document-untrusted-v1"
+        ]
+      },
+      "localPdfPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2962-global-controller-massimiliano-montemorra/crm-original-documents/files/massimiliano-montemorra/571b0f51ff37ab6529a3945384a393d6e11a89c8a5af9c3fa0ace07f40eddba5.pdf",
+      "sourceSha256": "db8755a87f9111ddfc0efe2ff1fbbea4c68fa8149aeb13388e8e0b8967c643a4",
+      "state": "analyzed",
+      "attemptCount": 1,
+      "extractionMode": "native_text",
+      "pageCount": 5,
+      "textCharacterCount": 8233,
+      "textSha256": "3934d314eb7331d17af4bbfebff1df689171aa49a8e99d9f6076fb2d1e974182",
+      "textPath": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-reliability-gap-audit-2026-09-03/fresh-original-state/042/massimiliano-montemorra/crm-document-analysis/text/massimiliano-montemorra/571b0f51ff37ab6529a3945384a393d6e11a89c8a5af9c3fa0ace07f40eddba5.txt",
+      "invoiceResult": null,
+      "screeningItems": [],
+      "historicalEneaAppendixExcluded": false,
+      "nonFiscalImageExcluded": false,
+      "reason": "Testo gia' estratto localmente; documento non fiscale conservato come fonte.",
+      "startedAt": "2026-09-03T16:01:33.312Z",
+      "endedAt": "2026-09-03T16:01:33.312Z"
+    },
+    {
+      "documentKey": "1dc99e5d92c08086ffcca318150d517331d0479092419fd2b598e21289305d99",
+      "customerKey": "massimiliano-montemorra",
+      "kind": "additional",
+      "semanticKind": "additional",
+      "documentClassification": null,
+      "localPdfPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2962-global-controller-massimiliano-montemorra/crm-original-documents/files/massimiliano-montemorra/1dc99e5d92c08086ffcca318150d517331d0479092419fd2b598e21289305d99.pdf",
+      "sourceSha256": "226d674131cc0c994c4b41dec9c26124e121b33c24607b61733d59cce770111d",
+      "state": "blocked_analysis",
+      "attemptCount": 1,
+      "extractionMode": null,
+      "pageCount": 0,
+      "textCharacterCount": 0,
+      "textSha256": null,
+      "textPath": null,
+      "invoiceResult": null,
+      "screeningItems": [],
+      "historicalEneaAppendixExcluded": false,
+      "nonFiscalImageExcluded": false,
+      "reason": "Analisi locale non riuscita: Command failed: /Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/current/apr-pdf-ocr /Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2962-global-controller-massimilian",
+      "startedAt": "2026-09-03T16:01:33.374Z",
+      "endedAt": "2026-09-03T16:01:33.374Z"
+    }
+  ],
+  "externalActionAllowed": false,
+  "reason": "Parser invoice-parser-v38-rotated-fiscal-bank-layouts-r30 applicato localmente a 4 fatture senza ripetere download, OCR o accessi CRM.",
+  "nextAction": "Ricalcolare i report per-pratica e isolare soltanto i conflitti residui verificabili.",
+  "parserRevisionsApplied": [
+    "invoice-parser-v31-rinaldi-sp-dot-and-vat-layout",
+    "invoice-parser-v32-grk-vertical-number-date",
+    "invoice-parser-v33-header-identity-over-body-reference",
+    "invoice-parser-v34-linea-sole-partial-paper-scomparsa",
+    "invoice-parser-v35-composite-invoice-transfer-segmentation",
+    "invoice-parser-v36-screening-unit-surface-coherence",
+    "invoice-parser-v38-rotated-fiscal-bank-layouts-r30"
+  ],
+  "analyzerRepairsApplied": [],
+  "classificationRevisionsApplied": [
+    "fresh-original-document-classification-r34-v1"
+  ],
+  "audit": [
+    {
+      "revision": 0,
+      "at": "2026-09-03T16:01:32.693Z",
+      "type": "initialized",
+      "documentKey": null,
+      "reason": "Analisi locale degli allegati non ancora preparata.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume"
+      ]
+    },
+    {
+      "revision": 1,
+      "at": "2026-09-03T16:01:32.693Z",
+      "type": "prepared",
+      "documentKey": null,
+      "reason": "Preparati 7 documenti per estrazione locale; nessun contenuto inviato a servizi esterni.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume"
+      ]
+    },
+    {
+      "revision": 2,
+      "at": "2026-09-03T16:01:32.703Z",
+      "type": "analysis_claimed",
+      "documentKey": "999dacb3892373828d676b96b4a417fb40d2216df6831698557fbce17bbe27eb",
+      "reason": "Analisi locale reclamata; ripresa sicura dopo riavvio.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume"
+      ]
+    },
+    {
+      "revision": 3,
+      "at": "2026-09-03T16:01:32.703Z",
+      "type": "analyzed",
+      "documentKey": "999dacb3892373828d676b96b4a417fb40d2216df6831698557fbce17bbe27eb",
+      "reason": "Testo estratto localmente (native_text); 0 righe schermatura rilevate.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume",
+        "user-2026-08-26-third-party-technical-certificate-classification-v1",
+        "user-2026-08-25-crm-internal-technical-document-untrusted-v1"
+      ]
+    },
+    {
+      "revision": 4,
+      "at": "2026-09-03T16:01:32.767Z",
+      "type": "analysis_claimed",
+      "documentKey": "4710033b38d6f6a4c8ad5dcac4c298c4f51ffd9f129f37496f291da6faea7093",
+      "reason": "Analisi locale reclamata; ripresa sicura dopo riavvio.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume"
+      ]
+    },
+    {
+      "revision": 5,
+      "at": "2026-09-03T16:01:32.767Z",
+      "type": "analyzed",
+      "documentKey": "4710033b38d6f6a4c8ad5dcac4c298c4f51ffd9f129f37496f291da6faea7093",
+      "reason": "Testo estratto localmente (native_text); 0 righe schermatura rilevate.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume",
+        "user-2026-08-26-third-party-technical-certificate-classification-v1",
+        "user-2026-08-25-crm-internal-technical-document-untrusted-v1"
+      ]
+    },
+    {
+      "revision": 6,
+      "at": "2026-09-03T16:01:32.838Z",
+      "type": "analysis_claimed",
+      "documentKey": "07abb1b5c61b9411c8b6b79b8935498a81cc5af1afd55f594d1c3040c6aac636",
+      "reason": "Analisi locale reclamata; ripresa sicura dopo riavvio.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume"
+      ]
+    },
+    {
+      "revision": 7,
+      "at": "2026-09-03T16:01:32.838Z",
+      "type": "analysis_blocked",
+      "documentKey": "07abb1b5c61b9411c8b6b79b8935498a81cc5af1afd55f594d1c3040c6aac636",
+      "reason": "Analisi locale non riuscita: Command failed: /Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/current/apr-pdf-ocr /Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2962-global-controller-massimilian",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume"
+      ]
+    },
+    {
+      "revision": 8,
+      "at": "2026-09-03T16:01:33.187Z",
+      "type": "analysis_claimed",
+      "documentKey": "56e9306e6dfbf15f9422765693438241d26df1c2bfdf7143042b8e55e51e9d00",
+      "reason": "Analisi locale reclamata; ripresa sicura dopo riavvio.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume"
+      ]
+    },
+    {
+      "revision": 9,
+      "at": "2026-09-03T16:01:33.187Z",
+      "type": "analyzed",
+      "documentKey": "56e9306e6dfbf15f9422765693438241d26df1c2bfdf7143042b8e55e51e9d00",
+      "reason": "Testo estratto localmente (native_text); 6 righe schermatura rilevate.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume",
+        "user-2026-08-26-third-party-technical-certificate-classification-v1",
+        "user-2026-08-25-crm-internal-technical-document-untrusted-v1"
+      ]
+    },
+    {
+      "revision": 10,
+      "at": "2026-09-03T16:01:33.250Z",
+      "type": "analysis_claimed",
+      "documentKey": "7c74eaed5fd55a16ccd3b61ef37ad174fff310260528b883b4ab34091a3e8424",
+      "reason": "Analisi locale reclamata; ripresa sicura dopo riavvio.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume"
+      ]
+    },
+    {
+      "revision": 11,
+      "at": "2026-09-03T16:01:33.250Z",
+      "type": "analyzed",
+      "documentKey": "7c74eaed5fd55a16ccd3b61ef37ad174fff310260528b883b4ab34091a3e8424",
+      "reason": "Testo estratto localmente (native_text); 6 righe schermatura rilevate.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume",
+        "user-2026-08-26-third-party-technical-certificate-classification-v1",
+        "user-2026-08-25-crm-internal-technical-document-untrusted-v1"
+      ]
+    },
+    {
+      "revision": 12,
+      "at": "2026-09-03T16:01:33.312Z",
+      "type": "analysis_claimed",
+      "documentKey": "571b0f51ff37ab6529a3945384a393d6e11a89c8a5af9c3fa0ace07f40eddba5",
+      "reason": "Analisi locale reclamata; ripresa sicura dopo riavvio.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume"
+      ]
+    },
+    {
+      "revision": 13,
+      "at": "2026-09-03T16:01:33.312Z",
+      "type": "analyzed",
+      "documentKey": "571b0f51ff37ab6529a3945384a393d6e11a89c8a5af9c3fa0ace07f40eddba5",
+      "reason": "Testo estratto localmente (native_text); certificato tecnico di terza parte verificato (structured_product_dop).",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume",
+        "user-2026-08-26-third-party-technical-certificate-classification-v1",
+        "user-2026-08-25-crm-internal-technical-document-untrusted-v1"
+      ]
+    },
+    {
+      "revision": 14,
+      "at": "2026-09-03T16:01:33.374Z",
+      "type": "analysis_claimed",
+      "documentKey": "1dc99e5d92c08086ffcca318150d517331d0479092419fd2b598e21289305d99",
+      "reason": "Analisi locale reclamata; ripresa sicura dopo riavvio.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume"
+      ]
+    },
+    {
+      "revision": 15,
+      "at": "2026-09-03T16:01:33.374Z",
+      "type": "analysis_blocked",
+      "documentKey": "1dc99e5d92c08086ffcca318150d517331d0479092419fd2b598e21289305d99",
+      "reason": "Analisi locale non riuscita: Command failed: /Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/current/apr-pdf-ocr /Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2962-global-controller-massimilian",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume"
+      ]
+    },
+    {
+      "revision": 16,
+      "at": "2026-09-03T16:01:33.374Z",
+      "type": "completed",
+      "documentKey": null,
+      "reason": "Analisi documenti locale conclusa: 5 analizzati, 2 bloccati.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume"
+      ]
+    },
+    {
+      "revision": 17,
+      "at": "2026-09-03T16:01:33.639Z",
+      "type": "document_classified",
+      "documentKey": null,
+      "reason": "Classificazione semantica fresh-original-document-classification-r34-v1 applicata a 5 documenti locali; 1 certificati tecnici di terza parte verificati.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume",
+        "user-2026-08-26-third-party-technical-certificate-classification-v1",
+        "user-2026-08-25-crm-internal-technical-document-untrusted-v1"
+      ]
+    },
+    {
+      "revision": 18,
+      "at": "2026-09-03T16:01:33.645Z",
+      "type": "parser_reanalyzed",
+      "documentKey": null,
+      "reason": "Parser invoice-parser-v31-rinaldi-sp-dot-and-vat-layout applicato localmente a 4 fatture senza ripetere download, OCR o accessi CRM.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume",
+        "user-2026-08-16-narrative-invoice-product-extraction",
+        "user-2026-08-14-preserve-technical-product-cardinality",
+        "user-2026-08-16-invoice-gross-total-vat-included"
+      ]
+    },
+    {
+      "revision": 19,
+      "at": "2026-09-03T16:01:33.653Z",
+      "type": "parser_reanalyzed",
+      "documentKey": null,
+      "reason": "Parser invoice-parser-v32-grk-vertical-number-date applicato localmente a 4 fatture senza ripetere download, OCR o accessi CRM.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume"
+      ]
+    },
+    {
+      "revision": 20,
+      "at": "2026-09-03T16:01:33.660Z",
+      "type": "parser_reanalyzed",
+      "documentKey": null,
+      "reason": "Parser invoice-parser-v33-header-identity-over-body-reference applicato localmente a 4 fatture senza ripetere download, OCR o accessi CRM.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume",
+        "system-invoice-header-identity-over-body-reference",
+        "user-2026-08-14-preserve-technical-product-cardinality",
+        "user-2026-08-16-invoice-gross-total-vat-included"
+      ]
+    },
+    {
+      "revision": 21,
+      "at": "2026-09-03T16:01:33.668Z",
+      "type": "parser_reanalyzed",
+      "documentKey": null,
+      "reason": "Parser invoice-parser-v34-linea-sole-partial-paper-scomparsa applicato localmente a 4 fatture senza ripetere download, OCR o accessi CRM.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume",
+        "user-2026-08-17-linea-sole-potito-paper-form-fallbacks",
+        "user-2026-08-14-preserve-technical-product-cardinality"
+      ]
+    },
+    {
+      "revision": 22,
+      "at": "2026-09-03T16:01:33.676Z",
+      "type": "parser_reanalyzed",
+      "documentKey": null,
+      "reason": "Parser invoice-parser-v35-composite-invoice-transfer-segmentation applicato localmente a 4 fatture senza ripetere download, OCR o accessi CRM.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume",
+        "user-2026-08-17-linea-sole-potito-paper-form-fallbacks",
+        "user-2026-08-14-preserve-technical-product-cardinality"
+      ]
+    },
+    {
+      "revision": 23,
+      "at": "2026-09-03T16:01:33.683Z",
+      "type": "parser_reanalyzed",
+      "documentKey": null,
+      "reason": "Parser invoice-parser-v36-screening-unit-surface-coherence applicato localmente a 4 fatture senza ripetere download, OCR o accessi CRM.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume",
+        "user-2026-08-26-screening-dimension-unit-surface-coherence-v1",
+        "user-2026-08-18-explicit-technical-surface-precision"
+      ]
+    },
+    {
+      "revision": 24,
+      "at": "2026-09-03T16:01:33.690Z",
+      "type": "parser_reanalyzed",
+      "documentKey": null,
+      "reason": "Parser invoice-parser-v38-rotated-fiscal-bank-layouts-r30 applicato localmente a 4 fatture senza ripetere download, OCR o accessi CRM.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume",
+        "system-rotated-ocr-fiscal-reading-order-v1",
+        "system-multipage-bank-receipt-label-reconciliation-v1",
+        "system-document-ocr-orientation-normalization-v1",
+        "system-invoice-multi-document-fiscal-segmentation-v2",
+        "system-label-anchored-invoice-totals-v1"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,76 @@
+{
+  "version": "apr-wide99-post-corrections-prelaunch-attestation-v1",
+  "verifiedAt": "2026-09-04T16:52:59Z",
+  "status": "PASS_READY_TO_BOOTSTRAP_ONCE",
+  "scope": {
+    "sourceManifest": "ops/apr-wide100-province-lineage-2026-09-02/manifest.json",
+    "sourceManifestSha256": "51842252f71cabb6714f78923fe59ec9789ad06739393f61a553bb4bdb9154e0",
+    "runManifest": "ops/apr-wide99-post-r46-2026-09-04/manifest.json",
+    "runManifestSha256": "64359dcc161726abd05d272e237e759b6b6b6684b4ad414ef3a807eef535f0b3",
+    "total": 99,
+    "excludedOnly": {
+      "customerKey": "angelina-stricelli",
+      "reason": "Disposizione esplicita dell'utente: caso complesso da assegnare all'operatore, senza ulteriori tentativi APR.",
+      "propagation": "case_specific_non_propagable"
+    },
+    "expectedFromReliableLocalReplay": {
+      "operationalCandidates": 28,
+      "failClosedCases": 71,
+      "reference": "ops/apr-reliability-gap-audit-2026-09-03/fresh-original-replay-r40c-products.json",
+      "documents": 359,
+      "bytes": 293624565,
+      "hashMismatches": 0,
+      "analysisFailures": 0
+    }
+  },
+  "nonAuthoritativeReplayDiscarded": {
+    "path": "ops/apr-reliability-gap-audit-2026-09-03/fresh-original-replay-r49-wide100.json",
+    "reason": "64 documenti non aperti dallo strumento locale; il risultato non viene usato come verita pratica APR.",
+    "crossCheck": "I 36 casi effettivamente analizzati concordano 36/36 con il replay affidabile r40c."
+  },
+  "selectionIntegrity": {
+    "practiceIdsSha256": "bba775bb7b478d8fcbdfaa98771a434ba10bcfd264e3a6557ee6f14dd0d66756",
+    "stage": { "archiviate": 87, "recensione": 12 },
+    "module": { "infissi": 38, "screening": 61 },
+    "complexity": { "simple": 42, "medium": 42, "complex": 15 },
+    "cherryPicking": false
+  },
+  "bundle": {
+    "path": "ops/apr-generation-ab-r47-2026-09-04/observability-bundle-r48",
+    "workerSha256": "76f37401bf4432a35b3c3626b8c0a4b2da3435b42b11fbcd1198bf6689b4330e",
+    "supervisorSha256": "af980558f8732579608abae23f6665912b97b38e0492f422ac7989a487c977ec",
+    "watchdogSha256": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "gate": "ops/apr-generation-ab-r47-2026-09-04/observability-live-source-gate-attestation-r48.json",
+    "gateResult": "1707/1707 PASS in 209 files; staged isolated bundle, no global promotion"
+  },
+  "sequencer": {
+    "sha256": "18494a93ada98ee7ed3b9d107a8f134b413496462f043bb4a6a8d2c76a521bfd",
+    "preflightGuardSha256": "b373e3cdea6f28a4a230a614e63b6665e7267a1f6269b7763edb0ee936d5dff1",
+    "targetedTests": "8/8 PASS in 4 suites",
+    "manifestValidation": "PASS, 99 unique cases, allowed stages only, permanent identities excluded"
+  },
+  "continuity": {
+    "angelinaSequencer": "not running",
+    "otherOperationalLotsDetected": 0,
+    "keepaliveLabel": "com.praticarapida.apr-enea-immortal-keepalive",
+    "keepaliveState": "running",
+    "keepalivePid": 42593,
+    "keepaliveRevision": 17105,
+    "keepaliveHeartbeatAt": "2026-09-04T16:52:57.801Z",
+    "chromeAprPid": 3785,
+    "sessionEvidenceId": "cdp-server-7293-bb58ebd1c660ca34606d",
+    "domContract": "setup_ready",
+    "forbiddenActionCount": 0,
+    "previewAttemptCount": 0,
+    "submitAttemptCount": 0,
+    "communicationAttemptCount": 0
+  },
+  "safety": {
+    "draftOnly": true,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false,
+    "singleLot": true,
+    "cohorts": "3068-3166"
+  }
+}

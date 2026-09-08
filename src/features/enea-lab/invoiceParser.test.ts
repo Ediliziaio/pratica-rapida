@@ -168,6 +168,23 @@ TOTALE FATTURA
     expect(parsed.result).toMatchObject({ documentNumber: "229", documentDate: "2026-06-18", total: 1750 });
   });
 
+  it("regressione Cirillo: preferisce l'intestazione 'Fattura / Numero: / <data coi punti>' al riferimento di una fattura precedente detratta nel corpo", () => {
+    const parsed = parseScreeningInvoiceText(`RINNOVA S.R.L. - C.F. 04745760274 - P.IVA 04745760274 (IT)
+Fattura
+Numero: 52
+26.02.2025
+Cessionario/committente
+Valentina Cirillo - C.F. CRLVNT92B47F241O
+Descrizione Quantità Prezzo
+Salamander 76 // 3 Acconto: per lesecuzione dei lavori di fornitura e
+posa dei serramenti
+1,00 2.285,45 10,00% 2.285,45
+2A detrarre fattura Nr. 577/2024 del
+11/10/2024 1,00 -500 10,00% -500,00
+TOTALE 1.964,00(EUR)`, "cirillo.pdf");
+    expect(parsed.result).toMatchObject({ documentNumber: "52", documentDate: "2025-02-26", total: 1964 });
+  });
+
   it("blocca il calcolo quando lo stesso documento risulta caricato due volte", () => {
     const first = parseScreeningInvoiceText(invoice, "fattura.pdf");
     const duplicate = parseScreeningInvoiceText(invoice, "copia-fattura.pdf");
@@ -175,5 +192,72 @@ TOTALE FATTURA
 
     expect(analysis.eligibleExpense).toBeNull();
     expect(analysis.blockers).toContain("Possibile documento fiscale duplicato: verificare numero, data e importo prima di calcolare la spesa.");
+  });
+
+  describe("fallback generico a due misure senza etichette note", () => {
+    it("regressione Cotta: calcola l'area da 'L. MT. X X P. MT. Y' senza conoscere il significato di P.", () => {
+      const parsed = parseScreeningInvoiceText(`FATTURA nr. 10/2026 del 12/05/2026
+FORNITURA TRASPORTO E INSTALLAZIONE DI:
+SCHERMATURA SOLARE A BRACCI ESTENSIBILI CON STRUTTURA IN ALLUMINIO LEGA PRIMARIA VERNICIATO RAL 1013
+AVORIO
+FISSAGGIO A PARETE 3 SUPPORTI CON BRACCI A TRAZIONE MOLLA SU TUBOLARE QUADRO PORTANTE VITERIE INOX
+UTILIZZO DI TESSUTO ACRILICO TEMPOTEST PARA' IN H.1,20 TERMOSALDATO COLORE 15/1 AVORIO TINTA UNITA
+COMPRESA MANTOVANA H. 0,25 DIRITTA
+MOVIMENTAZIONE MANUALE AD ARGANELLO CON ASTA DI MANOVRA AMOVIBILE
+N.1 MIS. L. MT. 3,50 X P. MT. 2,50
+FATTORE G TOT: 0,13
+GARANZIA ANNI 5 (ATTIVA)
+Totale documento 1.470,00`, "cotta.pdf");
+      expect(parsed.items).toEqual([expect.objectContaining({
+        widthMm: 3500,
+        heightMm: 2500,
+        surfaceM2: 8.75,
+        description: "Schermatura solare",
+      })]);
+      expect(parsed.result).toMatchObject({ documentType: "invoice", itemCount: 1 });
+      // Le altezze di tessuto/mantovana ("H.1,20", "H. 0,25") citate nella
+      // descrizione prima della vera misura del prodotto non hanno unita' di
+      // misura esplicita accanto e non devono mai diventare la riga tecnica.
+      expect(parsed.items[0].widthMm).not.toBe(120);
+      expect(parsed.items[0].heightMm).not.toBe(25);
+    });
+
+    it("generalizza a sigle mai viste altrove nel file ('B.' e 'SP.') senza aggiungerle a un elenco di casi noti", () => {
+      const parsed = parseScreeningInvoiceText(`fattura 88/2026 del 01/08/2026
+Fornitura e posa di N.1 pergola bioclimatica con struttura in alluminio,
+B. MT. 4,00 X SP. MT. 3,20, telo tecnico ombreggiante.
+Totale Fattura € 5.200,00`, "pergola-sigle-nuove.pdf");
+      expect(parsed.items).toEqual([expect.objectContaining({
+        widthMm: 4000,
+        heightMm: 3200,
+        surfaceM2: 12.8,
+        description: "Pergotenda",
+      })]);
+    });
+
+    it("non inventa una conversione quando l'unita' di misura manca su almeno un lato", () => {
+      const parsed = parseScreeningInvoiceText(`fattura 5/2026 del 03/03/2026
+N.1 tenda da sole con struttura in alluminio, L. 350 X P. MT. 2,50.
+Totale Fattura € 1.000,00`, "unita-mancante.pdf");
+      expect(parsed.items).toHaveLength(0);
+    });
+
+    it("non si attiva quando un parser piu specifico ha gia' trovato la riga", () => {
+      const parsed = parseScreeningInvoiceText(`
+        fattura 254/2026 del 17/07/2026
+        N. 1 Tenda a bracci estensibili con cassonetto di copertura totale motorizzato,
+        L.480xsp.240, struttura verniciata. Tessuto Tempotest.
+        Totale Fattura € 3.050,00
+      `, "fattura-vans.pdf");
+      expect(parsed.items).toHaveLength(1);
+      expect(parsed.items[0].measurementAudit?.ruleId).not.toBe("user-2026-09-07-generic-two-measurement-screening-area-fallback-v1");
+    });
+
+    it("non intercetta una coppia di misure senza alcun prodotto di schermatura nelle vicinanze", () => {
+      const parsed = parseScreeningInvoiceText(`fattura 12/2026 del 01/01/2026
+Onorario tecnico per pratica catastale, foglio A. MT. 4,00 X part. MT. 3,00.
+Totale Fattura € 500,00`, "estranea.pdf");
+      expect(parsed.items).toHaveLength(0);
+    });
   });
 });

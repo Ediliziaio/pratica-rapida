@@ -1,0 +1,111 @@
+{
+  "version": "apr-targeted-five-r40-manifest-v1",
+  "authorizationId": "user-2026-09-04-targeted-five-r40-draft-only",
+  "authorizedAt": "2026-09-04T00:00:00.000Z",
+  "sourceManifest": "ops/apr-wide100-province-lineage-2026-09-02/manifest.json",
+  "sourceManifestSha256": "51842252f71cabb6714f78923fe59ec9789ad06739393f61a553bb4bdb9154e0",
+  "mode": "real_enea_draft_only",
+  "safety": {
+    "draftOnly": true,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false,
+    "priorDraftPolicy": "preserve_and_ignore_for_new_test_draft",
+    "stopOnUncoveredAmbiguity": true
+  },
+  "selection": {
+    "reason": "Targeted operational verification of current customer-job-product binding, Rinaldi expense semantics, and fail-closed behavior on one unresolved binding.",
+    "total": 5,
+    "expectedReady": [
+      "luca-ronconi",
+      "claudia-campagna",
+      "massimo-cappello",
+      "claudia-sellati"
+    ],
+    "expectedFailClosed": [
+      "flavia-cipriani"
+    ],
+    "allowedStages": [
+      "archiviate",
+      "recensione"
+    ],
+    "excludedCustomerKeys": [
+      "beatrice-ciotta",
+      "nicoletta-garbarino",
+      "vittorio-paolinelli",
+      "samuele-beretta"
+    ]
+  },
+  "cases": [
+    {
+      "cohort": 1,
+      "practiceId": "98d44d99-86af-4fec-ba55-ffe24d208e83",
+      "customerKey": "luca-ronconi",
+      "displayName": "Luca Ronconi",
+      "stage": "archiviate",
+      "stageName": "Archiviate",
+      "module": "screening",
+      "productEvidence": "Schermature Solari",
+      "reseller": "Rinaldi Lab",
+      "invoiceCount": 1,
+      "complexity": "simple",
+      "historicalRetest": true
+    },
+    {
+      "cohort": 2,
+      "practiceId": "eed0922f-b5ec-4e8f-b860-d746ed93528e",
+      "customerKey": "claudia-campagna",
+      "displayName": "Claudia Campagna",
+      "stage": "archiviate",
+      "stageName": "Archiviate",
+      "module": "screening",
+      "productEvidence": "Schermature Solari",
+      "reseller": "Rinaldi Lab",
+      "invoiceCount": 2,
+      "complexity": "medium",
+      "historicalRetest": true
+    },
+    {
+      "cohort": 3,
+      "practiceId": "0a92f92c-22ed-4a43-b47e-6abe1d74282a",
+      "customerKey": "massimo-cappello",
+      "displayName": "massimo cappello",
+      "stage": "archiviate",
+      "stageName": "Archiviate",
+      "module": "infissi",
+      "productEvidence": "Infissi / Serramenti",
+      "reseller": "Rotondi infissi",
+      "invoiceCount": 3,
+      "complexity": "medium",
+      "historicalRetest": true
+    },
+    {
+      "cohort": 4,
+      "practiceId": "58f03680-c716-42e7-ad7d-e3ceaee5573d",
+      "customerKey": "claudia-sellati",
+      "displayName": "CLAUDIA SELLATI",
+      "stage": "archiviate",
+      "stageName": "Archiviate",
+      "module": "infissi",
+      "productEvidence": "Infissi / Serramenti",
+      "reseller": "Stellino Design SRL SOCIO UNICO",
+      "invoiceCount": 6,
+      "complexity": "complex",
+      "historicalRetest": true
+    },
+    {
+      "cohort": 5,
+      "practiceId": "9f785f33-491a-4954-8423-4316d6842dbb",
+      "customerKey": "flavia-cipriani",
+      "displayName": "Flavia Cipriani",
+      "stage": "archiviate",
+      "stageName": "Archiviate",
+      "module": "infissi",
+      "productEvidence": "Infissi / Serramenti",
+      "reseller": "Innova Serramenti",
+      "invoiceCount": 7,
+      "complexity": "complex",
+      "historicalRetest": true
+    }
+  ]
+}

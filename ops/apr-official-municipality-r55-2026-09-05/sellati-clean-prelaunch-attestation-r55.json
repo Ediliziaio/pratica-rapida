@@ -1,0 +1,36 @@
+{
+  "version": "apr-sellati-clean-prelaunch-attestation-r55-v1",
+  "verifiedAt": "2026-09-05T02:30:00Z",
+  "authorizationId": "user-2026-09-05-sellati-official-municipality-clean-r55",
+  "status": "authorized_ready_to_launch",
+  "manifest": {
+    "path": "ops/apr-official-municipality-r55-2026-09-05/manifest-sellati-clean-r55.json",
+    "sha256": "5158f5e1596d45cd9e45ad02b3f1dfd0c3b6cd95f542cc6a51868600cb8f5ae5",
+    "count": 1,
+    "cohort": 3099
+  },
+  "installedBundle": {
+    "versionId": "92da8433-official-municipality-r55-20260905",
+    "ruleActivation": "active_tested_deployed",
+    "matrixRules": 135
+  },
+  "generation": {
+    "mode": "fresh_generation",
+    "forbiddenPriorDraftIds": ["460570", "464264"],
+    "priorDraftMutationAllowed": false
+  },
+  "continuity": {
+    "priorRonconiRun": "completed_saved_consistent",
+    "priorCohortServicesStopped": true,
+    "keepaliveMustRemainRunning": true,
+    "chromePidMustRemain": 3785
+  },
+  "safety": {
+    "draftOnly": true,
+    "preview": false,
+    "submit": false,
+    "protocol": false,
+    "receipts": false,
+    "communications": false
+  }
+}

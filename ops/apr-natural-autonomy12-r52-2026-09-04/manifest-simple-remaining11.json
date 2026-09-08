@@ -1,0 +1,47 @@
+{
+  "version": "apr-natural-autonomy11-simple-r53-manifest-v1",
+  "experimentId": "apr-natural-autonomy11-simple-r53-2026-09-05",
+  "authorizationId": "user-2026-09-05-natural-autonomy11-simple-draft-only",
+  "authorizedAt": "2026-09-05T00:00:00.000+02:00",
+  "mode": "real_enea_draft_only",
+  "sourceManifest": "ops/apr-natural-autonomy12-r52-2026-09-04/manifest.json",
+  "selection": {
+    "total": 11,
+    "allowedStages": ["archiviate", "recensione"],
+    "excludedCustomerKeys": [
+      "beatrice-ciotta",
+      "samuele-beretta",
+      "prova-rivenditore-1-30-04",
+      "lucia-droghetti",
+      "angelina-stricelli"
+    ],
+    "method": "Le 11 pratiche rimaste del campione naturale di 12, nello stesso ordine; Claudia Sellati riparte in una coorte pulita."
+  },
+  "cases": [
+    {"cohort":3086,"practiceId":"58f03680-c716-42e7-ad7d-e3ceaee5573d","customerKey":"claudia-sellati","displayName":"CLAUDIA SELLATI","stage":"archiviate","stageName":"Archiviate","module":"infissi","productEvidence":"Infissi / Serramenti","reseller":"Stellino Design SRL SOCIO UNICO","invoiceCount":6,"complexity":"complex","historicalRetest":true,"generationMode":"fresh_generation"},
+    {"cohort":3087,"practiceId":"e5c4f390-461b-43ea-ada7-d44cec4b91fb","customerKey":"marcella-capatti","displayName":"Marcella Capatti","stage":"archiviate","stageName":"Archiviate","module":"infissi","productEvidence":"Infissi / Serramenti","reseller":"TECNOESTENSE SRL","invoiceCount":2,"complexity":"medium","historicalRetest":true,"generationMode":"fresh_generation"},
+    {"cohort":3088,"practiceId":"dc4484cd-c462-49c0-a734-3064dd6469a8","customerKey":"giovanna-atzeni","displayName":"GIOVANNA ATZENI","stage":"archiviate","stageName":"Archiviate","module":"infissi","productEvidence":"Infissi / Serramenti","reseller":"Ideal sistem","invoiceCount":1,"complexity":"simple","historicalRetest":true,"generationMode":"fresh_generation"},
+    {"cohort":3089,"practiceId":"b51df57d-dae2-4ddc-bf99-904673ebe50d","customerKey":"annalisa-lanzo","displayName":"ANNALISA LANZO","stage":"archiviate","stageName":"Archiviate","module":"screening","productEvidence":"Schermature Solari","reseller":"cor tende","invoiceCount":2,"complexity":"medium","historicalRetest":true,"generationMode":"fresh_generation"},
+    {"cohort":3090,"practiceId":"47ef4b16-d334-4acf-8c1f-c7c341281771","customerKey":"nadia-ragni","displayName":"Nadia Ragni","stage":"archiviate","stageName":"Archiviate","module":"screening","productEvidence":"Schermature Solari","reseller":"⚠️ Da abbinare — richieste sito","invoiceCount":2,"complexity":"medium","historicalRetest":true,"generationMode":"fresh_generation"},
+    {"cohort":3091,"practiceId":"8e15ae63-6a5c-42df-b2be-72ccb9a73cec","customerKey":"maria-sofia-tosatti","displayName":"MARIA SOFIA TOSATTI","stage":"archiviate","stageName":"Archiviate","module":"screening","productEvidence":"Schermature Solari","reseller":"Linea sole potito","invoiceCount":1,"complexity":"simple","historicalRetest":true,"generationMode":"fresh_generation"},
+    {"cohort":3092,"practiceId":"64d1ab0c-7633-4f03-992b-2fe430584a4e","customerKey":"stefania-venturi","displayName":"Stefania Venturi","stage":"recensione","stageName":"Recensione","module":"screening","productEvidence":"Schermature Solari","reseller":"sa montaggi","invoiceCount":1,"complexity":"simple","historicalRetest":true,"generationMode":"fresh_generation"},
+    {"cohort":3093,"practiceId":"fe20bff9-ded6-4380-9452-e20c4410a0c7","customerKey":"andrea-trabucco","displayName":"Andrea Trabucco","stage":"archiviate","stageName":"Archiviate","module":"infissi","productEvidence":"Infissi / Serramenti","reseller":"Homnium","invoiceCount":6,"complexity":"complex","historicalRetest":true,"generationMode":"fresh_generation"},
+    {"cohort":3094,"practiceId":"af39159b-62d9-4c0d-8056-d2462e4b7727","customerKey":"elena-depalma","displayName":"ELENA DEPALMA","stage":"archiviate","stageName":"Archiviate","module":"infissi","productEvidence":"Infissi / Serramenti","reseller":"lm tende","invoiceCount":2,"complexity":"medium","historicalRetest":true,"generationMode":"fresh_generation"},
+    {"cohort":3095,"practiceId":"aa8d417f-8450-4283-b328-dc8c9cb573ba","customerKey":"monica-molteni","displayName":"Monica Molteni","stage":"archiviate","stageName":"Archiviate","module":"screening","productEvidence":"Schermature Solari","reseller":"cor tende","invoiceCount":2,"complexity":"medium","historicalRetest":true,"generationMode":"fresh_generation"},
+    {"cohort":3096,"practiceId":"98d44d99-86af-4fec-ba55-ffe24d208e83","customerKey":"luca-ronconi","displayName":"Luca Ronconi","stage":"archiviate","stageName":"Archiviate","module":"screening","productEvidence":"Schermature Solari","reseller":"Rinaldi Lab","invoiceCount":1,"complexity":"simple","historicalRetest":true,"generationMode":"fresh_generation"}
+  ],
+  "safety": {
+    "draftOnly": true,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false,
+    "priorDraftPolicy": "fresh_generation",
+    "intermediateDiagnosisAllowed": false,
+    "intermediateCorrectionAllowed": false
+  },
+  "limits": {
+    "noMaterialProgressMs": 420000,
+    "absolutePerCaseMs": 1500000,
+    "heartbeatDoesNotCountAsProgress": true
+  }
+}

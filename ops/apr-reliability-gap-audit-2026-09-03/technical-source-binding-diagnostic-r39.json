@@ -1,0 +1,69 @@
+{
+  "version": "technical-source-binding-diagnostic-r39-v1",
+  "generatedAt": "2026-09-03T21:15:51.311Z",
+  "safety": {
+    "mode": "local_read_only_original_documents",
+    "eneaActions": 0
+  },
+  "positive": {
+    "customerKey": "claudia-sellati",
+    "status": "ready",
+    "selectedSourceId": "3934f46c98eeab841c3edf1bcb65e4c742d1b355b90fa4d989e73a0349dc7c4e",
+    "selectedParser": "formal-dop-position-block",
+    "binding": {
+      "customerMatched": true,
+      "orderOrJobReferencesPresent": true,
+      "productSignatureMatched": true,
+      "technicalReferences": ["74618"],
+      "invoiceReferences": ["18174"],
+      "matchedInvoiceSourceIds": [
+        "45a101b53e6ffdc0935c7fc207d353a137a5e702fb94405dd003c94753e4fcff",
+        "4eea56c264dbfda8abc94d01e5a33a7932f49b1ff404e19243a33d09ade874f5"
+      ]
+    },
+    "physicalProductCount": 6
+  },
+  "negativeWrongDossier": {
+    "customerKey": "gemma-minore",
+    "status": "operator_required",
+    "selectedSourceId": "a75be295c3555dc16c2de327e6e4d129abceacdf20a56e4909b3d9273d63f880",
+    "selectedParser": "single-product-energy-declaration",
+    "blockers": ["infissi_technical_document_practice_binding_unverified"],
+    "binding": {
+      "customerMatched": false,
+      "orderOrJobReferencesPresent": false,
+      "productSignatureMatched": false,
+      "technicalReferences": ["15040/2026"],
+      "invoiceReferences": [],
+      "matchedInvoiceSourceIds": []
+    },
+    "exactCause": "La dichiarazione tecnica appartiene a CISAM INFISSI S.R.L., fornitura 15040/2026 e prodotto 1090x2075; non a Gemma Minore né alle sue fatture.",
+    "operatorQuestion": "Inserisci un documento tecnico intestato a Gemma Minore che riporti l'ordine o la commessa e gli stessi infissi delle fatture della pratica."
+  },
+  "negativeUnlinkedReferences": {
+    "customerKey": "flavia-cipriani",
+    "status": "operator_required",
+    "selectedSourceId": "9b7f17645eb60204640e60a3cfa57cfa399e58a41362eeabe2601412758075ba",
+    "selectedParser": "dimension-block",
+    "blockers": ["infissi_technical_document_practice_binding_unverified"],
+    "binding": {
+      "customerMatched": false,
+      "orderOrJobReferencesPresent": false,
+      "productSignatureMatched": false,
+      "technicalReferences": [],
+      "invoiceReferences": ["1394/2026"],
+      "matchedInvoiceSourceIds": []
+    },
+    "corroboratingOriginalDocuments": {
+      "invoiceReferences": ["1394/2026"],
+      "technicalSupplyReference": "1613/2026",
+      "technicalCustomer": "Flavia Cipriani",
+      "technicalPhysicalProductCount": 6,
+      "invoiceProductSignatureAvailable": false
+    },
+    "exactCause": "Le tre fatture sono intestate a Flavia Cipriani ma riportano COMM. 1394/2026 senza la firma completa dei prodotti; il documento tecnico anagrafico riporta invece fornitura 1613/2026. Nessun documento originale collega univocamente i due riferimenti e i sei prodotti alle fatture.",
+    "missingDocumentType": "documento di collegamento tra commessa fatturata e fornitura tecnica",
+    "operatorQuestion": "La fornitura tecnica 1613/2026 appartiene davvero alla commessa fatturata 1394/2026 di Flavia Cipriani? Se sì, inserisci il documento che collega esplicitamente i due riferimenti e i sei infissi.",
+    "onboardingGap": "Richiedere sempre un documento tecnico che riporti lo stesso ordine/commessa delle fatture oppure un documento esplicito di raccordo, oltre all'elenco identificabile dei prodotti."
+  }
+}

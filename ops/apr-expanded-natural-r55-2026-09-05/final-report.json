@@ -1,0 +1,1241 @@
+{
+  "version": "apr-expanded-natural-r55-final-report-v1",
+  "generatedAt": "2026-09-05T04:09:20.568Z",
+  "status": "completed",
+  "bundle": "versions/92da8433-official-municipality-r55-20260905",
+  "manifestSha256": "f638ac6487b3942fd1cea4f1c4b6edeabb08de90aeb83a97c0fa5c46c6455c26",
+  "execution": {
+    "startedAt": "2026-09-05T02:42:34.679Z",
+    "endedAt": "2026-09-05T03:55:38.441Z",
+    "durationMinutes": 73.06,
+    "total": 28,
+    "counts": {
+      "saved": 2,
+      "operator_required": 15,
+      "technical_block": 8,
+      "inconsistent": 3
+    },
+    "policy": "sequential independent cases; 7 minutes without material progress; 25 minutes absolute; isolate and continue; no mid-lot diagnosis or correction"
+  },
+  "safety": {
+    "draftsOnly": true,
+    "preview": false,
+    "submit": false,
+    "protocol": false,
+    "receipts": false,
+    "communications": false
+  },
+  "exclusions": [
+    {
+      "practiceId": "d88895ce-3b15-4b3f-800a-7cbfe0139246",
+      "customerKey": "antonio-sacco",
+      "displayName": "ANTONIO SACCO",
+      "stage": "gestionale",
+      "stageName": "Da inserire su Excel",
+      "module": "infissi",
+      "productEvidence": "Infissi / Serramenti",
+      "reseller": "rm legno",
+      "invoiceCount": 7,
+      "createdAt": "2026-09-02T12:05:26.969668+00:00",
+      "updatedAt": "2026-09-04T09:19:33.836951+00:00",
+      "exclusionReason": "permanent_vendor_exclusion"
+    },
+    {
+      "practiceId": "7a4178c6-33e8-42af-a972-c7afe2311df8",
+      "customerKey": "samuele-beretta",
+      "displayName": "samuele beretta",
+      "stage": "recensione",
+      "stageName": "Recensione",
+      "module": null,
+      "productEvidence": "",
+      "reseller": "Overthemol S.r.l.",
+      "invoiceCount": 0,
+      "createdAt": "2026-04-24T08:37:44.402206+00:00",
+      "updatedAt": "2026-09-04T09:00:11.517339+00:00",
+      "exclusionReason": "permanent_customer_exclusion"
+    },
+    {
+      "practiceId": "6526242e-76d4-4343-ad76-97ea3ae8ca17",
+      "customerKey": "luca-ortensi",
+      "displayName": "luca ortensi",
+      "stage": "recensione",
+      "stageName": "Recensione",
+      "module": "screening",
+      "productEvidence": "Schermature Solari",
+      "reseller": "vans tappezzeria",
+      "invoiceCount": 3,
+      "createdAt": "2026-07-13T08:34:40.026198+00:00",
+      "updatedAt": "2026-09-03T23:19:09.851998+00:00",
+      "exclusionReason": "permanent_vendor_exclusion"
+    },
+    {
+      "practiceId": "a64d899d-d3fb-47ce-841e-ceb0a7367a75",
+      "customerKey": "valter-migliori",
+      "displayName": "Valter Migliori",
+      "stage": "recensione",
+      "stageName": "Recensione",
+      "module": "screening",
+      "productEvidence": "Schermature Solari",
+      "reseller": "vans tappezzeria",
+      "invoiceCount": 1,
+      "createdAt": "2026-07-13T08:35:26.557676+00:00",
+      "updatedAt": "2026-09-01T08:14:38.314841+00:00",
+      "exclusionReason": "permanent_vendor_exclusion"
+    },
+    {
+      "practiceId": "d7aedc6e-d886-44b7-8925-25202ca90877",
+      "customerKey": "elisa-moro",
+      "displayName": "Elisa Moro",
+      "stage": "recensione",
+      "stageName": "Recensione",
+      "module": "screening",
+      "productEvidence": "Schermature Solari",
+      "reseller": "vans tappezzeria",
+      "invoiceCount": 1,
+      "createdAt": "2026-07-13T08:38:05.751365+00:00",
+      "updatedAt": "2026-09-01T08:14:09.044319+00:00",
+      "exclusionReason": "permanent_vendor_exclusion"
+    },
+    {
+      "practiceId": "4492056d-4084-4663-affe-3da595bb068d",
+      "customerKey": "samuele-beretta",
+      "displayName": "Samuele Beretta",
+      "stage": "recensione",
+      "stageName": "Recensione",
+      "module": "screening",
+      "productEvidence": "Schermature Solari",
+      "reseller": "prova samu",
+      "invoiceCount": 1,
+      "createdAt": "2026-05-04T13:06:59.151349+00:00",
+      "updatedAt": "2026-06-05T13:53:19.957746+00:00",
+      "exclusionReason": "permanent_customer_exclusion"
+    }
+  ],
+  "cases": [
+    {
+      "order": 1,
+      "cohort": 3100,
+      "practiceId": "5323d52a-6473-46f1-a5aa-faf5568ae3fc",
+      "customerKey": "santo-giuga",
+      "displayName": "Santo Giuga",
+      "stage": "recensione",
+      "stageName": "Recensione",
+      "module": "infissi",
+      "productEvidence": "Infissi / Serramenti",
+      "reseller": "Innova Serramenti",
+      "invoiceCount": 8,
+      "complexity": "complex",
+      "historicalRetest": true,
+      "generationMode": "fresh_generation",
+      "state": "operator_required",
+      "draftId": null,
+      "completedPages": 0,
+      "expectedPages": 0,
+      "exactCause": "Controllo incrociato bonifici/fatture non conclusivo: capitale non leggibile, lordo fatture € non verificato, riferimenti mancanti , 124/FE, 184/FE, 297/FE. Richiesto intervento operatore; nessun totale viene inventato. | Il totale di almeno un documento fiscale non è stato riconosciuto. | Tripla riconciliazione non dimostrata: terna-fattura-incerta:aac93e924179125e7c68dc78653dd210367f0653e736092a2fcc8ca8b4d3a525:invoice:264f0ccd0374.",
+      "blockers": [
+        {
+          "code": "bank_transfer_invoice_cross_check_failed",
+          "message": "Controllo incrociato bonifici/fatture non conclusivo: capitale non leggibile, lordo fatture € non verificato, riferimenti mancanti , 124/FE, 184/FE, 297/FE. Richiesto intervento operatore; nessun totale viene inventato."
+        },
+        {
+          "code": "invoice_929a8665",
+          "message": "Il totale di almeno un documento fiscale non è stato riconosciuto."
+        },
+        {
+          "code": "gross_triple_reconciliation_failed",
+          "message": "Tripla riconciliazione non dimostrata: terna-fattura-incerta:aac93e924179125e7c68dc78653dd210367f0653e736092a2fcc8ca8b4d3a525:invoice:264f0ccd0374."
+        }
+      ],
+      "missingDocumentType": "fatture e bonifici riconciliabili",
+      "operatorQuestion": "Inserisci o identifica le fatture e i bonifici corretti, indicando quale pagamento corrisponde a ciascuna fattura e il totale lordo da riconciliare.",
+      "onboardingGap": "Richiedere fatture e bonifici con riferimenti incrociati obbligatori e totali leggibili.",
+      "verification": {
+        "sourcesConcordant": true,
+        "processReport": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-expanded-natural-r55/case-3100-santo-giuga/report.json",
+        "checkpoint": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-expanded-natural-r55/case-3100-santo-giuga/checkpoint.json",
+        "terminalSnapshot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-3100-global-controller-santo-giuga.json",
+        "dashboardConsistency": "CONSISTENT",
+        "caseTruth": "blocked_case"
+      }
+    },
+    {
+      "order": 2,
+      "cohort": 3101,
+      "practiceId": "58f03680-c716-42e7-ad7d-e3ceaee5573d",
+      "customerKey": "claudia-sellati",
+      "displayName": "CLAUDIA SELLATI",
+      "stage": "archiviate",
+      "stageName": "Archiviate",
+      "module": "infissi",
+      "productEvidence": "Infissi / Serramenti",
+      "reseller": "Stellino Design SRL SOCIO UNICO",
+      "invoiceCount": 6,
+      "complexity": "complex",
+      "historicalRetest": true,
+      "generationMode": "fresh_generation",
+      "state": "inconsistent",
+      "draftId": "464267",
+      "completedPages": 5,
+      "expectedPages": 13,
+      "exactCause": "Richiesto intervento operatore sulla pagina screening:6: Tre prove read-only completate senza esito conclusivo.",
+      "blockers": [],
+      "missingDocumentType": null,
+      "operatorQuestion": "Autorizzi una diagnosi separata read-only della bozza 464267 per stabilire se la pagina indicata è stata realmente salvata?",
+      "onboardingGap": null,
+      "verification": {
+        "sourcesConcordant": false,
+        "processReport": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-expanded-natural-r55/case-3101-claudia-sellati/report.json",
+        "checkpoint": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-expanded-natural-r55/case-3101-claudia-sellati/checkpoint.json",
+        "terminalSnapshot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-3101-global-controller-claudia-sellati.json",
+        "dashboardConsistency": "INCONSISTENT",
+        "caseTruth": "INCONSISTENT"
+      }
+    },
+    {
+      "order": 3,
+      "cohort": 3102,
+      "practiceId": "e5c4f390-461b-43ea-ada7-d44cec4b91fb",
+      "customerKey": "marcella-capatti",
+      "displayName": "Marcella Capatti",
+      "stage": "archiviate",
+      "stageName": "Archiviate",
+      "module": "infissi",
+      "productEvidence": "Infissi / Serramenti",
+      "reseller": "TECNOESTENSE SRL",
+      "invoiceCount": 2,
+      "complexity": "medium",
+      "historicalRetest": true,
+      "generationMode": "fresh_generation",
+      "state": "operator_required",
+      "draftId": null,
+      "completedPages": 0,
+      "expectedPages": 0,
+      "exactCause": "Fine lavori 2026-02-12: 205 giorni prima della lavorazione, oltre il limite di 90 giorni. Verificare la procedibilità e il portale annuale corretto.",
+      "blockers": [
+        {
+          "code": "completion_over_90_days_operator_required",
+          "message": "Fine lavori 2026-02-12: 205 giorni prima della lavorazione, oltre il limite di 90 giorni. Verificare la procedibilità e il portale annuale corretto."
+        }
+      ],
+      "missingDocumentType": null,
+      "operatorQuestion": "Confermi che la pratica è ancora procedibile e indichi l’anno portale ENEA corretto per la data di fine lavori riportata nei documenti?",
+      "onboardingGap": "Validare data di fine lavori, anno portale e finestra di procedibilità già durante l’onboarding.",
+      "verification": {
+        "sourcesConcordant": true,
+        "processReport": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-expanded-natural-r55/case-3102-marcella-capatti/report.json",
+        "checkpoint": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-expanded-natural-r55/case-3102-marcella-capatti/checkpoint.json",
+        "terminalSnapshot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-3102-global-controller-marcella-capatti.json",
+        "dashboardConsistency": "CONSISTENT",
+        "caseTruth": "blocked_case"
+      }
+    },
+    {
+      "order": 4,
+      "cohort": 3103,
+      "practiceId": "dc4484cd-c462-49c0-a734-3064dd6469a8",
+      "customerKey": "giovanna-atzeni",
+      "displayName": "GIOVANNA ATZENI",
+      "stage": "archiviate",
+      "stageName": "Archiviate",
+      "module": "infissi",
+      "productEvidence": "Infissi / Serramenti",
+      "reseller": "Ideal sistem",
+      "invoiceCount": 1,
+      "complexity": "simple",
+      "historicalRetest": true,
+      "generationMode": "fresh_generation",
+      "state": "operator_required",
+      "draftId": null,
+      "completedPages": 0,
+      "expectedPages": 0,
+      "exactCause": "Il dossier CRM non contiene un form cliente originario utilizzabile; documenti ENEA storici esclusi. | CF valido e coerente non disponibile nel form o nelle fatture originarie. | Fine lavori 2025-12-31: anno 2025 incompatibile con il portale ENEA 2026. Selezionare il portale annuale corretto senza modificare la data. | Fine lavori 2025-12-31: 248 giorni prima della lavorazione, oltre il limite di 90 giorni. Verificare la procedibilità e il portale annuale corretto.",
+      "blockers": [
+        {
+          "code": "customer_form_missing",
+          "message": "Il dossier CRM non contiene un form cliente originario utilizzabile; documenti ENEA storici esclusi."
+        },
+        {
+          "code": "tax_code_missing_or_invalid",
+          "message": "CF valido e coerente non disponibile nel form o nelle fatture originarie."
+        },
+        {
+          "code": "completion_date_portal_year_mismatch",
+          "message": "Fine lavori 2025-12-31: anno 2025 incompatibile con il portale ENEA 2026. Selezionare il portale annuale corretto senza modificare la data."
+        },
+        {
+          "code": "completion_over_90_days_operator_required",
+          "message": "Fine lavori 2025-12-31: 248 giorni prima della lavorazione, oltre il limite di 90 giorni. Verificare la procedibilità e il portale annuale corretto."
+        }
+      ],
+      "missingDocumentType": "modulo cliente originario firmato",
+      "operatorQuestion": "Confermi che la pratica è ancora procedibile e indichi l’anno portale ENEA corretto per la data di fine lavori riportata nei documenti?",
+      "onboardingGap": "Validare data di fine lavori, anno portale e finestra di procedibilità già durante l’onboarding.",
+      "verification": {
+        "sourcesConcordant": true,
+        "processReport": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-expanded-natural-r55/case-3103-giovanna-atzeni/report.json",
+        "checkpoint": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-expanded-natural-r55/case-3103-giovanna-atzeni/checkpoint.json",
+        "terminalSnapshot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-3103-global-controller-giovanna-atzeni.json",
+        "dashboardConsistency": "CONSISTENT",
+        "caseTruth": "blocked_case"
+      }
+    },
+    {
+      "order": 5,
+      "cohort": 3104,
+      "practiceId": "b51df57d-dae2-4ddc-bf99-904673ebe50d",
+      "customerKey": "annalisa-lanzo",
+      "displayName": "ANNALISA LANZO",
+      "stage": "archiviate",
+      "stageName": "Archiviate",
+      "module": "screening",
+      "productEvidence": "Schermature Solari",
+      "reseller": "cor tende",
+      "invoiceCount": 2,
+      "complexity": "medium",
+      "historicalRetest": true,
+      "generationMode": "fresh_generation",
+      "state": "operator_required",
+      "draftId": null,
+      "completedPages": 0,
+      "expectedPages": 0,
+      "exactCause": "Controllo incrociato ripetuto: il form descrive 1 righe e le fatture 0 prodotti fisici non riconciliabili in modo univoco per famiglia. Richiesto intervento operatore: confermare la cardinalita fisica e l'assegnazione degli attributi form. | Nessun prodotto fisico riconciliato dalle fatture originarie. | Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture.",
+      "blockers": [
+        {
+          "code": "product_cardinality_form_invoice_mismatch",
+          "message": "Controllo incrociato ripetuto: il form descrive 1 righe e le fatture 0 prodotti fisici non riconciliabili in modo univoco per famiglia. Richiesto intervento operatore: confermare la cardinalita fisica e l'assegnazione degli attributi form."
+        },
+        {
+          "code": "screenings_missing",
+          "message": "Nessun prodotto fisico riconciliato dalle fatture originarie."
+        },
+        {
+          "code": "invoice_332a5af9",
+          "message": "Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture."
+        }
+      ],
+      "missingDocumentType": "documento tecnico con numero prodotti, misure e prestazione gTot",
+      "operatorQuestion": "Conferma il numero esatto dei prodotti installati e inserisci il documento tecnico che riporta, per ciascuno, larghezza, altezza e gTot.",
+      "onboardingGap": "Richiedere un documento tecnico standard con una riga per prodotto e campi obbligatori quantità, larghezza, altezza e gTot.",
+      "verification": {
+        "sourcesConcordant": true,
+        "processReport": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-expanded-natural-r55/case-3104-annalisa-lanzo/report.json",
+        "checkpoint": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-expanded-natural-r55/case-3104-annalisa-lanzo/checkpoint.json",
+        "terminalSnapshot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-3104-global-controller-annalisa-lanzo.json",
+        "dashboardConsistency": "CONSISTENT",
+        "caseTruth": "blocked_case"
+      }
+    },
+    {
+      "order": 6,
+      "cohort": 3105,
+      "practiceId": "47ef4b16-d334-4acf-8c1f-c7c341281771",
+      "customerKey": "nadia-ragni",
+      "displayName": "Nadia Ragni",
+      "stage": "archiviate",
+      "stageName": "Archiviate",
+      "module": "screening",
+      "productEvidence": "Schermature Solari",
+      "reseller": "⚠️ Da abbinare — richieste sito",
+      "invoiceCount": 2,
+      "complexity": "medium",
+      "historicalRetest": true,
+      "generationMode": "fresh_generation",
+      "state": "operator_required",
+      "draftId": null,
+      "completedPages": 0,
+      "expectedPages": 0,
+      "exactCause": "Controllo incrociato ripetuto: il form descrive 1 righe e le fatture 0 prodotti fisici non riconciliabili in modo univoco per famiglia. Richiesto intervento operatore: confermare la cardinalita fisica e l'assegnazione degli attributi form. | Nessun prodotto fisico riconciliato dalle fatture originarie. | La fattura descrive la schermatura ma nessuna fonte primaria riporta le misure fisiche del prodotto. APR non usa le misure della finestra protetta come misure del prodotto: acquisire o confermare le misure e rimettere la pratica in Pronte da fare.",
+      "blockers": [
+        {
+          "code": "product_cardinality_form_invoice_mismatch",
+          "message": "Controllo incrociato ripetuto: il form descrive 1 righe e le fatture 0 prodotti fisici non riconciliabili in modo univoco per famiglia. Richiesto intervento operatore: confermare la cardinalita fisica e l'assegnazione degli attributi form."
+        },
+        {
+          "code": "screenings_missing",
+          "message": "Nessun prodotto fisico riconciliato dalle fatture originarie."
+        },
+        {
+          "code": "screening_primary_measurements_missing",
+          "message": "La fattura descrive la schermatura ma nessuna fonte primaria riporta le misure fisiche del prodotto. APR non usa le misure della finestra protetta come misure del prodotto: acquisire o confermare le misure e rimettere la pratica in Pronte da fare."
+        }
+      ],
+      "missingDocumentType": "documento tecnico con numero prodotti, misure e prestazione gTot",
+      "operatorQuestion": "Conferma il numero esatto dei prodotti installati e inserisci il documento tecnico che riporta, per ciascuno, larghezza, altezza e gTot.",
+      "onboardingGap": "Richiedere un documento tecnico standard con una riga per prodotto e campi obbligatori quantità, larghezza, altezza e gTot.",
+      "verification": {
+        "sourcesConcordant": true,
+        "processReport": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-expanded-natural-r55/case-3105-nadia-ragni/report.json",
+        "checkpoint": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-expanded-natural-r55/case-3105-nadia-ragni/checkpoint.json",
+        "terminalSnapshot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-3105-global-controller-nadia-ragni.json",
+        "dashboardConsistency": "CONSISTENT",
+        "caseTruth": "blocked_case"
+      }
+    },
+    {
+      "order": 7,
+      "cohort": 3106,
+      "practiceId": "8e15ae63-6a5c-42df-b2be-72ccb9a73cec",
+      "customerKey": "maria-sofia-tosatti",
+      "displayName": "MARIA SOFIA TOSATTI",
+      "stage": "archiviate",
+      "stageName": "Archiviate",
+      "module": "screening",
+      "productEvidence": "Schermature Solari",
+      "reseller": "Linea sole potito",
+      "invoiceCount": 1,
+      "complexity": "simple",
+      "historicalRetest": true,
+      "generationMode": "fresh_generation",
+      "state": "operator_required",
+      "draftId": null,
+      "completedPages": 0,
+      "expectedPages": 0,
+      "exactCause": "Nessun prodotto fisico riconciliato dalle fatture originarie. | La fattura descrive la schermatura ma nessuna fonte primaria riporta le misure fisiche del prodotto. APR non usa le misure della finestra protetta come misure del prodotto: acquisire o confermare le misure e rimettere la pratica in Pronte da fare.",
+      "blockers": [
+        {
+          "code": "screenings_missing",
+          "message": "Nessun prodotto fisico riconciliato dalle fatture originarie."
+        },
+        {
+          "code": "screening_primary_measurements_missing",
+          "message": "La fattura descrive la schermatura ma nessuna fonte primaria riporta le misure fisiche del prodotto. APR non usa le misure della finestra protetta come misure del prodotto: acquisire o confermare le misure e rimettere la pratica in Pronte da fare."
+        }
+      ],
+      "missingDocumentType": "documento tecnico con numero prodotti, misure e prestazione gTot",
+      "operatorQuestion": "Conferma il numero esatto dei prodotti installati e inserisci il documento tecnico che riporta, per ciascuno, larghezza, altezza e gTot.",
+      "onboardingGap": "Richiedere un documento tecnico standard con una riga per prodotto e campi obbligatori quantità, larghezza, altezza e gTot.",
+      "verification": {
+        "sourcesConcordant": true,
+        "processReport": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-expanded-natural-r55/case-3106-maria-sofia-tosatti/report.json",
+        "checkpoint": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-expanded-natural-r55/case-3106-maria-sofia-tosatti/checkpoint.json",
+        "terminalSnapshot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-3106-global-controller-maria-sofia-tosatti.json",
+        "dashboardConsistency": "CONSISTENT",
+        "caseTruth": "blocked_case"
+      }
+    },
+    {
+      "order": 8,
+      "cohort": 3107,
+      "practiceId": "64d1ab0c-7633-4f03-992b-2fe430584a4e",
+      "customerKey": "stefania-venturi",
+      "displayName": "Stefania Venturi",
+      "stage": "recensione",
+      "stageName": "Recensione",
+      "module": "screening",
+      "productEvidence": "Schermature Solari",
+      "reseller": "sa montaggi",
+      "invoiceCount": 1,
+      "complexity": "simple",
+      "historicalRetest": true,
+      "generationMode": "fresh_generation",
+      "state": "operator_required",
+      "draftId": null,
+      "completedPages": 0,
+      "expectedPages": 0,
+      "exactCause": "Il preflight delle fonti non presenta conflitti, ma il payload ENEA non e completo: Titolo sull'immobile: Intervento umano richiesto.; Anno di costruzione: Intervento umano richiesto.; Superficie utile: Intervento umano richiesto.; Tipo impianto: Intervento umano richiesto.; Terminali: Intervento umano richiesto.; Tipo generatore: Intervento umano richiesto.; Numero generatori: Intervento umano richiesto.; Vettore energetico: Intervento umano richiesto.; Climatizzazione estiva: Intervento umano richiesto.. Correggere il mapping locale prima di accodare la pratica; nessuna azione esterna consentita.",
+      "blockers": [
+        {
+          "code": "draft_payload_mapping_incomplete",
+          "message": "Il preflight delle fonti non presenta conflitti, ma il payload ENEA non e completo: Titolo sull'immobile: Intervento umano richiesto.; Anno di costruzione: Intervento umano richiesto.; Superficie utile: Intervento umano richiesto.; Tipo impianto: Intervento umano richiesto.; Terminali: Intervento umano richiesto.; Tipo generatore: Intervento umano richiesto.; Numero generatori: Intervento umano richiesto.; Vettore energetico: Intervento umano richiesto.; Climatizzazione estiva: Intervento umano richiesto.. Correggere il mapping locale prima di accodare la pratica; nessuna azione esterna consentita."
+        }
+      ],
+      "missingDocumentType": "dati tecnici e catastali completi dell’immobile e dell’impianto",
+      "operatorQuestion": "Inserisci i dati mancanti richiesti da ENEA: Il preflight delle fonti non presenta conflitti, ma il payload ENEA non e completo: Titolo sull'immobile: Intervento umano richiesto.; Anno di costruzione: Intervento umano richiesto.; Superficie utile: Intervento umano richiesto.; Tipo impianto: Intervento umano richiesto.; Terminali: Intervento umano richiesto.; Tipo generatore: Intervento umano richiesto.; Numero generatori: Intervento umano richiesto.; Vettore energetico: Intervento umano richiesto.; Climatizzazione estiva: Intervento umano richiesto.. Correggere il mapping locale prima di accodare la pratica; nessuna azione esterna consentita.",
+      "onboardingGap": "Il form iniziale deve rendere obbligatori tutti i campi tecnici e catastali richiesti dal payload ENEA.",
+      "verification": {
+        "sourcesConcordant": true,
+        "processReport": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-expanded-natural-r55/case-3107-stefania-venturi/report.json",
+        "checkpoint": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-expanded-natural-r55/case-3107-stefania-venturi/checkpoint.json",
+        "terminalSnapshot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-3107-global-controller-stefania-venturi.json",
+        "dashboardConsistency": "CONSISTENT",
+        "caseTruth": "blocked_case"
+      }
+    },
+    {
+      "order": 9,
+      "cohort": 3108,
+      "practiceId": "fe20bff9-ded6-4380-9452-e20c4410a0c7",
+      "customerKey": "andrea-trabucco",
+      "displayName": "Andrea Trabucco",
+      "stage": "archiviate",
+      "stageName": "Archiviate",
+      "module": "infissi",
+      "productEvidence": "Infissi / Serramenti",
+      "reseller": "Homnium",
+      "invoiceCount": 6,
+      "complexity": "complex",
+      "historicalRetest": true,
+      "generationMode": "fresh_generation",
+      "state": "inconsistent",
+      "draftId": "464268",
+      "completedPages": 5,
+      "expectedPages": 8,
+      "exactCause": "Richiesto intervento operatore sulla pagina page:Serramenti e infissi: Tre prove read-only completate senza esito conclusivo.",
+      "blockers": [],
+      "missingDocumentType": null,
+      "operatorQuestion": "Autorizzi una diagnosi separata read-only della bozza 464268 per stabilire se la pagina indicata è stata realmente salvata?",
+      "onboardingGap": null,
+      "verification": {
+        "sourcesConcordant": false,
+        "processReport": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-expanded-natural-r55/case-3108-andrea-trabucco/report.json",
+        "checkpoint": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-expanded-natural-r55/case-3108-andrea-trabucco/checkpoint.json",
+        "terminalSnapshot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-3108-global-controller-andrea-trabucco.json",
+        "dashboardConsistency": "INCONSISTENT",
+        "caseTruth": "INCONSISTENT"
+      }
+    },
+    {
+      "order": 10,
+      "cohort": 3109,
+      "practiceId": "af39159b-62d9-4c0d-8056-d2462e4b7727",
+      "customerKey": "elena-depalma",
+      "displayName": "ELENA DEPALMA",
+      "stage": "archiviate",
+      "stageName": "Archiviate",
+      "module": "infissi",
+      "productEvidence": "Infissi / Serramenti",
+      "reseller": "lm tende",
+      "invoiceCount": 2,
+      "complexity": "medium",
+      "historicalRetest": true,
+      "generationMode": "fresh_generation",
+      "state": "inconsistent",
+      "draftId": "464269",
+      "completedPages": 5,
+      "expectedPages": 12,
+      "exactCause": "Richiesto intervento operatore sulla pagina screening:3: Tre prove read-only completate senza esito conclusivo.",
+      "blockers": [],
+      "missingDocumentType": null,
+      "operatorQuestion": "Autorizzi una diagnosi separata read-only della bozza 464269 per stabilire se la pagina indicata è stata realmente salvata?",
+      "onboardingGap": null,
+      "verification": {
+        "sourcesConcordant": false,
+        "processReport": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-expanded-natural-r55/case-3109-elena-depalma/report.json",
+        "checkpoint": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-expanded-natural-r55/case-3109-elena-depalma/checkpoint.json",
+        "terminalSnapshot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-3109-global-controller-elena-depalma.json",
+        "dashboardConsistency": "INCONSISTENT",
+        "caseTruth": "INCONSISTENT"
+      }
+    },
+    {
+      "order": 11,
+      "cohort": 3110,
+      "practiceId": "aa8d417f-8450-4283-b328-dc8c9cb573ba",
+      "customerKey": "monica-molteni",
+      "displayName": "Monica Molteni",
+      "stage": "archiviate",
+      "stageName": "Archiviate",
+      "module": "screening",
+      "productEvidence": "Schermature Solari",
+      "reseller": "cor tende",
+      "invoiceCount": 2,
+      "complexity": "medium",
+      "historicalRetest": true,
+      "generationMode": "fresh_generation",
+      "state": "saved",
+      "draftId": "464270",
+      "completedPages": 9,
+      "expectedPages": 9,
+      "exactCause": "Bozza 464270 completata: 9/9 pagine salvate.",
+      "blockers": [],
+      "missingDocumentType": null,
+      "operatorQuestion": null,
+      "onboardingGap": null,
+      "verification": {
+        "sourcesConcordant": true,
+        "processReport": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-expanded-natural-r55/case-3110-monica-molteni/report.json",
+        "checkpoint": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-expanded-natural-r55/case-3110-monica-molteni/checkpoint.json",
+        "terminalSnapshot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-3110-global-controller-monica-molteni.json",
+        "dashboardConsistency": "CONSISTENT",
+        "caseTruth": "READY"
+      }
+    },
+    {
+      "order": 12,
+      "cohort": 3111,
+      "practiceId": "98d44d99-86af-4fec-ba55-ffe24d208e83",
+      "customerKey": "luca-ronconi",
+      "displayName": "Luca Ronconi",
+      "stage": "archiviate",
+      "stageName": "Archiviate",
+      "module": "screening",
+      "productEvidence": "Schermature Solari",
+      "reseller": "Rinaldi Lab",
+      "invoiceCount": 1,
+      "complexity": "simple",
+      "historicalRetest": true,
+      "generationMode": "fresh_generation",
+      "state": "technical_block",
+      "draftId": "464271",
+      "completedPages": 0,
+      "expectedPages": 8,
+      "exactCause": "Il salvataggio del co-beneficiario ENEA non è stato verificato dalle sonde read-only; APR si è fermato senza procedere alla cieca.",
+      "blockers": [],
+      "missingDocumentType": null,
+      "operatorQuestion": "Autorizzi la diagnosi generale del difetto tecnico “Il salvataggio del co-beneficiario ENEA non è stato verificato dalle sonde read-only; APR si è fermato senza procedere alla cieca.” prima di un nuovo replay pulito?",
+      "onboardingGap": null,
+      "verification": {
+        "sourcesConcordant": true,
+        "processReport": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-expanded-natural-r55/case-3111-luca-ronconi/report.json",
+        "checkpoint": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-expanded-natural-r55/case-3111-luca-ronconi/checkpoint.json",
+        "terminalSnapshot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-3111-global-controller-luca-ronconi.json",
+        "dashboardConsistency": "CONSISTENT",
+        "caseTruth": "TECHNICAL_BLOCK"
+      }
+    },
+    {
+      "order": 13,
+      "practiceId": "7099d3ee-6eef-4152-b1c2-f28f3581fed7",
+      "customerKey": "saimir-ajdini",
+      "displayName": "Saimir Ajdini",
+      "stage": "recensione",
+      "stageName": "Recensione",
+      "module": "infissi",
+      "productEvidence": "Infissi / Serramenti",
+      "reseller": "CMB infissi",
+      "invoiceCount": 1,
+      "createdAt": "2026-05-08T08:02:06.61491+00:00",
+      "updatedAt": "2026-06-05T13:53:19.957746+00:00",
+      "complexity": "simple",
+      "generationMode": "fresh_generation",
+      "cohort": 3112,
+      "state": "operator_required",
+      "draftId": null,
+      "completedPages": 0,
+      "expectedPages": 0,
+      "exactCause": "Fine lavori assente e data fattura non ricavabile. | Tripla riconciliazione non dimostrata: terna-fattura-incerta:cb4d5953b88b94365c029648088ecaf502f7a7dd8e74d572ec2ccaaa7126c3d6:invoice:264f0ccd0374, nessuna-fattura-economica-valida.",
+      "blockers": [
+        {
+          "code": "completion_date_missing",
+          "message": "Fine lavori assente e data fattura non ricavabile."
+        },
+        {
+          "code": "gross_triple_reconciliation_failed",
+          "message": "Tripla riconciliazione non dimostrata: terna-fattura-incerta:cb4d5953b88b94365c029648088ecaf502f7a7dd8e74d572ec2ccaaa7126c3d6:invoice:264f0ccd0374, nessuna-fattura-economica-valida."
+        }
+      ],
+      "missingDocumentType": "documento datato di fine lavori",
+      "operatorQuestion": "Qual è la data esatta di fine lavori? Inserisci il documento che la attesta.",
+      "onboardingGap": "Richiedere all’origine un documento datato e un campo strutturato per la fine lavori.",
+      "verification": {
+        "sourcesConcordant": true,
+        "processReport": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-expanded-natural-r55/case-3112-saimir-ajdini/report.json",
+        "checkpoint": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-expanded-natural-r55/case-3112-saimir-ajdini/checkpoint.json",
+        "terminalSnapshot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-3112-global-controller-saimir-ajdini.json",
+        "dashboardConsistency": "CONSISTENT",
+        "caseTruth": "blocked_case"
+      }
+    },
+    {
+      "order": 14,
+      "practiceId": "fd24c40d-3237-4986-abe8-cf37552a2746",
+      "customerKey": "chiara-chierichetti",
+      "displayName": "Chiara Chierichetti",
+      "stage": "gestionale",
+      "stageName": "Da inserire su Excel",
+      "module": "infissi",
+      "productEvidence": "Infissi / Serramenti",
+      "reseller": "Brianza serramenti",
+      "invoiceCount": 2,
+      "createdAt": "2026-09-04T07:17:31.281881+00:00",
+      "updatedAt": "2026-09-04T08:53:10.302013+00:00",
+      "complexity": "medium",
+      "generationMode": "fresh_generation",
+      "cohort": 3113,
+      "state": "technical_block",
+      "draftId": null,
+      "completedPages": 0,
+      "expectedPages": 0,
+      "exactCause": "Il seed della coorte rifiuta la pratica perché la configurazione dello stage non è associata correttamente al practiceId.",
+      "blockers": [],
+      "missingDocumentType": null,
+      "operatorQuestion": "Autorizzi la diagnosi generale del difetto tecnico “Il seed della coorte rifiuta la pratica perché la configurazione dello stage non è associata correttamente al practiceId.” prima di un nuovo replay pulito?",
+      "onboardingGap": null,
+      "verification": {
+        "sourcesConcordant": true,
+        "processReport": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-expanded-natural-r55/case-3113-chiara-chierichetti/report.json",
+        "checkpoint": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-expanded-natural-r55/case-3113-chiara-chierichetti/checkpoint.json",
+        "terminalSnapshot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-3113-global-controller-chiara-chierichetti.json",
+        "dashboardConsistency": "CONSISTENT",
+        "caseTruth": "TECHNICAL_BLOCK"
+      }
+    },
+    {
+      "order": 15,
+      "practiceId": "8de255c1-5897-405f-82f4-36dc646688c4",
+      "customerKey": "massimo-cotta",
+      "displayName": "MASSIMO COTTA",
+      "stage": "gestionale",
+      "stageName": "Da inserire su Excel",
+      "module": "screening",
+      "productEvidence": "Schermature Solari",
+      "reseller": "zanellato tende",
+      "invoiceCount": 1,
+      "createdAt": "2026-09-03T08:27:10.862088+00:00",
+      "updatedAt": "2026-09-04T08:35:27.584827+00:00",
+      "complexity": "simple",
+      "generationMode": "fresh_generation",
+      "cohort": 3114,
+      "state": "technical_block",
+      "draftId": null,
+      "completedPages": 0,
+      "expectedPages": 0,
+      "exactCause": "Il seed della coorte rifiuta la pratica perché la configurazione dello stage non è associata correttamente al practiceId.",
+      "blockers": [],
+      "missingDocumentType": null,
+      "operatorQuestion": "Autorizzi la diagnosi generale del difetto tecnico “Il seed della coorte rifiuta la pratica perché la configurazione dello stage non è associata correttamente al practiceId.” prima di un nuovo replay pulito?",
+      "onboardingGap": null,
+      "verification": {
+        "sourcesConcordant": true,
+        "processReport": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-expanded-natural-r55/case-3114-massimo-cotta/report.json",
+        "checkpoint": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-expanded-natural-r55/case-3114-massimo-cotta/checkpoint.json",
+        "terminalSnapshot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-3114-global-controller-massimo-cotta.json",
+        "dashboardConsistency": "CONSISTENT",
+        "caseTruth": "TECHNICAL_BLOCK"
+      }
+    },
+    {
+      "order": 16,
+      "practiceId": "899c1c42-acb9-49b9-93ec-0411b6e09355",
+      "customerKey": "mario-ruggeri",
+      "displayName": "Mario Ruggeri",
+      "stage": "recensione",
+      "stageName": "Recensione",
+      "module": "infissi",
+      "productEvidence": "Infissi / Serramenti",
+      "reseller": "Brianza serramenti",
+      "invoiceCount": 3,
+      "createdAt": "2026-08-13T10:42:08.44486+00:00",
+      "updatedAt": "2026-09-01T08:04:54.515684+00:00",
+      "complexity": "medium",
+      "generationMode": "fresh_generation",
+      "cohort": 3115,
+      "state": "operator_required",
+      "draftId": null,
+      "completedPages": 0,
+      "expectedPages": 0,
+      "exactCause": "mario-ruggeri:preflight_blocked:Mario Ruggeri: 2 blocker Infissi coerenti registrati; la coda prosegue.",
+      "blockers": [
+        {
+          "code": "infissi_dimensions_and_cardinality_missing"
+        },
+        {
+          "code": "infissi_dimensions_and_cardinality_missing"
+        }
+      ],
+      "missingDocumentType": "documento tecnico con numero prodotti, misure e prestazione gTot",
+      "operatorQuestion": "Conferma il numero esatto dei prodotti installati e inserisci il documento tecnico che riporta, per ciascuno, larghezza, altezza e gTot.",
+      "onboardingGap": "Richiedere un documento tecnico standard con una riga per prodotto e campi obbligatori quantità, larghezza, altezza e gTot.",
+      "verification": {
+        "sourcesConcordant": true,
+        "processReport": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-expanded-natural-r55/case-3115-mario-ruggeri/report.json",
+        "checkpoint": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-expanded-natural-r55/case-3115-mario-ruggeri/checkpoint.json",
+        "terminalSnapshot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-3115-global-controller-mario-ruggeri.json",
+        "dashboardConsistency": "CONSISTENT",
+        "caseTruth": "blocked_case"
+      }
+    },
+    {
+      "order": 17,
+      "practiceId": "3dc3cd09-f5b8-4b73-b86c-c1886aa0ab2d",
+      "customerKey": "francesca-scalia",
+      "displayName": "Francesca Scalia",
+      "stage": "gestionale",
+      "stageName": "Da inserire su Excel",
+      "module": "screening",
+      "productEvidence": "Schermature Solari",
+      "reseller": "lm tende",
+      "invoiceCount": 2,
+      "createdAt": "2026-09-03T08:23:13.81459+00:00",
+      "updatedAt": "2026-09-04T08:40:27.700417+00:00",
+      "complexity": "medium",
+      "generationMode": "fresh_generation",
+      "cohort": 3116,
+      "state": "technical_block",
+      "draftId": null,
+      "completedPages": 0,
+      "expectedPages": 0,
+      "exactCause": "Il seed della coorte rifiuta la pratica perché la configurazione dello stage non è associata correttamente al practiceId.",
+      "blockers": [],
+      "missingDocumentType": null,
+      "operatorQuestion": "Autorizzi la diagnosi generale del difetto tecnico “Il seed della coorte rifiuta la pratica perché la configurazione dello stage non è associata correttamente al practiceId.” prima di un nuovo replay pulito?",
+      "onboardingGap": null,
+      "verification": {
+        "sourcesConcordant": true,
+        "processReport": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-expanded-natural-r55/case-3116-francesca-scalia/report.json",
+        "checkpoint": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-expanded-natural-r55/case-3116-francesca-scalia/checkpoint.json",
+        "terminalSnapshot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-3116-global-controller-francesca-scalia.json",
+        "dashboardConsistency": "CONSISTENT",
+        "caseTruth": "TECHNICAL_BLOCK"
+      }
+    },
+    {
+      "order": 18,
+      "practiceId": "2bd6ccd3-0fa5-4fdd-bc29-fbe3c87f1de4",
+      "customerKey": "floriana-genova",
+      "displayName": "Floriana Genova",
+      "stage": "recensione",
+      "stageName": "Recensione",
+      "module": "screening",
+      "productEvidence": "Schermature Solari",
+      "reseller": "vetratex",
+      "invoiceCount": 1,
+      "createdAt": "2026-08-03T16:11:35.420286+00:00",
+      "updatedAt": "2026-09-03T07:35:01.155412+00:00",
+      "complexity": "simple",
+      "generationMode": "fresh_generation",
+      "cohort": 3117,
+      "state": "saved",
+      "draftId": "464272",
+      "completedPages": 9,
+      "expectedPages": 9,
+      "exactCause": "Bozza 464272 completata: 9/9 pagine salvate.",
+      "blockers": [],
+      "missingDocumentType": null,
+      "operatorQuestion": null,
+      "onboardingGap": null,
+      "verification": {
+        "sourcesConcordant": true,
+        "processReport": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-expanded-natural-r55/case-3117-floriana-genova/report.json",
+        "checkpoint": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-expanded-natural-r55/case-3117-floriana-genova/checkpoint.json",
+        "terminalSnapshot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-3117-global-controller-floriana-genova.json",
+        "dashboardConsistency": "CONSISTENT",
+        "caseTruth": "READY"
+      }
+    },
+    {
+      "order": 19,
+      "practiceId": "f4d2eb7d-8a29-4949-9f74-427e3a3319c0",
+      "customerKey": "davide-papetti",
+      "displayName": "Davide Papetti",
+      "stage": "recensione",
+      "stageName": "Recensione",
+      "module": "screening",
+      "productEvidence": "Schermature Solari",
+      "reseller": "Brianza serramenti",
+      "invoiceCount": 3,
+      "createdAt": "2026-08-13T11:38:58.188705+00:00",
+      "updatedAt": "2026-09-03T07:32:56.259229+00:00",
+      "complexity": "medium",
+      "generationMode": "fresh_generation",
+      "cohort": 3118,
+      "state": "operator_required",
+      "draftId": null,
+      "completedPages": 0,
+      "expectedPages": 0,
+      "exactCause": "Controllo incrociato ripetuto: il form descrive 1 righe e le fatture 0 prodotti fisici non riconciliabili in modo univoco per famiglia. Richiesto intervento operatore: confermare la cardinalita fisica e l'assegnazione degli attributi form. | Nessun prodotto fisico riconciliato dalle fatture originarie. | Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture. | Il totale di almeno un documento fiscale non è stato riconosciuto. | Tripla riconciliazione non dimostrata: terna-fattura-incerta:52ee3c71fa9868da5aa0982395e2c7ee1a3cf23c4fa78bfe02d370bd28284b67:invoice:264f0ccd0374, terna-fattura-incerta:bee9a03700782157061da4166f1bd30a524b12b35dcfec9e00552eaf589fa54d:invoice:264f0ccd0374.",
+      "blockers": [
+        {
+          "code": "product_cardinality_form_invoice_mismatch",
+          "message": "Controllo incrociato ripetuto: il form descrive 1 righe e le fatture 0 prodotti fisici non riconciliabili in modo univoco per famiglia. Richiesto intervento operatore: confermare la cardinalita fisica e l'assegnazione degli attributi form."
+        },
+        {
+          "code": "screenings_missing",
+          "message": "Nessun prodotto fisico riconciliato dalle fatture originarie."
+        },
+        {
+          "code": "invoice_332a5af9",
+          "message": "Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture."
+        },
+        {
+          "code": "invoice_929a8665",
+          "message": "Il totale di almeno un documento fiscale non è stato riconosciuto."
+        },
+        {
+          "code": "gross_triple_reconciliation_failed",
+          "message": "Tripla riconciliazione non dimostrata: terna-fattura-incerta:52ee3c71fa9868da5aa0982395e2c7ee1a3cf23c4fa78bfe02d370bd28284b67:invoice:264f0ccd0374, terna-fattura-incerta:bee9a03700782157061da4166f1bd30a524b12b35dcfec9e00552eaf589fa54d:invoice:264f0ccd0374."
+        }
+      ],
+      "missingDocumentType": "documento tecnico con numero prodotti, misure e prestazione gTot",
+      "operatorQuestion": "Conferma il numero esatto dei prodotti installati e inserisci il documento tecnico che riporta, per ciascuno, larghezza, altezza e gTot.",
+      "onboardingGap": "Richiedere un documento tecnico standard con una riga per prodotto e campi obbligatori quantità, larghezza, altezza e gTot.",
+      "verification": {
+        "sourcesConcordant": true,
+        "processReport": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-expanded-natural-r55/case-3118-davide-papetti/report.json",
+        "checkpoint": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-expanded-natural-r55/case-3118-davide-papetti/checkpoint.json",
+        "terminalSnapshot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-3118-global-controller-davide-papetti.json",
+        "dashboardConsistency": "CONSISTENT",
+        "caseTruth": "blocked_case"
+      }
+    },
+    {
+      "order": 20,
+      "practiceId": "7b8fa856-36d9-471b-82f5-a0ae194469b2",
+      "customerKey": "gregorio-fusco",
+      "displayName": "gregorio fusco",
+      "stage": "recensione",
+      "stageName": "Recensione",
+      "module": "infissi",
+      "productEvidence": "Infissi / Serramenti",
+      "reseller": "Homnium",
+      "invoiceCount": 7,
+      "createdAt": "2026-08-12T14:49:01.321631+00:00",
+      "updatedAt": "2026-09-01T08:06:04.993798+00:00",
+      "complexity": "complex",
+      "generationMode": "fresh_generation",
+      "cohort": 3119,
+      "state": "technical_block",
+      "draftId": null,
+      "completedPages": 0,
+      "expectedPages": 0,
+      "exactCause": "Il seed fresh-generation rileva una bozza precedente e chiude fail-closed prima di creare una nuova generazione.",
+      "blockers": [],
+      "missingDocumentType": null,
+      "operatorQuestion": "Autorizzi la diagnosi generale del difetto tecnico “Il seed fresh-generation rileva una bozza precedente e chiude fail-closed prima di creare una nuova generazione.” prima di un nuovo replay pulito?",
+      "onboardingGap": null,
+      "verification": {
+        "sourcesConcordant": true,
+        "processReport": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-expanded-natural-r55/case-3119-gregorio-fusco/report.json",
+        "checkpoint": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-expanded-natural-r55/case-3119-gregorio-fusco/checkpoint.json",
+        "terminalSnapshot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-3119-global-controller-gregorio-fusco.json",
+        "dashboardConsistency": "CONSISTENT",
+        "caseTruth": "TECHNICAL_BLOCK"
+      }
+    },
+    {
+      "order": 21,
+      "practiceId": "37914dcc-7bcf-4bc4-85bc-ca73bb357c6c",
+      "customerKey": "rosaria-bucceri",
+      "displayName": "Rosaria Bucceri",
+      "stage": "recensione",
+      "stageName": "Recensione",
+      "module": "screening",
+      "productEvidence": "Schermature Solari",
+      "reseller": "Brianza serramenti",
+      "invoiceCount": 2,
+      "createdAt": "2026-08-13T08:14:53.777505+00:00",
+      "updatedAt": "2026-09-03T07:32:57.125804+00:00",
+      "complexity": "medium",
+      "generationMode": "fresh_generation",
+      "cohort": 3120,
+      "state": "operator_required",
+      "draftId": null,
+      "completedPages": 0,
+      "expectedPages": 0,
+      "exactCause": "Controllo incrociato ripetuto: il form descrive 1 righe e le fatture 0 prodotti fisici non riconciliabili in modo univoco per famiglia. Richiesto intervento operatore: confermare la cardinalita fisica e l'assegnazione degli attributi form. | Nessun prodotto fisico riconciliato dalle fatture originarie. | Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture.",
+      "blockers": [
+        {
+          "code": "product_cardinality_form_invoice_mismatch",
+          "message": "Controllo incrociato ripetuto: il form descrive 1 righe e le fatture 0 prodotti fisici non riconciliabili in modo univoco per famiglia. Richiesto intervento operatore: confermare la cardinalita fisica e l'assegnazione degli attributi form."
+        },
+        {
+          "code": "screenings_missing",
+          "message": "Nessun prodotto fisico riconciliato dalle fatture originarie."
+        },
+        {
+          "code": "invoice_332a5af9",
+          "message": "Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture."
+        }
+      ],
+      "missingDocumentType": "documento tecnico con numero prodotti, misure e prestazione gTot",
+      "operatorQuestion": "Conferma il numero esatto dei prodotti installati e inserisci il documento tecnico che riporta, per ciascuno, larghezza, altezza e gTot.",
+      "onboardingGap": "Richiedere un documento tecnico standard con una riga per prodotto e campi obbligatori quantità, larghezza, altezza e gTot.",
+      "verification": {
+        "sourcesConcordant": true,
+        "processReport": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-expanded-natural-r55/case-3120-rosaria-bucceri/report.json",
+        "checkpoint": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-expanded-natural-r55/case-3120-rosaria-bucceri/checkpoint.json",
+        "terminalSnapshot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-3120-global-controller-rosaria-bucceri.json",
+        "dashboardConsistency": "CONSISTENT",
+        "caseTruth": "blocked_case"
+      }
+    },
+    {
+      "order": 22,
+      "practiceId": "2b3d17a0-c176-4e7c-9be5-5b84200b281d",
+      "customerKey": "daniele-buoncompagni",
+      "displayName": "Daniele Buoncompagni",
+      "stage": "gestionale",
+      "stageName": "Da inserire su Excel",
+      "module": "infissi",
+      "productEvidence": "Infissi / Serramenti",
+      "reseller": "sa montaggi",
+      "invoiceCount": 1,
+      "createdAt": "2026-09-03T15:13:35.50113+00:00",
+      "updatedAt": "2026-09-04T08:29:52.474272+00:00",
+      "complexity": "simple",
+      "generationMode": "fresh_generation",
+      "cohort": 3121,
+      "state": "technical_block",
+      "draftId": null,
+      "completedPages": 0,
+      "expectedPages": 0,
+      "exactCause": "Il seed della coorte rifiuta la pratica perché la configurazione dello stage non è associata correttamente al practiceId.",
+      "blockers": [],
+      "missingDocumentType": null,
+      "operatorQuestion": "Autorizzi la diagnosi generale del difetto tecnico “Il seed della coorte rifiuta la pratica perché la configurazione dello stage non è associata correttamente al practiceId.” prima di un nuovo replay pulito?",
+      "onboardingGap": null,
+      "verification": {
+        "sourcesConcordant": true,
+        "processReport": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-expanded-natural-r55/case-3121-daniele-buoncompagni/report.json",
+        "checkpoint": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-expanded-natural-r55/case-3121-daniele-buoncompagni/checkpoint.json",
+        "terminalSnapshot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-3121-global-controller-daniele-buoncompagni.json",
+        "dashboardConsistency": "CONSISTENT",
+        "caseTruth": "TECHNICAL_BLOCK"
+      }
+    },
+    {
+      "order": 23,
+      "practiceId": "b24e5957-97b8-483d-bb84-f05477af9e0d",
+      "customerKey": "flaviano-vitulli",
+      "displayName": "Flaviano Vitulli",
+      "stage": "recensione",
+      "stageName": "Recensione",
+      "module": "screening",
+      "productEvidence": "Schermature Solari",
+      "reseller": "Brianza serramenti",
+      "invoiceCount": 2,
+      "createdAt": "2026-08-13T07:31:16.756364+00:00",
+      "updatedAt": "2026-09-03T09:01:52.25935+00:00",
+      "complexity": "medium",
+      "generationMode": "fresh_generation",
+      "cohort": 3122,
+      "state": "operator_required",
+      "draftId": null,
+      "completedPages": 0,
+      "expectedPages": 0,
+      "exactCause": "Controllo incrociato ripetuto: il form descrive 1 righe e le fatture 0 prodotti fisici non riconciliabili in modo univoco per famiglia. Richiesto intervento operatore: confermare la cardinalita fisica e l'assegnazione degli attributi form. | Nessun prodotto fisico riconciliato dalle fatture originarie. | Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture.",
+      "blockers": [
+        {
+          "code": "product_cardinality_form_invoice_mismatch",
+          "message": "Controllo incrociato ripetuto: il form descrive 1 righe e le fatture 0 prodotti fisici non riconciliabili in modo univoco per famiglia. Richiesto intervento operatore: confermare la cardinalita fisica e l'assegnazione degli attributi form."
+        },
+        {
+          "code": "screenings_missing",
+          "message": "Nessun prodotto fisico riconciliato dalle fatture originarie."
+        },
+        {
+          "code": "invoice_332a5af9",
+          "message": "Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture."
+        }
+      ],
+      "missingDocumentType": "documento tecnico con numero prodotti, misure e prestazione gTot",
+      "operatorQuestion": "Conferma il numero esatto dei prodotti installati e inserisci il documento tecnico che riporta, per ciascuno, larghezza, altezza e gTot.",
+      "onboardingGap": "Richiedere un documento tecnico standard con una riga per prodotto e campi obbligatori quantità, larghezza, altezza e gTot.",
+      "verification": {
+        "sourcesConcordant": true,
+        "processReport": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-expanded-natural-r55/case-3122-flaviano-vitulli/report.json",
+        "checkpoint": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-expanded-natural-r55/case-3122-flaviano-vitulli/checkpoint.json",
+        "terminalSnapshot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-3122-global-controller-flaviano-vitulli.json",
+        "dashboardConsistency": "CONSISTENT",
+        "caseTruth": "blocked_case"
+      }
+    },
+    {
+      "order": 24,
+      "practiceId": "6225b43c-0376-4c51-bc51-845ad249b26b",
+      "customerKey": "franca-grassilli",
+      "displayName": "Franca Grassilli",
+      "stage": "recensione",
+      "stageName": "Recensione",
+      "module": "screening",
+      "productEvidence": "Schermature Solari",
+      "reseller": "lm tende",
+      "invoiceCount": 2,
+      "createdAt": "2026-05-12T08:30:33.623358+00:00",
+      "updatedAt": "2026-06-05T13:53:19.957746+00:00",
+      "complexity": "medium",
+      "generationMode": "fresh_generation",
+      "cohort": 3123,
+      "state": "operator_required",
+      "draftId": null,
+      "completedPages": 0,
+      "expectedPages": 0,
+      "exactCause": "Controllo incrociato ripetuto: il form descrive 4 righe e le fatture 0 prodotti fisici non riconciliabili in modo univoco per famiglia. Richiesto intervento operatore: confermare la cardinalita fisica e l'assegnazione degli attributi form. | Nessun prodotto fisico riconciliato dalle fatture originarie. | Fine lavori assente e data fattura non ricavabile. | Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture. | Tripla riconciliazione non dimostrata: terna-fattura-incerta:8962b48744c8a58ff71ce9ab9b91b101c4e55c533420735d997d4c5cbd247a8e:invoice:264f0ccd0374, nessuna-fattura-economica-valida.",
+      "blockers": [
+        {
+          "code": "product_cardinality_form_invoice_mismatch",
+          "message": "Controllo incrociato ripetuto: il form descrive 4 righe e le fatture 0 prodotti fisici non riconciliabili in modo univoco per famiglia. Richiesto intervento operatore: confermare la cardinalita fisica e l'assegnazione degli attributi form."
+        },
+        {
+          "code": "screenings_missing",
+          "message": "Nessun prodotto fisico riconciliato dalle fatture originarie."
+        },
+        {
+          "code": "completion_date_missing",
+          "message": "Fine lavori assente e data fattura non ricavabile."
+        },
+        {
+          "code": "invoice_332a5af9",
+          "message": "Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture."
+        },
+        {
+          "code": "gross_triple_reconciliation_failed",
+          "message": "Tripla riconciliazione non dimostrata: terna-fattura-incerta:8962b48744c8a58ff71ce9ab9b91b101c4e55c533420735d997d4c5cbd247a8e:invoice:264f0ccd0374, nessuna-fattura-economica-valida."
+        }
+      ],
+      "missingDocumentType": "documento datato di fine lavori",
+      "operatorQuestion": "Qual è la data esatta di fine lavori? Inserisci il documento che la attesta.",
+      "onboardingGap": "Richiedere all’origine un documento datato e un campo strutturato per la fine lavori.",
+      "verification": {
+        "sourcesConcordant": true,
+        "processReport": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-expanded-natural-r55/case-3123-franca-grassilli/report.json",
+        "checkpoint": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-expanded-natural-r55/case-3123-franca-grassilli/checkpoint.json",
+        "terminalSnapshot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-3123-global-controller-franca-grassilli.json",
+        "dashboardConsistency": "CONSISTENT",
+        "caseTruth": "blocked_case"
+      }
+    },
+    {
+      "order": 25,
+      "practiceId": "562ef10a-2ced-43bd-9eaf-59aeedba7f3d",
+      "customerKey": "giovanni-pietro-sanvito",
+      "displayName": "Giovanni Pietro Sanvito",
+      "stage": "gestionale",
+      "stageName": "Da inserire su Excel",
+      "module": "screening",
+      "productEvidence": "Schermature Solari",
+      "reseller": "cor tende",
+      "invoiceCount": 1,
+      "createdAt": "2026-08-31T14:48:49.305602+00:00",
+      "updatedAt": "2026-09-04T09:22:20.360329+00:00",
+      "complexity": "simple",
+      "generationMode": "fresh_generation",
+      "cohort": 3124,
+      "state": "technical_block",
+      "draftId": null,
+      "completedPages": 0,
+      "expectedPages": 0,
+      "exactCause": "Il seed della coorte rifiuta la pratica perché la configurazione dello stage non è associata correttamente al practiceId.",
+      "blockers": [],
+      "missingDocumentType": null,
+      "operatorQuestion": "Autorizzi la diagnosi generale del difetto tecnico “Il seed della coorte rifiuta la pratica perché la configurazione dello stage non è associata correttamente al practiceId.” prima di un nuovo replay pulito?",
+      "onboardingGap": null,
+      "verification": {
+        "sourcesConcordant": true,
+        "processReport": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-expanded-natural-r55/case-3124-giovanni-pietro-sanvito/report.json",
+        "checkpoint": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-expanded-natural-r55/case-3124-giovanni-pietro-sanvito/checkpoint.json",
+        "terminalSnapshot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-3124-global-controller-giovanni-pietro-sanvito.json",
+        "dashboardConsistency": "CONSISTENT",
+        "caseTruth": "TECHNICAL_BLOCK"
+      }
+    },
+    {
+      "order": 26,
+      "practiceId": "6f274566-2fc3-4e49-a40d-64538988f540",
+      "customerKey": "fausta-de-filippo",
+      "displayName": "Fausta De Filippo",
+      "stage": "recensione",
+      "stageName": "Recensione",
+      "module": "screening",
+      "productEvidence": "Schermature Solari",
+      "reseller": "vetratex",
+      "invoiceCount": 1,
+      "createdAt": "2026-08-03T15:56:41.686863+00:00",
+      "updatedAt": "2026-09-01T08:11:52.597364+00:00",
+      "complexity": "simple",
+      "generationMode": "fresh_generation",
+      "cohort": 3125,
+      "state": "operator_required",
+      "draftId": null,
+      "completedPages": 0,
+      "expectedPages": 0,
+      "exactCause": "Controllo incrociato ripetuto: il form descrive 3 righe e le fatture 2 prodotti fisici non riconciliabili in modo univoco per famiglia. Richiesto intervento operatore: confermare la cardinalita fisica e l'assegnazione degli attributi form.",
+      "blockers": [
+        {
+          "code": "product_cardinality_form_invoice_mismatch",
+          "message": "Controllo incrociato ripetuto: il form descrive 3 righe e le fatture 2 prodotti fisici non riconciliabili in modo univoco per famiglia. Richiesto intervento operatore: confermare la cardinalita fisica e l'assegnazione degli attributi form."
+        }
+      ],
+      "missingDocumentType": "documento tecnico con numero prodotti, misure e prestazione gTot",
+      "operatorQuestion": "Conferma il numero esatto dei prodotti installati e inserisci il documento tecnico che riporta, per ciascuno, larghezza, altezza e gTot.",
+      "onboardingGap": "Richiedere un documento tecnico standard con una riga per prodotto e campi obbligatori quantità, larghezza, altezza e gTot.",
+      "verification": {
+        "sourcesConcordant": true,
+        "processReport": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-expanded-natural-r55/case-3125-fausta-de-filippo/report.json",
+        "checkpoint": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-expanded-natural-r55/case-3125-fausta-de-filippo/checkpoint.json",
+        "terminalSnapshot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-3125-global-controller-fausta-de-filippo.json",
+        "dashboardConsistency": "CONSISTENT",
+        "caseTruth": "blocked_case"
+      }
+    },
+    {
+      "order": 27,
+      "practiceId": "6ff95940-9371-4ad1-b5ad-bf3c06b5a807",
+      "customerKey": "tanbir-awal",
+      "displayName": "Tanbir Awal",
+      "stage": "gestionale",
+      "stageName": "Da inserire su Excel",
+      "module": "infissi",
+      "productEvidence": "Infissi / Serramenti",
+      "reseller": "sa montaggi",
+      "invoiceCount": 1,
+      "createdAt": "2026-08-05T17:09:25.345882+00:00",
+      "updatedAt": "2026-09-04T09:17:01.587717+00:00",
+      "complexity": "simple",
+      "generationMode": "fresh_generation",
+      "cohort": 3126,
+      "state": "technical_block",
+      "draftId": null,
+      "completedPages": 0,
+      "expectedPages": 0,
+      "exactCause": "Il seed della coorte rifiuta la pratica perché la configurazione dello stage non è associata correttamente al practiceId.",
+      "blockers": [],
+      "missingDocumentType": null,
+      "operatorQuestion": "Autorizzi la diagnosi generale del difetto tecnico “Il seed della coorte rifiuta la pratica perché la configurazione dello stage non è associata correttamente al practiceId.” prima di un nuovo replay pulito?",
+      "onboardingGap": null,
+      "verification": {
+        "sourcesConcordant": true,
+        "processReport": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-expanded-natural-r55/case-3126-tanbir-awal/report.json",
+        "checkpoint": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-expanded-natural-r55/case-3126-tanbir-awal/checkpoint.json",
+        "terminalSnapshot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-3126-global-controller-tanbir-awal.json",
+        "dashboardConsistency": "CONSISTENT",
+        "caseTruth": "TECHNICAL_BLOCK"
+      }
+    },
+    {
+      "order": 28,
+      "practiceId": "da8e73a3-132b-4a4d-ade0-ad282d98655c",
+      "customerKey": "carlotta-ceniti",
+      "displayName": "Carlotta Ceniti",
+      "stage": "recensione",
+      "stageName": "Recensione",
+      "module": "screening",
+      "productEvidence": "Schermature Solari",
+      "reseller": "👤 Clienti privati — sito",
+      "invoiceCount": 1,
+      "createdAt": "2026-08-06T09:55:53.42209+00:00",
+      "updatedAt": "2026-09-01T08:11:29.72655+00:00",
+      "complexity": "simple",
+      "generationMode": "fresh_generation",
+      "cohort": 3127,
+      "state": "operator_required",
+      "draftId": null,
+      "completedPages": 0,
+      "expectedPages": 0,
+      "exactCause": "Controllo incrociato ripetuto: il form descrive 1 righe e le fatture 0 prodotti fisici non riconciliabili in modo univoco per famiglia. Richiesto intervento operatore: confermare la cardinalita fisica e l'assegnazione degli attributi form. | Nessun prodotto fisico riconciliato dalle fatture originarie. | Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture. | Il totale di almeno un documento fiscale non è stato riconosciuto. | Tripla riconciliazione non dimostrata: terna-fattura-incerta:3ff22092e3f4e12e67c668e4dae6087a6e4bc44560f24e7a6f4ad9b36b0d0661:invoice:264f0ccd0374, terna-fattura-incerta:db92b4982fce960b93b94448797f5b51a08fa2c57f9ac56128230fd723d64e8f:invoice:264f0ccd0374, nessuna-fattura-economica-valida.",
+      "blockers": [
+        {
+          "code": "product_cardinality_form_invoice_mismatch",
+          "message": "Controllo incrociato ripetuto: il form descrive 1 righe e le fatture 0 prodotti fisici non riconciliabili in modo univoco per famiglia. Richiesto intervento operatore: confermare la cardinalita fisica e l'assegnazione degli attributi form."
+        },
+        {
+          "code": "screenings_missing",
+          "message": "Nessun prodotto fisico riconciliato dalle fatture originarie."
+        },
+        {
+          "code": "invoice_332a5af9",
+          "message": "Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture."
+        },
+        {
+          "code": "invoice_929a8665",
+          "message": "Il totale di almeno un documento fiscale non è stato riconosciuto."
+        },
+        {
+          "code": "gross_triple_reconciliation_failed",
+          "message": "Tripla riconciliazione non dimostrata: terna-fattura-incerta:3ff22092e3f4e12e67c668e4dae6087a6e4bc44560f24e7a6f4ad9b36b0d0661:invoice:264f0ccd0374, terna-fattura-incerta:db92b4982fce960b93b94448797f5b51a08fa2c57f9ac56128230fd723d64e8f:invoice:264f0ccd0374, nessuna-fattura-economica-valida."
+        }
+      ],
+      "missingDocumentType": "documento tecnico con numero prodotti, misure e prestazione gTot",
+      "operatorQuestion": "Conferma il numero esatto dei prodotti installati e inserisci il documento tecnico che riporta, per ciascuno, larghezza, altezza e gTot.",
+      "onboardingGap": "Richiedere un documento tecnico standard con una riga per prodotto e campi obbligatori quantità, larghezza, altezza e gTot.",
+      "verification": {
+        "sourcesConcordant": true,
+        "processReport": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-expanded-natural-r55/case-3127-carlotta-ceniti/report.json",
+        "checkpoint": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-expanded-natural-r55/case-3127-carlotta-ceniti/checkpoint.json",
+        "terminalSnapshot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-3127-global-controller-carlotta-ceniti.json",
+        "dashboardConsistency": "CONSISTENT",
+        "caseTruth": "blocked_case"
+      }
+    }
+  ]
+}

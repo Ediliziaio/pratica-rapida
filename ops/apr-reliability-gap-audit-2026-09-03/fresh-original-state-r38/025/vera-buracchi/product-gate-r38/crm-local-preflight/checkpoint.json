@@ -1,0 +1,239 @@
+{
+  "version": "apr-crm-local-preflight-v1",
+  "revision": 1,
+  "status": "completed",
+  "sourceFingerprint": "24b5beefc1e6728bde607c4621ad7361b25ffefe70eb1f1cda816f810ea2133f",
+  "currentCustomerKey": null,
+  "items": [
+    {
+      "customerKey": "vera-buracchi",
+      "displayName": "VERA BURACCHI",
+      "practiceId": "36978c5f-f8fb-43b0-8bd9-26665bf553ad",
+      "dossierPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2945-global-controller-vera-buracchi/crm-acquisition/dossiers/vera-buracchi.json",
+      "state": "blocked_case",
+      "attemptCount": 1,
+      "startedAt": null,
+      "endedAt": null,
+      "report": {
+        "outcome": "blocked_case",
+        "formAvailable": true,
+        "startDate": "2026-03-12",
+        "startDateSource": "6298bca3d05d53516fe493c1e921332f4c36ab65f4e307e5a5a684fa15201fbf:invoice:264f0ccd0374",
+        "completionDate": "2026-03-12",
+        "completionDateSource": "6298bca3d05d53516fe493c1e921332f4c36ab65f4e307e5a5a684fa15201fbf:invoice:264f0ccd0374",
+        "buildingQualification": "multi_unit",
+        "buildingUnitCount": 8,
+        "deductionRate": 36,
+        "taxCodeStatus": "verified_original_document",
+        "resolvedTaxCode": "BRCVRE63M59A390E",
+        "taxCodeSourceIds": [
+          "6298bca3d05d53516fe493c1e921332f4c36ab65f4e307e5a5a684fa15201fbf"
+        ],
+        "primaryBeneficiaryResolution": {
+          "status": "not_found",
+          "identity": null,
+          "sourceIds": [],
+          "authority": null
+        },
+        "coBeneficiaryResolution": {
+          "status": "not_declared",
+          "present": false,
+          "identity": null,
+          "sourceIds": []
+        },
+        "products": [],
+        "financial": {
+          "invoiceTotal": 6426.92,
+          "eligibleExpense": 6426.92,
+          "tripleReconciliationVerified": true,
+          "reconciledTotal": 6426.92,
+          "evidence": [
+            {
+              "sourceId": "6298bca3d05d53516fe493c1e921332f4c36ab65f4e307e5a5a684fa15201fbf:invoice:264f0ccd0374",
+              "kind": "invoice",
+              "taxableAmount": 5626,
+              "vatAmount": 800.92,
+              "grossTotal": 6426.92,
+              "interventionGrossAmount": 6426.92,
+              "extractionConfidence": "certain",
+              "extractionIssues": []
+            }
+          ],
+          "bankTransfers": [],
+          "bankTransferReconciliation": {
+            "status": "not_provided",
+            "principalTotal": null,
+            "feesTotal": null,
+            "debitedTotal": null,
+            "difference": null,
+            "referenceStatus": "not_provided",
+            "missingInvoiceReferences": [],
+            "taxReliefTypes": []
+          },
+          "methods": [
+            {
+              "method": "structured_extraction",
+              "ok": true,
+              "total": 6426.92,
+              "sources": [
+                "6298bca3d05d53516fe493c1e921332f4c36ab65f4e307e5a5a684fa15201fbf:invoice:264f0ccd0374"
+              ],
+              "reason": "Ogni documento ha imponibile, IVA e totale verificati."
+            },
+            {
+              "method": "accounting_reconciliation",
+              "ok": true,
+              "total": 6426.92,
+              "sources": [
+                "6298bca3d05d53516fe493c1e921332f4c36ab65f4e307e5a5a684fa15201fbf:invoice:264f0ccd0374"
+              ],
+              "reason": "Somma dei totali lordi IVA inclusa delle fatture uniche deduplicate; gli storni interni sono solo note auditabili."
+            },
+            {
+              "method": "intervention_cross_check",
+              "ok": true,
+              "total": 6426.92,
+              "sources": [
+                "6298bca3d05d53516fe493c1e921332f4c36ab65f4e307e5a5a684fa15201fbf:invoice:264f0ccd0374"
+              ],
+              "reason": "Totale ricostruito esclusivamente dalle righe pertinenti all'intervento."
+            }
+          ],
+          "discardedDuplicateSourceIds": [],
+          "supersededTechnicalSourceIds": [],
+          "appliedRuleIds": [
+            "user-2026-08-16-invoice-gross-total-vat-included",
+            "user-2026-08-18-bundled-professional-expense-separation",
+            "user-2026-08-18-mandatory-bank-transfer-invoice-expense-cross-check",
+            "core-gross-triple-reconciliation",
+            "user-2026-08-14-preserve-technical-product-cardinality",
+            "system-explicit-advance-invoice-reference-marker-v1"
+          ]
+        },
+        "warnings": [
+          {
+            "code": "secondary_home_36_percent_allocation_planned",
+            "reason": "Abitazione principale = NO: APR assegnera' l'intero totale congruo 2025-2026 alla colonna 36%, verifichera' 50%=0 e totale invariato dopo l'unico Salva.",
+            "appliedRuleIds": [
+              "user-2026-08-16-secondary-home-36-percent-calculation-allocation",
+              "system-atomic-checkpoint-resume"
+            ]
+          },
+          {
+            "code": "enea_2026_june_25_ninety_day_window_applied",
+            "reason": "Avviso ENEA 25/06/2026 applicato: inizio lavori 2026-03-12, fine lavori 2026-03-12; i 90 giorni decorrono dal 25/06/2026 e terminano il 23/09/2026.",
+            "appliedRuleIds": [
+              "user-2026-08-23-enea-2026-june-25-ninety-day-window"
+            ]
+          }
+        ],
+        "blockers": [
+          {
+            "code": "original_invoice_missing_or_unavailable",
+            "field": "economic_sources",
+            "reason": "La fattura presente detrae o richiama una fattura di acconto non acquisita (320/25); APR non puo ricostruire il totale documentale completo senza la fonte fiscale originaria.",
+            "sourceIds": [
+              "6298bca3d05d53516fe493c1e921332f4c36ab65f4e307e5a5a684fa15201fbf:invoice:264f0ccd0374"
+            ],
+            "appliedRuleIds": [
+              "user-2026-08-16-missing-invoice-operator-requeue",
+              "user-2026-08-16-distinct-invoice-numbers-same-customer-sum",
+              "core-economic-classification",
+              "system-apr-operator-intervention-routing"
+            ]
+          },
+          {
+            "code": "screenings_missing",
+            "field": "screenings",
+            "reason": "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+            "sourceIds": [
+              "6298bca3d05d53516fe493c1e921332f4c36ab65f4e307e5a5a684fa15201fbf"
+            ],
+            "appliedRuleIds": [
+              "user-2026-08-14-preserve-technical-product-cardinality"
+            ]
+          },
+          {
+            "code": "invoice_332a5af9",
+            "field": "economic_sources",
+            "reason": "Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture.",
+            "sourceIds": [
+              "6298bca3d05d53516fe493c1e921332f4c36ab65f4e307e5a5a684fa15201fbf"
+            ],
+            "appliedRuleIds": [
+              "core-economic-classification"
+            ]
+          }
+        ],
+        "sourceIds": [
+          "6298bca3d05d53516fe493c1e921332f4c36ab65f4e307e5a5a684fa15201fbf"
+        ],
+        "eneaPayloadAudit": {
+          "status": "payload_incomplete",
+          "mappingFingerprint": null,
+          "fieldSummary": {
+            "ready": 0,
+            "review": 0,
+            "missing": 0
+          },
+          "requiredPortalFieldCount": 0,
+          "blockerCount": 2,
+          "blockers": [
+            {
+              "code": "crm-source-not-screening",
+              "fieldId": null,
+              "message": "Il dossier non è mappabile come pratica schermature."
+            },
+            {
+              "code": "screenings_missing",
+              "fieldId": "screenings",
+              "message": "Nessun prodotto fisico riconciliato dalle fatture originarie."
+            }
+          ],
+          "excludedUnverifiedFields": [],
+          "draftReady": false,
+          "officialSubmissionAllowed": false,
+          "portalGate": {
+            "status": "blocked",
+            "reason": "screening-component-blocked",
+            "workflowFingerprint": null,
+            "supportedPages": [],
+            "screeningItemCount": 0,
+            "saveAllowedOnlyBySeparateCapability": true,
+            "previewAllowed": false,
+            "submitAllowed": false
+          },
+          "externalActionAllowed": false,
+          "reason": "1 blocker della componente Schermature invalidano il payload della bozza TEST."
+        },
+        "draftPlan": {
+          "status": "blocked",
+          "externalActionAllowed": false,
+          "previewAllowed": false,
+          "submitAllowed": false,
+          "communicationsAllowed": false,
+          "nextAction": "Richiesto intervento operatore: acquisire la fattura; al ritorno in Pronte da fare APR riprende dal nuovo fingerprint."
+        }
+      },
+      "reason": "Fresh replay dai documenti originali"
+    }
+  ],
+  "externalActionAllowed": false,
+  "reason": "Fresh replay locale",
+  "nextAction": "Nessuna azione esterna.",
+  "validationRevisionsApplied": [],
+  "sourceRevisionsApplied": [],
+  "operatorMeasurementResolutions": [],
+  "audit": [
+    {
+      "revision": 1,
+      "at": "2026-09-03T10:00:00.000Z",
+      "type": "completed",
+      "customerKey": null,
+      "reason": "Fresh replay locale",
+      "appliedRuleIds": [
+        "system-single-active-practice"
+      ]
+    }
+  ]
+}

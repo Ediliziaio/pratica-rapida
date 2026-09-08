@@ -2,6 +2,16 @@ import { stripHistoricalEneaAppendix } from "../../src/features/enea-lab/invoice
 import { MONEY_TOLERANCE_EUR, type FinancialDocumentEvidence } from "../../src/features/enea-shadow-crm/financialReconciliation";
 import type { RinaldiDeductibleLineEvidence, RinaldiInvoiceLineEvidence } from "../../src/features/enea-shadow-crm/rinaldiFinancialPolicies";
 
+// Regola generale definitiva di Giuliano (2026-09-08, regressione Calvacchi):
+// una riga di credito esplicita verso un acconto precedente e' il segnale
+// che il totale finale stampato in fattura, non una ricostruzione dalle
+// righe, e' l'unica prova autorevole. Esportata perche' anche il chiamante
+// (crmLocalPreflight.ts) deve poter citare la regola nel proprio audit
+// quando questo segnale determina il totale della pratica.
+export function hasInternalAdvanceCreditLine(text: string): boolean {
+  return /\bAcconto\s*(?:\(\s*Rif\.?[^\n)]{0,120}?\)|:\s*(?:RIF\.?\s*)?FATTURA\b)[^\n]{0,60}?[-−]\s*[0-9][0-9.]*,[0-9]{2}/i.test(text);
+}
+
 const MONEY = String.raw`(?:\d{1,3}(?:\.\d{3})*|\d+),\d{2}`;
 const SIGNED_MONEY = String.raw`[-−]?(?:\d{1,3}(?:\.\d{3})*|\d+),\d{2}`;
 const SIGNED_UNIT_MONEY = String.raw`[-−]?(?:\d{1,3}(?:\.\d{3})*|\d+),\d{2,5}`;
@@ -13,6 +23,24 @@ const money = (value: string) => {
 };
 const amountFrom = (value: string) => value.match(new RegExp(`[-−]?\\s*€?\\s*(${MONEY})\\s*€?`, "i"))?.[1] ?? null;
 const lastAmountFrom = (value: string) => [...value.matchAll(new RegExp(`(${MONEY})`, "gi"))].at(-1)?.[1] ?? null;
+// Regola generale di Giuliano (Laurelli): un OCR puo' scrivere per errore un
+// punto al posto della virgola nei decimali di un importo che gia' usa il
+// punto come separatore delle migliaia (es. "3.759.40" invece di
+// "3.759,40"). Il pattern e' inequivocabile solo quando compare piu' di un
+// punto: l'ultimo gruppo di due cifre e' sempre il centesimo, mai un'altra
+// migliaia. Usato soltanto come ripiego, dopo che il formato corretto con la
+// virgola non e' stato trovato.
+export const OCR_TYPO_DOUBLE_PERIOD_SCHEDULE_AMOUNT_RULE_ID = "user-2026-09-07-ocr-typo-double-period-schedule-amount-v1" as const;
+const OCR_TYPO_DOUBLE_PERIOD_MONEY = /\b\d{1,3}(?:\.\d{3})+\.\d{2}\b/;
+const lastAmountFromLenient = (value: string) => {
+  const strict = lastAmountFrom(value);
+  if (strict !== null) return strict;
+  const match = value.match(OCR_TYPO_DOUBLE_PERIOD_MONEY);
+  if (!match) return null;
+  const parts = match[0].split(".");
+  const cents = parts.pop();
+  return `${parts.join(".")},${cents}`;
+};
 const amountAfterLabel = (text: string, label: RegExp, lookahead = 3) => {
   const lines = text.split(/\r?\n/).map((line) => line.replace(/\s+/g, " ").trim());
   const index = lines.findIndex((line) => label.test(line));
@@ -96,12 +124,122 @@ function reconciledMultiRateColumnarTotals(text: string, grossTotal: number | nu
     : null;
 }
 
+function reconciledStaggeredRateTotals(text: string, grossTotal: number | null) {
+  if (grossTotal === null) return null;
+  const lines = text.split(/\r?\n/).map((line) => line.replace(/\s+/g, " ").trim());
+  const start = lines.findIndex((line) => /^Imponibile$/i.test(line));
+  const end = lines.findIndex((line) => /^Spese\s+Bolli$/i.test(line));
+  if (start < 0 || end < 0 || start === end) return null;
+  const lower = Math.min(start, end);
+  const upper = Math.max(start, end);
+  const components: Array<{ taxableAmount: number; vatAmount: number }> = [];
+  for (let index = lower + 1; index < upper; index += 1) {
+    // Vision puo' conservare il separatore verticale della tabella come | o
+    // barra Unicode. Lo ammettiamo soltanto tra importo e aliquota, mentre la
+    // riconciliazione matematica col lordo resta obbligatoria e univoca.
+    const row = lines[index].match(new RegExp(`^(${MONEY})\\s*[|¦]?\\s*(\\d{1,2})(?:[,.]00)?$`, "i"));
+    if (!row) continue;
+    const taxableAmount = money(row[1]); const rate = Number(row[2]);
+    if (taxableAmount === null || rate < 1 || rate > 30) continue;
+    const expectedVat = Math.round((taxableAmount * rate / 100 + Number.EPSILON) * 100) / 100;
+    const candidates = lines.slice(Math.max(lower + 1, index - 2), Math.min(upper, index + 3)).flatMap((line) => {
+      const found = line.match(new RegExp(`^(${MONEY})$`, "i")); const value = found ? money(found[1]) : null;
+      return value !== null && Math.abs(value - expectedVat) <= MONEY_TOLERANCE_EUR ? [value] : [];
+    });
+    if (candidates.length === 1) components.push({ taxableAmount, vatAmount: candidates[0] });
+  }
+  const unique = new Map(components.map((component) => [`${component.taxableAmount}|${component.vatAmount}`, component]));
+  if (unique.size < 1) return null;
+  const totals = [...unique.values()].reduce((sum, component) => ({
+    taxableAmount: sum.taxableAmount + component.taxableAmount,
+    vatAmount: sum.vatAmount + component.vatAmount,
+  }), { taxableAmount: 0, vatAmount: 0 });
+  totals.taxableAmount = Math.round((totals.taxableAmount + Number.EPSILON) * 100) / 100;
+  totals.vatAmount = Math.round((totals.vatAmount + Number.EPSILON) * 100) / 100;
+  return Math.abs(totals.taxableAmount + totals.vatAmount - grossTotal) <= MONEY_TOLERANCE_EUR ? totals : null;
+}
+
+function reconciledLabelAnchoredColumnarTotals(text: string, grossTotal: number | null) {
+  if (grossTotal === null) return null;
+  const lines = text.split(/\r?\n/).map((line) => line.replace(/\s+/g, " ").trim());
+  const netIndex = lines.findIndex((line) => /^netto\s+merce\b/i.test(line));
+  if (netIndex < 0) return null;
+  const taxableCandidates = new Set<number>();
+  for (let index = netIndex; index <= Math.min(lines.length - 1, netIndex + 6); index += 1) {
+    for (const match of lines[index].matchAll(new RegExp(`(${MONEY})`, "gi"))) {
+      const value = money(match[1]);
+      if (value !== null && value > 0 && value < grossTotal) taxableCandidates.add(value);
+    }
+  }
+  const totalVatIndex = lines.findIndex((line, index) => index > netIndex && /^(?:tot\.|totale\s+(?:iva|imposta))$/i.test(line));
+  if (totalVatIndex < 0) return null;
+  const vatCandidates = new Set<number>();
+  for (let index = totalVatIndex; index <= Math.min(lines.length - 1, totalVatIndex + 2); index += 1) {
+    for (const match of lines[index].matchAll(new RegExp(`(${MONEY})`, "gi"))) {
+      const value = money(match[1]);
+      if (value !== null && value >= 0 && value < grossTotal) vatCandidates.add(value);
+    }
+  }
+  const matches = [...taxableCandidates].flatMap((taxableAmount) => [...vatCandidates].flatMap((vatAmount) =>
+    Math.abs(Math.round((taxableAmount + vatAmount + Number.EPSILON) * 100) / 100 - grossTotal) <= MONEY_TOLERANCE_EUR
+      ? [{ taxableAmount, vatAmount }] : []));
+  const unique = new Map(matches.map((item) => [`${item.taxableAmount}|${item.vatAmount}`, item]));
+  return unique.size === 1 ? [...unique.values()][0] : null;
+}
+
+function reconciledSdiPaDigitaleTotals(text: string, grossTotal: number | null) {
+  if (grossTotal === null) return null;
+  const block = text.match(/RIEPILOGHI\s+IVA\s+E\s+TOTALI[\s\S]{0,900}?(?=IMPORTO\s+BOLLO|MODALIT[ÀA]\s+PAGAMENTO|$)/iu)?.[0];
+  if (!block || !/TOTALE\s+IMPONIBILE\s+TOTALE\s+IMPOSTA/iu.test(block)) return null;
+  const values = [...block.matchAll(new RegExp(`(${SIGNED_MONEY})`, "giu"))]
+    .map((match) => money(match[1])).filter((value): value is number => value !== null);
+  const rates = [...new Set(values.filter((value) => value > 0 && value <= 30))];
+  const monetary = values.filter((value) => Math.abs(value) > 100);
+  const pairs = monetary.flatMap((taxableAmount, taxableIndex) => rates.flatMap((rate) => monetary.flatMap((vatAmount, vatIndex) => {
+    if (taxableIndex === vatIndex) return [];
+    const expected = Math.round((taxableAmount * rate / 100 + Number.EPSILON) * 100) / 100;
+    return Math.abs(expected - vatAmount) <= MONEY_TOLERANCE_EUR ? [{ taxableAmount, vatAmount, taxableIndex, vatIndex }] : [];
+  })));
+  const solutions: Array<{ taxableAmount: number; vatAmount: number }> = [];
+  const visit = (index: number, used: Set<number>, taxableAmount: number, vatAmount: number) => {
+    if (Math.abs(Math.round((taxableAmount + vatAmount + Number.EPSILON) * 100) / 100 - grossTotal) <= MONEY_TOLERANCE_EUR && used.size > 0) {
+      solutions.push({ taxableAmount: Math.round((taxableAmount + Number.EPSILON) * 100) / 100, vatAmount: Math.round((vatAmount + Number.EPSILON) * 100) / 100 });
+    }
+    for (let cursor = index; cursor < pairs.length; cursor += 1) {
+      const pair = pairs[cursor];
+      if (used.has(pair.taxableIndex) || used.has(pair.vatIndex)) continue;
+      const next = new Set(used); next.add(pair.taxableIndex); next.add(pair.vatIndex);
+      visit(cursor + 1, next, taxableAmount + pair.taxableAmount, vatAmount + pair.vatAmount);
+    }
+  };
+  visit(0, new Set(), 0, 0);
+  const unique = new Map(solutions.map((item) => [`${item.taxableAmount}|${item.vatAmount}`, item]));
+  return unique.size === 1 ? [...unique.values()][0] : null;
+}
+
 const reconciledFiscalTotals = (text: string, grossTotal: number | null) => {
   if (grossTotal === null) return null;
   const lines = text.split(/\r?\n/).map((line) => line.replace(/\s+/g, " ").trim());
   const taxableIndex = lines.findIndex((line) => /^(?:totale\s+)?imponibile$/i.test(line));
   const vatIndex = lines.findIndex((line) => /^totale\s+(?:iva|imposta)\b/i.test(line));
   if (taxableIndex < 0 || vatIndex < 0) return null;
+  const boundedTaxableCandidates = new Set<number>();
+  for (let index = taxableIndex; index < vatIndex; index += 1) {
+    for (const match of lines[index].matchAll(new RegExp(`(${MONEY})`, "gi"))) {
+      const value = money(match[1]); if (value !== null && value > 0 && value < grossTotal) boundedTaxableCandidates.add(value);
+    }
+  }
+  const boundedVatCandidates = new Set<number>();
+  for (let index = vatIndex; index <= Math.min(lines.length - 1, vatIndex + 3); index += 1) {
+    for (const match of lines[index].matchAll(new RegExp(`(${MONEY})`, "gi"))) {
+      const value = money(match[1]); if (value !== null && value >= 0 && value < grossTotal) boundedVatCandidates.add(value);
+    }
+  }
+  const boundedPairs = [...boundedTaxableCandidates].flatMap((taxableAmount) => [...boundedVatCandidates].flatMap((vatAmount) =>
+    Math.abs(Math.round((taxableAmount + vatAmount + Number.EPSILON) * 100) / 100 - grossTotal) <= MONEY_TOLERANCE_EUR
+      ? [{ taxableAmount, vatAmount }] : []));
+  const uniqueBoundedPairs = new Map(boundedPairs.map((pair) => [`${pair.taxableAmount}|${pair.vatAmount}`, pair]));
+  if (uniqueBoundedPairs.size === 1) return [...uniqueBoundedPairs.values()][0];
   const taxableAmount = (() => {
     for (let offset = 0; offset <= 1 && taxableIndex + offset < lines.length; offset += 1) {
       const found = lastAmountFrom(lines[taxableIndex + offset]);
@@ -142,13 +280,13 @@ const scheduledDueGross = (text: string): ScheduledDueGrossResult => {
       if (/^(?:copia\s+della\s+fattura|riepilogo\s+iva|note|powered\s+by)\b/i.test(line)) break;
       if (!/\b\d{2}[./-]\d{2}[./-](?:\d{4}|\d{2})\b/.test(line)) continue;
       datedRows += 1;
-      const sameLine = lastAmountFrom(line.replace(/\b\d{2}[./-]\d{2}[./-](?:\d{4}|\d{2})\b/g, ""));
+      const sameLine = lastAmountFromLenient(line.replace(/\b\d{2}[./-]\d{2}[./-](?:\d{4}|\d{2})\b/g, ""));
       let candidate = sameLine;
       for (let offset = 1; !candidate && offset <= 2 && cursor + offset < lines.length; offset += 1) {
         const following = lines[cursor + offset];
         if (/\b\d{2}[./-]\d{2}[./-](?:\d{4}|\d{2})\b/.test(following)
           || /^(?:copia\s+della\s+fattura|riepilogo\s+iva|note|powered\s+by)\b/i.test(following)) break;
-        candidate = lastAmountFrom(following);
+        candidate = lastAmountFromLenient(following);
       }
       const parsed = candidate === null ? null : money(candidate);
       if (parsed === null) missingAmount = true;
@@ -167,12 +305,18 @@ const scheduledDueGross = (text: string): ScheduledDueGrossResult => {
 };
 
 function taxAmounts(text: string, grossTotal: number | null) {
+  const sdiPaDigitale = reconciledSdiPaDigitaleTotals(text, grossTotal);
+  if (sdiPaDigitale) return sdiPaDigitale;
+  const labelAnchoredColumnar = reconciledLabelAnchoredColumnarTotals(text, grossTotal);
+  if (labelAnchoredColumnar) return labelAnchoredColumnar;
   const groupedFiscalSummary = reconciledGroupedFiscalSummary(text, grossTotal);
   if (groupedFiscalSummary) {
     return { taxableAmount: groupedFiscalSummary.taxableAmount, vatAmount: groupedFiscalSummary.vatAmount };
   }
   const multiRateColumnar = reconciledMultiRateColumnarTotals(text, grossTotal);
   if (multiRateColumnar) return multiRateColumnar;
+  const staggeredRateTotals = reconciledStaggeredRateTotals(text, grossTotal);
+  if (staggeredRateTotals) return staggeredRateTotals;
   const inlineVatThenTaxable = text.match(new RegExp(
     `Totale\\s+imposta\\s+(${MONEY})\\s+Totale\\s+imponibile\\s*\\n\\s*(${MONEY})`,
     "i",
@@ -237,6 +381,42 @@ function taxAmounts(text: string, grossTotal: number | null) {
     taxableAmount: explicitTaxable ?? amountAfterLabel(text, /^(?:tot(?:ale|\.)\s+)?imponibile\b/i, 2),
     vatAmount: explicitVat ?? amountAfterLabel(text, /^(?:(?:tot(?:ale|\.)|importo)\s+iva|totale\s+imposta|imposta(?:\s+\d+(?:[,.]\d+)?%)?)\b/i, 4),
   };
+}
+
+function reconciledRotatedOcrFiscalPair(text: string, grossTotal: number | null) {
+  if (grossTotal === null || !/APR_OCR_ORIENTATION:(?:0|90|180|270)/.test(text)
+    || !/\bImponibile\b/i.test(text) || !/\bImporto\s+IVA\b/i.test(text)) return null;
+  // Vision puo riconoscere il separatore decimale come punto su una singola
+  // cella pur mantenendo il formato italiano sulle altre. L'ammissione del
+  // punto resta confinata alla coppia fiscale, che deve riconciliare in modo
+  // univoco col totale lordo e con le etichette Imponibile/Importo IVA.
+  const ocrMoney = String.raw`(?:\d{1,3}(?:\.\d{3})*,\d{2}|\d+[.]\d{2})`;
+  const values = [...text.matchAll(new RegExp(`(${ocrMoney})`, "gi"))]
+    .map((match) => match[1].includes(",") ? money(match[1]) : Number(match[1]))
+    .filter((value): value is number => value !== null && Number.isFinite(value) && value > 0 && value < grossTotal);
+  const pairs = new Map<string, { taxableAmount: number; vatAmount: number }>();
+  for (const taxableAmount of values) for (const vatAmount of values) {
+    if (taxableAmount <= vatAmount || taxableAmount < grossTotal * 0.7 || vatAmount > grossTotal * 0.3) continue;
+    if (Math.abs(Math.round((taxableAmount + vatAmount + Number.EPSILON) * 100) / 100 - grossTotal) > MONEY_TOLERANCE_EUR) continue;
+    pairs.set(`${taxableAmount}|${vatAmount}`, { taxableAmount, vatAmount });
+  }
+  return pairs.size === 1 ? [...pairs.values()][0] : null;
+}
+
+function explicitLabeledGrossConfirmation(text: string, grossTotal: number | null) {
+  if (grossTotal === null) return null;
+  const lines = text.split(/\r?\n/).map((line) => line.replace(/\s+/g, " ").trim());
+  const labels = lines.flatMap((line, index) => /^TOTALE\s+(?:A\s+PAGARE|DOCUMENTO)\b/i.test(line) ? [index] : []);
+  const confirmations = new Set<number>();
+  for (const index of labels) {
+    for (let cursor = Math.max(0, index - 8); cursor <= Math.min(lines.length - 1, index + 8); cursor += 1) {
+      if (!/(?:€|\bEuro\b)/i.test(lines[cursor])) continue;
+      const found = lastAmountFrom(lines[cursor]);
+      const value = found ? money(found) : null;
+      if (value !== null && Math.abs(value - grossTotal) <= MONEY_TOLERANCE_EUR) confirmations.add(value);
+    }
+  }
+  return confirmations.size === 1 ? grossTotal : null;
 }
 
 function guardedColumnarTaxAmounts(text: string, grossTotal: number | null) {
@@ -317,6 +497,8 @@ function rowGrossAmount(text: string, scheduledDue: ScheduledDueGrossResult) {
     1,
   );
   if (combinedTotalDocument !== null) return combinedTotalDocument;
+  const sdiPaymentAmount = amountAfterLabel(text, /^modalit[àa]\s+pagamento\s+dettagli\s+scadenze\s+importo\b/i, 3);
+  if (sdiPaymentAmount !== null) return sdiPaymentAmount;
   const scheduled = text.split(/\r?\n/u)
     .filter((line) => /\bBonifico\s+\d{2}[./-]\d{2}[./-]\d{4}\b/iu.test(line))
     .map((line) => lastAmountFrom(line))
@@ -369,7 +551,7 @@ function supplier(text: string, sourceId: string) {
 function deductibleLines(text: string, sourceId: string): RinaldiDeductibleLineEvidence[] {
   const lines = text.split(/\r?\n/);
   return lines.flatMap((line, index) => {
-    if (!/totale\s+(?:da\s+portare\s+in\s+detrazione|massimo\s+detraibile|detraibile|spese\s+congrue\s+sostenute\s+in\s+base\s+ai\s+massimali\s+ammessi)/i.test(line)) return [];
+    if (!/(?:totale\s+(?:da\s+portare\s+in\s+detrazione|massimo\s+detraibile|detraibile|spese\s+congrue\s+sostenute\s+in\s+base\s+ai\s+massimali\s+ammessi)|spese\s+congrue\s+sostenute\s+in\s+base\s+ai\s+massimali\s+ammessi)/i.test(line)) return [];
     const window = lines.slice(index, index + 3).join(" "); const value = amountFrom(window);
     return [{ lineId: `${sourceId}:deductible:${index + 1}`, lineNumber: index + 1, text: line.trim(), amount: value ? money(value) : null, extractionConfidence: value ? "certain" as const : "uncertain" as const }];
   });
@@ -401,36 +583,61 @@ export interface LocalInvoiceFinancialExtractionInput {
  */
 export function extractLocalInvoiceFinancialEvidence(input: LocalInvoiceFinancialExtractionInput): FinancialDocumentEvidence {
   const text = stripHistoricalEneaAppendix(input.text);
-  let { taxableAmount, vatAmount } = taxAmounts(text, input.grossTotal);
-  if (input.grossTotal !== null && (taxableAmount === null || vatAmount === null
-    || Math.abs(Math.round((taxableAmount + vatAmount + Number.EPSILON) * 100) / 100 - input.grossTotal) > MONEY_TOLERANCE_EUR)) {
-    const columnar = guardedColumnarTaxAmounts(text, input.grossTotal);
+  const fullZeroReversal = /\bA\s+Detrarre[\s\S]{0,140}?\bfattura\b/i.test(text)
+    && /\bFattura\s+a\s+saldo\s+0,00\b/i.test(text)
+    && /\bImponibile\s*€?\s*0,00\b/i.test(text)
+    && /[-−]\s*[1-9][0-9.]*,[0-9]{2}/.test(text);
+  const firstPageText = text.split(/\f/, 1)[0];
+  const rotatedOcr = input.extractionMode === "macos_vision_ocr" && /APR_OCR_ORIENTATION:(?:0|90|180|270)/.test(firstPageText);
+  const initialTaxAmounts = rotatedOcr
+    ? reconciledRotatedOcrFiscalPair(text, input.grossTotal)
+      ?? reconciledStaggeredRateTotals(text, input.grossTotal)
+      ?? { taxableAmount: null, vatAmount: null }
+    : taxAmounts(text, input.grossTotal);
+  let { taxableAmount, vatAmount } = initialTaxAmounts;
+  const authoritativeGrossTotal = fullZeroReversal ? 0 : input.grossTotal;
+  if (fullZeroReversal) ({ taxableAmount, vatAmount } = { taxableAmount: 0, vatAmount: 0 });
+  if (!rotatedOcr && authoritativeGrossTotal !== null && (taxableAmount === null || vatAmount === null
+    || Math.abs(Math.round((taxableAmount + vatAmount + Number.EPSILON) * 100) / 100 - authoritativeGrossTotal) > MONEY_TOLERANCE_EUR)) {
+    const columnar = guardedColumnarTaxAmounts(text, authoritativeGrossTotal);
     if (columnar) ({ taxableAmount, vatAmount } = columnar);
   }
   const netFromRows = rowNetAmount(text, taxableAmount);
   const scheduledDue = scheduledDueGross(text);
   const grossFromRows = rowGrossAmount(text, scheduledDue);
-  const interventionGrossAmount = grossFromRows ?? (netFromRows !== null && vatAmount !== null
+  const labeledGross = explicitLabeledGrossConfirmation(text, authoritativeGrossTotal);
+  // Regola generale di Giuliano (2026-09-08, regressione Calvacchi): quando
+  // una fattura a saldo netta internamente un acconto precedente con una
+  // riga di credito esplicita ("Acconto (Rif. Fattura N del D) ... -importo"
+  // o "ACCONTO: FATTURA N. ... -importo"), il totale finale stampato in
+  // fattura resta sempre l'unica prova autorevole: non si tenta mai una
+  // ricostruzione indipendente sommando le righe (aliquote miste, sconti e
+  // crediti interni rendono quella somma fragile e non e' comunque mai il
+  // dato da verificare, per decisione esplicita dell'utente).
+  const interventionGrossAmount = fullZeroReversal ? 0
+    : hasInternalAdvanceCreditLine(text) && authoritativeGrossTotal !== null ? authoritativeGrossTotal
+    : labeledGross ?? grossFromRows ?? (netFromRows !== null && vatAmount !== null
     ? Math.round((netFromRows + vatAmount + Number.EPSILON) * 100) / 100 : null);
   const extractionIssues = interventionGrossAmount === null && scheduledDue.issue === "schedule_amount_missing"
     ? [{ code: "schedule_amount_missing" as const, reason: "Scadenza non leggibile, importo mancante" as const }]
     : [];
   const ocrTripleReconciled = input.extractionMode === "macos_vision_ocr"
-    && taxableAmount !== null && vatAmount !== null && input.grossTotal !== null && interventionGrossAmount !== null
-    && Math.abs(Math.round((taxableAmount + vatAmount + Number.EPSILON) * 100) / 100 - input.grossTotal) <= MONEY_TOLERANCE_EUR
-    && Math.abs(interventionGrossAmount - input.grossTotal) <= MONEY_TOLERANCE_EUR;
+    && taxableAmount !== null && vatAmount !== null && authoritativeGrossTotal !== null && interventionGrossAmount !== null
+    && Math.abs(Math.round((taxableAmount + vatAmount + Number.EPSILON) * 100) / 100 - authoritativeGrossTotal) <= MONEY_TOLERANCE_EUR
+    && Math.abs(interventionGrossAmount - authoritativeGrossTotal) <= MONEY_TOLERANCE_EUR;
   const detectedSupplier = supplier(text, input.sourceId);
   const explicitDeductibleLines = detectedSupplier.supplierId === "rinaldi" ? deductibleLines(text, input.sourceId) : [];
   const lineItems = detectedSupplier.supplierId === "rinaldi" ? guardedRinaldiMixedLines(text, input.sourceId) : undefined;
-  const kind = /fattura\s+acconto|acconto\s+su\s+preventivo/i.test(text) ? "advance"
+  const kind = fullZeroReversal ? "non_economic" : /fattura\s+acconto|acconto\s+su\s+preventivo/i.test(text) ? "advance"
     : /fattura\s+saldo/i.test(text) ? "balance" : "invoice";
   return {
     sourceId: input.sourceId, ...detectedSupplier,
     documentNumber: input.documentNumber ?? "", documentDate: input.documentDate ?? "", kind,
-    taxableAmount, vatAmount, grossTotal: input.grossTotal, referencedAdvanceIds: [], interventionGrossAmount,
+    taxableAmount, vatAmount, grossTotal: authoritativeGrossTotal, referencedAdvanceIds: [], interventionGrossAmount,
     extractionConfidence: input.extractionMode === "native_text" || ocrTripleReconciled ? "certain" : "uncertain",
     extractionIssues,
     explicitDeductibleLines, lineItems,
-    internalAdjustmentNote: /Acconto\s*\(Rif\./i.test(text) ? "Acconto interno sottratto nella fattura di saldo; non sommato come fonte separata." : null,
+    internalAdjustmentNote: fullZeroReversal ? "Fattura di puro storno integrale a zero esclusa dalla terna economica; fattura precedente conservata."
+      : /Acconto\s*\(Rif\./i.test(text) ? "Acconto interno sottratto nella fattura di saldo; non sommato come fonte separata." : null,
   };
 }

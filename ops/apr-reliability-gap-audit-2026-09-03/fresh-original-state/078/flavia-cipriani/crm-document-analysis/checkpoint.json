@@ -1,0 +1,954 @@
+{
+  "version": "apr-crm-document-analysis-v1",
+  "revision": 32,
+  "status": "completed",
+  "sourceFingerprint": "7cb8f695b0793c85b93fc9e45363bc6e3c97c348091594806488b178dec51da4",
+  "currentDocumentKey": null,
+  "items": [
+    {
+      "documentKey": "e927cf64b2fa5fb99e6d6b3a60fb4a03ec51abe1ed1bea0ab88751f4ab50503b",
+      "customerKey": "flavia-cipriani",
+      "kind": "invoice",
+      "semanticKind": "invoice",
+      "documentClassification": {
+        "version": "apr-infissi-technical-document-classifier-v1",
+        "storageKind": "invoice",
+        "verifiedKind": "invoice",
+        "profile": "invoice_passthrough",
+        "certificateScope": null,
+        "matchedCriteria": [],
+        "missingCriteria": [],
+        "appliedRuleIds": [
+          "user-2026-08-26-third-party-technical-certificate-classification-v1",
+          "user-2026-08-25-crm-internal-technical-document-untrusted-v1"
+        ]
+      },
+      "localPdfPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2998-global-controller-flavia-cipriani/crm-original-documents/files/flavia-cipriani/e927cf64b2fa5fb99e6d6b3a60fb4a03ec51abe1ed1bea0ab88751f4ab50503b.pdf",
+      "sourceSha256": "950dfa348219cdcba905461faefaba855937a19a3930aea7fc597db7d8193f3f",
+      "state": "analyzed",
+      "attemptCount": 1,
+      "extractionMode": "native_text",
+      "pageCount": 1,
+      "textCharacterCount": 1343,
+      "textSha256": "7cf4523788e367ac7ab25d43183e05023d2af3822be336389e305278618ac8ff",
+      "textPath": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-reliability-gap-audit-2026-09-03/fresh-original-state/078/flavia-cipriani/crm-document-analysis/text/flavia-cipriani/e927cf64b2fa5fb99e6d6b3a60fb4a03ec51abe1ed1bea0ab88751f4ab50503b.txt",
+      "invoiceResult": {
+        "path": "e927cf64b2fa5fb99e6d6b3a60fb4a03ec51abe1ed1bea0ab88751f4ab50503b",
+        "status": "parsed",
+        "documentType": "unknown",
+        "total": null,
+        "itemCount": 0
+      },
+      "screeningItems": [],
+      "historicalEneaAppendixExcluded": false,
+      "nonFiscalImageExcluded": false,
+      "reason": "Testo gia' estratto localmente; 0 righe schermatura rilevate.",
+      "startedAt": "2026-09-03T16:01:52.300Z",
+      "endedAt": "2026-09-03T16:01:52.300Z"
+    },
+    {
+      "documentKey": "70489e2984c5336a4ec373f961d1925bab2ca6943150c6e9db9f3b78b1c1f71c",
+      "customerKey": "flavia-cipriani",
+      "kind": "invoice",
+      "semanticKind": "invoice",
+      "documentClassification": {
+        "version": "apr-infissi-technical-document-classifier-v1",
+        "storageKind": "invoice",
+        "verifiedKind": "invoice",
+        "profile": "invoice_passthrough",
+        "certificateScope": null,
+        "matchedCriteria": [],
+        "missingCriteria": [],
+        "appliedRuleIds": [
+          "user-2026-08-26-third-party-technical-certificate-classification-v1",
+          "user-2026-08-25-crm-internal-technical-document-untrusted-v1"
+        ]
+      },
+      "localPdfPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2998-global-controller-flavia-cipriani/crm-original-documents/files/flavia-cipriani/70489e2984c5336a4ec373f961d1925bab2ca6943150c6e9db9f3b78b1c1f71c.pdf",
+      "sourceSha256": "6d147494dd9d9d79297976364ff6935ae7ecdc45970c1aeb21d2178294910eda",
+      "state": "analyzed",
+      "attemptCount": 1,
+      "extractionMode": "native_text",
+      "pageCount": 1,
+      "textCharacterCount": 818,
+      "textSha256": "838cc149d1b0dcf6c7ca706dbd8dd45561881b53343b01efe30db1a5e0ad323d",
+      "textPath": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-reliability-gap-audit-2026-09-03/fresh-original-state/078/flavia-cipriani/crm-document-analysis/text/flavia-cipriani/70489e2984c5336a4ec373f961d1925bab2ca6943150c6e9db9f3b78b1c1f71c.txt",
+      "invoiceResult": {
+        "path": "70489e2984c5336a4ec373f961d1925bab2ca6943150c6e9db9f3b78b1c1f71c",
+        "status": "parsed",
+        "documentType": "invoice",
+        "total": null,
+        "itemCount": 0
+      },
+      "screeningItems": [],
+      "historicalEneaAppendixExcluded": false,
+      "nonFiscalImageExcluded": false,
+      "reason": "Testo gia' estratto localmente; 0 righe schermatura rilevate.",
+      "startedAt": "2026-09-03T16:01:52.353Z",
+      "endedAt": "2026-09-03T16:01:52.353Z"
+    },
+    {
+      "documentKey": "3f46b9fc337ae8b883e96a8722cbecb73582b9b3013498a234b9558b6728dcd9",
+      "customerKey": "flavia-cipriani",
+      "kind": "invoice",
+      "semanticKind": "invoice",
+      "documentClassification": {
+        "version": "apr-infissi-technical-document-classifier-v1",
+        "storageKind": "invoice",
+        "verifiedKind": "invoice",
+        "profile": "invoice_passthrough",
+        "certificateScope": null,
+        "matchedCriteria": [],
+        "missingCriteria": [],
+        "appliedRuleIds": [
+          "user-2026-08-26-third-party-technical-certificate-classification-v1",
+          "user-2026-08-25-crm-internal-technical-document-untrusted-v1"
+        ]
+      },
+      "localPdfPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2998-global-controller-flavia-cipriani/crm-original-documents/files/flavia-cipriani/3f46b9fc337ae8b883e96a8722cbecb73582b9b3013498a234b9558b6728dcd9.pdf",
+      "sourceSha256": "7daaeb783d45f3202cfa90f6776659ca72f2e36bdefb8981b63d19aec026eeaf",
+      "state": "analyzed",
+      "attemptCount": 1,
+      "extractionMode": "native_text",
+      "pageCount": 1,
+      "textCharacterCount": 818,
+      "textSha256": "c7a70edec5ae57a4b846fd7bfc009907473c42df96d1d0e2b9454646d2bc46b0",
+      "textPath": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-reliability-gap-audit-2026-09-03/fresh-original-state/078/flavia-cipriani/crm-document-analysis/text/flavia-cipriani/3f46b9fc337ae8b883e96a8722cbecb73582b9b3013498a234b9558b6728dcd9.txt",
+      "invoiceResult": {
+        "path": "3f46b9fc337ae8b883e96a8722cbecb73582b9b3013498a234b9558b6728dcd9",
+        "status": "parsed",
+        "documentType": "invoice",
+        "total": null,
+        "itemCount": 0
+      },
+      "screeningItems": [],
+      "historicalEneaAppendixExcluded": false,
+      "nonFiscalImageExcluded": false,
+      "reason": "Testo gia' estratto localmente; 0 righe schermatura rilevate.",
+      "startedAt": "2026-09-03T16:01:52.404Z",
+      "endedAt": "2026-09-03T16:01:52.404Z"
+    },
+    {
+      "documentKey": "d9e69508fae591207af9d0b55f820a5ce8017e857ab163c0b87e10f7b6a14eb1",
+      "customerKey": "flavia-cipriani",
+      "kind": "invoice",
+      "semanticKind": "invoice",
+      "documentClassification": null,
+      "localPdfPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2998-global-controller-flavia-cipriani/crm-original-documents/files/flavia-cipriani/d9e69508fae591207af9d0b55f820a5ce8017e857ab163c0b87e10f7b6a14eb1.pdf",
+      "sourceSha256": "db9d867aee97cd6282b566a65269a8dc2f044fc906eec5477a3b6e97b0391d62",
+      "state": "blocked_analysis",
+      "attemptCount": 1,
+      "extractionMode": null,
+      "pageCount": 0,
+      "textCharacterCount": 0,
+      "textSha256": null,
+      "textPath": null,
+      "invoiceResult": null,
+      "screeningItems": [],
+      "historicalEneaAppendixExcluded": false,
+      "nonFiscalImageExcluded": false,
+      "reason": "Analisi locale non riuscita: Command failed: /Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/current/apr-pdf-ocr /Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2998-global-controller-flavia-cipr",
+      "startedAt": "2026-09-03T16:01:52.456Z",
+      "endedAt": "2026-09-03T16:01:52.456Z"
+    },
+    {
+      "documentKey": "8858c79812294251b4f165565bbd73956b6a8067e0277043f50e5c9612eaf66b",
+      "customerKey": "flavia-cipriani",
+      "kind": "invoice",
+      "semanticKind": "invoice",
+      "documentClassification": {
+        "version": "apr-infissi-technical-document-classifier-v1",
+        "storageKind": "invoice",
+        "verifiedKind": "invoice",
+        "profile": "invoice_passthrough",
+        "certificateScope": null,
+        "matchedCriteria": [],
+        "missingCriteria": [],
+        "appliedRuleIds": [
+          "user-2026-08-26-third-party-technical-certificate-classification-v1",
+          "user-2026-08-25-crm-internal-technical-document-untrusted-v1"
+        ]
+      },
+      "localPdfPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2998-global-controller-flavia-cipriani/crm-original-documents/files/flavia-cipriani/8858c79812294251b4f165565bbd73956b6a8067e0277043f50e5c9612eaf66b.pdf",
+      "sourceSha256": "45d9b881ae5db3c2e669114d115d878d3d2d38b1b28ddc77e5fb162783ea37bc",
+      "state": "analyzed",
+      "attemptCount": 1,
+      "extractionMode": "native_text",
+      "pageCount": 1,
+      "textCharacterCount": 1362,
+      "textSha256": "21fe5d1f3e8f8b9ca98a27aa351bd89ba99b34235a6298d3c61919f64cea2a13",
+      "textPath": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-reliability-gap-audit-2026-09-03/fresh-original-state/078/flavia-cipriani/crm-document-analysis/text/flavia-cipriani/8858c79812294251b4f165565bbd73956b6a8067e0277043f50e5c9612eaf66b.txt",
+      "invoiceResult": {
+        "path": "8858c79812294251b4f165565bbd73956b6a8067e0277043f50e5c9612eaf66b",
+        "status": "parsed",
+        "documentType": "invoice",
+        "total": 3201.22,
+        "itemCount": 0,
+        "documentNumber": "172/FE",
+        "documentDate": "2026-05-04"
+      },
+      "screeningItems": [],
+      "historicalEneaAppendixExcluded": false,
+      "nonFiscalImageExcluded": false,
+      "reason": "Testo gia' estratto localmente; 0 righe schermatura rilevate.",
+      "startedAt": "2026-09-03T16:01:52.714Z",
+      "endedAt": "2026-09-03T16:01:52.714Z"
+    },
+    {
+      "documentKey": "2efeab4c7756af80196a5024200a37332676b208c92ebaba259132ef5d46b13e",
+      "customerKey": "flavia-cipriani",
+      "kind": "invoice",
+      "semanticKind": "invoice",
+      "documentClassification": {
+        "version": "apr-infissi-technical-document-classifier-v1",
+        "storageKind": "invoice",
+        "verifiedKind": "invoice",
+        "profile": "invoice_passthrough",
+        "certificateScope": null,
+        "matchedCriteria": [],
+        "missingCriteria": [],
+        "appliedRuleIds": [
+          "user-2026-08-26-third-party-technical-certificate-classification-v1",
+          "user-2026-08-25-crm-internal-technical-document-untrusted-v1"
+        ]
+      },
+      "localPdfPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2998-global-controller-flavia-cipriani/crm-original-documents/files/flavia-cipriani/2efeab4c7756af80196a5024200a37332676b208c92ebaba259132ef5d46b13e.pdf",
+      "sourceSha256": "4a20e371fdf2bac705d54700ddc039ffb0cb8cbda99aca342a847b272a64072a",
+      "state": "analyzed",
+      "attemptCount": 1,
+      "extractionMode": "native_text",
+      "pageCount": 1,
+      "textCharacterCount": 1260,
+      "textSha256": "cfbc5d034bb2f2c0df3f944af2303d55fd77d4d71b1b0dfe68fc7782b2ffb1c3",
+      "textPath": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-reliability-gap-audit-2026-09-03/fresh-original-state/078/flavia-cipriani/crm-document-analysis/text/flavia-cipriani/2efeab4c7756af80196a5024200a37332676b208c92ebaba259132ef5d46b13e.txt",
+      "invoiceResult": {
+        "path": "2efeab4c7756af80196a5024200a37332676b208c92ebaba259132ef5d46b13e",
+        "status": "parsed",
+        "documentType": "invoice",
+        "total": 1949.37,
+        "itemCount": 0,
+        "documentNumber": "321/FE",
+        "documentDate": "2026-07-22"
+      },
+      "screeningItems": [],
+      "historicalEneaAppendixExcluded": false,
+      "nonFiscalImageExcluded": false,
+      "reason": "Testo gia' estratto localmente; 0 righe schermatura rilevate.",
+      "startedAt": "2026-09-03T16:01:52.767Z",
+      "endedAt": "2026-09-03T16:01:52.767Z"
+    },
+    {
+      "documentKey": "e7d19862b9a1849e5a064bb7d0713e0d3f93cbc6d2d41a5b602b48e486521cb7",
+      "customerKey": "flavia-cipriani",
+      "kind": "invoice",
+      "semanticKind": "invoice",
+      "documentClassification": {
+        "version": "apr-infissi-technical-document-classifier-v1",
+        "storageKind": "invoice",
+        "verifiedKind": "invoice",
+        "profile": "invoice_passthrough",
+        "certificateScope": null,
+        "matchedCriteria": [],
+        "missingCriteria": [],
+        "appliedRuleIds": [
+          "user-2026-08-26-third-party-technical-certificate-classification-v1",
+          "user-2026-08-25-crm-internal-technical-document-untrusted-v1"
+        ]
+      },
+      "localPdfPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2998-global-controller-flavia-cipriani/crm-original-documents/files/flavia-cipriani/e7d19862b9a1849e5a064bb7d0713e0d3f93cbc6d2d41a5b602b48e486521cb7.pdf",
+      "sourceSha256": "421d87bee00ea3b5b58d3faf286c04d946cc957ee1824a1188afa290dafa7fa3",
+      "state": "analyzed",
+      "attemptCount": 1,
+      "extractionMode": "native_text",
+      "pageCount": 1,
+      "textCharacterCount": 1253,
+      "textSha256": "bc796c1d5b850fbb59b990393e4a043f39f99d27cafe7c0c72e0f841575a0a52",
+      "textPath": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-reliability-gap-audit-2026-09-03/fresh-original-state/078/flavia-cipriani/crm-document-analysis/text/flavia-cipriani/e7d19862b9a1849e5a064bb7d0713e0d3f93cbc6d2d41a5b602b48e486521cb7.txt",
+      "invoiceResult": {
+        "path": "e7d19862b9a1849e5a064bb7d0713e0d3f93cbc6d2d41a5b602b48e486521cb7",
+        "status": "parsed",
+        "documentType": "invoice",
+        "total": 1347.32,
+        "itemCount": 0,
+        "documentNumber": "326/FE",
+        "documentDate": "2026-07-27"
+      },
+      "screeningItems": [],
+      "historicalEneaAppendixExcluded": false,
+      "nonFiscalImageExcluded": false,
+      "reason": "Testo gia' estratto localmente; 0 righe schermatura rilevate.",
+      "startedAt": "2026-09-03T16:01:52.820Z",
+      "endedAt": "2026-09-03T16:01:52.820Z"
+    },
+    {
+      "documentKey": "771c4a6802a7c38108803440e42a8e471d9c24c6decc1cc208aef249dd04cb8b",
+      "customerKey": "flavia-cipriani",
+      "kind": "additional",
+      "semanticKind": "additional",
+      "documentClassification": null,
+      "localPdfPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2998-global-controller-flavia-cipriani/crm-original-documents/files/flavia-cipriani/771c4a6802a7c38108803440e42a8e471d9c24c6decc1cc208aef249dd04cb8b.pdf",
+      "sourceSha256": "ca8558cdad014ca078cc08bddec90eaad9250f15c7781b8dee6da684bcb31d0e",
+      "state": "blocked_analysis",
+      "attemptCount": 1,
+      "extractionMode": null,
+      "pageCount": 0,
+      "textCharacterCount": 0,
+      "textSha256": null,
+      "textPath": null,
+      "invoiceResult": null,
+      "screeningItems": [],
+      "historicalEneaAppendixExcluded": false,
+      "nonFiscalImageExcluded": false,
+      "reason": "Analisi locale non riuscita: Command failed: /Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/current/apr-pdf-ocr /Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2998-global-controller-flavia-cipr",
+      "startedAt": "2026-09-03T16:01:52.871Z",
+      "endedAt": "2026-09-03T16:01:52.871Z"
+    },
+    {
+      "documentKey": "fba4ea695f6a0d57a6f82db3871569e96e6d60916569847f57acabd6ff8cbd29",
+      "customerKey": "flavia-cipriani",
+      "kind": "additional",
+      "semanticKind": "third_party_certificate",
+      "documentClassification": {
+        "version": "apr-infissi-technical-document-classifier-v1",
+        "storageKind": "additional",
+        "verifiedKind": "third_party_certificate",
+        "profile": "structured_product_dop",
+        "certificateScope": "installed_windows",
+        "matchedCriteria": [
+          "window_product_family",
+          "numeric_thermal_performance",
+          "en_14351_product_standard",
+          "product_reference_and_model",
+          "labelled_dimensions_mm",
+          "at_least_two_structured_product_blocks"
+        ],
+        "missingCriteria": [],
+        "appliedRuleIds": [
+          "user-2026-08-26-third-party-technical-certificate-classification-v1",
+          "user-2026-08-25-crm-internal-technical-document-untrusted-v1"
+        ]
+      },
+      "localPdfPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2998-global-controller-flavia-cipriani/crm-original-documents/files/flavia-cipriani/fba4ea695f6a0d57a6f82db3871569e96e6d60916569847f57acabd6ff8cbd29.pdf",
+      "sourceSha256": "cc3ba3a2ea3f4584ab2c28786ea2b30300be4a86cb3953e2ebfea12b8eb6a2f1",
+      "state": "analyzed",
+      "attemptCount": 1,
+      "extractionMode": "native_text",
+      "pageCount": 7,
+      "textCharacterCount": 10298,
+      "textSha256": "6eb05d424cd6f8368e4450b67e0aff3753d1a27b243f54f4d70cb5df2ca9c616",
+      "textPath": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-reliability-gap-audit-2026-09-03/fresh-original-state/078/flavia-cipriani/crm-document-analysis/text/flavia-cipriani/fba4ea695f6a0d57a6f82db3871569e96e6d60916569847f57acabd6ff8cbd29.txt",
+      "invoiceResult": null,
+      "screeningItems": [],
+      "historicalEneaAppendixExcluded": false,
+      "nonFiscalImageExcluded": false,
+      "reason": "Testo gia' estratto localmente; documento non fiscale conservato come fonte.",
+      "startedAt": "2026-09-03T16:01:53.197Z",
+      "endedAt": "2026-09-03T16:01:53.197Z"
+    },
+    {
+      "documentKey": "55e3f7bb54664c4f92a66085a54121adbf8e301d884a8cf6831969e215c08824",
+      "customerKey": "flavia-cipriani",
+      "kind": "additional",
+      "semanticKind": "additional",
+      "documentClassification": {
+        "version": "apr-infissi-technical-document-classifier-v1",
+        "storageKind": "additional",
+        "verifiedKind": "additional",
+        "profile": "none",
+        "certificateScope": null,
+        "matchedCriteria": [
+          "window_product_family"
+        ],
+        "missingCriteria": [
+          "formal_declaration_title",
+          "numeric_thermal_performance",
+          "technical_standard",
+          "declaring_party_or_signature",
+          "en_14351_product_standard",
+          "product_reference_and_model",
+          "labelled_dimensions_mm",
+          "at_least_two_structured_product_blocks"
+        ],
+        "appliedRuleIds": [
+          "user-2026-08-26-third-party-technical-certificate-classification-v1",
+          "user-2026-08-25-crm-internal-technical-document-untrusted-v1"
+        ]
+      },
+      "localPdfPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2998-global-controller-flavia-cipriani/crm-original-documents/files/flavia-cipriani/55e3f7bb54664c4f92a66085a54121adbf8e301d884a8cf6831969e215c08824.pdf",
+      "sourceSha256": "a8834dd00e912e863933bd05fc99281e45a160f10bb12c6b8be8f93ec5c70bd5",
+      "state": "analyzed",
+      "attemptCount": 1,
+      "extractionMode": "native_text",
+      "pageCount": 5,
+      "textCharacterCount": 14608,
+      "textSha256": "18256c409d53303ae4bead721f9cb4b381115a9d271a3e3ba56e83d768c184c1",
+      "textPath": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-reliability-gap-audit-2026-09-03/fresh-original-state/078/flavia-cipriani/crm-document-analysis/text/flavia-cipriani/55e3f7bb54664c4f92a66085a54121adbf8e301d884a8cf6831969e215c08824.txt",
+      "invoiceResult": null,
+      "screeningItems": [],
+      "historicalEneaAppendixExcluded": false,
+      "nonFiscalImageExcluded": false,
+      "reason": "Testo gia' estratto localmente; documento non fiscale conservato come fonte.",
+      "startedAt": "2026-09-03T16:01:53.275Z",
+      "endedAt": "2026-09-03T16:01:53.275Z"
+    },
+    {
+      "documentKey": "9b7f17645eb60204640e60a3cfa57cfa399e58a41362eeabe2601412758075ba",
+      "customerKey": "flavia-cipriani",
+      "kind": "additional",
+      "semanticKind": "third_party_certificate",
+      "documentClassification": {
+        "version": "apr-infissi-technical-document-classifier-v1",
+        "storageKind": "additional",
+        "verifiedKind": "third_party_certificate",
+        "profile": "structured_product_dop",
+        "certificateScope": "installed_windows",
+        "matchedCriteria": [
+          "window_product_family",
+          "numeric_thermal_performance",
+          "en_14351_product_standard",
+          "product_reference_and_model",
+          "labelled_dimensions_mm",
+          "at_least_two_structured_product_blocks"
+        ],
+        "missingCriteria": [],
+        "appliedRuleIds": [
+          "user-2026-08-26-third-party-technical-certificate-classification-v1",
+          "user-2026-08-25-crm-internal-technical-document-untrusted-v1"
+        ]
+      },
+      "localPdfPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2998-global-controller-flavia-cipriani/crm-original-documents/files/flavia-cipriani/9b7f17645eb60204640e60a3cfa57cfa399e58a41362eeabe2601412758075ba.pdf",
+      "sourceSha256": "aecb12186afd21f80cb0599664478e1ff509de44c6367a1da1bb05bfe870d4f3",
+      "state": "analyzed",
+      "attemptCount": 1,
+      "extractionMode": "native_text",
+      "pageCount": 2,
+      "textCharacterCount": 3863,
+      "textSha256": "2b659a88ed1f277904290a95b1c2a65af3aaad1c5e502b4e11f4ce451c10dd43",
+      "textPath": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-reliability-gap-audit-2026-09-03/fresh-original-state/078/flavia-cipriani/crm-document-analysis/text/flavia-cipriani/9b7f17645eb60204640e60a3cfa57cfa399e58a41362eeabe2601412758075ba.txt",
+      "invoiceResult": null,
+      "screeningItems": [],
+      "historicalEneaAppendixExcluded": false,
+      "nonFiscalImageExcluded": false,
+      "reason": "Testo gia' estratto localmente; documento non fiscale conservato come fonte.",
+      "startedAt": "2026-09-03T16:01:53.357Z",
+      "endedAt": "2026-09-03T16:01:53.357Z"
+    }
+  ],
+  "externalActionAllowed": false,
+  "reason": "Parser invoice-parser-v38-rotated-fiscal-bank-layouts-r30 applicato localmente a 6 fatture senza ripetere download, OCR o accessi CRM.",
+  "nextAction": "Ricalcolare i report per-pratica e isolare soltanto i conflitti residui verificabili.",
+  "parserRevisionsApplied": [
+    "invoice-parser-v31-rinaldi-sp-dot-and-vat-layout",
+    "invoice-parser-v32-grk-vertical-number-date",
+    "invoice-parser-v33-header-identity-over-body-reference",
+    "invoice-parser-v34-linea-sole-partial-paper-scomparsa",
+    "invoice-parser-v35-composite-invoice-transfer-segmentation",
+    "invoice-parser-v36-screening-unit-surface-coherence",
+    "invoice-parser-v38-rotated-fiscal-bank-layouts-r30"
+  ],
+  "analyzerRepairsApplied": [],
+  "classificationRevisionsApplied": [
+    "fresh-original-document-classification-r34-v1"
+  ],
+  "audit": [
+    {
+      "revision": 0,
+      "at": "2026-09-03T16:01:52.288Z",
+      "type": "initialized",
+      "documentKey": null,
+      "reason": "Analisi locale degli allegati non ancora preparata.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume"
+      ]
+    },
+    {
+      "revision": 1,
+      "at": "2026-09-03T16:01:52.288Z",
+      "type": "prepared",
+      "documentKey": null,
+      "reason": "Preparati 11 documenti per estrazione locale; nessun contenuto inviato a servizi esterni.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume"
+      ]
+    },
+    {
+      "revision": 2,
+      "at": "2026-09-03T16:01:52.300Z",
+      "type": "analysis_claimed",
+      "documentKey": "e927cf64b2fa5fb99e6d6b3a60fb4a03ec51abe1ed1bea0ab88751f4ab50503b",
+      "reason": "Analisi locale reclamata; ripresa sicura dopo riavvio.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume"
+      ]
+    },
+    {
+      "revision": 3,
+      "at": "2026-09-03T16:01:52.300Z",
+      "type": "analyzed",
+      "documentKey": "e927cf64b2fa5fb99e6d6b3a60fb4a03ec51abe1ed1bea0ab88751f4ab50503b",
+      "reason": "Testo estratto localmente (native_text); 0 righe schermatura rilevate.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume",
+        "user-2026-08-26-third-party-technical-certificate-classification-v1",
+        "user-2026-08-25-crm-internal-technical-document-untrusted-v1"
+      ]
+    },
+    {
+      "revision": 4,
+      "at": "2026-09-03T16:01:52.353Z",
+      "type": "analysis_claimed",
+      "documentKey": "70489e2984c5336a4ec373f961d1925bab2ca6943150c6e9db9f3b78b1c1f71c",
+      "reason": "Analisi locale reclamata; ripresa sicura dopo riavvio.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume"
+      ]
+    },
+    {
+      "revision": 5,
+      "at": "2026-09-03T16:01:52.353Z",
+      "type": "analyzed",
+      "documentKey": "70489e2984c5336a4ec373f961d1925bab2ca6943150c6e9db9f3b78b1c1f71c",
+      "reason": "Testo estratto localmente (native_text); 0 righe schermatura rilevate.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume",
+        "user-2026-08-26-third-party-technical-certificate-classification-v1",
+        "user-2026-08-25-crm-internal-technical-document-untrusted-v1"
+      ]
+    },
+    {
+      "revision": 6,
+      "at": "2026-09-03T16:01:52.404Z",
+      "type": "analysis_claimed",
+      "documentKey": "3f46b9fc337ae8b883e96a8722cbecb73582b9b3013498a234b9558b6728dcd9",
+      "reason": "Analisi locale reclamata; ripresa sicura dopo riavvio.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume"
+      ]
+    },
+    {
+      "revision": 7,
+      "at": "2026-09-03T16:01:52.404Z",
+      "type": "analyzed",
+      "documentKey": "3f46b9fc337ae8b883e96a8722cbecb73582b9b3013498a234b9558b6728dcd9",
+      "reason": "Testo estratto localmente (native_text); 0 righe schermatura rilevate.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume",
+        "user-2026-08-26-third-party-technical-certificate-classification-v1",
+        "user-2026-08-25-crm-internal-technical-document-untrusted-v1"
+      ]
+    },
+    {
+      "revision": 8,
+      "at": "2026-09-03T16:01:52.456Z",
+      "type": "analysis_claimed",
+      "documentKey": "d9e69508fae591207af9d0b55f820a5ce8017e857ab163c0b87e10f7b6a14eb1",
+      "reason": "Analisi locale reclamata; ripresa sicura dopo riavvio.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume"
+      ]
+    },
+    {
+      "revision": 9,
+      "at": "2026-09-03T16:01:52.456Z",
+      "type": "analysis_blocked",
+      "documentKey": "d9e69508fae591207af9d0b55f820a5ce8017e857ab163c0b87e10f7b6a14eb1",
+      "reason": "Analisi locale non riuscita: Command failed: /Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/current/apr-pdf-ocr /Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2998-global-controller-flavia-cipr",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume"
+      ]
+    },
+    {
+      "revision": 10,
+      "at": "2026-09-03T16:01:52.714Z",
+      "type": "analysis_claimed",
+      "documentKey": "8858c79812294251b4f165565bbd73956b6a8067e0277043f50e5c9612eaf66b",
+      "reason": "Analisi locale reclamata; ripresa sicura dopo riavvio.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume"
+      ]
+    },
+    {
+      "revision": 11,
+      "at": "2026-09-03T16:01:52.714Z",
+      "type": "analyzed",
+      "documentKey": "8858c79812294251b4f165565bbd73956b6a8067e0277043f50e5c9612eaf66b",
+      "reason": "Testo estratto localmente (native_text); 0 righe schermatura rilevate.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume",
+        "user-2026-08-26-third-party-technical-certificate-classification-v1",
+        "user-2026-08-25-crm-internal-technical-document-untrusted-v1"
+      ]
+    },
+    {
+      "revision": 12,
+      "at": "2026-09-03T16:01:52.767Z",
+      "type": "analysis_claimed",
+      "documentKey": "2efeab4c7756af80196a5024200a37332676b208c92ebaba259132ef5d46b13e",
+      "reason": "Analisi locale reclamata; ripresa sicura dopo riavvio.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume"
+      ]
+    },
+    {
+      "revision": 13,
+      "at": "2026-09-03T16:01:52.767Z",
+      "type": "analyzed",
+      "documentKey": "2efeab4c7756af80196a5024200a37332676b208c92ebaba259132ef5d46b13e",
+      "reason": "Testo estratto localmente (native_text); 0 righe schermatura rilevate.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume",
+        "user-2026-08-26-third-party-technical-certificate-classification-v1",
+        "user-2026-08-25-crm-internal-technical-document-untrusted-v1"
+      ]
+    },
+    {
+      "revision": 14,
+      "at": "2026-09-03T16:01:52.820Z",
+      "type": "analysis_claimed",
+      "documentKey": "e7d19862b9a1849e5a064bb7d0713e0d3f93cbc6d2d41a5b602b48e486521cb7",
+      "reason": "Analisi locale reclamata; ripresa sicura dopo riavvio.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume"
+      ]
+    },
+    {
+      "revision": 15,
+      "at": "2026-09-03T16:01:52.820Z",
+      "type": "analyzed",
+      "documentKey": "e7d19862b9a1849e5a064bb7d0713e0d3f93cbc6d2d41a5b602b48e486521cb7",
+      "reason": "Testo estratto localmente (native_text); 0 righe schermatura rilevate.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume",
+        "user-2026-08-26-third-party-technical-certificate-classification-v1",
+        "user-2026-08-25-crm-internal-technical-document-untrusted-v1"
+      ]
+    },
+    {
+      "revision": 16,
+      "at": "2026-09-03T16:01:52.871Z",
+      "type": "analysis_claimed",
+      "documentKey": "771c4a6802a7c38108803440e42a8e471d9c24c6decc1cc208aef249dd04cb8b",
+      "reason": "Analisi locale reclamata; ripresa sicura dopo riavvio.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume"
+      ]
+    },
+    {
+      "revision": 17,
+      "at": "2026-09-03T16:01:52.871Z",
+      "type": "analysis_blocked",
+      "documentKey": "771c4a6802a7c38108803440e42a8e471d9c24c6decc1cc208aef249dd04cb8b",
+      "reason": "Analisi locale non riuscita: Command failed: /Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/current/apr-pdf-ocr /Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2998-global-controller-flavia-cipr",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume"
+      ]
+    },
+    {
+      "revision": 18,
+      "at": "2026-09-03T16:01:53.197Z",
+      "type": "analysis_claimed",
+      "documentKey": "fba4ea695f6a0d57a6f82db3871569e96e6d60916569847f57acabd6ff8cbd29",
+      "reason": "Analisi locale reclamata; ripresa sicura dopo riavvio.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume"
+      ]
+    },
+    {
+      "revision": 19,
+      "at": "2026-09-03T16:01:53.197Z",
+      "type": "analyzed",
+      "documentKey": "fba4ea695f6a0d57a6f82db3871569e96e6d60916569847f57acabd6ff8cbd29",
+      "reason": "Testo estratto localmente (native_text); certificato tecnico di terza parte verificato (structured_product_dop).",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume",
+        "user-2026-08-26-third-party-technical-certificate-classification-v1",
+        "user-2026-08-25-crm-internal-technical-document-untrusted-v1"
+      ]
+    },
+    {
+      "revision": 20,
+      "at": "2026-09-03T16:01:53.275Z",
+      "type": "analysis_claimed",
+      "documentKey": "55e3f7bb54664c4f92a66085a54121adbf8e301d884a8cf6831969e215c08824",
+      "reason": "Analisi locale reclamata; ripresa sicura dopo riavvio.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume"
+      ]
+    },
+    {
+      "revision": 21,
+      "at": "2026-09-03T16:01:53.275Z",
+      "type": "analyzed",
+      "documentKey": "55e3f7bb54664c4f92a66085a54121adbf8e301d884a8cf6831969e215c08824",
+      "reason": "Testo estratto localmente (native_text); documento non fiscale conservato come fonte.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume",
+        "user-2026-08-26-third-party-technical-certificate-classification-v1",
+        "user-2026-08-25-crm-internal-technical-document-untrusted-v1"
+      ]
+    },
+    {
+      "revision": 22,
+      "at": "2026-09-03T16:01:53.357Z",
+      "type": "analysis_claimed",
+      "documentKey": "9b7f17645eb60204640e60a3cfa57cfa399e58a41362eeabe2601412758075ba",
+      "reason": "Analisi locale reclamata; ripresa sicura dopo riavvio.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume"
+      ]
+    },
+    {
+      "revision": 23,
+      "at": "2026-09-03T16:01:53.357Z",
+      "type": "analyzed",
+      "documentKey": "9b7f17645eb60204640e60a3cfa57cfa399e58a41362eeabe2601412758075ba",
+      "reason": "Testo estratto localmente (native_text); certificato tecnico di terza parte verificato (structured_product_dop).",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume",
+        "user-2026-08-26-third-party-technical-certificate-classification-v1",
+        "user-2026-08-25-crm-internal-technical-document-untrusted-v1"
+      ]
+    },
+    {
+      "revision": 24,
+      "at": "2026-09-03T16:01:53.357Z",
+      "type": "completed",
+      "documentKey": null,
+      "reason": "Analisi documenti locale conclusa: 9 analizzati, 2 bloccati.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume"
+      ]
+    },
+    {
+      "revision": 25,
+      "at": "2026-09-03T16:01:53.421Z",
+      "type": "document_classified",
+      "documentKey": null,
+      "reason": "Classificazione semantica fresh-original-document-classification-r34-v1 applicata a 9 documenti locali; 2 certificati tecnici di terza parte verificati.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume",
+        "user-2026-08-26-third-party-technical-certificate-classification-v1",
+        "user-2026-08-25-crm-internal-technical-document-untrusted-v1"
+      ]
+    },
+    {
+      "revision": 26,
+      "at": "2026-09-03T16:01:53.431Z",
+      "type": "parser_reanalyzed",
+      "documentKey": null,
+      "reason": "Parser invoice-parser-v31-rinaldi-sp-dot-and-vat-layout applicato localmente a 6 fatture senza ripetere download, OCR o accessi CRM.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume",
+        "user-2026-08-16-narrative-invoice-product-extraction",
+        "user-2026-08-14-preserve-technical-product-cardinality",
+        "user-2026-08-16-invoice-gross-total-vat-included"
+      ]
+    },
+    {
+      "revision": 27,
+      "at": "2026-09-03T16:01:53.439Z",
+      "type": "parser_reanalyzed",
+      "documentKey": null,
+      "reason": "Parser invoice-parser-v32-grk-vertical-number-date applicato localmente a 6 fatture senza ripetere download, OCR o accessi CRM.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume"
+      ]
+    },
+    {
+      "revision": 28,
+      "at": "2026-09-03T16:01:53.448Z",
+      "type": "parser_reanalyzed",
+      "documentKey": null,
+      "reason": "Parser invoice-parser-v33-header-identity-over-body-reference applicato localmente a 6 fatture senza ripetere download, OCR o accessi CRM.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume",
+        "system-invoice-header-identity-over-body-reference",
+        "user-2026-08-14-preserve-technical-product-cardinality",
+        "user-2026-08-16-invoice-gross-total-vat-included"
+      ]
+    },
+    {
+      "revision": 29,
+      "at": "2026-09-03T16:01:53.454Z",
+      "type": "parser_reanalyzed",
+      "documentKey": null,
+      "reason": "Parser invoice-parser-v34-linea-sole-partial-paper-scomparsa applicato localmente a 6 fatture senza ripetere download, OCR o accessi CRM.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume",
+        "user-2026-08-17-linea-sole-potito-paper-form-fallbacks",
+        "user-2026-08-14-preserve-technical-product-cardinality"
+      ]
+    },
+    {
+      "revision": 30,
+      "at": "2026-09-03T16:01:53.463Z",
+      "type": "parser_reanalyzed",
+      "documentKey": null,
+      "reason": "Parser invoice-parser-v35-composite-invoice-transfer-segmentation applicato localmente a 6 fatture senza ripetere download, OCR o accessi CRM.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume",
+        "user-2026-08-17-linea-sole-potito-paper-form-fallbacks",
+        "user-2026-08-14-preserve-technical-product-cardinality"
+      ]
+    },
+    {
+      "revision": 31,
+      "at": "2026-09-03T16:01:53.471Z",
+      "type": "parser_reanalyzed",
+      "documentKey": null,
+      "reason": "Parser invoice-parser-v36-screening-unit-surface-coherence applicato localmente a 6 fatture senza ripetere download, OCR o accessi CRM.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume",
+        "user-2026-08-26-screening-dimension-unit-surface-coherence-v1",
+        "user-2026-08-18-explicit-technical-surface-precision"
+      ]
+    },
+    {
+      "revision": 32,
+      "at": "2026-09-03T16:01:53.477Z",
+      "type": "parser_reanalyzed",
+      "documentKey": null,
+      "reason": "Parser invoice-parser-v38-rotated-fiscal-bank-layouts-r30 applicato localmente a 6 fatture senza ripetere download, OCR o accessi CRM.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume",
+        "system-rotated-ocr-fiscal-reading-order-v1",
+        "system-multipage-bank-receipt-label-reconciliation-v1",
+        "system-document-ocr-orientation-normalization-v1",
+        "system-invoice-multi-document-fiscal-segmentation-v2",
+        "system-label-anchored-invoice-totals-v1"
+      ]
+    }
+  ]
+}

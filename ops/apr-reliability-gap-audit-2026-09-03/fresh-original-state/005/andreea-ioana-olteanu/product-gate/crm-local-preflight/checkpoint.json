@@ -1,0 +1,252 @@
+{
+  "version": "apr-crm-local-preflight-v1",
+  "revision": 1,
+  "status": "completed",
+  "sourceFingerprint": "6197ffc126b544a631d78bb98a213cec7e2541f9ef175a35f6bfc12c9458b02b",
+  "currentCustomerKey": null,
+  "items": [
+    {
+      "customerKey": "andreea-ioana-olteanu",
+      "displayName": "Andreea Ioana Olteanu",
+      "practiceId": "98e93993-e6ce-4fcc-9103-0362331feb4f",
+      "dossierPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2925-global-controller-andreea-ioana-olteanu/crm-acquisition/dossiers/andreea-ioana-olteanu.json",
+      "state": "blocked_case",
+      "attemptCount": 1,
+      "startedAt": null,
+      "endedAt": null,
+      "report": {
+        "outcome": "blocked_case",
+        "formAvailable": true,
+        "startDate": "2025-04-18",
+        "startDateSource": "e207d1368db46d1281b2b7071b76153e195447eff95e23801ca1cf2988c4adb2:invoice:264f0ccd0374",
+        "completionDate": "2025-04-18",
+        "completionDateSource": "e207d1368db46d1281b2b7071b76153e195447eff95e23801ca1cf2988c4adb2:invoice:264f0ccd0374",
+        "buildingQualification": "multi_unit",
+        "buildingUnitCount": 14,
+        "deductionRate": null,
+        "taxCodeStatus": "verified_original_document",
+        "resolvedTaxCode": "LTNNRN87R57Z129Z",
+        "taxCodeSourceIds": [
+          "e207d1368db46d1281b2b7071b76153e195447eff95e23801ca1cf2988c4adb2"
+        ],
+        "primaryBeneficiaryResolution": {
+          "status": "not_found",
+          "identity": null,
+          "sourceIds": [],
+          "authority": null
+        },
+        "coBeneficiaryResolution": {
+          "status": "excluded_by_invoice",
+          "present": false,
+          "identity": null,
+          "sourceIds": [
+            "e207d1368db46d1281b2b7071b76153e195447eff95e23801ca1cf2988c4adb2"
+          ]
+        },
+        "products": [],
+        "financial": {
+          "invoiceTotal": 4905,
+          "eligibleExpense": 4905,
+          "tripleReconciliationVerified": true,
+          "reconciledTotal": 4905,
+          "evidence": [
+            {
+              "sourceId": "e207d1368db46d1281b2b7071b76153e195447eff95e23801ca1cf2988c4adb2:invoice:264f0ccd0374",
+              "kind": "invoice",
+              "taxableAmount": 4459.09,
+              "vatAmount": 445.91,
+              "grossTotal": 4905,
+              "interventionGrossAmount": 4905,
+              "extractionConfidence": "certain",
+              "extractionIssues": []
+            }
+          ],
+          "bankTransfers": [],
+          "bankTransferReconciliation": {
+            "status": "not_provided",
+            "principalTotal": null,
+            "feesTotal": null,
+            "debitedTotal": null,
+            "difference": null,
+            "referenceStatus": "not_provided",
+            "missingInvoiceReferences": [],
+            "taxReliefTypes": []
+          },
+          "methods": [
+            {
+              "method": "structured_extraction",
+              "ok": true,
+              "total": 4905,
+              "sources": [
+                "e207d1368db46d1281b2b7071b76153e195447eff95e23801ca1cf2988c4adb2:invoice:264f0ccd0374"
+              ],
+              "reason": "Ogni documento ha imponibile, IVA e totale verificati."
+            },
+            {
+              "method": "accounting_reconciliation",
+              "ok": true,
+              "total": 4905,
+              "sources": [
+                "e207d1368db46d1281b2b7071b76153e195447eff95e23801ca1cf2988c4adb2:invoice:264f0ccd0374"
+              ],
+              "reason": "Somma dei totali lordi IVA inclusa delle fatture uniche deduplicate; gli storni interni sono solo note auditabili."
+            },
+            {
+              "method": "intervention_cross_check",
+              "ok": true,
+              "total": 4905,
+              "sources": [
+                "e207d1368db46d1281b2b7071b76153e195447eff95e23801ca1cf2988c4adb2:invoice:264f0ccd0374"
+              ],
+              "reason": "Totale ricostruito esclusivamente dalle righe pertinenti all'intervento."
+            }
+          ],
+          "discardedDuplicateSourceIds": [],
+          "supersededTechnicalSourceIds": [],
+          "appliedRuleIds": [
+            "user-2026-08-16-invoice-gross-total-vat-included",
+            "user-2026-08-18-bundled-professional-expense-separation",
+            "user-2026-08-18-mandatory-bank-transfer-invoice-expense-cross-check",
+            "core-gross-triple-reconciliation",
+            "user-2026-08-14-preserve-technical-product-cardinality",
+            "system-explicit-advance-invoice-reference-marker-v1"
+          ]
+        },
+        "warnings": [
+          {
+            "code": "birth_country_resolved_from_reliable_belfiore_registry",
+            "reason": "Romania risolta dal codice catastale Z129 del CF tramite ANPR / MAECI (anpr-stati-esteri-maeci-z129); la provincia italiana incompatibile del form non prevale.",
+            "appliedRuleIds": [
+              "user-2026-08-16-fiscal-code-identity-cross-check",
+              "user-2026-08-23-foreign-birth-anpr-registry-v1",
+              "core-form-first"
+            ]
+          },
+          {
+            "code": "co_beneficiary_form_overridden_by_invoice",
+            "reason": "Il cointestatario dichiarato nel form non compare nelle fatture originarie, che identificano un solo beneficiario: escluso dalla bozza per precedenza della fattura.",
+            "appliedRuleIds": [
+              "user-2026-08-16-invoice-identity-over-customer-form"
+            ]
+          }
+        ],
+        "blockers": [
+          {
+            "code": "screenings_missing",
+            "field": "screenings",
+            "reason": "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+            "sourceIds": [
+              "e207d1368db46d1281b2b7071b76153e195447eff95e23801ca1cf2988c4adb2"
+            ],
+            "appliedRuleIds": [
+              "user-2026-08-14-preserve-technical-product-cardinality"
+            ]
+          },
+          {
+            "code": "completion_date_portal_year_mismatch",
+            "field": "dates.completion",
+            "reason": "Fine lavori 2025-04-18: anno 2025 incompatibile con il portale ENEA 2026. Selezionare il portale annuale corretto senza modificare la data.",
+            "sourceIds": [
+              "e207d1368db46d1281b2b7071b76153e195447eff95e23801ca1cf2988c4adb2:invoice:264f0ccd0374"
+            ],
+            "appliedRuleIds": [
+              "user-2026-08-23-completion-portal-year-operator-gate",
+              "user-2026-08-14-missing-completion-use-latest-invoice"
+            ]
+          },
+          {
+            "code": "completion_over_90_days_operator_required",
+            "field": "dates.completion",
+            "reason": "Fine lavori 2025-04-18: 503 giorni prima della lavorazione, oltre il limite di 90 giorni. Verificare la procedibilità e il portale annuale corretto.",
+            "sourceIds": [
+              "e207d1368db46d1281b2b7071b76153e195447eff95e23801ca1cf2988c4adb2:invoice:264f0ccd0374"
+            ],
+            "appliedRuleIds": [
+              "user-2026-08-23-completion-over-90-operator-gate",
+              "user-2026-08-14-missing-completion-use-latest-invoice"
+            ]
+          },
+          {
+            "code": "invoice_332a5af9",
+            "field": "economic_sources",
+            "reason": "Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture.",
+            "sourceIds": [
+              "e207d1368db46d1281b2b7071b76153e195447eff95e23801ca1cf2988c4adb2"
+            ],
+            "appliedRuleIds": [
+              "core-economic-classification"
+            ]
+          }
+        ],
+        "sourceIds": [
+          "e207d1368db46d1281b2b7071b76153e195447eff95e23801ca1cf2988c4adb2"
+        ],
+        "eneaPayloadAudit": {
+          "status": "payload_incomplete",
+          "mappingFingerprint": null,
+          "fieldSummary": {
+            "ready": 0,
+            "review": 0,
+            "missing": 0
+          },
+          "requiredPortalFieldCount": 0,
+          "blockerCount": 2,
+          "blockers": [
+            {
+              "code": "crm-source-not-screening",
+              "fieldId": null,
+              "message": "Il dossier non è mappabile come pratica schermature."
+            },
+            {
+              "code": "screenings_missing",
+              "fieldId": "screenings",
+              "message": "Nessun prodotto fisico riconciliato dalle fatture originarie."
+            }
+          ],
+          "excludedUnverifiedFields": [],
+          "draftReady": false,
+          "officialSubmissionAllowed": false,
+          "portalGate": {
+            "status": "blocked",
+            "reason": "screening-component-blocked",
+            "workflowFingerprint": null,
+            "supportedPages": [],
+            "screeningItemCount": 0,
+            "saveAllowedOnlyBySeparateCapability": true,
+            "previewAllowed": false,
+            "submitAllowed": false
+          },
+          "externalActionAllowed": false,
+          "reason": "1 blocker della componente Schermature invalidano il payload della bozza TEST."
+        },
+        "draftPlan": {
+          "status": "blocked",
+          "externalActionAllowed": false,
+          "previewAllowed": false,
+          "submitAllowed": false,
+          "communicationsAllowed": false,
+          "nextAction": "Risolvere i blocker con sole fonti originarie; la coda prosegue sugli altri casi."
+        }
+      },
+      "reason": "Fresh replay dai documenti originali"
+    }
+  ],
+  "externalActionAllowed": false,
+  "reason": "Fresh replay locale",
+  "nextAction": "Nessuna azione esterna.",
+  "validationRevisionsApplied": [],
+  "sourceRevisionsApplied": [],
+  "operatorMeasurementResolutions": [],
+  "audit": [
+    {
+      "revision": 1,
+      "at": "2026-09-03T10:00:00.000Z",
+      "type": "completed",
+      "customerKey": null,
+      "reason": "Fresh replay locale",
+      "appliedRuleIds": [
+        "system-single-active-practice"
+      ]
+    }
+  ]
+}

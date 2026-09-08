@@ -1,0 +1,388 @@
+{
+  "schemaVersion": "apr-reliability-residual-review-v1",
+  "generatedAt": "2026-09-03T17:07:04.935Z",
+  "safety": {
+    "localOnly": true,
+    "eneaAccessed": false,
+    "crmMutated": false,
+    "verdictsAttributed": false
+  },
+  "sourceReplay": "fresh-original-replay-v3-candidate.json",
+  "count": 26,
+  "cases": [
+    {
+      "practiceId": "7ebb9a52-2196-4ddc-9dc8-f431ff40e1b5",
+      "customerKey": "guido-calvacchi",
+      "displayName": "GUIDO CALVACCHI",
+      "classification": "PENDING_ORIGINAL_DOCUMENT_REVIEW",
+      "exactCause": "La rilettura locale fresca dai documenti originali ha cambiato l'insieme dei blocker rispetto allo snapshot operativo persistito: aggiunti [infissi_dimensions_and_cardinality_missing:technical_dimensions], rimossi [nessuno]. L'esito complessivo resta OPERATOR_REQUIRED_LOCAL; senza verifica documentale manuale e senza replay operativo questo delta non è classificato come errore APR.",
+      "addedBlockers": [
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions"
+      ],
+      "removedBlockers": [],
+      "missingDocumentType": "abaco o documento tecnico con larghezza, altezza e quantità dei serramenti",
+      "operatorQuestion": "Per GUIDO CALVACCHI, quali sono larghezza, altezza e quantità di ogni serramento secondo il documento tecnico originale?",
+      "onboardingGap": "Richiedere all'origine un abaco strutturato con larghezza, altezza, quantità e identificativo univoco per ogni serramento."
+    },
+    {
+      "practiceId": "78ca7885-b996-46c2-86f1-085ca43e9ede",
+      "customerKey": "roberta-di-cesare",
+      "displayName": "roberta di cesare",
+      "classification": "PENDING_ORIGINAL_DOCUMENT_REVIEW",
+      "exactCause": "La rilettura locale fresca dai documenti originali ha cambiato l'insieme dei blocker rispetto allo snapshot operativo persistito: aggiunti [tax_code_missing_or_invalid:beneficiary.taxCode], rimossi [nessuno]. L'esito complessivo resta OPERATOR_REQUIRED_LOCAL; senza verifica documentale manuale e senza replay operativo questo delta non è classificato come errore APR.",
+      "addedBlockers": [
+        "tax_code_missing_or_invalid:beneficiary.taxCode"
+      ],
+      "removedBlockers": [],
+      "missingDocumentType": "documento fiscale o ufficiale leggibile con codice fiscale",
+      "operatorQuestion": "Qual è il codice fiscale corretto di roberta di cesare, come riportato su un documento fiscale o ufficiale leggibile?",
+      "onboardingGap": "Rendere obbligatorio un documento ufficiale leggibile e validare formalmente il codice fiscale in acquisizione."
+    },
+    {
+      "practiceId": "e5c4f390-461b-43ea-ada7-d44cec4b91fb",
+      "customerKey": "marcella-capatti",
+      "displayName": "Marcella Capatti",
+      "classification": "PENDING_ORIGINAL_DOCUMENT_REVIEW",
+      "exactCause": "La rilettura locale fresca dai documenti originali ha cambiato l'insieme dei blocker rispetto allo snapshot operativo persistito: aggiunti [infissi_automatic_source_conflict:technical_dimensions, infissi_dimensions_and_cardinality_missing:technical_rows], rimossi [nessuno]. L'esito complessivo resta OPERATOR_REQUIRED_LOCAL; senza verifica documentale manuale e senza replay operativo questo delta non è classificato come errore APR.",
+      "addedBlockers": [
+        "infissi_automatic_source_conflict:technical_dimensions",
+        "infissi_dimensions_and_cardinality_missing:technical_rows"
+      ],
+      "removedBlockers": [],
+      "missingDocumentType": "abaco o fattura con righe tecniche associabili univocamente ai serramenti",
+      "operatorQuestion": "Per Marcella Capatti, quali misure sono corrette tra le fonti documentali discordanti, indicando documento e riga autorevoli? Per Marcella Capatti, quale riga del documento tecnico corrisponde a ciascun serramento e quante unità fisiche sono presenti?",
+      "onboardingGap": "Richiedere una sola tavola misure definitiva, datata e identificata come fonte autorevole. Richiedere righe prodotto numerate e una corrispondenza esplicita fra riga, quantità e misure."
+    },
+    {
+      "practiceId": "61b0dc51-4959-46e7-bd6d-37c8f1981c52",
+      "customerKey": "matteo-capitanelli",
+      "displayName": "MATTEO CAPITANELLI",
+      "classification": "PENDING_ORIGINAL_DOCUMENT_REVIEW",
+      "exactCause": "La rilettura locale fresca dai documenti originali ha cambiato l'insieme dei blocker rispetto allo snapshot operativo persistito: aggiunti [infissi_financial_triple_reconciliation_required:invoice_total], rimossi [nessuno]. L'esito complessivo resta OPERATOR_REQUIRED_LOCAL; senza verifica documentale manuale e senza replay operativo questo delta non è classificato come errore APR.",
+      "addedBlockers": [
+        "infissi_financial_triple_reconciliation_required:invoice_total"
+      ],
+      "removedBlockers": [],
+      "missingDocumentType": "insieme completo di fatture e pagamenti riconciliabili",
+      "operatorQuestion": "Per MATTEO CAPITANELLI, qual è il totale lordo corretto delle fatture ammissibili e quali documenti compongono esattamente tale totale?",
+      "onboardingGap": "Richiedere tutte le fatture, inclusi acconti e saldi, e collegarle ai relativi pagamenti."
+    },
+    {
+      "practiceId": "2803d6c1-f867-44a9-bff2-e67fcc230f7e",
+      "customerKey": "nicla-biagioni",
+      "displayName": "Nicla Biagioni",
+      "classification": "PENDING_ORIGINAL_DOCUMENT_REVIEW",
+      "exactCause": "La rilettura locale fresca dai documenti originali ha cambiato l'insieme dei blocker rispetto allo snapshot operativo persistito: aggiunti [infissi_dimensions_and_cardinality_missing:technical_dimensions], rimossi [nessuno]. L'esito complessivo resta OPERATOR_REQUIRED_LOCAL; senza verifica documentale manuale e senza replay operativo questo delta non è classificato come errore APR.",
+      "addedBlockers": [
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions"
+      ],
+      "removedBlockers": [],
+      "missingDocumentType": "abaco o documento tecnico con larghezza, altezza e quantità dei serramenti",
+      "operatorQuestion": "Per Nicla Biagioni, quali sono larghezza, altezza e quantità di ogni serramento secondo il documento tecnico originale?",
+      "onboardingGap": "Richiedere all'origine un abaco strutturato con larghezza, altezza, quantità e identificativo univoco per ogni serramento."
+    },
+    {
+      "practiceId": "5f669e8b-9ef1-45f6-b00d-12449d741314",
+      "customerKey": "eugenio-codognato",
+      "displayName": "EUGENIO CODOGNATO",
+      "classification": "PENDING_ORIGINAL_DOCUMENT_REVIEW",
+      "exactCause": "La rilettura locale fresca dai documenti originali ha cambiato l'insieme dei blocker rispetto allo snapshot operativo persistito: aggiunti [infissi_dimensions_and_cardinality_missing:technical_dimensions], rimossi [nessuno]. L'esito complessivo resta OPERATOR_REQUIRED_LOCAL; senza verifica documentale manuale e senza replay operativo questo delta non è classificato come errore APR.",
+      "addedBlockers": [
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions"
+      ],
+      "removedBlockers": [],
+      "missingDocumentType": "abaco o documento tecnico con larghezza, altezza e quantità dei serramenti",
+      "operatorQuestion": "Per EUGENIO CODOGNATO, quali sono larghezza, altezza e quantità di ogni serramento secondo il documento tecnico originale?",
+      "onboardingGap": "Richiedere all'origine un abaco strutturato con larghezza, altezza, quantità e identificativo univoco per ogni serramento."
+    },
+    {
+      "practiceId": "b35fc3d3-d441-48d0-99f0-1d1e967ab6e7",
+      "customerKey": "gabriele-girelli",
+      "displayName": "Gabriele Girelli",
+      "classification": "PENDING_ORIGINAL_DOCUMENT_REVIEW",
+      "exactCause": "La rilettura locale fresca dai documenti originali ha cambiato l'insieme dei blocker rispetto allo snapshot operativo persistito: aggiunti [infissi_dimensions_and_cardinality_missing:technical_dimensions], rimossi [nessuno]. L'esito complessivo resta OPERATOR_REQUIRED_LOCAL; senza verifica documentale manuale e senza replay operativo questo delta non è classificato come errore APR.",
+      "addedBlockers": [
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions"
+      ],
+      "removedBlockers": [],
+      "missingDocumentType": "abaco o documento tecnico con larghezza, altezza e quantità dei serramenti",
+      "operatorQuestion": "Per Gabriele Girelli, quali sono larghezza, altezza e quantità di ogni serramento secondo il documento tecnico originale?",
+      "onboardingGap": "Richiedere all'origine un abaco strutturato con larghezza, altezza, quantità e identificativo univoco per ogni serramento."
+    },
+    {
+      "practiceId": "dc4484cd-c462-49c0-a734-3064dd6469a8",
+      "customerKey": "giovanna-atzeni",
+      "displayName": "GIOVANNA ATZENI",
+      "classification": "PENDING_ORIGINAL_DOCUMENT_REVIEW",
+      "exactCause": "La rilettura locale fresca dai documenti originali ha cambiato l'insieme dei blocker rispetto allo snapshot operativo persistito: aggiunti [nessuno], rimossi [bank_transfer_principal_exceeds_invoices:economic_sources.bankTransfers]. L'esito complessivo resta OPERATOR_REQUIRED_LOCAL; senza verifica documentale manuale e senza replay operativo questo delta non è classificato come errore APR.",
+      "addedBlockers": [],
+      "removedBlockers": [
+        "bank_transfer_principal_exceeds_invoices:economic_sources.bankTransfers"
+      ],
+      "missingDocumentType": null,
+      "operatorQuestion": "Per GIOVANNA ATZENI, confermi che gli importi principali dei bonifici non superano il totale delle fatture dopo aver escluso valori duplicati o accessori?",
+      "onboardingGap": "Acquisire separatamente capitale, commissioni e riferimenti fattura dei bonifici."
+    },
+    {
+      "practiceId": "1d6b08fa-7120-4eab-a118-ce3a263ce001",
+      "customerKey": "loretta-riviera",
+      "displayName": "Loretta Riviera",
+      "classification": "PENDING_ORIGINAL_DOCUMENT_REVIEW",
+      "exactCause": "La rilettura locale fresca dai documenti originali ha cambiato l'insieme dei blocker rispetto allo snapshot operativo persistito: aggiunti [infissi_dimensions_and_cardinality_missing:technical_dimensions, invoice_schedule_amount_missing:economic_sources.schedule.amount], rimossi [nessuno]. L'esito complessivo resta OPERATOR_REQUIRED_LOCAL; senza verifica documentale manuale e senza replay operativo questo delta non è classificato come errore APR.",
+      "addedBlockers": [
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions",
+        "invoice_schedule_amount_missing:economic_sources.schedule.amount"
+      ],
+      "removedBlockers": [],
+      "missingDocumentType": "abaco o documento tecnico con larghezza, altezza e quantità dei serramenti; fattura o scadenzario con importo della rata leggibile",
+      "operatorQuestion": "Per Loretta Riviera, quali sono larghezza, altezza e quantità di ogni serramento secondo il documento tecnico originale? Per Loretta Riviera, qual è l'importo esatto di ciascuna scadenza o rata riportata nei documenti originali?",
+      "onboardingGap": "Richiedere all'origine un abaco strutturato con larghezza, altezza, quantità e identificativo univoco per ogni serramento. Richiedere uno scadenzario completo con importo, data e riferimento fattura per ogni rata."
+    },
+    {
+      "practiceId": "752e4dd5-604c-495d-92ff-8d0f89be7531",
+      "customerKey": "cesare-imperiali",
+      "displayName": "Cesare Imperiali",
+      "classification": "PENDING_ORIGINAL_DOCUMENT_REVIEW",
+      "exactCause": "La rilettura locale fresca dai documenti originali ha cambiato l'insieme dei blocker rispetto allo snapshot operativo persistito: aggiunti [infissi_dimensions_and_cardinality_missing:technical_dimensions], rimossi [nessuno]. L'esito complessivo resta OPERATOR_REQUIRED_LOCAL; senza verifica documentale manuale e senza replay operativo questo delta non è classificato come errore APR.",
+      "addedBlockers": [
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions"
+      ],
+      "removedBlockers": [],
+      "missingDocumentType": "abaco o documento tecnico con larghezza, altezza e quantità dei serramenti",
+      "operatorQuestion": "Per Cesare Imperiali, quali sono larghezza, altezza e quantità di ogni serramento secondo il documento tecnico originale?",
+      "onboardingGap": "Richiedere all'origine un abaco strutturato con larghezza, altezza, quantità e identificativo univoco per ogni serramento."
+    },
+    {
+      "practiceId": "0a92f92c-22ed-4a43-b47e-6abe1d74282a",
+      "customerKey": "massimo-cappello",
+      "displayName": "massimo cappello",
+      "classification": "PENDING_ORIGINAL_DOCUMENT_REVIEW",
+      "exactCause": "La rilettura locale fresca dai documenti originali ha cambiato l'insieme dei blocker rispetto allo snapshot operativo persistito: aggiunti [infissi_dimensions_and_cardinality_missing:technical_dimensions], rimossi [nessuno]. L'esito complessivo resta OPERATOR_REQUIRED_LOCAL; senza verifica documentale manuale e senza replay operativo questo delta non è classificato come errore APR.",
+      "addedBlockers": [
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions"
+      ],
+      "removedBlockers": [],
+      "missingDocumentType": "abaco o documento tecnico con larghezza, altezza e quantità dei serramenti",
+      "operatorQuestion": "Per massimo cappello, quali sono larghezza, altezza e quantità di ogni serramento secondo il documento tecnico originale?",
+      "onboardingGap": "Richiedere all'origine un abaco strutturato con larghezza, altezza, quantità e identificativo univoco per ogni serramento."
+    },
+    {
+      "practiceId": "11b99b30-2a58-40dd-96f5-5ef1a06e65d0",
+      "customerKey": "diego-mario-mocenighi",
+      "displayName": "diego mario mocenighi",
+      "classification": "PENDING_ORIGINAL_DOCUMENT_REVIEW",
+      "exactCause": "La rilettura locale fresca dai documenti originali ha cambiato l'insieme dei blocker rispetto allo snapshot operativo persistito: aggiunti [bank_transfer_invoice_cross_check_failed:economic_sources.bankTransfers], rimossi [nessuno]. L'esito complessivo resta OPERATOR_REQUIRED_LOCAL; senza verifica documentale manuale e senza replay operativo questo delta non è classificato come errore APR.",
+      "addedBlockers": [
+        "bank_transfer_invoice_cross_check_failed:economic_sources.bankTransfers"
+      ],
+      "removedBlockers": [],
+      "missingDocumentType": "contabile di bonifico collegabile univocamente alla fattura",
+      "operatorQuestion": "Per diego mario mocenighi, quale bonifico si riferisce a quale fattura e qual è l'importo corretto da riconciliare?",
+      "onboardingGap": "Richiedere causale, CRO/TRN e riferimento fattura leggibili per ogni bonifico."
+    },
+    {
+      "practiceId": "3a393231-4cb9-4bf6-93f0-99da9a2a2972",
+      "customerKey": "stefano-buosi",
+      "displayName": "Stefano Buosi",
+      "classification": "PENDING_ORIGINAL_DOCUMENT_REVIEW",
+      "exactCause": "La rilettura locale fresca dai documenti originali ha cambiato l'insieme dei blocker rispetto allo snapshot operativo persistito: aggiunti [infissi_dimensions_and_cardinality_missing:technical_dimensions], rimossi [nessuno]. L'esito complessivo resta OPERATOR_REQUIRED_LOCAL; senza verifica documentale manuale e senza replay operativo questo delta non è classificato come errore APR.",
+      "addedBlockers": [
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions"
+      ],
+      "removedBlockers": [],
+      "missingDocumentType": "abaco o documento tecnico con larghezza, altezza e quantità dei serramenti",
+      "operatorQuestion": "Per Stefano Buosi, quali sono larghezza, altezza e quantità di ogni serramento secondo il documento tecnico originale?",
+      "onboardingGap": "Richiedere all'origine un abaco strutturato con larghezza, altezza, quantità e identificativo univoco per ogni serramento."
+    },
+    {
+      "practiceId": "83d29fcc-c3d9-4c31-8058-146993ec6b12",
+      "customerKey": "prova-rivenditore-1-30-04",
+      "displayName": "prova rivenditore 1 30/04",
+      "classification": "PENDING_EXCLUSION_DECISION",
+      "exactCause": "La rilettura locale fresca dai documenti originali ha cambiato l'insieme dei blocker rispetto allo snapshot operativo persistito: aggiunti [infissi_dimensions_and_cardinality_missing:technical_dimensions], rimossi [nessuno]. L'esito complessivo resta OPERATOR_REQUIRED_LOCAL; senza verifica documentale manuale e senza replay operativo questo delta non è classificato come errore APR.",
+      "addedBlockers": [
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions"
+      ],
+      "removedBlockers": [],
+      "missingDocumentType": "abaco o documento tecnico con larghezza, altezza e quantità dei serramenti",
+      "operatorQuestion": "La pratica «prova rivenditore 1 30/04» è un test interno da aggiungere alle esclusioni permanenti?",
+      "onboardingGap": "Richiedere all'origine un abaco strutturato con larghezza, altezza, quantità e identificativo univoco per ogni serramento."
+    },
+    {
+      "practiceId": "1b6d780a-2e81-415f-9a27-c67e2f19e846",
+      "customerKey": "marco-tocchetti",
+      "displayName": "Marco Tocchetti",
+      "classification": "PENDING_ORIGINAL_DOCUMENT_REVIEW",
+      "exactCause": "La rilettura locale fresca dai documenti originali ha cambiato l'insieme dei blocker rispetto allo snapshot operativo persistito: aggiunti [nessuno], rimossi [gross_triple_reconciliation_failed:economic_sources.total]. L'esito complessivo resta OPERATOR_REQUIRED_LOCAL; senza verifica documentale manuale e senza replay operativo questo delta non è classificato come errore APR.",
+      "addedBlockers": [],
+      "removedBlockers": [
+        "gross_triple_reconciliation_failed:economic_sources.total"
+      ],
+      "missingDocumentType": null,
+      "operatorQuestion": "Per Marco Tocchetti, confermi il totale lordo delle fatture e il totale effettivamente pagato, indicando l'eventuale differenza?",
+      "onboardingGap": "Richiedere un riepilogo economico strutturato e verificabile contro fatture e pagamenti."
+    },
+    {
+      "practiceId": "58f03680-c716-42e7-ad7d-e3ceaee5573d",
+      "customerKey": "claudia-sellati",
+      "displayName": "CLAUDIA SELLATI",
+      "classification": "PENDING_ORIGINAL_DOCUMENT_REVIEW",
+      "exactCause": "La rilettura locale fresca dai documenti originali ha cambiato l'insieme dei blocker rispetto allo snapshot operativo persistito: aggiunti [infissi_dimensions_and_cardinality_missing:technical_dimensions], rimossi [nessuno]. L'esito complessivo resta OPERATOR_REQUIRED_LOCAL; senza verifica documentale manuale e senza replay operativo questo delta non è classificato come errore APR.",
+      "addedBlockers": [
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions"
+      ],
+      "removedBlockers": [],
+      "missingDocumentType": "abaco o documento tecnico con larghezza, altezza e quantità dei serramenti",
+      "operatorQuestion": "Per CLAUDIA SELLATI, quali sono larghezza, altezza e quantità di ogni serramento secondo il documento tecnico originale?",
+      "onboardingGap": "Richiedere all'origine un abaco strutturato con larghezza, altezza, quantità e identificativo univoco per ogni serramento."
+    },
+    {
+      "practiceId": "2329836b-3d7c-4e55-b5ba-f232515a2299",
+      "customerKey": "francesca-pisanu",
+      "displayName": "FRANCESCA PISANU",
+      "classification": "PENDING_ORIGINAL_DOCUMENT_REVIEW",
+      "exactCause": "La rilettura locale fresca dai documenti originali ha cambiato l'insieme dei blocker rispetto allo snapshot operativo persistito: aggiunti [nessuno], rimossi [gross_triple_reconciliation_failed:economic_sources.total, infissi_financial_triple_reconciliation_required:invoice_total]. L'esito complessivo resta OPERATOR_REQUIRED_LOCAL; senza verifica documentale manuale e senza replay operativo questo delta non è classificato come errore APR.",
+      "addedBlockers": [],
+      "removedBlockers": [
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "infissi_financial_triple_reconciliation_required:invoice_total"
+      ],
+      "missingDocumentType": "insieme completo di fatture e pagamenti riconciliabili",
+      "operatorQuestion": "Per FRANCESCA PISANU, confermi il totale lordo delle fatture e il totale effettivamente pagato, indicando l'eventuale differenza? Per FRANCESCA PISANU, qual è il totale lordo corretto delle fatture ammissibili e quali documenti compongono esattamente tale totale?",
+      "onboardingGap": "Richiedere un riepilogo economico strutturato e verificabile contro fatture e pagamenti. Richiedere tutte le fatture, inclusi acconti e saldi, e collegarle ai relativi pagamenti."
+    },
+    {
+      "practiceId": "491cf101-c6cd-4f48-9cf0-78c096d95c0e",
+      "customerKey": "mauro-leonardi",
+      "displayName": "Mauro Leonardi",
+      "classification": "PENDING_ORIGINAL_DOCUMENT_REVIEW",
+      "exactCause": "La rilettura locale fresca dai documenti originali ha cambiato l'insieme dei blocker rispetto allo snapshot operativo persistito: aggiunti [infissi_dimensions_and_cardinality_missing:technical_dimensions], rimossi [nessuno]. L'esito complessivo resta OPERATOR_REQUIRED_LOCAL; senza verifica documentale manuale e senza replay operativo questo delta non è classificato come errore APR.",
+      "addedBlockers": [
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions"
+      ],
+      "removedBlockers": [],
+      "missingDocumentType": "abaco o documento tecnico con larghezza, altezza e quantità dei serramenti",
+      "operatorQuestion": "Per Mauro Leonardi, quali sono larghezza, altezza e quantità di ogni serramento secondo il documento tecnico originale?",
+      "onboardingGap": "Richiedere all'origine un abaco strutturato con larghezza, altezza, quantità e identificativo univoco per ogni serramento."
+    },
+    {
+      "practiceId": "9f44491c-30f7-44ef-84db-14877259d716",
+      "customerKey": "caterina-claudia-garbato",
+      "displayName": "caterina Claudia garbato",
+      "classification": "PENDING_ORIGINAL_DOCUMENT_REVIEW",
+      "exactCause": "La rilettura locale fresca dai documenti originali ha cambiato l'insieme dei blocker rispetto allo snapshot operativo persistito: aggiunti [product_cardinality_form_invoice_mismatch:screenings.quantity, screening_primary_measurements_missing:screenings.dimensions], rimossi [persiana_measurement_ambiguous_1:screenings.1.dimensions]. L'esito complessivo resta OPERATOR_REQUIRED_LOCAL; senza verifica documentale manuale e senza replay operativo questo delta non è classificato come errore APR.",
+      "addedBlockers": [
+        "product_cardinality_form_invoice_mismatch:screenings.quantity",
+        "screening_primary_measurements_missing:screenings.dimensions"
+      ],
+      "removedBlockers": [
+        "persiana_measurement_ambiguous_1:screenings.1.dimensions"
+      ],
+      "missingDocumentType": "abaco o documento tecnico con misure delle schermature",
+      "operatorQuestion": "Per caterina Claudia garbato, qual è il numero corretto di schermature fisiche e quale fonte documentale lo prova? Per caterina Claudia garbato, quali sono larghezza e altezza di ciascuna schermatura secondo il documento tecnico originale?",
+      "onboardingGap": "Richiedere quantità fisiche per riga e una corrispondenza esplicita tra modulo, fattura e abaco. Rendere obbligatorie le misure primarie strutturate per ogni schermatura."
+    },
+    {
+      "practiceId": "30936ae1-80b0-46fd-813c-e1425ca33c7f",
+      "customerKey": "francesca-monti",
+      "displayName": "francesca monti",
+      "classification": "PENDING_ORIGINAL_DOCUMENT_REVIEW",
+      "exactCause": "La rilettura locale fresca dai documenti originali ha cambiato l'insieme dei blocker rispetto allo snapshot operativo persistito: aggiunti [customer_form_missing:customer_form, tax_code_missing_or_invalid:beneficiary.taxCode], rimossi [nessuno]. L'esito complessivo resta OPERATOR_REQUIRED_LOCAL; senza verifica documentale manuale e senza replay operativo questo delta non è classificato come errore APR.",
+      "addedBlockers": [
+        "customer_form_missing:customer_form",
+        "tax_code_missing_or_invalid:beneficiary.taxCode"
+      ],
+      "removedBlockers": [],
+      "missingDocumentType": "modulo cliente firmato; documento fiscale o ufficiale leggibile con codice fiscale",
+      "operatorQuestion": "Per francesca monti, è disponibile il modulo cliente firmato? Se sì, in quale allegato si trova? Qual è il codice fiscale corretto di francesca monti, come riportato su un documento fiscale o ufficiale leggibile?",
+      "onboardingGap": "Rendere obbligatorio e tipizzato il caricamento del modulo cliente firmato. Rendere obbligatorio un documento ufficiale leggibile e validare formalmente il codice fiscale in acquisizione."
+    },
+    {
+      "practiceId": "775bd8e8-f71f-4c00-b93a-eeea9ade948d",
+      "customerKey": "marian-maeschi",
+      "displayName": "Marian Maeschi",
+      "classification": "PENDING_ORIGINAL_DOCUMENT_REVIEW",
+      "exactCause": "La rilettura locale fresca dai documenti originali ha cambiato l'insieme dei blocker rispetto allo snapshot operativo persistito: aggiunti [infissi_dimensions_and_cardinality_missing:technical_dimensions], rimossi [nessuno]. L'esito complessivo resta OPERATOR_REQUIRED_LOCAL; senza verifica documentale manuale e senza replay operativo questo delta non è classificato come errore APR.",
+      "addedBlockers": [
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions"
+      ],
+      "removedBlockers": [],
+      "missingDocumentType": "abaco o documento tecnico con larghezza, altezza e quantità dei serramenti",
+      "operatorQuestion": "Per Marian Maeschi, quali sono larghezza, altezza e quantità di ogni serramento secondo il documento tecnico originale?",
+      "onboardingGap": "Richiedere all'origine un abaco strutturato con larghezza, altezza, quantità e identificativo univoco per ogni serramento."
+    },
+    {
+      "practiceId": "51ec4e1a-2600-482b-9fde-6b3976bbdbc2",
+      "customerKey": "gemma-minore",
+      "displayName": "Gemma Minore",
+      "classification": "PENDING_ORIGINAL_DOCUMENT_REVIEW",
+      "exactCause": "La rilettura locale fresca dai documenti originali ha cambiato l'insieme dei blocker rispetto allo snapshot operativo persistito: aggiunti [infissi_dimensions_and_cardinality_missing:technical_dimensions], rimossi [nessuno]. L'esito complessivo resta OPERATOR_REQUIRED_LOCAL; senza verifica documentale manuale e senza replay operativo questo delta non è classificato come errore APR.",
+      "addedBlockers": [
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions"
+      ],
+      "removedBlockers": [],
+      "missingDocumentType": "abaco o documento tecnico con larghezza, altezza e quantità dei serramenti",
+      "operatorQuestion": "Per Gemma Minore, quali sono larghezza, altezza e quantità di ogni serramento secondo il documento tecnico originale?",
+      "onboardingGap": "Richiedere all'origine un abaco strutturato con larghezza, altezza, quantità e identificativo univoco per ogni serramento."
+    },
+    {
+      "practiceId": "12c830b8-1d49-406a-b938-a37cfc68569e",
+      "customerKey": "francesco-laurelli",
+      "displayName": "FRANCESCO LAURELLI",
+      "classification": "PENDING_ORIGINAL_DOCUMENT_REVIEW",
+      "exactCause": "La rilettura locale fresca dai documenti originali ha cambiato l'insieme dei blocker rispetto allo snapshot operativo persistito: aggiunti [nessuno], rimossi [invoice_schedule_amount_missing:economic_sources.schedule.amount]. L'esito complessivo resta OPERATOR_REQUIRED_LOCAL; senza verifica documentale manuale e senza replay operativo questo delta non è classificato come errore APR.",
+      "addedBlockers": [],
+      "removedBlockers": [
+        "invoice_schedule_amount_missing:economic_sources.schedule.amount"
+      ],
+      "missingDocumentType": "fattura o scadenzario con importo della rata leggibile",
+      "operatorQuestion": "Per FRANCESCO LAURELLI, qual è l'importo esatto di ciascuna scadenza o rata riportata nei documenti originali?",
+      "onboardingGap": "Richiedere uno scadenzario completo con importo, data e riferimento fattura per ogni rata."
+    },
+    {
+      "practiceId": "c3a6a2ae-3244-4b4c-84fe-1e0bfcdd6c53",
+      "customerKey": "mattia-vatieri",
+      "displayName": "Mattia Vatieri",
+      "classification": "PENDING_ORIGINAL_DOCUMENT_REVIEW",
+      "exactCause": "La rilettura locale fresca dai documenti originali ha cambiato l'insieme dei blocker rispetto allo snapshot operativo persistito: aggiunti [infissi_dimensions_and_cardinality_missing:technical_dimensions], rimossi [nessuno]. L'esito complessivo resta OPERATOR_REQUIRED_LOCAL; senza verifica documentale manuale e senza replay operativo questo delta non è classificato come errore APR.",
+      "addedBlockers": [
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions"
+      ],
+      "removedBlockers": [],
+      "missingDocumentType": "abaco o documento tecnico con larghezza, altezza e quantità dei serramenti",
+      "operatorQuestion": "Per Mattia Vatieri, quali sono larghezza, altezza e quantità di ogni serramento secondo il documento tecnico originale?",
+      "onboardingGap": "Richiedere all'origine un abaco strutturato con larghezza, altezza, quantità e identificativo univoco per ogni serramento."
+    },
+    {
+      "practiceId": "ada3267b-29d0-4765-b15d-489e27b23ec6",
+      "customerKey": "antonino-formisabo",
+      "displayName": "Antonino Formisabo",
+      "classification": "PENDING_ORIGINAL_DOCUMENT_REVIEW",
+      "exactCause": "La rilettura locale fresca dai documenti originali ha cambiato l'insieme dei blocker rispetto allo snapshot operativo persistito: aggiunti [bank_transfer_invoice_cross_check_failed:economic_sources.bankTransfers, gross_triple_reconciliation_failed:economic_sources.total, infissi_financial_triple_reconciliation_required:invoice_total, invoice_929a8665:economic_sources], rimossi [nessuno]. L'esito complessivo resta OPERATOR_REQUIRED_LOCAL; senza verifica documentale manuale e senza replay operativo questo delta non è classificato come errore APR.",
+      "addedBlockers": [
+        "bank_transfer_invoice_cross_check_failed:economic_sources.bankTransfers",
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "infissi_financial_triple_reconciliation_required:invoice_total",
+        "invoice_929a8665:economic_sources"
+      ],
+      "removedBlockers": [],
+      "missingDocumentType": "contabile di bonifico collegabile univocamente alla fattura; insieme completo di fatture e pagamenti riconciliabili; fattura con totale economico leggibile oppure prova che il documento è uno storno non economico",
+      "operatorQuestion": "Per Antonino Formisabo, quale bonifico si riferisce a quale fattura e qual è l'importo corretto da riconciliare? Per Antonino Formisabo, confermi il totale lordo delle fatture e il totale effettivamente pagato, indicando l'eventuale differenza? Per Antonino Formisabo, qual è il totale lordo corretto delle fatture ammissibili e quali documenti compongono esattamente tale totale? Per Antonino Formisabo, il documento fiscale segnalato è una fattura economica con un totale da conteggiare oppure uno storno/non economico a zero?",
+      "onboardingGap": "Richiedere causale, CRO/TRN e riferimento fattura leggibili per ogni bonifico. Richiedere un riepilogo economico strutturato e verificabile contro fatture e pagamenti. Richiedere tutte le fatture, inclusi acconti e saldi, e collegarle ai relativi pagamenti. Classificare esplicitamente in acquisizione fatture economiche, note/storni e documenti a totale zero."
+    },
+    {
+      "practiceId": "dbdc17d6-c279-451c-a042-56d0f6b87f93",
+      "customerKey": "leo-manini",
+      "displayName": "Leo Manini",
+      "classification": "PENDING_ORIGINAL_DOCUMENT_REVIEW",
+      "exactCause": "La rilettura locale fresca dai documenti originali ha cambiato l'insieme dei blocker rispetto allo snapshot operativo persistito: aggiunti [infissi_dimensions_and_cardinality_missing:technical_dimensions], rimossi [nessuno]. L'esito complessivo resta OPERATOR_REQUIRED_LOCAL; senza verifica documentale manuale e senza replay operativo questo delta non è classificato come errore APR.",
+      "addedBlockers": [
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions"
+      ],
+      "removedBlockers": [],
+      "missingDocumentType": "abaco o documento tecnico con larghezza, altezza e quantità dei serramenti",
+      "operatorQuestion": "Per Leo Manini, quali sono larghezza, altezza e quantità di ogni serramento secondo il documento tecnico originale?",
+      "onboardingGap": "Richiedere all'origine un abaco strutturato con larghezza, altezza, quantità e identificativo univoco per ogni serramento."
+    }
+  ]
+}

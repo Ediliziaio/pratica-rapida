@@ -1,0 +1,2621 @@
+{
+  "numTotalTestSuites": 58,
+  "numPassedTestSuites": 58,
+  "numFailedTestSuites": 0,
+  "numPendingTestSuites": 0,
+  "numTotalTests": 214,
+  "numPassedTests": 214,
+  "numFailedTests": 0,
+  "numPendingTests": 0,
+  "numTodoTests": 0,
+  "startTime": 1788510883769,
+  "success": true,
+  "testResults": [
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "APR Slice 6 L1 acquisition artifact"
+          ],
+          "fullName": "APR Slice 6 L1 acquisition artifact sigilla documenti e pagine complete senza eseguire acquisizione",
+          "status": "passed",
+          "title": "sigilla documenti e pagine complete senza eseguire acquisizione",
+          "duration": 2.1836250000000064,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "APR Slice 6 L1 acquisition artifact"
+          ],
+          "fullName": "APR Slice 6 L1 acquisition artifact propaga pagine illeggibili e mancanti come blocchi L1 espliciti",
+          "status": "passed",
+          "title": "propaga pagine illeggibili e mancanti come blocchi L1 espliciti",
+          "duration": 0.330208999999968,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "APR Slice 6 L1 acquisition artifact"
+          ],
+          "fullName": "APR Slice 6 L1 acquisition artifact e deterministico rispetto all'ordine di documenti e pagine",
+          "status": "passed",
+          "title": "e deterministico rispetto all'ordine di documenti e pagine",
+          "duration": 7.796041999999943,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "APR Slice 6 L1 acquisition artifact"
+          ],
+          "fullName": "APR Slice 6 L1 acquisition artifact rifiuta input che fingono contenuto per una pagina mancante",
+          "status": "passed",
+          "title": "rifiuta input che fingono contenuto per una pagina mancante",
+          "duration": 0.6121250000001055,
+          "failureMessages": [],
+          "meta": {}
+        }
+      ],
+      "startTime": 1788510884952,
+      "endTime": 1788510884963.612,
+      "status": "passed",
+      "message": "",
+      "name": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/scripts/enea-shadow-runner/aprAcquisitionLevelObservation.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "APR staged bundle hash evidence"
+          ],
+          "fullName": "APR staged bundle hash evidence calcola SHA-256 reali e mantiene vuoti i campi installati",
+          "status": "passed",
+          "title": "calcola SHA-256 reali e mantiene vuoti i campi installati",
+          "duration": 8.847374999999943,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "APR staged bundle hash evidence"
+          ],
+          "fullName": "APR staged bundle hash evidence rifiuta un ruolo mancante nello staging",
+          "status": "passed",
+          "title": "rifiuta un ruolo mancante nello staging",
+          "duration": 4.945749999999975,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "APR staged bundle hash evidence"
+          ],
+          "fullName": "APR staged bundle hash evidence rifiuta un bundle modificato dopo il calcolo",
+          "status": "passed",
+          "title": "rifiuta un bundle modificato dopo il calcolo",
+          "duration": 1.9950830000000224,
+          "failureMessages": [],
+          "meta": {}
+        }
+      ],
+      "startTime": 1788510884963,
+      "endTime": 1788510884978.995,
+      "status": "passed",
+      "message": "",
+      "name": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/scripts/enea-shadow-runner/aprBundleHashEvidence.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "APR fixed input corpus fingerprint"
+          ],
+          "fullName": "APR fixed input corpus fingerprint accetta esattamente 40 casi unici e produce lo stesso fingerprint indipendentemente dall'ordine",
+          "status": "passed",
+          "title": "accetta esattamente 40 casi unici e produce lo stesso fingerprint indipendentemente dall'ordine",
+          "duration": 10.615125000000035,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "APR fixed input corpus fingerprint"
+          ],
+          "fullName": "APR fixed input corpus fingerprint rifiuta un corpus di 39 casi",
+          "status": "passed",
+          "title": "rifiuta un corpus di 39 casi",
+          "duration": 0.5185420000000249,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "APR fixed input corpus fingerprint"
+          ],
+          "fullName": "APR fixed input corpus fingerprint rifiuta un corpus di 41 casi",
+          "status": "passed",
+          "title": "rifiuta un corpus di 41 casi",
+          "duration": 0.24583300000006147,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "APR fixed input corpus fingerprint"
+          ],
+          "fullName": "APR fixed input corpus fingerprint rifiuta customerKey duplicati",
+          "status": "passed",
+          "title": "rifiuta customerKey duplicati",
+          "duration": 0.4779160000000502,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "APR fixed input corpus fingerprint"
+          ],
+          "fullName": "APR fixed input corpus fingerprint distingue il corpus baseline quando una fonte originaria cambia",
+          "status": "passed",
+          "title": "distingue il corpus baseline quando una fonte originaria cambia",
+          "duration": 1.226541999999995,
+          "failureMessages": [],
+          "meta": {}
+        }
+      ],
+      "startTime": 1788510884933,
+      "endTime": 1788510884946.2266,
+      "status": "passed",
+      "message": "",
+      "name": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/scripts/enea-shadow-runner/aprCorpusFingerprint.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "discovery CRM misto 40 pratiche"
+          ],
+          "fullName": "discovery CRM misto 40 pratiche congela esattamente 20 schermature e 20 Infissi, con pipeline e ordine deterministici",
+          "status": "passed",
+          "title": "congela esattamente 20 schermature e 20 Infissi, con pipeline e ordine deterministici",
+          "duration": 24.69779099999994,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "discovery CRM misto 40 pratiche"
+          ],
+          "fullName": "discovery CRM misto 40 pratiche non arma una composizione incompleta ed esclude Beatrice Ciotta",
+          "status": "passed",
+          "title": "non arma una composizione incompleta ed esclude Beatrice Ciotta",
+          "duration": 10.172374999999988,
+          "failureMessages": [],
+          "meta": {}
+        }
+      ],
+      "startTime": 1788510885089,
+      "endTime": 1788510885124.1724,
+      "status": "passed",
+      "message": "",
+      "name": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/scripts/enea-shadow-runner/aprCrmArchivedMixedDiscovery.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "PersistentAprEneaRealReadOnlyAttach"
+          ],
+          "fullName": "PersistentAprEneaRealReadOnlyAttach registra il blocco globale del trasporto con quattro prove e resta idempotente al riavvio",
+          "status": "passed",
+          "title": "registra il blocco globale del trasporto con quattro prove e resta idempotente al riavvio",
+          "duration": 17.139374999999973,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "PersistentAprEneaRealReadOnlyAttach"
+          ],
+          "fullName": "PersistentAprEneaRealReadOnlyAttach completa solo con entrambe le schede e i DOM osservati senza azioni",
+          "status": "passed",
+          "title": "completa solo con entrambe le schede e i DOM osservati senza azioni",
+          "duration": 15.46854099999996,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "PersistentAprEneaRealReadOnlyAttach"
+          ],
+          "fullName": "PersistentAprEneaRealReadOnlyAttach sostituisce il blocco trasporto con il blocco schede mancanti dopo il riaggancio riuscito",
+          "status": "passed",
+          "title": "sostituisce il blocco trasporto con il blocco schede mancanti dopo il riaggancio riuscito",
+          "duration": 20.7433749999999,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "PersistentAprEneaRealReadOnlyAttach"
+          ],
+          "fullName": "PersistentAprEneaRealReadOnlyAttach registra la caduta del canale dopo un attach riuscito senza confonderla con logout",
+          "status": "passed",
+          "title": "registra la caduta del canale dopo un attach riuscito senza confonderla con logout",
+          "duration": 11.94379200000003,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "PersistentAprEneaRealReadOnlyAttach"
+          ],
+          "fullName": "PersistentAprEneaRealReadOnlyAttach rifiuta un falso successo senza DOM ENEA",
+          "status": "passed",
+          "title": "rifiuta un falso successo senza DOM ENEA",
+          "duration": 5.6983750000000555,
+          "failureMessages": [],
+          "meta": {}
+        }
+      ],
+      "startTime": 1788510886988,
+      "endTime": 1788510887058.6985,
+      "status": "passed",
+      "message": "",
+      "name": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/scripts/enea-shadow-runner/aprEneaRealReadOnlyAttach.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "APR Slice 5 five-level case matrix"
+          ],
+          "fullName": "APR Slice 5 five-level case matrix aggrega una pratica risolta attraverso L1-L4 e lascia L5 non applicabile",
+          "status": "passed",
+          "title": "aggrega una pratica risolta attraverso L1-L4 e lascia L5 non applicabile",
+          "duration": 12.35525000000007,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "APR Slice 5 five-level case matrix"
+          ],
+          "fullName": "APR Slice 5 five-level case matrix propaga un blocco L3 senza nasconderlo o tentare L4",
+          "status": "passed",
+          "title": "propaga un blocco L3 senza nasconderlo o tentare L4",
+          "duration": 3.0921670000000177,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "APR Slice 5 five-level case matrix"
+          ],
+          "fullName": "APR Slice 5 five-level case matrix propaga una pagina L1 mancante e rende i livelli successivi non applicabili",
+          "status": "passed",
+          "title": "propaga una pagina L1 mancante e rende i livelli successivi non applicabili",
+          "duration": 0.25404100000014296,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "APR Slice 5 five-level case matrix"
+          ],
+          "fullName": "APR Slice 5 five-level case matrix segnala come incoerenza L3 resolved ma L4 bloccato",
+          "status": "passed",
+          "title": "segnala come incoerenza L3 resolved ma L4 bloccato",
+          "duration": 1.7636250000000473,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "APR Slice 5 five-level case matrix"
+          ],
+          "fullName": "APR Slice 5 five-level case matrix segnala simmetricamente L1 blocked quando L2 e gia presente",
+          "status": "passed",
+          "title": "segnala simmetricamente L1 blocked quando L2 e gia presente",
+          "duration": 1.7047499999998763,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "APR Slice 5 five-level case matrix"
+          ],
+          "fullName": "APR Slice 5 five-level case matrix produce esattamente la stessa matrice per gli stessi artefatti",
+          "status": "passed",
+          "title": "produce esattamente la stessa matrice per gli stessi artefatti",
+          "duration": 3.5006249999999,
+          "failureMessages": [],
+          "meta": {}
+        }
+      ],
+      "startTime": 1788510887279,
+      "endTime": 1788510887302.5007,
+      "status": "passed",
+      "message": "",
+      "name": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/scripts/enea-shadow-runner/aprFiveLevelCaseMatrix.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "APR Slice 5 matrix baseline replay"
+          ],
+          "fullName": "APR Slice 5 matrix baseline replay ripete il baseline senza differenze e mantiene il gate 8 NOT_RUN",
+          "status": "passed",
+          "title": "ripete il baseline senza differenze e mantiene il gate 8 NOT_RUN",
+          "duration": 16.068791000000033,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "APR Slice 5 matrix baseline replay"
+          ],
+          "fullName": "APR Slice 5 matrix baseline replay conta ogni differenza come regressione senza classificazioni permissive",
+          "status": "passed",
+          "title": "conta ogni differenza come regressione senza classificazioni permissive",
+          "duration": 3.290208000000007,
+          "failureMessages": [],
+          "meta": {}
+        }
+      ],
+      "startTime": 1788510887091,
+      "endTime": 1788510887110.2903,
+      "status": "passed",
+      "message": "",
+      "name": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/scripts/enea-shadow-runner/aprFiveLevelCaseMatrixReplay.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "APR Slice 1 contracts L2/L3"
+          ],
+          "fullName": "APR Slice 1 contracts L2/L3 positivo: collega una decisione parallela a fatti canonici e regole esistenti",
+          "status": "passed",
+          "title": "positivo: collega una decisione parallela a fatti canonici e regole esistenti",
+          "duration": 2.1644999999998618,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "APR Slice 1 contracts L2/L3"
+          ],
+          "fullName": "APR Slice 1 contracts L2/L3 negativo: rifiuta fatti osservati privi di fonte e regole inesistenti",
+          "status": "passed",
+          "title": "negativo: rifiuta fatti osservati privi di fonte e regole inesistenti",
+          "duration": 0.5980409999999665,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "APR Slice 1 contracts L2/L3"
+          ],
+          "fullName": "APR Slice 1 contracts L2/L3 limite: conserva un conflitto L2 senza risolverlo implicitamente",
+          "status": "passed",
+          "title": "limite: conserva un conflitto L2 senza risolverlo implicitamente",
+          "duration": 7.71166600000015,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "APR Slice 1 contracts L2/L3"
+          ],
+          "fullName": "APR Slice 1 contracts L2/L3 determinismo: ordine di fatti, fonti e decisioni non cambia gli artifactId",
+          "status": "passed",
+          "title": "determinismo: ordine di fatti, fonti e decisioni non cambia gli artifactId",
+          "duration": 0.715874999999869,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "APR Slice 1 contracts L2/L3"
+          ],
+          "fullName": "APR Slice 1 contracts L2/L3 immutabilita: congela ricorsivamente artefatto, payload e collezioni",
+          "status": "passed",
+          "title": "immutabilita: congela ricorsivamente artefatto, payload e collezioni",
+          "duration": 0.288124999999809,
+          "failureMessages": [],
+          "meta": {}
+        }
+      ],
+      "startTime": 1788510886976,
+      "endTime": 1788510886988.288,
+      "status": "passed",
+      "message": "",
+      "name": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/scripts/enea-shadow-runner/aprLevelSeparationContracts.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "APR monotonic bootstrap baseline"
+          ],
+          "fullName": "APR monotonic bootstrap baseline congela una baseline da un commit precedente senza spostare il checkout corrente",
+          "status": "passed",
+          "title": "congela una baseline da un commit precedente senza spostare il checkout corrente",
+          "duration": 386.70833400000004,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "APR monotonic bootstrap baseline"
+          ],
+          "fullName": "APR monotonic bootstrap baseline rifiuta un working tree sporco",
+          "status": "passed",
+          "title": "rifiuta un working tree sporco",
+          "duration": 222.0435,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "APR monotonic bootstrap baseline"
+          ],
+          "fullName": "APR monotonic bootstrap baseline rifiuta output incompleti rispetto alle 40 pratiche congelate",
+          "status": "passed",
+          "title": "rifiuta output incompleti rispetto alle 40 pratiche congelate",
+          "duration": 215.27587500000004,
+          "failureMessages": [],
+          "meta": {}
+        }
+      ],
+      "startTime": 1788510889100,
+      "endTime": 1788510889924.276,
+      "status": "passed",
+      "message": "",
+      "name": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/scripts/enea-shadow-runner/aprMonotonicBootstrapBaseline.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "APR monotonic learning gate"
+          ],
+          "fullName": "APR monotonic learning gate accetta apprendimento generale soltanto se migliora almeno un caso senza regressioni",
+          "status": "passed",
+          "title": "accetta apprendimento generale soltanto se migliora almeno un caso senza regressioni",
+          "duration": 1.670833000000016,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "APR monotonic learning gate"
+          ],
+          "fullName": "APR monotonic learning gate rifiuta una correzione che non migliora il corpus",
+          "status": "passed",
+          "title": "rifiuta una correzione che non migliora il corpus",
+          "duration": 0.31379199999992125,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "APR monotonic learning gate"
+          ],
+          "fullName": "APR monotonic learning gate rifiuta perdita di casi, regressione READY e modifica silenziosa del payload",
+          "status": "passed",
+          "title": "rifiuta perdita di casi, regressione READY e modifica silenziosa del payload",
+          "duration": 0.2679159999999001,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "APR monotonic learning gate"
+          ],
+          "fullName": "APR monotonic learning gate rifiuta confronti tra corpus differenti",
+          "status": "passed",
+          "title": "rifiuta confronti tra corpus differenti",
+          "duration": 0.4742919999999913,
+          "failureMessages": [],
+          "meta": {}
+        }
+      ],
+      "startTime": 1788510889135,
+      "endTime": 1788510889137.4744,
+      "status": "passed",
+      "message": "",
+      "name": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/scripts/enea-shadow-runner/aprMonotonicLearningGate.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "gate sequencer recovery_queued con prova server"
+          ],
+          "fullName": "gate sequencer recovery_queued con prova server accetta una sola prova not_saved sulla stessa bozza con budget residuo pari a uno",
+          "status": "passed",
+          "title": "accetta una sola prova not_saved sulla stessa bozza con budget residuo pari a uno",
+          "duration": 1.180291000000011,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "gate sequencer recovery_queued con prova server"
+          ],
+          "fullName": "gate sequencer recovery_queued con prova server fallisce chiuso se la prova non e not_saved o il budget residuo non e uno",
+          "status": "passed",
+          "title": "fallisce chiuso se la prova non e not_saved o il budget residuo non e uno",
+          "duration": 0.3728330000000142,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "gate sequencer recovery_queued con prova server"
+          ],
+          "fullName": "gate sequencer recovery_queued con prova server mantiene probing e recovery_queued non terminali fino alla ripresa del worker",
+          "status": "passed",
+          "title": "mantiene probing e recovery_queued non terminali fino alla ripresa del worker",
+          "duration": 0.2895409999999856,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "gate sequencer recovery_queued con prova server"
+          ],
+          "fullName": "gate sequencer recovery_queued con prova server fallisce chiuso se probing o recovery_queued contraddicono checkpoint e budget",
+          "status": "passed",
+          "title": "fallisce chiuso se probing o recovery_queued contraddicono checkpoint e budget",
+          "duration": 0.7401669999999285,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "gate sequencer recovery_queued con prova server"
+          ],
+          "fullName": "gate sequencer recovery_queued con prova server riapre il worker soltanto con due prove canoniche indipendenti di assenza delle righe",
+          "status": "passed",
+          "title": "riapre il worker soltanto con due prove canoniche indipendenti di assenza delle righe",
+          "duration": 1.3322500000000446,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "gate sequencer recovery_queued con prova server"
+          ],
+          "fullName": "gate sequencer recovery_queued con prova server mantiene terminale fail-closed se una prova di assenza non e canonica o il budget e consumato",
+          "status": "passed",
+          "title": "mantiene terminale fail-closed se una prova di assenza non e canonica o il budget e consumato",
+          "duration": 0.6286249999999427,
+          "failureMessages": [],
+          "meta": {}
+        }
+      ],
+      "startTime": 1788510889124,
+      "endTime": 1788510889128.6287,
+      "status": "passed",
+      "message": "",
+      "name": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/scripts/enea-shadow-runner/aprSequencerRecoveryQueuedGate.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "snapshot terminale APR atomico e condiviso"
+          ],
+          "fullName": "snapshot terminale APR atomico e condiviso persiste revisioni atomiche e le rende leggibili da una root indipendente",
+          "status": "passed",
+          "title": "persiste revisioni atomiche e le rende leggibili da una root indipendente",
+          "duration": 22.83120800000006,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "snapshot terminale APR atomico e condiviso"
+          ],
+          "fullName": "snapshot terminale APR atomico e condiviso rifiuta identificativi non confinati allo store",
+          "status": "passed",
+          "title": "rifiuta identificativi non confinati allo store",
+          "duration": 0.8164580000000115,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "snapshot terminale APR atomico e condiviso"
+          ],
+          "fullName": "snapshot terminale APR atomico e condiviso persiste stopped_by_operator senza introdurre un quinto stato pubblico",
+          "status": "passed",
+          "title": "persiste stopped_by_operator senza introdurre un quinto stato pubblico",
+          "duration": 7.94016600000009,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "snapshot terminale APR atomico e condiviso"
+          ],
+          "fullName": "snapshot terminale APR atomico e condiviso preserva il verdetto terminale del sequencer contro una rilettura locale obsoleta",
+          "status": "passed",
+          "title": "preserva il verdetto terminale del sequencer contro una rilettura locale obsoleta",
+          "duration": 7.5274579999999105,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "snapshot terminale APR atomico e condiviso"
+          ],
+          "fullName": "snapshot terminale APR atomico e condiviso preserva caseTruth anche se la rilettura eredita la stessa fonte terminale",
+          "status": "passed",
+          "title": "preserva caseTruth anche se la rilettura eredita la stessa fonte terminale",
+          "duration": 8.016124999999988,
+          "failureMessages": [],
+          "meta": {}
+        }
+      ],
+      "startTime": 1788510889173,
+      "endTime": 1788510889221.016,
+      "status": "passed",
+      "message": "",
+      "name": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/scripts/enea-shadow-runner/aprTerminalObservability.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "watchdog APR persistente"
+          ],
+          "fullName": "watchdog APR persistente distingue IDLE da WORKING e rende visibili pratica, fase e prossima azione",
+          "status": "passed",
+          "title": "distingue IDLE da WORKING e rende visibili pratica, fase e prossima azione",
+          "duration": 18.94079099999999,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "watchdog APR persistente"
+          ],
+          "fullName": "watchdog APR persistente richiede un solo riavvio dopo cinque minuti senza avanzamento e ne verifica la ripresa",
+          "status": "passed",
+          "title": "richiede un solo riavvio dopo cinque minuti senza avanzamento e ne verifica la ripresa",
+          "duration": 35.153749999999945,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "watchdog APR persistente"
+          ],
+          "fullName": "watchdog APR persistente isola OPERATOR_REQUIRED e recupera un processo morto anche con coda vuota",
+          "status": "passed",
+          "title": "isola OPERATOR_REQUIRED e recupera un processo morto anche con coda vuota",
+          "duration": 24.301458000000025,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "watchdog APR persistente"
+          ],
+          "fullName": "watchdog APR persistente dopo il riavvio conserva TECHNICAL_BLOCK e la prossima azione del safety gate",
+          "status": "passed",
+          "title": "dopo il riavvio conserva TECHNICAL_BLOCK e la prossima azione del safety gate",
+          "duration": 26.867458000000056,
+          "failureMessages": [],
+          "meta": {}
+        }
+      ],
+      "startTime": 1788510891643,
+      "endTime": 1788510891748.8674,
+      "status": "passed",
+      "message": "",
+      "name": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/scripts/enea-shadow-runner/aprWatchdog.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "ciclo autonomo locale"
+          ],
+          "fullName": "ciclo autonomo locale lavora l'intero piano anche quando il primo caso genera un blocco",
+          "status": "passed",
+          "title": "lavora l'intero piano anche quando il primo caso genera un blocco",
+          "duration": 117.659625,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "ciclo autonomo locale"
+          ],
+          "fullName": "ciclo autonomo locale traduce un errore del gestore in blocco auditabile e continua",
+          "status": "passed",
+          "title": "traduce un errore del gestore in blocco auditabile e continua",
+          "duration": 91.98704100000009,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "ciclo autonomo locale"
+          ],
+          "fullName": "ciclo autonomo locale ferma globalmente la coda se browser o sessione non sono pronti, senza reclamare clienti",
+          "status": "passed",
+          "title": "ferma globalmente la coda se browser o sessione non sono pronti, senza reclamare clienti",
+          "duration": 29.89474999999993,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "ciclo autonomo locale"
+          ],
+          "fullName": "ciclo autonomo locale riarma il piano quando il gate globale torna verificato",
+          "status": "passed",
+          "title": "riarma il piano quando il gate globale torna verificato",
+          "duration": 95.15237499999989,
+          "failureMessages": [],
+          "meta": {}
+        }
+      ],
+      "startTime": 1788510891648,
+      "endTime": 1788510891983.1523,
+      "status": "passed",
+      "message": "",
+      "name": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/scripts/enea-shadow-runner/autonomousExecutionLoop.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "prova server JSON indipendente delle pagine annidate"
+          ],
+          "fullName": "prova server JSON indipendente delle pagine annidate conferma soltanto il sottoalbero generatore con tutti i valori attesi",
+          "status": "passed",
+          "title": "conferma soltanto il sottoalbero generatore con tutti i valori attesi",
+          "duration": 1.4038750000000846,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "prova server JSON indipendente delle pagine annidate"
+          ],
+          "fullName": "prova server JSON indipendente delle pagine annidate fallisce chiuso se HTTP/JSON contiene il generatore ma manca un valore persistito",
+          "status": "passed",
+          "title": "fallisce chiuso se HTTP/JSON contiene il generatore ma manca un valore persistito",
+          "duration": 0.3919580000000451,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "prova server JSON indipendente delle pagine annidate"
+          ],
+          "fullName": "prova server JSON indipendente delle pagine annidate conserva il corpo breve che distingue wrapper/errore e oscura i payload lunghi",
+          "status": "passed",
+          "title": "conserva il corpo breve che distingue wrapper/errore e oscura i payload lunghi",
+          "duration": 0.36637500000006185,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "prova server JSON indipendente delle pagine annidate"
+          ],
+          "fullName": "prova server JSON indipendente delle pagine annidate acquisisce le risposte JSON del caricamento GET host senza indovinare un endpoint",
+          "status": "passed",
+          "title": "acquisisce le risposte JSON del caricamento GET host senza indovinare un endpoint",
+          "duration": 1.0995830000000524,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "polling read-only resiliente ai remount React"
+          ],
+          "fullName": "polling read-only resiliente ai remount React termina alla prima lettura positiva senza lasciare Promise nel renderer",
+          "status": "passed",
+          "title": "termina alla prima lettura positiva senza lasciare Promise nel renderer",
+          "duration": 0.19154100000002927,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "polling read-only resiliente ai remount React"
+          ],
+          "fullName": "polling read-only resiliente ai remount React fallisce chiuso dopo il numero dichiarato di probe",
+          "status": "passed",
+          "title": "fallisce chiuso dopo il numero dichiarato di probe",
+          "duration": 0.10091700000009496,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "driver Chrome persistente di APR"
+          ],
+          "fullName": "driver Chrome persistente di APR riusa una sola connessione CDP per dieci keepalive e la chiude allo stop del worker",
+          "status": "passed",
+          "title": "riusa una sola connessione CDP per dieci keepalive e la chiude allo stop del worker",
+          "duration": 2372.731292,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "driver Chrome persistente di APR"
+          ],
+          "fullName": "driver Chrome persistente di APR chiude la connessione CDP trattenuta quando il keepalive fallisce",
+          "status": "passed",
+          "title": "chiude la connessione CDP trattenuta quando il keepalive fallisce",
+          "duration": 12.514874999999847,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "driver Chrome persistente di APR"
+          ],
+          "fullName": "driver Chrome persistente di APR riconcilia prima la residenza e poi la nascita dopo un remount React, senza includere campi concordanti",
+          "status": "passed",
+          "title": "riconcilia prima la residenza e poi la nascita dopo un remount React, senza includere campi concordanti",
+          "duration": 0.3152500000001055,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "driver Chrome persistente di APR"
+          ],
+          "fullName": "driver Chrome persistente di APR usa un prefisso di ricerca solo per ottenere la voce ENEA autorevole quando la fonte omette l'apostrofo",
+          "status": "passed",
+          "title": "usa un prefisso di ricerca solo per ottenere la voce ENEA autorevole quando la fonte omette l'apostrofo",
+          "duration": 0.7034579999999551,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "driver Chrome persistente di APR"
+          ],
+          "fullName": "driver Chrome persistente di APR normalizza i costi ENEA italiani senza confondere separatori e decimali",
+          "status": "passed",
+          "title": "normalizza i costi ENEA italiani senza confondere separatori e decimali",
+          "duration": 0.12883300000021336,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "driver Chrome persistente di APR"
+          ],
+          "fullName": "driver Chrome persistente di APR verifica l'idratazione server con sonde brevi senza una Runtime.evaluate lunga",
+          "status": "passed",
+          "title": "verifica l'idratazione server con sonde brevi senza una Runtime.evaluate lunga",
+          "duration": 0.13666700000021592,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "driver Chrome persistente di APR"
+          ],
+          "fullName": "driver Chrome persistente di APR riconosce presenza, assenza e conflitto nella tabella Altri beneficiari",
+          "status": "passed",
+          "title": "riconosce presenza, assenza e conflitto nella tabella Altri beneficiari",
+          "duration": 0.2058750000001055,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "driver Chrome persistente di APR"
+          ],
+          "fullName": "driver Chrome persistente di APR inserisce il beneficiario di fattura una sola volta e lo rilegge dopo GET",
+          "status": "passed",
+          "title": "inserisce il beneficiario di fattura una sola volta e lo rilegge dopo GET",
+          "duration": 20681.841333,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "driver Chrome persistente di APR"
+          ],
+          "fullName": "driver Chrome persistente di APR consegna lo stesso intento con Space solo quando il pointer non ha prodotto alcuna mutazione",
+          "status": "passed",
+          "title": "consegna lo stesso intento con Space solo quando il pointer non ha prodotto alcuna mutazione",
+          "duration": 9459.313417000005,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "driver Chrome persistente di APR"
+          ],
+          "fullName": "driver Chrome persistente di APR non ripete l'attivazione quando il pointer ha gia prodotto una richiesta mutativa",
+          "status": "passed",
+          "title": "non ripete l'attivazione quando il pointer ha gia prodotto una richiesta mutativa",
+          "duration": 14403.765917000004,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "driver Chrome persistente di APR"
+          ],
+          "fullName": "driver Chrome persistente di APR riconosce una sola riga schermatura dal contenuto tecnico anche quando l'indice ordinale non è più disponibile",
+          "status": "passed",
+          "title": "riconosce una sola riga schermatura dal contenuto tecnico anche quando l'indice ordinale non è più disponibile",
+          "duration": 0.9082909999997355,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "driver Chrome persistente di APR"
+          ],
+          "fullName": "driver Chrome persistente di APR usa il classificatore condiviso anche nella verifica immediata post-Salva",
+          "status": "passed",
+          "title": "usa il classificatore condiviso anche nella verifica immediata post-Salva",
+          "duration": 0.6784170000028098,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "driver Chrome persistente di APR"
+          ],
+          "fullName": "driver Chrome persistente di APR rifiuta una bozza finale che ha perso un prodotto anche se tutti i checkpoint intermedi erano verdi",
+          "status": "passed",
+          "title": "rifiuta una bozza finale che ha perso un prodotto anche se tutti i checkpoint intermedi erano verdi",
+          "duration": 0.2235419999997248,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "driver Chrome persistente di APR"
+          ],
+          "fullName": "driver Chrome persistente di APR richiede una riga server distinta per ogni prodotto fisico e confronta il costo numericamente",
+          "status": "passed",
+          "title": "richiede una riga server distinta per ogni prodotto fisico e confronta il costo numericamente",
+          "duration": 0.196749999995518,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "driver Chrome persistente di APR"
+          ],
+          "fullName": "driver Chrome persistente di APR verifica semanticamente che il totale sia passato dal 50% al 36% senza cambiare il totale",
+          "status": "passed",
+          "title": "verifica semanticamente che il totale sia passato dal 50% al 36% senza cambiare il totale",
+          "duration": 0.3968749999985448,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "driver Chrome persistente di APR"
+          ],
+          "fullName": "driver Chrome persistente di APR prepara, salva una volta e rilegge da GET l'allocazione generale al 36%",
+          "status": "passed",
+          "title": "prepara, salva una volta e rilegge da GET l'allocazione generale al 36%",
+          "duration": 5476.734250000001,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "driver Chrome persistente di APR"
+          ],
+          "fullName": "driver Chrome persistente di APR riconosce il redirect SPID esterno senza confonderlo con una scheda ENEA mancante",
+          "status": "passed",
+          "title": "riconosce il redirect SPID esterno senza confonderlo con una scheda ENEA mancante",
+          "duration": 0.809000000001106,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "driver Chrome persistente di APR"
+          ],
+          "fullName": "driver Chrome persistente di APR non apre una nuova scheda ENEA mentre il target corrente è sul provider SPID",
+          "status": "passed",
+          "title": "non apre una nuova scheda ENEA mentre il target corrente è sul provider SPID",
+          "duration": 8.893541999997979,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "driver Chrome persistente di APR"
+          ],
+          "fullName": "driver Chrome persistente di APR riclassifica come viaggio SPID la race in cui il target ENEA cambia origine durante verifySession",
+          "status": "passed",
+          "title": "riclassifica come viaggio SPID la race in cui il target ENEA cambia origine durante verifySession",
+          "duration": 6.176915999996709,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "driver Chrome persistente di APR"
+          ],
+          "fullName": "driver Chrome persistente di APR non riclassifica un'origine estranea quando esiste ancora un target ENEA controllabile",
+          "status": "passed",
+          "title": "non riclassifica un'origine estranea quando esiste ancora un target ENEA controllabile",
+          "duration": 6.205542000003334,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "driver Chrome persistente di APR"
+          ],
+          "fullName": "driver Chrome persistente di APR prova l'autenticazione dalla capability dashboard quando la root ENEA è ambigua",
+          "status": "passed",
+          "title": "prova l'autenticazione dalla capability dashboard quando la root ENEA è ambigua",
+          "duration": 2035.4113330000037,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "driver Chrome persistente di APR"
+          ],
+          "fullName": "driver Chrome persistente di APR mantiene la sessione dalla pagina ENEA autenticata con la sola capability read-only",
+          "status": "passed",
+          "title": "mantiene la sessione dalla pagina ENEA autenticata con la sola capability read-only",
+          "duration": 2073.6378750000003,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "driver Chrome persistente di APR"
+          ],
+          "fullName": "driver Chrome persistente di APR riconosce la root ENEA autenticata dal controllo Esci senza dipendere dal percorso dashboard",
+          "status": "passed",
+          "title": "riconosce la root ENEA autenticata dal controllo Esci senza dipendere dal percorso dashboard",
+          "duration": 2022.6160000000018,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "driver Chrome persistente di APR"
+          ],
+          "fullName": "driver Chrome persistente di APR non scambia il solo percorso dashboard per prova di autenticazione o logout",
+          "status": "passed",
+          "title": "non scambia il solo percorso dashboard per prova di autenticazione o logout",
+          "duration": 7114.359916000001,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "driver Chrome persistente di APR"
+          ],
+          "fullName": "driver Chrome persistente di APR prova il logout solo quando il server respinge la dashboard verso il gateway pubblico",
+          "status": "passed",
+          "title": "prova il logout solo quando il server respinge la dashboard verso il gateway pubblico",
+          "duration": 3197.78125,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "driver Chrome persistente di APR"
+          ],
+          "fullName": "driver Chrome persistente di APR recupera la prova DOM dalla dashboard SPA con una sola navigazione GET sicura",
+          "status": "passed",
+          "title": "recupera la prova DOM dalla dashboard SPA con una sola navigazione GET sicura",
+          "duration": 2075.0154170000023,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "driver Chrome persistente di APR"
+          ],
+          "fullName": "driver Chrome persistente di APR riconosce una bozza completa dalla catena durevole di prove server e rifiuta catene incomplete",
+          "status": "passed",
+          "title": "riconosce una bozza completa dalla catena durevole di prove server e rifiuta catene incomplete",
+          "duration": 1.3140830000047572,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "driver Chrome persistente di APR"
+          ],
+          "fullName": "driver Chrome persistente di APR riconosce una riga screening recuperata e verificata read-only prima del Salva esterno",
+          "status": "passed",
+          "title": "riconosce una riga screening recuperata e verificata read-only prima del Salva esterno",
+          "duration": 0.40799999999580905,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "driver Chrome persistente di APR"
+          ],
+          "fullName": "driver Chrome persistente di APR riconosce la catena durevole Infissi con generatore annidato, righe tecniche 1:1 e Salva esterni",
+          "status": "passed",
+          "title": "riconosce la catena durevole Infissi con generatore annidato, righe tecniche 1:1 e Salva esterni",
+          "duration": 1.1497090000048047,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "driver Chrome persistente di APR"
+          ],
+          "fullName": "driver Chrome persistente di APR certifica la cardinalità Infissi totale anche quando la tabella server è paginata",
+          "status": "passed",
+          "title": "certifica la cardinalità Infissi totale anche quando la tabella server è paginata",
+          "duration": 0.2268329999933485,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "driver Chrome persistente di APR"
+          ],
+          "fullName": "driver Chrome persistente di APR traduce il vettore energetico elettrico nella riga tecnica Altro senza cambiare gli altri generatori",
+          "status": "passed",
+          "title": "traduce il vettore energetico elettrico nella riga tecnica Altro senza cambiare gli altri generatori",
+          "duration": 0.1667089999973541,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "driver Chrome persistente di APR"
+          ],
+          "fullName": "driver Chrome persistente di APR prova in sola lettura l'assenza delle vecchie bozze prima di un repeat-test",
+          "status": "passed",
+          "title": "prova in sola lettura l'assenza delle vecchie bozze prima di un repeat-test",
+          "duration": 2076.849332999991,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "driver Chrome persistente di APR"
+          ],
+          "fullName": "driver Chrome persistente di APR ritira la mappatura locale cancellata solo con prova di assenza server e consente una nuova generazione",
+          "status": "passed",
+          "title": "ritira la mappatura locale cancellata solo con prova di assenza server e consente una nuova generazione",
+          "duration": 2167.08875000001,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "driver Chrome persistente di APR"
+          ],
+          "fullName": "driver Chrome persistente di APR attende mount React e usa un solo clic fisico attendibile sulla route Beneficiario",
+          "status": "passed",
+          "title": "attende mount React e usa un solo clic fisico attendibile sulla route Beneficiario",
+          "duration": 21010.638416999995,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "driver Chrome persistente di APR"
+          ],
+          "fullName": "driver Chrome persistente di APR serializza gli onChange dei campi che condividono lo stato React prima dell'unico Salva",
+          "status": "passed",
+          "title": "serializza gli onChange dei campi che condividono lo stato React prima dell'unico Salva",
+          "duration": 20416.184083,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "driver Chrome persistente di APR"
+          ],
+          "fullName": "driver Chrome persistente di APR misura Salva dopo lo scroll e non clicca coordinate fuori viewport",
+          "status": "passed",
+          "title": "misura Salva dopo lo scroll e non clicca coordinate fuori viewport",
+          "duration": 21060.518790999995,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "driver Chrome persistente di APR"
+          ],
+          "fullName": "driver Chrome persistente di APR ridistribuisce lo stesso intento Salva via tastiera solo quando il primo clic non produce alcuna mutazione",
+          "status": "passed",
+          "title": "ridistribuisce lo stesso intento Salva via tastiera solo quando il primo clic non produce alcuna mutazione",
+          "duration": 21028.29587500001,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "driver Chrome persistente di APR"
+          ],
+          "fullName": "driver Chrome persistente di APR attende la riga schermatura ritardata dopo l'unico Salva",
+          "status": "passed",
+          "title": "attende la riga schermatura ritardata dopo l'unico Salva",
+          "duration": 16233.247167000023,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "driver Chrome persistente di APR"
+          ],
+          "fullName": "driver Chrome persistente di APR controlla un Chrome dedicato sul solo fixture locale e recupera la mappatura dopo riavvio del driver",
+          "status": "passed",
+          "title": "controlla un Chrome dedicato sul solo fixture locale e recupera la mappatura dopo riavvio del driver",
+          "duration": 19352.972958,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "driver Chrome persistente di APR"
+          ],
+          "fullName": "driver Chrome persistente di APR seleziona il Comune dal widget React obbligatorio senza accettare testo libero",
+          "status": "passed",
+          "title": "seleziona il Comune dal widget React obbligatorio senza accettare testo libero",
+          "duration": 10264.368791999994,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "driver Chrome persistente di APR"
+          ],
+          "fullName": "driver Chrome persistente di APR consegna al form il codice ISTAT della GET autorevole quando il menu React non e esposto",
+          "status": "passed",
+          "title": "consegna al form il codice ISTAT della GET autorevole quando il menu React non e esposto",
+          "duration": 4250.160459000006,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "driver Chrome persistente di APR"
+          ],
+          "fullName": "driver Chrome persistente di APR resta fail-closed se nome e provincia coincidono ma il codice ISTAT autorevole e diverso",
+          "status": "passed",
+          "title": "resta fail-closed se nome e provincia coincidono ma il codice ISTAT autorevole e diverso",
+          "duration": 3321.2842079999973,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "driver Chrome persistente di APR"
+          ],
+          "fullName": "driver Chrome persistente di APR accetta senza provincia soltanto l'unico Comune attivo con nome esatto",
+          "status": "passed",
+          "title": "accetta senza provincia soltanto l'unico Comune attivo con nome esatto",
+          "duration": 4332.281791999994,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "driver Chrome persistente di APR"
+          ],
+          "fullName": "driver Chrome persistente di APR usa la variante con apostrofo soltanto come query e conserva la corrispondenza esatta",
+          "status": "passed",
+          "title": "usa la variante con apostrofo soltanto come query e conserva la corrispondenza esatta",
+          "duration": 26339.052124999987,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "driver Chrome persistente di APR"
+          ],
+          "fullName": "driver Chrome persistente di APR preserva il Comune disabilitato gia persistito mentre corregge un altro campo",
+          "status": "passed",
+          "title": "preserva il Comune disabilitato gia persistito mentre corregge un altro campo",
+          "duration": 3449.3622500000056,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "driver Chrome persistente di APR"
+          ],
+          "fullName": "driver Chrome persistente di APR fa eseguire al processo APR due pratiche consecutive nello stesso Chrome senza controller Codex",
+          "status": "passed",
+          "title": "fa eseguire al processo APR due pratiche consecutive nello stesso Chrome senza controller Codex",
+          "duration": 35897.22066600001,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "driver Chrome persistente di APR"
+          ],
+          "fullName": "driver Chrome persistente di APR inventa in sola lettura la pagina intermedia senza submit o secondo tentativo",
+          "status": "passed",
+          "title": "inventa in sola lettura la pagina intermedia senza submit o secondo tentativo",
+          "duration": 5330.6852090000175,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "driver Chrome persistente di APR"
+          ],
+          "fullName": "driver Chrome persistente di APR crea una sola bozza attraverso il wizard intermediario persona fisica",
+          "status": "passed",
+          "title": "crea una sola bozza attraverso il wizard intermediario persona fisica",
+          "duration": 3377.5449159999844,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "driver Chrome persistente di APR"
+          ],
+          "fullName": "driver Chrome persistente di APR recupera dalla dashboard una bozza materializzata senza redirect del wizard",
+          "status": "passed",
+          "title": "recupera dalla dashboard una bozza materializzata senza redirect del wizard",
+          "duration": 2088.047959000047,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "driver Chrome persistente di APR"
+          ],
+          "fullName": "driver Chrome persistente di APR raccoglie come gia possedute le bozze delle coorti sorelle",
+          "status": "passed",
+          "title": "raccoglie come gia possedute le bozze delle coorti sorelle",
+          "duration": 1.966666999971494,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "driver Chrome persistente di APR"
+          ],
+          "fullName": "driver Chrome persistente di APR resta fail-closed se una fonte di ownership di una coorte sorella e illeggibile",
+          "status": "passed",
+          "title": "resta fail-closed se una fonte di ownership di una coorte sorella e illeggibile",
+          "duration": 1.6982089999946766,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "driver Chrome persistente di APR"
+          ],
+          "fullName": "driver Chrome persistente di APR rifiuta una bozza dashboard gia assegnata a una coorte sorella",
+          "status": "passed",
+          "title": "rifiuta una bozza dashboard gia assegnata a una coorte sorella",
+          "duration": 2114.048208000022,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "driver Chrome persistente di APR"
+          ],
+          "fullName": "driver Chrome persistente di APR non ripete il submit del wizard quando il tentativo persistente e gia consumato",
+          "status": "passed",
+          "title": "non ripete il submit del wizard quando il tentativo persistente e gia consumato",
+          "duration": 2065.886375000002,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "driver Chrome persistente di APR"
+          ],
+          "fullName": "driver Chrome persistente di APR autorizza una sola nuova creazione soltanto dopo due letture server concordanti e vuote",
+          "status": "passed",
+          "title": "autorizza una sola nuova creazione soltanto dopo due letture server concordanti e vuote",
+          "duration": 2697.5382080000127,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "driver Chrome persistente di APR"
+          ],
+          "fullName": "driver Chrome persistente di APR non autorizza il retry se le letture vedono una bozza candidata e libera la coda solo in quarantena",
+          "status": "passed",
+          "title": "non autorizza il retry se le letture vedono una bozza candidata e libera la coda solo in quarantena",
+          "duration": 3240.034083000035,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "driver Chrome persistente di APR"
+          ],
+          "fullName": "driver Chrome persistente di APR dopo l'unico retry esaurito non crea ancora e rimuove la barriera globale",
+          "status": "passed",
+          "title": "dopo l'unico retry esaurito non crea ancora e rimuove la barriera globale",
+          "duration": 3389.073583999998,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "driver Chrome persistente di APR"
+          ],
+          "fullName": "driver Chrome persistente di APR staggia il generatore, salva una sola volta la pagina impianto e verifica entrambi lato server",
+          "status": "passed",
+          "title": "staggia il generatore, salva una sola volta la pagina impianto e verifica entrambi lato server",
+          "duration": 24574.607665999967,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "driver Chrome persistente di APR"
+          ],
+          "fullName": "driver Chrome persistente di APR rilegge due schermature persistite 1:1 e rifiuta la perdita di una riga",
+          "status": "passed",
+          "title": "rilegge due schermature persistite 1:1 e rifiuta la perdita di una riga",
+          "duration": 2288.1654160000035,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "driver Chrome persistente di APR"
+          ],
+          "fullName": "driver Chrome persistente di APR produce due prove read-only indipendenti e fail-closed sui filtri del riepilogo vuoto",
+          "status": "passed",
+          "title": "produce due prove read-only indipendenti e fail-closed sui filtri del riepilogo vuoto",
+          "duration": 2352.642374999996,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "driver Chrome persistente di APR"
+          ],
+          "fullName": "driver Chrome persistente di APR sincronizza lo stato React senza inventare Rsupp prima del Salva",
+          "status": "passed",
+          "title": "sincronizza lo stato React senza inventare Rsupp prima del Salva",
+          "duration": 31728.051124999998,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "driver Chrome persistente di APR"
+          ],
+          "fullName": "driver Chrome persistente di APR completa col worker APR due checkpoint annidati generatore-impianto senza dipendere dal lifecycle Chrome",
+          "status": "passed",
+          "title": "completa col worker APR due checkpoint annidati generatore-impianto senza dipendere dal lifecycle Chrome",
+          "duration": 767.3468330000178,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "driver Chrome persistente di APR"
+          ],
+          "fullName": "driver Chrome persistente di APR non attribuisce a un nuovo cliente una bozza già mappata e ripara l'associazione locale conflittuale",
+          "status": "passed",
+          "title": "non attribuisce a un nuovo cliente una bozza già mappata e ripara l'associazione locale conflittuale",
+          "duration": 2717.0974169999827,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "driver Chrome persistente di APR"
+          ],
+          "fullName": "driver Chrome persistente di APR riallinea in sola lettura il fingerprint locale di una bozza legacy senza creare o salvare",
+          "status": "passed",
+          "title": "riallinea in sola lettura il fingerprint locale di una bozza legacy senza creare o salvare",
+          "duration": 2207.271041000029,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "driver Chrome persistente di APR"
+          ],
+          "fullName": "driver Chrome persistente di APR accetta impianto centralizzato disabilitato per una singola unità in edificio multi-unità",
+          "status": "passed",
+          "title": "accetta impianto centralizzato disabilitato per una singola unità in edificio multi-unità",
+          "duration": 24726.966166,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "driver Chrome persistente di APR"
+          ],
+          "fullName": "driver Chrome persistente di APR tratta come non applicabile anche il Sì documentato quando ENEA disabilita il controllo centralizzato",
+          "status": "passed",
+          "title": "tratta come non applicabile anche il Sì documentato quando ENEA disabilita il controllo centralizzato",
+          "duration": 24756.576250000042,
+          "failureMessages": [],
+          "meta": {}
+        }
+      ],
+      "startTime": 1788512300754,
+      "endTime": 1788512723339.5762,
+      "status": "passed",
+      "message": "",
+      "name": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/scripts/enea-shadow-runner/cdpEneaBrowserDriver.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "classificazione GET canonica dei campi ENEA"
+          ],
+          "fullName": "classificazione GET canonica dei campi ENEA classifica non salvata una pagina con soli default portale e identificativi vuoti",
+          "status": "passed",
+          "title": "classifica non salvata una pagina con soli default portale e identificativi vuoti",
+          "duration": 0.9323340000000826,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "classificazione GET canonica dei campi ENEA"
+          ],
+          "fullName": "classificazione GET canonica dei campi ENEA resta inconclusiva se un campo discordante contiene un valore reale",
+          "status": "passed",
+          "title": "resta inconclusiva se un campo discordante contiene un valore reale",
+          "duration": 0.41641699999991033,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "classificazione GET canonica dei campi ENEA"
+          ],
+          "fullName": "classificazione GET canonica dei campi ENEA classifica non salvato il reset Italia anche quando la fonte attende uno Stato estero",
+          "status": "passed",
+          "title": "classifica non salvato il reset Italia anche quando la fonte attende uno Stato estero",
+          "duration": 0.23745800000006057,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "classificazione GET canonica dei campi ENEA"
+          ],
+          "fullName": "classificazione GET canonica dei campi ENEA non scambia una superficie React non ancora caricata per una pagina server vuota",
+          "status": "passed",
+          "title": "non scambia una superficie React non ancora caricata per una pagina server vuota",
+          "duration": 0.218166999999994,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "classificazione GET canonica dei campi ENEA"
+          ],
+          "fullName": "classificazione GET canonica dei campi ENEA classifica salvata soltanto la coincidenza integrale",
+          "status": "passed",
+          "title": "classifica salvata soltanto la coincidenza integrale",
+          "duration": 0.0777499999999236,
+          "failureMessages": [],
+          "meta": {}
+        }
+      ],
+      "startTime": 1788510891768,
+      "endTime": 1788510891770.0776,
+      "status": "passed",
+      "message": "",
+      "name": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/scripts/enea-shadow-runner/cdpPersistedFieldClassification.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "sessione CRM dedicata APR"
+          ],
+          "fullName": "sessione CRM dedicata APR salva solo il refresh token nel secret store e non persiste credenziali o token nel checkpoint",
+          "status": "passed",
+          "title": "salva solo il refresh token nel secret store e non persiste credenziali o token nel checkpoint",
+          "duration": 37.19570899999985,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "sessione CRM dedicata APR"
+          ],
+          "fullName": "sessione CRM dedicata APR dopo riavvio riprende dal Portachiavi simulato e ruota il refresh token senza password",
+          "status": "passed",
+          "title": "dopo riavvio riprende dal Portachiavi simulato e ruota il refresh token senza password",
+          "duration": 53.672791999999845,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "sessione CRM dedicata APR"
+          ],
+          "fullName": "sessione CRM dedicata APR resta fail-closed se il server rifiuta il login e non scrive segreti",
+          "status": "passed",
+          "title": "resta fail-closed se il server rifiuta il login e non scrive segreti",
+          "duration": 37.31745799999999,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "sessione CRM dedicata APR"
+          ],
+          "fullName": "sessione CRM dedicata APR non marca autenticato se il Portachiavi non accetta il refresh token",
+          "status": "passed",
+          "title": "non marca autenticato se il Portachiavi non accetta il refresh token",
+          "duration": 27.268666000000167,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "sessione CRM dedicata APR"
+          ],
+          "fullName": "sessione CRM dedicata APR consente solo GET autenticato nel bucket e percorsi PDF/PNG/JPEG allowlist",
+          "status": "passed",
+          "title": "consente solo GET autenticato nel bucket e percorsi PDF/PNG/JPEG allowlist",
+          "duration": 46.21704199999999,
+          "failureMessages": [],
+          "meta": {}
+        }
+      ],
+      "startTime": 1788511154763,
+      "endTime": 1788511154965.217,
+      "status": "passed",
+      "message": "",
+      "name": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/scripts/enea-shadow-runner/crmAuth.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "audit payload ENEA da dossier CRM locale"
+          ],
+          "fullName": "audit payload ENEA da dossier CRM locale costruisce una persiana con il modulo Schermature anche se l'etichetta CRM dichiara Infissi",
+          "status": "passed",
+          "title": "costruisce una persiana con il modulo Schermature anche se l'etichetta CRM dichiara Infissi",
+          "duration": 19.90595899999994,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "audit payload ENEA da dossier CRM locale"
+          ],
+          "fullName": "audit payload ENEA da dossier CRM locale conserva la pagina fattura in un allegato composito fattura+bonifico e ne audita la regola",
+          "status": "passed",
+          "title": "conserva la pagina fattura in un allegato composito fattura+bonifico e ne audita la regola",
+          "duration": 15.275208999999904,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "audit payload ENEA da dossier CRM locale"
+          ],
+          "fullName": "audit payload ENEA da dossier CRM locale non trasforma un allegato esclusivamente bancario in una fattura tecnica",
+          "status": "passed",
+          "title": "non trasforma un allegato esclusivamente bancario in una fattura tecnica",
+          "duration": 3.5671669999999267,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "audit payload ENEA da dossier CRM locale"
+          ],
+          "fullName": "audit payload ENEA da dossier CRM locale propaga la prima data fattura come inizio lavori con provenienza auditata",
+          "status": "passed",
+          "title": "propaga la prima data fattura come inizio lavori con provenienza auditata",
+          "duration": 0.765041999999994,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "audit payload ENEA da dossier CRM locale"
+          ],
+          "fullName": "audit payload ENEA da dossier CRM locale resta fail-closed quando il dossier non è mappabile",
+          "status": "passed",
+          "title": "resta fail-closed quando il dossier non è mappabile",
+          "duration": 0.14162499999997635,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "audit payload ENEA da dossier CRM locale"
+          ],
+          "fullName": "audit payload ENEA da dossier CRM locale espone i campi mancanti senza abilitare il portale",
+          "status": "passed",
+          "title": "espone i campi mancanti senza abilitare il portale",
+          "duration": 2.4517909999999574,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "audit payload ENEA da dossier CRM locale"
+          ],
+          "fullName": "audit payload ENEA da dossier CRM locale sostituisce nel pacchetto locale il CF form invalido con quello documentale gia verificato",
+          "status": "passed",
+          "title": "sostituisce nel pacchetto locale il CF form invalido con quello documentale gia verificato",
+          "duration": 0.6289159999998901,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "audit payload ENEA da dossier CRM locale"
+          ],
+          "fullName": "audit payload ENEA da dossier CRM locale propaga nel pacchetto il fallback verificato di una unita immobiliare",
+          "status": "passed",
+          "title": "propaga nel pacchetto il fallback verificato di una unita immobiliare",
+          "duration": 0.6971670000000358,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "audit payload ENEA da dossier CRM locale"
+          ],
+          "fullName": "audit payload ENEA da dossier CRM locale mantiene edificio a unita unica quando la tipologia esplicita e casa singola",
+          "status": "passed",
+          "title": "mantiene edificio a unita unica quando la tipologia esplicita e casa singola",
+          "duration": 0.9532919999999194,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "audit payload ENEA da dossier CRM locale"
+          ],
+          "fullName": "audit payload ENEA da dossier CRM locale usa edificio plurimo quando il form indica oltre tre piani anche con una unita nella pratica",
+          "status": "passed",
+          "title": "usa edificio plurimo quando il form indica oltre tre piani anche con una unita nella pratica",
+          "duration": 0.9734579999999369,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "audit payload ENEA da dossier CRM locale"
+          ],
+          "fullName": "audit payload ENEA da dossier CRM locale annota con provenienza fattura l'esclusione del cointestatario presente solo nel form",
+          "status": "passed",
+          "title": "annota con provenienza fattura l'esclusione del cointestatario presente solo nel form",
+          "duration": 0.5752079999999751,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "audit payload ENEA da dossier CRM locale"
+          ],
+          "fullName": "audit payload ENEA da dossier CRM locale sostituisce nome e cognome principali con l'identita verificata in fattura",
+          "status": "passed",
+          "title": "sostituisce nome e cognome principali con l'identita verificata in fattura",
+          "duration": 0.639084000000139,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "audit payload ENEA da dossier CRM locale"
+          ],
+          "fullName": "audit payload ENEA da dossier CRM locale sostituisce anche data di nascita e sesso con i segmenti del CF documentale verificato",
+          "status": "passed",
+          "title": "sostituisce anche data di nascita e sesso con i segmenti del CF documentale verificato",
+          "duration": 0.5071249999998599,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "audit payload ENEA da dossier CRM locale"
+          ],
+          "fullName": "audit payload ENEA da dossier CRM locale inserisce nel pacchetto il cointestatario della fattura anche se il form lo omette",
+          "status": "passed",
+          "title": "inserisce nel pacchetto il cointestatario della fattura anche se il form lo omette",
+          "duration": 0.5203329999999369,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "audit payload ENEA da dossier CRM locale"
+          ],
+          "fullName": "audit payload ENEA da dossier CRM locale propaga fallback Linea Sole Potito nei campi con valore, fonte e regola",
+          "status": "passed",
+          "title": "propaga fallback Linea Sole Potito nei campi con valore, fonte e regola",
+          "duration": 0.6192499999999654,
+          "failureMessages": [],
+          "meta": {}
+        }
+      ],
+      "startTime": 1788511155013,
+      "endTime": 1788511155061.6191,
+      "status": "passed",
+      "message": "",
+      "name": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/scripts/enea-shadow-runner/crmEneaPayloadAudit.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "PersistentAprCrmLiveProcessing"
+          ],
+          "fullName": "PersistentAprCrmLiveProcessing porta due eventi reali fino al preflight locale senza azioni CRM o ENEA",
+          "status": "passed",
+          "title": "porta due eventi reali fino al preflight locale senza azioni CRM o ENEA",
+          "duration": 750.1823750000003,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "PersistentAprCrmLiveProcessing"
+          ],
+          "fullName": "PersistentAprCrmLiveProcessing riprende dopo riavvio e non ripete dossier già acquisiti",
+          "status": "passed",
+          "title": "riprende dopo riavvio e non ripete dossier già acquisiti",
+          "duration": 657.3482909999998,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "PersistentAprCrmLiveProcessing"
+          ],
+          "fullName": "PersistentAprCrmLiveProcessing termina in intervento operatore se tutti i dossier vengono bloccati a monte",
+          "status": "passed",
+          "title": "termina in intervento operatore se tutti i dossier vengono bloccati a monte",
+          "duration": 350.7807079999998,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "PersistentAprCrmLiveProcessing"
+          ],
+          "fullName": "PersistentAprCrmLiveProcessing acquisisce e analizza un PNG originario una sola volta prima del preflight",
+          "status": "passed",
+          "title": "acquisisce e analizza un PNG originario una sola volta prima del preflight",
+          "duration": 806.7164589999998,
+          "failureMessages": [],
+          "meta": {}
+        }
+      ],
+      "startTime": 1788511155224,
+      "endTime": 1788511157789.7166,
+      "status": "passed",
+      "message": "",
+      "name": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/scripts/enea-shadow-runner/crmLiveProcessing.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "adapter CRM APR persistente esclusivamente locale"
+          ],
+          "fullName": "adapter CRM APR persistente esclusivamente locale configura e verifica cinque capability conservando gate chiuso e prova persistente",
+          "status": "passed",
+          "title": "configura e verifica cinque capability conservando gate chiuso e prova persistente",
+          "duration": 39.50016700000015,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "adapter CRM APR persistente esclusivamente locale"
+          ],
+          "fullName": "adapter CRM APR persistente esclusivamente locale blocca fixture mutativa e cancella le prove",
+          "status": "passed",
+          "title": "blocca fixture mutativa e cancella le prove",
+          "duration": 38.32287500000007,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "adapter CRM APR persistente esclusivamente locale"
+          ],
+          "fullName": "adapter CRM APR persistente esclusivamente locale registra il bootstrap CRM reale senza trasformare la sessione Chrome in credenziale APR",
+          "status": "passed",
+          "title": "registra il bootstrap CRM reale senza trasformare la sessione Chrome in credenziale APR",
+          "duration": 28.478207999999995,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "adapter CRM APR persistente esclusivamente locale"
+          ],
+          "fullName": "adapter CRM APR persistente esclusivamente locale sostituisce il vecchio blocco bootstrap soltanto con prove GET autenticate reali",
+          "status": "passed",
+          "title": "sostituisce il vecchio blocco bootstrap soltanto con prove GET autenticate reali",
+          "duration": 26.870625000000018,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "adapter CRM APR persistente esclusivamente locale"
+          ],
+          "fullName": "adapter CRM APR persistente esclusivamente locale accetta coorti autenticate non limitate a cinque casi e rende idempotente un blocco ripetuto",
+          "status": "passed",
+          "title": "accetta coorti autenticate non limitate a cinque casi e rende idempotente un blocco ripetuto",
+          "duration": 33.56329200000005,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "adapter CRM APR persistente esclusivamente locale"
+          ],
+          "fullName": "adapter CRM APR persistente esclusivamente locale invalida la cache quando un altro processo sostituisce atomicamente il checkpoint",
+          "status": "passed",
+          "title": "invalida la cache quando un altro processo sostituisce atomicamente il checkpoint",
+          "duration": 20.905959000000166,
+          "failureMessages": [],
+          "meta": {}
+        }
+      ],
+      "startTime": 1788511154777,
+      "endTime": 1788511154964.906,
+      "status": "passed",
+      "message": "",
+      "name": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/scripts/enea-shadow-runner/crmReadOnlyAdapter.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "preflight read-only persistente"
+          ],
+          "fullName": "preflight read-only persistente usa soltanto ID presenti nel registro unico per il ticket Sara",
+          "status": "passed",
+          "title": "usa soltanto ID presenti nel registro unico per il ticket Sara",
+          "duration": 0.6976669999999103,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "preflight read-only persistente"
+          ],
+          "fullName": "preflight read-only persistente seleziona solo Sara, registra il ticket con regole e non avanza la coda",
+          "status": "passed",
+          "title": "seleziona solo Sara, registra il ticket con regole e non avanza la coda",
+          "duration": 101.12962500000003,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "preflight read-only persistente"
+          ],
+          "fullName": "preflight read-only persistente è idempotente e ripristinabile senza riselezionare Sara",
+          "status": "passed",
+          "title": "è idempotente e ripristinabile senza riselezionare Sara",
+          "duration": 147.67224999999985,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "preflight read-only persistente"
+          ],
+          "fullName": "preflight read-only persistente riesegue Sara senza riselezionarla, risolve tutte le righe e conserva solo il gate data",
+          "status": "passed",
+          "title": "riesegue Sara senza riselezionarla, risolve tutte le righe e conserva solo il gate data",
+          "duration": 224.76745800000003,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "preflight read-only persistente"
+          ],
+          "fullName": "preflight read-only persistente rende verde soltanto Sara con override test non propagabile e prepara il gate successivo",
+          "status": "passed",
+          "title": "rende verde soltanto Sara con override test non propagabile e prepara il gate successivo",
+          "duration": 192.59137499999997,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "preflight read-only persistente"
+          ],
+          "fullName": "preflight read-only persistente rifiuta un override caso-specifico riferito a un'altra pratica",
+          "status": "passed",
+          "title": "rifiuta un override caso-specifico riferito a un'altra pratica",
+          "duration": 85.14495899999997,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "preflight read-only persistente"
+          ],
+          "fullName": "preflight read-only persistente consente bozza salvata solo dopo preflight verde e mantiene submit fuori ambito",
+          "status": "passed",
+          "title": "consente bozza salvata solo dopo preflight verde e mantiene submit fuori ambito",
+          "duration": 205.00858399999993,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "preflight read-only persistente"
+          ],
+          "fullName": "preflight read-only persistente risolve il blocco CF da fatture originarie e riprende la stessa bozza senza duplicarla",
+          "status": "passed",
+          "title": "risolve il blocco CF da fatture originarie e riprende la stessa bozza senza duplicarla",
+          "duration": 189.97195899999997,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "preflight read-only persistente"
+          ],
+          "fullName": "preflight read-only persistente fa prevalere unità=1 sui piani e riprende la stessa bozza senza duplicarla",
+          "status": "passed",
+          "title": "fa prevalere unità=1 sui piani e riprende la stessa bozza senza duplicarla",
+          "duration": 211.3438329999999,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "preflight read-only persistente"
+          ],
+          "fullName": "preflight read-only persistente riapre la stessa bozza salvata per correggere una cardinalità aggregata",
+          "status": "passed",
+          "title": "riapre la stessa bozza salvata per correggere una cardinalità aggregata",
+          "duration": 244.99466699999994,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "preflight read-only persistente"
+          ],
+          "fullName": "preflight read-only persistente supera l'esclusione e riconcilia sei zanzariere 1:1 sulla stessa bozza",
+          "status": "passed",
+          "title": "supera l'esclusione e riconcilia sei zanzariere 1:1 sulla stessa bozza",
+          "duration": 265.2469170000004,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "preflight read-only persistente"
+          ],
+          "fullName": "preflight read-only persistente disabilita anteprima e submit per ogni nuova bozza TEST salvata",
+          "status": "passed",
+          "title": "disabilita anteprima e submit per ogni nuova bozza TEST salvata",
+          "duration": 169.12249999999995,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "preflight read-only persistente"
+          ],
+          "fullName": "preflight read-only persistente parcheggia il legacy incerto, avvia la pratica successiva e audita le durate",
+          "status": "passed",
+          "title": "parcheggia il legacy incerto, avvia la pratica successiva e audita le durate",
+          "duration": 187.44583300000022,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "preflight read-only persistente"
+          ],
+          "fullName": "preflight read-only persistente rende non bloccante il superamento dei 90 giorni solo nel TEST e riprende il checkpoint senza override",
+          "status": "passed",
+          "title": "rende non bloccante il superamento dei 90 giorni solo nel TEST e riprende il checkpoint senza override",
+          "duration": 196.31025,
+          "failureMessages": [],
+          "meta": {}
+        }
+      ],
+      "startTime": 1788511159776,
+      "endTime": 1788511162197.3103,
+      "status": "passed",
+      "message": "",
+      "name": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/scripts/enea-shadow-runner/preflightRunner.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "adattatore browser/CRM/ENEA rigorosamente read-only"
+          ],
+          "fullName": "adattatore browser/CRM/ENEA rigorosamente read-only acquisisce soltanto prove fixture con fingerprint e senza persistere i contenuti",
+          "status": "passed",
+          "title": "acquisisce soltanto prove fixture con fingerprint e senza persistere i contenuti",
+          "duration": 41.146334000000024,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "adattatore browser/CRM/ENEA rigorosamente read-only"
+          ],
+          "fullName": "adattatore browser/CRM/ENEA rigorosamente read-only è idempotente e ripristinabile da un nuovo processo",
+          "status": "passed",
+          "title": "è idempotente e ripristinabile da un nuovo processo",
+          "duration": 50.99895900000001,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "adattatore browser/CRM/ENEA rigorosamente read-only"
+          ],
+          "fullName": "adattatore browser/CRM/ENEA rigorosamente read-only blocca identità o profilo diversi senza fallback",
+          "status": "passed",
+          "title": "blocca identità o profilo diversi senza fallback",
+          "duration": 50.25429099999997,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "adattatore browser/CRM/ENEA rigorosamente read-only"
+          ],
+          "fullName": "adattatore browser/CRM/ENEA rigorosamente read-only blocca origine o redirect fuori allowlist",
+          "status": "passed",
+          "title": "blocca origine o redirect fuori allowlist",
+          "duration": 151.66824999999994,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "adattatore browser/CRM/ENEA rigorosamente read-only"
+          ],
+          "fullName": "adattatore browser/CRM/ENEA rigorosamente read-only blocca POST mutativo",
+          "status": "passed",
+          "title": "blocca POST mutativo",
+          "duration": 51.978417000000036,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "adattatore browser/CRM/ENEA rigorosamente read-only"
+          ],
+          "fullName": "adattatore browser/CRM/ENEA rigorosamente read-only blocca corpo su GET",
+          "status": "passed",
+          "title": "blocca corpo su GET",
+          "duration": 55.670208999999886,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "adattatore browser/CRM/ENEA rigorosamente read-only"
+          ],
+          "fullName": "adattatore browser/CRM/ENEA rigorosamente read-only blocca intento submit",
+          "status": "passed",
+          "title": "blocca intento submit",
+          "duration": 45.697625000000016,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "adattatore browser/CRM/ENEA rigorosamente read-only"
+          ],
+          "fullName": "adattatore browser/CRM/ENEA rigorosamente read-only blocca azione non enumerata",
+          "status": "passed",
+          "title": "blocca azione non enumerata",
+          "duration": 39.077583000000004,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "adattatore browser/CRM/ENEA rigorosamente read-only"
+          ],
+          "fullName": "adattatore browser/CRM/ENEA rigorosamente read-only blocca percorso non enumerato",
+          "status": "passed",
+          "title": "blocca percorso non enumerato",
+          "duration": 45.08445799999981,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "adattatore browser/CRM/ENEA rigorosamente read-only"
+          ],
+          "fullName": "adattatore browser/CRM/ENEA rigorosamente read-only blocca mutazione osservata",
+          "status": "passed",
+          "title": "blocca mutazione osservata",
+          "duration": 39.240958999999975,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "adattatore browser/CRM/ENEA rigorosamente read-only"
+          ],
+          "fullName": "adattatore browser/CRM/ENEA rigorosamente read-only blocca trasporto esterno",
+          "status": "passed",
+          "title": "blocca trasporto esterno",
+          "duration": 46.59695899999997,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "adattatore browser/CRM/ENEA rigorosamente read-only"
+          ],
+          "fullName": "adattatore browser/CRM/ENEA rigorosamente read-only non avvia né modifica pratiche anche dopo una fixture completamente verde",
+          "status": "passed",
+          "title": "non avvia né modifica pratiche anche dopo una fixture completamente verde",
+          "duration": 88.56333400000017,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "adattatore browser/CRM/ENEA rigorosamente read-only"
+          ],
+          "fullName": "adattatore browser/CRM/ENEA rigorosamente read-only registra un blocco globale di connessione con motivo e prossima azione senza perdere le prove fixture",
+          "status": "passed",
+          "title": "registra un blocco globale di connessione con motivo e prossima azione senza perdere le prove fixture",
+          "duration": 62.161583000000064,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "adattatore browser/CRM/ENEA rigorosamente read-only"
+          ],
+          "fullName": "adattatore browser/CRM/ENEA rigorosamente read-only registra una sola prova allegato browser, riparte dal checkpoint e lascia la coda chiusa",
+          "status": "passed",
+          "title": "registra una sola prova allegato browser, riparte dal checkpoint e lascia la coda chiusa",
+          "duration": 63.383583000000044,
+          "failureMessages": [],
+          "meta": {}
+        }
+      ],
+      "startTime": 1788511159796,
+      "endTime": 1788511160628.3835,
+      "status": "passed",
+      "message": "",
+      "name": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/scripts/enea-shadow-runner/readOnlyAdapter.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "comando locale APR SHADOW"
+          ],
+          "fullName": "comando locale APR SHADOW parte soltanto dopo il via esplicito e conserva il gate dopo riavvio",
+          "status": "passed",
+          "title": "parte soltanto dopo il via esplicito e conserva il gate dopo riavvio",
+          "duration": 12.869083000000046,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "comando locale APR SHADOW"
+          ],
+          "fullName": "comando locale APR SHADOW sospende solo le nuove prese in carico e mantiene le protezioni",
+          "status": "passed",
+          "title": "sospende solo le nuove prese in carico e mantiene le protezioni",
+          "duration": 12.940667000000076,
+          "failureMessages": [],
+          "meta": {}
+        }
+      ],
+      "startTime": 1788511159604,
+      "endTime": 1788511159628.9407,
+      "status": "passed",
+      "message": "",
+      "name": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/scripts/enea-shadow-runner/shadowControl.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "getGeneratorTestConvention"
+          ],
+          "fullName": "getGeneratorTestConvention genera valori stabili, nei limiti confermati e con una cifra decimale",
+          "status": "passed",
+          "title": "genera valori stabili, nei limiti confermati e con una cifra decimale",
+          "duration": 2.202458999999976,
+          "failureMessages": [],
+          "meta": {}
+        }
+      ],
+      "startTime": 1788511159552,
+      "endTime": 1788511159554.2024,
+      "status": "passed",
+      "message": "",
+      "name": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/src/features/enea-lab/conventions.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "compilazione finestra generatore ENEA"
+          ],
+          "fullName": "compilazione finestra generatore ENEA usa i tre identificativi osservati e mantiene i valori di prova separati",
+          "status": "passed",
+          "title": "usa i tre identificativi osservati e mantiene i valori di prova separati",
+          "duration": 18.30166700000018,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "compilazione finestra generatore ENEA"
+          ],
+          "fullName": "compilazione finestra generatore ENEA rifiuta valori numerici non validi anche se arrivano da una correzione locale",
+          "status": "passed",
+          "title": "rifiuta valori numerici non validi anche se arrivano da una correzione locale",
+          "duration": 1.481249999999818,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "compilazione finestra generatore ENEA"
+          ],
+          "fullName": "compilazione finestra generatore ENEA compila Nome generatori quando ENEA traduce Energia elettrica nella riga tecnica Altro",
+          "status": "passed",
+          "title": "compila Nome generatori quando ENEA traduce Energia elettrica nella riga tecnica Altro",
+          "duration": 6.56595799999991,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "compilazione finestra generatore ENEA"
+          ],
+          "fullName": "compilazione finestra generatore ENEA usa il controllo P.E.A. osservato per Pompa di calore / Impianto geotermico",
+          "status": "passed",
+          "title": "usa il controllo P.E.A. osservato per Pompa di calore / Impianto geotermico",
+          "duration": 2.459583000000066,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "compilazione finestra generatore ENEA"
+          ],
+          "fullName": "compilazione finestra generatore ENEA compila la finestra aperta senza premere Salva",
+          "status": "passed",
+          "title": "compila la finestra aperta senza premere Salva",
+          "duration": 11.955584000000044,
+          "failureMessages": [],
+          "meta": {}
+        }
+      ],
+      "startTime": 1788511164642,
+      "endTime": 1788511164682.9556,
+      "status": "passed",
+      "message": "",
+      "name": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/src/features/enea-lab/portalGenerator.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "detector autenticazione ENEA basato su DOM/server"
+          ],
+          "fullName": "detector autenticazione ENEA basato su DOM/server considera autenticata la root quando mostra il banner utente connesso",
+          "status": "passed",
+          "title": "considera autenticata la root quando mostra il banner utente connesso",
+          "duration": 1.1478749999998854,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "detector autenticazione ENEA basato su DOM/server"
+          ],
+          "fullName": "detector autenticazione ENEA basato su DOM/server considera autenticata una dashboard realmente accessibile anche senza banner",
+          "status": "passed",
+          "title": "considera autenticata una dashboard realmente accessibile anche senza banner",
+          "duration": 0.18595900000013899,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "detector autenticazione ENEA basato su DOM/server"
+          ],
+          "fullName": "detector autenticazione ENEA basato su DOM/server considera non autenticata la root solo con un controllo login DOM esplicito",
+          "status": "passed",
+          "title": "considera non autenticata la root solo con un controllo login DOM esplicito",
+          "duration": 0.08120899999994435,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "detector autenticazione ENEA basato su DOM/server"
+          ],
+          "fullName": "detector autenticazione ENEA basato su DOM/server non deduce logout dalla sola root e resta fail-closed",
+          "status": "passed",
+          "title": "non deduce logout dalla sola root e resta fail-closed",
+          "duration": 0.14841699999988123,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "detector autenticazione ENEA basato su DOM/server"
+          ],
+          "fullName": "detector autenticazione ENEA basato su DOM/server privilegia il banner utente quando il DOM contiene anche un link login generico",
+          "status": "passed",
+          "title": "privilegia il banner utente quando il DOM contiene anche un link login generico",
+          "duration": 0.060124999999970896,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "detector autenticazione ENEA basato su DOM/server"
+          ],
+          "fullName": "detector autenticazione ENEA basato su DOM/server rifiuta una classificazione se origine o documento server non sono verificati",
+          "status": "passed",
+          "title": "rifiuta una classificazione se origine o documento server non sono verificati",
+          "duration": 0.0648750000000291,
+          "failureMessages": [],
+          "meta": {}
+        }
+      ],
+      "startTime": 1788511164421,
+      "endTime": 1788511164423.1484,
+      "status": "passed",
+      "message": "",
+      "name": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/src/features/enea-shadow-crm/eneaAuthenticationDetector.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "APR Infissi · precedenza fattura sul form per il vecchio serramento"
+          ],
+          "fullName": "APR Infissi · precedenza fattura sul form per il vecchio serramento usa materiale e vetro espliciti della fattura sopra valori discordanti del form",
+          "status": "passed",
+          "title": "usa materiale e vetro espliciti della fattura sopra valori discordanti del form",
+          "duration": 2.916541000000052,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "APR Infissi · precedenza fattura sul form per il vecchio serramento"
+          ],
+          "fullName": "APR Infissi · precedenza fattura sul form per il vecchio serramento mantiene il form quando la fattura non descrive il vecchio serramento",
+          "status": "passed",
+          "title": "mantiene il form quando la fattura non descrive il vecchio serramento",
+          "duration": 0.32529199999999037,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "APR Infissi · precedenza fattura sul form per il vecchio serramento"
+          ],
+          "fullName": "APR Infissi · precedenza fattura sul form per il vecchio serramento non sceglie arbitrariamente tra fatture esplicite discordanti",
+          "status": "passed",
+          "title": "non sceglie arbitrariamente tra fatture esplicite discordanti",
+          "duration": 0.8582080000001042,
+          "failureMessages": [],
+          "meta": {}
+        }
+      ],
+      "startTime": 1788511164595,
+      "endTime": 1788511164598.8582,
+      "status": "passed",
+      "message": "",
+      "name": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/src/features/enea-shadow-crm/infissiOldWindowSourceResolution.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "APR Infissi · parser fonti originarie e preflight archiviato"
+          ],
+          "fullName": "APR Infissi · parser fonti originarie e preflight archiviato estrae sei righe fattura ed espande una cardinalita fisica totale di otto",
+          "status": "passed",
+          "title": "estrae sei righe fattura ed espande una cardinalita fisica totale di otto",
+          "duration": 1.8581249999999727,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "APR Infissi · parser fonti originarie e preflight archiviato"
+          ],
+          "fullName": "APR Infissi · parser fonti originarie e preflight archiviato estrae le otto dichiarazioni DOP e la trasmittanza esplicita per pagina",
+          "status": "passed",
+          "title": "estrae le otto dichiarazioni DOP e la trasmittanza esplicita per pagina",
+          "duration": 0.7944999999999709,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "APR Infissi · parser fonti originarie e preflight archiviato"
+          ],
+          "fullName": "APR Infissi · parser fonti originarie e preflight archiviato somma i totali IVA inclusa di fatture distinte e produce un piano locale READY senza azioni esterne",
+          "status": "passed",
+          "title": "somma i totali IVA inclusa di fatture distinte e produce un piano locale READY senza azioni esterne",
+          "duration": 2.3703330000000733,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "APR Infissi · parser fonti originarie e preflight archiviato"
+          ],
+          "fullName": "APR Infissi · parser fonti originarie e preflight archiviato fallisce chiuso se la verifica visuale perde una pagina o la cardinalita non coincide",
+          "status": "passed",
+          "title": "fallisce chiuso se la verifica visuale perde una pagina o la cardinalita non coincide",
+          "duration": 0.4768749999998363,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "APR Infissi · parser fonti originarie e preflight archiviato"
+          ],
+          "fullName": "APR Infissi · parser fonti originarie e preflight archiviato non inventa totali ambigui o senza riga TOTALE",
+          "status": "passed",
+          "title": "non inventa totali ambigui o senza riga TOTALE",
+          "duration": 0.06329199999981938,
+          "failureMessages": [],
+          "meta": {}
+        }
+      ],
+      "startTime": 1788511164641,
+      "endTime": 1788511164646.4768,
+      "status": "passed",
+      "message": "",
+      "name": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/src/features/enea-shadow-crm/infissiOriginalDocumentParser.test.ts"
+    }
+  ]
+}

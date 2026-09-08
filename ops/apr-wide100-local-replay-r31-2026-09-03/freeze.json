@@ -1,0 +1,26 @@
+{
+  "schemaVersion": "apr-wide100-local-replay-freeze-v1",
+  "businessTime": "2026-09-02T22:24:21.541Z",
+  "manifest": {
+    "path": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-wide100-province-lineage-2026-09-02/manifest.json",
+    "sha256": "51842252f71cabb6714f78923fe59ec9789ad06739393f61a553bb4bdb9154e0",
+    "count": 100
+  },
+  "bundle": {
+    "versionId": "5156569e-resolved-non-economic-blocker-r31-20260902",
+    "path": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/5156569e-resolved-non-economic-blocker-r31-20260902",
+    "hashes": {
+      "apr-supervisor.mjs": "c3d9a4b91d319f28b4d0e0ac98cfaa2ff8bf94b92d118758c309cb476346c749",
+      "apr-enea-worker.mjs": "5156569e08740b09b3a35d39c9780c821059a9e20b3931bf5eec18253e283c4b",
+      "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+      "apr-pdf-ocr": "4c41c9a6832b11b9d19eace538100270a533dddc05e475e5842711968393327f"
+    }
+  },
+  "safety": {
+    "localOnly": true,
+    "externalActionAllowed": false,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false
+  }
+}

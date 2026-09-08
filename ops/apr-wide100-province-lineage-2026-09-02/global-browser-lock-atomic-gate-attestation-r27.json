@@ -1,0 +1,47 @@
+{
+  "version": "apr-rule-gate-attestation-v1",
+  "attestedAt": "2026-09-02T11:34:31.209Z",
+  "incidentCode": "apr_global_browser_lock_corrupt_fail_closed",
+  "rootCause": "open_wx_published_target_before_json_write_fsync_close",
+  "ruleId": "system-global-browser-lock-atomic-publication-v1",
+  "registryVersion": "enea-operational-registry-v101",
+  "matrixVersion": "apr-enea-rule-test-matrix-v79",
+  "sourceFingerprint": "fdeaddd1f82cb0258e315fa7cbce5c9ee1c3db66d45c9ebed11ebcdbb02a574e",
+  "proofBeforeFix": {
+    "path": "ops/apr-wide100-province-lineage-2026-09-02/prove-lock-publication-race-r27.ts",
+    "sha256": "ae3f4a3281428ee8c5b0a6df9cacf6d59edf6f93a909678434e727e05eb2aae3",
+    "observed": {
+      "pathVisible": true,
+      "bytesBeforeWrite": 0,
+      "competingReaderError": "apr_global_browser_lock_corrupt_fail_closed"
+    }
+  },
+  "integratedGate": {
+    "statusBeforeInstall": "tested_not_deployed",
+    "statusAfterInstall": "active_tested_deployed",
+    "testSuitesPassed": 414,
+    "testSuitesTotal": 414,
+    "testsPassed": 1591,
+    "testsTotal": 1591,
+    "rulesProved": 89,
+    "vitestReportSha256": "2046d78fbd146eab6c9d68fbdafc188fba48da2157e01ce0fcb7133c9d288fc9",
+    "ruleEvidenceSha256": "841a295b7c4c3fcf53d743f918dce6526381a176dfac0ffdb40bbf58d858134b",
+    "activationCheckpointSha256": "0440d853bd27fe243cd9329895e94cdcfd58742494c8a109d56d2d4c46b6f1dd"
+  },
+  "installedBundle": {
+    "version": "7ec0aaf1-global-browser-lock-atomic-r27-20260902",
+    "aprSupervisorSha256": "e8e9c70df9082e6e00a729091acd3336a31a9340c656e9952a2485fc4486b702",
+    "aprEneaWorkerSha256": "7ec0aaf11d605094ec022736473a52eec7f8ffe582f578a88ad8a9057939378f",
+    "aprWatchdogSha256": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0"
+  },
+  "continuity": {
+    "keepaliveLabel": "com.praticarapida.apr-enea-immortal-keepalive",
+    "keepalivePid": 24612,
+    "chromePid": 3785,
+    "dashboardUrl": "https://bonusfiscali.enea.it/dashboard",
+    "forbiddenActionCount": 0,
+    "previewAttemptCount": 0,
+    "submitAttemptCount": 0,
+    "communicationAttemptCount": 0
+  }
+}

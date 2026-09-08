@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.praticarapida.apr-r14-ranzoni-nested-server-diagnostic</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/usr/local/bin/node</string>
+    <string>/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/57566ef-network-proof-finalizer-20260831/apr-enea-worker.mjs</string>
+    <string>inspect-nested-server-json</string>
+    <string>--state-dir</string>
+    <string>/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-1646-global-controller-armando-ranzoni</string>
+    <string>--customer-key</string>
+    <string>armando-ranzoni</string>
+    <string>--draft-id</string>
+    <string>446123</string>
+    <string>--page-id</string>
+    <string>page:Generatore dell'impianto termico</string>
+  </array>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <false/>
+  <key>ProcessType</key>
+  <string>Background</string>
+  <key>ThrottleInterval</key>
+  <integer>10</integer>
+  <key>StandardOutPath</key>
+  <string>/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-1646-global-controller-armando-ranzoni/logs/r15-network-proof.stdout.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-1646-global-controller-armando-ranzoni/logs/r15-network-proof.stderr.log</string>
+</dict>
+</plist>

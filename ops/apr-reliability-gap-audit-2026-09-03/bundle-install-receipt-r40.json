@@ -1,0 +1,17 @@
+{
+  "version": "apr-rinaldi-practice-total-and-exclusions-r40-bundle-install-receipt-v1",
+  "installedAt": "2026-09-03T22:49:04.649Z",
+  "status": "bundle_promoted_local_gate_verified",
+  "preinstallGateSha256": "5a3871ea783484313bdf59e1de5b748822d6e82b9264b9a9ea65dc56579f9768",
+  "versionId": "eb9e54dd-rinaldi-exclusions-r40-20260904",
+  "previousTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/6481c58d-technical-source-binding-r39-20260903",
+  "currentTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/eb9e54dd-rinaldi-exclusions-r40-20260904",
+  "installedBundle": {
+    "apr-supervisor.mjs": "625781b07e79a4827e40a76d79ef98b77db092557219aad326da889673fc04e8",
+    "apr-enea-worker.mjs": "eb9e54dd425484e6c1fa098c634416cddb4b88a6c8f25b780399559cf69b1460",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "apr-pdf-ocr": "4c41c9a6832b11b9d19eace538100270a533dddc05e475e5842711968393327f"
+  },
+  "keepaliveRestartRequested": false,
+  "chromeRestartRequested": false
+}

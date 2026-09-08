@@ -1,0 +1,67 @@
+{
+  "version": "apr-authoritative-nested-finalizer-freeze-v1",
+  "frozenAt": "2026-08-31T14:20:00Z",
+  "authorizationId": "user-2026-08-31-definitive-mandate-targeted-ranzoni-then-same-30x3",
+  "portalMode": "real_enea_draft_only",
+  "sourceSnapshot": {
+    "path": "/private/tmp/apr-promote-server-envelope-observability-20260831-R14",
+    "gitCommit": "e1da667b50c12b6b4d59350f86d211bd6b4cdfb1",
+    "treeHash": "1f56cc1bc55c41c56a8609160421097e8240743d"
+  },
+  "sequencer": {
+    "path": "/private/tmp/apr-promote-server-envelope-observability-20260831-R14/ops/apr-global-controller-test10-2026-08-29/sequencer.mjs",
+    "sha256": "7272edc599725e20d325c6ee4dee9c6f6993357422670800eca437fd28f60d05"
+  },
+  "manifest": {
+    "path": "/private/tmp/apr-promote-server-envelope-observability-20260831-R14/ops/apr-global-controller-test10-2026-08-29/manifest-autonomy30.json",
+    "sha256": "6c684df774a48899a6ff4e2a6e52dfe83c2b9c357a81a6c6c52034abe687a953",
+    "caseCount": 30,
+    "requiredCustomerKeys": ["cristina-ricchi", "zeno-righetti"],
+    "excludedCustomerKeys": ["beatrice-ciotta"]
+  },
+  "monotonicGate": {
+    "status": "PASS",
+    "testFiles": 216,
+    "tests": 1603,
+    "failed": 0,
+    "typecheck": "PASS",
+    "productionBuild": "PASS",
+    "attestationPath": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-chrome-immortal-ranzoni-2026-08-31/gate-final-attestation.json",
+    "focusedReportPath": "/private/tmp/apr-focused-gate-20260831-r14.json",
+    "focusedReportSha256": "7dae6875f0e15fb54a69b6edb16c562641e64610a1c92ee716472fc190de1b79",
+    "matrixVersion": "apr-enea-rule-test-matrix-v73",
+    "registryVersion": "enea-operational-registry-v96",
+    "matrixRules": 85,
+    "sourceFingerprint": "e2f318e27e3fcea07c6f8d1017f0ce832c8fed0d2c468dea7f1492b1f87647c4"
+  },
+  "canonicalBundle": {
+    "versionId": "4b19704-authoritative-nested-finalizer-20260831",
+    "supervisorSha256": "1004e3c1f6b16c3d1b2739d92b9e8baba4dbd29cce57bcba068a230703c0f344",
+    "workerSha256": "4b197049f361e8db031c7a963b960c793bb98ca74f1f9ff110e1a9f3d0737907",
+    "watchdogSha256": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "activationStatus": "installed_verified_pending_activation"
+  },
+  "targeted": {
+    "customerKey": "armando-ranzoni",
+    "cohort": 1946,
+    "manifestPath": "/private/tmp/apr-promote-server-envelope-observability-20260831-R14/ops/apr-chrome-immortal-ranzoni-2026-08-31/manifest-targeted-ranzoni.json",
+    "manifestSha256": "d406e7192755ff19f744de668a5c558c9a7633b33b382fe79c758dac5cfc2ceb",
+    "runRoot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-authoritative-nested-targeted-ranzoni-v1"
+  },
+  "rounds": [
+    {"round": 1, "cohortOffset": 1800, "cohortRange": "2028-2057", "runRoot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-authoritative-nested-final-round1"},
+    {"round": 2, "cohortOffset": 1830, "cohortRange": "2058-2087", "runRoot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-authoritative-nested-final-round2"},
+    {"round": 3, "cohortOffset": 1860, "cohortRange": "2088-2117", "runRoot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-authoritative-nested-final-round3"}
+  ],
+  "constraints": {
+    "chromeKeepaliveMayTerminate": false,
+    "chromePidAtFreeze": 42177,
+    "roundsMayOverlap": false,
+    "noCodeChangesBetweenRounds": true,
+    "sameBundleHashesRequired": true,
+    "sameManifestRequired": true,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false
+  }
+}

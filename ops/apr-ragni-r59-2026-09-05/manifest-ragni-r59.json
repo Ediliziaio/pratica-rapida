@@ -1,0 +1,40 @@
+{
+  "version": "apr-ragni-r59-single-manifest-v1",
+  "experimentId": "apr-ragni-r59-clean-generation-2026-09-05",
+  "authorizationId": "user-2026-09-04-natural-autonomy-10-15-draft-only",
+  "authorizedAt": "2026-09-04T23:20:00.000+02:00",
+  "mode": "real_enea_draft_only",
+  "selection": {
+    "total": 1,
+    "allowedStages": ["archiviate"],
+    "selectionSeed": "same-authorized-case-nadia-ragni-r59",
+    "excludedCustomerKeys": ["beatrice-ciotta", "samuele-beretta", "prova-rivenditore-1-30-04", "lucia-droghetti", "angelina-stricelli"],
+    "excludedResellers": ["Vans", "Erre Emme", "RM Legno", "Overthemol"]
+  },
+  "cases": [
+    {
+      "cohort": 3132,
+      "practiceId": "47ef4b16-d334-4acf-8c1f-c7c341281771",
+      "customerKey": "nadia-ragni",
+      "displayName": "Nadia Ragni",
+      "stage": "archiviate",
+      "stageName": "Archiviate",
+      "module": "screening",
+      "productEvidence": "Schermature Solari",
+      "reseller": "⚠️ Da abbinare — richieste sito",
+      "invoiceCount": 2,
+      "complexity": "medium",
+      "historicalRetest": true,
+      "generationMode": "fresh_generation"
+    }
+  ],
+  "safety": {
+    "draftOnly": true,
+    "previewForbidden": true,
+    "submitForbidden": true,
+    "protocolForbidden": true,
+    "receiptsForbidden": true,
+    "communicationsForbidden": true,
+    "singleCaseStrictSequence": true
+  }
+}

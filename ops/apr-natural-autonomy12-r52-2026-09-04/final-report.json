@@ -1,0 +1,58 @@
+{
+  "version": "apr-natural-autonomy12-r52-final-report-v1",
+  "reportedAt": "2026-09-04T21:21:50.569Z",
+  "verdict": "COMMON_TECHNICAL_BLOCK_BEFORE_FIRST_CASE",
+  "authorizationId": "user-2026-09-04-natural-autonomy-10-15-draft-only",
+  "sample": {
+    "total": 12,
+    "manifestSha256": "5ce2586c66cc733e79bec9e35e3edd70f2d39cee779fd7849b0ac29c9f8c6d96",
+    "cohorts": "3074-3085"
+  },
+  "outcome": {
+    "processed": 0,
+    "saved": 0,
+    "operatorRequired": 0,
+    "technicalBlockCases": 0,
+    "inconsistentCases": 0,
+    "remaining": 12,
+    "commonTechnicalBlock": "manifest_allowed_stages_required",
+    "caseVerdictsAssigned": false
+  },
+  "evidence": {
+    "systemProcess": {
+      "source": "launchctl gui/501/com.praticarapida.apr-natural-autonomy12-r52",
+      "state": "not running",
+      "runs": 1,
+      "lastExitCode": 2
+    },
+    "persistentState": {
+      "checkpoint": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-natural-autonomy12-r52/checkpoint.json",
+      "report": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-natural-autonomy12-r52/report.json",
+      "status": "stopped_common_technical_block",
+      "startedAt": "2026-09-04T21:21:50.567Z",
+      "endedAt": "2026-09-04T21:21:50.569Z"
+    },
+    "independentJournal": {
+      "path": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-natural-autonomy12-r52/sequencer.log",
+      "event": "run_stopped_common_technical_block",
+      "reason": "manifest_allowed_stages_required",
+      "currentCustomerKey": null
+    }
+  },
+  "safety": {
+    "eneaCaseReached": false,
+    "draftCreatedOrSaved": false,
+    "previewAttempted": false,
+    "submitAttempted": false,
+    "communicationsAttempted": false,
+    "keepaliveRunningPid": 42593,
+    "globalControllerActiveOwner": null
+  },
+  "scopeCompliance": {
+    "diagnosisPerformed": false,
+    "correctionPerformed": false,
+    "systemModified": false,
+    "casesRetried": false,
+    "note": "Il motivo pubblicato da APR è riportato letteralmente; non è stata svolta analisi causale né apportata alcuna correzione, come richiesto."
+  }
+}

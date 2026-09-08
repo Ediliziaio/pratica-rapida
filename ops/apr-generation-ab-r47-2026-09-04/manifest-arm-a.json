@@ -1,0 +1,22 @@
+{
+  "version": "apr-generation-ab-manifest-v1",
+  "experimentId": "apr-generation-ab-r47-2026-09-04",
+  "authorizationId": "user-2026-09-04-generation-ab-real-10",
+  "authorizedAt": "2026-09-04T11:45:00.000+02:00",
+  "mode": "real_enea_draft_only",
+  "arm": "A_fresh_generation",
+  "selection": {
+    "total": 5,
+    "allowedStages": ["archiviate"],
+    "excludedCustomerKeys": ["beatrice-ciotta", "samuele-beretta", "flavia-cipriani", "prova-rivenditore-1-30-04"],
+    "method": "abbinamento deterministico per modulo e pagine, tie-break SHA-256; tutte gia trasmesse in precedenza"
+  },
+  "cases": [
+    { "cohort": 1, "practiceId": "54248180-3f6d-4ae5-9bc5-f4ad1b52c2d4", "customerKey": "orietta-artuso", "displayName": "Orietta Artuso", "stage": "archiviate", "module": "infissi", "complexity": "complex", "historicalRetest": true, "generationMode": "fresh_generation" },
+    { "cohort": 2, "practiceId": "ae88aed9-0b83-42c7-87fb-a03c76a46113", "customerKey": "angelina-stricelli", "displayName": "Angelina Stricelli", "stage": "archiviate", "module": "infissi", "invoiceCount": 6, "complexity": "complex", "historicalRetest": true, "generationMode": "fresh_generation" },
+    { "cohort": 3, "practiceId": "adff093a-ef0d-4013-aa23-5f71dec4234b", "customerKey": "romeo-ropa", "displayName": "Romeo Ropa", "stage": "archiviate", "module": "screening", "invoiceCount": 3, "complexity": "medium", "historicalRetest": true, "generationMode": "fresh_generation" },
+    { "cohort": 4, "practiceId": "342d7232-023c-41c2-a293-b6f8a250055c", "customerKey": "amelia-lerose", "displayName": "Amelia Lerose", "stage": "archiviate", "module": "screening", "invoiceCount": 2, "complexity": "medium", "historicalRetest": true, "generationMode": "fresh_generation" },
+    { "cohort": 5, "practiceId": "adb20f82-ae96-43c4-b785-8f7c9f727a25", "customerKey": "luca-callegari", "displayName": "Luca Callegari", "stage": "archiviate", "module": "screening", "invoiceCount": 3, "complexity": "medium", "historicalRetest": true, "generationMode": "fresh_generation" }
+  ],
+  "safety": { "draftOnly": true, "previewAllowed": false, "submitAllowed": false, "communicationsAllowed": false, "priorDraftPolicy": "new_generation_never_adopts_prior_mapping" }
+}

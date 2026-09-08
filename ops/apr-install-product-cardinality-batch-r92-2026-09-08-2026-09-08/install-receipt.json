@@ -1,0 +1,23 @@
+{
+  "version": "apr-install-bundle-cli-receipt-v1",
+  "installedAt": "2026-09-08T15:50:48.464Z",
+  "label": "product-cardinality-batch-r92-2026-09-08",
+  "versionId": "1c0bf398-product-cardinality-batch-r92-2026-09-08-20260908",
+  "previousTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/63620169-gross-reconciliation-batch-r91-2026-09-08-20260908",
+  "currentTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/1c0bf398-product-cardinality-batch-r92-2026-09-08-20260908",
+  "installedBundle": {
+    "apr-supervisor.mjs": "c8e90ccf839a122a0755b7316b954188eab545c1c13ed5610fda77c79e0050b8",
+    "apr-enea-worker.mjs": "1ab6fab1fef8874912aaea31aa21a6be24b9be9c77126fd135eeeb53e2bfa9d3",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0"
+  },
+  "gateResultArtifactId": "623ffe53089f714fabeb31d9663f596b5e4f438165598c1408afff7a5dbc1c65",
+  "gateStatus": "PASS",
+  "legacyGovernanceDebtNoticed": [
+    "user-2026-08-06-existing-plant-authoritative-mapping-v1",
+    "user-2026-08-06-intervention-authoritative-sources-and-defaults-v1",
+    "user-2026-08-06-portal-intermediary-physical-beneficiary-v1",
+    "user-2026-08-06-portal-municipality-controlled-selection-v1",
+    "user-2026-09-05-co-beneficiary-trusted-enter-delivery-v2",
+    "user-2026-09-05-terminal-cohort-browser-quiescence-v1"
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "version": "apr-wide100-r69-bundle-install-receipt-v1",
+  "installedAt": "2026-09-06T16:04:29.619Z",
+  "status": "bundle_promoted_alternative_verification",
+  "governanceAttestationStatus": "not_performed",
+  "governanceAttestationNote": "Il rituale formale (apr-rule-governance-attestation.json, prova individuale delle 151 regole della matrice con fixture/replay) non e' stato eseguito: richiede ore di lavoro puntuale, non completabile in questa sessione. Installazione autorizzata esplicitamente dall'utente sulla base della verifica alternativa qui sotto.",
+  "alternativeVerification": {
+    "version": "apr-r69-alternative-verification-v1",
+    "status": "verified_alternative",
+    "verifiedAt": "2026-09-06T17:55:45.000Z",
+    "note": "Verifica esplicitamente alternativa al rituale formale di governance (apr-rule-governance-attestation.json), autorizzata dall'utente. Non certifica una prova individuale con fixture/replay per ciascuna delle 151 regole della matrice — quel lavoro resta da fare a parte. Certifica invece che l'intero repository, con le correzioni odierne incluse, compila senza errori di tipo e passa per intero la sua suite di test automatici.",
+    "gitCommitAtVerification": "e200ebd4a8979f15c8ea3c5fc31eaea5d4f1c088",
+    "gitWorkingTreeClean": false,
+    "gitWorkingTreeNote": "Working tree non pulito (lavoro non committato di questa sessione e di Codex); commit rimandato su richiesta esplicita dell'utente, da verificare con Codex separatamente.",
+    "typecheck": {
+      "command": "npm run typecheck",
+      "coversSrc": true,
+      "coversScripts": true,
+      "exitCode": 0
+    },
+    "typecheckExitCode": 0,
+    "vitestFullSuite": {
+      "command": "npx vitest run",
+      "testFiles": {
+        "passed": 229,
+        "total": 229
+      },
+      "tests": {
+        "passed": 1826,
+        "total": 1826
+      },
+      "durationSeconds": 447.54
+    },
+    "testsFailed": 0,
+    "testFilesFailed": 0
+  },
+  "versionId": "90435679-comune-rinaldi-alt-verified-r69-20260906",
+  "previousTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/b52ec569-terminal-cohort-quiescence-r67-20260906",
+  "currentTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/90435679-comune-rinaldi-alt-verified-r69-20260906",
+  "installedBundle": {
+    "apr-supervisor.mjs": "be50a7f4be12cab41878376df8048889d713a35d8d8a89122421f9c334c1b6e7",
+    "apr-enea-worker.mjs": "dcb708e6ba7bf4a54f6f4a0d864374ed26de032a34477e8e95923200974ef9cb",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0"
+  },
+  "correctionsIncluded": [
+    "user-2026-09-06-official-works-municipality-over-manual-crm-v1 (Comune lavori/immobile: precedenza documenti su CRM)",
+    "user-2026-08-14-rinaldi-explicit-deductible-total (spese congrue Rinaldi)",
+    "user-2026-09-06-gross-invoice-sum-supersedes-service-separation-v1 (Pratica ENEA compresa: somma sempre le fatture)",
+    "user-2026-09-06-invoice-work-date-chronology-order-scoped-v1 (cronologia fatture per riferimento ordine/commessa)",
+    "riconciliazione Schermature/Infissi Olteanu (dimension parser + gate di riconciliazione)"
+  ],
+  "keepaliveRestartRequested": false,
+  "chromeRestartRequested": false,
+  "operationalReplayPerformed": false
+}

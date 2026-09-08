@@ -1,0 +1,14 @@
+{
+  "version": "apr-wide100-province-lineage-freeze-v2",
+  "authorizationId": "user-2026-09-02-wide-infissi-screening-single-run-v2",
+  "selectionSeedSha256": "12f73bf85e94792d195a49a5cc64b9b539137f0b5804b583607674183a6f50d8",
+  "manifestSha256": "51842252f71cabb6714f78923fe59ec9789ad06739393f61a553bb4bdb9154e0",
+  "selectionEvidenceSha256": "046794c46bdbf3fcbfb1653665a86e9aa77861dc095ba873430665c58ce34373",
+  "gateDiagnosisSha256": "807ed1701a1ad357b7deb53353a95a7439dda231641be39b2e29825360809798",
+  "selectedPracticeIdsSha256": "dbc2d1be90e4d3107622bc315e6dbe102e2d7533606c6691e5bc1aab03859e57",
+  "caseCount": 100,
+  "cohorts": { "first": 2821, "last": 2920, "offset": 2820 },
+  "runRoot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-province-lineage-r24",
+  "sequencerLabel": "com.praticarapida.apr-wide100-province-lineage-r24",
+  "safety": { "draftOnly": true, "previewAllowed": false, "submitAllowed": false, "communicationsAllowed": false }
+}

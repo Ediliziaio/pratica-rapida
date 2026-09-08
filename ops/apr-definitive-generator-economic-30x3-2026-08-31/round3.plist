@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+  <key>Label</key><string>com.praticarapida.apr-definitive-generator-economic-round3</string>
+  <key>ProgramArguments</key><array><string>/usr/local/bin/node</string><string>/private/tmp/apr-promote-4e166ce/ops/apr-global-controller-test10-2026-08-29/sequencer.mjs</string></array>
+  <key>WorkingDirectory</key><string>/private/tmp/apr-promote-definitive-20260831</string>
+  <key>EnvironmentVariables</key><dict>
+    <key>APR_SOURCE_ROOT</key><string>/private/tmp/apr-promote-definitive-20260831</string>
+    <key>APR_MANIFEST_PATH</key><string>/private/tmp/apr-promote-4e166ce/ops/apr-global-controller-test10-2026-08-29/manifest-autonomy30.json</string>
+    <key>APR_RUN_ROOT</key><string>/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-definitive-generator-economic-round3</string>
+    <key>APR_COHORT_OFFSET</key><string>802</string>
+  </dict>
+  <key>RunAtLoad</key><true/><key>KeepAlive</key><false/><key>ProcessType</key><string>Background</string>
+  <key>StandardOutPath</key><string>/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-definitive-generator-economic-round3/sequencer.stdout.log</string>
+  <key>StandardErrorPath</key><string>/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-definitive-generator-economic-round3/sequencer.stderr.log</string>
+</dict></plist>

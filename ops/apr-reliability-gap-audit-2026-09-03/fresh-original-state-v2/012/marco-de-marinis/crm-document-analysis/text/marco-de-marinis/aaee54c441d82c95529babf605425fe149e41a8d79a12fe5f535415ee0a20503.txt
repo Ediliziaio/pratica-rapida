@@ -1,0 +1,374 @@
+Dichiarazione di conformità energetica
+alla legislazione nazionale in ambito di risparmio energetico in edilizia
+[D.Lgs. 192 del 19 agosto 2005 e successive modificazioni ed integrazioni]
+Il sottoscritto , rappresentante legale della ditta "Innova Serramenti S.r.l.s.", in qualità di costruttore dei
+prodotti:
+Rif. tipologia: 529/2026 01 Modello: FIN2 ELEGANT, FINESTRA A DUE ANTE, dimensioni: 920 x 710, pezzi: 1;
+Rif. tipologia: 529/2026 02 Modello: FIN1 ELEGANT, FINESTRA AD UN ANTA, dimensioni: 720 x 590, pezzi: 1;
+Rif. tipologia: 529/2026 03 Modello: FIN2 ELEGANT, FINESTRA A DUE ANTE, dimensioni: 920 x 590, pezzi: 1;
+Rif. tipologia: 529/2026 04 Modello: PFIN2 SOGLIA ELEGANT, PORTA FINESTRA DUE ANTE CON SOGLIA RIBASSATA, dimensioni: 1360 x 2440, pezzi: 1;
+Rif. tipologia: 529/2026 05 Modello: FIN2 ELEGANT, FINESTRA A DUE ANTE, dimensioni: 1100 x 1530, pezzi: 1;
+Rif. tipologia: 529/2026 06 Modello: FIN1 ELEGANT, FINESTRA AD UN ANTA, dimensioni: 860 x 1530, pezzi: 1;
+Rif. tipologia: 529/2026 07 Modello: PFIN2 SOGLIA ELEGANT, PORTA FINESTRA DUE ANTE CON SOGLIA RIBASSATA, dimensioni: 1110 x 2430, pezzi: 1;
+Rif. tipologia: 529/2026 08 Modello: FIN2+1DX ELEGANT, FINESTRA A DUE ANTE + ANTA SINGOLA, dimensioni: 2160 x 1530, pezzi: 1;
+D I C H I A R A
+che i serramenti e le vetrazioni, di cui alla fornitura n°529/2026 del cliente MARCO DE MARINIS, C.F.:
+DMRMRC75H17E202Q, VIA VENEZIA 4 Agra (VA), con cantiere in VIA VENEZIA 4 Agra (VA), prodotti nello
+stabilimento situato in Via del Mandrione, 105 - 00181 Roma, sono conformi a quanto previsto dal D.Lgs.
+192/2005 e successive modificazioni ed integrazioni e dall'Allegato C del D.Lgs. 192/2005 e successive
+modificazioni ed integrazioni e che:
+1. i serramenti di fornitura sono impiegabili in edifici ubicati in Comuni appartenenti fino alla zona climatica "".
+2. la trasmittanza termica complessiva dei serramenti è stata determinata mediante metodologia di calcolo
+semplificato così come previsto dalla norma UNI EN ISO 10077-1:2018 e corrisponde a 1,11 W/m²K. Tale valore
+è stato determinato numericamente sulla base dei singoli valori di trasmittanza termica dei componenti
+costituenti il serramento così come dichiarati dalla ditta produttrice dei profili sistema DECEUNINCK della serie
+ELEGANT e dalla ditta produttrice di Vetro 33.1-22-4 selettivo UNI-7697 Ug=1,1 - Fs=60 ARGON, Vetro
+33.1-20-33.1 selettivo UNI-7697 Ug=1,1 - Fs=60 ARGON, PANNELLO PORTA 1 ANTA BUGNATO DA ESTERNO,
+Vetro 33.1-20-33.1 selettivo satinato UNI-7697 Ug=1,1 - Fs=60 ARGON;
+3. la permeabilità all'aria dei serramenti corrisponde alla classe 2 per le finestre e classe 1 per le portefinestre
+come definito dalla norma EN 14351-1;
+4. la trasmittanza termica delle vetrazioni è pari rispettivamente a 1W/m²K per il vetro XXV33.1-22-4 selettivo
+(tipologie 01, 02, 03, 05, 06, 08), 1W/m²K per il vetro XXV33.1-20-33.1 selettivo (tipologie 04, 07).
+Si allegano alla presente dichiarazione di conformità i seguenti documenti:
+Allegato A: Determinazione numerica della trasmittanza termica complessiva dei serramenti eseguita secondo la
+metodologia di calcolo semplificata descritta dalla norma UNI EN ISO 10077-1:2018
+Allegato B: Certificazione, da parte del produttore dei profili sistema DECEUNINCK, serie THERMOFIBRA dei valori
+di trasmittanza termica serie;
+Allegato C: Certificazione, da parte del produttore di XXV33.1-22-4 selettivo del valore di isolamento acustico.
+
+APR_OCR_ORIENTATION:0
+Roma, 27/05/2026
+Timbro e firma
+NNOVA SERRAMENTYS.R.L.S
+Sede Legete Vie el Manyrtage, 105
+società a Socio Unic
+OTT RONA
+pag 2
+
+Tabelle e metodologie di calcolo
+Tabella conforme ai valori limite della trasmittanza termica U dettati dai decreti ministeriali e legislativi relativi alle chiusure
+trasparenti comprensive degli infissi espressa in W/m²K
+Zona climatica 01/10/2015 01/10/2015 01/01/2021 Superbonus/Ecobonus
+D.Lgs. 192/2005
+Appendice A
+D.Lgs. 192/2005
+Appendice B
+DM 26 Giugno 2015
+(CAM e Bonus Casa)
+DM 06 Agosto 2020
+Allegato E
+A 3,2 3,2 3,0 2,6
+B 3,2 3,2 3,0 2,6
+C 2,4 2,4 2,0 1,75
+D 2,0 2,1 1,8 1,67
+E 1,8 1,9 1,4 1,3
+F 1,5 1,7 1,0 1,0
+Tabella conforme alla Tabella 4b - Allegato C del D.Lgs. 192/2005 e s.m. e i. contenente i valori limite della trasmittanza centrale
+termica U dei vetri espressa in W/m²K
+Zona climatica Dall' 1° luglio 2011
+A 3,7
+B 2,7
+C 2,1
+D 1,9
+E 1,7
+F 1,3
+I limiti possono subire variazioni dettate dal progettista
+Formule utilizzate per il calcolo trasmittanza termica
+Calcolo della trasmittanza termica infissi secondo EN 10077-1:2018
+Effetto di eventuali chiusure oscuranti secondo norma TS 11300-1:2014
+pag 3
+
+529/2026 Allegato A (pag. 1/4)
+01
+Zone trasmittanza
+Serie DECEUNINCK - THERMOFIBRA 0.39 m² × 0,88 W/m²K = 0.35 W/K 45.1%
+Riempimento XXV33.1-22-4 selettivo 0.26 m² × 1 W/m²K = 0.26 W/K 33.5%
+Riempimento XXV33.1-22-4 selettivo 3.00m × 0,055 W/mK = 0.16 W/K 21.4%
+1
+0,88
+W/m²K
+920
+W/mK
+0,055
+710
+Potenza trasmessa: 0,77 W/K
+Superficie: 0,653 m²
+Trasmittanza termica: 1,18011 W/m²K
+Uw: 1,18 W/m²K
+02
+Zone trasmittanza
+720
+Serie DECEUNINCK - THERMOFIBRA 0.25 m² × 0,88 W/m²K = 0.22 W/K 44.2%
+Riempimento XXV33.1-22-4 selettivo 0.18 m² × 1 W/m²K = 0.18 W/K 36.5%
+Riempimento XXV33.1-22-4 selettivo 1.71m × 0,055 W/mK = 0.09 W/K 19.3%
+1
+0,88
+W/m²K
+W/mK
+0,055
+590
+Potenza trasmessa: 0,49 W/K
+Superficie: 0,425 m²
+Trasmittanza termica: 1,15217 W/m²K
+Uw: 1,15 W/m²K
+
+529/2026 Allegato A (pag. 2/4)
+03
+Zone trasmittanza
+Serie DECEUNINCK - THERMOFIBRA 0.35 m² × 0,88 W/m²K = 0.31 W/K 48.0%
+Riempimento XXV33.1-22-4 selettivo 0.19 m² × 1 W/m²K = 0.19 W/K 30.3%
+Riempimento XXV33.1-22-4 selettivo 2.52m × 0,055 W/mK = 0.14 W/K 21.7%
+1
+0,88
+W/m²K
+920
+W/mK
+0,055
+590
+Potenza trasmessa: 0,64 W/K
+Superficie: 0,543 m²
+Trasmittanza termica: 1,1783 W/m²K
+Uw: 1,18 W/m²K
+04
+1360
+Zone trasmittanza
+Riempimento XXV33.1-20-33.1 selettivo Riempimento XXV33.1-20-33.1 selettivo Tipologia 1,07
+Ug = 1 W/m²K
+Psi = 0,046 W/mK
+3.32 m² × 1,07 W/m²K = 3.55 W/K 100.0%
+1
+W/m²K
+W/mK
+0,046
+2440
+Potenza trasmessa: 3,55 W/K
+Superficie: 3,318 m²
+Trasmittanza termica: 1,07 W/m²K
+Uw: 1,07 W/m²K
+
+529/2026 Allegato A (pag. 3/4)
+05
+Zone trasmittanza
+1100
+Serie DECEUNINCK - THERMOFIBRA 0.75 m² × 0,88 W/m²K = 0.66 W/K 33.7%
+Riempimento XXV33.1-22-4 selettivo 0.93 m² × 1 W/m²K = 0.93 W/K 47.6%
+Riempimento XXV33.1-22-4 selettivo 6.64m × 0,055 W/mK = 0.37 W/K 18.7%
+1
+0,88
+W/m²K
+W/mK
+0,055
+1530
+Potenza trasmessa: 1,96 W/K
+Superficie: 1,683 m²
+Trasmittanza termica: 1,16348 W/m²K
+Uw: 1,16 W/m²K
+06
+860
+Zone trasmittanza
+Serie DECEUNINCK - THERMOFIBRA 0.49 m² × 0,88 W/m²K = 0.43 W/K 29.4%
+Riempimento XXV33.1-22-4 selettivo 0.83 m² × 1 W/m²K = 0.83 W/K 56.2%
+Riempimento XXV33.1-22-4 selettivo 3.87m × 0,055 W/mK = 0.21 W/K 14.4%
+1
+0,88
+W/m²K
+W/mK
+0,055
+1530
+Potenza trasmessa: 1,47 W/K
+Superficie: 1,316 m²
+Trasmittanza termica: 1,11713 W/m²K
+Uw: 1,12 W/m²K
+
+529/2026 Allegato A (pag. 4/4)
+07 1110
+Zone trasmittanza
+Riempimento XXV33.1-20-33.1 selettivo Riempimento XXV33.1-20-33.1 selettivo Tipologia 1,07
+Ug = 1 W/m²K
+Psi = 0,046 W/mK
+2.70 m² × 1,07 W/m²K = 2.89 W/K 100.0%
+1
+W/m²K
+W/mK
+0,046
+2430
+Potenza trasmessa: 2,89 W/K
+Superficie: 2,697 m²
+Trasmittanza termica: 1,07 W/m²K
+Uw: 1,07 W/m²K
+08
+Zone trasmittanza
+Serie DECEUNINCK - THERMOFIBRA 1.23 m² × 0,88 W/m²K = 1.08 W/K 28.8%
+Riempimento XXV33.1-22-4 selettivo 2.07 m² × 1 W/m²K = 2.07 W/K 55.1%
+Riempimento XXV33.1-22-4 selettivo 11.00m × 0,055 W/mK = 0.60 W/K 16.1%
+1
+0,88
+W/m²K
+2160
+1425,1 734,9
+W/mK
+0,055
+1530
+Potenza trasmessa: 3,76 W/K
+Superficie: 3,305 m²
+Trasmittanza termica: 1,13836 W/m²K
+Uw: 1,14 W/m²K
+
+APR_OCR_ORIENTATION:0
+529/2026
+Allegato B (pag. 1/1)
+INSTITUT PRO TESTOVÁNÍ A CERTIFIKAÇI, a. s.
+®
+DIVIZE CSI - CENTRUM STAVEBNÍHO INŽENÝRSTVÍ
+sede di Zlín, K Cihelně 304, 764 32 Zlín - Louky
+rilascia
+Al richiedente:
+Deceuninck nv
+Bruggesteenweg 360, 8830 Hooglede-Gits, Belgium
+CERTIFICATO
+di caratteristica di prodotto
+n. CV - 19 - 633/Z
+Prodotto:
+Finestre in PVC ad un'anta ribalta serie Elegant ThermoFibra Infinity 76 X
+Produttore:
+vedi richiedente
+Descrizione:
+Telaio ed anta
+Telaio: P5101 / rinforzi del telaio: P5202 (NT1)
+anta: P5709 / rinforzo integrato: fibre di vetro continue incorporate nel profilo in PVC
+rinforzo con pareti in PVC rigido, cavi d'acciaio e PVC espanso ;
+Altri profili
+Fermavetro P5313 (GP32)
+Riempimento
+Panello sandwich isolante dello spessore di 43,6 mm
+isolante
+composto da: 1,4 mm PVC - 40,8 mm XPS - 1,4 mm PVC
+Guarnizione
+Interna: 16998 (DEA84); esterna: 16990 (DEV1); centrale: 3297 (MD184);
+esterna vetro: 16992; interna vetro: 15562 (DG11);
+tutte le guarnizioni sono saldate agli angoli
+Ferramenta
+Ferramenta GU su tutto il perimetro, chiusura a 7 punti,
+2 cerniere apribili e ribaltabili, maniglia con blocco di sicurezza
+Risultato:
+Denominazione del parametro esaminato
+Metodo di prova
+Risultato
+Coefficiente di transmittanza termica U,
+UNI EN 12 412-2
+0,88 W/(m?.K)
+alori stabiliti dalla norma.
+con il presente certificato si attesta che le proprietà del prodotto di cui sopra sono conformi a
+L'esito di U, risponde ai requisiti prescritti dalla norma tecnica ceca ČSN 73 0540, parte 2, per quanto
+riguarda il coefficiente di transmittanza termica raccomandato per edifici passivi:
+U, = 0,88 ≤ Upas, 20 = (0,90 - 0,70) W/(m?.K)
+Documentazione: Verbale di prova n. 353/19, AZL 8. 1007.1, ITC, a.s.
+Il presente certificato è valido solo per il prodotto, le cui specifiche sono descritte in dettaglio nel verbale di prova
+Attesta solo le proprietà sopra riportate del prodotto e non costituisce né sostituisce certificazione secondo I
+legge n. 22/1997 Racc. sui requisiti tecnici per i prodotti
+Data di rilascio: 06.01.2020
+Redatto da:
+Ing. Nizar Al-Hajjar
+
+APR_OCR_ORIENTATION:180
+7. Le effettive prestazioni in opera possono variare in funzione delle reali dimensioni della vetrata e
+della stanza, delle sorgenti di rumore etc. La tolleranza sul dato è di +/- 2 dB.
+6. L'indice acustico fornito, deve essere ritenuto puramente indicativo, se non indicato diversamente.
+5. Il presente documento è solo puramente informativo.
+4. Le specifiche tecniche ed altri dati sono basati al momento dell'elaborazione del presente
+documento e sono soggette a cambiamenti - variazioni senza preavviso.
+3. Il presente documento non valuta il rischio di rotture causato da shock termico. Per i vetri temprati
+non si risponde delle eventuali rotture spontanee.
+2. Il coefficiente Ug (in precedenza detto valore k) è calcolato in base alla norma EN 673. La misura
+dell'emissività è conforme alle norme EN 673 (allegato A) e EN 12898.
+1. I dati sono calcolati sulla base delle misure spettrali conformi alle norme EN 410 (1998). La
+tolleranza dei dati pubblicati in relazione alle proprietà fotometriche è di +/- 3 punti.
+32.4
+mm
+Spessore
+(%)
+EN 410
+Trasmissione dei raggi ultravioletti - UV
+21
+(%)
+EN 410
+Assorbimento energetico totale
+0.48
+Coefficiente di shading - SC
+17 / 4 /NPD
+(%)
+EN 410
+Assorbimento energetico singolo
+37
+(%)
+EN 410
+Trasmissione energetica diretta - Te
+42
+(%)
+EN 410
+Riflessione energetica - Pe
+42
+(%)|
+EN 410
+Fattore solare - 9
+Proprietà energetiche
+97
+(%)
+EN 410
+Indice di resa dei colori - RD65 - Ra
+24
+EN 410
+Riflessione interna - Pvi
+26
+(%)
+EN 410
+Riflessione luminosa - Pv
+65
+(%)|
+EN 410
+Trasmissione luminosa - Tv
+Proprietà di irraggiamento
+1.1
+W/(m2.K)
+EN 673
+Valore Ug
+Propietà termiche
+36 (-1;-5)
+Rw (C;Ctr) Stimato - dB
+EN 12758
+Isolamento al rumore aereo diretto
+Protezione contro il rumore
+NPD/2B2
+EN 12600
+Resistenza agli urti (Prova del pendolo)
+NPD
+EN 356
+Resistenza agli attacchi manuali
+NPD
+EN 1063
+Resistenza ai proiettili
+Sicurezza nell'uso
+NPD
+EN 13501-1
+Reazione al fuoco
+NPD
+EN 13501-2
+Resistenza al fuoco
+Sicurezza in caso di incendio
+Per uso in edilizia e nelle costruzioni
+Vetrata isolante
+*RL 26%
+EN UNI 1279-5:2018
+Norma armonizzata:
+*RE 42%
+4 Selettivo/22BCN (Argon 90%)/33.1
+Prodotto:
+TL 65%
+Scheda Tecnica
+*FS 42%
+Tel: - Fax: - e-mail:info@eurovetro.it
+Via Carroccello, 16 - 88050 Sellia Marina (CZ)
+Eurovetro srl
+Euroxetro
+Allegato C (pag. 1/1)
+529/2026

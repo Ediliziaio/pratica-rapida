@@ -1,0 +1,46 @@
+{
+  "version": "apr-cdp-react-remount-r23-round3-terminal-attestation-v1",
+  "verifiedAt": "2026-09-01T23:16:00Z",
+  "baseFreezeSha256": "d7d0a8c42260a0bfd773a2350524658929de84a57c2e7867bbfb7f9f60c39652",
+  "observabilityFixFreezeSha256": "dd75f41096444c7d46852901c7d7b833dcc5987ca53e4da3eb0aca9d0b8b46ad",
+  "manifestSha256": "55521654d4d859ad4014b599f951892e46397e11c95ca4a94cf643d612efb6fd",
+  "plistSha256": "5e6a78d637b76e649261bbc86ef3e9af0e08a78a7a30ddb560f39645a4691e67",
+  "reportSha256": "4e4663ede88a06ca050f4c4ebfe2af7bf070f95a1fe309b5dbd08cfb8e903b74",
+  "checkpointSha256": "b4e0130993407b015e2b29a040583c8c51f76a679aabe38bbc463110fbbecfa3",
+  "journalSha256": "fc5c2600787fd9f8889691e82a6da142155d7d1721c5ef04cec8cbe509514992",
+  "bundle": {
+    "versionId": "e52389f5-terminal-observability-r23-fix-20260901",
+    "supervisorSha256": "e52389f558623e9fe6fe989fb2d005c9898e81fa7566b94522ffc2613e1a1e2c",
+    "workerSha256": "9d38522d7e25b191b356bb7cabe9ef4fee178c51a53bb1ba2bad8ee34945745b",
+    "watchdogSha256": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0"
+  },
+  "summary": {
+    "total": 30,
+    "saved": 16,
+    "operatorRequired": 11,
+    "technicalBlock": 3,
+    "inconsistent": 0
+  },
+  "tripleVerification": {
+    "reportVsCheckpointMismatchCount": 0,
+    "journalVsCheckpointMismatchCount": 0,
+    "terminalSnapshotsPresent": 30,
+    "terminalSnapshotsConsistent": 30,
+    "terminalSnapshotVsCheckpointMismatchCount": 0,
+    "staticDashboardVsCheckpointMismatchCount": 0,
+    "status": "PASS"
+  },
+  "processEvidence": {
+    "sequencerRuns": 1,
+    "sequencerState": "not running",
+    "sequencerExitCode": 0,
+    "keepalivePid": 3784,
+    "keepaliveRuns": 1,
+    "roundServiceUnloaded": true
+  },
+  "safety": {
+    "previewAttempted": false,
+    "submitAttempted": false,
+    "communicationsAttempted": false
+  }
+}

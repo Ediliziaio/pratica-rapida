@@ -28,7 +28,7 @@ function atomicWrite(target: string, contents: string) {
   renameSync(temporary, target);
 }
 
-function plist(label: string, args: string[], workingDirectory: string, stdout: string, stderr: string) {
+function plist(label: string, args: string[], workingDirectory: string, stdout: string, stderr: string, role: "supervisor" | "worker" | "watchdog") {
   const argumentsXml = args.map((argument) => `    <string>${xml(argument)}</string>`).join("\n");
   return `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -39,7 +39,7 @@ ${argumentsXml}
   </array>
   <key>WorkingDirectory</key><string>${xml(workingDirectory)}</string>
   <key>RunAtLoad</key><true/>
-  <key>KeepAlive</key><true/>
+  <key>KeepAlive</key>${role === "worker" ? "<dict><key>SuccessfulExit</key><false/></dict>" : "<true/>"}
   <key>ThrottleInterval</key><integer>15</integer>
   <key>ExitTimeOut</key><integer>10</integer>
   <key>ProcessType</key><string>Background</string>
@@ -70,10 +70,13 @@ export function prepareAprCohortLaunchAgents(options: AprCohortLaunchAgentOption
     { role: "watchdog", label: watchdogLabel, args: [options.nodeExecutable, options.watchdogBundle, "serve", "--state-dir", options.stateDirectory, "--interval-ms", "15000", "--supervisor-label", supervisorLabel, "--worker-label", workerLabel] },
   ].map((entry) => {
     const target = path.join(options.installDirectory, `${entry.label}.plist`);
-    const contents = plist(entry.label, entry.args, path.dirname(options.supervisorBundle), path.join(logs, `${entry.role}.stdout.log`), path.join(logs, `${entry.role}.stderr.log`));
+    const contents = plist(entry.label, entry.args, path.dirname(options.supervisorBundle), path.join(logs, `${entry.role}.stdout.log`), path.join(logs, `${entry.role}.stderr.log`), entry.role as "supervisor" | "worker" | "watchdog");
     if (!existsSync(target) || readFileSync(target, "utf8") !== contents) atomicWrite(target, contents);
     const persisted = readFileSync(target, "utf8");
-    if (!persisted.includes(`<string>${entry.label}</string>`) || !persisted.includes(`<string>${xml(entry.args[1])}</string>`) || !persisted.includes("<key>RunAtLoad</key><true/>") || !persisted.includes("<key>KeepAlive</key><true/>") || persisted.includes("{{")) throw new Error(`apr_cohort_launch_agent_verification_failed:${entry.role}`);
+    const expectedKeepAlive = entry.role === "worker"
+      ? "<key>KeepAlive</key><dict><key>SuccessfulExit</key><false/></dict>"
+      : "<key>KeepAlive</key><true/>";
+    if (!persisted.includes(`<string>${entry.label}</string>`) || !persisted.includes(`<string>${xml(entry.args[1])}</string>`) || !persisted.includes("<key>RunAtLoad</key><true/>") || !persisted.includes(expectedKeepAlive) || persisted.includes("{{")) throw new Error(`apr_cohort_launch_agent_verification_failed:${entry.role}`);
     return { ...entry, bundlePath: entry.args[1], path: target };
   });
   return { cohortNumber: options.cohortNumber, dashboardUrl: `http://127.0.0.1:${options.dashboardPort}/`, entries, ready: true, loadPerformed: false };

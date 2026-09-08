@@ -56,6 +56,7 @@ const DEDUCTIBLE_LABELS = new Set([
   "totale detraibile",
   "totale massimo da portare in detrazione",
   "totale spese congrue sostenute in base ai massimali ammessi",
+  "spese congrue sostenute in base ai massimali ammessi",
 ]);
 
 export function isUnambiguousRinaldiSupplier(source: Pick<RinaldiPolicySource, "supplierId" | "supplierName">) {
@@ -119,27 +120,36 @@ export function applyRinaldiScopedFinancialRules(
     }
   }
 
-  for (const source of rinaldiSources) {
-    if (vepaSeparationApplies) continue;
-    const candidates = source.explicitDeductibleLines ?? [];
-    if (candidates.length === 0) continue;
-    const valid = candidates.filter((line) => line.extractionConfidence === "certain"
-      && isExplicitDeductibleLabel(line.text) && validMoney(line.amount));
-    if (candidates.length !== 1 || valid.length !== 1) {
-      blockers.push(`rinaldi-totale-detraibile-ambiguo:${source.sourceId}`);
-      continue;
+  if (!vepaSeparationApplies) {
+    const candidateEntries = rinaldiSources.flatMap((source) =>
+      (source.explicitDeductibleLines ?? []).map((line) => ({ source, line })),
+    );
+    if (candidateEntries.length > 0) {
+      const validEntries = candidateEntries.filter(({ line }) => line.extractionConfidence === "certain"
+        && isExplicitDeductibleLabel(line.text) && validMoney(line.amount));
+      const distinctAmounts = new Set(validEntries.map(({ line }) => money(line.amount ?? 0)));
+      if (validEntries.length !== candidateEntries.length || distinctAmounts.size !== 1
+        || rinaldiSources.some((source) => !validMoney(source.grossTotal))) {
+        for (const source of new Set(candidateEntries.map((entry) => entry.source.sourceId))) {
+          blockers.push(`rinaldi-totale-detraibile-ambiguo:${source}`);
+        }
+      } else {
+        const [{ source: authoritativeSource, line }] = validEntries;
+        const amount = money(line.amount ?? 0);
+        // La cifra esplicita è il totale detraibile dell'intera pratica Rinaldi,
+        // non un subtotale da sommare alle altre fatture dello stesso dossier.
+        for (const source of rinaldiSources) effectiveEneaAmounts[source.sourceId] = 0;
+        effectiveEneaAmounts[authoritativeSource.sourceId] = amount;
+        appliedRuleIds.add(USER_AUTHORIZED_RULE_IDS.rinaldiExplicitDeductibleTotal);
+        auditNotes.push([
+          authoritativeSource.sourceId, `fattura=${authoritativeSource.documentNumber}`, `riga=${line.lineNumber ?? line.lineId}`,
+          `testo=${line.text}`, `importo_pratica=${amount.toFixed(2)}`,
+          `lordi_fatture=${money(rinaldiSources.reduce((sum, source) => sum + (source.grossTotal ?? 0), 0)).toFixed(2)}`,
+          "scope=insieme_fatture_pratica_rinaldi",
+          `regola=${USER_AUTHORIZED_RULE_IDS.rinaldiExplicitDeductibleTotal}`,
+        ].join("|"));
+      }
     }
-    const [line] = valid;
-    const amount = line.amount;
-    if (!validMoney(source.grossTotal) || !validMoney(amount) || amount === source.grossTotal) continue;
-    appliedRuleIds.add(USER_AUTHORIZED_RULE_IDS.rinaldiExplicitDeductibleTotal);
-    effectiveEneaAmounts[source.sourceId] = money(amount);
-    auditNotes.push([
-      source.sourceId, `fattura=${source.documentNumber}`, `riga=${line.lineNumber ?? line.lineId}`,
-      `testo=${line.text}`, `importo=${money(amount).toFixed(2)}`,
-      `lordo_fattura=${money(source.grossTotal).toFixed(2)}`,
-      `regola=${USER_AUTHORIZED_RULE_IDS.rinaldiExplicitDeductibleTotal}`,
-    ].join("|"));
   }
 
   return {

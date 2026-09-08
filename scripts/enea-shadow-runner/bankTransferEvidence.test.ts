@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { extractBankTransferEvidence, extractBankTransferEvidences, reconcileBankTransfers } from "./bankTransferEvidence";
+import { extractBankTransferEvidence, extractBankTransferEvidences, firstBankTransferHeaderIndex, reconcileBankTransfers } from "./bankTransferEvidence";
 
 describe("evidenza bonifici separata dalle fatture", () => {
   const first = extractBankTransferEvidence("bonifico-1", `CONFERMA ORDINE DI BONIFICO SEPA PER DETRAZIONI FISCALI
@@ -57,6 +57,47 @@ Totale operazione
     expect(reconcileBankTransfers(3663, transfers)).toMatchObject({ status: "reconciled", principalTotal: 3663, difference: 0 });
   });
 
+  it("separa ricevute bancarie eterogenee e riconcilia i totali anche se le etichette OCR sono sfalsate", () => {
+    const transfers = extractBankTransferEvidences("mixed-bank", `Presa in carico - Bonifico per Agevolazioni Fiscali
+Fattura n 715/00 del 31/12/2025
+Commissioni
+0,50 Euro
+Totale operazione
+3.950,00 Euro
+3.950,50 Euro
+Importo
+\f
+BONIFICO AGEVOLAZIONI FISCALI
+COMMISSIONI
+3.950,00
+TOT. A VS. CRED.
+Rif. Pag.: Fattura numero 630/00 del 26/11/2025
+3.950,00
+A VS. CREDITO
+A VS. DEBITO`);
+    expect(transfers).toEqual([
+      expect.objectContaining({ principalAmount: 3950, fees: 0.5, debitedTotal: 3950.5, invoiceReference: "715/00" }),
+      expect.objectContaining({ principalAmount: 3950, fees: null, debitedTotal: null, invoiceReference: "630/00" }),
+    ]);
+    expect(reconcileBankTransfers(7900, transfers, ["630/00", "715/00"])).toMatchObject({
+      status: "reconciled", principalTotal: 7900, referenceStatus: "verified", missingInvoiceReferences: [],
+    });
+  });
+
+  it("resta fail-closed se il prospetto credito/debito contiene più importi ripetuti", () => {
+    const transfer = extractBankTransferEvidence("ambiguous-bank", `BONIFICO AGEVOLAZIONI FISCALI
+COMMISSIONI
+3.950,00
+TOT. A VS. CRED.
+Rif. Pag.: Fattura numero 630/00
+3.950,00
+1,00
+1,00
+A VS. CREDITO
+A VS. DEBITO`);
+    expect(transfer).toMatchObject({ principalAmount: null });
+  });
+
   it("riconosce la ricevuta BONIFICO AGEVOLAZIONE FISCALE senza trasformarla in fattura", () => {
     const transfer = extractBankTransferEvidence("moro-bonifico", `BONIFICO AGEVOLAZIONE FISCALE
 Disposizione di bonifico numero 901435 inoltrata per l'esecuzione.
@@ -88,6 +129,20 @@ Rif=0303235100190622zx6644066440it
 Importo
 - 1.645,20€`);
     expect(transfer).toMatchObject({ principalAmount: 1645.2, invoiceReference: "315/FE", transactionReference: "0303235100190622zx6644066440it" });
+  });
+
+  it("legge il TRN quando il layout bancario mette il valore nella riga successiva", () => {
+    const transfer = extractBankTransferEvidence("trn-verticale", `Presa in carico - Bonifico per Agevolazioni Fiscali
+Importo
+Commissioni
+660,00 Euro
+0,60 Euro
+Totale operazione
+660,60 Euro
+TRN
+SALDO TENDA DA SOLE
+0306913432570507S90179101791IT`);
+    expect(transfer).toMatchObject({ principalAmount: 660, transactionReference: "0306913432570507S90179101791IT" });
   });
 
   it("riconosce anche l'abbreviazione Ft nelle ricevute mobile", () => {
@@ -124,5 +179,74 @@ L. 296/06 e succ. mod. e proroghe Risp.Energ.`)!;
       referenceStatus: "incomplete",
       missingInvoiceReferences: ["104/2026"],
     });
+  });
+
+  it("regressione Manso: riconosce la ricevuta bancaria 'SERVIZIO PAGAMENTI/ORDINANTE' con commissioni bancarie", () => {
+    const transfer = extractBankTransferEvidence("manso-264", `SERVIZIO PAGAMENTI/ORDINANTE
+ABBIAMO RICEVUTO L'ORDINE DI BONIFICO INDICATO, AL QUALE ABBIAMO
+DATO ESECUZIONE IN CONFORMITA' ALLE VOSTRE ISTRUZIONI.
+EUR *1.320,00*
+CON APPLICAZIONE DI COMMISSIONI: SU VS C/C IMPORTO EUR *0,40*
+N.FAT:264 DEL 08/07/26
+SALDO fattura num. 264 del 08-07-2026 per fornitura tenda da sole
+TOTALE: EUR 1.320,40`);
+    expect(transfer).not.toBeNull();
+  });
+
+  it("regressione Mastrangelo: riconosce la ricevuta 'OGGETTO: Ricevuta Pagamento Bonifico' ING Bank", () => {
+    const transfer = extractBankTransferEvidence("mastrangelo-1", `MILANO, 03 LUGLIO 2026
+OGGETTO: Ricevuta Pagamento
+Bonifico
+IMPORTO IN EURO
+1.497,34 €
+DESCRIZIONE / CAUSALE
+Fattura di saldo per produzione e installazione infissi comm 1139/2026`);
+    expect(transfer).toMatchObject({ principalAmount: 1497.34 });
+  });
+
+  it("regressione Coda: riconosce la ricevuta Banco BPM 'Dettaglio disposizione: Bonifico per detrazioni' anche quando il segmento non contiene piu' l'intestazione originale", () => {
+    // La segmentazione per fattura puo' separare l'intestazione "Dettaglio
+    // disposizione" dal resto della stessa ricevuta quando piu' ricevute e
+    // fatture condividono lo stesso allegato: il marcatore "A favore di
+    // (P.iva o CF)" + "Tipologia fruitore della detrazione" resta presente
+    // in ogni segmento della stessa ricevuta.
+    const segmentWithoutHeader = extractBankTransferEvidences("coda-130", `FATTURA N 130/2026
+del
+24/04/2026
+A favore di (P.iva o CF)
+03397500962
+Tipologia fruitore della detrazione
+PERSONA FISICA
+CF
+CDORCR50A30A859R
+POSA IN OPERA
+ACCONTO 50 PC TENDA SOLE CON MOTORE TELEC IMPIANTO ELETTRICO COLLEG AD ANEMOMETRO`);
+    expect(segmentWithoutHeader).not.toEqual([]);
+  });
+
+  it("regressione Ronconi (2026-09-08): firstBankTransferHeaderIndex individua l'intestazione bancaria dopo una fattura vera gia' completa", () => {
+    const text = `Fattura n. 545/26 del 05/06/2026\nTotale documento 600,00 EUR\nCONFERMA ORDINE DI BONIFICO SEPA PER DETRAZIONE FISCALE\nImporto disposto: EUR 600,00`;
+    const index = firstBankTransferHeaderIndex(text);
+    expect(index).not.toBeNull();
+    expect(text.slice(0, index!)).toBe("Fattura n. 545/26 del 05/06/2026\nTotale documento 600,00 EUR\n");
+  });
+
+  it("firstBankTransferHeaderIndex restituisce null in assenza di qualunque marcatore bancario", () => {
+    expect(firstBankTransferHeaderIndex("Fattura n. 10 del 01/01/2026\nTotale documento 100,00 EUR")).toBeNull();
+  });
+
+  it("controprova 'Presa in carico': l'intestazione bancaria e' all'inizio del testo quando la ricevuta cita numero/data/importo soltanto nella propria causale", () => {
+    const text = `Presa in carico - Bonifico per Agevolazioni Fiscali\nfattura n.208/2026 del 23/06/2026\nTotale operazione\n1.831,50 Euro`;
+    expect(firstBankTransferHeaderIndex(text)).toBe(0);
+  });
+
+  it("non riconosce come bonifico una fattura ordinaria che cita soltanto 'a favore di' senza il contesto di una ricevuta bancaria", () => {
+    expect(extractBankTransferEvidences("fattura-ordinaria", `FATTURA
+nr. FATTURA204/2026 del 19/06/2026
+FORNITORE
+LINEA SOLE POTITO SRL
+PRODOTTI E SERVIZI
+Tenda da Sole S/81E Pantografo a bracci
+Totale documento 1.050,50 €`)).toEqual([]);
   });
 });

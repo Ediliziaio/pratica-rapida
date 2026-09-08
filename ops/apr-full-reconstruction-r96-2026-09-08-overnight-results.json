@@ -1,0 +1,440 @@
+[
+  {
+    "customerKey": "valter-moretto",
+    "reconstructed": true,
+    "genuinelyReconstructed": true,
+    "stateBefore": "ready_local_plan",
+    "stateAfter": "ready_local_plan",
+    "flipped": false,
+    "blockersBefore": [],
+    "blockersAfter": []
+  },
+  {
+    "customerKey": "sgalbazzi-e-cremaschi-sas",
+    "reconstructed": true,
+    "genuinelyReconstructed": true,
+    "stateBefore": "blocked_case",
+    "stateAfter": "blocked_case",
+    "flipped": false,
+    "blockersBefore": [
+      "tax_code_missing_or_invalid",
+      "screenings_missing",
+      "invoice_332a5af9"
+    ],
+    "blockersAfter": [
+      "tax_code_missing_or_invalid",
+      "screenings_missing",
+      "invoice_332a5af9"
+    ]
+  },
+  {
+    "customerKey": "denny-negrini",
+    "reconstructed": true,
+    "genuinelyReconstructed": true,
+    "stateBefore": "blocked_case",
+    "stateAfter": "blocked_case",
+    "flipped": false,
+    "blockersBefore": [
+      "product_cardinality_form_invoice_mismatch",
+      "screenings_missing",
+      "screening_primary_measurements_missing"
+    ],
+    "blockersAfter": [
+      "product_cardinality_form_invoice_mismatch",
+      "screenings_missing",
+      "screening_primary_measurements_missing"
+    ]
+  },
+  {
+    "customerKey": "serena-marini",
+    "reconstructed": true,
+    "genuinelyReconstructed": true,
+    "stateBefore": "ready_local_plan",
+    "stateAfter": "ready_local_plan",
+    "flipped": false,
+    "blockersBefore": [],
+    "blockersAfter": []
+  },
+  {
+    "customerKey": "aldo-cavicchia",
+    "reconstructed": true,
+    "genuinelyReconstructed": true,
+    "stateBefore": "blocked_case",
+    "stateAfter": "blocked_case",
+    "flipped": false,
+    "blockersBefore": [
+      "product_cardinality_form_invoice_mismatch",
+      "screenings_missing",
+      "screening_primary_measurements_missing",
+      "gross_triple_reconciliation_failed"
+    ],
+    "blockersAfter": [
+      "product_cardinality_form_invoice_mismatch",
+      "screenings_missing",
+      "screening_primary_measurements_missing",
+      "gross_triple_reconciliation_failed"
+    ]
+  },
+  {
+    "customerKey": "nicolae-laiu",
+    "reconstructed": true,
+    "genuinelyReconstructed": true,
+    "stateBefore": "ready_local_plan",
+    "stateAfter": "ready_local_plan",
+    "flipped": false,
+    "blockersBefore": [],
+    "blockersAfter": []
+  },
+  {
+    "customerKey": "aiping-chen",
+    "reconstructed": true,
+    "genuinelyReconstructed": true,
+    "stateBefore": "blocked_case",
+    "stateAfter": "blocked_case",
+    "flipped": false,
+    "blockersBefore": [
+      "primary_beneficiary_invoice_identity_conflict"
+    ],
+    "blockersAfter": [
+      "primary_beneficiary_invoice_identity_conflict"
+    ]
+  },
+  {
+    "customerKey": "rita-serra",
+    "reconstructed": true,
+    "genuinelyReconstructed": true,
+    "stateBefore": "blocked_case",
+    "stateAfter": "blocked_case",
+    "flipped": false,
+    "blockersBefore": [
+      "screenings_missing",
+      "screening_primary_measurements_missing"
+    ],
+    "blockersAfter": [
+      "screenings_missing",
+      "screening_primary_measurements_missing"
+    ]
+  },
+  {
+    "customerKey": "milena-sabatini",
+    "reconstructed": true,
+    "genuinelyReconstructed": true,
+    "stateBefore": "ready_local_plan",
+    "stateAfter": "ready_local_plan",
+    "flipped": false,
+    "blockersBefore": [],
+    "blockersAfter": []
+  },
+  {
+    "customerKey": "mauro-manente",
+    "reconstructed": true,
+    "genuinelyReconstructed": true,
+    "stateBefore": "ready_local_plan",
+    "stateAfter": "ready_local_plan",
+    "flipped": false,
+    "blockersBefore": [],
+    "blockersAfter": []
+  },
+  {
+    "customerKey": "nelson-malagoli",
+    "reconstructed": true,
+    "genuinelyReconstructed": true,
+    "stateBefore": "blocked_case",
+    "stateAfter": "blocked_case",
+    "flipped": false,
+    "blockersBefore": [
+      "gross_triple_reconciliation_failed"
+    ],
+    "blockersAfter": [
+      "gross_triple_reconciliation_failed"
+    ]
+  },
+  {
+    "customerKey": "giovanna-conti",
+    "reconstructed": true,
+    "genuinelyReconstructed": true,
+    "stateBefore": "blocked_case",
+    "stateAfter": "blocked_case",
+    "flipped": false,
+    "blockersBefore": [
+      "customer_form_missing"
+    ],
+    "blockersAfter": [
+      "customer_form_missing"
+    ]
+  },
+  {
+    "customerKey": "milena-malavolta",
+    "reconstructed": true,
+    "genuinelyReconstructed": true,
+    "stateBefore": "blocked_case",
+    "stateAfter": "blocked_case",
+    "flipped": false,
+    "blockersBefore": [
+      "original_invoice_missing_or_unavailable"
+    ],
+    "blockersAfter": [
+      "original_invoice_missing_or_unavailable"
+    ]
+  },
+  {
+    "customerKey": "francesca-fornaro",
+    "reconstructed": true,
+    "genuinelyReconstructed": true,
+    "stateBefore": "ready_local_plan",
+    "stateAfter": "ready_local_plan",
+    "flipped": false,
+    "blockersBefore": [],
+    "blockersAfter": []
+  },
+  {
+    "customerKey": "renza-mariella-marin",
+    "reconstructed": true,
+    "genuinelyReconstructed": true,
+    "stateBefore": "ready_local_plan",
+    "stateAfter": "ready_local_plan",
+    "flipped": false,
+    "blockersBefore": [],
+    "blockersAfter": []
+  },
+  {
+    "customerKey": "test5-submitnormale",
+    "reconstructed": true,
+    "genuinelyReconstructed": false,
+    "stateBefore": null,
+    "stateAfter": null,
+    "flipped": false,
+    "blockersBefore": [],
+    "blockersAfter": []
+  },
+  {
+    "customerKey": "test6-uitest",
+    "reconstructed": true,
+    "genuinelyReconstructed": false,
+    "stateBefore": null,
+    "stateAfter": null,
+    "flipped": false,
+    "blockersBefore": [],
+    "blockersAfter": []
+  },
+  {
+    "customerKey": "roberto-virive",
+    "reconstructed": true,
+    "genuinelyReconstructed": true,
+    "stateBefore": "blocked_case",
+    "stateAfter": "blocked_case",
+    "flipped": false,
+    "blockersBefore": [
+      "product_cardinality_form_invoice_mismatch",
+      "screenings_missing",
+      "invoice_332a5af9"
+    ],
+    "blockersAfter": [
+      "product_cardinality_form_invoice_mismatch",
+      "screenings_missing",
+      "invoice_332a5af9"
+    ]
+  },
+  {
+    "customerKey": "chiara-longo",
+    "reconstructed": true,
+    "genuinelyReconstructed": true,
+    "stateBefore": "ready_local_plan",
+    "stateAfter": "ready_local_plan",
+    "flipped": false,
+    "blockersBefore": [],
+    "blockersAfter": []
+  },
+  {
+    "customerKey": "gianluca-bianco",
+    "reconstructed": true,
+    "genuinelyReconstructed": true,
+    "stateBefore": "blocked_case",
+    "stateAfter": "blocked_case",
+    "flipped": false,
+    "blockersBefore": [
+      "product_cardinality_form_invoice_mismatch",
+      "screenings_missing",
+      "completion_date_missing",
+      "invoice_332a5af9",
+      "gross_triple_reconciliation_failed"
+    ],
+    "blockersAfter": [
+      "product_cardinality_form_invoice_mismatch",
+      "screenings_missing",
+      "completion_date_missing",
+      "invoice_332a5af9",
+      "gross_triple_reconciliation_failed"
+    ]
+  },
+  {
+    "customerKey": "ernestina-avalli",
+    "reconstructed": true,
+    "genuinelyReconstructed": true,
+    "stateBefore": "ready_local_plan",
+    "stateAfter": "ready_local_plan",
+    "flipped": false,
+    "blockersBefore": [],
+    "blockersAfter": []
+  },
+  {
+    "customerKey": "giorgio-salerno-ballotta",
+    "reconstructed": true,
+    "genuinelyReconstructed": true,
+    "stateBefore": "ready_local_plan",
+    "stateAfter": "ready_local_plan",
+    "flipped": false,
+    "blockersBefore": [],
+    "blockersAfter": []
+  },
+  {
+    "customerKey": "luca-ballori",
+    "reconstructed": true,
+    "genuinelyReconstructed": true,
+    "stateBefore": "blocked_case",
+    "stateAfter": "blocked_case",
+    "flipped": false,
+    "blockersBefore": [
+      "avvolgibile_measurement_ambiguous_3",
+      "avvolgibile_measurement_ambiguous_4",
+      "avvolgibile_measurement_ambiguous_5",
+      "avvolgibile_measurement_ambiguous_6",
+      "avvolgibile_measurement_ambiguous_9",
+      "avvolgibile_measurement_ambiguous_10"
+    ],
+    "blockersAfter": [
+      "avvolgibile_measurement_ambiguous_3",
+      "avvolgibile_measurement_ambiguous_4",
+      "avvolgibile_measurement_ambiguous_5",
+      "avvolgibile_measurement_ambiguous_6",
+      "avvolgibile_measurement_ambiguous_9",
+      "avvolgibile_measurement_ambiguous_10"
+    ]
+  },
+  {
+    "customerKey": "fiorenzo-burattini",
+    "reconstructed": true,
+    "genuinelyReconstructed": true,
+    "stateBefore": "ready_local_plan",
+    "stateAfter": "ready_local_plan",
+    "flipped": false,
+    "blockersBefore": [],
+    "blockersAfter": []
+  },
+  {
+    "customerKey": "odoardo-lotto",
+    "reconstructed": true,
+    "genuinelyReconstructed": true,
+    "stateBefore": "blocked_case",
+    "stateAfter": "blocked_case",
+    "flipped": false,
+    "blockersBefore": [
+      "completion_date_missing",
+      "gross_triple_reconciliation_failed"
+    ],
+    "blockersAfter": [
+      "completion_date_missing",
+      "gross_triple_reconciliation_failed"
+    ]
+  },
+  {
+    "customerKey": "maddalena-giovanna-pezzani",
+    "reconstructed": true,
+    "genuinelyReconstructed": true,
+    "stateBefore": "ready_local_plan",
+    "stateAfter": "ready_local_plan",
+    "flipped": false,
+    "blockersBefore": [],
+    "blockersAfter": []
+  },
+  {
+    "customerKey": "valentina-cirillo",
+    "reconstructed": true,
+    "genuinelyReconstructed": true,
+    "stateBefore": "blocked_case",
+    "stateAfter": "blocked_case",
+    "flipped": false,
+    "blockersBefore": [
+      "completion_date_portal_year_mismatch",
+      "completion_over_90_days_operator_required",
+      "gross_triple_reconciliation_failed"
+    ],
+    "blockersAfter": [
+      "completion_date_portal_year_mismatch",
+      "completion_over_90_days_operator_required",
+      "gross_triple_reconciliation_failed"
+    ]
+  },
+  {
+    "customerKey": "luigi-pasinato",
+    "reconstructed": true,
+    "genuinelyReconstructed": true,
+    "stateBefore": "blocked_case",
+    "stateAfter": "blocked_case",
+    "flipped": false,
+    "blockersBefore": [
+      "draft_payload_mapping_incomplete"
+    ],
+    "blockersAfter": [
+      "draft_payload_mapping_incomplete"
+    ]
+  },
+  {
+    "customerKey": "salvatore-di-bello",
+    "reconstructed": true,
+    "genuinelyReconstructed": true,
+    "stateBefore": "blocked_case",
+    "stateAfter": "blocked_case",
+    "flipped": false,
+    "blockersBefore": [
+      "draft_payload_mapping_incomplete"
+    ],
+    "blockersAfter": [
+      "draft_payload_mapping_incomplete"
+    ]
+  },
+  {
+    "customerKey": "mario-martegani",
+    "reconstructed": true,
+    "genuinelyReconstructed": true,
+    "stateBefore": "blocked_case",
+    "stateAfter": "blocked_case",
+    "flipped": false,
+    "blockersBefore": [
+      "customer_form_missing",
+      "tax_code_missing_or_invalid"
+    ],
+    "blockersAfter": [
+      "customer_form_missing",
+      "tax_code_missing_or_invalid"
+    ]
+  },
+  {
+    "customerKey": "virginia-madia",
+    "reconstructed": true,
+    "genuinelyReconstructed": true,
+    "stateBefore": "blocked_case",
+    "stateAfter": "blocked_case",
+    "flipped": false,
+    "blockersBefore": [
+      "draft_payload_mapping_incomplete"
+    ],
+    "blockersAfter": [
+      "draft_payload_mapping_incomplete"
+    ]
+  },
+  {
+    "customerKey": "marzia-bellotti",
+    "reconstructed": true,
+    "genuinelyReconstructed": true,
+    "stateBefore": "blocked_case",
+    "stateAfter": "blocked_case",
+    "flipped": false,
+    "blockersBefore": [
+      "draft_payload_mapping_incomplete"
+    ],
+    "blockersAfter": [
+      "draft_payload_mapping_incomplete"
+    ]
+  }
+]

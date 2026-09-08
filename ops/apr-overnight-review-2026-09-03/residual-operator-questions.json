@@ -1,0 +1,72 @@
+{
+  "schemaVersion": "apr-residual-operator-questions-v1",
+  "generatedAt": "2026-09-03T15:01:21+02:00",
+  "scope": "manual_decision_only_no_external_action",
+  "cases": [
+    {
+      "customerKey": "massimiliano-montemorra",
+      "displayName": "Massimiliano Montemorra",
+      "classification": "source_authority_decision_and_apr_extraction_error",
+      "crmRelationship": {
+        "company": "rm legno",
+        "supplier": null
+      },
+      "documentarySupplier": "Erre Emme S.r.l.",
+      "aprFinding": "APR ha estratto descrizioni e misure, ma ha duplicato le sei aperture fisiche in dodici righe tra fattura di acconto e fattura accompagnatoria/saldo, non ha completato la riconciliazione economica e non ha promosso il modulo raccolta firmato come fonte anagrafica.",
+      "missingDocumentType": null,
+      "decisionType": "authoritative_identity_source",
+      "operatorQuestion": "Confermi che la scheda firmata del 31/03/2026 in 07-supporting.pdf, pagina 2, proveniente dal fascicolo Erre Emme/RM Legno, è un modulo cliente autorevole da cui usare anagrafica e codice fiscale di Massimiliano Montemorra?",
+      "evidence": [
+        {
+          "source": "CRM dossier",
+          "fact": "companies.ragione_sociale=rm legno; fornitore=null"
+        },
+        {
+          "source": "01-fiscal-or-payment.pdf, 04-fiscal-or-payment.pdf, 05-fiscal-or-payment.pdf",
+          "fact": "Dichiarazione e fatture identificano Erre Emme S.r.l.; fatture 87F e 157F"
+        },
+        {
+          "source": "07-supporting.pdf, pagina 2",
+          "fact": "Scheda firmata con nome, cognome, CF, luogo e data di nascita"
+        },
+        {
+          "source": "APR current-source replay coorte 2962",
+          "fact": "12 righe prodotto derivate dalle due fatture per sei aperture fisiche; customer_form_missing, tax_code_missing_or_invalid e gross_triple_reconciliation_failed"
+        }
+      ]
+    },
+    {
+      "customerKey": "antonino-formisabo",
+      "displayName": "Antonino Formisabo/Formisano",
+      "classification": "crm_source_precedence_error_not_document_ambiguity",
+      "documentarySurname": "FORMISANO",
+      "aprSurname": "Formisabo",
+      "aprFinding": "APR ha mantenuto il cognome del campo cliente CRM, Formisabo, benché il campo proprietario dello stesso dossier e tutti i documenti originali esaminati riportino Formisano.",
+      "missingDocumentType": null,
+      "decisionType": "confirm_crm_typo",
+      "operatorQuestion": "Confermi che il cognome corretto è FORMISANO e che FORMISABO nel campo cliente del CRM è un refuso da correggere?",
+      "evidence": [
+        {
+          "source": "04-source.jpg e 05-source.jpg",
+          "fact": "Tessera sanitaria e carta d'identità riportano FORMISANO"
+        },
+        {
+          "source": "08-source.pdf, 09-source.pdf e 10-source.pdf",
+          "fact": "Le tre fatture sono intestate ad ANTONINO FORMISANO"
+        },
+        {
+          "source": "11-source.pdf e 14-source.pdf",
+          "fact": "Dichiarazione tecnica e modulo riportano ANTONINO FORMISANO"
+        },
+        {
+          "source": "CRM dossier e checkpoint APR coorte 3019",
+          "fact": "cliente_cognome=Formisabo; proprietario_cognome=Formisano; APR displayName=Antonino Formisabo"
+        },
+        {
+          "source": "Claude blind review",
+          "fact": "Cognome documentale classificato FORMISANO"
+        }
+      ]
+    }
+  ]
+}

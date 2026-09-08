@@ -1,0 +1,247 @@
+{
+  "version": "apr-crm-local-preflight-v1",
+  "revision": 1,
+  "status": "completed",
+  "sourceFingerprint": "6093f0b30d68f5b9a7a4ef7fc6d7dea0fb44cb7a1521a0a2c7103f7c66830f33",
+  "currentCustomerKey": null,
+  "items": [
+    {
+      "customerKey": "lia-chiericati",
+      "displayName": "Lia Chiericati",
+      "practiceId": "2cef7991-a654-4cd6-b2b8-623cefce596b",
+      "dossierPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2949-global-controller-lia-chiericati/crm-acquisition/dossiers/lia-chiericati.json",
+      "state": "ready_local_plan",
+      "attemptCount": 1,
+      "startedAt": null,
+      "endedAt": null,
+      "report": {
+        "outcome": "ready_local_plan",
+        "formAvailable": true,
+        "startDate": "2026-05-21",
+        "startDateSource": "a8047d6b57c18a0627eb1b7f8695bba260b5345567729d1e4acba0b70722e4a7:invoice:dda5c8f95b9f",
+        "completionDate": "2026-07-14",
+        "completionDateSource": "767690a408c59fd003f6881c000d4e6640f437c65796b9d411b42eb66b72e8a2:invoice:23ef6cb1c979",
+        "buildingQualification": "single_unit",
+        "buildingUnitCount": 1,
+        "deductionRate": null,
+        "taxCodeStatus": "verified_form",
+        "resolvedTaxCode": "CHRLIA40M43F198R",
+        "taxCodeSourceIds": [
+          "lia-chiericati"
+        ],
+        "primaryBeneficiaryResolution": {
+          "status": "not_found",
+          "identity": null,
+          "sourceIds": [],
+          "authority": null
+        },
+        "coBeneficiaryResolution": {
+          "status": "not_declared",
+          "present": false,
+          "identity": null,
+          "sourceIds": []
+        },
+        "products": [
+          {
+            "rowId": "767690a408c59fd003f6881c000d4e6640f437c65796b9d411b42eb66b72e8a2:invoice:23ef6cb1c979:piece-1",
+            "sourceDocumentKey": "767690a408c59fd003f6881c000d4e6640f437c65796b9d411b42eb66b72e8a2:invoice:23ef6cb1c979",
+            "description": "Tenda a bracci estensibili",
+            "pieceNumber": 1,
+            "widthMm": 4000,
+            "heightMm": 3000,
+            "surfaceM2": 12,
+            "exposure": "ovest",
+            "exposureSource": null,
+            "protectedWindowSurfaceM2": null,
+            "protectedWindowSurfaceSource": null,
+            "supplementaryThermalResistance": null,
+            "declaredType": "pergotenda",
+            "formMappingSource": "one_to_one",
+            "gTot": 0.02,
+            "gTotSource": "invoice_explicit",
+            "material": "Tessuto",
+            "materialSource": "invoice_explicit",
+            "movement": "Automatico",
+            "movementSource": "invoice_explicit",
+            "appliedRuleIds": [
+              "user-2026-08-31-documented-gtot-precedence-v1",
+              "user-2026-08-18-screening-surface-material-over-support-structure",
+              "user-2026-08-18-explicit-motorized-screening-movement",
+              "authorized-22-schermature-materiale",
+              "authorized-16-schermature-meccanismo",
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+              "user-2026-08-18-explicit-technical-surface-precision"
+            ]
+          }
+        ],
+        "financial": {
+          "invoiceTotal": 8070.01,
+          "eligibleExpense": 4793.2,
+          "tripleReconciliationVerified": true,
+          "reconciledTotal": 4793.2,
+          "evidence": [
+            {
+              "sourceId": "767690a408c59fd003f6881c000d4e6640f437c65796b9d411b42eb66b72e8a2:invoice:23ef6cb1c979",
+              "kind": "invoice",
+              "taxableAmount": 5181.82,
+              "vatAmount": 518.18,
+              "grossTotal": 5700,
+              "interventionGrossAmount": 150,
+              "extractionConfidence": "certain",
+              "extractionIssues": []
+            },
+            {
+              "sourceId": "a8047d6b57c18a0627eb1b7f8695bba260b5345567729d1e4acba0b70722e4a7:invoice:dda5c8f95b9f",
+              "kind": "invoice",
+              "taxableAmount": 2154.55,
+              "vatAmount": 215.46,
+              "grossTotal": 2370.01,
+              "interventionGrossAmount": 2370.01,
+              "extractionConfidence": "certain",
+              "extractionIssues": []
+            }
+          ],
+          "bankTransfers": [],
+          "bankTransferReconciliation": {
+            "status": "not_provided",
+            "principalTotal": null,
+            "feesTotal": null,
+            "debitedTotal": null,
+            "difference": null,
+            "referenceStatus": "not_provided",
+            "missingInvoiceReferences": [],
+            "taxReliefTypes": []
+          },
+          "methods": [
+            {
+              "method": "structured_extraction",
+              "ok": true,
+              "total": 4793.2,
+              "sources": [
+                "767690a408c59fd003f6881c000d4e6640f437c65796b9d411b42eb66b72e8a2:invoice:23ef6cb1c979",
+                "a8047d6b57c18a0627eb1b7f8695bba260b5345567729d1e4acba0b70722e4a7:invoice:dda5c8f95b9f"
+              ],
+              "reason": "Ogni documento ha imponibile, IVA e totale verificati."
+            },
+            {
+              "method": "accounting_reconciliation",
+              "ok": true,
+              "total": 4793.2,
+              "sources": [
+                "767690a408c59fd003f6881c000d4e6640f437c65796b9d411b42eb66b72e8a2:invoice:23ef6cb1c979",
+                "a8047d6b57c18a0627eb1b7f8695bba260b5345567729d1e4acba0b70722e4a7:invoice:dda5c8f95b9f"
+              ],
+              "reason": "Somma dei totali lordi IVA inclusa delle fatture uniche deduplicate; gli storni interni sono solo note auditabili."
+            },
+            {
+              "method": "intervention_cross_check",
+              "ok": true,
+              "total": 4793.2,
+              "sources": [
+                "767690a408c59fd003f6881c000d4e6640f437c65796b9d411b42eb66b72e8a2:invoice:23ef6cb1c979",
+                "a8047d6b57c18a0627eb1b7f8695bba260b5345567729d1e4acba0b70722e4a7:invoice:dda5c8f95b9f"
+              ],
+              "reason": "Totale ricostruito esclusivamente dalle righe pertinenti all'intervento."
+            }
+          ],
+          "discardedDuplicateSourceIds": [
+            "2a2218822e7a3754e7d190cfe91db197e0cfcd6ebda649c300f89994b1b01e94:invoice:23ef6cb1c979",
+            "2a539df07ca1f0e8add33f781231fff50407c3ae37d7d769fe02ff6b0bb8158f:invoice:dda5c8f95b9f"
+          ],
+          "supersededTechnicalSourceIds": [],
+          "appliedRuleIds": [
+            "user-2026-08-16-invoice-gross-total-vat-included",
+            "user-2026-08-18-bundled-professional-expense-separation",
+            "user-2026-08-18-mandatory-bank-transfer-invoice-expense-cross-check",
+            "core-gross-triple-reconciliation",
+            "user-2026-08-14-preserve-technical-product-cardinality",
+            "system-explicit-advance-invoice-reference-marker-v1",
+            "system-invoice-header-identity-over-body-reference",
+            "user-2026-08-14-rinaldi-explicit-deductible-total"
+          ]
+        },
+        "warnings": [],
+        "blockers": [],
+        "sourceIds": [
+          "767690a408c59fd003f6881c000d4e6640f437c65796b9d411b42eb66b72e8a2",
+          "a8047d6b57c18a0627eb1b7f8695bba260b5345567729d1e4acba0b70722e4a7",
+          "2a539df07ca1f0e8add33f781231fff50407c3ae37d7d769fe02ff6b0bb8158f",
+          "2a2218822e7a3754e7d190cfe91db197e0cfcd6ebda649c300f89994b1b01e94"
+        ],
+        "eneaPayloadAudit": {
+          "status": "payload_complete",
+          "mappingFingerprint": "ic99ng",
+          "fieldSummary": {
+            "ready": 59,
+            "review": 0,
+            "missing": 0
+          },
+          "requiredPortalFieldCount": 53,
+          "blockerCount": 0,
+          "blockers": [],
+          "excludedUnverifiedFields": [
+            "beneficiario.provincia_nascita",
+            "immobile.provincia",
+            "immobile.codice_comune",
+            "immobile.zona_climatica",
+            "immobile.gradi_giorno",
+            "schermature.0.rsupp",
+            "documenti.fatture",
+            "documenti.bonifico",
+            "documenti.tecnici"
+          ],
+          "draftReady": true,
+          "officialSubmissionAllowed": false,
+          "portalGate": {
+            "status": "ready",
+            "reason": null,
+            "workflowFingerprint": "ic99ng:53:1",
+            "supportedPages": [
+              "Generatore dell'impianto termico",
+              "Anagrafica Beneficiario",
+              "Immobile",
+              "Intervento",
+              "Impianto termico esistente",
+              "Schermature solari",
+              "Calcolo costi e detrazioni"
+            ],
+            "screeningItemCount": 1,
+            "saveAllowedOnlyBySeparateCapability": true,
+            "previewAllowed": false,
+            "submitAllowed": false
+          },
+          "externalActionAllowed": false,
+          "reason": "Payload TEST completo per la sola bozza salvata; anteprima e submit restano vietati."
+        },
+        "draftPlan": {
+          "status": "ready_before_external_action",
+          "externalActionAllowed": false,
+          "previewAllowed": false,
+          "submitAllowed": false,
+          "communicationsAllowed": false,
+          "nextAction": "Piano locale pronto; fermo prima di ENEA."
+        }
+      },
+      "reason": "Fresh replay dai documenti originali"
+    }
+  ],
+  "externalActionAllowed": false,
+  "reason": "Fresh replay locale",
+  "nextAction": "Nessuna azione esterna.",
+  "validationRevisionsApplied": [],
+  "sourceRevisionsApplied": [],
+  "operatorMeasurementResolutions": [],
+  "audit": [
+    {
+      "revision": 1,
+      "at": "2026-09-03T10:00:00.000Z",
+      "type": "completed",
+      "customerKey": null,
+      "reason": "Fresh replay locale",
+      "appliedRuleIds": [
+        "system-single-active-practice"
+      ]
+    }
+  ]
+}

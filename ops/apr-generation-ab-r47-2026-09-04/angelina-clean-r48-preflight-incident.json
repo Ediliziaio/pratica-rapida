@@ -1,0 +1,52 @@
+{
+  "version": "apr-angelina-clean-preflight-incident-v1",
+  "observedAt": "2026-09-04T15:42:13Z",
+  "customerKey": "angelina-stricelli",
+  "cohort": 3067,
+  "runId": "apr-angelina-clean-r48",
+  "classification": "RETRACTED_PREMATURE_OBSERVATION",
+  "exactCause": "Il sequencer e stato arrestato alle 15:39:21Z mentre attendeva correttamente il preflight specializzato Infissi. Quel preflight ha pubblicato ready_local_plan alle 15:39:32Z, undici secondi dopo l'arresto. resolveInfissiPreflightDisposition restituisce product quando il checkpoint specializzato completato contiene il caso e la suite automatica prova che i soli blocker Schermature non diventano terminali per Infissi. Non e quindi dimostrato alcun difetto di ordine del gate: la divergenza osservata era uno snapshot transitorio reso permanente dall'arresto anticipato del solo sequencer.",
+  "pipelinePoint": "sequencer.prepare -> waitFor infissi-local-preflight; arresto manuale durante l'attesa, prima del completamento specializzato",
+  "scope": "test_observation_timing_only",
+  "notAnEneaFailure": true,
+  "notAParsingFailure": true,
+  "eneaMutationPerformed": false,
+  "newDraftCreated": false,
+  "workerStarted": false,
+  "evidence": {
+    "commonPreflight": {
+      "status": "completed",
+      "caseState": "blocked_case",
+      "blockerCodes": ["screenings_missing", "invoice_332a5af9"],
+      "sha256": "770d1cafa00f957d9235cd0f923b11d46e468380d5d0bc0f05fbf03b22b1a0c5"
+    },
+    "infissiPreflight": {
+      "status": "completed",
+      "caseState": "ready_local_plan",
+      "physicalProductCount": 7,
+      "invoiceGrossTotal": 10500.87,
+      "blockerCount": 0,
+      "sha256": "6697e3c6a88d5b89ffb000d2c27cbe69d19a4e550890d0d943fedfa69d312265"
+    },
+    "draftExecution": {
+      "status": "blocked_preflight",
+      "itemCount": 0,
+      "sha256": "a69261e678750a502be08a51ea185637179865808dd86a863600568397d40b00"
+    },
+    "dashboardCaseTruth": {
+      "status": "READY",
+      "hasProblem": false,
+      "blockerCount": 0
+    },
+    "sequencerCheckpointSha256": "bdaff332c22c0f308e5b94cdc5ba7f7c67902075b6f1cc6e7ca43bd7d3b06695",
+    "isolatedReplay": {
+      "stateDirectory": "/tmp/apr-angelina-preflight-audit.RPoW32",
+      "command": "infissi-batch-preflight --apply-required-revisions --reconcile-common-applicability",
+      "result": "PASS: su copia locale ritira entrambi i blocker Schermature e porta il preflight comune a ready_local_plan senza modificare ENEA."
+    }
+  },
+  "safetyAction": "Il solo sequencer del test era stato arrestato prima di avviare il worker. Chrome APR e keepalive non sono stati toccati. La correzione software proposta non viene applicata per assenza di un difetto operativo dimostrato.",
+  "missingDocumentType": null,
+  "operatorQuestion": "Nessuna decisione richiesta: l'autorizzazione ricevuta viene eseguita come validazione e ripresa della stessa generazione pulita, senza modifica software non giustificata.",
+  "onboardingGap": null
+}

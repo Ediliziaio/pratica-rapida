@@ -1,0 +1,15 @@
+{
+  "schemaVersion": "apr-wide100-local-replay-independent-validation-v1",
+  "validatedAt": "2026-09-02T22:25:34.091Z",
+  "status": "PASS",
+  "checks": {
+    "frozenManifestIdentity": true,
+    "acquisitionIdentity": true,
+    "dossierIdentity": true,
+    "resultInvariants": true,
+    "localSafety": true
+  },
+  "caseCount": 100,
+  "errors": [],
+  "reportSha256": "6065f33215ee09b6d493ae497719b596645d9d2dae7467dfc74c5f9e33426f26"
+}

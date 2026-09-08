@@ -132,7 +132,7 @@ export interface AprImmutableArtifactEnvelope<TPayload, TLocalMetadata = never> 
 type CanonicalJson = null | boolean | number | string | CanonicalJson[] | { [key: string]: CanonicalJson };
 
 function normalizeCanonicalJson(value: unknown, seen: Set<object>): CanonicalJson {
-  if (value === null || typeof value === "boolean" || typeof value === "string") return value;
+  if (value === null || typeof value === "boolean" || typeof value === "string") return value as CanonicalJson;
   if (typeof value === "number") {
     if (!Number.isFinite(value)) throw new Error("apr_canonical_json_non_finite_number");
     return Object.is(value, -0) ? 0 : value;

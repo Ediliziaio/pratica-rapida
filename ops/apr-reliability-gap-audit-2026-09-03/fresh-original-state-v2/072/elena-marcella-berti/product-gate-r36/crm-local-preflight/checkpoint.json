@@ -1,0 +1,477 @@
+{
+  "version": "apr-crm-local-preflight-v1",
+  "revision": 1,
+  "status": "completed",
+  "sourceFingerprint": "a1b5c47c3d98de90949ac4fc718b9f6906ab72c2edefe206bc32b2a1d742fcc8",
+  "currentCustomerKey": null,
+  "items": [
+    {
+      "customerKey": "elena-marcella-berti",
+      "displayName": "ELENA MARCELLA BERTI",
+      "practiceId": "4e251174-6b43-4c76-98ff-6f00c1caede9",
+      "dossierPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2992-global-controller-elena-marcella-berti/crm-acquisition/dossiers/elena-marcella-berti.json",
+      "state": "blocked_case",
+      "attemptCount": 1,
+      "startedAt": null,
+      "endedAt": null,
+      "report": {
+        "outcome": "blocked_case",
+        "formAvailable": true,
+        "startDate": "2026-04-23",
+        "startDateSource": "37938446ac7888c640cb0ff2cec7401a064a0d191f91b39425691fbd7f50d83c:invoice:fd397bf09139",
+        "completionDate": "2026-06-13",
+        "completionDateSource": "37938446ac7888c640cb0ff2cec7401a064a0d191f91b39425691fbd7f50d83c:invoice:20bb095ecbc3",
+        "buildingQualification": "single_unit",
+        "buildingUnitCount": 1,
+        "deductionRate": null,
+        "taxCodeStatus": "missing_or_invalid",
+        "resolvedTaxCode": null,
+        "taxCodeSourceIds": [
+          "elena-marcella-berti"
+        ],
+        "primaryBeneficiaryResolution": {
+          "status": "not_found",
+          "identity": null,
+          "sourceIds": [],
+          "authority": null
+        },
+        "coBeneficiaryResolution": {
+          "status": "not_declared",
+          "present": false,
+          "identity": null,
+          "sourceIds": []
+        },
+        "products": [
+          {
+            "rowId": "37938446ac7888c640cb0ff2cec7401a064a0d191f91b39425691fbd7f50d83c:invoice:20bb095ecbc3:piece-1",
+            "sourceDocumentKey": "37938446ac7888c640cb0ff2cec7401a064a0d191f91b39425691fbd7f50d83c:invoice:20bb095ecbc3",
+            "description": "Tenda da sole a bracci",
+            "pieceNumber": 1,
+            "widthMm": 3000,
+            "heightMm": 2200,
+            "surfaceM2": 6.6,
+            "exposure": "sud",
+            "exposureSource": "linea_sole_potito_fallback",
+            "protectedWindowSurfaceM2": 2.5,
+            "protectedWindowSurfaceSource": "linea_sole_potito_fallback",
+            "supplementaryThermalResistance": null,
+            "declaredType": null,
+            "formMappingSource": null,
+            "gTot": 0.12,
+            "gTotSource": "invoice_explicit",
+            "material": "Tessuto",
+            "materialSource": "invoice_explicit",
+            "movement": "Manuale",
+            "movementSource": "authorized_fallback",
+            "appliedRuleIds": [
+              "user-2026-08-31-documented-gtot-precedence-v1",
+              "authorized-22-schermature-materiale",
+              "authorized-16-schermature-meccanismo",
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+              "user-2026-08-18-explicit-technical-surface-precision",
+              "user-2026-08-17-linea-sole-potito-paper-form-fallbacks"
+            ]
+          }
+        ],
+        "financial": {
+          "invoiceTotal": 1320,
+          "eligibleExpense": 1320,
+          "tripleReconciliationVerified": true,
+          "reconciledTotal": 1320,
+          "evidence": [
+            {
+              "sourceId": "37938446ac7888c640cb0ff2cec7401a064a0d191f91b39425691fbd7f50d83c:invoice:20bb095ecbc3",
+              "kind": "invoice",
+              "taxableAmount": 600,
+              "vatAmount": 60,
+              "grossTotal": 660,
+              "interventionGrossAmount": 660,
+              "extractionConfidence": "certain",
+              "extractionIssues": []
+            },
+            {
+              "sourceId": "37938446ac7888c640cb0ff2cec7401a064a0d191f91b39425691fbd7f50d83c:invoice:fd397bf09139",
+              "kind": "invoice",
+              "taxableAmount": 600,
+              "vatAmount": 60,
+              "grossTotal": 660,
+              "interventionGrossAmount": 660,
+              "extractionConfidence": "certain",
+              "extractionIssues": []
+            }
+          ],
+          "bankTransfers": [
+            {
+              "sourceId": "37938446ac7888c640cb0ff2cec7401a064a0d191f91b39425691fbd7f50d83c:transfer-1",
+              "transactionReference": "0306913432570507S90179101791IT",
+              "principalAmount": 660,
+              "fees": 0.6,
+              "debitedTotal": 660.6,
+              "invoiceReference": null,
+              "taxReliefType": "energy_saving",
+              "appliedRuleIds": [
+                "user-2026-08-16-invoice-total-over-bank-transfers",
+                "user-2026-08-18-mandatory-bank-transfer-invoice-expense-cross-check",
+                "core-economic-classification"
+              ]
+            },
+            {
+              "sourceId": "37938446ac7888c640cb0ff2cec7401a064a0d191f91b39425691fbd7f50d83c:transfer-2",
+              "transactionReference": "0306911673065805S90179101791IT",
+              "principalAmount": 660,
+              "fees": 0.6,
+              "debitedTotal": 660.6,
+              "invoiceReference": null,
+              "taxReliefType": "energy_saving",
+              "appliedRuleIds": [
+                "user-2026-08-16-invoice-total-over-bank-transfers",
+                "user-2026-08-18-mandatory-bank-transfer-invoice-expense-cross-check",
+                "core-economic-classification"
+              ]
+            }
+          ],
+          "bankTransferReconciliation": {
+            "status": "reconciled",
+            "principalTotal": 1320,
+            "feesTotal": 1.2,
+            "debitedTotal": 1321.2,
+            "difference": 0,
+            "referenceStatus": "incomplete",
+            "missingInvoiceReferences": [
+              "FATTURA195/2026",
+              "FATTURA129/2026"
+            ],
+            "taxReliefTypes": [
+              "energy_saving"
+            ]
+          },
+          "methods": [
+            {
+              "method": "structured_extraction",
+              "ok": true,
+              "total": 1320,
+              "sources": [
+                "37938446ac7888c640cb0ff2cec7401a064a0d191f91b39425691fbd7f50d83c:invoice:20bb095ecbc3",
+                "37938446ac7888c640cb0ff2cec7401a064a0d191f91b39425691fbd7f50d83c:invoice:fd397bf09139"
+              ],
+              "reason": "Ogni documento ha imponibile, IVA e totale verificati."
+            },
+            {
+              "method": "accounting_reconciliation",
+              "ok": true,
+              "total": 1320,
+              "sources": [
+                "37938446ac7888c640cb0ff2cec7401a064a0d191f91b39425691fbd7f50d83c:invoice:20bb095ecbc3",
+                "37938446ac7888c640cb0ff2cec7401a064a0d191f91b39425691fbd7f50d83c:invoice:fd397bf09139"
+              ],
+              "reason": "Somma dei totali lordi IVA inclusa delle fatture uniche deduplicate; gli storni interni sono solo note auditabili."
+            },
+            {
+              "method": "intervention_cross_check",
+              "ok": true,
+              "total": 1320,
+              "sources": [
+                "37938446ac7888c640cb0ff2cec7401a064a0d191f91b39425691fbd7f50d83c:invoice:20bb095ecbc3",
+                "37938446ac7888c640cb0ff2cec7401a064a0d191f91b39425691fbd7f50d83c:invoice:fd397bf09139"
+              ],
+              "reason": "Totale ricostruito esclusivamente dalle righe pertinenti all'intervento."
+            }
+          ],
+          "discardedDuplicateSourceIds": [],
+          "supersededTechnicalSourceIds": [],
+          "appliedRuleIds": [
+            "user-2026-08-16-invoice-gross-total-vat-included",
+            "user-2026-08-18-bundled-professional-expense-separation",
+            "user-2026-08-18-mandatory-bank-transfer-invoice-expense-cross-check",
+            "core-gross-triple-reconciliation",
+            "user-2026-08-14-preserve-technical-product-cardinality",
+            "system-explicit-advance-invoice-reference-marker-v1",
+            "user-2026-08-16-distinct-invoice-numbers-same-customer-sum"
+          ]
+        },
+        "warnings": [
+          {
+            "code": "linea_sole_potito_paper_form_accepted",
+            "reason": "Modulo cartaceo Linea Sole Potito riconosciuto come form originario da ab757f42f476bdcf268ba24d74d10518ba8b959cf6c10071e2c628810c1136d8.",
+            "appliedRuleIds": [
+              "user-2026-08-17-linea-sole-potito-paper-form-fallbacks",
+              "core-form-first"
+            ]
+          },
+          {
+            "code": "building_units_defaulted_to_one",
+            "reason": "Numero appartamenti non specificato o zero: impostata una unita immobiliare.",
+            "appliedRuleIds": [
+              "user-2026-08-16-default-single-unit-when-unspecified",
+              "user-2026-08-14-single-unit-building-over-floor-count"
+            ]
+          },
+          {
+            "code": "bank_transfer_below_invoice_total_audited_nonblocking",
+            "reason": "Capitale bonificato € 1320.00 non superiore al totale fatture € 1320.00; riferimenti mancanti FATTURA195/2026, FATTURA129/2026. Il totale fatture IVA incluso resta autorevole e la differenza e auditata senza bloccare.",
+            "appliedRuleIds": [
+              "user-2026-08-16-invoice-total-over-bank-transfers",
+              "user-2026-08-18-mandatory-bank-transfer-invoice-expense-cross-check"
+            ]
+          },
+          {
+            "code": "bank_fees_excluded_invoice_total_authoritative",
+            "reason": "Commissioni bancarie € 1.20 escluse; il totale fatture resta l'importo ENEA autorevole.",
+            "appliedRuleIds": [
+              "user-2026-08-16-invoice-total-over-bank-transfers",
+              "core-economic-classification"
+            ]
+          },
+          {
+            "code": "enea_2026_june_25_ninety_day_window_applied",
+            "reason": "Avviso ENEA 25/06/2026 applicato: inizio lavori 2026-04-23, fine lavori 2026-06-13; i 90 giorni decorrono dal 25/06/2026 e terminano il 23/09/2026.",
+            "appliedRuleIds": [
+              "user-2026-08-23-enea-2026-june-25-ninety-day-window"
+            ]
+          }
+        ],
+        "blockers": [
+          {
+            "code": "tax_code_missing_or_invalid",
+            "field": "beneficiary.taxCode",
+            "reason": "CF valido e coerente non disponibile nel form o nelle fatture originarie.",
+            "sourceIds": [
+              "elena-marcella-berti"
+            ],
+            "appliedRuleIds": [
+              "core-form-first",
+              "user-2026-08-14-valid-original-document-cf-over-invalid-form",
+              "user-2026-08-16-fiscal-code-identity-cross-check"
+            ]
+          }
+        ],
+        "sourceIds": [
+          "37938446ac7888c640cb0ff2cec7401a064a0d191f91b39425691fbd7f50d83c",
+          "ab757f42f476bdcf268ba24d74d10518ba8b959cf6c10071e2c628810c1136d8"
+        ],
+        "eneaPayloadAudit": {
+          "status": "payload_incomplete",
+          "mappingFingerprint": "qkbt4z",
+          "fieldSummary": {
+            "ready": 33,
+            "review": 0,
+            "missing": 26
+          },
+          "requiredPortalFieldCount": 27,
+          "blockerCount": 26,
+          "blockers": [
+            {
+              "code": "missing-beneficiario.cf",
+              "fieldId": "beneficiario.cf",
+              "message": "Codice fiscale: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-beneficiario.data_nascita",
+              "fieldId": "beneficiario.data_nascita",
+              "message": "Data di nascita: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-beneficiario.sesso",
+              "fieldId": "beneficiario.sesso",
+              "message": "Sesso: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-beneficiario.nazione_nascita",
+              "fieldId": "beneficiario.nazione_nascita",
+              "message": "Nazione di nascita: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-beneficiario.comune_nascita",
+              "fieldId": "beneficiario.comune_nascita",
+              "message": "Comune di nascita: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-beneficiario.nazione_residenza",
+              "fieldId": "beneficiario.nazione_residenza",
+              "message": "Nazione di residenza: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-beneficiario.comune_residenza",
+              "fieldId": "beneficiario.comune_residenza",
+              "message": "Comune di residenza: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-beneficiario.indirizzo_residenza",
+              "fieldId": "beneficiario.indirizzo_residenza",
+              "message": "Indirizzo di residenza: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-beneficiario.civico_residenza",
+              "fieldId": "beneficiario.civico_residenza",
+              "message": "Civico di residenza: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-beneficiario.cap_residenza",
+              "fieldId": "beneficiario.cap_residenza",
+              "message": "CAP di residenza: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-beneficiario.titolo",
+              "fieldId": "beneficiario.titolo",
+              "message": "Titolo sull'immobile: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-beneficiario.abitazione_principale",
+              "fieldId": "beneficiario.abitazione_principale",
+              "message": "Abitazione principale: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-immobile.comune",
+              "fieldId": "immobile.comune",
+              "message": "Comune lavori: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-immobile.indirizzo",
+              "fieldId": "immobile.indirizzo",
+              "message": "Indirizzo lavori: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-immobile.civico",
+              "fieldId": "immobile.civico",
+              "message": "Civico lavori: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-immobile.cap",
+              "fieldId": "immobile.cap",
+              "message": "CAP lavori: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-immobile.foglio",
+              "fieldId": "immobile.foglio",
+              "message": "Foglio: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-immobile.mappale",
+              "fieldId": "immobile.mappale",
+              "message": "Particella / mappale: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-immobile.anno",
+              "fieldId": "immobile.anno",
+              "message": "Anno di costruzione: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-immobile.superficie",
+              "fieldId": "immobile.superficie",
+              "message": "Superficie utile: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-impianto.tipo",
+              "fieldId": "impianto.tipo",
+              "message": "Tipo impianto: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-impianto.terminali",
+              "fieldId": "impianto.terminali",
+              "message": "Terminali: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-impianto.generatore",
+              "fieldId": "impianto.generatore",
+              "message": "Tipo generatore: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-impianto.numero_generatori",
+              "fieldId": "impianto.numero_generatori",
+              "message": "Numero generatori: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-impianto.combustibile",
+              "fieldId": "impianto.combustibile",
+              "message": "Vettore energetico: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-impianto.condizionamento",
+              "fieldId": "impianto.condizionamento",
+              "message": "Climatizzazione estiva: Intervento umano richiesto."
+            }
+          ],
+          "excludedUnverifiedFields": [
+            "beneficiario.cf",
+            "beneficiario.data_nascita",
+            "beneficiario.sesso",
+            "beneficiario.nazione_nascita",
+            "beneficiario.comune_nascita",
+            "beneficiario.provincia_nascita",
+            "beneficiario.nazione_residenza",
+            "beneficiario.comune_residenza",
+            "beneficiario.indirizzo_residenza",
+            "beneficiario.civico_residenza",
+            "beneficiario.cap_residenza",
+            "beneficiario.titolo",
+            "beneficiario.abitazione_principale",
+            "immobile.comune",
+            "immobile.provincia",
+            "immobile.indirizzo",
+            "immobile.civico",
+            "immobile.cap",
+            "immobile.codice_comune",
+            "immobile.foglio",
+            "immobile.mappale",
+            "immobile.anno",
+            "immobile.superficie",
+            "immobile.zona_climatica",
+            "immobile.gradi_giorno",
+            "intervento.impianto_centralizzato",
+            "impianto.tipo",
+            "impianto.terminali",
+            "impianto.generatore",
+            "impianto.combustibile",
+            "impianto.condizionamento",
+            "schermature.0.rsupp",
+            "documenti.fatture",
+            "documenti.bonifico",
+            "documenti.tecnici"
+          ],
+          "draftReady": false,
+          "officialSubmissionAllowed": false,
+          "portalGate": {
+            "status": "blocked",
+            "reason": "draft-data-incomplete",
+            "workflowFingerprint": null,
+            "supportedPages": [],
+            "screeningItemCount": 0,
+            "saveAllowedOnlyBySeparateCapability": true,
+            "previewAllowed": false,
+            "submitAllowed": false
+          },
+          "externalActionAllowed": false,
+          "reason": "26 campi o controlli impediscono ancora il payload della bozza TEST."
+        },
+        "draftPlan": {
+          "status": "blocked",
+          "externalActionAllowed": false,
+          "previewAllowed": false,
+          "submitAllowed": false,
+          "communicationsAllowed": false,
+          "nextAction": "Risolvere i blocker con sole fonti originarie; la coda prosegue sugli altri casi."
+        }
+      },
+      "reason": "Fresh replay dai documenti originali"
+    }
+  ],
+  "externalActionAllowed": false,
+  "reason": "Fresh replay locale",
+  "nextAction": "Nessuna azione esterna.",
+  "validationRevisionsApplied": [],
+  "sourceRevisionsApplied": [],
+  "operatorMeasurementResolutions": [],
+  "audit": [
+    {
+      "revision": 1,
+      "at": "2026-09-03T10:00:00.000Z",
+      "type": "completed",
+      "customerKey": null,
+      "reason": "Fresh replay locale",
+      "appliedRuleIds": [
+        "system-single-active-practice"
+      ]
+    }
+  ]
+}

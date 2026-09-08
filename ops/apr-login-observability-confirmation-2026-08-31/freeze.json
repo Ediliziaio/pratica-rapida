@@ -1,0 +1,24 @@
+{
+  "version": "apr-login-observability-confirmation-freeze-v1",
+  "frozenAt": "2026-08-31T01:12:00.000+02:00",
+  "authorizationId": "user-2026-08-30-definitive-ten-point-mandate-same-canary30x3",
+  "portalMode": "real_enea_draft_only",
+  "roundCount": 3,
+  "caseCount": 30,
+  "supersedesInvalidPreliminaryFreezeSha256": "5b494011235850641c410c86b301a61bf92575a61504fb5ec139950ba1ac8b44",
+  "preliminaryAttempt": {"status": "INVALIDATED_BEFORE_EXTERNAL_MUTATION", "draftsCreated": 0, "externalClicks": 0, "reason": "ready+login_required pubblicato erroneamente come INCONSISTENT"},
+  "manifestPath": "/private/tmp/apr-promote-4e166ce/ops/apr-global-controller-test10-2026-08-29/manifest-autonomy30.json",
+  "manifestSha256": "6c684df774a48899a6ff4e2a6e52dfe83c2b9c357a81a6c6c52034abe687a953",
+  "requiredCustomerKeys": ["cristina-ricchi", "zeno-righetti"],
+  "excludedCustomerKeys": ["beatrice-ciotta"],
+  "sourceSnapshot": {"path": "/private/tmp/apr-promote-timeout-observability-20260831", "gitCommit": "12b1482da4a1719d0b3c5c321517937f02150952", "treeHash": "6b74a31510d5e3e695999bf446c6d5c208d1e5ab"},
+  "sequencer": {"path": "/private/tmp/apr-promote-4e166ce/ops/apr-global-controller-test10-2026-08-29/sequencer.mjs", "sha256": "528a9e6964e9067ffa5ac9a809260bd3b91a0a2fd433d7c0c843b0efb6f55286"},
+  "monotonicGate": {"runtimeRevision": "apr-rule-runtime-c4d83fba3d9406bb52a53c9c", "sourceFingerprint": "c4d83fba3d9406bb52a53c9cedd7508491f3c1d6714c11e20dcfaa2dcba5df04", "certificateId": "335eb89577c8b5d3a622a99eaf69da1627ce9bbf5309d7999211ef6dd58e0eb8", "certificateStatus": "PASS", "verificationStatus": "VERIFIED_PASS", "activationStatus": "active_tested_deployed", "testSuites": 398, "testCount": 1524, "matrixRuleCount": 79, "historicalRegressionGate": "PASS"},
+  "canonicalBundle": {"versionId": "335eb89577c8b5d3a622a99eaf69da1627ce9bbf5309d7999211ef6dd58e0eb8-login-observability-20260831", "promotionReceiptId": "607ec77d89c116bea94dbb747f8737e344c659599883ebc88dc8c3373f834616", "supervisorSha256": "f307c811f4bc9cdde20e4791fe343acfcab64dd92e0a82df3458e4920fc5906f", "workerSha256": "423873bbe5f97b532b7bfb909fa200714dc3555ec0542849b8ef720d50092934", "watchdogSha256": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0"},
+  "rounds": [
+    {"round": 1, "cohortOffset": 652, "cohortRange": "870-899", "runRoot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-login-observability-confirmation-round1"},
+    {"round": 2, "cohortOffset": 682, "cohortRange": "900-929", "runRoot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-login-observability-confirmation-round2"},
+    {"round": 3, "cohortOffset": 712, "cohortRange": "930-959", "runRoot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-login-observability-confirmation-round3"}
+  ],
+  "constraints": {"noCodeChangesBetweenRounds": true, "sameBundleHashesRequired": true, "sameManifestRequired": true, "sameExpectedPagesRequired": true, "roundsMayOverlap": false, "tripleVerificationPerRound": true, "terminalSnapshotAtomicAndVersioned": true, "previewAllowed": false, "submitAllowed": false, "protocolAllowed": false, "receiptAllowed": false, "communicationsAllowed": false, "correctionsDuringTestAllowed": false}
+}

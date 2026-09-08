@@ -1,0 +1,43 @@
+MILANO, 03 LUGLIO 2026
+OGGETTO: Ricevuta Pagamento
+Bonifico
+RIEPILOGO DATI
+TIPOLOGIA OPERAZIONE
+Bonifico per riqualificazione energetica L.296-06
+IMPORTO IN EURO
+1.497,34 €
+DATA VALUTA
+06/07/2026
+DATA CONTABILE
+06/07/2026
+DESCRIZIONE / CAUSALE
+Fattura di saldo per produzione e installazione infissi comm 1139/2026
+DISPOSTO VIA
+Mob Android
+TRN
+STATO
+Inserito
+DATI ORDINANTE / ESECUTORE
+INTESTAZIONE
+IVANA MASTRANGELO
+IBAN ORDINANTE
+IT55T0347501605CC0010489786
+DATI BENEFICIARIO
+DENOMINAZIONE BENEFICIARIO
+INNOVA SERRAMENTI SRL SEMPLIFICATA
+STATO RESIDENZA DEL BENEFICIARIO
+IT
+CODICE FISCALE/PARTITA IVA BENEFICIARIO
+12087331000
+IBAN BENEFICIARIO
+IT70O0344003210000000386500
+NOME ISTITUTO
+BANCO DI DESIO E DELLA BRIANZA
+DATA VALUTA BENEFICIARIO
+06/07/2026
+ING BANK N.V. Milan Branch
+RIBO_260211_V.02
+ING BANK N.V. Milan Branch sede legale in Milano Viale Fulvio Testi 250, 20126. Tel 02-552261 Fax 02-55226001. CF/P.IVA 11241140158
+e numero di iscrizione al Registro delle Imprese di Milano R.E.A. Milano 1446792, iscritta all’Albo delle banche tenuto dalla Banca
+d’Italia al n. 5229 aderisce tramite ING BANK N.V. al fondo di diritto olandese “Nederlandse Depositogarantiestelsel” (per tutti i
+dettagli vedi il «modulo per le informazioni da fornire ai depositanti» su ing.it/trasparenza), Capitale Versato: 525.489.559,04 EUR.

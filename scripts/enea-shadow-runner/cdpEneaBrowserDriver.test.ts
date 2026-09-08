@@ -4,9 +4,20 @@ import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { PersistentAprEneaBrowserWorker, PersistentSimulatedEneaPortalDriver, type AprEneaDraftPackage } from "./aprEneaBrowserWorker";
-import { CdpEneaBrowserDriver, autocompleteRecoveryOrder, autocompleteSearchQueries, classifyCalculationAllocationTable, classifyCoBeneficiaryRows, classifyFinalScreeningIntegrity, classifyInfissiFinalIntegrity, eneaGeneratorActivationLabels, findCompleteDraftServerEvidence, findExternalAuthenticationTarget, italianCalculationInput, matchingScreeningRowIndexes, pollPersistedPageFieldsReadOnly, portalNumberValue, siblingCohortOwnedDraftIds } from "./cdpEneaBrowserDriver";
+import { CdpEneaBrowserDriver, autocompleteRecoveryOrder, autocompleteSearchQueries, calculationAllocationDeliveryStillUncommitted, classifyCalculationAllocationTable, classifyCoBeneficiaryRows, classifyFinalScreeningIntegrity, classifyInfissiFinalIntegrity, eneaGeneratorActivationLabels, findCompleteDraftServerEvidence, findExternalAuthenticationTarget, isEneaDraftBusinessMutation, italianCalculationInput, matchingScreeningRowIndexes, nestedServerJsonContainsExpectedGenerator, pollBooleanDomReadOnly, pollPersistedPageFieldsReadOnly, portalNumberValue, serverResponseAuditSummary, siblingCohortOwnedDraftIds } from "./cdpEneaBrowserDriver";
 import { PersistentAprChromeRuntime } from "./cdpClient";
 import { PersistentAprEneaDraftExecution } from "./eneaDraftExecution";
+import type { AprEneaMutatingCdpCapability, AprEneaReadonlyCdpCapability } from "./aprEneaGlobalBrowserController";
+
+function testAccessCapability(): AprEneaMutatingCdpCapability {
+  const access = { token: "test-token", fencingEpoch: 1, ownerId: "vitest", processPid: process.pid, acquiredAt: new Date(0).toISOString(), leaseUntil: new Date(8_640_000_000_000_000).toISOString(), accessMode: "mutating" as const, purpose: "case_execution" as const, cohortRoot: "/vitest" };
+  return { kind: "apr_enea_cdp_mutating", access, assertValid() {}, assertMutationAllowed() {}, renew: () => access };
+}
+
+function testReadonlyAccessCapability(): AprEneaReadonlyCdpCapability {
+  const access = { token: "test-readonly-token", fencingEpoch: 1, ownerId: "vitest-readonly", processPid: process.pid, acquiredAt: new Date(0).toISOString(), leaseUntil: new Date(8_640_000_000_000_000).toISOString(), accessMode: "readonly" as const, purpose: "keepalive" as const, cohortRoot: "/vitest-readonly" };
+  return { kind: "apr_enea_cdp_readonly", access, assertValid() {}, renew: () => access };
+}
 
 const chromeExecutable = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 const directories: string[] = [];
@@ -18,6 +29,83 @@ const fixtureTarget = (id: string, type: string, url: string, controlled = true)
   title: id,
   url,
   webSocketDebuggerUrl: controlled ? `ws://127.0.0.1/${id}` : undefined,
+});
+
+describe("prova server JSON indipendente delle pagine annidate", () => {
+  const fields = [
+    { portalId: "id-potenza", value: "24,5" },
+    { portalId: "id-rendimento", value: "92" },
+  ];
+
+  it("conferma soltanto il sottoalbero generatore con tutti i valori attesi", () => {
+    expect(nestedServerJsonContainsExpectedGenerator({
+      impianto_esistente: { generatori: [{ tipo_generatore: "Caldaia a condensazione", potenza: 24.5, rendimento: 92 }] },
+    }, "Caldaia a condensazione", fields)).toMatchObject({ matched: true, matchedPath: "impianto_esistente.generatori[0]" });
+  });
+
+  it("fallisce chiuso se HTTP/JSON contiene il generatore ma manca un valore persistito", () => {
+    expect(nestedServerJsonContainsExpectedGenerator({
+      impianto_esistente: { generatori: [{ tipo_generatore: "Caldaia a condensazione", potenza: 24.5 }] },
+    }, "Caldaia a condensazione", fields).matched).toBe(false);
+  });
+
+  it("conserva il corpo breve che distingue wrapper/errore e oscura i payload lunghi", () => {
+    const short = JSON.stringify({ result: { id: 446123 }, error: false, status: 200 });
+    expect(serverResponseAuditSummary(short, JSON.parse(short))).toMatchObject({
+      topLevelKeys: ["error", "result", "status"], resultKeys: ["id"], envelopeError: false,
+      envelopeStatus: 200, responseBody: short, responseBodyTruncated: false,
+    });
+    expect(serverResponseAuditSummary("x".repeat(4_097), null)).toMatchObject({ responseBody: null, responseBodyTruncated: true });
+  });
+
+  it("acquisisce le risposte JSON del caricamento GET host senza indovinare un endpoint", () => {
+    const source = readFileSync(path.resolve("scripts/enea-shadow-runner/cdpEneaBrowserDriver.ts"), "utf8");
+    const method = source.match(/async verifyNestedPageSavedServerReadOnly[\s\S]*?\n {2}async inspectNestedPageServerJsonReadOnly/)?.[0] ?? "";
+    expect(method).toContain("client.navigateReadonlyGet(hostUrl, this.allowedOrigin)");
+    expect(method).toContain('client.onEvent<{ requestId: string; type?: string; response:');
+    expect(method).toContain('client.send<{ body: string }>("Network.getResponseBody"');
+    expect(method).not.toContain("/api/pratica/ecobonus/2026/tmp/");
+  });
+});
+
+describe("consegna materiale del singolo intento Salva", () => {
+  const origin = "https://bonusfiscali.enea.it";
+
+  it("riconosce la mutazione applicativa soltanto sull'endpoint della stessa bozza", () => {
+    expect(isEneaDraftBusinessMutation({ method: "PUT", url: `${origin}/api/pratica/ecobonus/2026/tmp/465455` }, origin, "465455")).toBe(true);
+    expect(isEneaDraftBusinessMutation({ method: "PUT", url: `${origin}/api/pratica/ecobonus/2026/tmp/999999` }, origin, "465455")).toBe(false);
+  });
+
+  it("non scambia il POST opaco anti-bot per un salvataggio ENEA", () => {
+    expect(isEneaDraftBusinessMutation({ method: "POST", url: `${origin}/dzW7VnJi-opaque-telemetry` }, origin, "465455")).toBe(false);
+    expect(isEneaDraftBusinessMutation({ method: "DELETE", url: `${origin}/api/pratica/ecobonus/2026/tmp/465455` }, origin, "465455")).toBe(false);
+  });
+});
+
+describe("consegna del singolo intento nel modale allocazione", () => {
+  it("consente il fallback soltanto con modale ancora aperto e tabella immutata", () => {
+    expect(calculationAllocationDeliveryStillUncommitted(true, false, 0)).toBe(true);
+    expect(calculationAllocationDeliveryStillUncommitted(false, false, 0)).toBe(false);
+    expect(calculationAllocationDeliveryStillUncommitted(true, true, 0)).toBe(false);
+    expect(calculationAllocationDeliveryStillUncommitted(true, false, 1)).toBe(false);
+  });
+});
+
+describe("polling read-only resiliente ai remount React", () => {
+  it("termina alla prima lettura positiva senza lasciare Promise nel renderer", async () => {
+    const observed = [false, false, true, true];
+    let reads = 0;
+    const result = await pollBooleanDomReadOnly(async () => observed[reads++] ?? false, { attempts: 4, intervalMs: 0, wait: async () => {} });
+    expect(result).toBe(true);
+    expect(reads).toBe(3);
+  });
+
+  it("fallisce chiuso dopo il numero dichiarato di probe", async () => {
+    let reads = 0;
+    const result = await pollBooleanDomReadOnly(async () => { reads += 1; return false; }, { attempts: 3, intervalMs: 0, wait: async () => {} });
+    expect(result).toBe(false);
+    expect(reads).toBe(3);
+  });
 });
 
 async function freeTcpPort(): Promise<number> {
@@ -37,7 +125,7 @@ afterEach(async () => {
   const ownedRuntimes = runtimes.splice(0);
   const ownedServers = servers.splice(0);
   const ownedDirectories = directories.splice(0);
-  await Promise.all(ownedRuntimes.map((runtime) => runtime.stop()));
+  await Promise.all(ownedRuntimes.map((runtime) => runtime.disposeEphemeralFixtureForTest()));
   await Promise.all(ownedServers.map((server) => new Promise<void>((resolve) => {
     server.closeAllConnections?.();
     server.close(() => resolve());
@@ -50,7 +138,7 @@ afterEach(async () => {
   for (const directory of ownedDirectories) rmSync(directory, { recursive: true, force: true, maxRetries: 20, retryDelay: 250 });
 }, 30_000);
 
-async function fixtureServer(options: { intermediateCreation?: "valid" | "diagnostic"; dashboardDraftId?: string; delayedBeneficiaryMount?: boolean; sharedReactStateBeneficiaryPage?: boolean; offscreenSaveButton?: boolean; ignoreFirstSaveDelivery?: boolean; delayedScreeningRowMount?: boolean; coBeneficiaryPage?: boolean; coBeneficiaryRealIdsPage?: boolean; municipalitySearchModalPage?: boolean; municipalityAuthoritativeCodePage?: boolean; persistedMunicipalityPage?: boolean; residenceSelectionRemountsBirth?: boolean; ambiguousRoot?: boolean; authenticatedRootEsci?: boolean; dashboardMode?: "authenticated" | "spa-authenticated" | "path-only" | "logged-out" | "redirect-root" } = {}) {
+async function fixtureServer(options: { intermediateCreation?: "valid" | "diagnostic"; dashboardDraftId?: string; delayedBeneficiaryMount?: boolean; sharedReactStateBeneficiaryPage?: boolean; offscreenSaveButton?: boolean; ignoreFirstSaveDelivery?: boolean; delayedScreeningRowMount?: boolean; coBeneficiaryPage?: boolean; coBeneficiaryRealIdsPage?: boolean; ignoreCoBeneficiaryPointerDelivery?: boolean; coBeneficiaryPointerMutationWithoutCommit?: boolean; ignoreCalculationPointerDelivery?: boolean; municipalitySearchModalPage?: boolean; municipalityAuthoritativeCodePage?: boolean; persistedMunicipalityPage?: boolean; residenceSelectionRemountsBirth?: boolean; ambiguousRoot?: boolean; authenticatedRootEsci?: boolean; dashboardMode?: "authenticated" | "spa-authenticated" | "path-only" | "logged-out" | "redirect-root" } = {}) {
   let nextDraftId = 700001;
   const server = createServer((request, response) => {
     const url = new URL(request.url ?? "/", "http://127.0.0.1");
@@ -59,10 +147,17 @@ async function fixtureServer(options: { intermediateCreation?: "valid" | "diagno
       response.end(JSON.stringify({ persisted: true }));
       return;
     }
+    if (request.method === "POST" && /^\/fixture\/co-beneficiary-attempt\/\d+$/.test(url.pathname)) {
+      response.statusCode = 204;
+      response.end();
+      return;
+    }
     if (url.pathname === "/api/geo/comuni") {
       response.setHeader("content-type", "application/json; charset=utf-8");
       const search = url.searchParams.get("search") ?? "";
-      const result = search === "Castel d'aiano"
+      const result = /^bologna$/i.test(search)
+        ? [{ codice_istat: "037006", nome: "Bologna", nome_alt: null, sigla_pro: "BO", cessato: false }]
+        : search === "Castel d'aiano"
         ? [{ codice_istat: "037013", nome: "Castel d'Aiano", nome_alt: null, sigla_pro: "BO", cessato: false }]
         : /castel/i.test(search)
           ? []
@@ -78,6 +173,11 @@ async function fixtureServer(options: { intermediateCreation?: "valid" | "diagno
     if (url.pathname === "/api/geo/comune/037013") {
       response.setHeader("content-type", "application/json; charset=utf-8");
       response.end(JSON.stringify({ result: { codice_istat: "037013", nome: "Castel d'Aiano", nome_alt: null, sigla_pro: "BO", cessato: false }, error: false, status: 200 }));
+      return;
+    }
+    if (url.pathname === "/api/geo/comune/037006") {
+      response.setHeader("content-type", "application/json; charset=utf-8");
+      response.end(JSON.stringify({ result: { codice_istat: "037006", nome: "Bologna", nome_alt: null, sigla_pro: "BO", cessato: false }, error: false, status: 200 }));
       return;
     }
     response.setHeader("content-type", "text/html; charset=utf-8");
@@ -122,10 +222,10 @@ async function fixtureServer(options: { intermediateCreation?: "valid" | "diagno
     else if (/\/pratica\/ecobonus\/2026\/intervento\/\d+/.test(url.pathname)) { const draftId = url.pathname.match(/(\d+)$/)?.[1]; response.end(`<!doctype html><html><body><div data-apr-authenticated="true">Utente connesso</div><form id="intervention"><select id="id-immobile"><option value="">-</option><option value="253">Singola unità immobiliare (in un edificio costituito da più unità immobiliari)</option><option value="254">Edificio costituito da una singola unità immobiliare</option></select><input id="id-unita"><select id="id-acc"><option value="">-</option><option value="N">No</option></select><input id="id-data_inizio"><input id="id-data_fine"><button id="id-comma-345b" type="button">Comma 345B - Schermature solari</button><select id="id-impianto_centralizzato" disabled><option value="">-</option><option value="N">No</option></select><button id="save-intervention" type="button">Salva</button></form><script>const prefix="fixture:${draftId}:intervention:";for(const id of ["id-immobile","id-unita","id-acc","id-data_inizio","id-data_fine"])document.getElementById(id).value=sessionStorage.getItem(prefix+id)||"";document.getElementById("save-intervention").addEventListener("click",()=>{for(const id of ["id-immobile","id-unita","id-acc","id-data_inizio","id-data_fine"])sessionStorage.setItem(prefix+id,document.getElementById(id).value)});</script></body></html>`); }
     else if (/\/pratica\/ecobonus\/2026\/impianto_esistente\/\d+/.test(url.pathname)) { const draftId = url.pathname.match(/(\d+)$/)?.[1]; response.end(`<!doctype html><html><body><div data-apr-authenticated="true">Utente connesso</div><form id="plant"><table><tbody><tr><td>Caldaia a gas a condensazione</td><td id="staged-num"></td><td id="staged-n"></td><td id="staged-pn"></td><td><button id="open-generator" type="button" title="Modifica generatore">Modifica</button></td></tr></tbody></table><select id="id-impianto"><option value="">-</option><option value="10">Impianto autonomo</option></select><select id="id-erogazione"><option value="">-</option><option value="20">Radiatori</option></select><select id="id-distribuzione"><option value="">-</option><option value="30">Distribuzione ad acqua</option></select><select id="id-regolazione"><option value="">-</option><option value="40">Termostato</option></select><select id="id-vettore"><option value="">-</option><option value="50">Energia elettrica</option></select><select id="id-estivo"><option value="">-</option><option value="N">No</option></select><input id="id-interventi"><button type="button" id="save-plant">Salva</button></form><div id="generator-modal"></div><script>const generatorPrefix="fixture:${draftId}:generator:",plantPrefix="fixture:${draftId}:plant:";const generatorIds=["id-num","id-n","id-pn"],stagedIds=["staged-num","staged-n","staged-pn"],plantIds=["id-impianto","id-erogazione","id-distribuzione","id-regolazione","id-vettore","id-estivo","id-interventi"];generatorIds.forEach((id,index)=>document.getElementById(stagedIds[index]).textContent=sessionStorage.getItem(generatorPrefix+id)||"");plantIds.forEach(id=>document.getElementById(id).value=sessionStorage.getItem(plantPrefix+id)||"");const modal=document.getElementById("generator-modal");document.getElementById("open-generator").addEventListener("click",()=>{modal.innerHTML='<form id="generator"><input id="id-num"><input id="id-n"><input id="id-pn"><button type="button" id="save-generator">Salva</button></form>';generatorIds.forEach((id,index)=>document.getElementById(id).value=document.getElementById(stagedIds[index]).textContent||"");document.getElementById("save-generator").addEventListener("click",()=>{generatorIds.forEach((id,index)=>document.getElementById(stagedIds[index]).textContent=document.getElementById(id).value);modal.innerHTML=""})});document.getElementById("save-plant").addEventListener("click",()=>{generatorIds.forEach((id,index)=>sessionStorage.setItem(generatorPrefix+id,document.getElementById(stagedIds[index]).textContent||""));plantIds.forEach(id=>sessionStorage.setItem(plantPrefix+id,document.getElementById(id).value));void fetch("/fixture/plant-save/${draftId}",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({page:"impianto_esistente"})})});</script></body></html>`); }
     else if (/\/pratica\/ecobonus\/2026\/schermature\/\d+/.test(url.pathname)) { const draftId = url.pathname.match(/(\d+)$/)?.[1]; response.end(`<!doctype html><html><body><div data-apr-authenticated="true">Utente connesso</div><form id="screening-summary"><input type="search" aria-label="Cerca" value=""><table><thead><tr><th>Tipo schermatura</th><th>Installazione</th><th>Superficie schermatura</th><th>Superficie finestra</th><th>Esposizione</th><th>gTot</th><th>Materiale</th><th>Movimentazione</th></tr></thead><tbody id="screening-rows"></tbody></table><div id="empty-screenings">Nessun elemento</div><input id="id-costo" disabled><button type="button" id="add-screening" disabled>Aggiungi</button><button type="button" id="save-summary">Salva</button></form><div id="screening-modal"></div><script>const storageKey="fixture:${draftId}:screenings",costKey="fixture:${draftId}:cost",ids=["id-tipo","id-inst","id-sup_s","id-sup_f","id-esp","id-calc","id-gtot","id-mat","id-mec"],columns={"id-tipo":1,"id-inst":2,"id-sup_s":3,"id-sup_f":4,"id-esp":6,"id-calc":7,"id-gtot":8,"id-mat":9,"id-mec":10};let rows=JSON.parse(sessionStorage.getItem(storageKey)||"[]");const tbody=document.getElementById("screening-rows"),cost=document.getElementById("id-costo"),modal=document.getElementById("screening-modal");const render=()=>{document.getElementById("empty-screenings").hidden=rows.length>0;tbody.innerHTML="";for(const row of rows){const tr=document.createElement("tr");for(let index=0;index<11;index+=1){const td=document.createElement("td");const id=Object.keys(columns).find(key=>columns[key]===index);td.textContent=id?row[id]||"":"";tr.appendChild(td)}tbody.appendChild(tr)}cost.disabled=rows.length===0;cost.value=sessionStorage.getItem(costKey)||cost.value};render();setTimeout(()=>document.getElementById("add-screening").disabled=false,3500);document.getElementById("add-screening").addEventListener("click",()=>{modal.innerHTML='<form id="screening"><select id="id-tipo"><option>Schermatura solare</option></select><select id="id-inst"><option>Interna</option></select><input id="id-sup_s"><input id="id-sup_f"><select id="id-esp"><option>Sud</option></select><select id="id-calc"><option>Calcolo semplificato</option></select><input id="id-gtot"><select id="id-mat"><option>Misto</option></select><select id="id-mec"><option>Manuale</option></select><button type="button" id="save-screening">Salva</button></form>';document.getElementById("save-screening").addEventListener("click",()=>{rows.push(Object.fromEntries(ids.map(id=>[id,document.getElementById(id).value])));modal.innerHTML="";render()})});document.getElementById("save-summary").addEventListener("click",()=>{sessionStorage.setItem(storageKey,JSON.stringify(rows));sessionStorage.setItem(costKey,cost.value)});</script></body></html>`); }
-    else if (/\/pratica\/ecobonus\/2026\/calcolo\/\d+/.test(url.pathname)) { const draftId = url.pathname.match(/(\d+)$/)?.[1]; response.end(`<!doctype html><html><body><div data-apr-authenticated="true">Utente connesso</div><table><thead><tr><th>Intervento</th><th>Spese 50% fino al 2024</th><th>Spese 65% fino al 2024</th><th>Spese congrue sostenute nel 2025-2026 (aliquota 50%)</th><th>Spese congrue sostenute nel 2025-2026 (aliquota 36%)</th><th>Spese 2027 36%</th><th>Spese 2027 30%</th><th>Totali [€]</th><th>Modifica</th></tr></thead><tbody><tr><td>SS. Schermature solari</td><td>--</td><td>--</td><td id="cell50"></td><td id="cell36"></td><td>--</td><td>--</td><td>10478.07</td><td><button type="button" id="edit-cost">Modifica</button></td></tr></tbody></table><div id="cost-modal"></div><script>const key="fixture:${draftId}:cost36",traceKey="fixture:${draftId}:trusted-input-trace",total=10478.07,cell50=document.getElementById("cell50"),cell36=document.getElementById("cell36"),modal=document.getElementById("cost-modal");const render=()=>{const value=Number(sessionStorage.getItem(key)||0);cell36.textContent=value?value.toFixed(2):"--";cell50.textContent=value?"--":total.toFixed(2)};render();document.getElementById("edit-cost").addEventListener("click",()=>{const current=Number(sessionStorage.getItem(key)||0);modal.innerHTML='<form id="cost-form"><div>Spese congrue sostenute nel 2025-2026 (aliquota 50%) <strong id="derived50">'+(total-current).toFixed(2)+' €</strong></div><div>Spese congrue sostenute nel 2025-2026 (aliquota 36%) <input id="cost36"></div><button type="button" id="save-cost">Salva</button><button type="button">Annulla</button></form>';const input=document.getElementById("cost36"),derived=document.getElementById("derived50"),props={value:current?current.toFixed(2):"0",onChange:event=>{props.value=String(event.target.value);input.value=props.value;derived.textContent=Math.max(0,total-Number(props.value.replace(",","."))).toFixed(2)+" €"}};input["__reactProps$fixture"]=props;input.value=props.value;input.addEventListener("input",event=>{if(event.isTrusted){const trace=JSON.parse(sessionStorage.getItem(traceKey)||"[]");trace.push(String(input.value));sessionStorage.setItem(traceKey,JSON.stringify(trace))}derived.textContent=Math.max(0,total-Number(String(input.value).replace(",","."))).toFixed(2)+" €"});document.getElementById("save-cost").addEventListener("click",()=>{sessionStorage.setItem(key,String(Number(props.value.replace(",","."))));modal.innerHTML="";render()})})</script></body></html>`); }
-    else if (/\/pratica\/ecobonus\/2026\/beneficiario\/\d+/.test(url.pathname) && options.coBeneficiaryRealIdsPage) { const draftId = url.pathname.match(/(\d+)$/)?.[1]; response.end(`<!doctype html><html><body><div data-apr-authenticated="true">Utente connesso</div><nav><a data-apr-page-id="page:Beneficiario" href="/pratica/ecobonus/2026/beneficiario/${draftId}">Beneficiario</a></nav><form id="beneficiary"><input id="id-cf"><button type="button" id="save">Salva</button></form><section><table><thead><tr><th>Nome</th><th>Cognome</th><th>Codice fiscale</th></tr></thead><tbody id="co-rows"></tbody></table><button type="button" id="add-co">Aggiungi persona fisica</button><div id="co-modal"></div></section><script>const primaryKey="fixture:${draftId}:cf",personKey="fixture:${draftId}:co-beneficiary",primary=document.getElementById("id-cf"),rows=document.getElementById("co-rows"),modal=document.getElementById("co-modal");primary.value=sessionStorage.getItem(primaryKey)||"";const render=()=>{const person=JSON.parse(sessionStorage.getItem(personKey)||"null");rows.innerHTML=person?'<tr><td>'+person.name+'</td><td>'+person.surname+'</td><td>'+person.taxCode+'</td></tr>':""};render();document.getElementById("save").addEventListener("click",()=>sessionStorage.setItem(primaryKey,primary.value));document.getElementById("add-co").addEventListener("click",()=>{modal.innerHTML='<div role="dialog"><h3>Altro beneficiario (persona fisica)</h3><div class="shared-grid"><label for="id-nome">Nome *</label><label for="id-cognome">Cognome *</label><label for="id-codice_fiscale">Codice fiscale *</label><input id="id-nome" required><input id="id-cognome" required><input id="id-codice_fiscale" required></div><button type="button" id="save-co">Salva</button></div>';const props={};for(const id of ["id-nome","id-cognome","id-codice_fiscale"]){const input=document.getElementById(id),state={value:"",onChange:event=>{state.value=String(event.target.value);input.value=state.value}};input["__reactProps$fixture"]=state;props[id]=state}setTimeout(()=>modal.querySelectorAll("label").forEach(label=>label.removeAttribute("for")),300);document.getElementById("save-co").addEventListener("click",event=>{if(!event.isTrusted)return;sessionStorage.setItem(personKey,JSON.stringify({name:props["id-nome"].value,surname:props["id-cognome"].value,taxCode:props["id-codice_fiscale"].value}));modal.innerHTML="";render()})});</script></body></html>`); }
+    else if (/\/pratica\/ecobonus\/2026\/calcolo\/\d+/.test(url.pathname)) { const draftId = url.pathname.match(/(\d+)$/)?.[1]; response.end(`<!doctype html><html><body><div data-apr-authenticated="true">Utente connesso</div><table><thead><tr><th>Intervento</th><th>Spese 50% fino al 2024</th><th>Spese 65% fino al 2024</th><th>Spese congrue sostenute nel 2025-2026 (aliquota 50%)</th><th>Spese congrue sostenute nel 2025-2026 (aliquota 36%)</th><th>Spese 2027 36%</th><th>Spese 2027 30%</th><th>Totali [€]</th><th>Modifica</th></tr></thead><tbody><tr><td>SS. Schermature solari</td><td>--</td><td>--</td><td id="cell50"></td><td id="cell36"></td><td>--</td><td>--</td><td>10478.07</td><td><button type="button" id="edit-cost">Modifica</button></td></tr></tbody></table><div id="cost-modal"></div><script>const key="fixture:${draftId}:cost36",traceKey="fixture:${draftId}:trusted-input-trace",total=10478.07,cell50=document.getElementById("cell50"),cell36=document.getElementById("cell36"),modal=document.getElementById("cost-modal");const render=()=>{const value=Number(sessionStorage.getItem(key)||0);cell36.textContent=value?value.toFixed(2):"--";cell50.textContent=value?"--":total.toFixed(2)};render();document.getElementById("edit-cost").addEventListener("click",()=>{const current=Number(sessionStorage.getItem(key)||0);modal.innerHTML='<form id="cost-form"><div>Spese congrue sostenute nel 2025-2026 (aliquota 50%) <strong id="derived50">'+(total-current).toFixed(2)+' €</strong></div><div>Spese congrue sostenute nel 2025-2026 (aliquota 36%) <input id="cost36"></div><button type="button" id="save-cost">Salva</button><button type="button">Annulla</button></form>';const input=document.getElementById("cost36"),derived=document.getElementById("derived50"),props={value:current?current.toFixed(2):"0",onChange:event=>{props.value=String(event.target.value);input.value=props.value;derived.textContent=Math.max(0,total-Number(props.value.replace(",","."))).toFixed(2)+" €"}};input["__reactProps$fixture"]=props;input.value=props.value;input.addEventListener("input",event=>{if(event.isTrusted){const trace=JSON.parse(sessionStorage.getItem(traceKey)||"[]");trace.push(String(input.value));sessionStorage.setItem(traceKey,JSON.stringify(trace))}derived.textContent=Math.max(0,total-Number(String(input.value).replace(",","."))).toFixed(2)+" €"});document.getElementById("save-cost").addEventListener("click",event=>{if(event.detail>0&&${options.ignoreCalculationPointerDelivery ? "true" : "false"})return;sessionStorage.setItem(key,String(Number(props.value.replace(",","."))));modal.innerHTML="";render()})})</script></body></html>`); }
+    else if (/\/pratica\/ecobonus\/2026\/beneficiario\/\d+/.test(url.pathname) && options.coBeneficiaryRealIdsPage) { const draftId = url.pathname.match(/(\d+)$/)?.[1]; response.end(`<!doctype html><html><body><div data-apr-authenticated="true">Utente connesso</div><nav><a data-apr-page-id="page:Beneficiario" href="/pratica/ecobonus/2026/beneficiario/${draftId}">Beneficiario</a></nav><form id="beneficiary"><input id="id-cf"><button type="button" id="save">Salva</button></form><section><table><thead><tr><th>Nome</th><th>Cognome</th><th>Codice fiscale</th></tr></thead><tbody id="co-rows"></tbody></table><button type="button" id="add-co">Aggiungi persona fisica</button><div id="co-modal"></div></section><script>const primaryKey="fixture:${draftId}:cf",personKey="fixture:${draftId}:co-beneficiary",primary=document.getElementById("id-cf"),rows=document.getElementById("co-rows"),modal=document.getElementById("co-modal");primary.value=sessionStorage.getItem(primaryKey)||"";const render=()=>{const person=JSON.parse(sessionStorage.getItem(personKey)||"null");rows.innerHTML=person?'<tr><td>'+person.name+'</td><td>'+person.surname+'</td><td>'+person.taxCode+'</td></tr>':""};render();document.getElementById("save").addEventListener("click",()=>sessionStorage.setItem(primaryKey,primary.value));document.getElementById("add-co").addEventListener("click",()=>{modal.innerHTML='<div role="dialog"><h3>Altro beneficiario (persona fisica)</h3><div class="shared-grid"><label for="id-nome">Nome *</label><label for="id-cognome">Cognome *</label><label for="id-codice_fiscale">Codice fiscale *</label><input id="id-nome" required><input id="id-cognome" required><input id="id-codice_fiscale" required></div><button type="button" id="save-co">Salva</button></div>';const props={};for(const id of ["id-nome","id-cognome","id-codice_fiscale"]){const input=document.getElementById(id),state={value:"",onChange:event=>{state.value=String(event.target.value);input.value=state.value}};input["__reactProps$fixture"]=state;props[id]=state}setTimeout(()=>modal.querySelectorAll("label").forEach(label=>label.removeAttribute("for")),300);document.getElementById("save-co").addEventListener("click",event=>{if(!event.isTrusted)return;if(event.detail>0&&${options.ignoreCoBeneficiaryPointerDelivery ? "true" : "false"}){sessionStorage.setItem("fixture:${draftId}:co-pointer-ignored","true");${options.coBeneficiaryPointerMutationWithoutCommit ? `fetch("/fixture/co-beneficiary-attempt/${draftId}",{method:"POST"})` : ""};return}sessionStorage.setItem(personKey,JSON.stringify({name:props["id-nome"].value,surname:props["id-cognome"].value,taxCode:props["id-codice_fiscale"].value}));modal.innerHTML="";render()})});</script></body></html>`); }
     else if (/\/pratica\/ecobonus\/2026\/beneficiario\/\d+/.test(url.pathname) && options.coBeneficiaryPage) { const draftId = url.pathname.match(/(\d+)$/)?.[1]; response.end(`<!doctype html><html><body><div data-apr-authenticated="true">Utente connesso</div><nav><a data-apr-page-id="page:Beneficiario" href="/pratica/ecobonus/2026/beneficiario/${draftId}">Beneficiario</a></nav><form id="beneficiary"><label for="id-cf">Codice fiscale</label><input id="id-cf"><button type="button" id="save">Salva</button></form><section><h2>Altri beneficiari</h2><table><thead><tr><th>Nome</th><th>Cognome</th><th>Codice fiscale</th></tr></thead><tbody id="co-rows"></tbody></table><button type="button" id="add-co">Aggiungi persona fisica</button><div id="co-modal"></div></section><script>const primaryKey="fixture:${draftId}:cf",personKey="fixture:${draftId}:co-beneficiary",primary=document.getElementById("id-cf"),rows=document.getElementById("co-rows"),modal=document.getElementById("co-modal");primary.value=sessionStorage.getItem(primaryKey)||"";const render=()=>{const person=JSON.parse(sessionStorage.getItem(personKey)||"null");rows.innerHTML=person?'<tr><td>'+person.name+'</td><td>'+person.surname+'</td><td>'+person.taxCode+'</td></tr>':""};render();document.getElementById("save").addEventListener("click",()=>sessionStorage.setItem(primaryKey,primary.value));document.getElementById("add-co").addEventListener("click",()=>{modal.innerHTML='<div role="dialog"><h3>Altro beneficiario (persona fisica)</h3><label for="co-name">Nome *</label><input id="co-name" required><label for="co-surname">Cognome *</label><input id="co-surname" required><label for="co-cf">Codice fiscale *</label><input id="co-cf" required><button type="button" id="save-co">Salva</button></div>';const props={};for(const id of ["co-name","co-surname","co-cf"]){const input=document.getElementById(id),state={value:"",onChange:event=>{state.value=String(event.target.value);input.value=state.value}};input["__reactProps$fixture"]=state;props[id]=state}document.getElementById("save-co").addEventListener("click",event=>{if(!event.isTrusted)return;sessionStorage.setItem(personKey,JSON.stringify({name:props["co-name"].value,surname:props["co-surname"].value,taxCode:props["co-cf"].value}));modal.innerHTML="";render()})});</script></body></html>`); }
-    else if (/\/pratica\/ecobonus\/2026\/beneficiario\/\d+/.test(url.pathname) && options.municipalitySearchModalPage) { const draftId = url.pathname.match(/(\d+)$/)?.[1]; response.end(`<!doctype html><html><body><div data-apr-authenticated="true">Utente connesso</div><nav><a data-apr-page-id="page:Beneficiario" href="/pratica/ecobonus/2026/beneficiario/${draftId}">Beneficiario</a></nav><form><button id="id-mode" type="button">Modalità</button><div class="input-group"><input id="id-comune" aria-invalid="false"><span class="input-group-text">Cerca comune</span></div><input id="id-civico"><button type="button">Salva</button></form><div id="lookup"></div><script>const input=document.getElementById("id-comune"),lookup=document.getElementById("lookup");document.getElementById("id-mode").addEventListener("click",()=>{input.value="";input.removeAttribute("data-apr-autocomplete-selected")});input["__reactProps$fixture"]={onChange:event=>{input.value=event.target.value;setTimeout(()=>{lookup.innerHTML='<div class="dropdown-menu" style="display:block"><button style="pointer-events:none" type="button" role="menuitem" class="dropdown-item">Bologna (BO)</button></div>';lookup.querySelector("button").addEventListener("click",()=>{input.value="Bologna (BO)";input.setAttribute("aria-invalid","false");document.getElementById("id-civico").value="";lookup.innerHTML=""})},100)}};</script></body></html>`); }
+    else if (/\/pratica\/ecobonus\/2026\/beneficiario\/\d+/.test(url.pathname) && options.municipalitySearchModalPage) { const draftId = url.pathname.match(/(\d+)$/)?.[1]; response.end(`<!doctype html><html><body><div data-apr-authenticated="true">Utente connesso</div><nav><a data-apr-page-id="page:Beneficiario" href="/pratica/ecobonus/2026/beneficiario/${draftId}">Beneficiario</a></nav><form><button id="id-mode" type="button">Modalità</button><div class="input-group"><input name="comune" id="id-comune" aria-invalid="false"><span class="input-group-text">Cerca comune</span></div><input id="id-civico"><button type="button">Salva</button></form><div id="lookup"></div><script>window.ENV={REACT_APP_API:location.origin+"/api"};const input=document.getElementById("id-comune"),lookup=document.getElementById("lookup");document.getElementById("id-mode").addEventListener("click",()=>{input.value="";input.removeAttribute("data-apr-autocomplete-selected")});const component={memoizedProps:{autocompleteFunction(){},resolveFunction(){},onChange:event=>{if(!/^[0-9]{6}$/.test(String(event.target.value)))return;fetch(window.ENV.REACT_APP_API+"/geo/comune/"+event.target.value).then(response=>response.json()).then(payload=>{input.value=payload.result.nome+" ("+payload.result.sigla_pro+")";input.setAttribute("aria-invalid","false");document.getElementById("id-civico").value="";lookup.innerHTML=""})}},return:null};input["__reactFiber$fixture"]={memoizedProps:{},return:component};input["__reactProps$fixture"]={onChange:event=>{input.value=event.target.value;setTimeout(()=>{lookup.innerHTML='<div class="dropdown-menu" style="display:block"><button style="pointer-events:none" type="button" role="menuitem" class="dropdown-item">Bologna (BO)</button></div>';lookup.querySelector("button").addEventListener("click",()=>{input.value="Bologna (BO)";input.setAttribute("aria-invalid","false");document.getElementById("id-civico").value="";lookup.innerHTML=""})},100)}};</script></body></html>`); }
     else if (/\/pratica\/ecobonus\/2026\/beneficiario\/\d+/.test(url.pathname) && options.municipalityAuthoritativeCodePage) { const draftId = url.pathname.match(/(\d+)$/)?.[1]; response.end(`<!doctype html><html><body><div data-apr-authenticated="true">Utente connesso</div><nav><a data-apr-page-id="page:Beneficiario" href="/pratica/ecobonus/2026/beneficiario/${draftId}">Beneficiario</a></nav><form><div class="input-group"><input name="comune" id="id-comune" aria-invalid="false"><span class="input-group-text">Cerca comune</span></div><div class="dropdown-menu" style="display:block"><button type="button" role="menuitem" class="dropdown-item">Santa Maria di Sala (VE)</button></div><button type="button">Salva</button></form><script>window.ENV={REACT_APP_API:location.origin+"/api"};window.__aprMunicipalityAuthoritativeCode="";const input=document.getElementById("id-comune");document.querySelector('[role="menuitem"]').addEventListener("click",()=>{input.value="Santa Maria di Sala (VE)"});const component={memoizedProps:{autocompleteFunction(){},resolveFunction(){},onChange:event=>{if(!/^[0-9]{6}$/.test(String(event.target.value)))return;window.__aprMunicipalityAuthoritativeCode=event.target.value;fetch(window.ENV.REACT_APP_API+"/geo/comune/"+event.target.value).then(response=>response.json()).then(payload=>{input.value=payload.result.nome+" ("+payload.result.sigla_pro+")";input.disabled=true})}},return:null};input["__reactFiber$fixture"]={memoizedProps:{},return:component};input["__reactProps$fixture"]={onChange:event=>{input.value=event.target.value}};</script></body></html>`); }
     else if (/\/pratica\/ecobonus\/2026\/beneficiario\/\d+/.test(url.pathname) && options.persistedMunicipalityPage) { const draftId = url.pathname.match(/(\d+)$/)?.[1]; response.end(`<!doctype html><html><body><div data-apr-authenticated="true">Utente connesso</div><nav><a data-apr-page-id="page:Beneficiario" href="/pratica/ecobonus/2026/beneficiario/${draftId}">Beneficiario</a></nav><form><input id="id-comune" value="Milano (MI)" aria-invalid="false" disabled><select id="id-tipologia"><option value="16" selected>Condominio oltre tre piani fuori terra</option><option value="18">Costruzione isolata (es. mono e plurifamiliare)</option></select><button type="button">Salva</button></form></body></html>`); }
     else if (/\/pratica\/ecobonus\/2026\/beneficiario\/\d+/.test(url.pathname)) { const draftId = url.pathname.match(/(\d+)$/)?.[1]; response.end(`<!doctype html><html><body><div data-apr-authenticated="true">Utente connesso</div><nav><a data-apr-page-id="page:Beneficiario" href="/pratica/ecobonus/2026/beneficiario/${draftId}">Beneficiario</a></nav><form id="beneficiary"><input id="id-cf"><select id="id-nazione_nascita"><option value="">Scegli</option><option value="ita">Italia</option></select><input id="id-comune_nascita"><div id="birth-menu" class="easy-autocomplete-container"><ul></ul></div><button type="button" id="id-mode">Modalità</button><select id="id-nazione_residenza" disabled><option value="ita">Italia</option></select><input id="id-comune_residenza"><div id="residence-menu" class="easy-autocomplete-container"><ul></ul></div><button type="button" id="save">Salva</button></form><script>const key="fixture:${draftId}:cf",birthKey="fixture:${draftId}:birth",birthCityKey="fixture:${draftId}:birth-city",residenceCityKey="fixture:${draftId}:residence-city";document.getElementById("id-cf").value=sessionStorage.getItem(key)||"";document.getElementById("id-comune_nascita").value=sessionStorage.getItem(birthCityKey)||"";document.getElementById("id-comune_residenza").value=sessionStorage.getItem(residenceCityKey)||"";const attach=(inputId,menuId,label)=>{const input=document.getElementById(inputId),menu=document.querySelector('#'+menuId+' ul');input.addEventListener("keyup",()=>{menu.innerHTML='<li>'+label+' (MI)</li>';menu.firstElementChild.addEventListener("click",()=>{input.value=label+" (MI)";menu.innerHTML="";if(inputId==="id-comune_residenza"&&${options.residenceSelectionRemountsBirth ? "true" : "false"})setTimeout(()=>{const oldBirth=document.getElementById("id-comune_nascita"),replacement=oldBirth.cloneNode(true);replacement.value=oldBirth.value;oldBirth.replaceWith(replacement);attach("id-comune_nascita","birth-menu","Sesto San Giovanni")},0)})})};attach("id-comune_nascita","birth-menu","Sesto San Giovanni");attach("id-comune_residenza","residence-menu","Corsico");const birth=document.getElementById("id-nazione_nascita");birth.value=sessionStorage.getItem(birthKey)||"";birth.addEventListener("change",()=>{const replacement=birth.cloneNode(true);replacement.value="";birth.replaceWith(replacement);setTimeout(()=>{replacement.value="ita"},150)});document.getElementById("id-mode").addEventListener("click",()=>setTimeout(()=>{document.getElementById("id-nazione_residenza").disabled=false},250));document.getElementById("id-nazione_residenza").addEventListener("change",()=>setTimeout(()=>{document.getElementById("id-nazione_nascita").value=""},250));document.getElementById("save").addEventListener("click",()=>{sessionStorage.setItem(key,document.getElementById("id-cf").value);sessionStorage.setItem(birthKey,document.getElementById("id-nazione_nascita").value);sessionStorage.setItem(birthCityKey,document.getElementById("id-comune_nascita").value);sessionStorage.setItem(residenceCityKey,document.getElementById("id-comune_residenza").value)});</script></body></html>`); }
@@ -188,7 +288,7 @@ function municipalityAuthoritativeCodeDraftPackage(): AprEneaDraftPackage {
     workflowFingerprint: "workflow-case-municipality-authoritative-code",
     workflow: {
       ...draft.workflow,
-      steps: [{ id: "beneficiary", pageName: "Beneficiario", markerIds: ["id-comune"], successMessage: "ok", fields: [{ portalId: "id-comune", control: "autocomplete", value: "Santa Maria di Sala", autocompleteQualifier: "VE" }] }],
+      steps: [{ id: "beneficiary", pageName: "Beneficiario", markerIds: ["id-comune"], successMessage: "ok", fields: [{ portalId: "id-comune", control: "autocomplete", value: "Santa Maria di Sala", autocompleteQualifier: "VE", autocompleteAuthoritativeIstatCode: "027035" }] }],
     },
   };
 }
@@ -286,6 +386,7 @@ describe("driver Chrome persistente di APR", () => {
       initialUrl: `${origin}/`,
     });
     runtimes.push(runtime);
+    runtime.setAccessGuard(() => undefined, { ownerId: "vitest", fencingEpoch: 1 });
     await runtime.ensureRunning();
     let fixtureOriginReady = false;
     for (let attempt = 0; attempt < 100; attempt += 1) {
@@ -298,6 +399,7 @@ describe("driver Chrome persistente di APR", () => {
     }
     expect(fixtureOriginReady).toBe(true);
     const driver = new CdpEneaBrowserDriver(root, runtime, {
+      accessCapability: testAccessCapability(),
       allowedOrigin: origin,
       dashboardUrl: `${origin}/`,
       allowOpenInitialPage: false,
@@ -309,7 +411,7 @@ describe("driver Chrome persistente di APR", () => {
 
     expect(runtime.connectionStats()).toMatchObject({ active: 1, opened: 1, closed: 0 });
     expect(runtime.connectionStats().targetIds).toHaveLength(1);
-    await runtime.stop();
+    await runtime.disposeEphemeralFixtureForTest();
     expect(runtime.connectionStats()).toMatchObject({ active: 0, opened: 1, closed: 1, targetIds: [] });
   }, 60_000);
 
@@ -326,15 +428,17 @@ describe("driver Chrome persistente di APR", () => {
     };
     const runtime = {
       profileFingerprint: "f".repeat(64),
+      setAccessGuard: () => undefined,
       targets: async () => [target],
       pageClient: async () => {
         active = 1;
-        return { evaluate: async () => { throw new Error("keepalive_fixture_failure"); } };
+        return { evaluateDomRead: async () => { throw new Error("keepalive_fixture_failure"); } };
       },
       closePageClientsExcept: () => undefined,
       closeAllPageClients: () => { active = 0; closed += 1; },
     } as unknown as PersistentAprChromeRuntime;
     const driver = new CdpEneaBrowserDriver(root, runtime, {
+      accessCapability: testAccessCapability(),
       allowedOrigin: "https://bonusfiscali.enea.it",
       dashboardUrl: "https://bonusfiscali.enea.it/dashboard",
       allowOpenInitialPage: false,
@@ -399,7 +503,7 @@ describe("driver Chrome persistente di APR", () => {
     const runtime = new PersistentAprChromeRuntime({ chromeExecutable, profileDirectory: path.join(root, "chrome-profile"), remoteDebuggingPort: await freeTcpPort(), headless: true, initialUrl: `${origin}/` });
     runtimes.push(runtime); await runtime.ensureRunning();
     const draft = coBeneficiaryDraftPackage();
-    const driver = new CdpEneaBrowserDriver(root, runtime, { allowedOrigin: origin, dashboardUrl: `${origin}/`, createActionLabels: ["Nuova pratica", "Ecobonus", "Schermature solari"] });
+    const driver = new CdpEneaBrowserDriver(root, runtime, { accessCapability: testAccessCapability(), allowedOrigin: origin, dashboardUrl: `${origin}/`, createActionLabels: ["Nuova pratica", "Ecobonus", "Schermature solari"] });
     await driver.verifySession(); await driver.inspectPortalContractReadOnly();
     const created = await driver.createDraft(draft);
     await driver.preparePage(draft, created.draftId, "page:Beneficiario");
@@ -411,6 +515,41 @@ describe("driver Chrome persistente di APR", () => {
     expect(await driver.verifyPageSaved(draft, created.draftId, "page:Beneficiario")).not.toBeNull();
     const persisted = await driver.inspectPersistedPageValuesReadOnly(draft, created.draftId, "page:Beneficiario");
     expect(persisted.fields).toContainEqual(expect.objectContaining({ portalId: "semantic:beneficiary:co-beneficiary-tax-code", actual: "PNNMGV84B43G203G", matches: true }));
+  }, 60_000);
+  it.runIf(process.platform === "darwin")("consegna lo stesso intento con Enter solo quando il pointer non ha prodotto alcuna mutazione", async () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "apr-cdp-co-beneficiary-pointer-loss-")); directories.push(root);
+    const origin = await fixtureServer({ coBeneficiaryRealIdsPage: true, ignoreCoBeneficiaryPointerDelivery: true });
+    const runtime = new PersistentAprChromeRuntime({ chromeExecutable, profileDirectory: path.join(root, "chrome-profile"), remoteDebuggingPort: await freeTcpPort(), headless: true, initialUrl: `${origin}/` });
+    runtimes.push(runtime); await runtime.ensureRunning();
+    const draft = coBeneficiaryDraftPackage("co-beneficiary-pointer-loss");
+    const driver = new CdpEneaBrowserDriver(root, runtime, { accessCapability: testAccessCapability(), allowedOrigin: origin, dashboardUrl: `${origin}/`, createActionLabels: ["Nuova pratica", "Ecobonus", "Schermature solari"] });
+    await driver.verifySession(); await driver.inspectPortalContractReadOnly();
+    const created = await driver.createDraft(draft);
+    await driver.preparePage(draft, created.draftId, "page:Beneficiario");
+    expect(driver.snapshot().events.filter((event) => event.action === "co_beneficiary_save_intent")).toHaveLength(1);
+    expect(driver.snapshot().pagePreparationDiagnostic).toMatchObject({ kind: "co-beneficiary-single-intent-delivery-v2", deliveryFallback: "trusted_enter_after_proven_no_mutation", mutationTraces: [] });
+    const target = (await runtime.targets()).find((candidate) => candidate.url.includes(`/beneficiario/${created.draftId}`));
+    expect(target).toBeDefined();
+    const client = await runtime.pageClient(target!);
+    expect(await client.evaluateDomRead(`sessionStorage.getItem("fixture:${created.draftId}:co-pointer-ignored")`)).toBe("true");
+    expect(await client.evaluateDomRead(`JSON.parse(sessionStorage.getItem("fixture:${created.draftId}:co-beneficiary")||"null")?.taxCode`)).toBe("PNNMGV84B43G203G");
+  }, 60_000);
+  it.runIf(process.platform === "darwin")("non ripete l'attivazione quando il pointer ha gia prodotto una richiesta mutativa", async () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "apr-cdp-co-beneficiary-mutation-proof-")); directories.push(root);
+    const origin = await fixtureServer({ coBeneficiaryRealIdsPage: true, ignoreCoBeneficiaryPointerDelivery: true, coBeneficiaryPointerMutationWithoutCommit: true });
+    const runtime = new PersistentAprChromeRuntime({ chromeExecutable, profileDirectory: path.join(root, "chrome-profile"), remoteDebuggingPort: await freeTcpPort(), headless: true, initialUrl: `${origin}/` });
+    runtimes.push(runtime); await runtime.ensureRunning();
+    const draft = coBeneficiaryDraftPackage("co-beneficiary-mutation-proof");
+    const driver = new CdpEneaBrowserDriver(root, runtime, { accessCapability: testAccessCapability(), allowedOrigin: origin, dashboardUrl: `${origin}/`, createActionLabels: ["Nuova pratica", "Ecobonus", "Schermature solari"] });
+    await driver.verifySession(); await driver.inspectPortalContractReadOnly();
+    const created = await driver.createDraft(draft);
+    await expect(driver.preparePage(draft, created.draftId, "page:Beneficiario")).rejects.toThrow("apr_cdp_enea_co_beneficiary_save_unverified");
+    expect(driver.snapshot().events.filter((event) => event.action === "co_beneficiary_save_intent")).toHaveLength(1);
+    expect(driver.snapshot().pagePreparationDiagnostic).toMatchObject({ kind: "co-beneficiary-single-intent-delivery-v2", deliveryFallback: "none", mutationTraces: [expect.objectContaining({ method: "POST", status: 204 })] });
+    const target = (await runtime.targets()).find((candidate) => candidate.url.includes(`/beneficiario/${created.draftId}`));
+    expect(target).toBeDefined();
+    const client = await runtime.pageClient(target!);
+    expect(await client.evaluateDomRead(`sessionStorage.getItem("fixture:${created.draftId}:co-beneficiary")`)).toBeNull();
   }, 60_000);
   it("riconosce una sola riga schermatura dal contenuto tecnico anche quando l'indice ordinale non è più disponibile", () => {
     const fields = screeningDraftPackage().workflow.screeningSteps[0].fields;
@@ -432,6 +571,23 @@ describe("driver Chrome persistente di APR", () => {
     expect(matchingScreeningRowIndexes([...rows, rows[0]], matchingFields)).toEqual([0, 1]);
     expect(matchingScreeningRowIndexes(rows, matchingFields.map((field) => field.portalId === "id-sup_s" ? { ...field, value: "4,6037" } : field))).toEqual([0]);
     expect(matchingScreeningRowIndexes(rows, matchingFields.map((field) => field.portalId === "id-sup_s" ? { ...field, value: "4,6137" } : field))).toEqual([]);
+    expect(matchingScreeningRowIndexes([["Tenda o veneziana", "Esterna", "6.75", "2.9", "0.08", "Sud", "Dichiarato dal fornitore", "0.33", "Tessuto", "Automatico", ""]], [
+      { portalId: "id-tipo", control: "select", value: "Tenda o veneziana" },
+      { portalId: "id-inst", control: "select", value: "Esterna" },
+      { portalId: "id-sup_s", control: "input", value: "6,754" },
+      { portalId: "id-sup_f", control: "input", value: "2,9" },
+      { portalId: "id-esp", control: "select", value: "Sud" },
+      { portalId: "id-calc", control: "select", value: "Dichiarato dal fornitore" },
+      { portalId: "id-gtot", control: "input", value: "0,33" },
+      { portalId: "id-mat", control: "select", value: "Tessuto" },
+      { portalId: "id-mec", control: "select", value: "Automatico" },
+    ])).toEqual([0]);
+  });
+  it("usa il classificatore condiviso anche nella verifica immediata post-Salva", () => {
+    const source = readFileSync(path.resolve("scripts/enea-shadow-runner/cdpEneaBrowserDriver.ts"), "utf8");
+    const method = source.match(/async verifyPageSaved[\s\S]*?\n {2}async verifyNestedPageSavedServerReadOnly/)?.[0] ?? "";
+    expect(method).toContain("matchingScreeningRowIndexes(observed.rows, step.fields).includes(index)");
+    expect(method).not.toContain("Math.abs(wantedNumber-actualNumber)<0.001");
   });
   it("rifiuta una bozza finale che ha perso un prodotto anche se tutti i checkpoint intermedi erano verdi", () => {
     const draft = screeningDraftPackage("elisa-moro-regression");
@@ -475,7 +631,7 @@ describe("driver Chrome persistente di APR", () => {
     const runtime = new PersistentAprChromeRuntime({ chromeExecutable, profileDirectory: path.join(root, "chrome-profile"), remoteDebuggingPort: await freeTcpPort(), headless: true, initialUrl: `${origin}/` });
     runtimes.push(runtime); await runtime.ensureRunning();
     const draft = calculationAllocationDraftPackage();
-    const driver = new CdpEneaBrowserDriver(root, runtime, { allowedOrigin: origin, dashboardUrl: `${origin}/`, createActionLabels: ["Nuova pratica", "Ecobonus", "Schermature solari"] });
+    const driver = new CdpEneaBrowserDriver(root, runtime, { accessCapability: testAccessCapability(), allowedOrigin: origin, dashboardUrl: `${origin}/`, createActionLabels: ["Nuova pratica", "Ecobonus", "Schermature solari"] });
     await driver.verifySession(); await driver.inspectPortalContractReadOnly();
     const created = await driver.createDraft(draft);
     const modalContract = await driver.inspectCalculationAllocationModalContractReadOnly(draft, created.draftId, "page:Allocazione costi e detrazioni");
@@ -485,17 +641,33 @@ describe("driver Chrome persistente di APR", () => {
     const calculationTarget = (await runtime.targets()).find((target) => target.url.includes(`/calcolo/${created.draftId}`));
     expect(calculationTarget).toBeDefined();
     const calculationClient = await runtime.pageClient(calculationTarget!);
-    expect(await calculationClient.evaluate<string>('document.getElementById("cost36")?.value ?? ""')).toBe("10478,07");
-    const trustedInputTrace = await calculationClient.evaluate<string[]>('JSON.parse(sessionStorage.getItem("fixture:' + created.draftId + ':trusted-input-trace") || "[]")');
+    expect(await calculationClient.evaluateDomRead<string>('document.getElementById("cost36")?.value ?? ""')).toBe("10478,07");
+    const trustedInputTrace = await calculationClient.evaluateDomRead<string[]>('JSON.parse(sessionStorage.getItem("fixture:' + created.draftId + ':trusted-input-trace") || "[]")');
     expect(trustedInputTrace[0]).toBe("");
     expect(trustedInputTrace.at(-1)).toBe("10478,07");
     await driver.savePage(draft, created.draftId, "page:Allocazione costi e detrazioni");
     expect(await driver.verifyPageSaved(draft, created.draftId, "page:Allocazione costi e detrazioni")).not.toBeNull();
+    expect(await driver.verifyNestedPageSavedCanonicalReadOnly(draft, created.draftId, "page:Allocazione costi e detrazioni")).not.toBeNull();
+    await expect(driver.verifyNestedPageSavedCanonicalReadOnly(draft, created.draftId, "page:Calcolo costi e detrazioni")).rejects.toThrow("apr_cdp_enea_nested_canonical_verification_not_allowlisted");
     expect(driver.snapshot().calculationModalContractDiagnostic).toMatchObject({ kind: "calculation-allocation-modal-contract-v9", evidenceId: modalContract.evidenceId });
     const persisted = await driver.inspectPersistedPageValuesReadOnly(draft, created.draftId, "page:Allocazione costi e detrazioni");
     expect(persisted.fields).toEqual(expect.arrayContaining([expect.objectContaining({ portalId: "semantic:calculation:2025-2026:50", actual: "0", matches: true }), expect.objectContaining({ portalId: "semantic:calculation:2025-2026:36", actual: "10478.07", matches: true }), expect.objectContaining({ portalId: "semantic:calculation:total", actual: "10478.07", matches: true })]));
     expect(driver.snapshot().events.filter((event) => event.action === "save_page_once" && event.pageId === "page:Allocazione costi e detrazioni")).toHaveLength(1);
-  }, 30_000);
+  }, 90_000);
+  it.runIf(process.platform === "darwin")("completa lo stesso intento allocazione con tastiera fidata se il puntatore non raggiunge onSubmit", async () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "apr-cdp-calculation-enter-")); directories.push(root);
+    const origin = await fixtureServer({ ignoreCalculationPointerDelivery: true });
+    const runtime = new PersistentAprChromeRuntime({ chromeExecutable, profileDirectory: path.join(root, "chrome-profile"), remoteDebuggingPort: await freeTcpPort(), headless: true, initialUrl: `${origin}/` });
+    runtimes.push(runtime); await runtime.ensureRunning();
+    const draft = calculationAllocationDraftPackage("allocation-enter-fallback");
+    const driver = new CdpEneaBrowserDriver(root, runtime, { accessCapability: testAccessCapability(), allowedOrigin: origin, dashboardUrl: `${origin}/`, createActionLabels: ["Nuova pratica", "Ecobonus", "Schermature solari"] });
+    await driver.verifySession(); await driver.inspectPortalContractReadOnly();
+    const created = await driver.createDraft(draft);
+    await driver.preparePage(draft, created.draftId, "page:Allocazione costi e detrazioni");
+    await driver.savePage(draft, created.draftId, "page:Allocazione costi e detrazioni");
+    expect(await driver.verifyPageSaved(draft, created.draftId, "page:Allocazione costi e detrazioni")).not.toBeNull();
+    expect(driver.snapshot().events.filter((event) => event.action === "save_page_once")).toHaveLength(1);
+  }, 90_000);
   it("riconosce il redirect SPID esterno senza confonderlo con una scheda ENEA mancante", () => {
     const allowedOrigin = "https://bonusfiscali.enea.it";
     expect(findExternalAuthenticationTarget([
@@ -517,12 +689,13 @@ describe("driver Chrome persistente di APR", () => {
     let openPageCalls = 0;
     const runtime = {
       profileFingerprint: "fixture-spid-profile",
+      setAccessGuard: () => undefined,
       targets: async () => [{ id: "spid", type: "page", title: "SPID", url: "https://identity.example.test/login", webSocketDebuggerUrl: "ws://127.0.0.1/spid" }],
       openPage: async () => { openPageCalls += 1; throw new Error("unexpected_open_page"); },
       closePageClientsExcept: () => undefined,
       closeAllPageClients: () => undefined,
     } as unknown as PersistentAprChromeRuntime;
-    const driver = new CdpEneaBrowserDriver(root, runtime, { allowedOrigin: "https://bonusfiscali.enea.it", dashboardUrl: "https://bonusfiscali.enea.it/" });
+    const driver = new CdpEneaBrowserDriver(root, runtime, { accessCapability: testAccessCapability(), allowedOrigin: "https://bonusfiscali.enea.it", dashboardUrl: "https://bonusfiscali.enea.it/" });
     expect(await driver.inspectExternalAuthenticationJourneyReadOnly()).toMatchObject({ inProgress: true, evidenceId: expect.stringMatching(/^external-auth-/) });
     await expect(driver.verifySession()).rejects.toThrow("apr_cdp_enea_external_login_in_progress");
     expect(openPageCalls).toBe(0);
@@ -534,17 +707,18 @@ describe("driver Chrome persistente di APR", () => {
     let targetReads = 0;
     const runtime = {
       profileFingerprint: "fixture-spid-race-profile",
+      setAccessGuard: () => undefined,
       targets: async () => {
         targetReads += 1;
         return targetReads === 1
           ? [fixtureTarget("enea", "page", `${allowedOrigin}/dashboard`)]
           : [fixtureTarget("spid", "page", "https://identity.example.test/login")];
       },
-      pageClient: async () => ({ evaluate: async () => "https://identity.example.test/login" }),
+      pageClient: async () => ({ evaluateDomRead: async () => "https://identity.example.test/login" }),
       closePageClientsExcept: () => undefined,
       closeAllPageClients: () => undefined,
     } as unknown as PersistentAprChromeRuntime;
-    const driver = new CdpEneaBrowserDriver(root, runtime, { allowedOrigin, dashboardUrl: `${allowedOrigin}/`, allowOpenInitialPage: false });
+    const driver = new CdpEneaBrowserDriver(root, runtime, { accessCapability: testAccessCapability(), allowedOrigin, dashboardUrl: `${allowedOrigin}/`, allowOpenInitialPage: false });
 
     await expect(driver.verifySession()).rejects.toThrow("apr_cdp_enea_external_login_in_progress");
     expect(targetReads).toBe(2);
@@ -556,17 +730,18 @@ describe("driver Chrome persistente di APR", () => {
     let targetReads = 0;
     const runtime = {
       profileFingerprint: "fixture-foreign-origin-profile",
+      setAccessGuard: () => undefined,
       targets: async () => {
         targetReads += 1;
         return targetReads === 1
           ? [fixtureTarget("enea-racing", "page", `${allowedOrigin}/dashboard`)]
           : [fixtureTarget("enea-stable", "page", `${allowedOrigin}/dashboard`), fixtureTarget("foreign", "page", "https://unrelated.example.test/")];
       },
-      pageClient: async () => ({ evaluate: async () => "https://unrelated.example.test/" }),
+      pageClient: async () => ({ evaluateDomRead: async () => "https://unrelated.example.test/" }),
       closePageClientsExcept: () => undefined,
       closeAllPageClients: () => undefined,
     } as unknown as PersistentAprChromeRuntime;
-    const driver = new CdpEneaBrowserDriver(root, runtime, { allowedOrigin, dashboardUrl: `${allowedOrigin}/`, allowOpenInitialPage: false });
+    const driver = new CdpEneaBrowserDriver(root, runtime, { accessCapability: testAccessCapability(), allowedOrigin, dashboardUrl: `${allowedOrigin}/`, allowOpenInitialPage: false });
 
     await expect(driver.verifySession()).rejects.toThrow("apr_cdp_enea_origin_rejected");
     expect(targetReads).toBe(2);
@@ -577,9 +752,20 @@ describe("driver Chrome persistente di APR", () => {
     const origin = await fixtureServer({ ambiguousRoot: true });
     const runtime = new PersistentAprChromeRuntime({ chromeExecutable, profileDirectory: path.join(root, "chrome-profile"), remoteDebuggingPort: await freeTcpPort(), headless: true, initialUrl: `${origin}/` });
     runtimes.push(runtime); await runtime.ensureRunning();
-    const driver = new CdpEneaBrowserDriver(root, runtime, { allowedOrigin: origin, dashboardUrl: `${origin}/` });
+    const driver = new CdpEneaBrowserDriver(root, runtime, { accessCapability: testAccessCapability(), allowedOrigin: origin, dashboardUrl: `${origin}/` });
     expect(await driver.verifySession()).toMatchObject({ authenticated: true, serverLogoutProven: false });
     expect(driver.snapshot().events.filter((event) => event.action === "verify_session_dom_server_get")).toHaveLength(1);
+  }, 30_000);
+
+  it.runIf(process.platform === "darwin")("mantiene la sessione dalla pagina ENEA autenticata con la sola capability read-only", async () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "apr-cdp-readonly-keepalive-")); directories.push(root);
+    const origin = await fixtureServer();
+    const runtime = new PersistentAprChromeRuntime({ chromeExecutable, profileDirectory: path.join(root, "chrome-profile"), remoteDebuggingPort: await freeTcpPort(), headless: true, initialUrl: `${origin}/` });
+    runtimes.push(runtime); await runtime.ensureRunning();
+    const driver = new CdpEneaBrowserDriver(root, runtime, { accessCapability: testReadonlyAccessCapability(), allowedOrigin: origin, dashboardUrl: `${origin}/` });
+    expect(await driver.verifySession()).toMatchObject({ authenticated: true, serverLogoutProven: false });
+    expect(await driver.inspectPortalContractReadOnly()).toMatchObject({ ready: true, operationalUrl: `${origin}/dashboard` });
+    expect(driver.snapshot().events.some((event) => event.action === "navigate_dashboard_readonly_get")).toBe(true);
   }, 30_000);
 
   it.runIf(process.platform === "darwin")("riconosce la root ENEA autenticata dal controllo Esci senza dipendere dal percorso dashboard", async () => {
@@ -587,7 +773,7 @@ describe("driver Chrome persistente di APR", () => {
     const origin = await fixtureServer({ authenticatedRootEsci: true, dashboardMode: "path-only" });
     const runtime = new PersistentAprChromeRuntime({ chromeExecutable, profileDirectory: path.join(root, "chrome-profile"), remoteDebuggingPort: await freeTcpPort(), headless: true, initialUrl: `${origin}/` });
     runtimes.push(runtime); await runtime.ensureRunning();
-    const driver = new CdpEneaBrowserDriver(root, runtime, { allowedOrigin: origin, dashboardUrl: `${origin}/` });
+    const driver = new CdpEneaBrowserDriver(root, runtime, { accessCapability: testAccessCapability(), allowedOrigin: origin, dashboardUrl: `${origin}/` });
     expect(await driver.verifySession()).toMatchObject({ authenticated: true, serverLogoutProven: false, url: `${origin}/` });
     expect(driver.snapshot().events.filter((event) => event.action === "verify_session_dom_server_get")).toHaveLength(1);
   }, 30_000);
@@ -597,7 +783,7 @@ describe("driver Chrome persistente di APR", () => {
     const origin = await fixtureServer({ ambiguousRoot: true, dashboardMode: "path-only" });
     const runtime = new PersistentAprChromeRuntime({ chromeExecutable, profileDirectory: path.join(root, "chrome-profile"), remoteDebuggingPort: await freeTcpPort(), headless: true, initialUrl: `${origin}/` });
     runtimes.push(runtime); await runtime.ensureRunning();
-    const driver = new CdpEneaBrowserDriver(root, runtime, { allowedOrigin: origin, dashboardUrl: `${origin}/` });
+    const driver = new CdpEneaBrowserDriver(root, runtime, { accessCapability: testAccessCapability(), allowedOrigin: origin, dashboardUrl: `${origin}/` });
     expect(await driver.verifySession()).toMatchObject({ authenticated: false, serverLogoutProven: false });
   }, 30_000);
 
@@ -606,7 +792,7 @@ describe("driver Chrome persistente di APR", () => {
     const origin = await fixtureServer({ ambiguousRoot: true, dashboardMode: "redirect-root" });
     const runtime = new PersistentAprChromeRuntime({ chromeExecutable, profileDirectory: path.join(root, "chrome-profile"), remoteDebuggingPort: await freeTcpPort(), headless: true, initialUrl: `${origin}/` });
     runtimes.push(runtime); await runtime.ensureRunning();
-    const driver = new CdpEneaBrowserDriver(root, runtime, { allowedOrigin: origin, dashboardUrl: `${origin}/` });
+    const driver = new CdpEneaBrowserDriver(root, runtime, { accessCapability: testAccessCapability(), allowedOrigin: origin, dashboardUrl: `${origin}/` });
     expect(await driver.verifySession()).toMatchObject({ authenticated: false, serverLogoutProven: true, url: `${origin}/` });
     expect(driver.snapshot().events.filter((event) => event.action === "verify_session_dashboard_navigation_readonly_get")).toHaveLength(1);
   }, 30_000);
@@ -616,7 +802,7 @@ describe("driver Chrome persistente di APR", () => {
     const origin = await fixtureServer({ ambiguousRoot: true, dashboardMode: "spa-authenticated" });
     const runtime = new PersistentAprChromeRuntime({ chromeExecutable, profileDirectory: path.join(root, "chrome-profile"), remoteDebuggingPort: await freeTcpPort(), headless: true, initialUrl: `${origin}/` });
     runtimes.push(runtime); await runtime.ensureRunning();
-    const driver = new CdpEneaBrowserDriver(root, runtime, { allowedOrigin: origin, dashboardUrl: `${origin}/` });
+    const driver = new CdpEneaBrowserDriver(root, runtime, { accessCapability: testAccessCapability(), allowedOrigin: origin, dashboardUrl: `${origin}/` });
     expect(await driver.verifySession()).toMatchObject({ authenticated: true, serverLogoutProven: false, url: `${origin}/dashboard` });
     expect(driver.snapshot().events.filter((event) => event.action === "verify_session_dashboard_navigation_readonly_get")).toHaveLength(1);
   }, 30_000);
@@ -668,6 +854,32 @@ describe("driver Chrome persistente di APR", () => {
     expect(findCompleteDraftServerEvidence({ ...input, events: events.filter((item) => item.revision !== 6) })).toBeNull();
   });
 
+  const ragniCanonicalFinalEvents = () => {
+    const event = (revision: number, action: string, pageId: string, route: string) => ({ revision, at: `2026-09-05T20:00:${String(revision).padStart(2, "0")}.000Z`, action, evidenceId: `server-${revision}`, url: `https://bonusfiscali.enea.it/pratica/ecobonus/2026/${route}/465539`, targetId: "target", customerKey: "nadia-ragni", draftId: "465539", pageId, domSha256: "d".repeat(64), appliedRuleIds: ["system-atomic-checkpoint-resume"] });
+    return [
+      event(1, "save_page_once", "page:Generatore dell'impianto termico", "impianto_esistente"),
+      event(2, "verify_generator_staged_page_state", "page:Generatore dell'impianto termico", "impianto_esistente"),
+      event(3, "verify_nested_page_saved_server_network_json_readonly", "page:Generatore dell'impianto termico", "impianto_esistente"),
+      event(4, "save_page_once", "page:Impianto termico esistente", "impianto_esistente"),
+      event(5, "verify_page_saved_readonly", "page:Impianto termico esistente", "impianto_esistente"),
+      event(6, "save_page_once", "page:Calcolo costi e detrazioni", "calcolo"),
+      event(7, "verify_page_saved_readonly", "page:Calcolo costi e detrazioni", "calcolo"),
+    ];
+  };
+
+  it("certifica la bozza con prova server annidata autorevole e verifica canonica finale /calcolo", () => {
+    const events = ragniCanonicalFinalEvents();
+    const input = { events, customerKey: "nadia-ragni", draftId: "465539", pageIds: ["page:Generatore dell'impianto termico", "page:Impianto termico esistente", "page:Calcolo costi e detrazioni"] };
+    expect(findCompleteDraftServerEvidence(input)).toMatchObject({ evidenceId: "server-7" });
+  });
+
+  it("rifiuta la bozza finale se la sonda server annidata più recente è negativa o la rotta finale non è /calcolo", () => {
+    const events = ragniCanonicalFinalEvents();
+    const input = { events, customerKey: "nadia-ragni", draftId: "465539", pageIds: ["page:Generatore dell'impianto termico", "page:Impianto termico esistente", "page:Calcolo costi e detrazioni"] };
+    expect(findCompleteDraftServerEvidence({ ...input, events: events.map((item) => item.revision === 3 ? { ...item, action: "verify_nested_page_server_network_json_rejected_readonly" } : item) })).toBeNull();
+    expect(findCompleteDraftServerEvidence({ ...input, events: events.map((item) => item.revision === 7 ? { ...item, url: "https://bonusfiscali.enea.it/pratica/ecobonus/2026/impianto_esistente/465539" } : item) })).toBeNull();
+  });
+
   it("certifica la cardinalità Infissi totale anche quando la tabella server è paginata", () => {
     expect(classifyInfissiFinalIntegrity({ visibleRowCount: 5, paginationText: ["Visualizzati da 1 a 5 di 11 elementi"], expectedCount: 11, observedCost: 12000, expectedCost: 12000 })).toMatchObject({ matched: true, rowCount: 11, cardinalityMatched: true, costMatched: true });
     expect(classifyInfissiFinalIntegrity({ visibleRowCount: 5, paginationText: ["Showing 1 to 5 of 10 entries"], expectedCount: 11, observedCost: 12000, expectedCost: 12000 })).toMatchObject({ matched: false, rowCount: 10, cardinalityMatched: false });
@@ -683,7 +895,7 @@ describe("driver Chrome persistente di APR", () => {
     const origin = await fixtureServer();
     const runtime = new PersistentAprChromeRuntime({ chromeExecutable, profileDirectory: path.join(root, "chrome-profile"), remoteDebuggingPort: await freeTcpPort(), headless: true, initialUrl: `${origin}/` });
     runtimes.push(runtime); await runtime.ensureRunning();
-    const driver = new CdpEneaBrowserDriver(root, runtime, { allowedOrigin: origin, dashboardUrl: `${origin}/dashboard` });
+    const driver = new CdpEneaBrowserDriver(root, runtime, { accessCapability: testAccessCapability(), allowedOrigin: origin, dashboardUrl: `${origin}/dashboard` });
     const proof = await driver.verifyDraftIdsAbsentReadOnly(["411950", "411954", "411957"]);
     expect(proof).toMatchObject({ allAbsent: true, presentDraftIds: [], requestedDraftIds: ["411950", "411954", "411957"] });
     expect(driver.snapshot().events.filter((event) => event.action === "verify_repeat_draft_absence_server_get")).toHaveLength(1);
@@ -693,7 +905,7 @@ describe("driver Chrome persistente di APR", () => {
     const origin = await fixtureServer();
     const runtime = new PersistentAprChromeRuntime({ chromeExecutable, profileDirectory: path.join(root, "chrome-profile"), remoteDebuggingPort: await freeTcpPort(), headless: true, initialUrl: `${origin}/` });
     runtimes.push(runtime); await runtime.ensureRunning();
-    const driver = new CdpEneaBrowserDriver(root, runtime, { allowedOrigin: origin, dashboardUrl: `${origin}/`, createActionLabels: ["Nuova pratica", "Ecobonus", "Schermature solari"] });
+    const driver = new CdpEneaBrowserDriver(root, runtime, { accessCapability: testAccessCapability(), allowedOrigin: origin, dashboardUrl: `${origin}/`, createActionLabels: ["Nuova pratica", "Ecobonus", "Schermature solari"] });
     await driver.verifySession(); await driver.inspectPortalContractReadOnly();
     const draft = draftPackage("case-deleted-and-requeued");
     const created = await driver.createDraft(draft);
@@ -714,7 +926,7 @@ describe("driver Chrome persistente di APR", () => {
     const runtime = new PersistentAprChromeRuntime({ chromeExecutable, profileDirectory: path.join(root, "chrome-profile"), remoteDebuggingPort: await freeTcpPort(), headless: true, initialUrl: `${origin}/` });
     runtimes.push(runtime); await runtime.ensureRunning();
     const draft = delayedBeneficiaryDraftPackage();
-    const driver = new CdpEneaBrowserDriver(root, runtime, { allowedOrigin: origin, dashboardUrl: `${origin}/`, createActionLabels: ["Nuova pratica", "Ecobonus", "Schermature solari"] });
+    const driver = new CdpEneaBrowserDriver(root, runtime, { accessCapability: testAccessCapability(), allowedOrigin: origin, dashboardUrl: `${origin}/`, createActionLabels: ["Nuova pratica", "Ecobonus", "Schermature solari"] });
     await driver.verifySession(); await driver.inspectPortalContractReadOnly();
     const created = await driver.createDraft(draft);
     await driver.preparePage(draft, created.draftId, "page:Anagrafica Beneficiario");
@@ -729,7 +941,7 @@ describe("driver Chrome persistente di APR", () => {
     const runtime = new PersistentAprChromeRuntime({ chromeExecutable, profileDirectory: path.join(root, "chrome-profile"), remoteDebuggingPort: await freeTcpPort(), headless: true, initialUrl: `${origin}/` });
     runtimes.push(runtime); await runtime.ensureRunning();
     const draft = sharedReactStateBeneficiaryDraftPackage();
-    const driver = new CdpEneaBrowserDriver(root, runtime, { allowedOrigin: origin, dashboardUrl: `${origin}/`, createActionLabels: ["Nuova pratica", "Ecobonus", "Schermature solari"] });
+    const driver = new CdpEneaBrowserDriver(root, runtime, { accessCapability: testAccessCapability(), allowedOrigin: origin, dashboardUrl: `${origin}/`, createActionLabels: ["Nuova pratica", "Ecobonus", "Schermature solari"] });
     await driver.verifySession(); await driver.inspectPortalContractReadOnly();
     const created = await driver.createDraft(draft);
     await driver.preparePage(draft, created.draftId, "page:Anagrafica Beneficiario");
@@ -744,7 +956,7 @@ describe("driver Chrome persistente di APR", () => {
     const runtime = new PersistentAprChromeRuntime({ chromeExecutable, profileDirectory: path.join(root, "chrome-profile"), remoteDebuggingPort: await freeTcpPort(), headless: true, initialUrl: `${origin}/` });
     runtimes.push(runtime); await runtime.ensureRunning();
     const draft = delayedBeneficiaryDraftPackage();
-    const driver = new CdpEneaBrowserDriver(root, runtime, { allowedOrigin: origin, dashboardUrl: `${origin}/`, createActionLabels: ["Nuova pratica", "Ecobonus", "Schermature solari"] });
+    const driver = new CdpEneaBrowserDriver(root, runtime, { accessCapability: testAccessCapability(), allowedOrigin: origin, dashboardUrl: `${origin}/`, createActionLabels: ["Nuova pratica", "Ecobonus", "Schermature solari"] });
     await driver.verifySession(); await driver.inspectPortalContractReadOnly();
     const created = await driver.createDraft(draft);
     await driver.preparePage(draft, created.draftId, "page:Anagrafica Beneficiario");
@@ -759,7 +971,7 @@ describe("driver Chrome persistente di APR", () => {
     const runtime = new PersistentAprChromeRuntime({ chromeExecutable, profileDirectory: path.join(root, "chrome-profile"), remoteDebuggingPort: await freeTcpPort(), headless: true, initialUrl: `${origin}/` });
     runtimes.push(runtime); await runtime.ensureRunning();
     const draft = delayedBeneficiaryDraftPackage();
-    const driver = new CdpEneaBrowserDriver(root, runtime, { allowedOrigin: origin, dashboardUrl: `${origin}/`, createActionLabels: ["Nuova pratica", "Ecobonus", "Schermature solari"] });
+    const driver = new CdpEneaBrowserDriver(root, runtime, { accessCapability: testAccessCapability(), allowedOrigin: origin, dashboardUrl: `${origin}/`, createActionLabels: ["Nuova pratica", "Ecobonus", "Schermature solari"] });
     await driver.verifySession(); await driver.inspectPortalContractReadOnly();
     const created = await driver.createDraft(draft);
     await driver.preparePage(draft, created.draftId, "page:Anagrafica Beneficiario");
@@ -775,7 +987,7 @@ describe("driver Chrome persistente di APR", () => {
     const runtime = new PersistentAprChromeRuntime({ chromeExecutable, profileDirectory: path.join(root, "chrome-profile"), remoteDebuggingPort: await freeTcpPort(), headless: true, initialUrl: `${origin}/` });
     runtimes.push(runtime); await runtime.ensureRunning();
     const draft = screeningDraftPackage("case-delayed-screening");
-    const driver = new CdpEneaBrowserDriver(root, runtime, { allowedOrigin: origin, dashboardUrl: `${origin}/`, createActionLabels: ["Nuova pratica", "Ecobonus", "Schermature solari"] });
+    const driver = new CdpEneaBrowserDriver(root, runtime, { accessCapability: testAccessCapability(), allowedOrigin: origin, dashboardUrl: `${origin}/`, createActionLabels: ["Nuova pratica", "Ecobonus", "Schermature solari"] });
     await driver.verifySession(); await driver.inspectPortalContractReadOnly();
     const created = await driver.createDraft(draft);
     await driver.preparePage(draft, created.draftId, "screening:1");
@@ -785,7 +997,7 @@ describe("driver Chrome persistente di APR", () => {
     const target = (await runtime.targets()).find((candidate) => candidate.type === "page" && candidate.webSocketDebuggerUrl && candidate.url.includes(`/schermature/${created.draftId}`));
     if (!target) throw new Error("fixture_screening_target_missing");
     const client = await runtime.pageClient(target);
-    await client.evaluate(`document.documentElement.innerHTML=""`);
+    await client.evaluateDomRead(`document.documentElement.innerHTML=""`);
     expect(await driver.verifyNestedPageSavedCanonicalReadOnly(draft, created.draftId, "screening:1")).not.toBeNull();
     const diagnostic = await driver.inspectScreeningSummaryReadOnly(draft, created.draftId, "screening:1");
     expect(diagnostic).toMatchObject({ kind: "screening-summary-readonly-v4", url: `${origin}/pratica/ecobonus/2026/schermature/${created.draftId}`, loading: false, surfaceReady: true, authenticated: true });
@@ -797,8 +1009,8 @@ describe("driver Chrome persistente di APR", () => {
     const root = mkdtempSync(path.join(os.tmpdir(), "apr-cdp-driver-")); directories.push(root);
     const origin = await fixtureServer();
     const runtime = new PersistentAprChromeRuntime({ chromeExecutable, profileDirectory: path.join(root, "chrome-profile"), remoteDebuggingPort: await freeTcpPort(), headless: true, initialUrl: `${origin}/signed-out` });
-    runtimes.push(runtime); await runtime.ensureRunning(); await runtime.openPage(`${origin}/`);
-    let driver = new CdpEneaBrowserDriver(root, runtime, { allowedOrigin: origin, dashboardUrl: `${origin}/`, createActionLabels: ["Nuova pratica", "Ecobonus", "Schermature solari"] });
+    runtimes.push(runtime); runtime.setAccessGuard(() => undefined, { ownerId: "vitest", fencingEpoch: 1 }); await runtime.ensureRunning(); await runtime.openPage(`${origin}/`);
+    let driver = new CdpEneaBrowserDriver(root, runtime, { accessCapability: testAccessCapability(), allowedOrigin: origin, dashboardUrl: `${origin}/`, createActionLabels: ["Nuova pratica", "Ecobonus", "Schermature solari"] });
     const session = await driver.verifySession();
     expect(session).toMatchObject({ authenticated: true, serverLogoutProven: false });
     expect(await driver.inspectPortalContractReadOnly()).toMatchObject({ ready: true, operationalUrl: `${origin}/dashboard`, createCandidateCount: 1, forbiddenCandidateCount: 0, navigationCandidates: expect.arrayContaining([{ tag: "a", label: "inserisci nuova scheda descrittiva ecobonus con data di fine lavori nel 2026", path: "/pratica/ecobonus/2026/nuova" }]) });
@@ -817,8 +1029,9 @@ describe("driver Chrome persistente di APR", () => {
     expect(await driver.inspectPersistedPageValuesReadOnly(draft, created.draftId, "page:Beneficiario")).toMatchObject({ customerKey: "case-cdp", draftId: "700001", fields: [expect.objectContaining({ portalId: "id-cf", matches: true })] });
     expect(await driver.verifyDraftSaved(draft, created.draftId)).toMatchObject({ draftId: "700001" });
 
-    driver = new CdpEneaBrowserDriver(root, runtime, { allowedOrigin: origin, dashboardUrl: `${origin}/` });
+    driver = new CdpEneaBrowserDriver(root, runtime, { accessCapability: testAccessCapability(), allowedOrigin: origin, dashboardUrl: `${origin}/` });
     expect(await driver.discoverExistingDraft(draft)).toMatchObject({ draftId: "700001" });
+    expect(await driver.discoverExistingDraft(draft, "pending_create_only")).toBeNull();
     const snapshot = driver.snapshot();
     expect(snapshot.mappings).toHaveLength(1);
     expect(snapshot.events.map((event) => event.action)).toEqual(expect.arrayContaining(["verify_session_dom_server_get", "inspect_portal_contract_readonly", "create_draft_once", "prepare_allowlisted_page", "save_page_once", "verify_complete_draft_readonly"]));
@@ -832,16 +1045,16 @@ describe("driver Chrome persistente di APR", () => {
     const runtime = new PersistentAprChromeRuntime({ chromeExecutable, profileDirectory: path.join(root, "chrome-profile"), remoteDebuggingPort: await freeTcpPort(), headless: true, initialUrl: `${origin}/` });
     runtimes.push(runtime); await runtime.ensureRunning();
     const draft = municipalitySearchDraftPackage();
-    const driver = new CdpEneaBrowserDriver(root, runtime, { allowedOrigin: origin, dashboardUrl: `${origin}/`, createActionLabels: ["Nuova pratica", "Ecobonus", "Schermature solari"] });
+    const driver = new CdpEneaBrowserDriver(root, runtime, { accessCapability: testAccessCapability(), allowedOrigin: origin, dashboardUrl: `${origin}/`, createActionLabels: ["Nuova pratica", "Ecobonus", "Schermature solari"] });
     await driver.verifySession(); await driver.inspectPortalContractReadOnly();
     const created = await driver.createDraft(draft);
     await driver.preparePage(draft, created.draftId, "page:Beneficiario");
     const target = (await runtime.targets()).find((candidate) => candidate.url.includes(`/beneficiario/${created.draftId}`));
     expect(target).toBeDefined();
     const client = await runtime.pageClient(target!);
-    expect(await client.evaluate<string>('document.getElementById("id-comune")?.value ?? ""')).toBe("Bologna (BO)");
-    expect(await client.evaluate<string>('document.getElementById("id-comune")?.dataset.aprAutocompleteSelected ?? ""')).toBe("true");
-  }, 30_000);
+    expect(await client.evaluateDomRead<string>('document.getElementById("id-comune")?.value ?? ""')).toBe("Bologna (BO)");
+    expect(await client.evaluateDomRead<string>('document.getElementById("id-comune")?.dataset.aprAutocompleteSelected ?? ""')).toBe("true");
+  }, 60_000);
 
   it.runIf(process.platform === "darwin")("consegna al form il codice ISTAT della GET autorevole quando il menu React non e esposto", async () => {
     const root = mkdtempSync(path.join(os.tmpdir(), "apr-cdp-municipality-code-")); directories.push(root);
@@ -849,17 +1062,31 @@ describe("driver Chrome persistente di APR", () => {
     const runtime = new PersistentAprChromeRuntime({ chromeExecutable, profileDirectory: path.join(root, "chrome-profile"), remoteDebuggingPort: await freeTcpPort(), headless: true, initialUrl: `${origin}/` });
     runtimes.push(runtime); await runtime.ensureRunning();
     const draft = municipalityAuthoritativeCodeDraftPackage();
-    const driver = new CdpEneaBrowserDriver(root, runtime, { allowedOrigin: origin, dashboardUrl: `${origin}/`, createActionLabels: ["Nuova pratica", "Ecobonus", "Schermature solari"] });
+    const driver = new CdpEneaBrowserDriver(root, runtime, { accessCapability: testAccessCapability(), allowedOrigin: origin, dashboardUrl: `${origin}/`, createActionLabels: ["Nuova pratica", "Ecobonus", "Schermature solari"] });
     await driver.verifySession(); await driver.inspectPortalContractReadOnly();
     const created = await driver.createDraft(draft);
     await driver.preparePage(draft, created.draftId, "page:Beneficiario");
     const target = (await runtime.targets()).find((candidate) => candidate.url.includes(`/beneficiario/${created.draftId}`));
     expect(target).toBeDefined();
     const client = await runtime.pageClient(target!);
-    expect(await client.evaluate<string>('document.getElementById("id-comune")?.value ?? ""')).toBe("Santa Maria di Sala (VE)");
-    expect(await client.evaluate<string>('document.getElementById("id-comune")?.dataset.aprAutocompleteSelected ?? ""')).toBe("true");
-    expect(await client.evaluate<string>('window.__aprMunicipalityAuthoritativeCode ?? ""')).toBe("027035");
-  }, 30_000);
+    expect(await client.evaluateDomRead<string>('document.getElementById("id-comune")?.value ?? ""')).toBe("Santa Maria di Sala (VE)");
+    expect(await client.evaluateDomRead<string>('document.getElementById("id-comune")?.dataset.aprAutocompleteSelected ?? ""')).toBe("true");
+    expect(await client.evaluateDomRead<string>('window.__aprMunicipalityAuthoritativeCode ?? ""')).toBe("027035");
+  }, 60_000);
+
+  it.runIf(process.platform === "darwin")("resta fail-closed se nome e provincia coincidono ma il codice ISTAT autorevole e diverso", async () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "apr-cdp-municipality-code-mismatch-")); directories.push(root);
+    const origin = await fixtureServer({ municipalityAuthoritativeCodePage: true });
+    const runtime = new PersistentAprChromeRuntime({ chromeExecutable, profileDirectory: path.join(root, "chrome-profile"), remoteDebuggingPort: await freeTcpPort(), headless: true, initialUrl: `${origin}/` });
+    runtimes.push(runtime); await runtime.ensureRunning();
+    const draft = municipalityAuthoritativeCodeDraftPackage();
+    draft.workflow.steps[0].fields[0].autocompleteAuthoritativeIstatCode = "999999";
+    const driver = new CdpEneaBrowserDriver(root, runtime, { accessCapability: testAccessCapability(), allowedOrigin: origin, dashboardUrl: `${origin}/`, createActionLabels: ["Nuova pratica", "Ecobonus", "Schermature solari"] });
+    await driver.verifySession(); await driver.inspectPortalContractReadOnly();
+    const created = await driver.createDraft(draft);
+    await expect(driver.preparePage(draft, created.draftId, "page:Beneficiario")).rejects.toThrow("apr_cdp_enea_authoritative_istat_not_verified:id-comune:matches-0");
+    expect(driver.snapshot().events.some((event) => event.action === "save_page_once")).toBe(false);
+  }, 60_000);
 
   it.runIf(process.platform === "darwin")("accetta senza provincia soltanto l'unico Comune attivo con nome esatto", async () => {
     const root = mkdtempSync(path.join(os.tmpdir(), "apr-cdp-municipality-unique-name-")); directories.push(root);
@@ -868,16 +1095,16 @@ describe("driver Chrome persistente di APR", () => {
     runtimes.push(runtime); await runtime.ensureRunning();
     const draft = municipalityAuthoritativeCodeDraftPackage();
     delete draft.workflow.steps[0].fields[0].autocompleteQualifier;
-    const driver = new CdpEneaBrowserDriver(root, runtime, { allowedOrigin: origin, dashboardUrl: `${origin}/`, createActionLabels: ["Nuova pratica", "Ecobonus", "Schermature solari"] });
+    const driver = new CdpEneaBrowserDriver(root, runtime, { accessCapability: testAccessCapability(), allowedOrigin: origin, dashboardUrl: `${origin}/`, createActionLabels: ["Nuova pratica", "Ecobonus", "Schermature solari"] });
     await driver.verifySession(); await driver.inspectPortalContractReadOnly();
     const created = await driver.createDraft(draft);
     await driver.preparePage(draft, created.draftId, "page:Beneficiario");
     const target = (await runtime.targets()).find((candidate) => candidate.url.includes(`/beneficiario/${created.draftId}`));
     expect(target).toBeDefined();
     const client = await runtime.pageClient(target!);
-    expect(await client.evaluate<string>('window.__aprMunicipalityAuthoritativeCode ?? ""')).toBe("027035");
-    expect(await client.evaluate<string>('document.getElementById("id-comune")?.dataset.aprAutocompleteSelected ?? ""')).toBe("true");
-  }, 30_000);
+    expect(await client.evaluateDomRead<string>('window.__aprMunicipalityAuthoritativeCode ?? ""')).toBe("027035");
+    expect(await client.evaluateDomRead<string>('document.getElementById("id-comune")?.dataset.aprAutocompleteSelected ?? ""')).toBe("true");
+  }, 60_000);
 
   it.runIf(process.platform === "darwin")("usa la variante con apostrofo soltanto come query e conserva la corrispondenza esatta", async () => {
     const root = mkdtempSync(path.join(os.tmpdir(), "apr-cdp-municipality-apostrophe-query-")); directories.push(root);
@@ -886,17 +1113,18 @@ describe("driver Chrome persistente di APR", () => {
     runtimes.push(runtime); await runtime.ensureRunning();
     const draft = municipalityAuthoritativeCodeDraftPackage();
     draft.workflow.steps[0].fields[0].value = "Castel d aiano";
+    draft.workflow.steps[0].fields[0].autocompleteAuthoritativeIstatCode = "037013";
     delete draft.workflow.steps[0].fields[0].autocompleteQualifier;
-    const driver = new CdpEneaBrowserDriver(root, runtime, { allowedOrigin: origin, dashboardUrl: `${origin}/`, createActionLabels: ["Nuova pratica", "Ecobonus", "Schermature solari"] });
+    const driver = new CdpEneaBrowserDriver(root, runtime, { accessCapability: testAccessCapability(), allowedOrigin: origin, dashboardUrl: `${origin}/`, createActionLabels: ["Nuova pratica", "Ecobonus", "Schermature solari"] });
     await driver.verifySession(); await driver.inspectPortalContractReadOnly();
     const created = await driver.createDraft(draft);
     await driver.preparePage(draft, created.draftId, "page:Beneficiario");
     const target = (await runtime.targets()).find((candidate) => candidate.url.includes(`/beneficiario/${created.draftId}`));
     expect(target).toBeDefined();
     const client = await runtime.pageClient(target!);
-    expect(await client.evaluate<string>('window.__aprMunicipalityAuthoritativeCode ?? ""')).toBe("037013");
-    expect(await client.evaluate<string>('document.getElementById("id-comune")?.value ?? ""')).toBe("Castel d'Aiano (BO)");
-  }, 45_000);
+    expect(await client.evaluateDomRead<string>('window.__aprMunicipalityAuthoritativeCode ?? ""')).toBe("037013");
+    expect(await client.evaluateDomRead<string>('document.getElementById("id-comune")?.value ?? ""')).toBe("Castel d'Aiano (BO)");
+  }, 60_000);
 
   it.runIf(process.platform === "darwin")("preserva il Comune disabilitato gia persistito mentre corregge un altro campo", async () => {
     const root = mkdtempSync(path.join(os.tmpdir(), "apr-cdp-persisted-municipality-")); directories.push(root);
@@ -904,16 +1132,16 @@ describe("driver Chrome persistente di APR", () => {
     const runtime = new PersistentAprChromeRuntime({ chromeExecutable, profileDirectory: path.join(root, "chrome-profile"), remoteDebuggingPort: await freeTcpPort(), headless: true, initialUrl: `${origin}/` });
     runtimes.push(runtime); await runtime.ensureRunning();
     const draft = persistedMunicipalityCorrectionDraftPackage();
-    const driver = new CdpEneaBrowserDriver(root, runtime, { allowedOrigin: origin, dashboardUrl: `${origin}/`, createActionLabels: ["Nuova pratica", "Ecobonus", "Schermature solari"] });
+    const driver = new CdpEneaBrowserDriver(root, runtime, { accessCapability: testAccessCapability(), allowedOrigin: origin, dashboardUrl: `${origin}/`, createActionLabels: ["Nuova pratica", "Ecobonus", "Schermature solari"] });
     await driver.verifySession(); await driver.inspectPortalContractReadOnly();
     const created = await driver.createDraft(draft);
     await expect(driver.preparePage(draft, created.draftId, "page:Beneficiario")).resolves.toMatchObject({ evidenceId: expect.stringMatching(/^cdp-server-/) });
     const target = (await runtime.targets()).find((candidate) => candidate.url.includes(`/beneficiario/${created.draftId}`));
     expect(target).toBeDefined();
     const client = await runtime.pageClient(target!);
-    expect(await client.evaluate<string>('document.getElementById("id-comune")?.value ?? ""')).toBe("Milano (MI)");
-    expect(await client.evaluate<string>('document.getElementById("id-comune")?.dataset.aprAutocompleteSelected ?? ""')).toBe("true");
-    expect(await client.evaluate<string>('document.getElementById("id-tipologia")?.value ?? ""')).toBe("18");
+    expect(await client.evaluateDomRead<string>('document.getElementById("id-comune")?.value ?? ""')).toBe("Milano (MI)");
+    expect(await client.evaluateDomRead<string>('document.getElementById("id-comune")?.dataset.aprAutocompleteSelected ?? ""')).toBe("true");
+    expect(await client.evaluateDomRead<string>('document.getElementById("id-tipologia")?.value ?? ""')).toBe("18");
   }, 30_000);
 
   it.runIf(process.platform === "darwin")("fa eseguire al processo APR due pratiche consecutive nello stesso Chrome senza controller Codex", async () => {
@@ -921,7 +1149,7 @@ describe("driver Chrome persistente di APR", () => {
     const origin = await fixtureServer();
     const runtime = new PersistentAprChromeRuntime({ chromeExecutable, profileDirectory: path.join(root, "chrome-profile"), remoteDebuggingPort: await freeTcpPort(), headless: true, initialUrl: `${origin}/` });
     runtimes.push(runtime); await runtime.ensureRunning();
-    const driver = new CdpEneaBrowserDriver(root, runtime, { allowedOrigin: origin, dashboardUrl: `${origin}/`, createActionLabels: ["Nuova pratica", "Ecobonus", "Schermature solari"] });
+    const driver = new CdpEneaBrowserDriver(root, runtime, { accessCapability: testAccessCapability(), allowedOrigin: origin, dashboardUrl: `${origin}/`, createActionLabels: ["Nuova pratica", "Ecobonus", "Schermature solari"] });
     expect(await driver.verifySession()).toMatchObject({ authenticated: true, serverLogoutProven: false });
     expect(await driver.inspectPortalContractReadOnly()).toMatchObject({ ready: true, operationalUrl: `${origin}/dashboard` });
     const execution = new PersistentAprEneaDraftExecution(root, { allowedPortalOrigin: origin });
@@ -942,7 +1170,7 @@ describe("driver Chrome persistente di APR", () => {
     const origin = await fixtureServer({ intermediateCreation: "diagnostic" });
     const runtime = new PersistentAprChromeRuntime({ chromeExecutable, profileDirectory: path.join(root, "chrome-profile"), remoteDebuggingPort: await freeTcpPort(), headless: true, initialUrl: `${origin}/` });
     runtimes.push(runtime); await runtime.ensureRunning();
-    const driver = new CdpEneaBrowserDriver(root, runtime, { allowedOrigin: origin, dashboardUrl: `${origin}/`, createActionLabels: ["Nuova pratica", "Ecobonus", "Schermature solari"] });
+    const driver = new CdpEneaBrowserDriver(root, runtime, { accessCapability: testAccessCapability(), allowedOrigin: origin, dashboardUrl: `${origin}/`, createActionLabels: ["Nuova pratica", "Ecobonus", "Schermature solari"] });
     expect(await driver.verifySession()).toMatchObject({ authenticated: true });
     expect(await driver.inspectPortalContractReadOnly()).toMatchObject({ ready: true });
     await expect(driver.createDraft(draftPackage("case-intermediate"))).rejects.toThrow("apr_cdp_enea_creation_wizard_contract_invalid");
@@ -955,7 +1183,7 @@ describe("driver Chrome persistente di APR", () => {
     const origin = await fixtureServer({ intermediateCreation: "valid" });
     const runtime = new PersistentAprChromeRuntime({ chromeExecutable, profileDirectory: path.join(root, "chrome-profile"), remoteDebuggingPort: await freeTcpPort(), headless: true, initialUrl: `${origin}/` });
     runtimes.push(runtime); await runtime.ensureRunning();
-    const driver = new CdpEneaBrowserDriver(root, runtime, { allowedOrigin: origin, dashboardUrl: `${origin}/` });
+    const driver = new CdpEneaBrowserDriver(root, runtime, { accessCapability: testAccessCapability(), allowedOrigin: origin, dashboardUrl: `${origin}/` });
     expect(await driver.verifySession()).toMatchObject({ authenticated: true });
     expect(await driver.inspectPortalContractReadOnly()).toMatchObject({ ready: true });
     expect(await driver.createDraft(draftPackage("case-wizard"))).toMatchObject({ draftId: "700001" });
@@ -967,7 +1195,7 @@ describe("driver Chrome persistente di APR", () => {
     const origin = await fixtureServer({ dashboardDraftId: "700777" });
     const runtime = new PersistentAprChromeRuntime({ chromeExecutable, profileDirectory: path.join(root, "chrome-profile"), remoteDebuggingPort: await freeTcpPort(), headless: true, initialUrl: `${origin}/dashboard` });
     runtimes.push(runtime); await runtime.ensureRunning();
-    const driver = new CdpEneaBrowserDriver(root, runtime, { allowedOrigin: origin, dashboardUrl: `${origin}/dashboard` });
+    const driver = new CdpEneaBrowserDriver(root, runtime, { accessCapability: testAccessCapability(), allowedOrigin: origin, dashboardUrl: `${origin}/dashboard` });
     await driver.verifySession();
     const checkpointPath = path.join(root, "enea-browser-worker", "cdp-driver.json");
     const state = driver.snapshot();
@@ -1007,7 +1235,7 @@ describe("driver Chrome persistente di APR", () => {
     const origin = await fixtureServer({ dashboardDraftId: "700777" });
     const runtime = new PersistentAprChromeRuntime({ chromeExecutable, profileDirectory: path.join(root, "chrome-profile"), remoteDebuggingPort: await freeTcpPort(), headless: true, initialUrl: `${origin}/dashboard` });
     runtimes.push(runtime); await runtime.ensureRunning();
-    const driver = new CdpEneaBrowserDriver(root, runtime, { allowedOrigin: origin, dashboardUrl: `${origin}/dashboard` });
+    const driver = new CdpEneaBrowserDriver(root, runtime, { accessCapability: testAccessCapability(), allowedOrigin: origin, dashboardUrl: `${origin}/dashboard` });
     await driver.verifySession();
     const checkpointPath = path.join(root, "enea-browser-worker", "cdp-driver.json");
     const state = driver.snapshot();
@@ -1022,7 +1250,7 @@ describe("driver Chrome persistente di APR", () => {
     const origin = await fixtureServer({ intermediateCreation: "valid" });
     const runtime = new PersistentAprChromeRuntime({ chromeExecutable, profileDirectory: path.join(root, "chrome-profile"), remoteDebuggingPort: await freeTcpPort(), headless: true, initialUrl: `${origin}/pratica/ecobonus/2026/nuova` });
     runtimes.push(runtime); await runtime.ensureRunning();
-    const driver = new CdpEneaBrowserDriver(root, runtime, { allowedOrigin: origin, dashboardUrl: `${origin}/dashboard` });
+    const driver = new CdpEneaBrowserDriver(root, runtime, { accessCapability: testAccessCapability(), allowedOrigin: origin, dashboardUrl: `${origin}/dashboard` });
     await driver.verifySession();
     const checkpointPath = path.join(root, "enea-browser-worker", "cdp-driver.json");
     const state = driver.snapshot();
@@ -1037,7 +1265,7 @@ describe("driver Chrome persistente di APR", () => {
     const origin = await fixtureServer();
     const runtime = new PersistentAprChromeRuntime({ chromeExecutable, profileDirectory: path.join(root, "chrome-profile"), remoteDebuggingPort: await freeTcpPort(), headless: true, initialUrl: `${origin}/dashboard` });
     runtimes.push(runtime); await runtime.ensureRunning();
-    const driver = new CdpEneaBrowserDriver(root, runtime, { allowedOrigin: origin, dashboardUrl: `${origin}/dashboard` });
+    const driver = new CdpEneaBrowserDriver(root, runtime, { accessCapability: testAccessCapability(), allowedOrigin: origin, dashboardUrl: `${origin}/dashboard` });
     await driver.verifySession();
     const checkpointPath = path.join(root, "enea-browser-worker", "cdp-driver.json");
     const state = driver.snapshot();
@@ -1057,7 +1285,7 @@ describe("driver Chrome persistente di APR", () => {
     const origin = await fixtureServer({ dashboardDraftId: "700991" });
     const runtime = new PersistentAprChromeRuntime({ chromeExecutable, profileDirectory: path.join(root, "chrome-profile"), remoteDebuggingPort: await freeTcpPort(), headless: true, initialUrl: `${origin}/dashboard` });
     runtimes.push(runtime); await runtime.ensureRunning();
-    const driver = new CdpEneaBrowserDriver(root, runtime, { allowedOrigin: origin, dashboardUrl: `${origin}/dashboard` });
+    const driver = new CdpEneaBrowserDriver(root, runtime, { accessCapability: testAccessCapability(), allowedOrigin: origin, dashboardUrl: `${origin}/dashboard` });
     await driver.verifySession();
     const checkpointPath = path.join(root, "enea-browser-worker", "cdp-driver.json");
     const state = driver.snapshot();
@@ -1077,7 +1305,7 @@ describe("driver Chrome persistente di APR", () => {
     const origin = await fixtureServer();
     const runtime = new PersistentAprChromeRuntime({ chromeExecutable, profileDirectory: path.join(root, "chrome-profile"), remoteDebuggingPort: await freeTcpPort(), headless: true, initialUrl: `${origin}/dashboard` });
     runtimes.push(runtime); await runtime.ensureRunning();
-    const driver = new CdpEneaBrowserDriver(root, runtime, { allowedOrigin: origin, dashboardUrl: `${origin}/dashboard` });
+    const driver = new CdpEneaBrowserDriver(root, runtime, { accessCapability: testAccessCapability(), allowedOrigin: origin, dashboardUrl: `${origin}/dashboard` });
     await driver.verifySession();
     const checkpointPath = path.join(root, "enea-browser-worker", "cdp-driver.json");
     const state = driver.snapshot();
@@ -1104,7 +1332,7 @@ describe("driver Chrome persistente di APR", () => {
     const runtime = new PersistentAprChromeRuntime({ chromeExecutable, profileDirectory: path.join(root, "chrome-profile"), remoteDebuggingPort: await freeTcpPort(), headless: true, initialUrl: `${origin}/` });
     runtimes.push(runtime); await runtime.ensureRunning();
     const draft = generatorAndPlantDraftPackage();
-    const driver = new CdpEneaBrowserDriver(root, runtime, { allowedOrigin: origin, dashboardUrl: `${origin}/`, createActionLabels: ["Nuova pratica", "Ecobonus", "Schermature solari"] });
+    const driver = new CdpEneaBrowserDriver(root, runtime, { accessCapability: testAccessCapability(), allowedOrigin: origin, dashboardUrl: `${origin}/`, createActionLabels: ["Nuova pratica", "Ecobonus", "Schermature solari"] });
     expect(await driver.verifySession()).toMatchObject({ authenticated: true });
     expect(await driver.inspectPortalContractReadOnly()).toMatchObject({ ready: true, operationalUrl: `${origin}/dashboard` });
     const created = await driver.createDraft(draft);
@@ -1128,7 +1356,7 @@ describe("driver Chrome persistente di APR", () => {
     const runtime = new PersistentAprChromeRuntime({ chromeExecutable, profileDirectory: path.join(root, "chrome-profile"), remoteDebuggingPort: await freeTcpPort(), headless: true, initialUrl: `${origin}/` });
     runtimes.push(runtime); await runtime.ensureRunning();
     const draft = screeningDraftPackage();
-    const driver = new CdpEneaBrowserDriver(root, runtime, { allowedOrigin: origin, dashboardUrl: `${origin}/`, createActionLabels: ["Nuova pratica", "Ecobonus", "Schermature solari"] });
+    const driver = new CdpEneaBrowserDriver(root, runtime, { accessCapability: testAccessCapability(), allowedOrigin: origin, dashboardUrl: `${origin}/`, createActionLabels: ["Nuova pratica", "Ecobonus", "Schermature solari"] });
     await driver.verifySession(); await driver.inspectPortalContractReadOnly();
     const created = await driver.createDraft(draft);
     const target = (await runtime.targets()).find((candidate) => candidate.type === "page" && candidate.webSocketDebuggerUrl && candidate.url.startsWith(origin));
@@ -1136,10 +1364,10 @@ describe("driver Chrome persistente di APR", () => {
     const client = await runtime.pageClient(target);
     await client.navigate(`${origin}/pratica/ecobonus/2026/schermature/${created.draftId}`);
     const persistedRows = draft.workflow.screeningSteps.map((step) => Object.fromEntries(step.fields.map((field) => [field.portalId, field.value])));
-    await client.evaluate(`(()=>{rows=${JSON.stringify(persistedRows)};cost.value="2150,00";sessionStorage.setItem(storageKey,JSON.stringify(rows));sessionStorage.setItem(costKey,cost.value);render();return rows.length})()`);
+    await client.evaluateDomRead(`(()=>{rows=${JSON.stringify(persistedRows)};cost.value="2150,00";sessionStorage.setItem(storageKey,JSON.stringify(rows));sessionStorage.setItem(costKey,cost.value);render();return rows.length})()`);
     const complete = await driver.inspectScreeningSummaryReadOnly(draft, created.draftId, "screening:1");
     expect(classifyFinalScreeningIntegrity(complete.rows, draft.workflow.screeningSteps, "2150,00", complete.costValue)).toMatchObject({ matched: true, expectedRowCount: 2, observedRowCount: 2 });
-    await client.evaluate(`(()=>{rows.pop();sessionStorage.setItem(storageKey,JSON.stringify(rows));render();return rows.length})()`);
+    await client.evaluateDomRead(`(()=>{rows.pop();sessionStorage.setItem(storageKey,JSON.stringify(rows));render();return rows.length})()`);
     client.close();
     const incomplete = await driver.inspectScreeningSummaryReadOnly(draft, created.draftId, "screening:1");
     expect(classifyFinalScreeningIntegrity(incomplete.rows, draft.workflow.screeningSteps, "2150,00", incomplete.costValue)).toMatchObject({ matched: false, expectedRowCount: 2, observedRowCount: 1 });
@@ -1151,7 +1379,7 @@ describe("driver Chrome persistente di APR", () => {
     const runtime = new PersistentAprChromeRuntime({ chromeExecutable, profileDirectory: path.join(root, "chrome-profile"), remoteDebuggingPort: await freeTcpPort(), headless: true, initialUrl: `${origin}/` });
     runtimes.push(runtime); await runtime.ensureRunning();
     const draft = screeningDraftPackage("case-empty-screenings");
-    const driver = new CdpEneaBrowserDriver(root, runtime, { allowedOrigin: origin, dashboardUrl: `${origin}/`, createActionLabels: ["Nuova pratica", "Ecobonus", "Schermature solari"] });
+    const driver = new CdpEneaBrowserDriver(root, runtime, { accessCapability: testAccessCapability(), allowedOrigin: origin, dashboardUrl: `${origin}/`, createActionLabels: ["Nuova pratica", "Ecobonus", "Schermature solari"] });
     await driver.verifySession(); await driver.inspectPortalContractReadOnly();
     const created = await driver.createDraft(draft);
     const first = await driver.inspectScreeningSummaryReadOnly(draft, created.draftId, "screening:1");
@@ -1171,24 +1399,24 @@ describe("driver Chrome persistente di APR", () => {
     const draft = screeningDraftPackage("case-screening-react");
     const screeningSelectValues: Record<string, string> = { "id-tipo": "127", "id-inst": "192", "id-esp": "132", "id-calc": "193", "id-mat": "141", "id-mec": "143" };
     for (const field of draft.workflow.screeningSteps[0].fields) if (screeningSelectValues[field.portalId]) field.selectValue = screeningSelectValues[field.portalId];
-    const driver = new CdpEneaBrowserDriver(root, runtime, { allowedOrigin: origin, dashboardUrl: `${origin}/`, createActionLabels: ["Nuova pratica", "Ecobonus", "Schermature solari"] });
+    const driver = new CdpEneaBrowserDriver(root, runtime, { accessCapability: testAccessCapability(), allowedOrigin: origin, dashboardUrl: `${origin}/`, createActionLabels: ["Nuova pratica", "Ecobonus", "Schermature solari"] });
     await driver.verifySession(); await driver.inspectPortalContractReadOnly();
     const created = await driver.createDraft(draft);
     const target = (await runtime.targets()).find((candidate) => candidate.type === "page" && candidate.webSocketDebuggerUrl)!;
     const client = await runtime.pageClient(target);
     await client.navigate(`${origin}/pratica/ecobonus/2026/schermature/${created.draftId}`);
     await new Promise((resolve) => setTimeout(resolve, 3_750));
-    await client.evaluate(`(()=>{document.getElementById("add-screening").click();window.__aprReactValues={};const codes={"id-tipo":"127","id-inst":"192","id-esp":"132","id-calc":"193","id-mat":"141","id-mec":"143"};for(const id of ["id-tipo","id-inst","id-sup_s","id-sup_f","id-esp","id-calc","id-gtot","id-mat","id-mec"]){const element=document.getElementById(id);if(element instanceof HTMLSelectElement){element.options[0].value=codes[id];const blank=document.createElement("option");blank.value="";blank.textContent="-";element.prepend(blank);element.value=""}const props={value:"",onChange:event=>{window.__aprReactValues[id]=event.target.value;props.value=event.target.value}};element["__reactProps$aprFixture"]=props}const rsup=document.createElement("input");rsup.id="id-rsup";rsup.disabled=true;rsup.value="";rsup["__reactProps$aprFixture"]={value:"",onChange(){}};document.getElementById("screening").appendChild(rsup);return true})()`);
+    await client.evaluateDomRead(`(()=>{document.getElementById("add-screening").click();window.__aprReactValues={};const codes={"id-tipo":"127","id-inst":"192","id-esp":"132","id-calc":"193","id-mat":"141","id-mec":"143"};for(const id of ["id-tipo","id-inst","id-sup_s","id-sup_f","id-esp","id-calc","id-gtot","id-mat","id-mec"]){const element=document.getElementById(id);if(element instanceof HTMLSelectElement){element.options[0].value=codes[id];const blank=document.createElement("option");blank.value="";blank.textContent="-";element.prepend(blank);element.value=""}const props={value:"",onChange:event=>{window.__aprReactValues[id]=event.target.value;props.value=event.target.value}};element["__reactProps$aprFixture"]=props}const rsup=document.createElement("input");rsup.id="id-rsup";rsup.disabled=true;rsup.value="";rsup["__reactProps$aprFixture"]={value:"",onChange(){}};document.getElementById("screening").appendChild(rsup);return true})()`);
     await driver.preparePage(draft, created.draftId, "screening:1");
-    const reactValues = await client.evaluate<Record<string, string>>(`window.__aprReactValues`);
+    const reactValues = await client.evaluateDomRead<Record<string, string>>(`window.__aprReactValues`);
     expect(reactValues).toMatchObject({ "id-tipo": "127", "id-inst": "192", "id-sup_s": "10,00", "id-sup_f": "10,00", "id-esp": "132", "id-calc": "193", "id-gtot": "0,33", "id-mat": "141", "id-mec": "143" });
-    expect(await client.evaluate<string>(`document.getElementById("id-rsup").value`)).toBe("");
+    expect(await client.evaluateDomRead<string>(`document.getElementById("id-rsup").value`)).toBe("");
     client.close();
     await driver.savePage(draft, created.draftId, "screening:1");
     const savedTarget = (await runtime.targets()).find((candidate) => candidate.type === "page" && candidate.webSocketDebuggerUrl && candidate.url.includes(created.draftId));
     if (!savedTarget) throw new Error("fixture_screening_saved_target_missing");
     const savedClient = await runtime.pageClient(savedTarget);
-    expect(await savedClient.evaluate<number>(`[...document.querySelectorAll("tbody tr")].filter(row=>row.querySelectorAll("td").length>=11).length`)).toBe(1);
+    expect(await savedClient.evaluateDomRead<number>(`[...document.querySelectorAll("tbody tr")].filter(row=>row.querySelectorAll("td").length>=11).length`)).toBe(1);
     savedClient.close();
   }, 60_000);
 
@@ -1210,7 +1438,7 @@ describe("driver Chrome persistente di APR", () => {
     const origin = await fixtureServer();
     const runtime = new PersistentAprChromeRuntime({ chromeExecutable, profileDirectory: path.join(root, "chrome-profile"), remoteDebuggingPort: await freeTcpPort(), headless: true, initialUrl: `${origin}/` });
     runtimes.push(runtime); await runtime.ensureRunning();
-    const driver = new CdpEneaBrowserDriver(root, runtime, { allowedOrigin: origin, dashboardUrl: `${origin}/`, createActionLabels: ["Nuova pratica", "Ecobonus", "Schermature solari"] });
+    const driver = new CdpEneaBrowserDriver(root, runtime, { accessCapability: testAccessCapability(), allowedOrigin: origin, dashboardUrl: `${origin}/`, createActionLabels: ["Nuova pratica", "Ecobonus", "Schermature solari"] });
     await driver.verifySession(); await driver.inspectPortalContractReadOnly();
     const first = await driver.createDraft(draftPackage("case-owner"));
     const state = JSON.parse(readFileSync(driver.checkpointPath, "utf8"));
@@ -1234,7 +1462,7 @@ describe("driver Chrome persistente di APR", () => {
     const origin = await fixtureServer();
     const runtime = new PersistentAprChromeRuntime({ chromeExecutable, profileDirectory: path.join(root, "chrome-profile"), remoteDebuggingPort: await freeTcpPort(), headless: true, initialUrl: `${origin}/` });
     runtimes.push(runtime); await runtime.ensureRunning();
-    const driver = new CdpEneaBrowserDriver(root, runtime, { allowedOrigin: origin, dashboardUrl: `${origin}/`, createActionLabels: ["Nuova pratica", "Ecobonus", "Schermature solari"] });
+    const driver = new CdpEneaBrowserDriver(root, runtime, { accessCapability: testAccessCapability(), allowedOrigin: origin, dashboardUrl: `${origin}/`, createActionLabels: ["Nuova pratica", "Ecobonus", "Schermature solari"] });
     await driver.verifySession(); await driver.inspectPortalContractReadOnly();
     const legacyPackage = draftPackage("case-legacy-rebind");
     const created = await driver.createDraft(legacyPackage);
@@ -1254,7 +1482,7 @@ describe("driver Chrome persistente di APR", () => {
     const runtime = new PersistentAprChromeRuntime({ chromeExecutable, profileDirectory: path.join(root, "chrome-profile"), remoteDebuggingPort: await freeTcpPort(), headless: true, initialUrl: `${origin}/` });
     runtimes.push(runtime); await runtime.ensureRunning();
     const draft = interventionDraftPackage();
-    const driver = new CdpEneaBrowserDriver(root, runtime, { allowedOrigin: origin, dashboardUrl: `${origin}/`, createActionLabels: ["Nuova pratica", "Ecobonus", "Schermature solari"] });
+    const driver = new CdpEneaBrowserDriver(root, runtime, { accessCapability: testAccessCapability(), allowedOrigin: origin, dashboardUrl: `${origin}/`, createActionLabels: ["Nuova pratica", "Ecobonus", "Schermature solari"] });
     await driver.verifySession(); await driver.inspectPortalContractReadOnly();
     const created = await driver.createDraft(draft);
     await expect(driver.preparePage(draft, created.draftId, "page:Intervento")).resolves.toMatchObject({ evidenceId: expect.stringMatching(/^cdp-server-/) });
@@ -1268,7 +1496,7 @@ describe("driver Chrome persistente di APR", () => {
     const runtime = new PersistentAprChromeRuntime({ chromeExecutable, profileDirectory: path.join(root, "chrome-profile"), remoteDebuggingPort: await freeTcpPort(), headless: true, initialUrl: `${origin}/` });
     runtimes.push(runtime); await runtime.ensureRunning();
     const draft = interventionDraftPackage("case-intervention-centralized", "S");
-    const driver = new CdpEneaBrowserDriver(root, runtime, { allowedOrigin: origin, dashboardUrl: `${origin}/`, createActionLabels: ["Nuova pratica", "Ecobonus", "Schermature solari"] });
+    const driver = new CdpEneaBrowserDriver(root, runtime, { accessCapability: testAccessCapability(), allowedOrigin: origin, dashboardUrl: `${origin}/`, createActionLabels: ["Nuova pratica", "Ecobonus", "Schermature solari"] });
     await driver.verifySession(); await driver.inspectPortalContractReadOnly();
     const created = await driver.createDraft(draft);
     await expect(driver.preparePage(draft, created.draftId, "page:Intervento")).resolves.toMatchObject({ evidenceId: expect.stringMatching(/^cdp-server-/) });

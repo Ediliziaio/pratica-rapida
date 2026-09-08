@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+  <key>Label</key><string>com.praticarapida.apr-generation-ab-r47-arm-a-rerun</string>
+  <key>ProgramArguments</key><array>
+    <string>/usr/local/bin/node</string>
+    <string>/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-global-controller-test10-2026-08-29/sequencer.mjs</string>
+  </array>
+  <key>WorkingDirectory</key><string>/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida</string>
+  <key>EnvironmentVariables</key><dict>
+    <key>APR_SOURCE_ROOT</key><string>/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida</string>
+    <key>APR_MANIFEST_PATH</key><string>/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-generation-ab-r47-2026-09-04/manifest-arm-a.json</string>
+    <key>APR_RUN_ROOT</key><string>/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-generation-ab-r47-arm-a-rerun</string>
+    <key>APR_COHORT_OFFSET</key><string>3061</string>
+    <key>APR_CANONICAL_BUNDLES</key><string>/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-generation-ab-r47-2026-09-04/experimental-bundle-r47</string>
+  </dict>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><false/>
+  <key>ProcessType</key><string>Background</string>
+  <key>StandardOutPath</key><string>/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-generation-ab-r47-arm-a-rerun/sequencer.stdout.log</string>
+  <key>StandardErrorPath</key><string>/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-generation-ab-r47-arm-a-rerun/sequencer.stderr.log</string>
+</dict></plist>

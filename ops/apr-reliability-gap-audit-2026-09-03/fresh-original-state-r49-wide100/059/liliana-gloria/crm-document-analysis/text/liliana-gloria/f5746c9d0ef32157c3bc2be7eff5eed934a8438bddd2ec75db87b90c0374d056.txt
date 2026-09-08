@@ -1,0 +1,53 @@
+FATTURA
+nr. FATTURA208/2026 del 23/06/2026
+Data invio: 23/06/2026
+FORNITORE
+LINEA SOLE POTITO SRL
+P.IVA: IT03397500962
+C.F.: 03397500962
+Via F. Brunelleschi 2
+20146 - Milano (MI) - IT
+lineapotitosole3@libero.it
+CLIENTE
+LILIANA GLORIA
+C.F.: GLRLLN73B60A089P
+via giambellino 96
+20146 - Milano (MI) - IT
+PRODOTTI E SERVIZI
+NR DESCRIZIONE QUANTITA' PREZZO IMPORTO IVA NATURA IVA
+1 Tenda da Sole S/81E Pantografo a bracci (acconto
+50%) L3400x1800
+2 550,00 € 1.100,00 € 10 % -
+2 Posa in opera (acconto 50%) 1 0,00 € 0,00 € 10 % -
+3 Trasporto (acconto 50%) 1 0,00 € 0,00 € 10 % -
+4 Pratica ENEA (acconto 50%) 1 75,00 € 75,00 € 10 % -
+5 motori rts (acconto 50%) 2 140,00 € 280,00 € 10 % -
+6 anemometro sole vento (acconto 50%) 1 75,00 € 75,00 € 10 % -
+7 telecomando plus (acconto 50%) 1 60,00 € 60,00 € 10 % -
+8 impianto elettrico (acconto 50%) 1 75,00 € 75,00 € 10 % -
+METODO DI PAGAMENTO
+NR RATA MODALITÀ PAGAMENTO BANCA IBAN BIC/SWIFT DATA SCADENZA IMPORTO
+1 Bonifico Pagamento in
+unica soluzione
+Beneficiario: LINEA SOLE POTITO SRL
+UNICREDITBA
+NCA
+IT25R0200801615000040530215 1.831,50 €
+REGIME FISCALE
+REGIME FISCALE
+RF01 - Ordinario
+DATI AGGIUNTIVI
+CAUSALE DOCUMENTO
+Descrizione causale DETRAZIONE DEL 50%in anni 10/Bonifico risparmio
+energetico L296
+IVA NATURA NORMATIVA 10% Immediata 1.665,00 € 166,50 €
+RIEPILOGO IVA CALCOLO FATTURA
+Importo prodotti o servizi 1.665,00 €
+Totale imponibile 1.665,00 €
+Totale IVA 166,50 €
+Totale documento 1.831,50 €
+ESIGIBILITA' IMPONIBILE IMPOSTA
+Netto a pagare 1.831,50 €
+Copia analogica della fattura elettronica inviata a SdI | Il documento xml originale è disponibile online sul portale "Fatture e Corrispettivi dell'Agenzia delle Entrate"
+Fattura Nr. FATTURA208/2026 del 23/06/2026 Fattura generata con:
+Pag.1/1

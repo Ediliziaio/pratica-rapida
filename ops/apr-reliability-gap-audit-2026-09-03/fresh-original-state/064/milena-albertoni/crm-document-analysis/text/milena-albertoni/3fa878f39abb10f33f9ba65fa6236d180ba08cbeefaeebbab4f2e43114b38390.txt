@@ -1,0 +1,46 @@
+FATTURA
+nr. FPR 272/26 del 05/06/2026
+Data invio: 05/06/2026
+FORNITORE
+LM TENDE DA SOLE E ZANZARIERE S.R.L.
+P.IVA: IT13223860969
+C.F.: 13223860969
+Via Della Resistenza
+20090 - Buccinasco (MI) - IT
+Telefono: 3348841668
+info@lmtende.it
+CLIENTE
+Milena Albertoni
+C.F.: LBRMLN66P57I690R
+Via IV novembre 39
+20094 - Corsico (MI) - IT
+PRODOTTI E SERVIZI
+NR DESCRIZIONE QUANTITA' PREZZO IMPORTO IVA NATURA IVA
+1 fattura acconto per fornitura e posa di Tenda da sole
+cassonata totale modello MINI CHIOCCIOLA RAL
+1013 Tessuto TEMPOTEST 8 GH. mantovana a onda
+standard attacco a soffitto
+1 750,00 € 750,00 € 22 % -
+METODO DI PAGAMENTO
+NR RATA MODALITÀ PAGAMENTO BANCA IBAN BIC/SWIFT DATA SCADENZA IMPORTO
+1 Bonifico Pagamento in
+unica soluzione
+Monte dei
+paschi di siena
+IT21X0103032650000007139314 05/06/2026 915,00 €
+REGIME FISCALE
+REGIME FISCALE
+RF01 - Ordinario
+IVA NATURA NORMATIVA 22% 750,00 € 165,00 €
+RIEPILOGO IVA CALCOLO FATTURA
+Importo prodotti o servizi 750,00 €
+Totale imponibile 750,00 €
+Totale IVA 165,00 €
+Totale documento 915,00 €
+ESIGIBILITA' IMPONIBILE IMPOSTA
+Netto a pagare 915,00 €
+effettuare bonifico per detrazione : Causale intervento di
+riqualificazione energetica L.296/2006
+Copia analogica della fattura elettronica inviata a SdI | Il documento xml originale è disponibile online sul portale "Fatture e Corrispettivi dell'Agenzia delle Entrate"
+Fattura Nr. FPR 272/26 del 05/06/2026 Fattura generata con:
+Pag.1/1

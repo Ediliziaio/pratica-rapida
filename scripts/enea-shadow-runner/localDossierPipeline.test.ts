@@ -8,7 +8,7 @@ const fixturePath = path.resolve("scripts/enea-shadow-runner/fixtures/localCrmDo
 const fixture = () => JSON.parse(readFileSync(fixturePath, "utf8")) as LocalCrmDossier;
 
 describe("pipeline dossier CRM locale APR", () => {
-  it("applica fonti, fallback, Rinaldi, cardinalità, data e unità unica senza azioni esterne", () => {
+  it("applica i fallback autorizzati inclusa la tenda generica senza gTot", () => {
     const { normalization, blockers } = normalizeLocalDossier(fixture());
     expect(blockers).toEqual([]);
     expect(normalization).toMatchObject({ completionDate: "2026-03-01", completionDateSourceId: "invoice-schermi-200",
@@ -20,7 +20,14 @@ describe("pipeline dossier CRM locale APR", () => {
       expect.objectContaining({ pieceNumber: 1, material: "Misto", movement: "Manuale", gTot: 0.33, gTotSource: "authorized_fallback", surfaceM2: 1.5 }),
       expect.objectContaining({ pieceNumber: 2, material: "Misto", movement: "Manuale", gTot: 0.33, gTotSource: "authorized_fallback", surfaceM2: 1.5 }),
     ]));
-    expect(normalization.excludedProducts).toEqual([expect.objectContaining({ pieceNumber: 1, reason: "VEPA separata, Bonus Casa non ancora lavorato" })]);
+    expect(normalization.products.filter((row) => row.productType === "tenda")).toEqual(expect.arrayContaining([
+      expect.objectContaining({ pieceNumber: 1, gTot: 0.13, gTotSource: "authorized_fallback" }),
+      expect.objectContaining({ pieceNumber: 2, gTot: 0.13, gTotSource: "authorized_fallback" }),
+    ]));
+    expect(normalization.excludedProducts).toHaveLength(1);
+    expect(normalization.excludedProducts).toEqual(expect.arrayContaining([
+      expect.objectContaining({ pieceNumber: 1, reason: "VEPA separata, Bonus Casa non ancora lavorato" }),
+    ]));
   });
 
   it("riprende dal checkpoint e non duplica transizioni né righe", () => {

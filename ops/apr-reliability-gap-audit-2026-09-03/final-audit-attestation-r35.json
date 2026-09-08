@@ -1,0 +1,87 @@
+{
+  "schemaVersion": "apr-reliability-audit-final-attestation-r35-v1",
+  "verifiedAt": "2026-09-03T17:31:17.168Z",
+  "status": "LOCAL_AUDIT_COMPLETE_OPERATIONAL_R35_REPLAY_PENDING",
+  "report": {
+    "path": "reliability-audit.md",
+    "sha256": "53d22d7c29778c72461056d24edd6dbde31537e620bffcf1d5ce5ec0aa8b9dff"
+  },
+  "manualDecisions": {
+    "path": "manual-decisions-required.json",
+    "sha256": "8c38dea8ca78f7cd59ca5113213b6a468caba58f5281d2d27a225d8691e738d8",
+    "count": 1
+  },
+  "localEvidence": {
+    "manifestSha256": "51842252f71cabb6714f78923fe59ec9789ad06739393f61a553bb4bdb9154e0",
+    "cases": 100,
+    "originalDocuments": 359,
+    "originalBytes": 293624565,
+    "sourceHashMismatches": 0,
+    "analysisFailures": 0,
+    "readyBefore": 26,
+    "readyAfter": 28,
+    "operatorRequiredBefore": 74,
+    "operatorRequiredAfter": 72,
+    "improvedCases": [
+      "monica-molteni",
+      "claudia-campagna"
+    ],
+    "unchangedCases": 98,
+    "testSuitesPassed": 444,
+    "testsPassed": 1696,
+    "testsFailed": 0,
+    "rulesProved": 110,
+    "registryVersion": "enea-operational-registry-v111",
+    "matrixVersion": "apr-enea-rule-test-matrix-v89"
+  },
+  "canonicalBundle": {
+    "version": "versions/f68568da-fiscal-copy-reliability-r35-20260903",
+    "workerSha256": "f68568da7275322f7c76068dbfb130e7b65118ffec44aa7aabe6102a28bb7898",
+    "supervisorSha256": "68a235d2dc4e2ce2066fac62fcaec0802ddb7b170d7ba2498438487bb12a3e7d",
+    "watchdogSha256": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "ocrSha256": "4c41c9a6832b11b9d19eace538100270a533dddc05e475e5842711968393327f"
+  },
+  "tripleVerification": {
+    "launchctlAndProcesses": {
+      "keepaliveState": "running",
+      "keepalivePid": 98419,
+      "chromeAprPid": 3785,
+      "keepaliveRestarted": false,
+      "chromeRestarted": false
+    },
+    "persistentCheckpointAndJournal": {
+      "serviceVersion": "apr-enea-worker-service-v1",
+      "revision": 13659,
+      "status": "setup_ready",
+      "heartbeatAt": "2026-09-03T17:31:17.168Z",
+      "sessionEvidenceId": "cdp-server-6236-38bc32e2469c702b4282",
+      "forbiddenActionCount": 0,
+      "previewAttemptCount": 0,
+      "submitAttemptCount": 0,
+      "communicationAttemptCount": 0
+    },
+    "dashboardOrApi": {
+      "endpoint": "http://127.0.0.1:9331/json/list",
+      "targetId": "1C3153562376BE798125C283D8021102",
+      "title": "Bonus Fiscali - ENEA",
+      "url": "https://bonusfiscali.enea.it/dashboard",
+      "type": "page"
+    }
+  },
+  "activationBoundary": {
+    "canonicalR35Selected": true,
+    "residentKeepalivePredatesR35": true,
+    "nextFreshAprProcessLoadsR35": true,
+    "operationalR35ReplayPerformed": false
+  },
+  "safety": {
+    "localOnlyAudit": true,
+    "eneaMutationPerformed": false,
+    "crmMutationPerformed": false,
+    "draftCreated": false,
+    "savePerformed": false,
+    "previewPerformed": false,
+    "submitPerformed": false,
+    "communicationPerformed": false
+  }
+}

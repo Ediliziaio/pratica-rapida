@@ -1,0 +1,146 @@
+APR_OCR_ORIENTATION:0
+FINESTRA
+DITALIA
+FINESTRE PER LE PERSONE
+SPETT.LE
+FINESTRA ITALIA S.R.L. A SOCIO UNICO
+LORETTA RIVIERA
+Via Ammannati, 3
+VIA BOLOGNESE 5
+Società soggetta a direzione e coordinamento di Atla Coop s.c.p.l.
+59100 PRATO (PO)
+Tel.: 0558498428 - Fax: 0558498430
+50038 SCARPERIA E SAN PIERO (FI)
+Email: info@finestraitalia.it - Site: www.finestraitalia.it
+R.E.A. di FIRENZE N. 670686
+Partita IVA 06977670485 - Codice Fiscale: 06977670485
+Capitale Sociale: Euro 100.000,00 i.v.
+FATTURA DI VENDITA
+COD. CLI.
+PARTITA IVA
+CODICE FISCALE
+TELEFONO
+FAX
+AGENTE
+N° DOCUMENTO DATA DOCUMENTO
+PAG.
+CONDIZIONI DI PAGAMENTO
+026003
+RVRLTT59E56A859V
+3473410054
+TERRITORY
+641
+BANCA D'APPOGGIO
+25-06-26
+1/1
+BONIFICO BANCARIO VF
+CODICE ARTICOLO
+DESCRIZIONE
+UM
+QUANTITA'
+PREZZO UNITARIO
+SC.%
+PREZZO TOTALE
+C.IVA
+D.D.T. NR. DDT 70 DEL 05-06-2026
+INFISSI
+3 Infissi per la cliente RIVIERA LORETTA (Contratto 62) | NR
+3,00
+10D
+3261 P22
+Profilo piatto 35 mm (Contratto 62)
+NR
+1,00
+10D
+2844661
+Activ - Cerniera inferiore registrabile active
+NR
+1,00
+10D
+2844602
+Activ - Supporto cerniera inferiore orientabile per
+NR
+1,00
+10D
+cerniera active
+KAPPE K FL K F3
+Activ - Copertura per cerniera active (ORO)
+NR
+1,00
+10D
+ROTO DK 45 F3
+Martellina ROTOLINE DK scatto a 45° - quadro 7x35
+NR
+3,00
+10D
+MNT 430 ALU F3
+Maniglietta esterna in alluminio Art. 430 colore Oro F3
+NR
+2,00
+10D
+00_N040
+Sosta tecnica c/o MST, Via Pisana (PO) che si occuperà
+NR
+1,00
+10D
+della consegna
+TOT
+Totale fornitura e posa in opera
+NR
+1,00 5.480,0000
+5.480,00 10D
+DETR_ACC
+Detrazione acconto ns. fattura n° 268 del 13/03/2026
+NR
+1,00 -2.192,0000
+-2.192,00 10D
+DETR_ACC
+Detrazione acconto ns. fattura n° 608 del 17/06/2026
+NR
+1,00 - 2.740,0000
+-2.740,00 10D
+Fornitura soggetta ad aliquota Iva agevolata 10% ai
+sensi dell'art. 7 c. 1 lett. b L. 488/1999
+Totale commessa € 5.480,00
+Valore dei beni significativi € 2.152,11
+Valore servizi e altri beni € 3.327,89
+TRASPORTO A CURA DEL
+/PORTO
+CONTRIBUTO AMBIENTALE CONAI ASSOLTO OVE DOVUTO
+| ANNOTAZIONI
+A MEZZO NOSTRO
+PORTO FRANCO
+TOTALE MERCE
+SC.% MERCE
+IMPORTO SCONTO
+[TOTALE NETTO
+SPESE TRASPORTO
+SPESE IMBALLO
+[SPESE VARIE
+C.IVA
+IMPONIBILE
+548,00
+IMPOSTA
+AGENDA CODICI
+548,00
+SPESE ART. 15
+ACCONTO
+10D
+548,00
+54,80 [10D] IVA 10% DETR.
+ABBUONO
+OMAGGIO
+TOTALE IMPONIBILE
+TOTALE IVA
+TOTALE ESENTE
+INETTO A PAGARE
+TOTALE FATTURA
+(SCADENZE
+548,00
+54,80
+EUR
+602,80
+EUR
+602,80
+25-06-26 Bon VF
+602,80

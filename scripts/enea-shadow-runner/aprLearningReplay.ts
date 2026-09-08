@@ -50,7 +50,7 @@ export interface AprLearningReplayResult {
     customerKey: string;
     declaredProductModule: "screening" | "infissi";
     productModule: "screening" | "infissi" | "mixed";
-    routingSource: "original_documents" | "declared_label" | "unresolved";
+    routingSource: "form_declared" | "original_documents" | "declared_label" | "unresolved";
     routingEvidence: { screening: string[]; infissi: string[] };
     appliedRuleIds: string[];
     state: "READY" | "OPERATOR_REQUIRED" | "INCONSISTENT";

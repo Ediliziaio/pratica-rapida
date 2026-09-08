@@ -1,0 +1,98 @@
+{
+  "version": "apr-cdp-react-remount-r23-30x3-freeze-v1",
+  "frozenAt": "2026-09-01T15:03:36Z",
+  "authorizationId": "same-authorized-corpus-retest-2026-09-01",
+  "portalMode": "real_enea_draft_only",
+  "sourceSnapshot": {
+    "path": "/private/tmp/apr-promote-r23.XeVzz4/source",
+    "gitCommit": "e2066cb4f0969633838424d5efb76d604a938617",
+    "treeHash": "721b140e9d308706499dca869e790ffd6af18930",
+    "workingTreeAtGate": "clean"
+  },
+  "sequencer": {
+    "path": "/private/tmp/apr-promote-r23.XeVzz4/source/ops/apr-global-controller-test10-2026-08-29/sequencer.mjs",
+    "sha256": "1af06dee2d2e5ab699f5745d0ee7bdf040497a333e1c3860e34f65bb0927bd81"
+  },
+  "manifest": {
+    "path": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-global-controller-test10-2026-08-29/manifest-autonomy30.json",
+    "sha256": "55521654d4d859ad4014b599f951892e46397e11c95ca4a94cf643d612efb6fd",
+    "caseCount": 30,
+    "requiredCustomerKeys": ["cristina-ricchi", "zeno-righetti"],
+    "allowedStages": ["archiviate"],
+    "excludedCustomerKeys": ["beatrice-ciotta"]
+  },
+  "monotonicGate": {
+    "status": "PASS",
+    "testFiles": 216,
+    "tests": 1616,
+    "failed": 0,
+    "typecheck": "PASS",
+    "productionBuild": "PASS",
+    "attestationPath": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-cdp-react-remount-r23-2026-09-01/gate-attestation.json"
+  },
+  "canonicalBundle": {
+    "versionId": "aae9775a-cdp-react-remount-r23-20260901",
+    "supervisorSha256": "62b80bf8acab5e8e5a1a0bb8b1d15685771d03708442fbb7c6f4967776b78973",
+    "workerSha256": "aae9775a07fff90039c1db761f373e1a4f75968e6df1a9fbedf642f7bea24871",
+    "watchdogSha256": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "activationStatus": "ACTIVE"
+  },
+  "targetedAcceptance": {
+    "runRoot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-cdp-react-remount-r23-target4-v2",
+    "result": "4/4 saved",
+    "savedCustomerKeys": ["lucia-lagrasta", "luca-cigognetti", "emanuela-parolo", "amelia-lerose"],
+    "technicalBlock": 0,
+    "operatorRequired": 0,
+    "inconsistent": 0
+  },
+  "sessionAtFreeze": {
+    "keepaliveLabel": "com.praticarapida.apr-enea-immortal-keepalive",
+    "keepalivePid": 3784,
+    "keepaliveRuns": 1,
+    "chromePid": 3785,
+    "chromeStartedAt": "2026-09-01T16:00:32+02:00",
+    "chromeUserDataDir": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/state/enea-browser-worker/chrome-profile",
+    "cdpPort": 9331,
+    "pageUrl": "https://bonusfiscali.enea.it/dashboard",
+    "serviceStatus": "setup_ready",
+    "serviceRevision": 9123,
+    "sessionEvidenceId": "cdp-server-3858-c09b3e072f168ad4569e"
+  },
+  "rounds": [
+    {
+      "round": 1,
+      "label": "com.praticarapida.apr-cdp-react-remount-r23-round1",
+      "cohortOffset": 2512,
+      "cohortRange": "2730-2759",
+      "runRoot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-cdp-react-remount-r23-round1",
+      "plistSha256": "1bd6854b6aa34aed9a681d03447e9636f520b271e3f89874a69a9b1c0fead024"
+    },
+    {
+      "round": 2,
+      "label": "com.praticarapida.apr-cdp-react-remount-r23-round2",
+      "cohortOffset": 2542,
+      "cohortRange": "2760-2789",
+      "runRoot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-cdp-react-remount-r23-round2",
+      "plistSha256": "daa5ed5440168b50d910da4e52306ffc5c9b6791be6926ac82507a71b9afc422"
+    },
+    {
+      "round": 3,
+      "label": "com.praticarapida.apr-cdp-react-remount-r23-round3",
+      "cohortOffset": 2572,
+      "cohortRange": "2790-2819",
+      "runRoot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-cdp-react-remount-r23-round3",
+      "plistSha256": "5e6a78d637b76e649261bbc86ef3e9af0e08a78a7a30ddb560f39645a4691e67"
+    }
+  ],
+  "constraints": {
+    "chromeKeepaliveMayTerminate": false,
+    "roundsMayOverlap": false,
+    "noCodeChangesBetweenRounds": true,
+    "sameBundleHashesRequired": true,
+    "sameManifestRequired": true,
+    "tripleVerificationRequiredPerRound": true,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false
+  }
+}

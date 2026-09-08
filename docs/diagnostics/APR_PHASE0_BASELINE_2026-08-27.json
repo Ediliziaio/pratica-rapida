@@ -1,0 +1,100 @@
+{
+  "schemaVersion": "apr-phase0-baseline-v1",
+  "baselineId": "apr-phase0-2026-08-27T090137Z",
+  "createdAt": "2026-08-27T09:01:37Z",
+  "scope": "local_repository_and_persistent_runtime_readonly_inventory",
+  "externalActions": {
+    "crmAccessed": false,
+    "eneaAccessed": false,
+    "browserAccessed": false,
+    "operationalTestExecuted": false,
+    "servicesMutated": false
+  },
+  "repository": {
+    "branch": "codex/apr-monotonic-gate",
+    "headCommit": "4cccfd97eb56b80b2c09f20d1d7daa0ff94bc6ee",
+    "headTree": "52e05ecb7cb69b6bed2c68195e69192ceb87636e",
+    "headCommittedAt": "2026-08-27T01:25:39+02:00",
+    "headSubject": "feat(apr): resolve verified municipality name changes",
+    "preexistingDirtyEntryCount": 9,
+    "preexistingDirtyAggregateSha256": "d2502a61bf51cc8ac41393618b432c7bf6e045ef5d26c7cd215747069bb275bf",
+    "preexistingDirtyEntriesPreserved": true
+  },
+  "corpora": {
+    "fixedCorpus": {
+      "corpusId": "apr-fixed-corpus-block-01",
+      "version": "apr-fixed-growing-corpus-v1",
+      "candidateCount": 10,
+      "explicitExclusionCount": 4,
+      "corpusSha256": "d464356533b074ab3dec3119a40893ba1244d5763a70d26c4420be5cd4a1b67a",
+      "operationalManifestSha256": "1956cca2dcbcacfee07ac5c778b33a05940ca672b93baee7efd3c141c7e76c4f",
+      "resultsSha256": "f146719aac228be7b5306bb0f5d6bf94dfea7566d6ea9f590596ed3412f86af3"
+    },
+    "wideReplay": {
+      "caseCount": 126,
+      "sourceRevision": "e30a7f60633aef040391e4777ff6d162871f468e",
+      "replayedRevision": "d89ed7613b6b10c28741116e94363599439d7d45",
+      "artifactSha256": "a2d7b078c3cfd400165d0661ee145ca68777d6a0493b9fb47baf9e28128d342e",
+      "status": "HISTORICAL_NOT_CURRENT_HEAD_BASELINE",
+      "summary": {
+        "ready": 38,
+        "blocked": 88,
+        "newlyReady": 6,
+        "readyRegressions": 12,
+        "changedBlockerSet": 63
+      }
+    }
+  },
+  "persistentRuntime": {
+    "cohortDirectoryCount": 76,
+    "checkpointFileCount": 1501,
+    "namedEvidenceArtifactCount": 40,
+    "serverReadonlyProofCount": 25,
+    "ruleTestEvidenceCount": 15,
+    "keyRuntimeEvidenceAggregateSha256": "6dc5c4bb4108f2dc43bbe92834ef580ff83cd07e7f4889b6a0283c4bc99458ce",
+    "canonicalInstalledBundle": null,
+    "canonicalBundleStatus": "NOT_IDENTIFIED_MULTIPLE_COHORT_INSTALLATIONS",
+    "latestObservedBundleHashes": {
+      "scope": "cohorts_75_and_76",
+      "supervisorSha256": "ba6fa4897762ab727560c616b0c86c1806701462e626c51709b458611a1cda72",
+      "workerSha256": "908791c85f446636cae9b9172eb12728f5b5d78c38f30d0d183061de73077107",
+      "watchdogSha256": "f2c5e9f7d75abd88454b9e18dd2e778141b4423e69612c9fec4b9339174d3663"
+    },
+    "serviceObservation": {
+      "launchctlLabelsObserved": 0,
+      "listeningPortsObserved": [],
+      "checkedPorts": [4498, 4499, 4500, 4501],
+      "processEnumeration": "UNAVAILABLE_IN_SANDBOX",
+      "certification": "NOT_CERTIFIED"
+    }
+  },
+  "localVerification": {
+    "typecheckEneaRunner": "PASS",
+    "targetedTestFiles": 4,
+    "targetedTestsPassed": 38,
+    "targetedTestsFailed": 0,
+    "fullSuite": "NOT_COMPLETED_NO_VISIBLE_PROGRESS_INTERRUPTED",
+    "operationalTests": "NOT_RUN",
+    "productionAvailability": "NOT_CERTIFIED"
+  },
+  "inventoryArtifact": {
+    "path": "docs/diagnostics/APR_PHASE0_INVENTORY_2026-08-27.md",
+    "sha256": "f6116b052cab793d4bf444390b108571e9facea64d86c8c3a5a3ad557c756e97"
+  },
+  "phase0Gate": {
+    "status": "ARTIFACT_PRODUCED_GATE_NOT_GREEN",
+    "reasons": [
+      "preexisting_worktree_entries_require_review",
+      "wide_replay_not_produced_from_frozen_head",
+      "full_local_suite_not_completed",
+      "canonical_installed_bundle_not_identified",
+      "runtime_process_state_not_triply_certified"
+    ],
+    "phase1Authorized": false
+  },
+  "integrity": {
+    "algorithm": "SHA-256",
+    "signatureKind": "content_hash_sidecar",
+    "signatureFile": "APR_PHASE0_BASELINE_2026-08-27.sha256"
+  }
+}

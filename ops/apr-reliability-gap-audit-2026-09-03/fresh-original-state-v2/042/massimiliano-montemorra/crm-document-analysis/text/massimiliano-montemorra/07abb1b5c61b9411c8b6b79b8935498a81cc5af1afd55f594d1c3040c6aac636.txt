@@ -1,0 +1,72 @@
+APR_OCR_ORIENTATION:90
+Note
+BENEF/
+Note
+Filiale: FOGGIA
+*CF03265930713
+ERRE EMME SRL
+Beneficiario
+Ordinante
+Cliente
+9 9/330/1237991
+Conto Corrente
+Causale Bonifico: ZX
+Presentatore
+BPP
+*CFMNTMSM78M05D643K
+Disposizione: 26629533
+71122 - FOGGIA (FG)
+MONTEMORRA MASSIMILIANO
+Contabile di Bonifico
+Montemorra Massimiliano
+Montemorra Massimiliano
+BANCA POPOLARE PUGLIESE S.C.P.A.
+VIA PADRE ARDELIO DELLA BELLA 46
+/BENEF/SALDO FT N 157F DEL 05-06-2026
+Codifica: IT14A0526215700CC0091237991
+Tipo Operazione: BONIFICI RISPARMIO ENERG.
+955821
+955821
+importo, valuta e causale da riconoscere al pagamento.
+/VARIE/RIQUAL.ENERG. L.296-06 E SUCCESSIVE MODIFIC
+sul conto corrente di seguito indicato le seguenti operazioni / movimenti:
+IT14A0526215700CC0091237991
+L'Operatore (1103)
+contenuti relativi al pagamento in esecuzione, quali - principalmente - ordinante - beneficiano, coordinale manua ta-
+Favorite prendere nota che, in conformità alle norme contrattuali vigenti, su Vostra richiesta abbiamo registrato, aguano
+Il Cliente con la sottoscrizione della presente contabile di bonifico attesta di aver verificato, e quindi conterma, tutti i dati in esse
+CRO
+BIC
+TA
+ID SEPA
+IBAN
+Banca
+Data Valuta
+Data Valuta
+Importo Totale
+Spese/Bolli
+Commissioni
+09/06/2026
+Importo Bonifico
+Data Operazione
+EGR. SIGG.
+71122 FOGGIA FG
+VIA PADRE ARDELIO DELLA BELLA 46
+EURO
+Divisa
+polo rams
+59832061801
+10/06/2026
+BCITITMMXXX
+MONTEMORRA MASSIMILIANO, FIORENTINO VALER
+: INTESA SANPAOLO SPA
+IT8420306915730100000006672
+59832061801 (00000ZX1570015700IT)
+09/06/2026
+4.705,00
+4.700,00
+0,00
+5,00
+90 (1103) 1 45 2
+Riferimento Operazione
+Firma Cliente

@@ -1,0 +1,1876 @@
+{
+  "artifactId": "5897c65a005a221257cb1da80f9ef612a79dff5511e4da6f90b35baa83b86aeb",
+  "payload": {
+    "version": "apr-wide100-local-replay-r73-v1",
+    "replayAt": "2026-09-07T09:54:09.038Z",
+    "installedVersionId": "2118de60-mixed-infissi-persiane-r73-20260907",
+    "installReceiptVersionId": "2118de60-mixed-infissi-persiane-r73-20260907",
+    "manifestPath": "ops/apr-wide100-province-lineage-2026-09-02/manifest.json",
+    "manifestSha256": "51842252f71cabb6714f78923fe59ec9789ad06739393f61a553bb4bdb9154e0",
+    "totalCases": 100,
+    "readyCount": 29,
+    "blockedCount": 71,
+    "caseNotFoundCount": 0,
+    "errorCount": 0,
+    "blockerFrequency": {
+      "gross_triple_reconciliation_failed": 26,
+      "product_cardinality_form_invoice_mismatch": 23,
+      "screenings_missing": 53,
+      "screening_primary_measurements_missing": 10,
+      "permanent_supplier_automation_exclusion": 3,
+      "completion_date_portal_year_mismatch": 11,
+      "completion_over_90_days_operator_required": 14,
+      "invoice_332a5af9": 36,
+      "original_invoice_missing_or_unavailable": 9,
+      "completion_date_missing": 9,
+      "invoice_929a8665": 7,
+      "customer_form_missing": 7,
+      "tax_code_missing_or_invalid": 7,
+      "bank_transfer_principal_exceeds_invoices": 2,
+      "bank_transfer_invoice_cross_check_failed": 1,
+      "works_municipality_invoice_conflict": 1,
+      "permanent_customer_automation_exclusion": 1,
+      "draft_payload_mapping_incomplete": 2,
+      "persiana_measurement_ambiguous_1": 1,
+      "co_beneficiary_invoice_identity_unresolved": 1,
+      "invoice_schedule_amount_missing": 1
+    },
+    "results": [
+      {
+        "customerKey": "adelfio-pietro-spinelli",
+        "displayName": "Adelfio Pietro Spinelli",
+        "cohort": 43,
+        "module": "screening",
+        "outcome": "ready_local_plan",
+        "blockerCodes": [],
+        "blockerReasons": [],
+        "warningCodes": [
+          "invoice_reference_unique_base_matched",
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "alessandro-zaniboni",
+        "displayName": "Alessandro Zaniboni",
+        "cohort": 9,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "product_cardinality_form_invoice_mismatch",
+          "screenings_missing",
+          "original_invoice_missing_or_unavailable",
+          "completion_date_missing",
+          "gross_triple_reconciliation_failed"
+        ],
+        "blockerReasons": [
+          "Controllo incrociato ripetuto: il form descrive 1 righe e le fatture 0 prodotti fisici non riconciliabili in modo univoco per famiglia. Richiesto intervento operatore: confermare la cardinalita fisica e l'assegnazione degli attributi form.",
+          "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+          "La fattura originaria dichiarata non e' acquisibile come documento valido: Richiesto intervento operatore. Dopo il nuovo allegato e il ritorno in Pronte da fare APR rieseguira' la pratica.",
+          "Fine lavori assente e data fattura non ricavabile.",
+          "Tripla riconciliazione non dimostrata: fonti-assenti, nessuna-fattura-economica-valida."
+        ],
+        "warningCodes": []
+      },
+      {
+        "customerKey": "andrea-trabucco",
+        "displayName": "Andrea Trabucco",
+        "cohort": 24,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "screenings_missing",
+          "invoice_332a5af9"
+        ],
+        "blockerReasons": [
+          "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+          "Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture."
+        ],
+        "warningCodes": [
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "andreea-ioana-olteanu",
+        "displayName": "Andreea Ioana Olteanu",
+        "cohort": 5,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "screenings_missing",
+          "completion_date_portal_year_mismatch",
+          "completion_over_90_days_operator_required",
+          "invoice_332a5af9"
+        ],
+        "blockerReasons": [
+          "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+          "Fine lavori 2025-04-18: anno 2025 incompatibile con il portale ENEA 2026. Selezionare il portale annuale corretto senza modificare la data.",
+          "Fine lavori 2025-04-18: 507 giorni prima della lavorazione, oltre il limite di 90 giorni. Verificare la procedibilità e il portale annuale corretto.",
+          "Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture."
+        ],
+        "warningCodes": [
+          "birth_country_resolved_from_reliable_belfiore_registry",
+          "co_beneficiary_form_overridden_by_invoice"
+        ]
+      },
+      {
+        "customerKey": "angela-tuttolani",
+        "displayName": "Angela Tuttolani",
+        "cohort": 7,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "invoice_929a8665",
+          "gross_triple_reconciliation_failed"
+        ],
+        "blockerReasons": [
+          "Il totale di almeno un documento fiscale non è stato riconosciuto.",
+          "Tripla riconciliazione non dimostrata: terna-fattura-incerta:ab23b505ccc43256d42855ecd4e6c2ac32946025b40043b5884543430f7758a4:invoice:264f0ccd0374."
+        ],
+        "warningCodes": [
+          "explicit_building_type_over_apartment_count"
+        ]
+      },
+      {
+        "customerKey": "angelina-stricelli",
+        "displayName": "Angelina Stricelli",
+        "cohort": 61,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "screenings_missing",
+          "invoice_332a5af9"
+        ],
+        "blockerReasons": [
+          "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+          "Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture."
+        ],
+        "warningCodes": []
+      },
+      {
+        "customerKey": "annalisa-lanzo",
+        "displayName": "ANNALISA LANZO",
+        "cohort": 39,
+        "module": "screening",
+        "outcome": "ready_local_plan",
+        "blockerCodes": [],
+        "blockerReasons": [],
+        "warningCodes": [
+          "invoice_reference_unique_base_matched",
+          "explicit_building_type_over_apartment_count"
+        ]
+      },
+      {
+        "customerKey": "antonella-ferletic",
+        "displayName": "Antonella Ferletic",
+        "cohort": 26,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "product_cardinality_form_invoice_mismatch",
+          "screenings_missing",
+          "screening_primary_measurements_missing"
+        ],
+        "blockerReasons": [
+          "Controllo incrociato ripetuto: il form descrive 1 righe e le fatture 0 prodotti fisici non riconciliabili in modo univoco per famiglia. Richiesto intervento operatore: confermare la cardinalita fisica e l'assegnazione degli attributi form.",
+          "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+          "La fattura descrive la schermatura ma nessuna fonte primaria riporta le misure fisiche del prodotto. APR non usa le misure della finestra protetta come misure del prodotto: acquisire o confermare le misure e rimettere la pratica in Pronte da fare."
+        ],
+        "warningCodes": [
+          "explicit_building_type_over_apartment_count",
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "antonino-formisabo",
+        "displayName": "Antonino Formisabo",
+        "cohort": 99,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "screenings_missing",
+          "completion_date_portal_year_mismatch",
+          "completion_over_90_days_operator_required",
+          "invoice_332a5af9"
+        ],
+        "blockerReasons": [
+          "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+          "Fine lavori 2025-12-16: anno 2025 incompatibile con il portale ENEA 2026. Selezionare il portale annuale corretto senza modificare la data.",
+          "Fine lavori 2025-12-16: 265 giorni prima della lavorazione, oltre il limite di 90 giorni. Verificare la procedibilità e il portale annuale corretto.",
+          "Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture."
+        ],
+        "warningCodes": [
+          "primary_beneficiary_identity_overridden_by_invoice",
+          "co_beneficiary_form_overridden_by_invoice"
+        ]
+      },
+      {
+        "customerKey": "antonio-scaparrotta",
+        "displayName": "Antonio Scaparrotta",
+        "cohort": 94,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "screenings_missing",
+          "bank_transfer_principal_exceeds_invoices",
+          "invoice_332a5af9",
+          "gross_triple_reconciliation_failed"
+        ],
+        "blockerReasons": [
+          "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+          "Il capitale bonificato supera le fatture di € 191.59: intervento operatore richiesto.",
+          "Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture.",
+          "Tripla riconciliazione non dimostrata: imponibile-iva-mismatch:41655d970c710618eb9f35ccfd9d1282d6b8dcd1fd23331e9d0f191614b0cf28:invoice:264f0ccd0374."
+        ],
+        "warningCodes": []
+      },
+      {
+        "customerKey": "armando-ranzoni",
+        "displayName": "Armando Ranzoni",
+        "cohort": 40,
+        "module": "infissi",
+        "outcome": "ready_local_plan",
+        "blockerCodes": [],
+        "blockerReasons": [],
+        "warningCodes": [
+          "crm_fiscal_code_confirmed_by_invoice_customer_block"
+        ]
+      },
+      {
+        "customerKey": "cataldo-cassone",
+        "displayName": "Cataldo Cassone",
+        "cohort": 65,
+        "module": "screening",
+        "outcome": "ready_local_plan",
+        "blockerCodes": [],
+        "blockerReasons": [],
+        "warningCodes": [
+          "crm_fiscal_code_confirmed_by_invoice_customer_block",
+          "explicit_building_type_over_apartment_count"
+        ]
+      },
+      {
+        "customerKey": "caterina-claudia-garbato",
+        "displayName": "caterina Claudia garbato",
+        "cohort": 77,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "persiana_measurement_ambiguous_1",
+          "completion_date_portal_year_mismatch",
+          "completion_over_90_days_operator_required"
+        ],
+        "blockerReasons": [
+          "Misura persiana 17×18 mm fuori dai limiti ampi di plausibilita refuso (larghezza 500-4000 mm, altezza 450-3200 mm). Richiesto intervento operatore senza inventare conversioni.",
+          "Fine lavori 2025-04-04: anno 2025 incompatibile con il portale ENEA 2026. Selezionare il portale annuale corretto senza modificare la data.",
+          "Fine lavori 2025-04-04: 521 giorni prima della lavorazione, oltre il limite di 90 giorni. Verificare la procedibilità e il portale annuale corretto."
+        ],
+        "warningCodes": [
+          "original_non_fiscal_technical_source_applied",
+          "crm_fiscal_code_confirmed_by_invoice_customer_block",
+          "primary_beneficiary_identity_overridden_by_invoice",
+          "birth_country_resolved_from_reliable_belfiore_registry"
+        ]
+      },
+      {
+        "customerKey": "cesare-imperiali",
+        "displayName": "Cesare Imperiali",
+        "cohort": 45,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "screenings_missing",
+          "invoice_332a5af9"
+        ],
+        "blockerReasons": [
+          "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+          "Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture."
+        ],
+        "warningCodes": [
+          "crm_fiscal_code_confirmed_by_invoice_customer_block",
+          "secondary_home_36_percent_allocation_planned",
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "claudia-campagna",
+        "displayName": "Claudia Campagna",
+        "cohort": 35,
+        "module": "screening",
+        "outcome": "ready_local_plan",
+        "blockerCodes": [],
+        "blockerReasons": [],
+        "warningCodes": []
+      },
+      {
+        "customerKey": "claudia-sellati",
+        "displayName": "CLAUDIA SELLATI",
+        "cohort": 68,
+        "module": "infissi",
+        "outcome": "ready_local_plan",
+        "blockerCodes": [],
+        "blockerReasons": [],
+        "warningCodes": [
+          "original_non_fiscal_technical_source_applied",
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "claudio-beghini",
+        "displayName": "Claudio Beghini",
+        "cohort": 83,
+        "module": "screening",
+        "outcome": "ready_local_plan",
+        "blockerCodes": [],
+        "blockerReasons": [],
+        "warningCodes": []
+      },
+      {
+        "customerKey": "danila-serpa",
+        "displayName": "Danila Serpa",
+        "cohort": 92,
+        "module": "screening",
+        "outcome": "ready_local_plan",
+        "blockerCodes": [],
+        "blockerReasons": [],
+        "warningCodes": []
+      },
+      {
+        "customerKey": "della-maria-carla-vigetti",
+        "displayName": "Della Maria Carla Vigetti",
+        "cohort": 30,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "product_cardinality_form_invoice_mismatch",
+          "screenings_missing",
+          "invoice_332a5af9"
+        ],
+        "blockerReasons": [
+          "Controllo incrociato ripetuto: il form descrive 1 righe e le fatture 0 prodotti fisici non riconciliabili in modo univoco per famiglia. Richiesto intervento operatore: confermare la cardinalita fisica e l'assegnazione degli attributi form.",
+          "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+          "Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture."
+        ],
+        "warningCodes": [
+          "primary_beneficiary_identity_overridden_by_invoice",
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "diego-mario-mocenighi",
+        "displayName": "diego mario mocenighi",
+        "cohort": 53,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "screenings_missing",
+          "invoice_332a5af9"
+        ],
+        "blockerReasons": [
+          "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+          "Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture."
+        ],
+        "warningCodes": [
+          "linea_sole_potito_paper_form_accepted",
+          "paper_form_birth_date_separator_ocr_repaired",
+          "building_units_defaulted_to_one",
+          "bank_transfer_below_invoice_total_audited_nonblocking",
+          "bundled_professional_expense_gross_used",
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "elena-depalma",
+        "displayName": "ELENA DEPALMA",
+        "cohort": 73,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "screenings_missing",
+          "invoice_332a5af9"
+        ],
+        "blockerReasons": [
+          "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+          "Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture."
+        ],
+        "warningCodes": [
+          "crm_fiscal_code_confirmed_by_invoice_customer_block"
+        ]
+      },
+      {
+        "customerKey": "elena-marcella-berti",
+        "displayName": "ELENA MARCELLA BERTI",
+        "cohort": 72,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "draft_payload_mapping_incomplete"
+        ],
+        "blockerReasons": [
+          "Il preflight delle fonti non presenta conflitti, ma il payload ENEA non e completo: Data di nascita: Intervento umano richiesto.; Nazione di nascita: Intervento umano richiesto.; Comune di nascita: Intervento umano richiesto.; Nazione di residenza: Intervento umano richiesto.; Comune di residenza: Intervento umano richiesto.; Indirizzo di residenza: Intervento umano richiesto.; Civico di residenza: Intervento umano richiesto.; CAP di residenza: Intervento umano richiesto.; Titolo sull'immobile: Intervento umano richiesto.; Abitazione principale: Intervento umano richiesto.; Comune lavori: Intervento umano richiesto.; Indirizzo lavori: Intervento umano richiesto.; Civico lavori: Intervento umano richiesto.; CAP lavori: Intervento umano richiesto.; Foglio: Intervento umano richiesto.; Particella / mappale: Intervento umano richiesto.; Anno di costruzione: Intervento umano richiesto.; Superficie utile: Intervento umano richiesto.; Tipo impianto: Intervento umano richiesto.; Terminali: Intervento umano richiesto.; Tipo generatore: Intervento umano richiesto.; Numero generatori: Intervento umano richiesto.; Vettore energetico: Intervento umano richiesto.; Climatizzazione estiva: Intervento umano richiesto.. Correggere il mapping locale prima di accodare la pratica; nessuna azione esterna consentita."
+        ],
+        "warningCodes": [
+          "linea_sole_potito_paper_form_accepted",
+          "crm_fiscal_code_confirmed_by_invoice_customer_block",
+          "primary_beneficiary_identity_overridden_by_invoice",
+          "building_units_defaulted_to_one",
+          "bank_transfer_below_invoice_total_audited_nonblocking",
+          "bank_fees_excluded_invoice_total_authoritative",
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "enrico-amos-maria-berneri",
+        "displayName": "Enrico Amos maria Berneri",
+        "cohort": 86,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "screenings_missing",
+          "invoice_332a5af9"
+        ],
+        "blockerReasons": [
+          "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+          "Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture."
+        ],
+        "warningCodes": [
+          "linea_sole_potito_paper_form_accepted",
+          "paper_form_birth_date_separator_ocr_repaired",
+          "crm_fiscal_code_confirmed_by_invoice_customer_block",
+          "building_units_defaulted_to_one",
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "eugenio-codognato",
+        "displayName": "EUGENIO CODOGNATO",
+        "cohort": 16,
+        "module": "infissi",
+        "outcome": "ready_local_plan",
+        "blockerCodes": [],
+        "blockerReasons": [],
+        "warningCodes": [
+          "invoice_reference_unique_base_matched",
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "fabio-sartori",
+        "displayName": "Fabio Sartori",
+        "cohort": 38,
+        "module": "screening",
+        "outcome": "ready_local_plan",
+        "blockerCodes": [],
+        "blockerReasons": [],
+        "warningCodes": [
+          "explicit_building_type_over_apartment_count",
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "fabrizio-pelizzari",
+        "displayName": "Fabrizio Pelizzari",
+        "cohort": 95,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "product_cardinality_form_invoice_mismatch",
+          "screenings_missing",
+          "invoice_332a5af9"
+        ],
+        "blockerReasons": [
+          "Controllo incrociato ripetuto: il form descrive 1 righe e le fatture 0 prodotti fisici non riconciliabili in modo univoco per famiglia. Richiesto intervento operatore: confermare la cardinalita fisica e l'assegnazione degli attributi form.",
+          "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+          "Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture."
+        ],
+        "warningCodes": [
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "fares-hassairi",
+        "displayName": "Fares Hassairi",
+        "cohort": 57,
+        "module": "screening",
+        "outcome": "ready_local_plan",
+        "blockerCodes": [],
+        "blockerReasons": [],
+        "warningCodes": [
+          "crm_fiscal_code_confirmed_by_invoice_customer_block",
+          "birth_country_resolved_from_reliable_belfiore_registry"
+        ]
+      },
+      {
+        "customerKey": "fausta-de-filippo",
+        "displayName": "Fausta De Filippo",
+        "cohort": 91,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "product_cardinality_form_invoice_mismatch"
+        ],
+        "blockerReasons": [
+          "Controllo incrociato ripetuto: il form descrive 3 righe e le fatture 2 prodotti fisici non riconciliabili in modo univoco per famiglia. Richiesto intervento operatore: confermare la cardinalita fisica e l'assegnazione degli attributi form."
+        ],
+        "warningCodes": [
+          "explicit_building_type_over_apartment_count",
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "filippo-bigalli",
+        "displayName": "Filippo Bigalli",
+        "cohort": 6,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "product_cardinality_form_invoice_mismatch",
+          "screenings_missing",
+          "original_invoice_missing_or_unavailable",
+          "completion_date_missing",
+          "gross_triple_reconciliation_failed"
+        ],
+        "blockerReasons": [
+          "Controllo incrociato ripetuto: il form descrive 1 righe e le fatture 0 prodotti fisici non riconciliabili in modo univoco per famiglia. Richiesto intervento operatore: confermare la cardinalita fisica e l'assegnazione degli attributi form.",
+          "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+          "La fattura originaria dichiarata non e' acquisibile come documento valido: Richiesto intervento operatore. Dopo il nuovo allegato e il ritorno in Pronte da fare APR rieseguira' la pratica.",
+          "Fine lavori assente e data fattura non ricavabile.",
+          "Tripla riconciliazione non dimostrata: fonti-assenti, nessuna-fattura-economica-valida."
+        ],
+        "warningCodes": []
+      },
+      {
+        "customerKey": "flavia-cipriani",
+        "displayName": "Flavia Cipriani",
+        "cohort": 78,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "screenings_missing",
+          "invoice_332a5af9"
+        ],
+        "blockerReasons": [
+          "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+          "Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture."
+        ],
+        "warningCodes": [
+          "bank_transfer_below_invoice_total_audited_nonblocking"
+        ]
+      },
+      {
+        "customerKey": "francesca-monti",
+        "displayName": "francesca monti",
+        "cohort": 80,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "screenings_missing",
+          "invoice_332a5af9"
+        ],
+        "blockerReasons": [
+          "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+          "Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture."
+        ],
+        "warningCodes": [
+          "linea_sole_potito_paper_form_accepted",
+          "crm_fiscal_code_confirmed_by_invoice_customer_block",
+          "primary_beneficiary_identity_overridden_by_invoice",
+          "building_units_defaulted_to_one",
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "francesca-pisanu",
+        "displayName": "FRANCESCA PISANU",
+        "cohort": 75,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "customer_form_missing",
+          "tax_code_missing_or_invalid",
+          "screenings_missing",
+          "invoice_332a5af9",
+          "gross_triple_reconciliation_failed"
+        ],
+        "blockerReasons": [
+          "Il dossier CRM non contiene un form cliente originario utilizzabile; documenti ENEA storici esclusi.",
+          "CF valido e coerente non disponibile nel form o nelle fatture originarie.",
+          "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+          "Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture.",
+          "Tripla riconciliazione non dimostrata: estrazione-incerta:21525d042dc495bcf967405f27aebe2f1e89972cfea745f62e8e2fb8dbb08743:invoice:09c131f84b2a, totali-incompleti:21525d042dc495bcf967405f27aebe2f1e89972cfea745f62e8e2fb8dbb08743:invoice:09c131f84b2a, estrazione-incerta:21525d042dc495bcf967405f27aebe2f1e89972cfea745f62e8e2fb8dbb08743:invoice:d5736d0ee982, totali-incompleti:21525d042dc495bcf967405f27aebe2f1e89972cfea745f62e8e2fb8dbb08743:invoice:d5736d0ee982."
+        ],
+        "warningCodes": [
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "francesco-laurelli",
+        "displayName": "FRANCESCO LAURELLI",
+        "cohort": 90,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "product_cardinality_form_invoice_mismatch",
+          "screenings_missing",
+          "invoice_332a5af9",
+          "invoice_schedule_amount_missing",
+          "gross_triple_reconciliation_failed"
+        ],
+        "blockerReasons": [
+          "Controllo incrociato ripetuto: il form descrive 2 righe e le fatture 0 prodotti fisici non riconciliabili in modo univoco per famiglia. Richiesto intervento operatore: confermare la cardinalita fisica e l'assegnazione degli attributi form.",
+          "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+          "Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture.",
+          "Scadenza non leggibile, importo mancante: verificare l'importo dello scadenziario nella fattura originaria.",
+          "Tripla riconciliazione non dimostrata: schedule-amount-missing:2df2f4d2a544e8e7b47f462b77e542aecfb6ab6eead93cc7f212fdff14680505:invoice:fd0eda829864, estrazione-incerta:2df2f4d2a544e8e7b47f462b77e542aecfb6ab6eead93cc7f212fdff14680505:invoice:fd0eda829864, imponibile-iva-mismatch:2df2f4d2a544e8e7b47f462b77e542aecfb6ab6eead93cc7f212fdff14680505:invoice:fd0eda829864."
+        ],
+        "warningCodes": [
+          "co_beneficiary_form_overridden_by_invoice",
+          "explicit_building_type_over_apartment_count"
+        ]
+      },
+      {
+        "customerKey": "franco-screpanti",
+        "displayName": "Franco Screpanti",
+        "cohort": 96,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "product_cardinality_form_invoice_mismatch",
+          "screenings_missing",
+          "original_invoice_missing_or_unavailable",
+          "completion_date_missing",
+          "gross_triple_reconciliation_failed"
+        ],
+        "blockerReasons": [
+          "Controllo incrociato ripetuto: il form descrive 1 righe e le fatture 0 prodotti fisici non riconciliabili in modo univoco per famiglia. Richiesto intervento operatore: confermare la cardinalita fisica e l'assegnazione degli attributi form.",
+          "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+          "La fattura originaria dichiarata non e' acquisibile come documento valido: Richiesto intervento operatore. Dopo il nuovo allegato e il ritorno in Pronte da fare APR rieseguira' la pratica.",
+          "Fine lavori assente e data fattura non ricavabile.",
+          "Tripla riconciliazione non dimostrata: fonti-assenti, nessuna-fattura-economica-valida."
+        ],
+        "warningCodes": []
+      },
+      {
+        "customerKey": "gabriele-girelli",
+        "displayName": "Gabriele Girelli",
+        "cohort": 18,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "screenings_missing",
+          "original_invoice_missing_or_unavailable",
+          "completion_date_missing",
+          "gross_triple_reconciliation_failed"
+        ],
+        "blockerReasons": [
+          "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+          "La fattura originaria dichiarata non e' acquisibile come documento valido: Richiesto intervento operatore. Dopo il nuovo allegato e il ritorno in Pronte da fare APR rieseguira' la pratica.",
+          "Fine lavori assente e data fattura non ricavabile.",
+          "Tripla riconciliazione non dimostrata: fonti-assenti, nessuna-fattura-economica-valida."
+        ],
+        "warningCodes": []
+      },
+      {
+        "customerKey": "gabriello-manso",
+        "displayName": "GABRIELLO MANSO",
+        "cohort": 31,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "gross_triple_reconciliation_failed"
+        ],
+        "blockerReasons": [
+          "Tripla riconciliazione non dimostrata: terna-fattura-incerta:711c670614d9633c59b33bfe9e206352e35b002c31e14a4f7f982116fca5bd4c:invoice:264f0ccd0374."
+        ],
+        "warningCodes": [
+          "invoice_reference_unique_base_matched"
+        ]
+      },
+      {
+        "customerKey": "gavina-emanuela-cannas",
+        "displayName": "GAVINA EMANUELA CANNAS",
+        "cohort": 52,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "customer_form_missing",
+          "tax_code_missing_or_invalid",
+          "screenings_missing",
+          "invoice_332a5af9"
+        ],
+        "blockerReasons": [
+          "Il dossier CRM non contiene un form cliente originario utilizzabile; documenti ENEA storici esclusi.",
+          "CF valido e coerente non disponibile nel form o nelle fatture originarie.",
+          "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+          "Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture."
+        ],
+        "warningCodes": [
+          "bank_transfer_below_invoice_total_audited_nonblocking",
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "gemma-minore",
+        "displayName": "Gemma Minore",
+        "cohort": 85,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "co_beneficiary_invoice_identity_unresolved",
+          "screenings_missing",
+          "invoice_332a5af9"
+        ],
+        "blockerReasons": [
+          "Le fatture non consentono di identificare in modo univoco un solo cointestatario persona fisica con nome, cognome e CF valido; intervento operatore richiesto.",
+          "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+          "Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture."
+        ],
+        "warningCodes": []
+      },
+      {
+        "customerKey": "gianfranco-lavezzi",
+        "displayName": "gianfranco lavezzi",
+        "cohort": 10,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "product_cardinality_form_invoice_mismatch",
+          "screenings_missing",
+          "completion_over_90_days_operator_required",
+          "invoice_332a5af9",
+          "gross_triple_reconciliation_failed"
+        ],
+        "blockerReasons": [
+          "Controllo incrociato ripetuto: il form descrive 1 righe e le fatture 0 prodotti fisici non riconciliabili in modo univoco per famiglia. Richiesto intervento operatore: confermare la cardinalita fisica e l'assegnazione degli attributi form.",
+          "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+          "Fine lavori 2026-04-27: 133 giorni prima della lavorazione, oltre il limite di 90 giorni. Verificare la procedibilità e il portale annuale corretto.",
+          "Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture.",
+          "Tripla riconciliazione non dimostrata: imponibile-iva-mismatch:7836779ca85916e3dd6b8be8c587e1033d1d05100cdb475650369ff4eaa07979:invoice:264f0ccd0374, imponibile-iva-mismatch:637cc4c18fe2c515aed376fadae167ae8af863711430d7b0ba2b0c73e9fafc9c:invoice:264f0ccd0374."
+        ],
+        "warningCodes": [
+          "secondary_home_36_percent_allocation_planned"
+        ]
+      },
+      {
+        "customerKey": "gianluigi-chiolini",
+        "displayName": "Gianluigi Chiolini",
+        "cohort": 88,
+        "module": "screening",
+        "outcome": "ready_local_plan",
+        "blockerCodes": [],
+        "blockerReasons": [],
+        "warningCodes": [
+          "primary_beneficiary_identity_overridden_by_invoice",
+          "explicit_building_type_over_apartment_count",
+          "product_cardinality_form_invoice_difference_resolved"
+        ]
+      },
+      {
+        "customerKey": "giovanna-atzeni",
+        "displayName": "GIOVANNA ATZENI",
+        "cohort": 23,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "customer_form_missing",
+          "tax_code_missing_or_invalid",
+          "screenings_missing",
+          "bank_transfer_principal_exceeds_invoices",
+          "completion_date_portal_year_mismatch",
+          "completion_over_90_days_operator_required",
+          "invoice_332a5af9"
+        ],
+        "blockerReasons": [
+          "Il dossier CRM non contiene un form cliente originario utilizzabile; documenti ENEA storici esclusi.",
+          "CF valido e coerente non disponibile nel form o nelle fatture originarie.",
+          "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+          "Il capitale bonificato supera le fatture di € 0.90: intervento operatore richiesto.",
+          "Fine lavori 2025-12-31: anno 2025 incompatibile con il portale ENEA 2026. Selezionare il portale annuale corretto senza modificare la data.",
+          "Fine lavori 2025-12-31: 250 giorni prima della lavorazione, oltre il limite di 90 giorni. Verificare la procedibilità e il portale annuale corretto.",
+          "Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture."
+        ],
+        "warningCodes": []
+      },
+      {
+        "customerKey": "giovanni-amadu",
+        "displayName": "GIOVANNI AMADU",
+        "cohort": 79,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "customer_form_missing",
+          "tax_code_missing_or_invalid",
+          "screenings_missing",
+          "completion_date_portal_year_mismatch",
+          "completion_over_90_days_operator_required",
+          "invoice_332a5af9"
+        ],
+        "blockerReasons": [
+          "Il dossier CRM non contiene un form cliente originario utilizzabile; documenti ENEA storici esclusi.",
+          "CF valido e coerente non disponibile nel form o nelle fatture originarie.",
+          "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+          "Fine lavori 2025-12-19: anno 2025 incompatibile con il portale ENEA 2026. Selezionare il portale annuale corretto senza modificare la data.",
+          "Fine lavori 2025-12-19: 262 giorni prima della lavorazione, oltre il limite di 90 giorni. Verificare la procedibilità e il portale annuale corretto.",
+          "Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture."
+        ],
+        "warningCodes": []
+      },
+      {
+        "customerKey": "giovanni-pescatori",
+        "displayName": "Giovanni Pescatori",
+        "cohort": 51,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "product_cardinality_form_invoice_mismatch",
+          "screenings_missing",
+          "invoice_332a5af9"
+        ],
+        "blockerReasons": [
+          "Controllo incrociato ripetuto: il form descrive 1 righe e le fatture 0 prodotti fisici non riconciliabili in modo univoco per famiglia. Richiesto intervento operatore: confermare la cardinalita fisica e l'assegnazione degli attributi form.",
+          "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+          "Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture."
+        ],
+        "warningCodes": [
+          "explicit_building_type_over_apartment_count",
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "giulia-kasermann",
+        "displayName": "Giulia Kasermann",
+        "cohort": 17,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "product_cardinality_form_invoice_mismatch",
+          "screenings_missing",
+          "screening_primary_measurements_missing"
+        ],
+        "blockerReasons": [
+          "Controllo incrociato ripetuto: il form descrive 1 righe e le fatture 0 prodotti fisici non riconciliabili in modo univoco per famiglia. Richiesto intervento operatore: confermare la cardinalita fisica e l'assegnazione degli attributi form.",
+          "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+          "La fattura descrive la schermatura ma nessuna fonte primaria riporta le misure fisiche del prodotto. APR non usa le misure della finestra protetta come misure del prodotto: acquisire o confermare le misure e rimettere la pratica in Pronte da fare."
+        ],
+        "warningCodes": [
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "giuseppe-d-adduzio",
+        "displayName": "GIUSEPPE D'ADDUZIO",
+        "cohort": 28,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "permanent_supplier_automation_exclusion"
+        ],
+        "blockerReasons": [
+          "Erre Emme / RM Legno: Fornitore escluso dall'elaborazione automatica per decisione permanente dell'utente. Nessun allegato viene elaborato e nessuna azione ENEA viene tentata."
+        ],
+        "warningCodes": []
+      },
+      {
+        "customerKey": "gloria-padoani",
+        "displayName": "Gloria Padoani",
+        "cohort": 63,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "product_cardinality_form_invoice_mismatch",
+          "screenings_missing",
+          "invoice_332a5af9",
+          "gross_triple_reconciliation_failed"
+        ],
+        "blockerReasons": [
+          "Controllo incrociato ripetuto: il form descrive 2 righe e le fatture 0 prodotti fisici non riconciliabili in modo univoco per famiglia. Richiesto intervento operatore: confermare la cardinalita fisica e l'assegnazione degli attributi form.",
+          "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+          "Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture.",
+          "Tripla riconciliazione non dimostrata: totali-incompleti:d8aa1dae93b2ef01a2fbf5c7c73d646cf40da662265a80d9b8c01d3e5ea03e4f:invoice:264f0ccd0374."
+        ],
+        "warningCodes": [
+          "explicit_building_type_over_apartment_count"
+        ]
+      },
+      {
+        "customerKey": "gregorio-fusco",
+        "displayName": "gregorio fusco",
+        "cohort": 20,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "screenings_missing",
+          "invoice_332a5af9"
+        ],
+        "blockerReasons": [
+          "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+          "Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture."
+        ],
+        "warningCodes": [
+          "secondary_home_36_percent_allocation_planned",
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "guido-calvacchi",
+        "displayName": "GUIDO CALVACCHI",
+        "cohort": 1,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "gross_triple_reconciliation_failed"
+        ],
+        "blockerReasons": [
+          "Tripla riconciliazione non dimostrata: imponibile-iva-mismatch:6a55169f8d6d760faca9dd1380d29069b9d54c4067ae81f41e95bbde3741eef7:invoice:5a16ae68a177, imponibile-iva-mismatch:6a55169f8d6d760faca9dd1380d29069b9d54c4067ae81f41e95bbde3741eef7:invoice:352f42239cf6."
+        ],
+        "warningCodes": [
+          "bundled_professional_expense_gross_used",
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "ida-gigliotti",
+        "displayName": "Ida Gigliotti",
+        "cohort": 36,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "product_cardinality_form_invoice_mismatch",
+          "screenings_missing",
+          "completion_date_portal_year_mismatch",
+          "completion_over_90_days_operator_required",
+          "invoice_332a5af9"
+        ],
+        "blockerReasons": [
+          "Controllo incrociato ripetuto: il form descrive 1 righe e le fatture 0 prodotti fisici non riconciliabili in modo univoco per famiglia. Richiesto intervento operatore: confermare la cardinalita fisica e l'assegnazione degli attributi form.",
+          "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+          "Fine lavori 2025-10-10: anno 2025 incompatibile con il portale ENEA 2026. Selezionare il portale annuale corretto senza modificare la data.",
+          "Fine lavori 2025-10-10: 332 giorni prima della lavorazione, oltre il limite di 90 giorni. Verificare la procedibilità e il portale annuale corretto.",
+          "Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture."
+        ],
+        "warningCodes": [
+          "crm_fiscal_code_confirmed_by_invoice_customer_block"
+        ]
+      },
+      {
+        "customerKey": "ivana-mastrangelo",
+        "displayName": "Ivana Mastrangelo",
+        "cohort": 58,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "screenings_missing",
+          "invoice_332a5af9",
+          "invoice_929a8665",
+          "gross_triple_reconciliation_failed"
+        ],
+        "blockerReasons": [
+          "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+          "Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture.",
+          "Il totale di almeno un documento fiscale non è stato riconosciuto.",
+          "Tripla riconciliazione non dimostrata: terna-fattura-incerta:20f8ac2cef0446fd292e844e36dca29a3c9c51c595a988be6f139f35218f9358:invoice:264f0ccd0374, terna-fattura-incerta:1ec68b4c6afbcb6c2efb184c2b36138bd51adb7a18c058198eda0a2925a7cd93:invoice:264f0ccd0374, terna-fattura-incerta:a306fba8bc7de79380b0b6c625c9d7e4ac836088c1266416b125c1522ee65425:invoice:264f0ccd0374."
+        ],
+        "warningCodes": []
+      },
+      {
+        "customerKey": "lea-dettori",
+        "displayName": "Lea Dettori",
+        "cohort": 48,
+        "module": "screening",
+        "outcome": "ready_local_plan",
+        "blockerCodes": [],
+        "blockerReasons": [],
+        "warningCodes": [
+          "crm_fiscal_code_confirmed_by_invoice_customer_block",
+          "co_beneficiary_form_overridden_by_invoice",
+          "explicit_building_type_over_apartment_count",
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "leo-manini",
+        "displayName": "Leo Manini",
+        "cohort": 100,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "completion_date_portal_year_mismatch",
+          "completion_over_90_days_operator_required"
+        ],
+        "blockerReasons": [
+          "Fine lavori 2025-05-19: anno 2025 incompatibile con il portale ENEA 2026. Selezionare il portale annuale corretto senza modificare la data.",
+          "Fine lavori 2025-05-19: 476 giorni prima della lavorazione, oltre il limite di 90 giorni. Verificare la procedibilità e il portale annuale corretto."
+        ],
+        "warningCodes": []
+      },
+      {
+        "customerKey": "lia-chiericati",
+        "displayName": "Lia Chiericati",
+        "cohort": 29,
+        "module": "screening",
+        "outcome": "ready_local_plan",
+        "blockerCodes": [],
+        "blockerReasons": [],
+        "warningCodes": []
+      },
+      {
+        "customerKey": "liliana-gloria",
+        "displayName": "liliana gloria",
+        "cohort": 59,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "gross_triple_reconciliation_failed"
+        ],
+        "blockerReasons": [
+          "Tripla riconciliazione non dimostrata: estrazione-incerta:ba8eb288a649c523feb2f17ffe68f31c46ff8138753e2294ec8493897105778b:invoice:2b5628b0bf24, totali-incompleti:ba8eb288a649c523feb2f17ffe68f31c46ff8138753e2294ec8493897105778b:invoice:2b5628b0bf24."
+        ],
+        "warningCodes": [
+          "linea_sole_potito_paper_form_accepted",
+          "crm_fiscal_code_confirmed_by_invoice_customer_block",
+          "building_units_defaulted_to_one",
+          "bank_transfer_below_invoice_total_audited_nonblocking"
+        ]
+      },
+      {
+        "customerKey": "loretta-riviera",
+        "displayName": "Loretta Riviera",
+        "cohort": 37,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "original_invoice_missing_or_unavailable",
+          "screenings_missing",
+          "completion_date_missing",
+          "invoice_332a5af9",
+          "gross_triple_reconciliation_failed"
+        ],
+        "blockerReasons": [
+          "La fattura presente detrae o richiama una fattura di acconto non acquisita (268/26, 608/26); APR non puo ricostruire il totale documentale completo senza la fonte fiscale originaria.",
+          "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+          "Fine lavori assente e data fattura non ricavabile.",
+          "Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture.",
+          "Tripla riconciliazione non dimostrata: terna-fattura-incerta:74375fcf67f81943d9708d3bf70c3a51c734b21e299cc675e532a5d2975f9a4d:invoice:264f0ccd0374, terna-fattura-incerta:266bf562ceed38cc5dcba4e2023c0040e0f6e074970953d3115df09bffd78dc6:invoice:264f0ccd0374, terna-fattura-incerta:c90b8d75ea368b0bf14705655f9df0bb963485d4369e42947ed9da7ae0186236:invoice:264f0ccd0374, nessuna-fattura-economica-valida."
+        ],
+        "warningCodes": []
+      },
+      {
+        "customerKey": "luca-cigognetti",
+        "displayName": "Luca Cigognetti",
+        "cohort": 27,
+        "module": "infissi",
+        "outcome": "ready_local_plan",
+        "blockerCodes": [],
+        "blockerReasons": [],
+        "warningCodes": [
+          "original_non_fiscal_technical_source_applied",
+          "crm_fiscal_code_confirmed_by_invoice_customer_block",
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "luca-ronconi",
+        "displayName": "Luca Ronconi",
+        "cohort": 22,
+        "module": "screening",
+        "outcome": "ready_local_plan",
+        "blockerCodes": [],
+        "blockerReasons": [],
+        "warningCodes": [
+          "explicit_building_type_over_apartment_count",
+          "bank_transfer_below_invoice_total_audited_nonblocking"
+        ]
+      },
+      {
+        "customerKey": "lucia-droghetti",
+        "displayName": "LUCIA DROGHETTI",
+        "cohort": 3,
+        "module": "screening",
+        "outcome": "ready_local_plan",
+        "blockerCodes": [],
+        "blockerReasons": [],
+        "warningCodes": []
+      },
+      {
+        "customerKey": "lucia-lagrasta",
+        "displayName": "Lucia Lagrasta",
+        "cohort": 60,
+        "module": "screening",
+        "outcome": "ready_local_plan",
+        "blockerCodes": [],
+        "blockerReasons": [],
+        "warningCodes": [
+          "explicit_building_type_over_apartment_count",
+          "product_cardinality_form_invoice_difference_resolved",
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "luigi-carfora",
+        "displayName": "Luigi Carfora",
+        "cohort": 84,
+        "module": "screening",
+        "outcome": "ready_local_plan",
+        "blockerCodes": [],
+        "blockerReasons": [],
+        "warningCodes": [
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "marcella-capatti",
+        "displayName": "Marcella Capatti",
+        "cohort": 13,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "screenings_missing",
+          "completion_over_90_days_operator_required",
+          "invoice_332a5af9"
+        ],
+        "blockerReasons": [
+          "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+          "Fine lavori 2026-02-12: 207 giorni prima della lavorazione, oltre il limite di 90 giorni. Verificare la procedibilità e il portale annuale corretto.",
+          "Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture."
+        ],
+        "warningCodes": [
+          "explicit_original_completion_date_applied"
+        ]
+      },
+      {
+        "customerKey": "marco-de-marinis",
+        "displayName": "MARCO DE MARINIS",
+        "cohort": 12,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "screenings_missing",
+          "completion_date_portal_year_mismatch",
+          "completion_over_90_days_operator_required",
+          "invoice_332a5af9",
+          "invoice_929a8665",
+          "gross_triple_reconciliation_failed"
+        ],
+        "blockerReasons": [
+          "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+          "Fine lavori 2025-12-17: anno 2025 incompatibile con il portale ENEA 2026. Selezionare il portale annuale corretto senza modificare la data.",
+          "Fine lavori 2025-12-17: 264 giorni prima della lavorazione, oltre il limite di 90 giorni. Verificare la procedibilità e il portale annuale corretto.",
+          "Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture.",
+          "Il totale di almeno un documento fiscale non è stato riconosciuto.",
+          "Tripla riconciliazione non dimostrata: terna-fattura-incerta:14c4e20627c9baf7ab2358d60c2a78d4b71879e9afef943df4a588636ae9f67e:invoice:264f0ccd0374."
+        ],
+        "warningCodes": [
+          "works_municipality_overridden_by_invoice"
+        ]
+      },
+      {
+        "customerKey": "marco-tocchetti",
+        "displayName": "Marco Tocchetti",
+        "cohort": 66,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "original_invoice_missing_or_unavailable",
+          "gross_triple_reconciliation_failed"
+        ],
+        "blockerReasons": [
+          "La fattura presente detrae o richiama una fattura di acconto non acquisita (162/26); APR non puo ricostruire il totale documentale completo senza la fonte fiscale originaria.",
+          "Tripla riconciliazione non dimostrata: estrazione-incerta:a4a77f71a0de1f88d9dc62562ff22493c01380b8157a6c7df90fc1ee7604b61f:invoice:264f0ccd0374, imponibile-iva-mismatch:a4a77f71a0de1f88d9dc62562ff22493c01380b8157a6c7df90fc1ee7604b61f:invoice:264f0ccd0374."
+        ],
+        "warningCodes": [
+          "invoice_reference_unique_base_matched",
+          "product_cardinality_form_invoice_difference_resolved",
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "maria-sofia-tosatti",
+        "displayName": "MARIA SOFIA TOSATTI",
+        "cohort": 8,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "screenings_missing",
+          "screening_primary_measurements_missing"
+        ],
+        "blockerReasons": [
+          "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+          "La fattura descrive la schermatura ma nessuna fonte primaria riporta le misure fisiche del prodotto. APR non usa le misure della finestra protetta come misure del prodotto: acquisire o confermare le misure e rimettere la pratica in Pronte da fare."
+        ],
+        "warningCodes": [
+          "linea_sole_potito_paper_form_accepted",
+          "paper_form_birth_date_separator_ocr_repaired",
+          "crm_fiscal_code_confirmed_by_invoice_customer_block",
+          "building_units_defaulted_to_one"
+        ]
+      },
+      {
+        "customerKey": "marian-maeschi",
+        "displayName": "Marian Maeschi",
+        "cohort": 82,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "screenings_missing",
+          "screening_primary_measurements_missing"
+        ],
+        "blockerReasons": [
+          "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+          "La fattura descrive la schermatura ma nessuna fonte primaria riporta le misure fisiche del prodotto. APR non usa le misure della finestra protetta come misure del prodotto: acquisire o confermare le misure e rimettere la pratica in Pronte da fare."
+        ],
+        "warningCodes": [
+          "crm_fiscal_code_confirmed_by_invoice_customer_block",
+          "birth_country_resolved_from_reliable_belfiore_registry",
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "massimiliano-montemorra",
+        "displayName": "MASSIMILIANO MONTEMORRA",
+        "cohort": 42,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "permanent_supplier_automation_exclusion"
+        ],
+        "blockerReasons": [
+          "Erre Emme / RM Legno: Fornitore escluso dall'elaborazione automatica per decisione permanente dell'utente. Nessun allegato viene elaborato e nessuna azione ENEA viene tentata."
+        ],
+        "warningCodes": []
+      },
+      {
+        "customerKey": "massimo-cappello",
+        "displayName": "massimo cappello",
+        "cohort": 50,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "screenings_missing",
+          "invoice_332a5af9"
+        ],
+        "blockerReasons": [
+          "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+          "Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture."
+        ],
+        "warningCodes": [
+          "invoice_reference_unique_base_matched",
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "matteo-capitanelli",
+        "displayName": "MATTEO CAPITANELLI",
+        "cohort": 14,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "gross_triple_reconciliation_failed"
+        ],
+        "blockerReasons": [
+          "Tripla riconciliazione non dimostrata: imponibile-iva-mismatch:14e5ea34db2eb7efd27fa71a27352692d5c9848069c89d7978f7b0362fc81266:invoice:cafd45390c48."
+        ],
+        "warningCodes": [
+          "secondary_home_36_percent_allocation_planned",
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "mattia-vatieri",
+        "displayName": "Mattia Vatieri",
+        "cohort": 97,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "product_cardinality_form_invoice_mismatch",
+          "screenings_missing",
+          "completion_date_portal_year_mismatch",
+          "completion_over_90_days_operator_required",
+          "screening_primary_measurements_missing"
+        ],
+        "blockerReasons": [
+          "Controllo incrociato ripetuto: il form descrive 4 righe e le fatture 0 prodotti fisici non riconciliabili in modo univoco per famiglia. Richiesto intervento operatore: confermare la cardinalita fisica e l'assegnazione degli attributi form.",
+          "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+          "Fine lavori 2025-12-23: anno 2025 incompatibile con il portale ENEA 2026. Selezionare il portale annuale corretto senza modificare la data.",
+          "Fine lavori 2025-12-23: 258 giorni prima della lavorazione, oltre il limite di 90 giorni. Verificare la procedibilità e il portale annuale corretto.",
+          "La fattura descrive la schermatura ma nessuna fonte primaria riporta le misure fisiche del prodotto. APR non usa le misure della finestra protetta come misure del prodotto: acquisire o confermare le misure e rimettere la pratica in Pronte da fare."
+        ],
+        "warningCodes": [
+          "crm_fiscal_code_confirmed_by_invoice_customer_block"
+        ]
+      },
+      {
+        "customerKey": "maurizia-coreggioli",
+        "displayName": "MAURIZIA COREGGIOLI",
+        "cohort": 70,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "customer_form_missing",
+          "tax_code_missing_or_invalid",
+          "completion_over_90_days_operator_required"
+        ],
+        "blockerReasons": [
+          "Il dossier CRM non contiene un form cliente originario utilizzabile; documenti ENEA storici esclusi.",
+          "CF valido e coerente non disponibile nel form o nelle fatture originarie.",
+          "Fine lavori 2026-04-07: 153 giorni prima della lavorazione, oltre il limite di 90 giorni. Verificare la procedibilità e il portale annuale corretto."
+        ],
+        "warningCodes": [
+          "resolved_non_economic_total_blocker_retired"
+        ]
+      },
+      {
+        "customerKey": "mauro-ballabio",
+        "displayName": "Mauro Ballabio",
+        "cohort": 74,
+        "module": "screening",
+        "outcome": "ready_local_plan",
+        "blockerCodes": [],
+        "blockerReasons": [],
+        "warningCodes": [
+          "invoice_reference_unique_base_matched",
+          "explicit_building_type_over_apartment_count"
+        ]
+      },
+      {
+        "customerKey": "mauro-leonardi",
+        "displayName": "Mauro Leonardi",
+        "cohort": 76,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "screenings_missing",
+          "completion_date_portal_year_mismatch",
+          "completion_over_90_days_operator_required",
+          "screening_primary_measurements_missing"
+        ],
+        "blockerReasons": [
+          "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+          "Fine lavori 2025-11-04: anno 2025 incompatibile con il portale ENEA 2026. Selezionare il portale annuale corretto senza modificare la data.",
+          "Fine lavori 2025-11-04: 307 giorni prima della lavorazione, oltre il limite di 90 giorni. Verificare la procedibilità e il portale annuale corretto.",
+          "La fattura descrive la schermatura ma nessuna fonte primaria riporta le misure fisiche del prodotto. APR non usa le misure della finestra protetta come misure del prodotto: acquisire o confermare le misure e rimettere la pratica in Pronte da fare."
+        ],
+        "warningCodes": [
+          "crm_fiscal_code_confirmed_by_invoice_customer_block",
+          "explicit_building_type_over_apartment_count"
+        ]
+      },
+      {
+        "customerKey": "milena-albertoni",
+        "displayName": "Milena Albertoni",
+        "cohort": 64,
+        "module": "screening",
+        "outcome": "ready_local_plan",
+        "blockerCodes": [],
+        "blockerReasons": [],
+        "warningCodes": [
+          "crm_fiscal_code_confirmed_by_invoice_customer_block"
+        ]
+      },
+      {
+        "customerKey": "milena-fiorini",
+        "displayName": "Milena Fiorini",
+        "cohort": 71,
+        "module": "screening",
+        "outcome": "ready_local_plan",
+        "blockerCodes": [],
+        "blockerReasons": [],
+        "warningCodes": [
+          "explicit_building_type_over_apartment_count",
+          "product_cardinality_form_invoice_difference_resolved",
+          "bundled_professional_expense_gross_used",
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "mimosa-freni",
+        "displayName": "Mimosa Freni",
+        "cohort": 98,
+        "module": "screening",
+        "outcome": "ready_local_plan",
+        "blockerCodes": [],
+        "blockerReasons": [],
+        "warningCodes": [
+          "original_non_fiscal_technical_source_applied",
+          "crm_fiscal_code_confirmed_by_invoice_customer_block",
+          "co_beneficiary_confirmed_by_invoice",
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "monica-ambra-fioravanti",
+        "displayName": "MONICA AMBRA FIORAVANTI",
+        "cohort": 41,
+        "module": "screening",
+        "outcome": "ready_local_plan",
+        "blockerCodes": [],
+        "blockerReasons": [],
+        "warningCodes": [
+          "invoice_reference_unique_base_matched",
+          "product_cardinality_form_invoice_difference_resolved"
+        ]
+      },
+      {
+        "customerKey": "monica-molteni",
+        "displayName": "Monica Molteni",
+        "cohort": 32,
+        "module": "screening",
+        "outcome": "ready_local_plan",
+        "blockerCodes": [],
+        "blockerReasons": [],
+        "warningCodes": [
+          "invoice_reference_unique_base_matched",
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "nadia-ragni",
+        "displayName": "Nadia Ragni",
+        "cohort": 62,
+        "module": "screening",
+        "outcome": "ready_local_plan",
+        "blockerCodes": [],
+        "blockerReasons": [],
+        "warningCodes": [
+          "secondary_home_36_percent_allocation_planned"
+        ]
+      },
+      {
+        "customerKey": "natale-tiraboschi",
+        "displayName": "Natale Tiraboschi",
+        "cohort": 46,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "works_municipality_invoice_conflict",
+          "product_cardinality_form_invoice_mismatch",
+          "screenings_missing",
+          "invoice_332a5af9",
+          "invoice_929a8665",
+          "gross_triple_reconciliation_failed"
+        ],
+        "blockerReasons": [
+          "Le fatture originarie riportano un Comune di destinazione lavori diverso tra loro; la precedenza fattura non e applicabile senza intervento operatore.",
+          "Controllo incrociato ripetuto: il form descrive 1 righe e le fatture 0 prodotti fisici non riconciliabili in modo univoco per famiglia. Richiesto intervento operatore: confermare la cardinalita fisica e l'assegnazione degli attributi form.",
+          "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+          "Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture.",
+          "Il totale di almeno un documento fiscale non è stato riconosciuto.",
+          "Tripla riconciliazione non dimostrata: terna-fattura-incerta:891fddfabccdd354ea447eabc47fa7439c7d54ffc82257b4b7b3c9cdbd79913b:invoice:264f0ccd0374."
+        ],
+        "warningCodes": [
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "nicla-biagioni",
+        "displayName": "Nicla Biagioni",
+        "cohort": 15,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "original_invoice_missing_or_unavailable",
+          "screenings_missing",
+          "completion_date_missing",
+          "screening_primary_measurements_missing",
+          "gross_triple_reconciliation_failed"
+        ],
+        "blockerReasons": [
+          "La fattura presente detrae o richiama una fattura di acconto non acquisita (515/26, 753/26); APR non puo ricostruire il totale documentale completo senza la fonte fiscale originaria.",
+          "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+          "Fine lavori assente e data fattura non ricavabile.",
+          "La fattura descrive la schermatura ma nessuna fonte primaria riporta le misure fisiche del prodotto. APR non usa le misure della finestra protetta come misure del prodotto: acquisire o confermare le misure e rimettere la pratica in Pronte da fare.",
+          "Tripla riconciliazione non dimostrata: terna-fattura-incerta:b908c99a486b131f5870cdfc8b2c2f203b0cdc7c56d360ddc3d57c4bb322e790:invoice:264f0ccd0374, terna-fattura-incerta:88e672c7ee4dd20d035135fa04b0b0bb4953f6915b4743d18cc0f6780d619d25:invoice:264f0ccd0374, terna-fattura-incerta:063d9e0d85b9e3fdd336c34957024f4ffb8fd57258af358f483b7fce40b053ac:invoice:264f0ccd0374, nessuna-fattura-economica-valida."
+        ],
+        "warningCodes": []
+      },
+      {
+        "customerKey": "paolino-bellini",
+        "displayName": "Paolino Bellini",
+        "cohort": 47,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "product_cardinality_form_invoice_mismatch",
+          "screenings_missing",
+          "invoice_332a5af9",
+          "invoice_929a8665",
+          "gross_triple_reconciliation_failed"
+        ],
+        "blockerReasons": [
+          "Controllo incrociato ripetuto: il form descrive 1 righe e le fatture 0 prodotti fisici non riconciliabili in modo univoco per famiglia. Richiesto intervento operatore: confermare la cardinalita fisica e l'assegnazione degli attributi form.",
+          "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+          "Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture.",
+          "Il totale di almeno un documento fiscale non è stato riconosciuto.",
+          "Tripla riconciliazione non dimostrata: terna-fattura-incerta:4ea2c1911aa83f18aae00ac2a9ba9b7cb9039896a82f3474b9c1ede95bbd4487:invoice:264f0ccd0374, nessuna-fattura-economica-valida."
+        ],
+        "warningCodes": [
+          "explicit_building_type_over_apartment_count"
+        ]
+      },
+      {
+        "customerKey": "patrizia-muzzi",
+        "displayName": "Patrizia Muzzi",
+        "cohort": 34,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "product_cardinality_form_invoice_mismatch",
+          "screenings_missing",
+          "completion_date_missing",
+          "gross_triple_reconciliation_failed"
+        ],
+        "blockerReasons": [
+          "Controllo incrociato ripetuto: il form descrive 1 righe e le fatture 0 prodotti fisici non riconciliabili in modo univoco per famiglia. Richiesto intervento operatore: confermare la cardinalita fisica e l'assegnazione degli attributi form.",
+          "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+          "Fine lavori assente e data fattura non ricavabile.",
+          "Tripla riconciliazione non dimostrata: fonti-assenti, nessuna-fattura-economica-valida."
+        ],
+        "warningCodes": [
+          "secondary_home_36_percent_allocation_planned"
+        ]
+      },
+      {
+        "customerKey": "prova-rivenditore-1-30-04",
+        "displayName": "prova rivenditore 1 30/04",
+        "cohort": 55,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "permanent_customer_automation_exclusion"
+        ],
+        "blockerReasons": [
+          "PROVA RIVENDITORE 1 30/04: Pratica interna confermata dall'utente ed esclusa permanentemente dall'automazione APR. Nessun allegato viene elaborato e nessuna azione ENEA viene tentata."
+        ],
+        "warningCodes": []
+      },
+      {
+        "customerKey": "riccardo-coda",
+        "displayName": "RICCARDO CODA",
+        "cohort": 49,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "invoice_929a8665",
+          "gross_triple_reconciliation_failed"
+        ],
+        "blockerReasons": [
+          "Il totale di almeno un documento fiscale non è stato riconosciuto.",
+          "Tripla riconciliazione non dimostrata: terna-fattura-incerta:6c1f76247f7f75167d03bba588551f75d8891f18e47873e15c03e8f679aadedf:invoice:17381fdee994, terna-fattura-incerta:6c1f76247f7f75167d03bba588551f75d8891f18e47873e15c03e8f679aadedf:invoice:693b724dfb5a."
+        ],
+        "warningCodes": [
+          "linea_sole_potito_paper_form_accepted",
+          "crm_fiscal_code_confirmed_by_invoice_customer_block",
+          "primary_beneficiary_identity_overridden_by_invoice",
+          "building_units_defaulted_to_one",
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "roberta-di-cesare",
+        "displayName": "roberta di cesare",
+        "cohort": 11,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "customer_form_missing",
+          "screenings_missing",
+          "screening_primary_measurements_missing"
+        ],
+        "blockerReasons": [
+          "Il dossier CRM non contiene un form cliente originario utilizzabile; documenti ENEA storici esclusi.",
+          "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+          "La fattura descrive la schermatura ma nessuna fonte primaria riporta le misure fisiche del prodotto. APR non usa le misure della finestra protetta come misure del prodotto: acquisire o confermare le misure e rimettere la pratica in Pronte da fare."
+        ],
+        "warningCodes": [
+          "crm_fiscal_code_confirmed_by_invoice_customer_block",
+          "primary_beneficiary_identity_overridden_by_invoice"
+        ]
+      },
+      {
+        "customerKey": "rocco-giacotto",
+        "displayName": "Rocco Giacotto",
+        "cohort": 69,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "product_cardinality_form_invoice_mismatch",
+          "screenings_missing",
+          "original_invoice_missing_or_unavailable",
+          "completion_date_missing",
+          "gross_triple_reconciliation_failed"
+        ],
+        "blockerReasons": [
+          "Controllo incrociato ripetuto: il form descrive 1 righe e le fatture 0 prodotti fisici non riconciliabili in modo univoco per famiglia. Richiesto intervento operatore: confermare la cardinalita fisica e l'assegnazione degli attributi form.",
+          "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+          "La fattura originaria dichiarata non e' acquisibile come documento valido: Richiesto intervento operatore. Dopo il nuovo allegato e il ritorno in Pronte da fare APR rieseguira' la pratica.",
+          "Fine lavori assente e data fattura non ricavabile.",
+          "Tripla riconciliazione non dimostrata: fonti-assenti, nessuna-fattura-economica-valida."
+        ],
+        "warningCodes": [
+          "birth_country_resolved_from_reliable_belfiore_registry",
+          "explicit_building_type_over_apartment_count"
+        ]
+      },
+      {
+        "customerKey": "romeo-ropa",
+        "displayName": "Romeo Ropa",
+        "cohort": 67,
+        "module": "screening",
+        "outcome": "ready_local_plan",
+        "blockerCodes": [],
+        "blockerReasons": [],
+        "warningCodes": [
+          "fiscal_code_single_ocr_confusable_repaired",
+          "explicit_building_type_over_apartment_count"
+        ]
+      },
+      {
+        "customerKey": "rosa-toscano",
+        "displayName": "rosa toscano",
+        "cohort": 81,
+        "module": "screening",
+        "outcome": "ready_local_plan",
+        "blockerCodes": [],
+        "blockerReasons": [],
+        "warningCodes": [
+          "invoice_reference_unique_base_matched",
+          "product_cardinality_form_invoice_difference_resolved",
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "rossella-munafo",
+        "displayName": "Rossella Munafò",
+        "cohort": 21,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "product_cardinality_form_invoice_mismatch",
+          "screenings_missing",
+          "invoice_332a5af9"
+        ],
+        "blockerReasons": [
+          "Controllo incrociato ripetuto: il form descrive 2 righe e le fatture 0 prodotti fisici non riconciliabili in modo univoco per famiglia. Richiesto intervento operatore: confermare la cardinalita fisica e l'assegnazione degli attributi form.",
+          "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+          "Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture."
+        ],
+        "warningCodes": [
+          "crm_fiscal_code_confirmed_by_invoice_customer_block",
+          "explicit_building_type_over_apartment_count",
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "sabrina-eustomi",
+        "displayName": "Sabrina Eustomi",
+        "cohort": 44,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "customer_form_missing",
+          "tax_code_missing_or_invalid"
+        ],
+        "blockerReasons": [
+          "Il dossier CRM non contiene un form cliente originario utilizzabile; documenti ENEA storici esclusi.",
+          "CF valido e coerente non disponibile nel form o nelle fatture originarie."
+        ],
+        "warningCodes": [
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "santo-giuga",
+        "displayName": "Santo Giuga",
+        "cohort": 33,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "screenings_missing",
+          "bank_transfer_invoice_cross_check_failed",
+          "screening_primary_measurements_missing",
+          "invoice_929a8665",
+          "gross_triple_reconciliation_failed"
+        ],
+        "blockerReasons": [
+          "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+          "Controllo incrociato bonifici/fatture non conclusivo: capitale non leggibile, lordo fatture € non verificato, riferimenti mancanti , 124/FE, 184/FE, 297/FE. Richiesto intervento operatore; nessun totale viene inventato.",
+          "La fattura descrive la schermatura ma nessuna fonte primaria riporta le misure fisiche del prodotto. APR non usa le misure della finestra protetta come misure del prodotto: acquisire o confermare le misure e rimettere la pratica in Pronte da fare.",
+          "Il totale di almeno un documento fiscale non è stato riconosciuto.",
+          "Tripla riconciliazione non dimostrata: terna-fattura-incerta:aac93e924179125e7c68dc78653dd210367f0653e736092a2fcc8ca8b4d3a525:invoice:264f0ccd0374."
+        ],
+        "warningCodes": []
+      },
+      {
+        "customerKey": "sarah-mondini",
+        "displayName": "Sarah Mondini",
+        "cohort": 2,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "product_cardinality_form_invoice_mismatch",
+          "screenings_missing",
+          "screening_primary_measurements_missing"
+        ],
+        "blockerReasons": [
+          "Controllo incrociato ripetuto: il form descrive 3 righe e le fatture 0 prodotti fisici non riconciliabili in modo univoco per famiglia. Richiesto intervento operatore: confermare la cardinalita fisica e l'assegnazione degli attributi form.",
+          "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+          "La fattura descrive la schermatura ma nessuna fonte primaria riporta le misure fisiche del prodotto. APR non usa le misure della finestra protetta come misure del prodotto: acquisire o confermare le misure e rimettere la pratica in Pronte da fare."
+        ],
+        "warningCodes": [
+          "explicit_building_type_over_apartment_count"
+        ]
+      },
+      {
+        "customerKey": "smaj-hhhhh",
+        "displayName": "Smaj Hhhhh",
+        "cohort": 93,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "tax_code_missing_or_invalid",
+          "product_cardinality_form_invoice_mismatch",
+          "screenings_missing",
+          "completion_date_missing",
+          "gross_triple_reconciliation_failed"
+        ],
+        "blockerReasons": [
+          "CF valido e coerente non disponibile nel form o nelle fatture originarie.",
+          "Controllo incrociato ripetuto: il form descrive 1 righe e le fatture 0 prodotti fisici non riconciliabili in modo univoco per famiglia. Richiesto intervento operatore: confermare la cardinalita fisica e l'assegnazione degli attributi form.",
+          "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+          "Fine lavori assente e data fattura non ricavabile.",
+          "Tripla riconciliazione non dimostrata: fonti-assenti, nessuna-fattura-economica-valida."
+        ],
+        "warningCodes": []
+      },
+      {
+        "customerKey": "stefania-spina",
+        "displayName": "STEFANIA SPINA",
+        "cohort": 4,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "permanent_supplier_automation_exclusion"
+        ],
+        "blockerReasons": [
+          "Erre Emme / RM Legno: Fornitore escluso dall'elaborazione automatica per decisione permanente dell'utente. Nessun allegato viene elaborato e nessuna azione ENEA viene tentata."
+        ],
+        "warningCodes": []
+      },
+      {
+        "customerKey": "stefania-venturi",
+        "displayName": "Stefania Venturi",
+        "cohort": 89,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "draft_payload_mapping_incomplete"
+        ],
+        "blockerReasons": [
+          "Il preflight delle fonti non presenta conflitti, ma il payload ENEA non e completo: Titolo sull'immobile: Intervento umano richiesto.; Anno di costruzione: Intervento umano richiesto.; Superficie utile: Intervento umano richiesto.; Tipo impianto: Intervento umano richiesto.; Terminali: Intervento umano richiesto.; Tipo generatore: Intervento umano richiesto.; Numero generatori: Intervento umano richiesto.; Vettore energetico: Intervento umano richiesto.; Climatizzazione estiva: Intervento umano richiesto.. Correggere il mapping locale prima di accodare la pratica; nessuna azione esterna consentita."
+        ],
+        "warningCodes": [
+          "original_pratica_rapida_paper_form_explicit_values_accepted",
+          "paper_form_birth_date_separator_ocr_repaired",
+          "building_units_defaulted_to_one"
+        ]
+      },
+      {
+        "customerKey": "stefano-buosi",
+        "displayName": "Stefano Buosi",
+        "cohort": 54,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "screenings_missing",
+          "invoice_332a5af9"
+        ],
+        "blockerReasons": [
+          "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+          "Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture."
+        ],
+        "warningCodes": [
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "vera-buracchi",
+        "displayName": "VERA BURACCHI",
+        "cohort": 25,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "original_invoice_missing_or_unavailable",
+          "screenings_missing",
+          "invoice_332a5af9"
+        ],
+        "blockerReasons": [
+          "La fattura presente detrae o richiama una fattura di acconto non acquisita (320/25); APR non puo ricostruire il totale documentale completo senza la fonte fiscale originaria.",
+          "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+          "Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture."
+        ],
+        "warningCodes": [
+          "secondary_home_36_percent_allocation_planned",
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "vincenzo-falconi",
+        "displayName": "VINCENZO FALCONI",
+        "cohort": 19,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "product_cardinality_form_invoice_mismatch",
+          "screenings_missing",
+          "invoice_332a5af9"
+        ],
+        "blockerReasons": [
+          "Controllo incrociato ripetuto: il form descrive 2 righe e le fatture 0 prodotti fisici non riconciliabili in modo univoco per famiglia. Richiesto intervento operatore: confermare la cardinalita fisica e l'assegnazione degli attributi form.",
+          "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+          "Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture."
+        ],
+        "warningCodes": [
+          "explicit_building_type_over_apartment_count",
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "vito-fusillo",
+        "displayName": "VITO FUSILLO",
+        "cohort": 56,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "product_cardinality_form_invoice_mismatch",
+          "screenings_missing",
+          "completion_date_portal_year_mismatch",
+          "completion_over_90_days_operator_required",
+          "invoice_332a5af9"
+        ],
+        "blockerReasons": [
+          "Controllo incrociato ripetuto: il form descrive 1 righe e le fatture 0 prodotti fisici non riconciliabili in modo univoco per famiglia. Richiesto intervento operatore: confermare la cardinalita fisica e l'assegnazione degli attributi form.",
+          "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+          "Fine lavori 2020-11-03: anno 2020 incompatibile con il portale ENEA 2026. Selezionare il portale annuale corretto senza modificare la data.",
+          "Fine lavori 2020-11-03: 2134 giorni prima della lavorazione, oltre il limite di 90 giorni. Verificare la procedibilità e il portale annuale corretto.",
+          "Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture."
+        ],
+        "warningCodes": [
+          "crm_fiscal_code_confirmed_by_invoice_customer_block",
+          "explicit_building_type_over_apartment_count"
+        ]
+      },
+      {
+        "customerKey": "zeno-righetti",
+        "displayName": "Zeno Righetti",
+        "cohort": 87,
+        "module": "screening",
+        "outcome": "ready_local_plan",
+        "blockerCodes": [],
+        "blockerReasons": [],
+        "warningCodes": [
+          "crm_fiscal_code_confirmed_by_invoice_customer_block",
+          "explicit_building_type_over_apartment_count",
+          "product_cardinality_form_invoice_difference_resolved"
+        ]
+      }
+    ]
+  }
+}

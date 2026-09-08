@@ -1,0 +1,72 @@
+{
+  "version": "apr-rinaldi-practice-total-and-exclusions-r40-preinstall-gate-v1",
+  "attestedAt": "2026-09-03T22:48:58.563Z",
+  "status": "tested_not_deployed",
+  "monotonicGate": {
+    "baseline": {
+      "suites": 444,
+      "tests": 1708,
+      "reportSha256": "9fe36bf9f2037e54136352384aa35b324723759b4f269cf7f5ef2d1d09dc88ce"
+    },
+    "candidate": {
+      "suites": 444,
+      "tests": 1719,
+      "reportSha256": "cc3a5a1981b2be49a4da44dfece91bf5af5c668d6ffc9257a1e978a6053230e5"
+    },
+    "registryVersion": "enea-operational-registry-v117",
+    "matrixVersion": "apr-enea-rule-test-matrix-v94",
+    "rulesProved": 115,
+    "ruleEvidenceSha256": "e0d7132baf46a7f3a0cfa57c7d8bc491c11188ce1f31daa98b2ebf4ed5ad9ab1"
+  },
+  "verifiedOriginalReplay": {
+    "status": "passed_local_replay_of_hash_verified_original_extractions",
+    "reportSha256": "898e76ad44cf3be957c1e898ffbef804dbb20210d82b155a71abaab7c229f90e",
+    "diagnosticSha256": "59f615364b5d3fa266dd87413174f10d1abe6fb42d8c7ce245740a594128d2ba",
+    "documents": 359,
+    "bytes": 293624565,
+    "hashMismatches": 0,
+    "readyCases": 29,
+    "operatorRequiredCases": 71,
+    "changedCases": [
+      "giuseppe-d-adduzio",
+      "prova-rivenditore-1-30-04"
+    ],
+    "externalActionAllowed": false
+  },
+  "claudiaCampagna": {
+    "status": "ready_local_plan",
+    "invoiceGrossSum": 2960,
+    "rinaldiEligibleExpense": 2276.06,
+    "reconciliationMethods": 3
+  },
+  "exclusionClosure": {
+    "terminalCases": [
+      {
+        "customerKey": "giuseppe-d-adduzio",
+        "blockerKeys": [
+          "permanent_supplier_automation_exclusion:supplier"
+        ]
+      },
+      {
+        "customerKey": "prova-rivenditore-1-30-04",
+        "blockerKeys": [
+          "permanent_customer_automation_exclusion:practice"
+        ]
+      }
+    ]
+  },
+  "stagedBundle": {
+    "apr-supervisor.mjs": "625781b07e79a4827e40a76d79ef98b77db092557219aad326da889673fc04e8",
+    "apr-enea-worker.mjs": "eb9e54dd425484e6c1fa098c634416cddb4b88a6c8f25b780399559cf69b1460",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "apr-pdf-ocr": "4c41c9a6832b11b9d19eace538100270a533dddc05e475e5842711968393327f"
+  },
+  "safety": {
+    "localOnly": true,
+    "externalActionAllowed": false,
+    "previewAllowed": false,
+    "saveAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false
+  }
+}

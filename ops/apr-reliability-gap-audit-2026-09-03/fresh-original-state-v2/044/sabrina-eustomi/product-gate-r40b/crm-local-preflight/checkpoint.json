@@ -1,0 +1,561 @@
+{
+  "version": "apr-crm-local-preflight-v1",
+  "revision": 1,
+  "status": "completed",
+  "sourceFingerprint": "cc4281e220d6cff37476d2852f1760117f782ac7f51e494ad5e29c5bd10851a6",
+  "currentCustomerKey": null,
+  "items": [
+    {
+      "customerKey": "sabrina-eustomi",
+      "displayName": "Sabrina Eustomi",
+      "practiceId": "72e6b344-ce0c-4b50-83b6-113d38c31b11",
+      "dossierPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2964-global-controller-sabrina-eustomi/crm-acquisition/dossiers/sabrina-eustomi.json",
+      "state": "blocked_case",
+      "attemptCount": 1,
+      "startedAt": null,
+      "endedAt": null,
+      "report": {
+        "outcome": "blocked_case",
+        "formAvailable": false,
+        "startDate": "2026-06-16",
+        "startDateSource": "3b9f8263f8bef14451569012661231a2cbb0522edccb44af7b1e7a0264a45b35:invoice:264f0ccd0374",
+        "completionDate": "2026-06-16",
+        "completionDateSource": "3b9f8263f8bef14451569012661231a2cbb0522edccb44af7b1e7a0264a45b35:invoice:264f0ccd0374",
+        "buildingQualification": null,
+        "buildingUnitCount": null,
+        "deductionRate": null,
+        "taxCodeStatus": "missing_or_invalid",
+        "resolvedTaxCode": null,
+        "taxCodeSourceIds": [
+          "sabrina-eustomi"
+        ],
+        "primaryBeneficiaryResolution": {
+          "status": "not_found",
+          "identity": null,
+          "sourceIds": [],
+          "authority": null
+        },
+        "coBeneficiaryResolution": {
+          "status": "not_declared",
+          "present": false,
+          "identity": null,
+          "sourceIds": []
+        },
+        "products": [
+          {
+            "rowId": "3b9f8263f8bef14451569012661231a2cbb0522edccb44af7b1e7a0264a45b35:invoice:264f0ccd0374:piece-1",
+            "sourceDocumentKey": "3b9f8263f8bef14451569012661231a2cbb0522edccb44af7b1e7a0264a45b35:invoice:264f0ccd0374",
+            "description": "Tapparella in alluminio",
+            "pieceNumber": 1,
+            "widthMm": 1100,
+            "heightMm": 2250,
+            "surfaceM2": 2.475,
+            "exposure": null,
+            "exposureSource": null,
+            "protectedWindowSurfaceM2": 2.475,
+            "protectedWindowSurfaceSource": "derived_product_surface",
+            "supplementaryThermalResistance": 0.17,
+            "declaredType": "avvolgibile",
+            "formMappingSource": null,
+            "gTot": 0.06,
+            "gTotSource": "authorized_fallback",
+            "material": "Metallo",
+            "materialSource": "invoice_explicit",
+            "movement": "Manuale",
+            "movementSource": "invoice_explicit",
+            "appliedRuleIds": [
+              "user-2026-08-31-rigid-screening-missing-gtot-006-v1",
+              "user-2026-08-31-avvolgibile-screening-contract-v2",
+              "user-2026-08-18-screening-surface-material-over-support-structure",
+              "user-2026-08-18-explicit-motorized-screening-movement",
+              "authorized-22-schermature-materiale",
+              "authorized-16-schermature-meccanismo",
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+              "user-2026-08-18-explicit-technical-surface-precision"
+            ]
+          },
+          {
+            "rowId": "3b9f8263f8bef14451569012661231a2cbb0522edccb44af7b1e7a0264a45b35:invoice:264f0ccd0374:piece-2",
+            "sourceDocumentKey": "3b9f8263f8bef14451569012661231a2cbb0522edccb44af7b1e7a0264a45b35:invoice:264f0ccd0374",
+            "description": "Tapparella in alluminio",
+            "pieceNumber": 2,
+            "widthMm": 700,
+            "heightMm": 1500,
+            "surfaceM2": 1.05,
+            "exposure": null,
+            "exposureSource": null,
+            "protectedWindowSurfaceM2": 1.05,
+            "protectedWindowSurfaceSource": "derived_product_surface",
+            "supplementaryThermalResistance": 0.17,
+            "declaredType": "avvolgibile",
+            "formMappingSource": null,
+            "gTot": 0.06,
+            "gTotSource": "authorized_fallback",
+            "material": "Metallo",
+            "materialSource": "invoice_explicit",
+            "movement": "Manuale",
+            "movementSource": "invoice_explicit",
+            "appliedRuleIds": [
+              "user-2026-08-31-rigid-screening-missing-gtot-006-v1",
+              "user-2026-08-31-avvolgibile-screening-contract-v2",
+              "user-2026-08-18-screening-surface-material-over-support-structure",
+              "user-2026-08-18-explicit-motorized-screening-movement",
+              "authorized-22-schermature-materiale",
+              "authorized-16-schermature-meccanismo",
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+              "user-2026-08-18-explicit-technical-surface-precision"
+            ]
+          },
+          {
+            "rowId": "3b9f8263f8bef14451569012661231a2cbb0522edccb44af7b1e7a0264a45b35:invoice:264f0ccd0374:piece-3",
+            "sourceDocumentKey": "3b9f8263f8bef14451569012661231a2cbb0522edccb44af7b1e7a0264a45b35:invoice:264f0ccd0374",
+            "description": "Tapparella in alluminio",
+            "pieceNumber": 3,
+            "widthMm": 1093,
+            "heightMm": 2270,
+            "surfaceM2": 2.4811,
+            "exposure": null,
+            "exposureSource": null,
+            "protectedWindowSurfaceM2": 2.4811,
+            "protectedWindowSurfaceSource": "derived_product_surface",
+            "supplementaryThermalResistance": 0.17,
+            "declaredType": "avvolgibile",
+            "formMappingSource": null,
+            "gTot": 0.06,
+            "gTotSource": "authorized_fallback",
+            "material": "Metallo",
+            "materialSource": "invoice_explicit",
+            "movement": "Manuale",
+            "movementSource": "invoice_explicit",
+            "appliedRuleIds": [
+              "user-2026-08-31-rigid-screening-missing-gtot-006-v1",
+              "user-2026-08-31-avvolgibile-screening-contract-v2",
+              "user-2026-08-18-screening-surface-material-over-support-structure",
+              "user-2026-08-18-explicit-motorized-screening-movement",
+              "authorized-22-schermature-materiale",
+              "authorized-16-schermature-meccanismo",
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+              "user-2026-08-18-explicit-technical-surface-precision"
+            ]
+          },
+          {
+            "rowId": "3b9f8263f8bef14451569012661231a2cbb0522edccb44af7b1e7a0264a45b35:invoice:264f0ccd0374:piece-4",
+            "sourceDocumentKey": "3b9f8263f8bef14451569012661231a2cbb0522edccb44af7b1e7a0264a45b35:invoice:264f0ccd0374",
+            "description": "Altra schermatura solare - zanzariera",
+            "pieceNumber": 4,
+            "widthMm": 1093,
+            "heightMm": 2270,
+            "surfaceM2": 2.4811,
+            "exposure": null,
+            "exposureSource": null,
+            "protectedWindowSurfaceM2": null,
+            "protectedWindowSurfaceSource": null,
+            "supplementaryThermalResistance": null,
+            "declaredType": null,
+            "formMappingSource": null,
+            "gTot": 0.33,
+            "gTotSource": "authorized_fallback",
+            "material": "Misto",
+            "materialSource": "invoice_explicit",
+            "movement": "Manuale",
+            "movementSource": "invoice_explicit",
+            "appliedRuleIds": [
+              "user-2026-08-31-zanzariera-missing-gtot-033-v1",
+              "user-2026-08-18-screening-surface-material-over-support-structure",
+              "user-2026-08-18-explicit-composite-screening-material",
+              "user-2026-08-18-explicit-motorized-screening-movement",
+              "authorized-22-schermature-materiale",
+              "authorized-16-schermature-meccanismo",
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+              "user-2026-08-18-explicit-technical-surface-precision"
+            ]
+          },
+          {
+            "rowId": "3b9f8263f8bef14451569012661231a2cbb0522edccb44af7b1e7a0264a45b35:invoice:264f0ccd0374:piece-5",
+            "sourceDocumentKey": "3b9f8263f8bef14451569012661231a2cbb0522edccb44af7b1e7a0264a45b35:invoice:264f0ccd0374",
+            "description": "Altra schermatura solare - zanzariera",
+            "pieceNumber": 5,
+            "widthMm": 710,
+            "heightMm": 1487,
+            "surfaceM2": 1.0558,
+            "exposure": null,
+            "exposureSource": null,
+            "protectedWindowSurfaceM2": null,
+            "protectedWindowSurfaceSource": null,
+            "supplementaryThermalResistance": null,
+            "declaredType": null,
+            "formMappingSource": null,
+            "gTot": 0.33,
+            "gTotSource": "authorized_fallback",
+            "material": "Misto",
+            "materialSource": "invoice_explicit",
+            "movement": "Manuale",
+            "movementSource": "invoice_explicit",
+            "appliedRuleIds": [
+              "user-2026-08-31-zanzariera-missing-gtot-033-v1",
+              "user-2026-08-18-screening-surface-material-over-support-structure",
+              "user-2026-08-18-explicit-composite-screening-material",
+              "user-2026-08-18-explicit-motorized-screening-movement",
+              "authorized-22-schermature-materiale",
+              "authorized-16-schermature-meccanismo",
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+              "user-2026-08-18-explicit-technical-surface-precision"
+            ]
+          }
+        ],
+        "financial": {
+          "invoiceTotal": 4160,
+          "eligibleExpense": 4160,
+          "tripleReconciliationVerified": true,
+          "reconciledTotal": 4160,
+          "evidence": [
+            {
+              "sourceId": "3b9f8263f8bef14451569012661231a2cbb0522edccb44af7b1e7a0264a45b35:invoice:264f0ccd0374",
+              "kind": "invoice",
+              "taxableAmount": 3760.36,
+              "vatAmount": 399.64,
+              "grossTotal": 4160,
+              "interventionGrossAmount": 4160,
+              "extractionConfidence": "certain",
+              "extractionIssues": []
+            }
+          ],
+          "bankTransfers": [],
+          "bankTransferReconciliation": {
+            "status": "not_provided",
+            "principalTotal": null,
+            "feesTotal": null,
+            "debitedTotal": null,
+            "difference": null,
+            "referenceStatus": "not_provided",
+            "missingInvoiceReferences": [],
+            "taxReliefTypes": []
+          },
+          "methods": [
+            {
+              "method": "structured_extraction",
+              "ok": true,
+              "total": 4160,
+              "sources": [
+                "3b9f8263f8bef14451569012661231a2cbb0522edccb44af7b1e7a0264a45b35:invoice:264f0ccd0374"
+              ],
+              "reason": "Ogni documento ha imponibile, IVA e totale verificati."
+            },
+            {
+              "method": "accounting_reconciliation",
+              "ok": true,
+              "total": 4160,
+              "sources": [
+                "3b9f8263f8bef14451569012661231a2cbb0522edccb44af7b1e7a0264a45b35:invoice:264f0ccd0374"
+              ],
+              "reason": "Somma dei totali lordi IVA inclusa delle fatture uniche deduplicate; gli storni interni sono solo note auditabili."
+            },
+            {
+              "method": "intervention_cross_check",
+              "ok": true,
+              "total": 4160,
+              "sources": [
+                "3b9f8263f8bef14451569012661231a2cbb0522edccb44af7b1e7a0264a45b35:invoice:264f0ccd0374"
+              ],
+              "reason": "Totale ricostruito esclusivamente dalle righe pertinenti all'intervento."
+            }
+          ],
+          "discardedDuplicateSourceIds": [],
+          "supersededTechnicalSourceIds": [],
+          "appliedRuleIds": [
+            "user-2026-08-16-invoice-gross-total-vat-included",
+            "user-2026-08-18-bundled-professional-expense-separation",
+            "user-2026-08-18-mandatory-bank-transfer-invoice-expense-cross-check",
+            "core-gross-triple-reconciliation",
+            "user-2026-08-14-preserve-technical-product-cardinality",
+            "system-explicit-advance-invoice-reference-marker-v1"
+          ]
+        },
+        "warnings": [
+          {
+            "code": "enea_2026_june_25_ninety_day_window_applied",
+            "reason": "Avviso ENEA 25/06/2026 applicato: inizio lavori 2026-06-16, fine lavori 2026-06-16; i 90 giorni decorrono dal 25/06/2026 e terminano il 23/09/2026.",
+            "appliedRuleIds": [
+              "user-2026-08-23-enea-2026-june-25-ninety-day-window"
+            ]
+          }
+        ],
+        "blockers": [
+          {
+            "code": "customer_form_missing",
+            "field": "customer_form",
+            "reason": "Il dossier CRM non contiene un form cliente originario utilizzabile; documenti ENEA storici esclusi.",
+            "sourceIds": [
+              "3b9f8263f8bef14451569012661231a2cbb0522edccb44af7b1e7a0264a45b35"
+            ],
+            "appliedRuleIds": [
+              "core-form-first"
+            ]
+          },
+          {
+            "code": "tax_code_missing_or_invalid",
+            "field": "beneficiary.taxCode",
+            "reason": "CF valido e coerente non disponibile nel form o nelle fatture originarie.",
+            "sourceIds": [
+              "sabrina-eustomi"
+            ],
+            "appliedRuleIds": [
+              "core-form-first",
+              "user-2026-08-14-valid-original-document-cf-over-invalid-form",
+              "user-2026-08-16-fiscal-code-identity-cross-check"
+            ]
+          }
+        ],
+        "sourceIds": [
+          "3b9f8263f8bef14451569012661231a2cbb0522edccb44af7b1e7a0264a45b35"
+        ],
+        "eneaPayloadAudit": {
+          "status": "payload_incomplete",
+          "mappingFingerprint": "1aspepm",
+          "fieldSummary": {
+            "ready": 73,
+            "review": 0,
+            "missing": 29
+          },
+          "requiredPortalFieldCount": 62,
+          "blockerCount": 29,
+          "blockers": [
+            {
+              "code": "missing-beneficiario.data_nascita",
+              "fieldId": "beneficiario.data_nascita",
+              "message": "Data di nascita: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-beneficiario.nazione_nascita",
+              "fieldId": "beneficiario.nazione_nascita",
+              "message": "Nazione di nascita: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-beneficiario.comune_nascita",
+              "fieldId": "beneficiario.comune_nascita",
+              "message": "Comune di nascita: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-beneficiario.nazione_residenza",
+              "fieldId": "beneficiario.nazione_residenza",
+              "message": "Nazione di residenza: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-beneficiario.comune_residenza",
+              "fieldId": "beneficiario.comune_residenza",
+              "message": "Comune di residenza: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-beneficiario.indirizzo_residenza",
+              "fieldId": "beneficiario.indirizzo_residenza",
+              "message": "Indirizzo di residenza: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-beneficiario.civico_residenza",
+              "fieldId": "beneficiario.civico_residenza",
+              "message": "Civico di residenza: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-beneficiario.cap_residenza",
+              "fieldId": "beneficiario.cap_residenza",
+              "message": "CAP di residenza: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-beneficiario.titolo",
+              "fieldId": "beneficiario.titolo",
+              "message": "Titolo sull'immobile: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-beneficiario.abitazione_principale",
+              "fieldId": "beneficiario.abitazione_principale",
+              "message": "Abitazione principale: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-immobile.comune",
+              "fieldId": "immobile.comune",
+              "message": "Comune lavori: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-immobile.indirizzo",
+              "fieldId": "immobile.indirizzo",
+              "message": "Indirizzo lavori: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-immobile.civico",
+              "fieldId": "immobile.civico",
+              "message": "Civico lavori: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-immobile.cap",
+              "fieldId": "immobile.cap",
+              "message": "CAP lavori: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-immobile.foglio",
+              "fieldId": "immobile.foglio",
+              "message": "Foglio: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-immobile.mappale",
+              "fieldId": "immobile.mappale",
+              "message": "Particella / mappale: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-immobile.anno",
+              "fieldId": "immobile.anno",
+              "message": "Anno di costruzione: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-immobile.superficie",
+              "fieldId": "immobile.superficie",
+              "message": "Superficie utile: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-immobile.unita",
+              "fieldId": "immobile.unita",
+              "message": "Numero unità immobiliari: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-immobile.destinazione_generale",
+              "fieldId": "immobile.destinazione_generale",
+              "message": "Destinazione d'uso generale: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-immobile.destinazione_particolare",
+              "fieldId": "immobile.destinazione_particolare",
+              "message": "Destinazione d'uso particolare: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-immobile.tipologia",
+              "fieldId": "immobile.tipologia",
+              "message": "Tipologia edilizia: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-intervento.ambito",
+              "fieldId": "intervento.ambito",
+              "message": "Intervento su: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-impianto.tipo",
+              "fieldId": "impianto.tipo",
+              "message": "Tipo impianto: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-impianto.terminali",
+              "fieldId": "impianto.terminali",
+              "message": "Terminali: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-impianto.generatore",
+              "fieldId": "impianto.generatore",
+              "message": "Tipo generatore: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-impianto.numero_generatori",
+              "fieldId": "impianto.numero_generatori",
+              "message": "Numero generatori: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-impianto.combustibile",
+              "fieldId": "impianto.combustibile",
+              "message": "Vettore energetico: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-impianto.condizionamento",
+              "fieldId": "impianto.condizionamento",
+              "message": "Climatizzazione estiva: Intervento umano richiesto."
+            }
+          ],
+          "excludedUnverifiedFields": [
+            "beneficiario.data_nascita",
+            "beneficiario.nazione_nascita",
+            "beneficiario.comune_nascita",
+            "beneficiario.provincia_nascita",
+            "beneficiario.nazione_residenza",
+            "beneficiario.comune_residenza",
+            "beneficiario.indirizzo_residenza",
+            "beneficiario.civico_residenza",
+            "beneficiario.cap_residenza",
+            "beneficiario.titolo",
+            "beneficiario.abitazione_principale",
+            "immobile.comune",
+            "immobile.provincia",
+            "immobile.indirizzo",
+            "immobile.civico",
+            "immobile.cap",
+            "immobile.codice_comune",
+            "immobile.foglio",
+            "immobile.mappale",
+            "immobile.anno",
+            "immobile.superficie",
+            "immobile.unita",
+            "immobile.destinazione_generale",
+            "immobile.destinazione_particolare",
+            "immobile.tipologia",
+            "immobile.zona_climatica",
+            "immobile.gradi_giorno",
+            "intervento.ambito",
+            "intervento.unita_totali",
+            "intervento.impianto_centralizzato",
+            "impianto.tipo",
+            "impianto.terminali",
+            "impianto.generatore",
+            "impianto.combustibile",
+            "impianto.condizionamento",
+            "schermature.3.rsupp",
+            "schermature.4.rsupp",
+            "documenti.fatture",
+            "documenti.bonifico",
+            "documenti.tecnici"
+          ],
+          "draftReady": false,
+          "officialSubmissionAllowed": false,
+          "portalGate": {
+            "status": "blocked",
+            "reason": "draft-data-incomplete",
+            "workflowFingerprint": null,
+            "supportedPages": [],
+            "screeningItemCount": 0,
+            "saveAllowedOnlyBySeparateCapability": true,
+            "previewAllowed": false,
+            "submitAllowed": false
+          },
+          "externalActionAllowed": false,
+          "reason": "29 campi o controlli impediscono ancora il payload della bozza TEST."
+        },
+        "draftPlan": {
+          "status": "blocked",
+          "externalActionAllowed": false,
+          "previewAllowed": false,
+          "submitAllowed": false,
+          "communicationsAllowed": false,
+          "nextAction": "Risolvere i blocker con sole fonti originarie; la coda prosegue sugli altri casi."
+        }
+      },
+      "reason": "Fresh replay dai documenti originali"
+    }
+  ],
+  "externalActionAllowed": false,
+  "reason": "Fresh replay locale",
+  "nextAction": "Nessuna azione esterna.",
+  "validationRevisionsApplied": [],
+  "sourceRevisionsApplied": [],
+  "operatorMeasurementResolutions": [],
+  "audit": [
+    {
+      "revision": 1,
+      "at": "2026-09-03T10:00:00.000Z",
+      "type": "completed",
+      "customerKey": null,
+      "reason": "Fresh replay locale",
+      "appliedRuleIds": [
+        "system-single-active-practice"
+      ]
+    }
+  ]
+}

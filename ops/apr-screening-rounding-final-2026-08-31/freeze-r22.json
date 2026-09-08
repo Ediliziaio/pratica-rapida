@@ -1,0 +1,68 @@
+{
+  "version": "apr-screening-rounding-final-freeze-r22-v1",
+  "frozenAt": "2026-09-01T03:49:40Z",
+  "supersedes": {
+    "freezeSha256": "7477e0167b4a0bbe2bd27a8297f1bd1800d68e99fe129914af50718c2ea1614d",
+    "reason": "R21 round 1 completed 30 cases but five terminal report states diverged from case-truth (four TECHNICAL_BLOCK and one INCONSISTENT); preserved as diagnostic evidence and not counted as a valid 30x3 round."
+  },
+  "authorizationId": "user-2026-08-31-definitive-mandate-same-authorized-corpus",
+  "portalMode": "real_enea_draft_only",
+  "sourceSnapshot": {
+    "path": "/private/tmp/apr-promote-screening-rounding-final-20260901-R22.bxMYlU",
+    "gitCommit": "e891ea92951338b966fd6727ff7fde10c48f25af",
+    "treeHash": "bc782428b0416da440d0da848a0b2a38b7076e37"
+  },
+  "sequencer": {
+    "path": "/private/tmp/apr-promote-screening-rounding-final-20260901-R22.bxMYlU/ops/apr-global-controller-test10-2026-08-29/sequencer.mjs",
+    "sha256": "1af06dee2d2e5ab699f5745d0ee7bdf040497a333e1c3860e34f65bb0927bd81"
+  },
+  "manifest": {
+    "path": "/private/tmp/apr-promote-screening-rounding-final-20260901-R22.bxMYlU/ops/apr-global-controller-test10-2026-08-29/manifest-autonomy30.json",
+    "sha256": "6c684df774a48899a6ff4e2a6e52dfe83c2b9c357a81a6c6c52034abe687a953",
+    "caseCount": 30,
+    "requiredCustomerKeys": ["cristina-ricchi", "zeno-righetti"],
+    "excludedCustomerKeys": ["beatrice-ciotta"]
+  },
+  "monotonicGate": {
+    "status": "PASS",
+    "testSuites": 433,
+    "testFiles": 216,
+    "tests": 1611,
+    "failed": 0,
+    "typecheck": "PASS",
+    "productionBuild": "PASS",
+    "focusedFailClosedTests": "14/14 PASS",
+    "attestationPath": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-screening-rounding-final-2026-08-31/gate-attestation-r22.json"
+  },
+  "canonicalBundle": {
+    "versionId": "4b7bce9-terminal-truth-r22-20260901",
+    "supervisorSha256": "3a7477544c7d8a861dc37f4877252f6426e46f49500f457e26c40e71bd723b65",
+    "workerSha256": "4b7bce90fd31382a9944270ee8732a6d42ef0a2642bc4d3954008abb32be8d19",
+    "watchdogSha256": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "activationStatus": "ACTIVE"
+  },
+  "targeted": {
+    "customerKey": "armando-ranzoni",
+    "cohort": 2551,
+    "manifestPath": "/private/tmp/apr-promote-screening-rounding-final-20260901-R22.bxMYlU/ops/apr-screening-rounding-final-2026-08-31/manifest-targeted-ranzoni-r22.json",
+    "manifestSha256": "5dc86919d9b4ca402e488b87462dec241043fdb705f2657e8189b1f01749e6ac",
+    "runRoot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-screening-rounding-targeted-ranzoni-r22",
+    "plistSha256": "f0f781cc4e9dfbc604a172d1d6b4d635b357dbf953eba33e0dd3f6959a9e8b24"
+  },
+  "rounds": [
+    {"round": 1, "label": "com.praticarapida.apr-screening-rounding-final-r22-round1", "cohortOffset": 2340, "cohortRange": "2558-2587", "runRoot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-screening-rounding-final-r22-round1", "plistSha256": "6e8f323ff0f93ae7193dd9bbac9ccb75b169990c3d373e43b17245ba8c5230c4"},
+    {"round": 2, "label": "com.praticarapida.apr-screening-rounding-final-r22-round2", "cohortOffset": 2370, "cohortRange": "2588-2617", "runRoot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-screening-rounding-final-r22-round2", "plistSha256": "6e6137e5f0aa42839d647393009630b7e55a43ecebeaad5c2f594029010f01cd"},
+    {"round": 3, "label": "com.praticarapida.apr-screening-rounding-final-r22-round3", "cohortOffset": 2400, "cohortRange": "2618-2647", "runRoot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-screening-rounding-final-r22-round3", "plistSha256": "610f5408d83b2edf0689204c9aa0c5e0fbb56faaa73d624c2b301f6f7f7e9f69"}
+  ],
+  "constraints": {
+    "chromeKeepaliveMayTerminate": false,
+    "chromePidAtFreeze": 42177,
+    "roundsMayOverlap": false,
+    "noCodeChangesBetweenRounds": true,
+    "sameBundleHashesRequired": true,
+    "sameManifestRequired": true,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false
+  }
+}

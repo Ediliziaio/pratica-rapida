@@ -1,0 +1,43 @@
+{
+  "version": "apr-r85-chrome-identity-blocker-report-v1",
+  "observedAt": "2026-09-07T18:28:42.650Z",
+  "classification": "TECHNICAL_BLOCK",
+  "gate": {
+    "status": "active_tested_deployed",
+    "matrixRules": 173,
+    "sourceFingerprint": "95dcaa06bb3628b62d4ea36f044056028251e69ca14a13db7263a353f9b3227e",
+    "workerSha256": "25c2037e98876c6b49e97908fd1aad6b04c94c991e16a1eaaefa5657975c142d",
+    "attestationSha256": "c4fcd027e7dcd4945d133337483a6c6814bdd276da2bb3106dac639f0beda8fb"
+  },
+  "runtime": {
+    "launchAgent": "com.praticarapida.apr-enea-immortal-keepalive",
+    "workerPid": 26861,
+    "workerBundle": "versions/d1681076-manso-cap-typo-fix-r85-20260907/apr-enea-worker.mjs",
+    "heartbeatAt": "2026-09-07T18:28:42.650Z",
+    "publicStatus": "technical_block",
+    "error": "apr_chrome_process_identity_unavailable"
+  },
+  "receipt": {
+    "path": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/state/enea-browser-worker/chrome-profile/.apr-runtime/chrome-9331.receipt.json",
+    "pid": 45640,
+    "processStartedAt": "Sun Sep 6 11:23:13 2026",
+    "createdAt": "2026-09-06T09:23:20.669Z",
+    "pidCurrentlyExists": false
+  },
+  "actualChrome": {
+    "pid": 3785,
+    "processStartedAt": "Tue Sep 1 16:00:32 2026",
+    "remoteDebuggingPort": 9331,
+    "profileDirectory": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/state/enea-browser-worker/chrome-profile",
+    "listening": true
+  },
+  "conclusion": "La ricevuta persistente appartiene a un processo Chrome non più esistente, mentre il listener CDP appartiene al Chrome APR precedente ancora vivo. r85 riconosce correttamente il mismatch e fallisce chiuso; non è sicuro riassociare automaticamente la sessione senza una procedura autorizzata di verifica e rebinding.",
+  "safetyDisposition": {
+    "bertiStarted": false,
+    "manifestCreated": false,
+    "wide104Started": false,
+    "chromeStopped": false,
+    "keepaliveStopped": false
+  },
+  "operatorQuestion": "Autorizzi una verifica read-only dell'identità della sessione CDP sul Chrome APR PID 3785 e, solo se profilo, porta e sessione ENEA concordano, la rigenerazione atomica della ricevuta senza chiudere Chrome?"
+}

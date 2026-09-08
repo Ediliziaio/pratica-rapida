@@ -1,0 +1,37 @@
+{
+  "version": "apr-recovery-accounting-candidate-preinstall-gate-r50-v1",
+  "verifiedAt": "2026-09-04T20:35:00.000Z",
+  "status": "tested_not_deployed",
+  "correction": {
+    "ruleId": "system-verified-package-recovery-accounting-candidate-separation-v1",
+    "cause": "Il worker candidava qualunque recovery_authorized in save_intent_recorded al repair contabile riservato alla correzione verificata di un pacchetto Infissi. Sellati seguiva invece una nuova generazione correttiva del contratto Comune e non possedeva l'audit verified_infissi_package_correction_requeued richiesto dal repair.",
+    "scope": "Regola generale basata su stato, bozza canonica, contatori, evidence e ordine degli audit; nessuna logica per nome o coorte.",
+    "positive": "Il repair e candidato solo se l'audit verified_infissi_package_correction_requeued precede l'intento corrente della stessa pratica e le altre precondizioni autorevoli coincidono.",
+    "negative": "Un recovery ordinario o appartenente a una diversa correzione non entra nel repair; l'invocazione diretta resta fail-closed.",
+    "operationalProof": "Tre GET indipendenti della bozza Sellati 460570 hanno dato lo stesso fingerprint e provato not_saved senza mutazioni."
+  },
+  "monotonicGate": {
+    "testSuites": 444,
+    "tests": 1751,
+    "failedSuites": 0,
+    "failedTests": 0,
+    "rulesProved": 132,
+    "sourceFingerprint": "6566726c20bc160063ae40065448b84baf88ec560fb3ea709a6d791381ae6d93",
+    "deploymentMatches": false,
+    "execution": {
+      "nonCdp": "217 file verdi; i 3 file che richiedono loopback sono stati rieseguiti separatamente",
+      "loopback": "3 file, 33 test verdi",
+      "cdp": "1 file, 71 test verdi",
+      "targeted": "4 suite, 154 test verdi",
+      "materialized": "132/132 regole provate"
+    }
+  },
+  "stagedBundle": {
+    "apr-supervisor.mjs": "f73d521300398b11a86c1b86c987aa86a751a9642e73b2a75f61a53b3b2d530d",
+    "apr-enea-worker.mjs": "c7b93248da077dc5f9ae26b6f6a469d3eff277e726e7e57a496b0f0b62690b7d",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "apr-pdf-ocr": "4c41c9a6832b11b9d19eace538100270a533dddc05e475e5842711968393327f"
+  },
+  "previousCanonicalVersion": "9a77fc9f-recovery-prepared-window-r49-20260904",
+  "candidateVersion": "c7b93248-recovery-accounting-candidate-r50-20260904"
+}

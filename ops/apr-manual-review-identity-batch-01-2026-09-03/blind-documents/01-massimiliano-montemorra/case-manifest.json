@@ -1,0 +1,89 @@
+{
+  "schemaVersion": "apr-blind-case-documents-v1",
+  "caseId": "case-01",
+  "displayName": "Massimiliano Montemorra",
+  "documentCount": 7,
+  "documents": [
+    {
+      "filename": "01-fiscal-or-payment.pdf",
+      "sha256": "7b6e61093bea74c64febf0646480d40532e36b26fb9a106c856975cbb27a0146",
+      "byteLength": 211662,
+      "mediaType": "application/pdf",
+      "neutralKind": "fiscal-or-payment",
+      "renderedPages": [
+        "01-1.png"
+      ]
+    },
+    {
+      "filename": "02-fiscal-or-payment.pdf",
+      "sha256": "607960764f17c3a6fc0b4a77d7c16d52027daea9f5b07d31e31f469ae32a24b2",
+      "byteLength": 187779,
+      "mediaType": "application/pdf",
+      "neutralKind": "fiscal-or-payment",
+      "renderedPages": [
+        "02-1.png",
+        "02-2.png"
+      ]
+    },
+    {
+      "filename": "03-fiscal-or-payment.jpg",
+      "sha256": "5ccffd442696949327175284913b83a1cd27b1a7c2d2f2dcf15880e11e5795f3",
+      "byteLength": 150232,
+      "mediaType": "image/jpeg",
+      "neutralKind": "fiscal-or-payment",
+      "renderedPages": [
+        "03-1.jpg"
+      ]
+    },
+    {
+      "filename": "04-fiscal-or-payment.pdf",
+      "sha256": "793b9aa14b4db155aa3fa1898de3af09f6127ccafb603b0adf097a0bb8a82dd9",
+      "byteLength": 182586,
+      "mediaType": "application/pdf",
+      "neutralKind": "fiscal-or-payment",
+      "renderedPages": [
+        "04-1.png"
+      ]
+    },
+    {
+      "filename": "05-fiscal-or-payment.pdf",
+      "sha256": "208f381847aadeafa59855f65ad0a3b289c00e2714f20a32992d514e376c2dc7",
+      "byteLength": 315597,
+      "mediaType": "application/pdf",
+      "neutralKind": "fiscal-or-payment",
+      "renderedPages": [
+        "05-1.png",
+        "05-2.png"
+      ]
+    },
+    {
+      "filename": "06-supporting.pdf",
+      "sha256": "db8755a87f9111ddfc0efe2ff1fbbea4c68fa8149aeb13388e8e0b8967c643a4",
+      "byteLength": 252224,
+      "mediaType": "application/pdf",
+      "neutralKind": "supporting",
+      "renderedPages": [
+        "06-1.png",
+        "06-2.png",
+        "06-3.png",
+        "06-4.png",
+        "06-5.png"
+      ]
+    },
+    {
+      "filename": "07-supporting.pdf",
+      "sha256": "226d674131cc0c994c4b41dec9c26124e121b33c24607b61733d59cce770111d",
+      "byteLength": 1238724,
+      "mediaType": "application/pdf",
+      "neutralKind": "supporting",
+      "renderedPages": [
+        "07-1.png",
+        "07-2.png",
+        "07-3.png",
+        "07-4.png",
+        "07-5.png"
+      ]
+    }
+  ],
+  "instructions": "Verificare esclusivamente dai documenti se identità e codice fiscale del beneficiario sono espliciti, leggibili e coerenti."
+}

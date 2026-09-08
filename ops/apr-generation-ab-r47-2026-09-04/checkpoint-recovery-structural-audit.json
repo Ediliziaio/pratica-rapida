@@ -1,0 +1,209 @@
+{
+  "version": "apr-checkpoint-recovery-structural-audit-v1",
+  "observedAt": "2026-09-04T17:12:00+02:00",
+  "scope": "local_read_only_audit_plus_dashboard_observability_fix",
+  "customerKey": "angelina-stricelli",
+  "canonicalDraftId": "462287",
+  "generationId": "generation-8f2843ab5ddf4fee25c1ec65",
+  "verdict": "DO_NOT_RESUME_CURRENT_GENERATION",
+  "executiveConclusion": "Il difetto writeAtomic era storico e non e il problema corrente. La causa strutturale e che il checkpoint applicativo, il journal worker e il ledger CDP sono persistiti separatamente e non vengono riconciliati in un unico registro mutativo immutabile per generazione. Il checkpoint 1+1 di Angelina e formalmente valido ma non rappresenta i tre eventi save_page_once osservati sulla stessa pagina e bozza; non puo quindi autorizzare altre mutazioni.",
+  "currentEvidence": {
+    "executionCheckpoint": {
+      "revision": 3,
+      "status": "ready",
+      "currentCustomerKey": "angelina-stricelli",
+      "sha256": "0b05ec3dfaf0c087c27397cbd31ca68a27beaef92c64f838d57cd9a8ad89f205"
+    },
+    "workerCheckpoint": {
+      "revision": 62,
+      "status": "stopped",
+      "sha256": "31cc231c49147b421b402f3975b2bbbec6c85e723644b8e5c9d9f8a1ad92f192"
+    },
+    "workerServiceObservation": {
+      "revision": 85,
+      "status": "stopped"
+    },
+    "cdpLedger": {
+      "sha256": "3140c6d764c8408de6438c37026daec8085e7553c3d14f6561271547eeaaff39",
+      "samePageSaveEvents": 3,
+      "revisions": [12, 20, 28]
+    },
+    "representedLogicalBudget": {
+      "saveAttemptCount": 1,
+      "recoverySaveAttemptCount": 1
+    },
+    "lastConclusiveServerProof": {
+      "evidenceId": "cdp-server-14-0dfffba3e0cc0f783867",
+      "outcome": "not_saved",
+      "scope": "precede i due successivi eventi save_page_once"
+    },
+    "laterReadOnlyProofs": [
+      "cdp-server-22-0dfffba3e0cc0f783867",
+      "cdp-server-24-0dfffba3e0cc0f783867"
+    ],
+    "laterReadOnlyOutcome": "inconclusive"
+  },
+  "stateMachineInventory": {
+    "executionStates": 6,
+    "itemStates": 9,
+    "pageStates": 5,
+    "uncertaintyStates": 5,
+    "nestedTransactionStates": 7,
+    "publicTransitionMethodsApproximate": 99,
+    "executionUnitTests": 110,
+    "workerUnitTests": 21,
+    "assessment": "La copertura e ampia sui percorsi dichiarati, ma non esiste un'invariante che riconcili il numero di effetti mutativi nel ledger CDP con il budget logico del checkpoint dopo ogni riparazione o ricostruzione."
+  },
+  "findings": [
+    {
+      "id": "REC-01",
+      "severity": "critical",
+      "status": "proven_current",
+      "title": "Ledger mutativo esterno non riconciliato col checkpoint",
+      "evidence": "Tre save_page_once CDP sulla stessa bozza/pagina contro contatori checkpoint 1+1.",
+      "risk": "Un checkpoint formalmente valido puo riaprire o instradare un'azione gia consumata."
+    },
+    {
+      "id": "REC-02",
+      "severity": "critical",
+      "status": "proven_by_code_and_current_case",
+      "title": "Persistenza multi-store non atomica",
+      "evidence": "Execution checkpoint, worker journal/service e CDP driver ledger hanno commit separati e nessun transactionId comune obbligatorio.",
+      "risk": "Crash o riparazioni parziali possono lasciare tre verita localmente valide ma globalmente incompatibili."
+    },
+    {
+      "id": "REC-03",
+      "severity": "high",
+      "status": "proven_by_code",
+      "title": "Reset dei budget senza nuova identita di generazione",
+      "evidence": "Diversi percorsi requeue/correction riportano saveAttemptCount o recoverySaveAttemptCount a zero mantenendo generationId e canonicalDraftId invariati.",
+      "examples": [
+        "requeueCalculationAllocationAfterInputContractUpgrade",
+        "requeueStandardPageAfterSaveDeliveryContractUpgrade",
+        "requeueBeneficiaryAfterMunicipalityAutocompleteContractUpgrade",
+        "requeueSavedDraftPageAfterVerifiedPayloadCorrection",
+        "resumeGeneratorAndPlantAfterEmptyGeneratorSummary",
+        "resumeInfissiRowsAfterStagingClassifierCorrection",
+        "requeueScreeningAfterUnclickedReactContractFailure"
+      ],
+      "risk": "La frase 'nuova generazione' resta descrittiva nell'audit ma non diventa un confine tecnico immutabile."
+    },
+    {
+      "id": "REC-04",
+      "severity": "high",
+      "status": "proven_by_code",
+      "title": "Ripristino checkpoint con prove solo sintattiche",
+      "evidence": "restoreCanonicalDraftCheckpoint richiede tre evidenceId distinti e stringhe valide ma non verifica referenzialmente esistenza, cronologia, stessa pagina/bozza e numero di effetti nel ledger sorgente.",
+      "risk": "Tre riferimenti formalmente distinti possono ricostruire uno stato non fedele alla storia reale."
+    },
+    {
+      "id": "REC-05",
+      "severity": "high",
+      "status": "proven_current",
+      "title": "Semantica recovery_authorized incompatibile con budget gia consumato",
+      "evidence": "Il restore di Angelina imposta uncertainty.status=recovery_authorized e contemporaneamente recoverySaveAttemptCount=1.",
+      "risk": "Rami diversi interpretano lo stesso stato come autorizzazione a recuperare oppure come recupero gia esaurito."
+    },
+    {
+      "id": "REC-06",
+      "severity": "high",
+      "status": "proven_by_code",
+      "title": "Idempotenza dei comandi derivata da stato ricostruibile",
+      "evidence": "Il discriminator di save_page_once incorpora revisione e contatori del checkpoint. Una ricostruzione puo creare una nuova command identity per la stessa intenzione esterna.",
+      "risk": "processedCommandIds impedisce duplicati identici, ma non duplicati semanticamente equivalenti con ID rigenerato."
+    },
+    {
+      "id": "REC-07",
+      "severity": "medium",
+      "status": "proven_by_code",
+      "title": "validState controlla la forma ma non tutte le relazioni",
+      "evidence": "Mancano controlli completi su unicita pageId/completedPageIds, corrispondenza stato globale-item-uncertainty, bijezione audit/processedCommandIds, riferimenti evidence e cardinalita effetti esterni.",
+      "risk": "Stati internamente contraddittori possono superare load/normalize/round-trip."
+    },
+    {
+      "id": "OBS-01",
+      "severity": "high",
+      "status": "corrected_and_operationally_verified",
+      "title": "Snapshot terminale storico ripubblicato come stato corrente",
+      "evidence": "La vecchia dashboard esponeva writeAtomic TECHNICAL_BLOCK pur avendo execution revision 3 ready e worker revision 85 stopped.",
+      "correctionRuleId": "system-terminal-observability-live-source-supersession-v1",
+      "correction": "Uno snapshot terminale e corrente solo se revisioni e identita di tutte le fonti live disponibili coincidono esattamente; altrimenti resta consultabile come storia e le fonti live discordanti producono INCONSISTENT.",
+      "postInstallStatus": "INCONSISTENT",
+      "postInstallCaseTruth": "INCONSISTENT",
+      "staleWriteAtomicVerdictServedAsCurrent": false
+    },
+    {
+      "id": "REC-08",
+      "severity": "unknown",
+      "status": "not_tested_for_angelina",
+      "title": "Restanti pagine portale",
+      "evidence": "Angelina e ancora sulla prima delle quattordici pagine previste.",
+      "risk": "Non e possibile affermare che non esistano difetti portale distinti nelle tredici pagine successive."
+    }
+  ],
+  "historicalCrossCheck": {
+    "scope": "cohort CDP ledgers presenti localmente, incluse versioni storiche",
+    "totalSaveEventsObserved": 5752,
+    "groupsWithMoreThanTwoEventsForSameCohortCustomerDraftPage": 36,
+    "interpretation": "Dimostra che la famiglia di divergenze e ricorrente nella storia del progetto; non dimostra da sola che ogni vecchio caso sia riproducibile nel bundle corrente."
+  },
+  "tests": {
+    "typecheck": "PASS",
+    "focusedGate": {
+      "files": 11,
+      "tests": 287,
+      "passed": 287
+    },
+    "fullMonotonicGate": {
+      "files": 209,
+      "tests": 1707,
+      "passed": 1707,
+      "durationSeconds": 604
+    },
+    "testCategory": "automatic_local",
+    "operationalEneaTestPerformed": false
+  },
+  "dashboardDeployment": {
+    "scope": "supervisor_only",
+    "installedSupervisorSha256": "af980558f8732579608abae23f6665912b97b38e0492f422ac7989a487c977ec",
+    "previousSupervisorSha256": "1c057f49a32df25ff671cc2cd178ce432b011731f6b91d8db819c53bfa638771",
+    "backup": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3063-global-controller-angelina-stricelli/install/versions/r47-before-observability-r48/apr-supervisor.mjs",
+    "workerBinaryChanged": false,
+    "watchdogBinaryChanged": false,
+    "workerActivated": false
+  },
+  "freezeVerification": {
+    "executionCheckpointUnchanged": true,
+    "workerCheckpointUnchanged": true,
+    "cdpLedgerUnchanged": true,
+    "workerLaunchAgentLoaded": false,
+    "keepaliveAlive": true,
+    "chromeAlive": true,
+    "supervisorAlive": true,
+    "watchdogAlive": true,
+    "newDraftCreated": false,
+    "savePerformed": false,
+    "previewPerformed": false,
+    "submitPerformed": false,
+    "communicationPerformed": false
+  },
+  "recommendedNextChoice": {
+    "choice": "READ_ONLY_VERIFY_EXISTING_DRAFT_FIRST",
+    "reason": "E l'unica opzione che riduce l'incertezza sui tre Salva gia osservati senza creare una quarta mutazione o una bozza duplicata. Deve leggere la bozza 462287 e produrre prove server fresche senza alcun salvataggio.",
+    "afterReadOnly": "Non riprendere comunque la generazione corrente. Se la bozza non e completa e coerente, conservarla superseded/quarantined e avviare una nuova generazione pulita solo dopo un gate strutturale con ledger mutativo unico per generazione e previa autorizzazione ENEA esplicita.",
+    "whyNotCleanGenerationImmediately": "Creerebbe una nuova bozza prima di sapere cosa hanno prodotto i tre tentativi sulla 462287 e nasconderebbe, anziche chiudere, la divergenza di accounting.",
+    "operatorQuestion": "Autorizzi una verifica esclusivamente read-only della bozza ENEA 462287, senza compilare o salvare alcun campo, per determinare lo stato server reale prima di decidere una nuova generazione pulita?"
+  },
+  "requiredStructuralGateBeforeAnyResume": [
+    "ledger mutativo append-only unico per generationId, canonicalDraftId, pageId e intentId",
+    "riconciliazione obbligatoria checkpoint-worker-CDP prima di ogni comando mutativo",
+    "nessun reset di budget nella stessa generationId",
+    "evidenceId referenziali con verifica di esistenza, scope e cronologia",
+    "commandId derivato da intentId immutabile e non da revisione ricostruibile",
+    "validazione completa delle relazioni tra stato globale, item, pagina, uncertainty e audit",
+    "crash-matrix locale a ogni confine prima/dopo intento, click, risposta e commit"
+  ],
+  "missingDocumentType": null,
+  "operatorQuestion": "Autorizzi una verifica esclusivamente read-only della bozza ENEA 462287, senza compilare o salvare alcun campo, per determinare lo stato server reale prima di decidere una nuova generazione pulita?",
+  "onboardingGap": null
+}

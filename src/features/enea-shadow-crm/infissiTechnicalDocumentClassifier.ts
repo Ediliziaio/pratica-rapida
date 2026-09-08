@@ -1,6 +1,6 @@
 import { USER_AUTHORIZED_RULE_IDS } from "./operationalRegistry";
 
-export const APR_INFISSI_TECHNICAL_DOCUMENT_CLASSIFIER_VERSION = "apr-infissi-technical-document-classifier-v1" as const;
+export const APR_INFISSI_TECHNICAL_DOCUMENT_CLASSIFIER_VERSION = "apr-infissi-technical-document-classifier-v2" as const;
 
 export type AprInfissiVerifiedDocumentKind = "invoice" | "third_party_certificate" | "additional";
 export type AprInfissiCertificateProfile = "invoice_passthrough" | "formal_declaration" | "structured_product_dop" | "none";
@@ -45,7 +45,7 @@ export interface AprInfissiTechnicalDocumentClassification {
 const CRITERIA = Object.freeze({
   formal_declaration_title: /\b(?:dichiarazione|asseverazione)\b[\s\S]{0,100}\b(?:prestazion\w*|conformit[aà]\s+energetica|trasmittanza)\b/iu,
   window_product_family: /\b(?:serrament[oi]|infiss[oi]|finestr[ae]|porta[\s-]?finestr[ae])\b/iu,
-  numeric_thermal_performance: /(?:\bU[wd]\b\s*[=:]?\s*(?:\[\s*)?|trasmittanza\s+termica(?:\s+complessiva)?(?:\s+de[il]\s+serrament[oi])?\s*(?:corrisponde\s+a|pari\s+a)?\s*(?:\bU[wd]\b\s*)?[=:]?\s*(?:\[\s*)?)([0-9](?:[.,][0-9]{1,2})?)(?:\s*\])?(?:\s*W\s*\/\s*m)?/giu,
+  numeric_thermal_performance: /(?:\bU[wd]\b\s*[=:]?\s*(?:\[\s*)?|trasmittanza\s+termica(?:\s+complessiva)?(?:\s+de[il]\s+serrament[oi])?\s*(?:\(\s*U[wd]\s*\)|(?:corrisponde\s+a|pari\s+a)?\s*(?:\bU[wd]\b\s*)?)[=:]?\s*(?:\[\s*)?)([0-9](?:[.,][0-9]{1,2})?)(?:\s*\])?(?:\s*W\s*\/\s*m)?/giu,
   technical_standard: /\b(?:UNI\s+EN\s+ISO\s+10077(?:-1)?|EN\s+14351-1|regolamento\s*\(UE\)\s*n?\.?\s*305\/2011|D\.?\s*Lgs\.?\s*192\/2005)\b/iu,
   declaring_party_or_signature: /\b(?:rappresentante\s+legale|fabbricante|costruttore|ditta\s+(?:fornitrice|produttrice)|timbro\s+e\s+firma|firmato\s+a\s+nome\s+e\s+per\s+conto)\b/iu,
   removed_window_scope: /\b(?:serrament[oi]|infiss[oi]|finestr[ae])\s+(?:vecchi|vecchie|esistenti|dismessi|dismesse|rimossi|rimosse|preesistenti)\b/iu,

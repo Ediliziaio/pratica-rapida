@@ -1,0 +1,84 @@
+{
+  "version": "apr-angelina-recovery-resume-contract-incident-v1",
+  "observedAt": "2026-09-04T15:37:45+02:00",
+  "classification": "INCONSISTENT",
+  "customerKey": "angelina-stricelli",
+  "displayName": "Angelina Stricelli",
+  "canonicalGenerationId": "generation-8f2843ab5ddf4fee25c1ec65",
+  "canonicalDraftId": "462287",
+  "completedRepair": {
+    "ruleId": "system-checkpoint-roundtrip-fail-closed-restore-v1",
+    "registryVersion": "enea-operational-registry-v132",
+    "matrixVersion": "apr-enea-rule-test-matrix-v109",
+    "installedWorkerSha256": "81e1215ec19ec9ed96b821579a30b3d0aedef5242b2d6f4ed783fba9fe9fa5bc",
+    "installedSupervisorSha256": "1c057f49a32df25ff671cc2cd178ce432b011731f6b91d8db819c53bfa638771",
+    "checkpointRestoreAttestation": "angelina-canonical-checkpoint-restore.json",
+    "checkpointRestoreAttestationSha256": "0e25851e7facbfb4b76c92dbf30e60f4222545c1a8cd54bb537ae7284f00d384",
+    "result": "Il caricamento rifiuta checkpoint malformati o semanticamente invalidi; ogni scrittura viene riletta, normalizzata e validata prima della sostituzione atomica. Il checkpoint della stessa generazione e della bozza canonica 462287 e stato ricostruito da tre prove persistenti indipendenti e ha superato il round-trip."
+  },
+  "restoredCheckpoint": {
+    "sha256": "0b05ec3dfaf0c087c27397cbd31ca68a27beaef92c64f838d57cd9a8ad89f205",
+    "revision": 3,
+    "executionStatus": "ready",
+    "currentCustomerKey": "angelina-stricelli",
+    "itemState": "save_intent_recorded",
+    "generationId": "generation-8f2843ab5ddf4fee25c1ec65",
+    "draftId": "462287",
+    "pageId": "page:Anagrafica Beneficiario",
+    "pageState": "save_intent_recorded",
+    "saveAttemptCount": 1,
+    "recoverySaveAttemptCount": 1,
+    "uncertaintyStatus": "recovery_authorized",
+    "safeNextAction": "verify_page_saved_state_readonly"
+  },
+  "newIncident": {
+    "errorCode": "apr_enea_uncertain_page_save_resume_state_invalid",
+    "component": "PersistentAprEneaBrowserWorker.handleUncertainPageSave",
+    "provenCondition": "Il gestore generico di ripresa di un Salva incerto accetta soltanto uncertainty.status=probing con pageId ed evidenceId identici. Il checkpoint ricostruito e invece legittimamente nello stato post-autorizzazione recovery_authorized, con l'unico budget di recupero gia contabilizzato.",
+    "boundary": "Il conflitto e distinto dal difetto load/normalize/validState appena corretto. La condizione rifiutata e provata; non e ancora provato quale ramo a monte reinstradi il tick nel gestore generico dopo la sonda di sessione.",
+    "workerAction": "Il solo worker della coorte e stato scaricato immediatamente e lasciato fermo. Nessun retry e nessuna correzione del nuovo difetto sono stati eseguiti."
+  },
+  "threeSourceVerification": {
+    "launchctlAndProcesses": {
+      "worker": "not_loaded",
+      "supervisor": "running pid 70878",
+      "watchdog": "running pid 44343",
+      "keepalive": "running pid 42593",
+      "chromeApr": "running pid 3785"
+    },
+    "persistentCheckpointReportJournal": {
+      "executionCheckpoint": "revision 3; generazione e bozza canonica conservate; recovery 1/1; nessun nuovo Salva",
+      "workerCheckpoint": "revision 62 stopped; zero azioni vietate, anteprime, submit o comunicazioni",
+      "workerError": "apr_enea_uncertain_page_save_resume_state_invalid"
+    },
+    "dashboardOrTerminalSnapshot": {
+      "dashboardPort": 7488,
+      "caseTruthStatus": "TECHNICAL_BLOCK",
+      "caseTruthStatement": "Difetto tecnico comune del lotto: writeAtomic is not defined",
+      "caseTruthBlockerCount": 0,
+      "assessment": "snapshot terminale obsoleto e non coerente con il checkpoint ricostruito"
+    },
+    "agreement": false,
+    "requiredVerdict": "INCONSISTENT"
+  },
+  "lastCdpEvidence": {
+    "revision": 37,
+    "at": "2026-09-04T13:35:02.242Z",
+    "action": "verify_session_dom_server_get",
+    "url": "https://bonusfiscali.enea.it/dashboard",
+    "draftId": null,
+    "customerKey": null,
+    "sha256": "3140c6d764c8408de6438c37026daec8085e7553c3d14f6561271547eeaaff39"
+  },
+  "safety": {
+    "newDraftCreatedAfterRestore": false,
+    "newSaveAttemptedAfterRestore": false,
+    "previewPerformed": false,
+    "submitPerformed": false,
+    "communicationPerformed": false,
+    "keepaliveOrChromeStopped": false
+  },
+  "missingDocumentType": null,
+  "operatorQuestion": "Autorizzi la diagnosi e l'eventuale correzione generale fail-closed del conflitto tra lo stato recovery_authorized ricostruito e il gestore di ripresa che accetta soltanto probing, prima di riattivare il worker sulla bozza canonica 462287?",
+  "onboardingGap": null
+}

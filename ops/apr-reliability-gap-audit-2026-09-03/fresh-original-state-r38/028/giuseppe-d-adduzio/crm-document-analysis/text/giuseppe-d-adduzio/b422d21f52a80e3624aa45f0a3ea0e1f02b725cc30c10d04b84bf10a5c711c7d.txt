@@ -1,0 +1,257 @@
+Commessa: 251 Data Consegna: 09/07/2025 Utente: Utente
+Cliente/Cantiere: D'ADDUZIO GIUSEPPE/VIA MONSIGNOR ARMANDO FARES 8/A
+Descrizione: Fattura 196F del 08/07/2025
+Voce: 1
+Tipo: 1
+Descrizione: PortaFinestra a taglio termico a 2 A/R - RC3
+Numero pezzi: 1
+Misure: 1580.0 x 2440.0
+Serie impiegate: WS75THI - PO_COM
+Colore esterno: 1013
+Colore interno: OXBR
+Ubicazione Sala
+Vetri: P5A_34MM
+Pannelli:
+Calcolo della trasmittanza termica effettuato utilizzando la seguente equazione in conformità alla norma
+UNI EN ISO 10077-1
+AgUg + ApUp + AfUf + LgPSIg + LpPSIp
+Uw = --------------------------------------------------
+Ag + Ap + Af
+Ag è l’area del vetro espressa in m2 Ug è la trasmittanza termica del vetro espressa in W/m2K Ap è l’area del pannello espressa in m2 Up è la trasmittanza termica del pannello espressa in W/m2K Af è l’area dei profili espressa in m2 Uf è la trasmittanza termica dei profili espressa in W/m2K Lg è il perimetro totale del vetro espresso in m PSIg è la trasmittanza termica lineare del vetro espressa in W/mK Lp è il perimetro totale del pannello espresso in m PSIp è la trasmittanza termica lineare del pannello espressa in W/mK 2.8810
+1.00
+0.0000
+0.00
+0.9742
+1.32
+11.6358
+0.036
+0.0000
+0.00
+Il valore determinato risulta: Uw = 1.2 W/m2K
+Nota: Il presente certificato è rilasciato per gli usi consentiti dalla legge
+Elenco trasmittanza termica dei profili per singole sezioni
+Uf Combinazione profili
+1.50 WS75THI\375547H - WS75THI\375802H
+1.30 WS75THI\375807H - WS75THI\375802H
+1.30 WS75THI\375802H - WS75THI\375806H - WS75THI\375802H
+Data/Ora stampa:28/07/2025 09:57 Pagina 1 di 7
+
+Commessa: 251 Data Consegna: 09/07/2025 Utente: Utente
+Cliente/Cantiere: D'ADDUZIO GIUSEPPE/VIA MONSIGNOR ARMANDO FARES 8/A
+Descrizione: Fattura 196F del 08/07/2025
+Voce: 2
+Tipo: 2
+Descrizione: Finestra a taglio termico a 1 A/R - RC3
+Numero pezzi: 1
+Misure: 600.0 x 1440.0
+Serie impiegate: WS75THI - PO_COM
+Colore esterno: 1013
+Colore interno: OXBR
+Ubicazione sala
+Vetri: P5A_34MM
+Pannelli:
+Calcolo della trasmittanza termica effettuato utilizzando la seguente equazione in conformità alla norma
+UNI EN ISO 10077-1
+AgUg + ApUp + AfUf + LgPSIg + LpPSIp
+Uw = --------------------------------------------------
+Ag + Ap + Af
+Ag è l’area del vetro espressa in m2 Ug è la trasmittanza termica del vetro espressa in W/m2K Ap è l’area del pannello espressa in m2 Up è la trasmittanza termica del pannello espressa in W/m2K Af è l’area dei profili espressa in m2 Uf è la trasmittanza termica dei profili espressa in W/m2K Lg è il perimetro totale del vetro espresso in m PSIg è la trasmittanza termica lineare del vetro espressa in W/mK Lp è il perimetro totale del pannello espresso in m PSIp è la trasmittanza termica lineare del pannello espressa in W/mK 0.5359
+1.00
+0.0000
+0.00
+0.3281
+1.30
+3.3768
+0.036
+0.0000
+0.00
+Il valore determinato risulta: Uw = 1.3 W/m2K
+Nota: Il presente certificato è rilasciato per gli usi consentiti dalla legge
+Elenco trasmittanza termica dei profili per singole sezioni
+Uf Combinazione profili
+1.30 WS75THI\375807H - WS75THI\375802H
+Data/Ora stampa:28/07/2025 09:57 Pagina 2 di 7
+
+Commessa: 251 Data Consegna: 09/07/2025 Utente: Utente
+Cliente/Cantiere: D'ADDUZIO GIUSEPPE/VIA MONSIGNOR ARMANDO FARES 8/A
+Descrizione: Fattura 196F del 08/07/2025
+Voce: 3
+Tipo: 3
+Descrizione: PortaFinestra a taglio termico a 1 A/R - RC3
+Numero pezzi: 1
+Misure: 830.0 x 2440.0
+Serie impiegate: WS75THI - PO_COM
+Colore esterno: 1013
+Colore interno: OXBR
+Ubicazione cucina
+Vetri: P5A_34MM
+Pannelli:
+Calcolo della trasmittanza termica effettuato utilizzando la seguente equazione in conformità alla norma
+UNI EN ISO 10077-1
+AgUg + ApUp + AfUf + LgPSIg + LpPSIp
+Uw = --------------------------------------------------
+Ag + Ap + Af
+Ag è l’area del vetro espressa in m2 Ug è la trasmittanza termica del vetro espressa in W/m2K Ap è l’area del pannello espressa in m2 Up è la trasmittanza termica del pannello espressa in W/m2K Af è l’area dei profili espressa in m2 Uf è la trasmittanza termica dei profili espressa in W/m2K Lg è il perimetro totale del vetro espresso in m PSIg è la trasmittanza termica lineare del vetro espressa in W/mK Lp è il perimetro totale del pannello espresso in m PSIp è la trasmittanza termica lineare del pannello espressa in W/mK 1.4882
+1.00
+0.0000
+0.00
+0.5370
+1.32
+5.8598
+0.036
+0.0000
+0.00
+Il valore determinato risulta: Uw = 1.2 W/m2K
+Nota: Il presente certificato è rilasciato per gli usi consentiti dalla legge
+Elenco trasmittanza termica dei profili per singole sezioni
+Uf Combinazione profili
+1.50 WS75THI\375547H - WS75THI\375802H
+1.30 WS75THI\375807H - WS75THI\375802H
+Data/Ora stampa:28/07/2025 09:57 Pagina 3 di 7
+
+Commessa: 251 Data Consegna: 09/07/2025 Utente: Utente
+Cliente/Cantiere: D'ADDUZIO GIUSEPPE/VIA MONSIGNOR ARMANDO FARES 8/A
+Descrizione: Fattura 196F del 08/07/2025
+Voce: 4
+Tipo: 4
+Descrizione: Misure: Finestra a taglio termico a 2 A/R
+Numero pezzi: 1
+1080.0 x 1440.0
+Serie impiegate: WS75THI - PO_COM
+Colore esterno: 1013
+Colore interno: OXBR
+Ubicazione bagno piccolo
+Vetri: P5A_34MM
+Pannelli:
+Calcolo della trasmittanza termica effettuato utilizzando la seguente equazione in conformità alla norma
+UNI EN ISO 10077-1
+AgUg + ApUp + AfUf + LgPSIg + LpPSIp
+Uw = --------------------------------------------------
+Ag + Ap + Af
+Ag è l’area del vetro espressa in m2 Ug è la trasmittanza termica del vetro espressa in W/m2K Ap è l’area del pannello espressa in m2 Up è la trasmittanza termica del pannello espressa in W/m2K Af è l’area dei profili espressa in m2 Uf è la trasmittanza termica dei profili espressa in W/m2K Lg è il perimetro totale del vetro espresso in m PSIg è la trasmittanza termica lineare del vetro espressa in W/mK Lp è il perimetro totale del pannello espresso in m PSIp è la trasmittanza termica lineare del pannello espressa in W/mK 0.9684
+1.00
+0.0000
+0.00
+0.5868
+1.30
+6.5898
+0.036
+0.0000
+0.00
+Il valore determinato risulta: Uw = 1.3 W/m2K
+Nota: Il presente certificato è rilasciato per gli usi consentiti dalla legge
+Elenco trasmittanza termica dei profili per singole sezioni
+Uf Combinazione profili
+1.30 WS75THI\375807H - WS75THI\375802H
+1.30 WS75THI\375802H - WS75THI\375806H - WS75THI\375802H
+Data/Ora stampa:28/07/2025 09:57 Pagina 4 di 7
+
+Commessa: 251 Data Consegna: 09/07/2025 Utente: Utente
+Cliente/Cantiere: D'ADDUZIO GIUSEPPE/VIA MONSIGNOR ARMANDO FARES 8/A
+Descrizione: Fattura 196F del 08/07/2025
+Voce: 5
+Tipo: 6
+Descrizione: Finestra a taglio termico a 2 A/R - RC3
+Numero pezzi: 1
+Misure: 1580.0 x 1440.0
+Serie impiegate: WS75THI - PO_COM
+Colore esterno: 1013
+Colore interno: OXBR
+Ubicazione Cameretta
+Vetri: P5A_34MM
+Pannelli:
+Calcolo della trasmittanza termica effettuato utilizzando la seguente equazione in conformità alla norma
+UNI EN ISO 10077-1
+AgUg + ApUp + AfUf + LgPSIg + LpPSIp
+Uw = --------------------------------------------------
+Ag + Ap + Af
+Ag è l’area del vetro espressa in m2 Ug è la trasmittanza termica del vetro espressa in W/m2K Ap è l’area del pannello espressa in m2 Up è la trasmittanza termica del pannello espressa in W/m2K Af è l’area dei profili espressa in m2 Uf è la trasmittanza termica dei profili espressa in W/m2K Lg è il perimetro totale del vetro espresso in m PSIg è la trasmittanza termica lineare del vetro espressa in W/mK Lp è il perimetro totale del pannello espresso in m PSIp è la trasmittanza termica lineare del pannello espressa in W/mK 1.6003
+1.00
+0.0000
+0.00
+0.6748
+1.30
+7.5898
+0.036
+0.0000
+0.00
+Il valore determinato risulta: Uw = 1.2 W/m2K
+Nota: Il presente certificato è rilasciato per gli usi consentiti dalla legge
+Elenco trasmittanza termica dei profili per singole sezioni
+Uf Combinazione profili
+1.30 WS75THI\375807H - WS75THI\375802H
+1.30 WS75THI\375802H - WS75THI\375806H - WS75THI\375802H
+Data/Ora stampa:28/07/2025 09:57 Pagina 5 di 7
+
+Commessa: 251 Data Consegna: 09/07/2025 Utente: Utente
+Cliente/Cantiere: D'ADDUZIO GIUSEPPE/VIA MONSIGNOR ARMANDO FARES 8/A
+Descrizione: Fattura 196F del 08/07/2025
+Voce: 6
+Tipo: 7
+Descrizione: Finestra a taglio termico a 1 A/R - RC3
+Numero pezzi: 1
+Misure: 830.0 x 1440.0
+Serie impiegate: WS75THI - PO_COM
+Colore esterno: 1013
+Colore interno: OXBR
+Ubicazione Bagno
+Vetri: P5A_34MM
+Pannelli:
+Calcolo della trasmittanza termica effettuato utilizzando la seguente equazione in conformità alla norma
+UNI EN ISO 10077-1
+AgUg + ApUp + AfUf + LgPSIg + LpPSIp
+Uw = --------------------------------------------------
+Ag + Ap + Af
+Ag è l’area del vetro espressa in m2 Ug è la trasmittanza termica del vetro espressa in W/m2K Ap è l’area del pannello espressa in m2 Up è la trasmittanza termica del pannello espressa in W/m2K Af è l’area dei profili espressa in m2 Uf è la trasmittanza termica dei profili espressa in W/m2K Lg è il perimetro totale del vetro espresso in m PSIg è la trasmittanza termica lineare del vetro espressa in W/mK Lp è il perimetro totale del pannello espresso in m PSIp è la trasmittanza termica lineare del pannello espressa in W/mK 0.8267
+1.00
+0.0000
+0.00
+0.3685
+1.30
+3.8368
+0.036
+0.0000
+0.00
+Il valore determinato risulta: Uw = 1.2 W/m2K
+Nota: Il presente certificato è rilasciato per gli usi consentiti dalla legge
+Elenco trasmittanza termica dei profili per singole sezioni
+Uf Combinazione profili
+1.30 WS75THI\375807H - WS75THI\375802H
+Data/Ora stampa:28/07/2025 09:57 Pagina 6 di 7
+
+Commessa: 251 Data Consegna: 09/07/2025 Utente: Utente
+Cliente/Cantiere: D'ADDUZIO GIUSEPPE/VIA MONSIGNOR ARMANDO FARES 8/A
+Descrizione: Fattura 196F del 08/07/2025
+Voce: 7
+Tipo: 8
+Descrizione: Finestra a taglio termico a 2 A/R - RC3
+Numero pezzi: 1
+Misure: 1580.0 x 1440.0
+Serie impiegate: WS75THI - PO_COM
+Colore esterno: 1013
+Colore interno: OXBR
+Ubicazione Letto
+Vetri: P5A_34MM
+Pannelli:
+Calcolo della trasmittanza termica effettuato utilizzando la seguente equazione in conformità alla norma
+UNI EN ISO 10077-1
+AgUg + ApUp + AfUf + LgPSIg + LpPSIp
+Uw = --------------------------------------------------
+Ag + Ap + Af
+Ag è l’area del vetro espressa in m2 Ug è la trasmittanza termica del vetro espressa in W/m2K Ap è l’area del pannello espressa in m2 Up è la trasmittanza termica del pannello espressa in W/m2K Af è l’area dei profili espressa in m2 Uf è la trasmittanza termica dei profili espressa in W/m2K Lg è il perimetro totale del vetro espresso in m PSIg è la trasmittanza termica lineare del vetro espressa in W/mK Lp è il perimetro totale del pannello espresso in m PSIp è la trasmittanza termica lineare del pannello espressa in W/mK 1.6003
+1.00
+0.0000
+0.00
+0.6748
+1.30
+7.5898
+0.036
+0.0000
+0.00
+Il valore determinato risulta: Uw = 1.2 W/m2K
+Nota: Il presente certificato è rilasciato per gli usi consentiti dalla legge
+Elenco trasmittanza termica dei profili per singole sezioni
+Uf Combinazione profili
+1.30 WS75THI\375807H - WS75THI\375802H
+1.30 WS75THI\375802H - WS75THI\375806H - WS75THI\375802H
+Data/Ora stampa:28/07/2025 09:57 Pagina 7 di 7

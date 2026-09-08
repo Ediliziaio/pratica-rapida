@@ -1,0 +1,64 @@
+{
+  "version": "apr-lucia-fresh-generation-initialization-incident-r50-v1",
+  "recordedAt": "2026-09-04T20:42:00.000Z",
+  "classification": "INCONSISTENT",
+  "customerKey": "lucia-droghetti",
+  "practiceId": "652f820b-9d49-4706-a8bc-87931bec5148",
+  "cohort": 3072,
+  "manifestSha256": "5c80da39c6bfed4ce8f055f90753701b10dc1abac051c09bd8c43bbb732a01d9",
+  "expected": {
+    "generationMode": "fresh_generation",
+    "experimentId": "apr-lucia-clean-generation-r50-2026-09-04",
+    "supersededGenerationId": "generation-749f9ceab0c2a5565250ace2",
+    "forbiddenHistoricalDraftId": "464067"
+  },
+  "observed": {
+    "cohortSeedDraftGenerationPolicy": {
+      "mode": "fresh_generation",
+      "experimentId": "apr-lucia-clean-generation-r50-2026-09-04"
+    },
+    "executionGenerationId": "generation-749f9ceab0c2a5565250ace2",
+    "executionRequiresFreshDraft": false,
+    "executionState": "queued",
+    "executionDraftId": null,
+    "createAttemptCount": 0,
+    "saveAttemptCount": 0,
+    "workerOperationalStatus": "stopped",
+    "dashboardPublicStatusBeforeStop": "IDLE"
+  },
+  "threeSourceVerification": {
+    "source1SeedCheckpoint": "La policy persistente della coorte richiede fresh_generation.",
+    "source2ExecutionCheckpoint": "Il checkpoint di esecuzione conserva la generazione storica e requiresFreshDraft=false.",
+    "source3DashboardSnapshotAndWorkerJournal": "La dashboard persistita mostrava IDLE; il journal worker termina stopped senza pratica reclamata e senza azione mutativa.",
+    "conclusion": "Le fonti concordano sull'assenza di azioni ENEA ma divergono sulla policy di generazione; il solo verdetto ammesso e INCONSISTENT."
+  },
+  "exactCause": {
+    "summary": "Gara di inizializzazione generale: il supervisore inizializza enea-draft-execution con il valore predefinito prima che il worker legga draftGenerationPolicy dal cohort seed.",
+    "codePath": [
+      "localDashboardServer.ts costruisce PersistentAprEneaDraftExecution senza initialRequiresFreshDraft e start() chiama initialize().",
+      "eneaDraftExecution.ts initialize() persiste initialState quando il checkpoint non esiste.",
+      "apr-enea-worker-cli.ts legge poi il cohort seed e costruisce l'esecuzione con initialRequiresFreshDraft=true, ma initialize()/prepare() caricano il checkpoint gia esistente.",
+      "prepare() applica initialRequiresFreshDraft soltanto quando crea per la prima volta gli item; a quel punto l'istanza del supervisore conserva false."
+    ],
+    "timingEvidence": {
+      "seedPersistedAt": "2026-09-04T20:37:59.276Z",
+      "executionInitializedAt": "2026-09-04T20:38:00.843Z",
+      "executionPreparedAt": "2026-09-04T20:38:29.390Z",
+      "sessionReadyAt": "2026-09-04T20:38:53.311Z",
+      "workerStoppedAt": "2026-09-04T20:38:55.367Z"
+    }
+  },
+  "safety": {
+    "eneaDraftCreated": false,
+    "eneaDraftModified": false,
+    "createIntentRecorded": false,
+    "pageSaveIntentRecorded": false,
+    "previewOrSubmit": false,
+    "unrelatedServicesStopped": false,
+    "keepalivePreserved": true
+  },
+  "missingDocumentType": null,
+  "operatorQuestion": "Autorizzi la correzione generale affinche ogni processo che puo inizializzare enea-draft-execution derivi atomicamente la policy fresh_generation dal cohort seed, con test positivo, negativo e di gara d'avvio, gate monotono e installazione solo a suite interamente verde?",
+  "onboardingGap": null,
+  "recommendedAction": "Non riavviare Lucia finche la policy di nuova generazione non e resa atomica e verificata; mantenere fermati soltanto i servizi della coorte 3072."
+}

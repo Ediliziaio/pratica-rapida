@@ -1,0 +1,14 @@
+{
+  "schemaVersion": "apr-operator-question-overrides-v1",
+  "scope": "review_artifact_only_no_communications",
+  "overrides": [
+    {
+      "displayName": "Gabriele Girelli",
+      "blockerFamily": "financial",
+      "missingDocumentType": "fattura mancante",
+      "operatorQuestion": "Inserisci la fattura mancante.",
+      "authority": "explicit_user_instruction",
+      "propagable": false
+    }
+  ]
+}

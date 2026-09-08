@@ -1,0 +1,284 @@
+{
+  "version": "apr-crm-local-preflight-v1",
+  "revision": 1,
+  "status": "completed",
+  "sourceFingerprint": "937650c610c2d4798be4454ef3afc1d24ef9c7a7bce5428b19e0609dfc8952a3",
+  "currentCustomerKey": null,
+  "items": [
+    {
+      "customerKey": "fausta-de-filippo",
+      "displayName": "Fausta De Filippo",
+      "practiceId": "6f274566-2fc3-4e49-a40d-64538988f540",
+      "dossierPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3011-global-controller-fausta-de-filippo/crm-acquisition/dossiers/fausta-de-filippo.json",
+      "state": "blocked_case",
+      "attemptCount": 1,
+      "startedAt": null,
+      "endedAt": null,
+      "report": {
+        "outcome": "blocked_case",
+        "formAvailable": true,
+        "startDate": "2026-03-10",
+        "startDateSource": "ec822aaa1f4183b01a209ceea6bfc93fa889461702baa8d1d635dd38bf517969:invoice:1ab7f4ef5c9f",
+        "completionDate": "2026-03-10",
+        "completionDateSource": "ec822aaa1f4183b01a209ceea6bfc93fa889461702baa8d1d635dd38bf517969:invoice:1ab7f4ef5c9f",
+        "buildingQualification": "multi_unit",
+        "buildingUnitCount": 1,
+        "deductionRate": null,
+        "taxCodeStatus": "verified_original_document",
+        "resolvedTaxCode": "DFLFST77R45F839T",
+        "taxCodeSourceIds": [
+          "76d1996e9082ccda3d4abfcfc67b6ecc7b44591e1e0a9854a5d29900755767cd",
+          "ec822aaa1f4183b01a209ceea6bfc93fa889461702baa8d1d635dd38bf517969"
+        ],
+        "primaryBeneficiaryResolution": {
+          "status": "not_found",
+          "identity": null,
+          "sourceIds": [],
+          "authority": null
+        },
+        "coBeneficiaryResolution": {
+          "status": "not_declared",
+          "present": false,
+          "identity": null,
+          "sourceIds": []
+        },
+        "products": [
+          {
+            "rowId": "ec822aaa1f4183b01a209ceea6bfc93fa889461702baa8d1d635dd38bf517969:invoice:1ab7f4ef5c9f:piece-1",
+            "sourceDocumentKey": "ec822aaa1f4183b01a209ceea6bfc93fa889461702baa8d1d635dd38bf517969:invoice:1ab7f4ef5c9f",
+            "description": "Schermatura solare MOBILE",
+            "pieceNumber": 1,
+            "widthMm": 5100,
+            "heightMm": 2500,
+            "surfaceM2": 12.75,
+            "exposure": null,
+            "exposureSource": null,
+            "protectedWindowSurfaceM2": null,
+            "protectedWindowSurfaceSource": null,
+            "supplementaryThermalResistance": null,
+            "declaredType": null,
+            "formMappingSource": null,
+            "gTot": 0.13,
+            "gTotSource": "invoice_explicit",
+            "material": "Tessuto",
+            "materialSource": "authorized_fallback",
+            "movement": "Manuale",
+            "movementSource": "authorized_fallback",
+            "appliedRuleIds": [
+              "user-2026-08-31-documented-gtot-precedence-v1",
+              "authorized-22-schermature-materiale",
+              "authorized-16-schermature-meccanismo",
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+              "user-2026-08-18-explicit-technical-surface-precision"
+            ]
+          },
+          {
+            "rowId": "ec822aaa1f4183b01a209ceea6bfc93fa889461702baa8d1d635dd38bf517969:invoice:1ab7f4ef5c9f:piece-2",
+            "sourceDocumentKey": "ec822aaa1f4183b01a209ceea6bfc93fa889461702baa8d1d635dd38bf517969:invoice:1ab7f4ef5c9f",
+            "description": "Schermatura solare MOBILE",
+            "pieceNumber": 2,
+            "widthMm": 2660,
+            "heightMm": 2500,
+            "surfaceM2": 6.65,
+            "exposure": null,
+            "exposureSource": null,
+            "protectedWindowSurfaceM2": null,
+            "protectedWindowSurfaceSource": null,
+            "supplementaryThermalResistance": null,
+            "declaredType": null,
+            "formMappingSource": null,
+            "gTot": 0.13,
+            "gTotSource": "invoice_explicit",
+            "material": "Tessuto",
+            "materialSource": "authorized_fallback",
+            "movement": "Manuale",
+            "movementSource": "authorized_fallback",
+            "appliedRuleIds": [
+              "user-2026-08-31-documented-gtot-precedence-v1",
+              "authorized-22-schermature-materiale",
+              "authorized-16-schermature-meccanismo",
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+              "user-2026-08-18-explicit-technical-surface-precision"
+            ]
+          }
+        ],
+        "financial": {
+          "invoiceTotal": 7500,
+          "eligibleExpense": 7500,
+          "tripleReconciliationVerified": true,
+          "reconciledTotal": 7500,
+          "evidence": [
+            {
+              "sourceId": "ec822aaa1f4183b01a209ceea6bfc93fa889461702baa8d1d635dd38bf517969:invoice:1ab7f4ef5c9f",
+              "kind": "invoice",
+              "taxableAmount": 6818.18,
+              "vatAmount": 681.82,
+              "grossTotal": 7500,
+              "interventionGrossAmount": 7500,
+              "extractionConfidence": "certain",
+              "extractionIssues": []
+            }
+          ],
+          "bankTransfers": [],
+          "bankTransferReconciliation": {
+            "status": "not_provided",
+            "principalTotal": null,
+            "feesTotal": null,
+            "debitedTotal": null,
+            "difference": null,
+            "referenceStatus": "not_provided",
+            "missingInvoiceReferences": [],
+            "taxReliefTypes": []
+          },
+          "methods": [
+            {
+              "method": "structured_extraction",
+              "ok": true,
+              "total": 7500,
+              "sources": [
+                "ec822aaa1f4183b01a209ceea6bfc93fa889461702baa8d1d635dd38bf517969:invoice:1ab7f4ef5c9f"
+              ],
+              "reason": "Ogni documento ha imponibile, IVA e totale verificati."
+            },
+            {
+              "method": "accounting_reconciliation",
+              "ok": true,
+              "total": 7500,
+              "sources": [
+                "ec822aaa1f4183b01a209ceea6bfc93fa889461702baa8d1d635dd38bf517969:invoice:1ab7f4ef5c9f"
+              ],
+              "reason": "Somma dei totali lordi IVA inclusa delle fatture uniche deduplicate; gli storni interni sono solo note auditabili."
+            },
+            {
+              "method": "intervention_cross_check",
+              "ok": true,
+              "total": 7500,
+              "sources": [
+                "ec822aaa1f4183b01a209ceea6bfc93fa889461702baa8d1d635dd38bf517969:invoice:1ab7f4ef5c9f"
+              ],
+              "reason": "Totale ricostruito esclusivamente dalle righe pertinenti all'intervento."
+            }
+          ],
+          "discardedDuplicateSourceIds": [],
+          "supersededTechnicalSourceIds": [],
+          "appliedRuleIds": [
+            "user-2026-08-16-invoice-gross-total-vat-included",
+            "user-2026-08-18-bundled-professional-expense-separation",
+            "user-2026-08-18-mandatory-bank-transfer-invoice-expense-cross-check",
+            "core-gross-triple-reconciliation",
+            "user-2026-08-14-preserve-technical-product-cardinality",
+            "system-explicit-advance-invoice-reference-marker-v1"
+          ]
+        },
+        "warnings": [
+          {
+            "code": "explicit_building_type_over_apartment_count",
+            "reason": "La tipologia esplicita fino/oltre tre piani prevale sul numero appartamenti della singola pratica: edificio qualificato come plurimo.",
+            "appliedRuleIds": [
+              "user-2026-08-27-explicit-building-type-over-apartment-count-v2"
+            ]
+          },
+          {
+            "code": "enea_2026_june_25_ninety_day_window_applied",
+            "reason": "Avviso ENEA 25/06/2026 applicato: inizio lavori 2026-03-10, fine lavori 2026-03-10; i 90 giorni decorrono dal 25/06/2026 e terminano il 23/09/2026.",
+            "appliedRuleIds": [
+              "user-2026-08-23-enea-2026-june-25-ninety-day-window"
+            ]
+          }
+        ],
+        "blockers": [
+          {
+            "code": "product_cardinality_form_invoice_mismatch",
+            "field": "screenings.quantity",
+            "reason": "Controllo incrociato ripetuto: il form descrive 3 righe e le fatture 2 prodotti fisici non riconciliabili in modo univoco per famiglia. Richiesto intervento operatore: confermare la cardinalita fisica e l'assegnazione degli attributi form.",
+            "sourceIds": [
+              "ec822aaa1f4183b01a209ceea6bfc93fa889461702baa8d1d635dd38bf517969",
+              "76d1996e9082ccda3d4abfcfc67b6ecc7b44591e1e0a9854a5d29900755767cd"
+            ],
+            "appliedRuleIds": [
+              "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "user-2026-08-15-form-group-to-physical-products",
+              "system-apr-operator-intervention-routing"
+            ]
+          }
+        ],
+        "sourceIds": [
+          "ec822aaa1f4183b01a209ceea6bfc93fa889461702baa8d1d635dd38bf517969",
+          "76d1996e9082ccda3d4abfcfc67b6ecc7b44591e1e0a9854a5d29900755767cd"
+        ],
+        "eneaPayloadAudit": {
+          "status": "payload_incomplete",
+          "mappingFingerprint": "1jxn3kt",
+          "fieldSummary": {
+            "ready": 69,
+            "review": 0,
+            "missing": 0
+          },
+          "requiredPortalFieldCount": 62,
+          "blockerCount": 1,
+          "blockers": [
+            {
+              "code": "product_cardinality_form_invoice_mismatch",
+              "fieldId": "screenings.quantity",
+              "message": "Controllo incrociato ripetuto: il form descrive 3 righe e le fatture 2 prodotti fisici non riconciliabili in modo univoco per famiglia. Richiesto intervento operatore: confermare la cardinalita fisica e l'assegnazione degli attributi form."
+            }
+          ],
+          "excludedUnverifiedFields": [
+            "immobile.codice_comune",
+            "immobile.zona_climatica",
+            "immobile.gradi_giorno",
+            "schermature.0.rsupp",
+            "schermature.1.rsupp",
+            "documenti.fatture",
+            "documenti.bonifico",
+            "documenti.tecnici"
+          ],
+          "draftReady": false,
+          "officialSubmissionAllowed": false,
+          "portalGate": {
+            "status": "blocked",
+            "reason": "screening-component-blocked",
+            "workflowFingerprint": null,
+            "supportedPages": [],
+            "screeningItemCount": 2,
+            "saveAllowedOnlyBySeparateCapability": true,
+            "previewAllowed": false,
+            "submitAllowed": false
+          },
+          "externalActionAllowed": false,
+          "reason": "1 blocker della componente Schermature invalidano il payload della bozza TEST."
+        },
+        "draftPlan": {
+          "status": "blocked",
+          "externalActionAllowed": false,
+          "previewAllowed": false,
+          "submitAllowed": false,
+          "communicationsAllowed": false,
+          "nextAction": "Risolvere i blocker con sole fonti originarie; la coda prosegue sugli altri casi."
+        }
+      },
+      "reason": "Fresh replay dai documenti originali"
+    }
+  ],
+  "externalActionAllowed": false,
+  "reason": "Fresh replay locale",
+  "nextAction": "Nessuna azione esterna.",
+  "validationRevisionsApplied": [],
+  "sourceRevisionsApplied": [],
+  "operatorMeasurementResolutions": [],
+  "audit": [
+    {
+      "revision": 1,
+      "at": "2026-09-03T10:00:00.000Z",
+      "type": "completed",
+      "customerKey": null,
+      "reason": "Fresh replay locale",
+      "appliedRuleIds": [
+        "system-single-active-practice"
+      ]
+    }
+  ]
+}

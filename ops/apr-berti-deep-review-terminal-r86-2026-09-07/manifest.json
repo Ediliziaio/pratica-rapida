@@ -1,0 +1,38 @@
+{
+  "version": "apr-r86-berti-deep-review-terminal-proof-v1",
+  "experimentId": "apr-r86-berti-deep-review-terminal-proof-20260907",
+  "authorizationId": "user-2026-09-02-wide-infissi-screening-single-run-v2",
+  "authorizedAt": "2026-09-02T00:00:00.000Z",
+  "mode": "real_enea_draft_only",
+  "sourceManifest": "ops/apr-wide100-province-lineage-2026-09-02/manifest.json",
+  "sourceManifestSha256": "51842252f71cabb6714f78923fe59ec9789ad06739393f61a553bb4bdb9154e0",
+  "selection": {
+    "total": 1,
+    "allowedStages": ["archiviate", "recensione", "pronte_da_fare", "gestionale"],
+    "excludedCustomerKeys": ["beatrice-ciotta", "nicoletta-garbarino", "vittorio-paolinelli", "samuele-beretta"]
+  },
+  "cases": [
+    {
+      "cohort": 3426,
+      "practiceId": "4e251174-6b43-4c76-98ff-6f00c1caede9",
+      "customerKey": "elena-marcella-berti",
+      "displayName": "ELENA MARCELLA BERTI",
+      "stage": "archiviate",
+      "stageName": "Archiviate",
+      "module": "screening",
+      "productEvidence": "Schermature Solari",
+      "reseller": "Linea sole potito",
+      "invoiceCount": 1,
+      "complexity": "simple",
+      "historicalRetest": true,
+      "generationMode": "fresh_generation"
+    }
+  ],
+  "safety": {
+    "draftOnly": true,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false,
+    "priorDraftPolicy": "preserve_and_ignore_for_new_test_draft"
+  }
+}

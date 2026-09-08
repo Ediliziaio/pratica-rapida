@@ -1,0 +1,20 @@
+{
+  "version": "apr-cohort-seed-v1",
+  "sourceEvidenceId": "apr-fixed-corpus-block-01-operational-2026-08-25",
+  "candidates": [
+    { "customerKey": "amelia-lerose", "displayName": "Amelia Lerose", "practiceId": "342d7232-023c-41c2-a293-b6f8a250055c", "expectedStageType": "archiviate", "productModule": "screening" },
+    { "customerKey": "tommasina-desando", "displayName": "Tommasina Desando", "practiceId": "74f56c0b-e813-4c1a-9858-e9181c35269d", "expectedStageType": "archiviate", "productModule": "screening" },
+    { "customerKey": "romeo-ropa", "displayName": "Romeo Ropa", "practiceId": "adff093a-ef0d-4013-aa23-5f71dec4234b", "expectedStageType": "archiviate", "productModule": "screening" },
+    { "customerKey": "mara-elena-maddiotto", "displayName": "Mara Elena Maddiotto", "practiceId": "fdb33d1d-64e7-4b39-98cc-4a48f2bec123", "expectedStageType": "archiviate", "productModule": "infissi" },
+    { "customerKey": "luca-cigognetti", "displayName": "Luca Cigognetti", "practiceId": "77c5e8b6-34f8-4f1b-830a-526addefdd7d", "expectedStageType": "archiviate", "productModule": "infissi" },
+    { "customerKey": "francesco-fumagalli", "displayName": "Francesco Fumagalli", "practiceId": "fb828595-3a4c-43af-a0ae-fdad526472c3", "expectedStageType": "archiviate", "productModule": "screening" },
+    { "customerKey": "armando-ranzoni", "displayName": "Armando Ranzoni", "practiceId": "54fdcf5f-3092-4f43-a741-ff510c25f51f", "expectedStageType": "archiviate", "productModule": "infissi" },
+    { "customerKey": "giulia-luisa-ginevra-waldis", "displayName": "Giulia Luisa Ginevra Waldis", "practiceId": "b9f8c635-7738-483b-9c62-80b879841cce", "expectedStageType": "archiviate", "productModule": "screening" },
+    { "customerKey": "luca-maestri", "displayName": "Luca Maestri", "practiceId": "2516c5be-0bff-467c-ae12-b6924c8f1a7b", "expectedStageType": "archiviate", "productModule": "screening" },
+    { "customerKey": "antonio-scaparrotta", "displayName": "Antonio Scaparrotta", "practiceId": "c62c3f57-ab7d-400b-9ef6-edf1bb79e387", "expectedStageType": "archiviate", "productModule": "infissi" }
+  ],
+  "historicalRetest": {
+    "authorizationId": "user-fixed-corpus-operational-retest-2026-08-25",
+    "preservePriorDrafts": true
+  }
+}

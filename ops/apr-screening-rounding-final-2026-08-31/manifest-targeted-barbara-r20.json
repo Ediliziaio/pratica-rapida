@@ -1,0 +1,34 @@
+{
+  "version": "apr-screening-rounding-targeted-barbara-r20-v1",
+  "authorizationId": "user-2026-08-31-definitive-mandate-same-authorized-corpus",
+  "authorizedAt": "2026-08-31T00:00:00.000Z",
+  "mode": "real_enea_draft_only",
+  "safety": {
+    "draftOnly": true,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false,
+    "priorDraftPolicy": "preserve_and_ignore_for_new_test_draft"
+  },
+  "selection": {
+    "total": 1,
+    "selectionMethod": "targeted regression replay from the already-authorized 30-case corpus",
+    "moduleDistribution": {"infissi": 1},
+    "complexityDistribution": {"medium": 1},
+    "allowedStages": ["archiviate"],
+    "excludedCustomerKeys": ["beatrice-ciotta"]
+  },
+  "cases": [
+    {
+      "cohort": 218,
+      "customerKey": "barbara-melis",
+      "displayName": "Barbara Melis",
+      "practiceId": "63c58ef4-8ba0-49f7-9af1-be3330419f77",
+      "stage": "archiviate",
+      "module": "infissi",
+      "invoiceCount": 3,
+      "complexity": "medium",
+      "historicalRetest": true
+    }
+  ]
+}

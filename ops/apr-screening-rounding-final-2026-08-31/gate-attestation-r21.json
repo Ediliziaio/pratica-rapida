@@ -1,0 +1,23 @@
+{
+  "version": "apr-screening-rounding-r21-gate-attestation-v1",
+  "recordedAt": "2026-09-01T00:47:39Z",
+  "sourceCommit": "f5b5d8590c1d7837222ac895a695855110cf7ebb",
+  "sourceTree": "840faf4c5ca3a03396382943ad9b68c3cdc3c63b",
+  "runtimeGate": {
+    "status": "PASS",
+    "testSuites": 433,
+    "testFiles": 216,
+    "tests": 1610,
+    "failed": 0,
+    "typecheck": "PASS",
+    "productionBuild": "PASS",
+    "executionEnvironment": "host-with-loopback-for-cdp-test-servers"
+  },
+  "focusedPreflightGate": {
+    "status": "PASS",
+    "persistedPreflightResolver": "PASS",
+    "marcoAnalogRegression": "PASS",
+    "terminalTruthAndObservability": "PASS"
+  },
+  "diagnosticNote": "Sandboxed attempts were rejected as non-authoritative because listen(127.0.0.1) returned EPERM; the authoritative full gate ran with loopback available and passed 1610/1610."
+}

@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "apr-blind-document-review-batch-v1",
+  "generatedAt": "2026-09-02T22:34:52.840Z",
+  "selection": {
+    "method": "sha256_rank",
+    "seed": "manual-identity-batch-01-2026-09-03",
+    "identityCandidateCount": 8,
+    "selectedIdentityCount": 4
+  },
+  "safety": {
+    "sourceReadOnly": true,
+    "crmWrite": false,
+    "portalAccess": false,
+    "communications": false
+  },
+  "cases": [
+    {
+      "caseId": "case-01",
+      "directory": "01-massimiliano-montemorra",
+      "reviewScope": "identity",
+      "documentCount": 7
+    },
+    {
+      "caseId": "case-02",
+      "directory": "02-francesca-monti",
+      "reviewScope": "identity",
+      "documentCount": 2
+    },
+    {
+      "caseId": "case-03",
+      "directory": "03-enrico-amos-maria-berneri",
+      "reviewScope": "identity",
+      "documentCount": 3
+    },
+    {
+      "caseId": "case-04",
+      "directory": "04-sabrina-eustomi",
+      "reviewScope": "identity",
+      "documentCount": 1
+    },
+    {
+      "caseId": "case-05",
+      "directory": "05-marco-de-marinis",
+      "reviewScope": "economic_control",
+      "documentCount": 10
+    }
+  ]
+}

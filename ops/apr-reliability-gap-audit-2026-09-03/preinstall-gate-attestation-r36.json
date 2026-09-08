@@ -1,0 +1,49 @@
+{
+  "version": "apr-producer-position-table-r36-preinstall-gate-v1",
+  "attestedAt": "2026-09-03T17:57:39.308Z",
+  "status": "tested_not_deployed",
+  "monotonicGate": {
+    "baseline": {
+      "suites": 444,
+      "tests": 1696,
+      "reportSha256": "7acb52a52d91505399c5afcaebb1d398abfeab6a05861dcaa6ca5065e1b95bc8"
+    },
+    "candidate": {
+      "suites": 444,
+      "tests": 1698,
+      "reportSha256": "65e208fae669becb1a87b88319a1b161984af7ed6aea4cd2cc6bd49e0f47ed19"
+    },
+    "registryVersion": "enea-operational-registry-v112",
+    "matrixVersion": "apr-enea-rule-test-matrix-v90",
+    "rulesProved": 111,
+    "ruleEvidenceSha256": "5c5aa5cf1ef2c85b04532ca656992399ef25d6b464c35f0149787127bdb4163b"
+  },
+  "freshOriginalReplay": {
+    "status": "passed",
+    "beforeSha256": "27878ba2f568a62640b86ffc9e6b0b0027d3a59799c23141776b0a45e6317ac7",
+    "afterSha256": "faa01023d8631d2cf40c2de8788baa441a367528c529c6891aa3c45cbb33297c",
+    "diagnosticSha256": "56918c92937b5779af45de273f095a9e8421923009356d78730576af48efcc98",
+    "residualReviewSha256": "d736925fbc85147144c92313b5e039f5395bb441742eb0fd292c02de87997bc8",
+    "documents": 359,
+    "bytes": 293624565,
+    "improvedCases": [
+      "massimo-cappello"
+    ],
+    "unchangedCases": 99,
+    "externalActionAllowed": false
+  },
+  "stagedBundle": {
+    "apr-supervisor.mjs": "cf6c3b8242ba2ea9f2b049e17f7cb8c1408b470c004a3f2009777ff34830195f",
+    "apr-enea-worker.mjs": "de26daa26f92d1ca9786c026557dfe4a8c9e10f1667c9be436dce49550a3d529",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "apr-pdf-ocr": "4c41c9a6832b11b9d19eace538100270a533dddc05e475e5842711968393327f"
+  },
+  "safety": {
+    "localOnly": true,
+    "externalActionAllowed": false,
+    "previewAllowed": false,
+    "saveAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false
+  }
+}

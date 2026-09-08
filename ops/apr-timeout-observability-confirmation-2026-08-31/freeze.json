@@ -1,0 +1,60 @@
+{
+  "version": "apr-timeout-observability-confirmation-freeze-v1",
+  "frozenAt": "2026-08-31T00:55:00.000+02:00",
+  "authorizationId": "user-2026-08-30-definitive-ten-point-mandate-same-canary30x3",
+  "portalMode": "real_enea_draft_only",
+  "roundCount": 3,
+  "caseCount": 30,
+  "manifestPath": "/private/tmp/apr-promote-4e166ce/ops/apr-global-controller-test10-2026-08-29/manifest-autonomy30.json",
+  "manifestSha256": "6c684df774a48899a6ff4e2a6e52dfe83c2b9c357a81a6c6c52034abe687a953",
+  "requiredCustomerKeys": ["cristina-ricchi", "zeno-righetti"],
+  "excludedCustomerKeys": ["beatrice-ciotta"],
+  "sourceSnapshot": {
+    "path": "/private/tmp/apr-promote-timeout-observability-20260831",
+    "gitCommit": "b1010caa5835720cc8497820f316739e6a25c141",
+    "treeHash": "b298a7e924e05fb0493139976b00f1283b630da4"
+  },
+  "sequencer": {
+    "path": "/private/tmp/apr-promote-4e166ce/ops/apr-global-controller-test10-2026-08-29/sequencer.mjs",
+    "sha256": "528a9e6964e9067ffa5ac9a809260bd3b91a0a2fd433d7c0c843b0efb6f55286"
+  },
+  "monotonicGate": {
+    "runtimeRevision": "apr-rule-runtime-c4d83fba3d9406bb52a53c9c",
+    "sourceFingerprint": "c4d83fba3d9406bb52a53c9cedd7508491f3c1d6714c11e20dcfaa2dcba5df04",
+    "certificateId": "c4b5fbf8abdf43d14be6138a42caeae26348dd8452fc2e60acbc8ba4451f1b61",
+    "certificateStatus": "PASS",
+    "verificationStatus": "VERIFIED_PASS",
+    "activationStatus": "active_tested_deployed",
+    "testSuites": 398,
+    "testCount": 1523,
+    "matrixRuleCount": 79,
+    "historicalRegressionGate": "PASS"
+  },
+  "canonicalBundle": {
+    "versionId": "c4b5fbf8abdf43d14be6138a42caeae26348dd8452fc2e60acbc8ba4451f1b61-timeout-observability-20260831",
+    "promotionReceiptId": "508039981c8794e7e25640bb85a52bff5b4c23ddbbc4665eb5e221306bc21bc4",
+    "supervisorSha256": "afc9253a96571e7e46ef7533a17f1f4b683bd45f661d68d5bbffca9650cfbf1a",
+    "workerSha256": "423873bbe5f97b532b7bfb909fa200714dc3555ec0542849b8ef720d50092934",
+    "watchdogSha256": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0"
+  },
+  "rounds": [
+    {"round": 1, "cohortOffset": 562, "cohortRange": "780-809", "runRoot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-timeout-observability-confirmation-round1"},
+    {"round": 2, "cohortOffset": 592, "cohortRange": "810-839", "runRoot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-timeout-observability-confirmation-round2"},
+    {"round": 3, "cohortOffset": 622, "cohortRange": "840-869", "runRoot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-timeout-observability-confirmation-round3"}
+  ],
+  "constraints": {
+    "noCodeChangesBetweenRounds": true,
+    "sameBundleHashesRequired": true,
+    "sameManifestRequired": true,
+    "sameExpectedPagesRequired": true,
+    "roundsMayOverlap": false,
+    "tripleVerificationPerRound": true,
+    "terminalSnapshotAtomicAndVersioned": true,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "protocolAllowed": false,
+    "receiptAllowed": false,
+    "communicationsAllowed": false,
+    "correctionsDuringTestAllowed": false
+  }
+}

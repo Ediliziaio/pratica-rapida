@@ -1,0 +1,312 @@
+{
+  "version": "apr-infissi-batch-preflight-v1",
+  "revision": 4,
+  "status": "completed",
+  "sourceFingerprint": "4155b7d6a0b12f0cb6c007e0a771f3d474e67c40e77d01c49b80e65d630bed77",
+  "currentCustomerKey": null,
+  "items": [
+    {
+      "customerKey": "guido-calvacchi",
+      "displayName": "GUIDO CALVACCHI",
+      "practiceId": "7ebb9a52-2196-4ddc-9dc8-f431ff40e1b5",
+      "dossierPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2921-global-controller-guido-calvacchi/crm-acquisition/dossiers/guido-calvacchi.json",
+      "productModule": "mixed",
+      "state": "blocked_case",
+      "startedAt": "2026-09-03T10:00:00.000Z",
+      "endedAt": "2026-09-03T10:00:00.000Z",
+      "reason": "GUIDO CALVACCHI: 5 blocker Infissi coerenti registrati; la coda prosegue.",
+      "report": {
+        "outcome": "blocked_case",
+        "blockers": [
+          {
+            "code": "infissi_dimensions_and_cardinality_missing",
+            "field": "technical_dimensions",
+            "sourceIds": [
+              "c1b45a7e7b5a1f2d8e4065eae8df42d450919d3b424258923922552778efdab7",
+              "6a55169f8d6d760faca9dd1380d29069b9d54c4067ae81f41e95bbde3741eef7",
+              "ecc17bca9fc83e3ecd08d646aaa374b17a6d3e28bc79659f17ffec5368878607"
+            ]
+          },
+          {
+            "code": "infissi_dimensions_and_cardinality_missing",
+            "field": "technical_rows",
+            "sourceIds": []
+          },
+          {
+            "code": "infissi_financial_triple_reconciliation_required",
+            "field": "invoice_total",
+            "sourceIds": [
+              "6a55169f8d6d760faca9dd1380d29069b9d54c4067ae81f41e95bbde3741eef7:invoice:2663d5837ee4",
+              "6a55169f8d6d760faca9dd1380d29069b9d54c4067ae81f41e95bbde3741eef7:invoice:5a16ae68a177",
+              "6a55169f8d6d760faca9dd1380d29069b9d54c4067ae81f41e95bbde3741eef7:invoice:352f42239cf6"
+            ]
+          },
+          {
+            "code": "bundled_professional_expense_unitemized",
+            "field": "economic_sources.eligibleTechnicalExpense",
+            "sourceIds": [
+              "6a55169f8d6d760faca9dd1380d29069b9d54c4067ae81f41e95bbde3741eef7:invoice:352f42239cf6"
+            ]
+          },
+          {
+            "code": "gross_triple_reconciliation_failed",
+            "field": "economic_sources.total",
+            "sourceIds": [
+              "c1b45a7e7b5a1f2d8e4065eae8df42d450919d3b424258923922552778efdab7",
+              "6a55169f8d6d760faca9dd1380d29069b9d54c4067ae81f41e95bbde3741eef7",
+              "c1b45a7e7b5a1f2d8e4065eae8df42d450919d3b424258923922552778efdab7"
+            ]
+          }
+        ],
+        "physicalProductCount": 0,
+        "invoiceGrossTotal": null,
+        "automaticTechnicalEvidenceAudit": {
+          "selectedSourceId": null,
+          "selectedParser": null,
+          "candidateCounts": [],
+          "excludedSources": [
+            {
+              "sourceId": "ecc17bca9fc83e3ecd08d646aaa374b17a6d3e28bc79659f17ffec5368878607",
+              "kind": "additional",
+              "reason": "crm_internal_technical_document_not_authoritative"
+            }
+          ],
+          "appliedRuleIds": [
+            "user-2026-08-19-infissi-invoice-or-technical-source-resolution-v1",
+            "user-2026-08-19-infissi-transmittance-1-3-fallback-v1",
+            "user-2026-08-14-preserve-technical-product-cardinality",
+            "user-2026-08-25-crm-internal-technical-document-untrusted-v1",
+            "user-2026-08-25-test-ex-novo-original-sources-only-v1",
+            "user-2026-09-03-technical-document-practice-binding-v1"
+          ],
+          "selectedSourceBinding": null
+        },
+        "technical": {
+          "version": "apr-infissi-technical-sources-v1",
+          "status": "operator_required",
+          "rows": [],
+          "blockers": [
+            "infissi_dimensions_and_cardinality_missing"
+          ],
+          "audit": {
+            "invoiceSourceIds": [],
+            "technicalDocumentSourceIds": [],
+            "selectedDimensionSource": null,
+            "physicalProductCount": 0,
+            "exactAreaTotalM2": 0,
+            "eneaRoundedAreaTotalM2": 0,
+            "appliedRuleIds": [
+              "user-2026-08-19-infissi-invoice-or-technical-source-resolution-v1",
+              "user-2026-08-19-infissi-enea-square-meter-rounding-v1",
+              "user-2026-08-19-infissi-transmittance-1-3-fallback-v1",
+              "user-2026-08-14-preserve-technical-product-cardinality"
+            ]
+          }
+        },
+        "productRules": {
+          "version": "apr-infissi-product-rules-v2",
+          "status": "ready",
+          "newFrameMaterial": "legno",
+          "glassType": "doppio",
+          "oldWindowThermalTransmittanceWm2K": 3,
+          "eneaShadingClosuresChecked": true,
+          "blockers": [],
+          "audit": {
+            "physicalRowId": null,
+            "newFrameMaterialSource": "explicit_original_source",
+            "glassTypeSource": "explicit_original_source",
+            "oldWindowThermalTransmittance": {
+              "version": "apr-infissi-old-window-transmittance-v1",
+              "thermalTransmittanceWm2K": 3,
+              "source": "form_matrix_combination",
+              "material": "legno",
+              "glazing": "vetro_doppio",
+              "fallbackReason": null,
+              "audit": {
+                "formSourceId": "7ebb9a52-2196-4ddc-9dc8-f431ff40e1b5:crm-form",
+                "sourceIds": [
+                  "7ebb9a52-2196-4ddc-9dc8-f431ff40e1b5:crm-form"
+                ],
+                "sourceKind": "customer_form",
+                "rawMaterial": "legno",
+                "rawGlazing": "doppio",
+                "appliedRuleIds": [
+                  "user-2026-08-19-infissi-old-window-transmittance-matrix-v1"
+                ]
+              }
+            },
+            "formSourceId": "7ebb9a52-2196-4ddc-9dc8-f431ff40e1b5:crm-form",
+            "formAlsoInstalledClosures": true,
+            "appliedRuleIds": [
+              "user-2026-08-19-infissi-pvc-low-e-fallbacks-v1",
+              "user-2026-08-19-infissi-shading-closures-form-flag-v1",
+              "user-2026-08-19-infissi-old-window-transmittance-matrix-v1"
+            ]
+          }
+        },
+        "shadingClosureAllocation": null,
+        "oldWindowSourceResolution": {
+          "version": "apr-infissi-old-window-source-resolution-v1",
+          "material": "legno",
+          "glazing": "doppio",
+          "hasDoubt": false,
+          "sourceKind": "customer_form",
+          "sourceIds": [
+            "7ebb9a52-2196-4ddc-9dc8-f431ff40e1b5:crm-form"
+          ],
+          "audit": {
+            "formMaterial": "legno",
+            "formGlazing": "doppio",
+            "invoiceMaterials": [],
+            "invoiceGlazings": [],
+            "appliedRuleIds": [
+              "user-2026-08-19-infissi-old-window-transmittance-matrix-v1"
+            ]
+          }
+        },
+        "invoiceCertificateCardinality": {
+          "version": "apr-infissi-invoice-certificate-cardinality-v1",
+          "status": "not_applicable",
+          "invoiceCount": null,
+          "certificateCount": null,
+          "invoiceSourceIds": [],
+          "certificateSourceIds": [],
+          "blocker": null,
+          "audit": {
+            "appliedRuleIds": [
+              "user-2026-08-22-infissi-invoice-certificate-cardinality-match-v1"
+            ]
+          }
+        },
+        "eneaDraftPayload": null,
+        "sourceIds": [
+          "7ebb9a52-2196-4ddc-9dc8-f431ff40e1b5:crm-form",
+          "c1b45a7e7b5a1f2d8e4065eae8df42d450919d3b424258923922552778efdab7",
+          "6a55169f8d6d760faca9dd1380d29069b9d54c4067ae81f41e95bbde3741eef7",
+          "ecc17bca9fc83e3ecd08d646aaa374b17a6d3e28bc79659f17ffec5368878607"
+        ],
+        "sourceFingerprints": [
+          {
+            "sourceId": "c1b45a7e7b5a1f2d8e4065eae8df42d450919d3b424258923922552778efdab7",
+            "sha256": "43fa834d7ca9d86f12a033c9d9f9ad6142a8b98cdefba812e2b28b26926a2a06"
+          },
+          {
+            "sourceId": "6a55169f8d6d760faca9dd1380d29069b9d54c4067ae81f41e95bbde3741eef7",
+            "sha256": "ba51a660aca65e3de7b7dc67d5a5fc93ac26fea78070b5de8e37b137fc5a031c"
+          },
+          {
+            "sourceId": "ecc17bca9fc83e3ecd08d646aaa374b17a6d3e28bc79659f17ffec5368878607",
+            "sha256": "03e6f478f61e11a2568b645b254c0a4c3e61ee10a6d18d6fc73ec8c0b40b6b96"
+          }
+        ],
+        "appliedRuleIds": [
+          "system-single-active-practice",
+          "system-atomic-checkpoint-resume",
+          "user-2026-08-19-infissi-invoice-or-technical-source-resolution-v1",
+          "user-2026-08-19-infissi-transmittance-1-3-fallback-v1",
+          "user-2026-08-14-preserve-technical-product-cardinality",
+          "user-2026-08-25-crm-internal-technical-document-untrusted-v1",
+          "user-2026-08-25-test-ex-novo-original-sources-only-v1",
+          "user-2026-09-03-technical-document-practice-binding-v1",
+          "user-2026-08-19-infissi-enea-square-meter-rounding-v1",
+          "user-2026-08-19-infissi-pvc-low-e-fallbacks-v1",
+          "user-2026-08-19-infissi-shading-closures-form-flag-v1",
+          "user-2026-08-19-infissi-old-window-transmittance-matrix-v1",
+          "user-2026-08-22-infissi-invoice-certificate-cardinality-match-v1",
+          "user-2026-08-16-invoice-gross-total-vat-included",
+          "user-2026-08-16-distinct-invoice-numbers-same-customer-sum",
+          "user-2026-08-18-bundled-professional-expense-separation",
+          "system-apr-operator-intervention-routing",
+          "core-gross-triple-reconciliation"
+        ]
+      }
+    }
+  ],
+  "progress": {
+    "total": 1,
+    "processed": 1,
+    "ready": 0,
+    "blocked": 1
+  },
+  "externalActionAllowed": false,
+  "previewAllowed": false,
+  "submitAllowed": false,
+  "communicationsAllowed": false,
+  "reason": "0 piani locali Infissi pronti; 1 casi isolati con blocker.",
+  "nextAction": "Risolvere i blocker documentati senza inventare valori.",
+  "validationRevisionsApplied": [],
+  "operatorPracticeBindingResolutions": [],
+  "audit": [
+    {
+      "revision": 0,
+      "at": "2026-09-03T10:00:00.000Z",
+      "type": "initialized",
+      "customerKey": null,
+      "reason": "Preflight batch Infissi non ancora preparato; azioni esterne chiuse.",
+      "appliedRuleIds": [
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume"
+      ]
+    },
+    {
+      "revision": 1,
+      "at": "2026-09-03T10:00:00.000Z",
+      "type": "batch_prepared",
+      "customerKey": null,
+      "reason": "1 pratiche Infissi acquisite; elaborazione sequenziale persistente avviata.",
+      "appliedRuleIds": [
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume"
+      ]
+    },
+    {
+      "revision": 2,
+      "at": "2026-09-03T10:00:00.000Z",
+      "type": "case_claimed",
+      "customerKey": "guido-calvacchi",
+      "reason": "GUIDO CALVACCHI: lock preflight Infissi acquisito; nessuna azione esterna.",
+      "appliedRuleIds": [
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume"
+      ]
+    },
+    {
+      "revision": 3,
+      "at": "2026-09-03T10:00:00.000Z",
+      "type": "case_blocked",
+      "customerKey": "guido-calvacchi",
+      "reason": "GUIDO CALVACCHI: 5 blocker Infissi coerenti registrati; la coda prosegue.",
+      "appliedRuleIds": [
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume",
+        "user-2026-08-19-infissi-invoice-or-technical-source-resolution-v1",
+        "user-2026-08-19-infissi-transmittance-1-3-fallback-v1",
+        "user-2026-08-14-preserve-technical-product-cardinality",
+        "user-2026-08-25-crm-internal-technical-document-untrusted-v1",
+        "user-2026-08-25-test-ex-novo-original-sources-only-v1",
+        "user-2026-09-03-technical-document-practice-binding-v1",
+        "user-2026-08-19-infissi-enea-square-meter-rounding-v1",
+        "user-2026-08-19-infissi-pvc-low-e-fallbacks-v1",
+        "user-2026-08-19-infissi-shading-closures-form-flag-v1",
+        "user-2026-08-19-infissi-old-window-transmittance-matrix-v1",
+        "user-2026-08-22-infissi-invoice-certificate-cardinality-match-v1",
+        "user-2026-08-16-invoice-gross-total-vat-included",
+        "user-2026-08-16-distinct-invoice-numbers-same-customer-sum",
+        "user-2026-08-18-bundled-professional-expense-separation",
+        "system-apr-operator-intervention-routing",
+        "core-gross-triple-reconciliation"
+      ]
+    },
+    {
+      "revision": 4,
+      "at": "2026-09-03T10:00:00.000Z",
+      "type": "batch_completed",
+      "customerKey": null,
+      "reason": "0 piani locali Infissi pronti; 1 casi isolati con blocker.",
+      "appliedRuleIds": [
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume"
+      ]
+    }
+  ]
+}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { APR_L1_ACQUISITION_OBSERVATION_VERSION } from "./aprAcquisitionLevelObservation";
+import { createAcquisitionArtifact } from "./aprAcquisitionLevelObservation";
 import { runEconomicVertical } from "./aprEconomicVertical";
 import { buildFiveLevelCaseMatrix, matrixProjection } from "./aprFiveLevelCaseMatrix";
 import { evaluateFiveLevelMatrixCutoverGate } from "./aprFiveLevelMatrixCutoverGate";
@@ -18,7 +18,11 @@ function baseline(): AprFiveLevelMatrixBaselineCase[] {
     invoices: [{ sourceId: "invoice", supplierId: "supplier", supplierName: null, documentNumber: "1", documentDate: "2026-01-01", kind: "invoice", taxableAmount: 100, vatAmount: 10, grossTotal: 110, referencedAdvanceIds: [], interventionGrossAmount: 110, extractionConfidence: "certain", extractionIssues: [], internalAdjustmentNote: null, explicitDeductibleLines: [], lineItems: [], locator }],
   });
   const input = {
-    acquisitionArtifact: { schemaVersion: APR_L1_ACQUISITION_OBSERVATION_VERSION, customerKey, practiceId, artifactId: canonicalSha256("matrix-l1-baseline"), status: "completed" as const, blockerCodes: [] },
+    acquisitionArtifact: createAcquisitionArtifact({
+      customerKey,
+      practiceId,
+      documents: [{ documentId: "invoice", pages: [{ pageId: "invoice:1", pageNumber: 1, contentSha256: HASH, acquisitionMethod: "text_extraction", outcome: "complete" }] }],
+    }),
     factsArtifacts: [vertical.factsArtifact],
     decisionArtifacts: [vertical.decisionsArtifact],
     mappingArtifacts: [mapBusinessDecisionArtifactToEnea(vertical.decisionsArtifact)],

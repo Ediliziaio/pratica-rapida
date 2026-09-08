@@ -3,7 +3,7 @@ import { closeSync, existsSync, fsyncSync, mkdirSync, openSync, readFileSync, re
 import path from "node:path";
 import { USER_AUTHORIZED_RULE_IDS } from "../../src/features/enea-shadow-crm/operationalRegistry";
 import type { AprCrmReadOnlyTransport } from "./crmAuthenticatedReadOnly";
-import { APR_FUTURE_TEST_EXCLUSION_RULE_ID, aprFutureTestExclusion } from "./aprFutureTestExclusions";
+import { APR_FUTURE_TEST_EXCLUSION_RULE_ID, aprAutomationExclusion } from "./aprFutureTestExclusions";
 
 export const APR_ARCHIVED_MIXED_DISCOVERY_VERSION = "apr-archived-mixed-discovery-v1" as const;
 const PER_MODULE_COUNT = 20;
@@ -18,7 +18,7 @@ const RULE_IDS = [
 
 type StageType = "archiviate" | "recensione";
 type ProductModule = "screening" | "infissi";
-interface CrmRow { id?: unknown; cliente_nome?: unknown; cliente_cognome?: unknown; prodotto_installato?: unknown; updated_at?: unknown; pipeline_stages?: unknown }
+interface CrmRow { id?: unknown; cliente_nome?: unknown; cliente_cognome?: unknown; prodotto_installato?: unknown; updated_at?: unknown; pipeline_stages?: unknown; fornitore?: unknown; companies?: unknown }
 export interface MixedCandidate {
   customerKey: string;
   displayName: string;
@@ -102,7 +102,7 @@ export class PersistentAprCrmArchivedMixedDiscovery {
     const existing = this.load(); if (existing) return existing;
     const seed = this.randomSeed.trim(); if (!seed) throw new Error("apr_archived_mixed_discovery_seed_missing");
     if (this.transport.snapshot(now).status !== "authenticated") throw new Error("apr_archived_mixed_discovery_login_required");
-    const params = new URLSearchParams({ select: "id,cliente_nome,cliente_cognome,prodotto_installato,updated_at,pipeline_stages!inner(stage_type)", brand: "eq.enea", "pipeline_stages.stage_type": "in.(archiviate,recensione)", order: "updated_at.desc", limit: "1000" });
+    const params = new URLSearchParams({ select: "id,cliente_nome,cliente_cognome,prodotto_installato,updated_at,fornitore,pipeline_stages!inner(stage_type),companies:reseller_id(ragione_sociale)", brand: "eq.enea", "pipeline_stages.stage_type": "in.(archiviate,recensione)", order: "updated_at.desc", limit: "1000" });
     const response = await this.transport.readOnlyGet("/rest/v1/enea_practices_public", params, now);
     const body = await response.text(); const responseSha256 = sha256(body);
     if (!response.ok || !(response.headers.get("content-type") ?? "").includes("application/json")) throw new Error(`apr_archived_mixed_discovery_http_${response.status}:${responseSha256}`);
@@ -114,7 +114,7 @@ export class PersistentAprCrmArchivedMixedDiscovery {
       const lastName = typeof row.cliente_cognome === "string" ? row.cliente_cognome.trim() : "";
       const displayName = `${firstName} ${lastName}`.trim().replace(/\s+/g, " "); const key = customerKey(displayName);
       const practiceId = typeof row.id === "string" ? row.id.toLowerCase() : ""; const stages = stageTypes(row.pipeline_stages); const product = classifyProduct(row.prodotto_installato);
-      if (!displayName || !key || !/^[a-f0-9-]{36}$/.test(practiceId) || stages.length !== 1 || !product || aprFutureTestExclusion(key) || seen.has(key)) continue;
+      if (!displayName || !key || !/^[a-f0-9-]{36}$/.test(practiceId) || stages.length !== 1 || !product || aprAutomationExclusion({ customerKey: key, displayName, fornitore: row.fornitore, companies: row.companies }) || seen.has(key)) continue;
       seen.add(key);
       eligible.push({ customerKey: key, displayName, practiceId, expectedStageType: stages[0], productModule: product.module, productEvidence: product.evidence, priorDraftIds: [...(history.get(key) ?? [])].sort() });
     }

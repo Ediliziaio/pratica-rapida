@@ -11,7 +11,7 @@ describe("audit payload ENEA da dossier CRM locale", () => {
   it("costruisce una persiana con il modulo Schermature anche se l'etichetta CRM dichiara Infissi", () => {
     const result = buildCrmEneaDraftPackage({
       customerKey: "persiana-etichettata-infissi", completionDate: "2026-06-10", financialVerified: true, reconciledTotal: 1200,
-      products: [{ description: "Persiana in alluminio", widthMm: 1200, heightMm: 2450, surfaceM2: 2.94, sourceDocumentKey: "scheda-persiana", declaredType: "persiana", exposure: "sud", protectedWindowSurfaceM2: 2.94, protectedWindowSurfaceSource: "derived_product_surface", supplementaryThermalResistance: 0.17, gTot: 0.08, gTotSource: "authorized_fallback", material: "Metallo", movement: "Manuale", appliedRuleIds: ["user-2026-08-18-persiana-screening-contract-v1"] }],
+      products: [{ description: "Persiana in alluminio", widthMm: 1200, heightMm: 2450, surfaceM2: 2.94, sourceDocumentKey: "scheda-persiana", declaredType: "persiana", exposure: "sud", protectedWindowSurfaceM2: 2.94, protectedWindowSurfaceSource: "derived_product_surface", supplementaryThermalResistance: 0.17, gTot: 0.06, gTotSource: "authorized_fallback", material: "Metallo", movement: "Manuale", appliedRuleIds: ["user-2026-08-31-rigid-screening-missing-gtot-006-v1"] }],
       analysis,
       dossierValue: { row: { id: "00000000-0000-4000-8000-000000000099", cliente_nome: "Mario", cliente_cognome: "Rossi", cliente_cf: "RSSMRA80A01H501U", prodotto_installato: "Infissi", fatture_urls: [], documenti_aggiuntivi_urls: [], pipeline_stages: { stage_type: "archiviate" }, dati_form: { richiedente: { nome: "Mario", cognome: "Rossi", cf: "RSSMRA80A01H501U" }, prodotto: { schermature: [{ tipo_prodotto: "altro", direzione: "sud" }] } } } },
     });
@@ -22,9 +22,10 @@ describe("audit payload ENEA da dossier CRM locale", () => {
       expect(screeningFields.length).toBeGreaterThan(0);
       expect(screeningFields.every((field) => field.appliedRuleIds?.includes("user-2026-08-23-documented-product-module-over-label"))).toBe(true);
       expect(screeningFields.find((field) => field.id === "schermature.0.dimensioni")?.value).toBe("1200 × 2450 mm");
-      expect(screeningFields.find((field) => field.id === "schermature.0.gtot")).toMatchObject({ value: "0,08", status: "ready" });
-      expect(result.documentAnalysis?.items).toEqual([expect.objectContaining({ sourcePath: "scheda-persiana", widthMm: 1200, heightMm: 2450, surfaceM2: 2.94, gTot: 0.08 })]);
-      expect(result.issues.some((issue) => /^(?:unverified|invalid)-gtot/.test(issue.code))).toBe(false);
+      expect(screeningFields.find((field) => field.id === "schermature.0.gtot")).toMatchObject({ value: "0,06", status: "ready" });
+      expect(screeningFields.find((field) => field.id === "schermature.0.gtot")).toMatchObject({ source: "Regola controllata", appliedRuleIds: expect.arrayContaining(["user-2026-08-31-rigid-screening-missing-gtot-006-v1"]) });
+      expect(result.documentAnalysis?.items).toEqual([expect.objectContaining({ sourcePath: "scheda-persiana", widthMm: 1200, heightMm: 2450, surfaceM2: 2.94, gTot: 0.06 })]);
+      expect(result.issues.filter((issue) => /^(?:unverified|invalid)-gtot/.test(issue.code))).toEqual([]);
     }
   });
   it("conserva la pagina fattura in un allegato composito fattura+bonifico e ne audita la regola", () => {
@@ -175,8 +176,57 @@ describe("audit payload ENEA da dossier CRM locale", () => {
       expect(result.source.form.richiedente).toMatchObject({ nome: "Gianluigi", cognome: "Chiolin", cf: "CHLGLG66A31F205C" });
       const fields = result.mapped.sections.flatMap((section) => section.fields);
       expect(fields.find((field) => field.id === "beneficiario.cognome")).toMatchObject({
-        value: "Chiolin", source: "Fattura", appliedRuleIds: ["user-2026-08-16-invoice-identity-over-customer-form", "user-2026-08-16-fiscal-code-identity-cross-check"],
+        value: "Chiolin", source: "Fattura", appliedRuleIds: ["user-2026-09-03-official-identity-over-manual-crm-v1", "user-2026-08-16-fiscal-code-identity-cross-check"],
       });
+    }
+  });
+
+  it("sostituisce il Comune lavori con quello verificato in fattura", () => {
+    const result = buildCrmEneaDraftPackage({
+      customerKey: "mario-rossi-comune", resolvedTaxCode: "RSSMRA80A01H501U",
+      resolvedWorksMunicipality: { comune: "Reggiolo", provincia: "RE" },
+      resolvedWorksMunicipalitySourceIds: ["invoice-mario"],
+      completionDate: "2026-07-22", products: [], financialVerified: false, reconciledTotal: null, analysis,
+      dossierValue: { row: { id: "00000000-0000-4000-8000-000000000012", cliente_nome: "Mario", cliente_cognome: "Rossi", cliente_cf: "RSSMRA80A01H501U", prodotto_installato: "Schermature solari", fatture_urls: [], documenti_aggiuntivi_urls: [], pipeline_stages: { stage_type: "archiviate" }, dati_form: { richiedente: { nome: "Mario", cognome: "Rossi", cf: "RSSMRA80A01H501U" }, appartamento_lavori: { comune: "Milano", provincia: "MI" }, prodotto: { schermature: [] } } } },
+    });
+    expect(result.status).toBe("built");
+    if (result.status === "built") {
+      expect(result.source.form.appartamento_lavori).toMatchObject({ comune: "Reggiolo", provincia: "RE" });
+      const fields = result.mapped.sections.flatMap((section) => section.fields);
+      expect(fields.find((field) => field.id === "immobile.comune")).toMatchObject({
+        value: "Reggiolo", source: "Fattura", appliedRuleIds: ["user-2026-09-06-official-works-municipality-over-manual-crm-v1"],
+      });
+    }
+  });
+
+  it("non tocca il Comune lavori quando nessuna fattura fornisce una risoluzione documentale", () => {
+    const result = buildCrmEneaDraftPackage({
+      customerKey: "mario-rossi-comune-invariato", resolvedTaxCode: "RSSMRA80A01H501U",
+      completionDate: "2026-07-22", products: [], financialVerified: false, reconciledTotal: null, analysis,
+      dossierValue: { row: { id: "00000000-0000-4000-8000-000000000013", cliente_nome: "Mario", cliente_cognome: "Rossi", cliente_cf: "RSSMRA80A01H501U", prodotto_installato: "Schermature solari", fatture_urls: [], documenti_aggiuntivi_urls: [], pipeline_stages: { stage_type: "archiviate" }, dati_form: { richiedente: { nome: "Mario", cognome: "Rossi", cf: "RSSMRA80A01H501U" }, appartamento_lavori: { comune: "Milano", provincia: "MI" }, prodotto: { schermature: [] } } } },
+    });
+    expect(result.status).toBe("built");
+    if (result.status === "built") {
+      expect(result.source.form.appartamento_lavori).toMatchObject({ comune: "Milano", provincia: "MI" });
+      const fields = result.mapped.sections.flatMap((section) => section.fields);
+      expect(fields.find((field) => field.id === "immobile.comune")?.appliedRuleIds).not.toContain(USER_AUTHORIZED_RULE_IDS.officialWorksMunicipalityOverManualCrm);
+    }
+  });
+
+  it("sostituisce anche data di nascita e sesso con i segmenti del CF documentale verificato", () => {
+    const result = buildCrmEneaDraftPackage({
+      customerKey: "riccardo-coda", resolvedTaxCode: "CDORCR50A30A859R",
+      resolvedPrimaryBeneficiary: { name: "Riccardo", surname: "Coda", taxCode: "CDORCR50A30A859R", birthDate: "1950-01-30", sex: "M" },
+      resolvedPrimaryBeneficiarySourceIds: ["identity-riccardo"],
+      completionDate: "2026-07-22", products: [], financialVerified: false, reconciledTotal: null, analysis,
+      dossierValue: { row: { id: "00000000-0000-4000-8000-000000000011", cliente_nome: "Riccardo", cliente_cognome: "Coda", cliente_cf: "CDORCR50A30A859R", prodotto_installato: "Schermature solari", fatture_urls: [], documenti_aggiuntivi_urls: [], pipeline_stages: { stage_type: "archiviate" }, dati_form: { richiedente: { nome: "Riccardo", cognome: "Coda", cf: "CDORCR50A30A859R", data_nascita: "1950-09-30" }, prodotto: { schermature: [] } } } },
+    });
+    expect(result.status).toBe("built");
+    if (result.status === "built") {
+      expect(result.source.form.richiedente.data_nascita).toBe("1950-01-30");
+      const fields = result.mapped.sections.flatMap((section) => section.fields);
+      expect(fields.find((field) => field.id === "beneficiario.data_nascita")).toMatchObject({ value: "30/01/1950", source: "Fattura" });
+      expect(fields.find((field) => field.id === "beneficiario.sesso")).toMatchObject({ value: "M", source: "Fattura" });
     }
   });
 

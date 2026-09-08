@@ -1,0 +1,498 @@
+{
+  "version": "apr-infissi-batch-preflight-v1",
+  "revision": 4,
+  "status": "completed",
+  "sourceFingerprint": "843d7bf438d8e487cb736de0a0420ff0ae20769144b4131dcce2b5bc2abe306a",
+  "currentCustomerKey": null,
+  "items": [
+    {
+      "customerKey": "antonio-scaparrotta",
+      "displayName": "Antonio Scaparrotta",
+      "practiceId": "c62c3f57-ab7d-400b-9ef6-edf1bb79e387",
+      "dossierPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3014-global-controller-antonio-scaparrotta/crm-acquisition/dossiers/antonio-scaparrotta.json",
+      "productModule": "infissi",
+      "state": "blocked_case",
+      "startedAt": "2026-09-03T10:00:00.000Z",
+      "endedAt": "2026-09-03T10:00:00.000Z",
+      "reason": "Antonio Scaparrotta: 3 blocker Infissi coerenti registrati; la coda prosegue.",
+      "report": {
+        "outcome": "blocked_case",
+        "blockers": [
+          {
+            "code": "infissi_financial_triple_reconciliation_required",
+            "field": "invoice_total",
+            "sourceIds": [
+              "0b92ed0ff7dccf12c33a97424d55918e776788215073ae3e71e896f5ac9f8143:invoice:264f0ccd0374",
+              "703311081d1e3d557ca8c9397d8000575dd7e3e24261b9930c289aafebf8bc72:invoice:264f0ccd0374",
+              "41655d970c710618eb9f35ccfd9d1282d6b8dcd1fd23331e9d0f191614b0cf28:invoice:264f0ccd0374"
+            ]
+          },
+          {
+            "code": "bank_transfer_principal_exceeds_invoices",
+            "field": "economic_sources.bankTransfers",
+            "sourceIds": [
+              "281a858bd41d34172cc06ff2e9e0f8227b22c772edc4cd632dc92f83e5046353",
+              "cfe6685e721b6de5ad75e71e8d55c71973c6d3cc7710c5b69aa28f2666377d43",
+              "a94bd4582e5e70530da8f6f011049bc25d0fea0126983e3bc49f352644ef3c90"
+            ]
+          },
+          {
+            "code": "gross_triple_reconciliation_failed",
+            "field": "economic_sources.total",
+            "sourceIds": [
+              "366c9300342c41e6b69f700a5dad5658e3c3a1ca2a40d1b633a5d241599b76cc",
+              "281a858bd41d34172cc06ff2e9e0f8227b22c772edc4cd632dc92f83e5046353",
+              "cfe6685e721b6de5ad75e71e8d55c71973c6d3cc7710c5b69aa28f2666377d43",
+              "a94bd4582e5e70530da8f6f011049bc25d0fea0126983e3bc49f352644ef3c90",
+              "0b92ed0ff7dccf12c33a97424d55918e776788215073ae3e71e896f5ac9f8143",
+              "703311081d1e3d557ca8c9397d8000575dd7e3e24261b9930c289aafebf8bc72",
+              "41655d970c710618eb9f35ccfd9d1282d6b8dcd1fd23331e9d0f191614b0cf28"
+            ]
+          }
+        ],
+        "physicalProductCount": 8,
+        "invoiceGrossTotal": 8713.96,
+        "technical": {
+          "version": "apr-infissi-technical-sources-v1",
+          "status": "ready",
+          "rows": [
+            {
+              "physicalRowId": "c62c3f57-ab7d-400b-9ef6-edf1bb79e387:infisso:1",
+              "sourceLineId": "2fe2256d16ea99f99bc1c00c92b8315a570075c24cfc15d6cc4399e797916e56:dimension-block:1",
+              "pieceIndex": 1,
+              "widthM": 0.93,
+              "heightM": 2.35,
+              "exactAreaM2": 2.1855,
+              "eneaAreaM2": 2.2,
+              "thermalTransmittanceWm2K": 1.07,
+              "measurementKind": "documented_unspecified",
+              "dimensionSourceKind": "technical_document",
+              "dimensionSourceIds": [
+                "2fe2256d16ea99f99bc1c00c92b8315a570075c24cfc15d6cc4399e797916e56"
+              ],
+              "transmittanceSourceKind": "technical_document",
+              "transmittanceSourceIds": [
+                "2fe2256d16ea99f99bc1c00c92b8315a570075c24cfc15d6cc4399e797916e56"
+              ]
+            },
+            {
+              "physicalRowId": "c62c3f57-ab7d-400b-9ef6-edf1bb79e387:infisso:2",
+              "sourceLineId": "2fe2256d16ea99f99bc1c00c92b8315a570075c24cfc15d6cc4399e797916e56:dimension-block:2",
+              "pieceIndex": 1,
+              "widthM": 1.39,
+              "heightM": 2.345,
+              "exactAreaM2": 3.25955,
+              "eneaAreaM2": 3.3,
+              "thermalTransmittanceWm2K": 1.07,
+              "measurementKind": "documented_unspecified",
+              "dimensionSourceKind": "technical_document",
+              "dimensionSourceIds": [
+                "2fe2256d16ea99f99bc1c00c92b8315a570075c24cfc15d6cc4399e797916e56"
+              ],
+              "transmittanceSourceKind": "technical_document",
+              "transmittanceSourceIds": [
+                "2fe2256d16ea99f99bc1c00c92b8315a570075c24cfc15d6cc4399e797916e56"
+              ]
+            },
+            {
+              "physicalRowId": "c62c3f57-ab7d-400b-9ef6-edf1bb79e387:infisso:3",
+              "sourceLineId": "2fe2256d16ea99f99bc1c00c92b8315a570075c24cfc15d6cc4399e797916e56:dimension-block:3",
+              "pieceIndex": 1,
+              "widthM": 1.39,
+              "heightM": 2.345,
+              "exactAreaM2": 3.25955,
+              "eneaAreaM2": 3.3,
+              "thermalTransmittanceWm2K": 1.07,
+              "measurementKind": "documented_unspecified",
+              "dimensionSourceKind": "technical_document",
+              "dimensionSourceIds": [
+                "2fe2256d16ea99f99bc1c00c92b8315a570075c24cfc15d6cc4399e797916e56"
+              ],
+              "transmittanceSourceKind": "technical_document",
+              "transmittanceSourceIds": [
+                "2fe2256d16ea99f99bc1c00c92b8315a570075c24cfc15d6cc4399e797916e56"
+              ]
+            },
+            {
+              "physicalRowId": "c62c3f57-ab7d-400b-9ef6-edf1bb79e387:infisso:4",
+              "sourceLineId": "2fe2256d16ea99f99bc1c00c92b8315a570075c24cfc15d6cc4399e797916e56:dimension-block:4",
+              "pieceIndex": 1,
+              "widthM": 0.71,
+              "heightM": 2.36,
+              "exactAreaM2": 1.6755999999999998,
+              "eneaAreaM2": 1.7,
+              "thermalTransmittanceWm2K": 1.07,
+              "measurementKind": "documented_unspecified",
+              "dimensionSourceKind": "technical_document",
+              "dimensionSourceIds": [
+                "2fe2256d16ea99f99bc1c00c92b8315a570075c24cfc15d6cc4399e797916e56"
+              ],
+              "transmittanceSourceKind": "technical_document",
+              "transmittanceSourceIds": [
+                "2fe2256d16ea99f99bc1c00c92b8315a570075c24cfc15d6cc4399e797916e56"
+              ]
+            },
+            {
+              "physicalRowId": "c62c3f57-ab7d-400b-9ef6-edf1bb79e387:infisso:5",
+              "sourceLineId": "2fe2256d16ea99f99bc1c00c92b8315a570075c24cfc15d6cc4399e797916e56:dimension-block:5",
+              "pieceIndex": 1,
+              "widthM": 0.71,
+              "heightM": 2.36,
+              "exactAreaM2": 1.6755999999999998,
+              "eneaAreaM2": 1.7,
+              "thermalTransmittanceWm2K": 1.07,
+              "measurementKind": "documented_unspecified",
+              "dimensionSourceKind": "technical_document",
+              "dimensionSourceIds": [
+                "2fe2256d16ea99f99bc1c00c92b8315a570075c24cfc15d6cc4399e797916e56"
+              ],
+              "transmittanceSourceKind": "technical_document",
+              "transmittanceSourceIds": [
+                "2fe2256d16ea99f99bc1c00c92b8315a570075c24cfc15d6cc4399e797916e56"
+              ]
+            },
+            {
+              "physicalRowId": "c62c3f57-ab7d-400b-9ef6-edf1bb79e387:infisso:6",
+              "sourceLineId": "2fe2256d16ea99f99bc1c00c92b8315a570075c24cfc15d6cc4399e797916e56:dimension-block:6",
+              "pieceIndex": 1,
+              "widthM": 0.71,
+              "heightM": 1.365,
+              "exactAreaM2": 0.96915,
+              "eneaAreaM2": 1,
+              "thermalTransmittanceWm2K": 1.13,
+              "measurementKind": "documented_unspecified",
+              "dimensionSourceKind": "technical_document",
+              "dimensionSourceIds": [
+                "2fe2256d16ea99f99bc1c00c92b8315a570075c24cfc15d6cc4399e797916e56"
+              ],
+              "transmittanceSourceKind": "technical_document",
+              "transmittanceSourceIds": [
+                "2fe2256d16ea99f99bc1c00c92b8315a570075c24cfc15d6cc4399e797916e56"
+              ]
+            },
+            {
+              "physicalRowId": "c62c3f57-ab7d-400b-9ef6-edf1bb79e387:infisso:7",
+              "sourceLineId": "2fe2256d16ea99f99bc1c00c92b8315a570075c24cfc15d6cc4399e797916e56:dimension-block:7",
+              "pieceIndex": 1,
+              "widthM": 1.04,
+              "heightM": 2.355,
+              "exactAreaM2": 2.4492000000000003,
+              "eneaAreaM2": 2.4,
+              "thermalTransmittanceWm2K": 1.07,
+              "measurementKind": "documented_unspecified",
+              "dimensionSourceKind": "technical_document",
+              "dimensionSourceIds": [
+                "2fe2256d16ea99f99bc1c00c92b8315a570075c24cfc15d6cc4399e797916e56"
+              ],
+              "transmittanceSourceKind": "technical_document",
+              "transmittanceSourceIds": [
+                "2fe2256d16ea99f99bc1c00c92b8315a570075c24cfc15d6cc4399e797916e56"
+              ]
+            },
+            {
+              "physicalRowId": "c62c3f57-ab7d-400b-9ef6-edf1bb79e387:infisso:8",
+              "sourceLineId": "2fe2256d16ea99f99bc1c00c92b8315a570075c24cfc15d6cc4399e797916e56:dimension-block:8",
+              "pieceIndex": 1,
+              "widthM": 1.04,
+              "heightM": 2.355,
+              "exactAreaM2": 2.4492000000000003,
+              "eneaAreaM2": 2.4,
+              "thermalTransmittanceWm2K": 1.07,
+              "measurementKind": "documented_unspecified",
+              "dimensionSourceKind": "technical_document",
+              "dimensionSourceIds": [
+                "2fe2256d16ea99f99bc1c00c92b8315a570075c24cfc15d6cc4399e797916e56"
+              ],
+              "transmittanceSourceKind": "technical_document",
+              "transmittanceSourceIds": [
+                "2fe2256d16ea99f99bc1c00c92b8315a570075c24cfc15d6cc4399e797916e56"
+              ]
+            }
+          ],
+          "blockers": [],
+          "audit": {
+            "invoiceSourceIds": [],
+            "technicalDocumentSourceIds": [
+              "2fe2256d16ea99f99bc1c00c92b8315a570075c24cfc15d6cc4399e797916e56"
+            ],
+            "selectedDimensionSource": "technical_document",
+            "physicalProductCount": 8,
+            "exactAreaTotalM2": 17.92335,
+            "eneaRoundedAreaTotalM2": 18,
+            "appliedRuleIds": [
+              "user-2026-08-19-infissi-invoice-or-technical-source-resolution-v1",
+              "user-2026-08-19-infissi-enea-square-meter-rounding-v1",
+              "user-2026-08-19-infissi-transmittance-1-3-fallback-v1",
+              "user-2026-08-14-preserve-technical-product-cardinality"
+            ]
+          }
+        },
+        "productRules": {
+          "version": "apr-infissi-product-rules-v2",
+          "status": "ready",
+          "newFrameMaterial": "pvc",
+          "glassType": "doppio",
+          "oldWindowThermalTransmittanceWm2K": 6,
+          "eneaShadingClosuresChecked": true,
+          "blockers": [],
+          "audit": {
+            "physicalRowId": null,
+            "newFrameMaterialSource": "explicit_original_source",
+            "glassTypeSource": "explicit_original_source",
+            "oldWindowThermalTransmittance": {
+              "version": "apr-infissi-old-window-transmittance-v1",
+              "thermalTransmittanceWm2K": 6,
+              "source": "authorized_precautionary_fallback",
+              "material": null,
+              "glazing": "vetro_singolo",
+              "fallbackReason": "ambiguous_or_unmapped_material",
+              "audit": {
+                "formSourceId": "c62c3f57-ab7d-400b-9ef6-edf1bb79e387:crm-form",
+                "sourceIds": [
+                  "c62c3f57-ab7d-400b-9ef6-edf1bb79e387:crm-form"
+                ],
+                "sourceKind": "customer_form",
+                "rawMaterial": "metallo",
+                "rawGlazing": "singolo",
+                "appliedRuleIds": [
+                  "user-2026-08-19-infissi-old-window-transmittance-matrix-v1"
+                ]
+              }
+            },
+            "formSourceId": "c62c3f57-ab7d-400b-9ef6-edf1bb79e387:crm-form",
+            "formAlsoInstalledClosures": true,
+            "appliedRuleIds": [
+              "user-2026-08-19-infissi-pvc-low-e-fallbacks-v1",
+              "user-2026-08-19-infissi-shading-closures-form-flag-v1",
+              "user-2026-08-19-infissi-old-window-transmittance-matrix-v1"
+            ]
+          }
+        },
+        "shadingClosureAllocation": {
+          "version": "apr-infissi-shading-closure-allocation-v2",
+          "mode": "form_all",
+          "flags": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "documentedClosureCount": 0,
+          "sourceIds": [],
+          "blocker": null,
+          "audit": {
+            "physicalWindowCount": 8,
+            "documentedClosureCount": 0,
+            "technicalRowSourceKind": "technical_document",
+            "invoiceDocumentSignatures": [],
+            "appliedRuleIds": [
+              "user-2026-08-19-infissi-shading-closures-form-flag-v1"
+            ]
+          }
+        },
+        "oldWindowSourceResolution": {
+          "version": "apr-infissi-old-window-source-resolution-v1",
+          "material": "metallo",
+          "glazing": "singolo",
+          "hasDoubt": false,
+          "sourceKind": "customer_form",
+          "sourceIds": [
+            "c62c3f57-ab7d-400b-9ef6-edf1bb79e387:crm-form"
+          ],
+          "audit": {
+            "formMaterial": "metallo",
+            "formGlazing": "singolo",
+            "invoiceMaterials": [],
+            "invoiceGlazings": [],
+            "appliedRuleIds": [
+              "user-2026-08-19-infissi-old-window-transmittance-matrix-v1"
+            ]
+          }
+        },
+        "invoiceCertificateCardinality": {
+          "version": "apr-infissi-invoice-certificate-cardinality-v1",
+          "status": "not_applicable",
+          "invoiceCount": null,
+          "certificateCount": null,
+          "invoiceSourceIds": [],
+          "certificateSourceIds": [],
+          "blocker": null,
+          "audit": {
+            "appliedRuleIds": [
+              "user-2026-08-22-infissi-invoice-certificate-cardinality-match-v1"
+            ]
+          }
+        },
+        "eneaDraftPayload": null,
+        "sourceIds": [
+          "c62c3f57-ab7d-400b-9ef6-edf1bb79e387:crm-form",
+          "366c9300342c41e6b69f700a5dad5658e3c3a1ca2a40d1b633a5d241599b76cc",
+          "281a858bd41d34172cc06ff2e9e0f8227b22c772edc4cd632dc92f83e5046353",
+          "cfe6685e721b6de5ad75e71e8d55c71973c6d3cc7710c5b69aa28f2666377d43",
+          "a94bd4582e5e70530da8f6f011049bc25d0fea0126983e3bc49f352644ef3c90",
+          "0b92ed0ff7dccf12c33a97424d55918e776788215073ae3e71e896f5ac9f8143",
+          "703311081d1e3d557ca8c9397d8000575dd7e3e24261b9930c289aafebf8bc72",
+          "41655d970c710618eb9f35ccfd9d1282d6b8dcd1fd23331e9d0f191614b0cf28",
+          "443151710cc94a7928398218f353e6c785c9b4a90b378f69b7c19046ecf8d351",
+          "555cedd176db666cdefcefa1ebfab9cf0e7035eef3afa5fcc071381665fb9a59",
+          "ffd0a6135a8aa7d0ab9904954f9465dc6b3da7ca2abc6c970e22eaf9f5d348c4",
+          "2fe2256d16ea99f99bc1c00c92b8315a570075c24cfc15d6cc4399e797916e56"
+        ],
+        "sourceFingerprints": [
+          {
+            "sourceId": "366c9300342c41e6b69f700a5dad5658e3c3a1ca2a40d1b633a5d241599b76cc",
+            "sha256": "fbb034ff4a0d8329064d63fbee8df3c6fb964241e7604cb9dadf443bf6f8b6c7"
+          },
+          {
+            "sourceId": "281a858bd41d34172cc06ff2e9e0f8227b22c772edc4cd632dc92f83e5046353",
+            "sha256": "3ba92585eb706aa2ec3251541e8ab597d86a6a16efc41dc1619f88816f6ba0a9"
+          },
+          {
+            "sourceId": "cfe6685e721b6de5ad75e71e8d55c71973c6d3cc7710c5b69aa28f2666377d43",
+            "sha256": "98576af7ea823b11d98fd4cb1d0e85abf52e6451a2c78e4234934c43941e4e89"
+          },
+          {
+            "sourceId": "a94bd4582e5e70530da8f6f011049bc25d0fea0126983e3bc49f352644ef3c90",
+            "sha256": "3685f1b9727ea88c54e7f373a67d5738c0eaad0d8648b97c84689f1304249d84"
+          },
+          {
+            "sourceId": "0b92ed0ff7dccf12c33a97424d55918e776788215073ae3e71e896f5ac9f8143",
+            "sha256": "2da10efb9125fbb0c346092f5de2e792c4b61f8555441921ce1d547a12942595"
+          },
+          {
+            "sourceId": "703311081d1e3d557ca8c9397d8000575dd7e3e24261b9930c289aafebf8bc72",
+            "sha256": "0d4c2d7f6f350f9846cbf5ff5c068b14256d31309845e2d435932a4b930e0b73"
+          },
+          {
+            "sourceId": "41655d970c710618eb9f35ccfd9d1282d6b8dcd1fd23331e9d0f191614b0cf28",
+            "sha256": "d631059e886a1e0a6e912ad1991677dbd044c885822768d9ac2177facd5ef481"
+          },
+          {
+            "sourceId": "443151710cc94a7928398218f353e6c785c9b4a90b378f69b7c19046ecf8d351",
+            "sha256": "14d7bf11bd2cb8e328c4e2d1a705a60a1f2593a8e0e71e4b1ab295dd488e5ce5"
+          },
+          {
+            "sourceId": "555cedd176db666cdefcefa1ebfab9cf0e7035eef3afa5fcc071381665fb9a59",
+            "sha256": "57c3338269c8635f339664c08b35b9df9cf344424a665fb5f904adfae05c59ae"
+          },
+          {
+            "sourceId": "ffd0a6135a8aa7d0ab9904954f9465dc6b3da7ca2abc6c970e22eaf9f5d348c4",
+            "sha256": "827ec028b6151ba2eea8fa0b41c7be64f516f52e0e403374a50e5d9d77bb7456"
+          },
+          {
+            "sourceId": "2fe2256d16ea99f99bc1c00c92b8315a570075c24cfc15d6cc4399e797916e56",
+            "sha256": "7a0dccd9934bffe55da03f13cbe32e615afd1fa95e0af46c01fff2457e686eef"
+          }
+        ],
+        "appliedRuleIds": [
+          "system-single-active-practice",
+          "system-atomic-checkpoint-resume",
+          "user-2026-08-19-infissi-invoice-or-technical-source-resolution-v1",
+          "user-2026-08-19-infissi-transmittance-1-3-fallback-v1",
+          "user-2026-08-14-preserve-technical-product-cardinality",
+          "user-2026-08-25-crm-internal-technical-document-untrusted-v1",
+          "user-2026-08-25-test-ex-novo-original-sources-only-v1",
+          "user-2026-08-19-infissi-enea-square-meter-rounding-v1",
+          "user-2026-08-19-infissi-pvc-low-e-fallbacks-v1",
+          "user-2026-08-19-infissi-shading-closures-form-flag-v1",
+          "user-2026-08-19-infissi-old-window-transmittance-matrix-v1",
+          "user-2026-08-22-infissi-invoice-certificate-cardinality-match-v1",
+          "user-2026-08-16-invoice-gross-total-vat-included",
+          "user-2026-08-16-distinct-invoice-numbers-same-customer-sum",
+          "user-2026-08-16-invoice-total-over-bank-transfers",
+          "system-apr-operator-intervention-routing",
+          "core-gross-triple-reconciliation"
+        ]
+      }
+    }
+  ],
+  "progress": {
+    "total": 1,
+    "processed": 1,
+    "ready": 0,
+    "blocked": 1
+  },
+  "externalActionAllowed": false,
+  "previewAllowed": false,
+  "submitAllowed": false,
+  "communicationsAllowed": false,
+  "reason": "0 piani locali Infissi pronti; 1 casi isolati con blocker.",
+  "nextAction": "Risolvere i blocker documentati senza inventare valori.",
+  "validationRevisionsApplied": [],
+  "audit": [
+    {
+      "revision": 0,
+      "at": "2026-09-03T10:00:00.000Z",
+      "type": "initialized",
+      "customerKey": null,
+      "reason": "Preflight batch Infissi non ancora preparato; azioni esterne chiuse.",
+      "appliedRuleIds": [
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume"
+      ]
+    },
+    {
+      "revision": 1,
+      "at": "2026-09-03T10:00:00.000Z",
+      "type": "batch_prepared",
+      "customerKey": null,
+      "reason": "1 pratiche Infissi acquisite; elaborazione sequenziale persistente avviata.",
+      "appliedRuleIds": [
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume"
+      ]
+    },
+    {
+      "revision": 2,
+      "at": "2026-09-03T10:00:00.000Z",
+      "type": "case_claimed",
+      "customerKey": "antonio-scaparrotta",
+      "reason": "Antonio Scaparrotta: lock preflight Infissi acquisito; nessuna azione esterna.",
+      "appliedRuleIds": [
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume"
+      ]
+    },
+    {
+      "revision": 3,
+      "at": "2026-09-03T10:00:00.000Z",
+      "type": "case_blocked",
+      "customerKey": "antonio-scaparrotta",
+      "reason": "Antonio Scaparrotta: 3 blocker Infissi coerenti registrati; la coda prosegue.",
+      "appliedRuleIds": [
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume",
+        "user-2026-08-19-infissi-invoice-or-technical-source-resolution-v1",
+        "user-2026-08-19-infissi-transmittance-1-3-fallback-v1",
+        "user-2026-08-14-preserve-technical-product-cardinality",
+        "user-2026-08-25-crm-internal-technical-document-untrusted-v1",
+        "user-2026-08-25-test-ex-novo-original-sources-only-v1",
+        "user-2026-08-19-infissi-enea-square-meter-rounding-v1",
+        "user-2026-08-19-infissi-pvc-low-e-fallbacks-v1",
+        "user-2026-08-19-infissi-shading-closures-form-flag-v1",
+        "user-2026-08-19-infissi-old-window-transmittance-matrix-v1",
+        "user-2026-08-22-infissi-invoice-certificate-cardinality-match-v1",
+        "user-2026-08-16-invoice-gross-total-vat-included",
+        "user-2026-08-16-distinct-invoice-numbers-same-customer-sum",
+        "user-2026-08-16-invoice-total-over-bank-transfers",
+        "system-apr-operator-intervention-routing",
+        "core-gross-triple-reconciliation"
+      ]
+    },
+    {
+      "revision": 4,
+      "at": "2026-09-03T10:00:00.000Z",
+      "type": "batch_completed",
+      "customerKey": null,
+      "reason": "0 piani locali Infissi pronti; 1 casi isolati con blocker.",
+      "appliedRuleIds": [
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume"
+      ]
+    }
+  ]
+}

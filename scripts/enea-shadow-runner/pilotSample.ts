@@ -22,7 +22,7 @@ export interface AprPilotCandidate {
   customerKey: string;
   displayName: string;
   practiceId?: string;
-  expectedStageType?: "archiviate" | "recensione" | "pronte_da_fare";
+  expectedStageType?: "archiviate" | "recensione" | "pronte_da_fare" | "gestionale";
   productModule?: "screening" | "infissi";
 }
 

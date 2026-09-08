@@ -23,6 +23,8 @@ import { birthNationFromProvince, deterministicProtectedWindowSurface, residence
 import { calculateScreeningEnergySavings } from "@/features/enea-shadow-crm/energySavingsPolicy";
 import { USER_AUTHORIZED_RULE_IDS } from "@/features/enea-shadow-crm/operationalRegistry";
 import { resolveOfficialMunicipalityNameChange } from "@/features/enea-shadow-crm/officialMunicipalityChanges";
+import { resolveOfficialMunicipalityProvinceChange } from "@/features/enea-shadow-crm/officialMunicipalityProvinceChanges";
+import { resolveOfficialMunicipalityCanonicalIdentity } from "@/features/enea-shadow-crm/officialMunicipalities";
 import type {
   EneaLabDocumentAnalysis,
   EneaLabField,
@@ -280,7 +282,17 @@ export function mapSchermaturaPractice(
   const includeTestConventions = options?.includeTestConventions ?? true;
   const acceptTestConventionsForDraft = options?.acceptTestConventionsForDraft ?? false;
   const inferredSex = sexFromItalianFiscalCode(resolvedFiscalCode);
-  const birthProvinceNation = birthNationFromProvince(display(form.richiedente.provincia_nascita)).value ?? "";
+  // Regressione Capitanelli (2026-09-07): il CRM puo' contenere una sigla
+  // provincia non standard (es. "ROM" invece di "RM") mentre il comune di
+  // nascita e' scritto correttamente e coincide con un capoluogo/provincia
+  // gia' presente nell'elenco verificato (es. "ROMA"). In quel caso non va
+  // lasciato un vuoto quando il dato e' gia' inequivocabile: si prova la
+  // sigla provincia e, solo se non risolve, il comune di nascita sullo
+  // stesso elenco verificato di province/capoluoghi italiani.
+  const birthNationFromProvinceValue = birthNationFromProvince(display(form.richiedente.provincia_nascita)).value;
+  const birthNationFromComuneValue = birthNationFromProvince(display(form.richiedente.comune_nascita)).value;
+  const birthNationComuneFallbackApplied = !birthNationFromProvinceValue && Boolean(birthNationFromComuneValue);
+  const birthProvinceNation = birthNationFromProvinceValue ?? birthNationFromComuneValue ?? "";
   const normalizedBirthPlace = display(form.richiedente.comune_nascita)
     .normalize("NFKD")
     .replace(/[\u0300-\u036f]/g, "")
@@ -317,8 +329,27 @@ export function mapSchermaturaPractice(
       province: display(form.richiedente.provincia_nascita),
     })
     : null;
-  const portalBirthPlace = officialBirthMunicipality?.currentName ?? mappedBirthPlace;
-  const inferredResidenceNation = residenceNationFromProvince(display(form.residenza.provincia)).value ?? "";
+  const historicalBirthPlace = officialBirthMunicipality?.currentName ?? mappedBirthPlace;
+  const officialBirthProvince = inferredBirthNation === "Italia"
+    ? resolveOfficialMunicipalityProvinceChange({
+      name: historicalBirthPlace,
+      province: display(form.richiedente.provincia_nascita),
+    })
+    : null;
+  const officialBirthCanonical = inferredBirthNation === "Italia"
+    ? resolveOfficialMunicipalityCanonicalIdentity({
+      name: historicalBirthPlace,
+      province: officialBirthProvince?.currentProvinceCode ?? officialBirthMunicipality?.provinceCode ?? display(form.richiedente.provincia_nascita),
+    })
+    : null;
+  const portalBirthPlace = officialBirthCanonical?.canonicalName ?? historicalBirthPlace;
+  // Stessa correzione della nazione di nascita (regressione Capitanelli),
+  // applicata alla residenza: sigla provincia non standard con comune di
+  // residenza gia' inequivocabile sull'elenco verificato.
+  const residenceNationFromProvinceValue = residenceNationFromProvince(display(form.residenza.provincia)).value;
+  const residenceNationFromComuneValue = residenceNationFromProvince(display(form.residenza.comune)).value;
+  const residenceNationComuneFallbackApplied = !residenceNationFromProvinceValue && Boolean(residenceNationFromComuneValue);
+  const inferredResidenceNation = residenceNationFromProvinceValue ?? residenceNationFromComuneValue ?? "";
   const worksAddress = form.residenza.stesso_indirizzo_lavori
     ? {
         comune: form.residenza.comune,
@@ -328,6 +359,13 @@ export function mapSchermaturaPractice(
         cap: form.residenza.cap,
       }
     : form.appartamento_lavori;
+  const officialResidenceMunicipality = inferredResidenceNation === "Italia"
+    ? resolveOfficialMunicipalityCanonicalIdentity({ name: display(form.residenza.comune), province: display(form.residenza.provincia) })
+    : null;
+  const officialWorksMunicipality = resolveOfficialMunicipalityCanonicalIdentity({
+    name: display(worksAddress.comune),
+    province: display(worksAddress.provincia),
+  });
   const residenceStreet = normalizeObviousStreetTypeTypo(form.residenza.indirizzo);
   const worksStreet = normalizeObviousStreetTypeTypo(worksAddress.indirizzo);
   const correctedStreetOptions = (corrected: boolean) => corrected ? {
@@ -456,12 +494,14 @@ export function mapSchermaturaPractice(
       mappedField(
         `schermature.${index}.gtot`,
         `Elemento ${index + 1} · gTot`,
-        formatNumber(effectiveGTot, 2),
+        effectiveGTot === null ? "" : formatNumber(effectiveGTot, 2),
         {
           source: effectiveGTotFromDocument ? "Fattura" : "Regola controllata",
-          status: "ready",
+          status: effectiveGTot === null ? "missing" : "ready",
           appliedRuleIds: resolvedGTot ? [resolvedGTot.ruleId] : undefined,
-          note: effectiveGTotFromDocument
+          note: effectiveGTot === null
+            ? "gTot non documentato e nessun fallback autorizzato per questa famiglia: richiesto intervento operatore sulla singola pratica."
+            : effectiveGTotFromDocument
             ? "Requisito automatico verificato: gTot ≤ 0,35."
             : `Fallback autorizzato: ${formatNumber(effectiveGTot, 2)} in assenza di un valore esplicito nella fonte originaria.`,
         },
@@ -515,6 +555,8 @@ export function mapSchermaturaPractice(
         status: inferredBirthNation ? "ready" : "missing",
         appliedRuleIds: birthNationConflict || verifiedForeignBirthCountry || explicitForeignBirthCountry
           ? [USER_AUTHORIZED_RULE_IDS.fiscalCodeIdentityCrossCheck, ...(verifiedForeignBirthCountry ? [USER_AUTHORIZED_RULE_IDS.foreignBirthAnprRegistry] : []), "core-mapping-complete"]
+          : birthNationComuneFallbackApplied
+          ? [USER_AUTHORIZED_RULE_IDS.birthResidenceNationFallbackToComuneWhenProvinceNonStandard, "core-mapping-complete"]
           : ["core-mapping-complete"],
         note: birthNationConflict
           ? "Conflitto anagrafico: il luogo o il codice fiscale indicano nascita all'estero, mentre la provincia del modulo è italiana. Non impostare Italia; richiedere la nazione estera all'operatore prima di ENEA."
@@ -522,14 +564,31 @@ export function mapSchermaturaPractice(
           ? `${verifiedForeignBirthCountry.country} determinata dal codice catastale ${verifiedForeignBirthCountry.placeCode} del CF, verificato nel registro ${verifiedForeignBirthCountry.sourceAuthority} (${verifiedForeignBirthCountry.sourceId}); il dato provinciale incompatibile del modulo non prevale.`
           : explicitForeignBirthCountry
           ? `${explicitForeignBirthCountry} riportata esplicitamente nel campo luogo di nascita del modulo cliente; il portale la gestisce nel campo Nazione separato.`
+          : birthNationComuneFallbackApplied
+          ? `Italia determinata dal comune di nascita "${display(form.richiedente.comune_nascita)}", presente nell'elenco verificato di province/capoluoghi italiani; la sigla provincia del modulo ("${display(form.richiedente.provincia_nascita)}") non e' un codice provincia italiano standard.`
           : inferredBirthNation
           ? "Italia determinata dalla provincia italiana esplicita nel modulo cliente."
           : "La provincia del modulo non consente di determinare la nazione.",
       }),
-      mappedField("beneficiario.comune_nascita", "Comune di nascita", portalBirthPlace, officialBirthMunicipality ? {
+      mappedField("beneficiario.comune_nascita", "Comune di nascita", portalBirthPlace, officialBirthMunicipality || officialBirthProvince || officialBirthCanonical ? {
         source: "Regola controllata",
-        note: `Fonte originaria: ${officialBirthMunicipality.originalName} (${display(form.richiedente.provincia_nascita)}). Nome corrente ${officialBirthMunicipality.currentName}, codice ISTAT ${officialBirthMunicipality.currentIstatCode}, codice catastale ${officialBirthMunicipality.cadastralCode}, efficace dal ${officialBirthMunicipality.effectiveDate}. Fonti ufficiali: ${officialBirthMunicipality.officialSources.join("; ")}.`,
-        appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.officialMunicipalityNameChange, "core-mapping-complete"],
+        note: [
+          officialBirthMunicipality
+            ? `Fonte originaria: ${officialBirthMunicipality.originalName} (${display(form.richiedente.provincia_nascita)}). Nome corrente ${officialBirthMunicipality.currentName}, codice ISTAT ${officialBirthMunicipality.currentIstatCode}, codice catastale ${officialBirthMunicipality.cadastralCode}, efficace dal ${officialBirthMunicipality.effectiveDate}. Fonti ufficiali: ${officialBirthMunicipality.officialSources.join("; ")}.`
+            : null,
+          officialBirthProvince
+            ? `Provincia storica ${officialBirthProvince.historicalProvinceCode}; provincia corrente ${officialBirthProvince.currentProvinceCode}, codice ISTAT corrente ${officialBirthProvince.currentIstatCode}, codice precedente ${officialBirthProvince.previousIstatCode}, efficace dal ${officialBirthProvince.effectiveDate}. Fonte ISTAT ${officialBirthProvince.officialSourceUrl}, SHA-256 ZIP ${officialBirthProvince.officialSourceZipSha256}, SHA-256 CSV ${officialBirthProvince.officialSourceCsvSha256}.`
+            : null,
+          officialBirthCanonical
+            ? `Entita corrente ISTAT ${officialBirthCanonical.canonicalName} (${officialBirthCanonical.provinceCode}), codice ${officialBirthCanonical.istatCode}, catastale ${officialBirthCanonical.cadastralCode}; catalogo ${officialBirthCanonical.effectiveDate}, SHA-256 ${officialBirthCanonical.officialSourceSha256}.`
+            : null,
+        ].filter(Boolean).join(" "),
+        appliedRuleIds: [
+          ...(officialBirthMunicipality ? [USER_AUTHORIZED_RULE_IDS.officialMunicipalityNameChange] : []),
+          ...(officialBirthProvince ? [USER_AUTHORIZED_RULE_IDS.officialMunicipalityProvinceLineage] : []),
+          ...(officialBirthCanonical ? [USER_AUTHORIZED_RULE_IDS.officialMunicipalityCanonicalIdentity] : []),
+          "core-mapping-complete",
+        ],
       } : mappedBirthPlace !== display(form.richiedente.comune_nascita) ? {
         source: "Modulo cliente",
         note: `Fonte originaria: ${display(form.richiedente.comune_nascita)}. Nel campo ENEA e mantenuto il solo luogo; la nazione verificata e compilata separatamente.`,
@@ -542,12 +601,20 @@ export function mapSchermaturaPractice(
       mappedField("beneficiario.nazione_residenza", "Nazione di residenza", inferredResidenceNation, {
         source: "Regola controllata",
         status: inferredResidenceNation ? "ready" : "missing",
-        appliedRuleIds: ["core-mapping-complete"],
-        note: inferredResidenceNation
+        appliedRuleIds: residenceNationComuneFallbackApplied
+          ? [USER_AUTHORIZED_RULE_IDS.birthResidenceNationFallbackToComuneWhenProvinceNonStandard, "core-mapping-complete"]
+          : ["core-mapping-complete"],
+        note: residenceNationComuneFallbackApplied
+          ? `Italia determinata dal comune di residenza "${display(form.residenza.comune)}", presente nell'elenco verificato di province/capoluoghi italiani; la sigla provincia del modulo ("${display(form.residenza.provincia)}") non e' un codice provincia italiano standard.`
+          : inferredResidenceNation
           ? "Italia determinata dalla provincia italiana esplicita nel modulo cliente."
           : "La provincia del modulo non consente di determinare la nazione.",
       }),
-      mappedField("beneficiario.comune_residenza", "Comune di residenza", form.residenza.comune),
+      mappedField("beneficiario.comune_residenza", "Comune di residenza", officialResidenceMunicipality?.canonicalName ?? form.residenza.comune, officialResidenceMunicipality ? {
+        source: "Regola controllata",
+        appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.officialMunicipalityCanonicalIdentity, "core-mapping-complete"],
+        note: `Fonte originaria: ${officialResidenceMunicipality.originalName} (${officialResidenceMunicipality.originalProvince}). Entita corrente ISTAT ${officialResidenceMunicipality.canonicalName} (${officialResidenceMunicipality.provinceCode}), codice ${officialResidenceMunicipality.istatCode}, catastale ${officialResidenceMunicipality.cadastralCode}; catalogo ${officialResidenceMunicipality.effectiveDate}, SHA-256 ${officialResidenceMunicipality.officialSourceSha256}.`,
+      } : undefined),
       mappedField("beneficiario.indirizzo_residenza", "Indirizzo di residenza", residenceStreet.value, correctedStreetOptions(residenceStreet.corrected)),
       mappedField("beneficiario.civico_residenza", "Civico di residenza", form.residenza.civico),
       mappedField("beneficiario.cap_residenza", "CAP di residenza", form.residenza.cap),
@@ -569,7 +636,11 @@ export function mapSchermaturaPractice(
         : []),
     ]),
     section("immobile", "2. Immobile", "Ubicazione, catasto e caratteristiche dell'edificio", [
-      mappedField("immobile.comune", "Comune lavori", worksAddress.comune),
+      mappedField("immobile.comune", "Comune lavori", officialWorksMunicipality?.canonicalName ?? worksAddress.comune, officialWorksMunicipality ? {
+        source: "Regola controllata",
+        appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.officialMunicipalityCanonicalIdentity, "core-mapping-complete"],
+        note: `Fonte originaria: ${officialWorksMunicipality.originalName} (${officialWorksMunicipality.originalProvince}). Entita corrente ISTAT ${officialWorksMunicipality.canonicalName} (${officialWorksMunicipality.provinceCode}), codice ${officialWorksMunicipality.istatCode}, catastale ${officialWorksMunicipality.cadastralCode}; catalogo ${officialWorksMunicipality.effectiveDate}, SHA-256 ${officialWorksMunicipality.officialSourceSha256}.`,
+      } : undefined),
       mappedField("immobile.provincia", "Provincia lavori", worksAddress.provincia, {
         required: false,
         note: "Dato di supporto; il portale deriva la provincia selezionando il Comune.",

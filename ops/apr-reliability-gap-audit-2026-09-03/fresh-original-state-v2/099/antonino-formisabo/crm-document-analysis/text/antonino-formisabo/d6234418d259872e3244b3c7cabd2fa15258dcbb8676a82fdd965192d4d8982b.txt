@@ -1,0 +1,16 @@
+APR_OCR_ORIENTATION:270
+9 Scadenza
+5 Data di nascita
+27/09/1966
+21/08/2026
+7 Numero di identificazione dell'istituzione
+SSN-MIN SALUTE - 500001
+TESSERA EUROPEA DI ASSICURAZIONE MALATTIA
+80380000800328499043
+8 Numero di identificazione della tessera
+6 Numero di identificazione personale
+FRMNNN66P27L259X
+FORMISANO
+ANTONINO
+3 Cognome
+4 Nome

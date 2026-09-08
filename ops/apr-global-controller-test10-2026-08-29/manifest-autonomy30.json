@@ -1,5 +1,7 @@
 {
   "version": "apr-global-controller-autonomy30-manifest-v1",
+  "allowedStages": ["archiviate"],
+  "excludedCustomerKeys": ["beatrice-ciotta"],
   "authorizationId": "user-2026-08-29-apr-autonomy-random30-v1",
   "authorizedAt": "2026-08-29T00:00:00.000Z",
   "mode": "real_enea_draft_only",

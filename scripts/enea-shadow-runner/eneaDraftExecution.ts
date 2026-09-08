@@ -26,7 +26,30 @@ const SYSTEM_RESUME_RULE = "system-atomic-checkpoint-resume";
 const SYSTEM_SINGLE_RULE = "system-single-active-practice";
 const SYSTEM_FAIL_CLOSED_RULE = "system-operator-block-fail-closed";
 const SYSTEM_DRAFT_CREATE_DOUBLE_ABSENCE_RULE = "system-draft-create-double-absence-single-retry";
+const SYSTEM_NESTED_PAGE_TRANSACTION_RULE = "system-nested-page-transaction-v1";
+const SYSTEM_GENERATION_CANONICAL_DRAFT_RULE = "system-generation-scoped-canonical-draft-v1";
 const LOCK_LEASE_MS = 10_000;
+
+export function resolveAprInitialFreshGenerationPolicy(rootDirectory: string, explicit?: boolean) {
+  const checkpointPath = path.join(path.resolve(rootDirectory), "cohort-seed", "checkpoint.json");
+  if (!existsSync(checkpointPath)) return explicit === true;
+  let seed: { draftGenerationPolicy?: unknown };
+  try {
+    seed = JSON.parse(readFileSync(checkpointPath, "utf8")) as { draftGenerationPolicy?: unknown };
+  } catch {
+    throw new Error("enea_draft_generation_seed_checkpoint_unreadable");
+  }
+  const policy = seed.draftGenerationPolicy ?? null;
+  if (policy !== null && (typeof policy !== "object"
+    || (policy as { mode?: unknown }).mode !== "fresh_generation"
+    || typeof (policy as { experimentId?: unknown }).experimentId !== "string"
+    || !/^[a-z0-9][a-z0-9._:-]{7,255}$/.test((policy as { experimentId: string }).experimentId))) {
+    throw new Error("enea_draft_generation_seed_policy_invalid");
+  }
+  const required = policy !== null;
+  if (explicit !== undefined && explicit !== required) throw new Error("enea_draft_generation_seed_policy_mismatch");
+  return required;
+}
 
 export function isTransientCdpReadOnlyFailure(reason: string) {
   return /apr_cdp_(?:command_timeout:Runtime\.evaluate|connection_closed|protocol_error:-32000:(?:Inspected target navigated or closed|Promise was collected))/.test(reason);
@@ -68,6 +91,19 @@ export interface AprEneaDraftPageCheckpoint {
   /** DOM/table evidence only. It is never proof of server persistence. */
   stagedEvidenceId?: string | null;
   savedEvidenceId: string | null;
+  nestedTransaction?: {
+    version: "apr-nested-page-transaction-v1";
+    transactionId: string;
+    outerPageId: string;
+    phase: "nested_prepared" | "nested_save_intent_recorded" | "staged_verified" | "outer_save_intent_recorded" | "reconciliation_required" | "server_verified" | "operator_required";
+    preparedEvidenceId: string;
+    stagedEvidenceId: string | null;
+    outerSaveIntentCommandId: string | null;
+    outerSaveIntentAt: string | null;
+    reconciliationEvidenceIds: string[];
+    serverEvidenceId: string | null;
+    updatedAt: string;
+  } | null;
 }
 
 export type AprUncertainPageSaveProbeMethod = "server_redirect" | "persisted_fields_get" | "server_metadata_get";
@@ -151,6 +187,7 @@ export interface AprPostCompletionVerification {
 export interface AprEneaDraftExecutionItem {
   generationId: string;
   requiresFreshDraft: boolean;
+  canonicalDraftId: string | null;
   customerKey: string;
   displayName: string;
   practiceId: string;
@@ -218,6 +255,21 @@ export function nestedOuterSavePersistenceVerificationCandidate(item: AprEneaDra
     && summary.saveAttemptCount === 1
     && summary.recoverySaveAttemptCount === 0
     && !summary.savedEvidenceId);
+}
+
+export function partialInfissiEmptyCanonicalRecoveryCandidate(item: AprEneaDraftExecutionItem) {
+  if (item.state !== "operator_intervention" || !item.draftId || item.uncertainPageSave?.status !== "operator_required" || !item.uncertainPageSave.pageId.startsWith("screening:")) return false;
+  const screenings = item.pageCheckpoints.filter((checkpoint) => checkpoint.pageId.startsWith("screening:"));
+  const summary = item.pageCheckpoints.find((checkpoint) => !checkpoint.pageId.startsWith("screening:") && /infiss/i.test(checkpoint.pageId));
+  const currentIndex = Number(item.uncertainPageSave.pageId.slice("screening:".length));
+  if (!summary || summary.state !== "pending" || summary.saveAttemptCount !== 0 || !Number.isInteger(currentIndex) || currentIndex < 1) return false;
+  const attemptedPrefix = screenings.filter((checkpoint) => Number(checkpoint.pageId.slice("screening:".length)) <= currentIndex);
+  const untouchedSuffix = screenings.filter((checkpoint) => Number(checkpoint.pageId.slice("screening:".length)) > currentIndex);
+  return attemptedPrefix.length === currentIndex
+    && attemptedPrefix.every((checkpoint) => checkpoint.saveAttemptCount === 1
+      && checkpoint.recoverySaveAttemptCount === 0
+      && (checkpoint.state === "staged" || (checkpoint.pageId === item.uncertainPageSave!.pageId && checkpoint.state === "save_intent_recorded")))
+    && untouchedSuffix.every((checkpoint) => checkpoint.state === "pending" && checkpoint.saveAttemptCount === 0 && checkpoint.recoverySaveAttemptCount === 0);
 }
 
 export interface AprEneaDraftSupersededGeneration {
@@ -304,6 +356,8 @@ export interface AprEneaDraftExecutionAuditEvent {
     | "post_completion_verification_intent_recorded"
     | "post_completion_verification_inconclusive"
     | "verified_infissi_package_correction_requeued"
+    | "verified_package_recovery_intent_accounting_repaired"
+    | "canonical_draft_checkpoint_restored"
     | "legacy_infissi_rows_requeued_before_summary"
     | "verified_deleted_draft_requeued"
     | "verified_payload_correction_claimed"
@@ -347,6 +401,40 @@ export interface AprEneaDraftExecutionState {
   communicationsAllowed: false;
   audit: AprEneaDraftExecutionAuditEvent[];
   processedCommandIds: string[];
+}
+
+export const VERIFIED_PACKAGE_RECOVERY_ACCOUNTING_CANDIDATE_RULE_ID = "system-verified-package-recovery-accounting-candidate-separation-v1";
+
+export function verifiedPackageRecoveryIntentAccountingCandidate(state: AprEneaDraftExecutionState, customerKey: string) {
+  const item = state.items.find((candidate) => candidate.customerKey === customerKey);
+  const resolution = item?.uncertainPageSave;
+  const checkpoint = resolution ? item?.pageCheckpoints.find((candidate) => candidate.pageId === resolution.pageId) : null;
+  const oldProbeEvidenceIds = new Set(resolution?.probes.map((probe) => probe.evidenceId) ?? []);
+  let correctionAudit: AprEneaDraftExecutionAuditEvent | undefined;
+  let currentIntentAudit: AprEneaDraftExecutionAuditEvent | undefined;
+  for (let index = state.audit.length - 1; index >= 0 && (!correctionAudit || !currentIntentAudit); index -= 1) {
+    const event = state.audit[index];
+    if (!event || event.customerKey !== customerKey) continue;
+    if (!correctionAudit && event.type === "verified_infissi_package_correction_requeued") correctionAudit = event;
+    if (!currentIntentAudit && event.type === "page_save_intent_recorded") currentIntentAudit = event;
+  }
+  return Boolean(item
+    && state.currentCustomerKey === customerKey
+    && item.state === "save_intent_recorded"
+    && item.draftId
+    && item.canonicalDraftId === item.draftId
+    && item.completedPageIds.length === 0
+    && resolution
+    && resolution.status === "recovery_authorized"
+    && checkpoint
+    && checkpoint.state === "save_intent_recorded"
+    && checkpoint.saveAttemptCount === 1
+    && checkpoint.recoverySaveAttemptCount === 0
+    && checkpoint.recoveryAuthorizedEvidenceId
+    && !oldProbeEvidenceIds.has(checkpoint.recoveryAuthorizedEvidenceId)
+    && correctionAudit
+    && currentIntentAudit
+    && correctionAudit.revision < currentIntentAudit.revision);
 }
 
 function atomicWrite(target: string, contents: string) {
@@ -410,6 +498,8 @@ function validState(value: AprEneaDraftExecutionState) {
   if (new Set(value.items.map((item) => item.customerKey)).size !== value.items.length) return false;
   if (new Set(value.items.map((item) => item.generationId)).size !== value.items.length) return false;
   if (value.items.some((item) => !item.generationId || typeof item.requiresFreshDraft !== "boolean")) return false;
+  if (value.items.some((item) => item.canonicalDraftId !== item.draftId)) return false;
+  if (value.items.some((item) => item.requiresFreshDraft && item.draftId !== null)) return false;
   if (value.supersededGenerations.some((generation) => generation.status !== "superseded" || generation.item.generationId !== generation.generationId)) return false;
   const allGenerationIds = [...value.items.map((item) => item.generationId), ...value.supersededGenerations.map((item) => item.generationId)];
   if (new Set(allGenerationIds).size !== allGenerationIds.length) return false;
@@ -430,7 +520,15 @@ function validState(value: AprEneaDraftExecutionState) {
     || item.pageCheckpoints.some((checkpoint) => checkpoint.saveAttemptCount > 1 || checkpoint.recoverySaveAttemptCount > 1)
     || item.pageCheckpoints.some((checkpoint) => checkpoint.state === "staged" && (checkpoint.saveAttemptCount !== 1 || !checkpoint.stagedEvidenceId || checkpoint.savedEvidenceId !== null))
     || item.completedPageIds.some((pageId) => item.pageCheckpoints.find((checkpoint) => checkpoint.pageId === pageId)?.state !== "saved")
-    || item.pageCheckpoints.some((checkpoint) => !item.expectedPageIds.includes(checkpoint.pageId)))) return false;
+    || item.pageCheckpoints.some((checkpoint) => !item.expectedPageIds.includes(checkpoint.pageId))
+    || item.pageCheckpoints.some((checkpoint) => checkpoint.nestedTransaction && (
+      checkpoint.nestedTransaction.version !== "apr-nested-page-transaction-v1"
+      || outerPageForNestedCheckpoint(item.expectedPageIds, checkpoint.pageId) !== checkpoint.nestedTransaction.outerPageId
+      || !checkpoint.nestedTransaction.transactionId
+      || !checkpoint.nestedTransaction.preparedEvidenceId
+      || !Array.isArray(checkpoint.nestedTransaction.reconciliationEvidenceIds)
+      || (checkpoint.nestedTransaction.phase === "server_verified" && !checkpoint.nestedTransaction.serverEvidenceId)
+    )))) return false;
   if (value.items.some((item) => item.state === "saved" && (
     !item.draftId
     || !item.savedAt
@@ -450,6 +548,7 @@ function normalizeState(value: AprEneaDraftExecutionState): AprEneaDraftExecutio
   for (const item of value.items ?? []) {
     item.generationId ??= `legacy-${fingerprint({ customerKey: item.customerKey, practiceId: item.practiceId, mappingFingerprint: item.mappingFingerprint, workflowFingerprint: item.workflowFingerprint }).slice(0, 24)}`;
     item.requiresFreshDraft ??= false;
+    item.canonicalDraftId ??= item.draftId ?? null;
     item.createRecoveryAttemptCount ??= 0;
     item.recoverableCreateIntent ??= false;
     item.uncertainPageSave ??= null;
@@ -518,9 +617,13 @@ function normalizeState(value: AprEneaDraftExecutionState): AprEneaDraftExecutio
 
 function outerPageForNestedCheckpoint(expectedPageIds: string[], pageId: string) {
   if (pageId === "page:Allocazione costi e detrazioni") return expectedPageIds.find((candidate) => candidate === "page:Calcolo costi e detrazioni") ?? null;
-  if (/Generatore/.test(pageId)) return expectedPageIds.find((candidate) => /Impianto termico esistente/.test(candidate)) ?? null;
+  if (/Generatore/.test(pageId)) return expectedPageIds.find((candidate) => /Impianto/.test(candidate) && !/Generatore/.test(candidate)) ?? null;
   if (pageId.startsWith("screening:")) return expectedPageIds.find((candidate) => !candidate.startsWith("screening:") && /schermatur|serrament|infiss/i.test(candidate)) ?? null;
   return null;
+}
+
+function isNestedPageId(pageId: string) {
+  return pageId === "page:Allocazione costi e detrazioni" || /Generatore/.test(pageId) || pageId.startsWith("screening:");
 }
 
 function canonicalPortalPageIds(pageIds: string[]) {
@@ -559,7 +662,7 @@ export function detailedUncertainSaveOperatorInstruction(draftId: string | null,
   const fields = /beneficiario/i.test(pageName)
     ? "nome, cognome, codice fiscale, nascita, residenza e gli eventuali altri beneficiari"
     : `i dati visibili della sezione ${pageName}`;
-  return `Aprire su ENEA la bozza ${draftId ?? "indicata"}, sezione \"${pageName}\", senza premere Salva. Verificare ${fields}. Rispondere SALVATA se tutti i dati attesi sono gia presenti; APR proseguira senza ripetere Salva. Rispondere NON SALVATA se i campi sono vuoti o tornati ai valori iniziali; APR eseguira un solo recupero controllato. Rispondere INDETERMINABILE se i dati sono soltanto parziali o non e possibile verificarli; la pratica restera in Intervento operatore. Allegare uno screenshot o una nota che descriva cio che si vede.`;
+  return `Aprire su ENEA la bozza ${draftId ?? "indicata"}, sezione "${pageName}", senza premere Salva. Verificare ${fields}. Rispondere SALVATA se tutti i dati attesi sono gia presenti; APR proseguira senza ripetere Salva. Rispondere NON SALVATA se i campi sono vuoti o tornati ai valori iniziali; APR eseguira un solo recupero controllato. Rispondere INDETERMINABILE se i dati sono soltanto parziali o non e possibile verificarli; la pratica restera in Intervento operatore. Allegare uno screenshot o una nota che descriva cio che si vede.`;
 }
 
 function expectedPageIds(item: NonNullable<PreflightSnapshot["items"][number]["report"]>) {
@@ -595,6 +698,7 @@ function draftItemFromPreflight(
   return {
     generationId: generationId ?? `generation-${fingerprint({ customerKey: item.customerKey, practiceId: item.practiceId, mappingFingerprint: report?.eneaPayloadAudit?.mappingFingerprint ?? null, workflowFingerprint: report?.eneaPayloadAudit?.portalGate.workflowFingerprint ?? null }).slice(0, 24)}`,
     requiresFreshDraft,
+    canonicalDraftId: null,
     customerKey: item.customerKey,
     displayName: item.displayName,
     practiceId: item.practiceId,
@@ -629,6 +733,7 @@ function draftItemFromPackage(draftPackage: AprEneaDraftPackage, generationId?: 
   return {
     generationId: generationId ?? `generation-${fingerprint({ customerKey: draftPackage.customerKey, practiceId: draftPackage.practiceId, packageFingerprint: draftPackage.packageFingerprint, workflowFingerprint: draftPackage.workflowFingerprint }).slice(0, 24)}`,
     requiresFreshDraft,
+    canonicalDraftId: null,
     customerKey: draftPackage.customerKey,
     displayName: draftPackage.displayName,
     practiceId: draftPackage.practiceId,
@@ -667,14 +772,20 @@ export class PersistentAprEneaDraftExecution {
   readonly lockDirectory: string;
 
   readonly allowedPortalOrigin: string;
+  readonly initialRequiresFreshDraftOverride: boolean | undefined;
 
-  constructor(rootDirectory: string, options: { allowedPortalOrigin?: string } = {}) {
+  constructor(rootDirectory: string, options: { allowedPortalOrigin?: string; initialRequiresFreshDraft?: boolean } = {}) {
     this.rootDirectory = path.resolve(rootDirectory);
     this.directory = path.join(this.rootDirectory, "enea-draft-execution");
     this.checkpointPath = path.join(this.directory, "checkpoint.json");
     this.frozenSourceObservationsPath = path.join(this.directory, "frozen-source-observations.json");
     this.lockDirectory = path.join(this.directory, "transition.lock");
     this.allowedPortalOrigin = new URL(options.allowedPortalOrigin ?? "https://bonusfiscali.enea.it").origin;
+    this.initialRequiresFreshDraftOverride = options.initialRequiresFreshDraft;
+  }
+
+  private requiresFreshDraftFromAuthoritativeSeed() {
+    return resolveAprInitialFreshGenerationPolicy(this.rootDirectory, this.initialRequiresFreshDraftOverride);
   }
 
   private portalUrlAllowed(portalUrl: string) {
@@ -690,6 +801,11 @@ export class PersistentAprEneaDraftExecution {
 
   initialize(now = new Date()) {
     if (existsSync(this.checkpointPath)) return this.load(now);
+    // Validate/derive the immutable cohort policy at the same boundary that can
+    // create the execution checkpoint. Preparation re-reads it under its own
+    // transition so a supervisor instantiated before seeding cannot cache a
+    // stale default.
+    this.requiresFreshDraftFromAuthoritativeSeed();
     const state = initialState(now);
     this.write(state);
     return state;
@@ -699,15 +815,20 @@ export class PersistentAprEneaDraftExecution {
     if (!existsSync(this.checkpointPath)) return initialState(now);
     try {
       const value = normalizeState(JSON.parse(readFileSync(this.checkpointPath, "utf8")) as AprEneaDraftExecutionState);
-      return validState(value) ? value : initialState(now);
-    } catch {
-      return initialState(now);
+      if (!validState(value)) throw new Error("enea_draft_execution_checkpoint_invalid_on_load");
+      return value;
+    } catch (error) {
+      if (error instanceof Error && error.message === "enea_draft_execution_checkpoint_invalid_on_load") throw error;
+      throw new Error("enea_draft_execution_checkpoint_unreadable_on_load", { cause: error });
     }
   }
 
   private write(state: AprEneaDraftExecutionState) {
     if (!validState(state)) throw new Error("enea_draft_execution_checkpoint_invalid");
-    atomicWrite(this.checkpointPath, `${JSON.stringify(state, null, 2)}\n`);
+    const serialized = `${JSON.stringify(state, null, 2)}\n`;
+    const roundTrip = normalizeState(JSON.parse(serialized) as AprEneaDraftExecutionState);
+    if (!validState(roundTrip)) throw new Error("enea_draft_execution_checkpoint_roundtrip_invalid");
+    atomicWrite(this.checkpointPath, serialized);
     return state;
   }
 
@@ -767,7 +888,7 @@ export class PersistentAprEneaDraftExecution {
       customerKey: changed.length === 1 ? changed[0].item.customerKey : null,
       reason: `${changed.length} pratiche con fonte aggiornata riaperte in una nuova generazione persistente; le generazioni congelate restano superseded nell'audit.`,
       nextAction: "Il browser worker dovra creare una nuova bozza soltanto quando consumera requiresFreshDraft; nessuna azione ENEA eseguita da questa transizione.",
-      appliedRuleIds: [SYSTEM_SINGLE_RULE, SYSTEM_RESUME_RULE],
+      appliedRuleIds: [SYSTEM_SINGLE_RULE, SYSTEM_RESUME_RULE, SYSTEM_GENERATION_CANONICAL_DRAFT_RULE],
     }, (next) => {
       for (const { item, candidate } of changed) {
         const nextGenerationId = `generation-${fingerprint({ customerKey: item.customerKey, previousGenerationId: item.generationId, sourceFingerprint }).slice(0, 24)}`;
@@ -804,7 +925,7 @@ export class PersistentAprEneaDraftExecution {
       customerKey: changed.length === 1 ? changed[0].item.customerKey : null,
       reason: `${changed.length} pacchetti aggiornati riaperti in una nuova generazione persistente; le generazioni congelate restano superseded nell'audit.`,
       nextAction: "Il browser worker dovra creare una nuova bozza soltanto quando consumera requiresFreshDraft; nessuna azione ENEA eseguita da questa transizione.",
-      appliedRuleIds: [SYSTEM_SINGLE_RULE, SYSTEM_RESUME_RULE],
+      appliedRuleIds: [SYSTEM_SINGLE_RULE, SYSTEM_RESUME_RULE, SYSTEM_GENERATION_CANONICAL_DRAFT_RULE],
     }, (next) => {
       for (const { item, candidate } of changed) {
         const nextGenerationId = `generation-${fingerprint({ customerKey: item.customerKey, previousGenerationId: item.generationId, sourceFingerprint }).slice(0, 24)}`;
@@ -938,6 +1059,7 @@ export class PersistentAprEneaDraftExecution {
     const singleCaseRegression = this.singleCaseRegressionAuthorized();
     const minimumCohortSize = singleCaseRegression ? 1 : 2;
     if (preflight.status !== "completed" || terminalCohortSize < minimumCohortSize || eligible.length < 1 || (ciotta && ciotta.state !== "deferred_operator")) return this.initialize(now);
+    const requiresFreshDraft = this.requiresFreshDraftFromAuthoritativeSeed();
     const sourceFingerprint = fingerprint({
       preflight: preflight.sourceFingerprint,
       items: preflight.items.map((item) => ({
@@ -964,7 +1086,7 @@ export class PersistentAprEneaDraftExecution {
     }, (next) => {
       next.status = "ready";
       next.sourceFingerprint = sourceFingerprint;
-      next.items = [...eligible, ...(ciotta ? [ciotta] : [])].map((item) => draftItemFromPreflight(item));
+      next.items = [...eligible, ...(ciotta ? [ciotta] : [])].map((item) => draftItemFromPreflight(item, item.customerKey === "beatrice-ciotta", undefined, requiresFreshDraft));
     });
   }
 
@@ -976,6 +1098,7 @@ export class PersistentAprEneaDraftExecution {
       || packages.some((item) => item.safety.previewAllowed !== false || item.safety.submitAllowed !== false || item.safety.communicationsAllowed !== false)) {
       return this.initialize(now);
     }
+    const requiresFreshDraft = this.requiresFreshDraftFromAuthoritativeSeed();
     const durableFingerprint = fingerprint({ sourceFingerprint, packages: packages.map((item) => ({ customerKey: item.customerKey, packageFingerprint: item.packageFingerprint, workflowFingerprint: item.workflowFingerprint })) });
     const current = this.initialize(now);
     if (current.sourceFingerprint === durableFingerprint) return current;
@@ -994,7 +1117,7 @@ export class PersistentAprEneaDraftExecution {
     }, (next) => {
       next.status = "ready";
       next.sourceFingerprint = durableFingerprint;
-      next.items = packages.map((draftPackage) => draftItemFromPackage(draftPackage));
+      next.items = packages.map((draftPackage) => draftItemFromPackage(draftPackage, undefined, requiresFreshDraft));
     });
   }
 
@@ -1009,6 +1132,7 @@ export class PersistentAprEneaDraftExecution {
       && item.report.eneaPayloadAudit.portalGate.status === "ready");
     const ciotta = preflight.items.find((item) => item.customerKey === "beatrice-ciotta" && !existing.has(item.customerKey));
     if (eligible.length === 0 && !ciotta) return current;
+    const requiresFreshDraft = this.requiresFreshDraftFromAuthoritativeSeed();
     const sourceRevisionFingerprint = fingerprint({
       validationRevision,
       preflightSourceFingerprint: preflight.sourceFingerprint,
@@ -1028,8 +1152,8 @@ export class PersistentAprEneaDraftExecution {
       appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.greenPreflightDraft, USER_AUTHORIZED_RULE_IDS.testStopAtSavedDraft, USER_AUTHORIZED_RULE_IDS.ciottaPilotLeaveAside, SYSTEM_SINGLE_RULE, SYSTEM_RESUME_RULE],
     }, (next) => {
       next.sourceRevisionFingerprints.push(sourceRevisionFingerprint);
-      next.items.push(...eligible.map((item) => draftItemFromPreflight(item)));
-      if (ciotta) next.items.push(draftItemFromPreflight(ciotta, true));
+      next.items.push(...eligible.map((item) => draftItemFromPreflight(item, false, undefined, requiresFreshDraft)));
+      if (ciotta) next.items.push(draftItemFromPreflight(ciotta, true, undefined, requiresFreshDraft));
       if (eligible.length > 0 && ["completed", "blocked_preflight"].includes(next.status)) next.status = "ready";
     });
   }
@@ -1084,7 +1208,7 @@ export class PersistentAprEneaDraftExecution {
       customerKey: null,
       reason: `${affected.length} gate data rimossi dopo ${validationRevision}; bozze e checkpoint esistenti riusati senza duplicazione.`,
       nextAction: "Conservare le bozze complete come salvate; riprendere soltanto le pagine realmente incomplete della stessa bozza.",
-      appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.enea2026June25NinetyDayWindow, SYSTEM_SINGLE_RULE, SYSTEM_RESUME_RULE],
+      appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.enea2026June30NinetyDayWindowCompletionDateOnly, SYSTEM_SINGLE_RULE, SYSTEM_RESUME_RULE],
     }, (next) => {
       for (const target of next.items.filter((item) => affected.some((candidate) => candidate.customerKey === item.customerKey))) {
         const complete = Boolean(target.draftId && target.savedAt)
@@ -1113,6 +1237,7 @@ export class PersistentAprEneaDraftExecution {
       || eligible.some((item) => item.safety.previewAllowed !== false || item.safety.submitAllowed !== false || item.safety.communicationsAllowed !== false)) {
       throw new Error("enea_draft_execution_append_packages_invalid");
     }
+    const requiresFreshDraft = this.requiresFreshDraftFromAuthoritativeSeed();
     const sourceRevisionFingerprint = fingerprint({
       sourceFingerprint,
       packages: eligible.map((item) => ({ customerKey: item.customerKey, packageFingerprint: item.packageFingerprint, workflowFingerprint: item.workflowFingerprint })),
@@ -1122,10 +1247,10 @@ export class PersistentAprEneaDraftExecution {
       customerKey: null,
       reason: `${eligible.length} pacchetti TEST del modulo aggiunti alla coda mista senza sostituzioni o duplicazioni.`,
       nextAction: "APR prosegue in sequenza dal primo pacchetto non ancora lavorato.",
-      appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.greenPreflightDraft, USER_AUTHORIZED_RULE_IDS.testStopAtSavedDraft, SYSTEM_SINGLE_RULE, SYSTEM_RESUME_RULE],
+      appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.greenPreflightDraft, USER_AUTHORIZED_RULE_IDS.testStopAtSavedDraft, SYSTEM_SINGLE_RULE, SYSTEM_RESUME_RULE, SYSTEM_GENERATION_CANONICAL_DRAFT_RULE],
     }, (next) => {
       next.sourceRevisionFingerprints.push(sourceRevisionFingerprint);
-      next.items.push(...eligible.map((draftPackage) => draftItemFromPackage(draftPackage)));
+      next.items.push(...eligible.map((draftPackage) => draftItemFromPackage(draftPackage, undefined, requiresFreshDraft)));
       if (["completed", "blocked_preflight"].includes(next.status)) next.status = "ready";
     });
   }
@@ -1174,7 +1299,7 @@ export class PersistentAprEneaDraftExecution {
       customerKey,
       reason: `Intento persistente registrato prima dell'unico tentativo di creazione per ${customerKey}.`,
       nextAction: "Eseguire una sola creazione; se l'esito è incerto, fare discovery read-only senza ripetere.",
-      appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.greenPreflightDraft, USER_AUTHORIZED_RULE_IDS.testStopAtSavedDraft, SYSTEM_SINGLE_RULE, SYSTEM_RESUME_RULE],
+      appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.greenPreflightDraft, USER_AUTHORIZED_RULE_IDS.testStopAtSavedDraft, SYSTEM_SINGLE_RULE, SYSTEM_RESUME_RULE, SYSTEM_GENERATION_CANONICAL_DRAFT_RULE],
     }, (next) => {
       if (next.status !== "ready" || !next.sessionEvidenceId) throw new Error("enea_session_not_ready");
       const firstQueued = next.items.find((item) => item.state === "queued");
@@ -1200,13 +1325,15 @@ export class PersistentAprEneaDraftExecution {
       customerKey,
       reason: `Bozza ENEA ${draftId.trim()} individuata dal server dopo l'intento persistente; la stessa bozza sarà riusata.`,
       nextAction: "Compilare le pagine previste registrando un checkpoint dopo ciascuna.",
-      appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.greenPreflightDraft, USER_AUTHORIZED_RULE_IDS.testStopAtSavedDraft, SYSTEM_SINGLE_RULE, SYSTEM_RESUME_RULE],
+      appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.greenPreflightDraft, USER_AUTHORIZED_RULE_IDS.testStopAtSavedDraft, SYSTEM_SINGLE_RULE, SYSTEM_RESUME_RULE, SYSTEM_GENERATION_CANONICAL_DRAFT_RULE],
     }, (next) => {
       const item = next.items.find((candidate) => candidate.customerKey === customerKey);
       if (!item || item.state !== "create_intent_recorded" || item.createAttemptCount !== 1) throw new Error("enea_draft_create_intent_missing");
       if (next.items.some((candidate) => candidate.customerKey !== customerKey && candidate.draftId === draftId.trim())) throw new Error("enea_draft_id_duplicate");
       item.state = "created";
       item.draftId = draftId.trim();
+      item.canonicalDraftId = draftId.trim();
+      item.requiresFreshDraft = false;
       item.portalUrl = portalUrl;
       item.createdAt = now.toISOString();
       item.serverEvidenceIds.push(serverEvidenceId.trim());
@@ -1243,7 +1370,7 @@ export class PersistentAprEneaDraftExecution {
       customerKey,
       reason: `Pagina ${pageId} compilata e verificata sulla stessa bozza ${draftId}.`,
       nextAction: "Proseguire dalla prima pagina non ancora registrata; non aprire anteprima.",
-      appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.greenPreflightDraft, USER_AUTHORIZED_RULE_IDS.testStopAtSavedDraft, SYSTEM_RESUME_RULE],
+      appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.greenPreflightDraft, USER_AUTHORIZED_RULE_IDS.testStopAtSavedDraft, SYSTEM_RESUME_RULE, ...(isNestedPageId(pageId) ? [SYSTEM_NESTED_PAGE_TRANSACTION_RULE] : [])],
     }, (next) => {
       const item = next.items.find((candidate) => candidate.customerKey === customerKey);
       if (!item || !["created", "filling"].includes(item.state) || item.draftId !== draftId) throw new Error("enea_draft_page_state_invalid");
@@ -1253,6 +1380,20 @@ export class PersistentAprEneaDraftExecution {
       item.state = "filling";
       checkpoint.state = "prepared";
       checkpoint.preparedEvidenceId = evidenceId.trim();
+      const outerPageId = outerPageForNestedCheckpoint(item.expectedPageIds, pageId);
+      if (outerPageId) checkpoint.nestedTransaction = {
+        version: "apr-nested-page-transaction-v1",
+        transactionId: `nested-${fingerprint({ draftId, pageId, evidenceId: evidenceId.trim(), preparedAt: now.toISOString() }).slice(0, 24)}`,
+        outerPageId,
+        phase: "nested_prepared",
+        preparedEvidenceId: evidenceId.trim(),
+        stagedEvidenceId: null,
+        outerSaveIntentCommandId: null,
+        outerSaveIntentAt: null,
+        reconciliationEvidenceIds: [],
+        serverEvidenceId: null,
+        updatedAt: now.toISOString(),
+      };
       if (!item.serverEvidenceIds.includes(evidenceId.trim())) item.serverEvidenceIds.push(evidenceId.trim());
       item.reason = `Pagina ${pageId} compilata e riletta; salvataggio non ancora tentato.`;
       item.nextAction = "Registrare l'intento persistente per il salvataggio di questa pagina.";
@@ -1265,7 +1406,7 @@ export class PersistentAprEneaDraftExecution {
       customerKey,
       reason: `Intento persistente registrato prima dell'unico salvataggio della pagina ${pageId}.`,
       nextAction: "Salvare una sola volta; se l'esito è incerto, verificare lato server senza ripetere.",
-      appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.greenPreflightDraft, USER_AUTHORIZED_RULE_IDS.testStopAtSavedDraft, SYSTEM_RESUME_RULE],
+      appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.greenPreflightDraft, USER_AUTHORIZED_RULE_IDS.testStopAtSavedDraft, SYSTEM_RESUME_RULE, SYSTEM_NESTED_PAGE_TRANSACTION_RULE],
     }, (next) => {
       const item = next.items.find((candidate) => candidate.customerKey === customerKey);
       if (!item || item.state !== "filling" || item.draftId !== draftId) throw new Error("enea_draft_page_save_state_invalid");
@@ -1283,6 +1424,16 @@ export class PersistentAprEneaDraftExecution {
       checkpoint.state = "save_intent_recorded";
       if (firstAttempt) checkpoint.saveAttemptCount = 1;
       else checkpoint.recoverySaveAttemptCount = 1;
+      if (checkpoint.nestedTransaction) {
+        checkpoint.nestedTransaction.phase = "nested_save_intent_recorded";
+        checkpoint.nestedTransaction.updatedAt = now.toISOString();
+      }
+      for (const nested of item.pageCheckpoints.filter((candidate) => candidate.nestedTransaction?.outerPageId === pageId && candidate.state === "staged")) {
+        nested.nestedTransaction!.phase = "outer_save_intent_recorded";
+        nested.nestedTransaction!.outerSaveIntentCommandId = commandId;
+        nested.nestedTransaction!.outerSaveIntentAt = now.toISOString();
+        nested.nestedTransaction!.updatedAt = now.toISOString();
+      }
       item.state = "save_intent_recorded";
       item.reason = authorizedRecovery ? `Recupero singolo della pagina ${pageId} autorizzato da prova operatore che il primo Salva non era persistito.` : `Intento durevole della pagina ${pageId}; nessun retry alla cieca.`;
       item.nextAction = authorizedRecovery ? "Eseguire l'unico salvataggio di recupero e acquisire prova server; nessun ulteriore tentativo." : "Eseguire un solo salvataggio pagina e acquisire prova server.";
@@ -1296,7 +1447,7 @@ export class PersistentAprEneaDraftExecution {
       customerKey,
       reason: `Pagina ${pageId} salvata una sola volta e verificata lato server sulla bozza ${draftId}.`,
       nextAction: "Riprendere dalla prima pagina non salvata; non aprire anteprima.",
-      appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.greenPreflightDraft, USER_AUTHORIZED_RULE_IDS.testStopAtSavedDraft, SYSTEM_RESUME_RULE],
+      appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.greenPreflightDraft, USER_AUTHORIZED_RULE_IDS.testStopAtSavedDraft, SYSTEM_RESUME_RULE, SYSTEM_NESTED_PAGE_TRANSACTION_RULE],
     }, (next) => {
       const item = next.items.find((candidate) => candidate.customerKey === customerKey);
       if (!item || item.state !== "save_intent_recorded" || item.draftId !== draftId) throw new Error("enea_draft_page_save_intent_missing");
@@ -1325,7 +1476,7 @@ export class PersistentAprEneaDraftExecution {
       customerKey,
       reason: `Sottofinestra ${pageId} confermata nello stato della pagina; persistenza server differita al successivo Salva esterno.`,
       nextAction: "Proseguire senza ricaricare la route, eseguire il solo Salva esterno e verificare entrambi lato server.",
-      appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.greenPreflightDraft, USER_AUTHORIZED_RULE_IDS.testStopAtSavedDraft, SYSTEM_RESUME_RULE],
+      appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.greenPreflightDraft, USER_AUTHORIZED_RULE_IDS.testStopAtSavedDraft, SYSTEM_RESUME_RULE, SYSTEM_NESTED_PAGE_TRANSACTION_RULE],
     }, (next) => {
       const item = next.items.find((candidate) => candidate.customerKey === customerKey);
       if (!item || item.state !== "save_intent_recorded" || item.draftId !== draftId) throw new Error("enea_nested_page_stage_intent_missing");
@@ -1334,6 +1485,10 @@ export class PersistentAprEneaDraftExecution {
       checkpoint.state = "staged";
       checkpoint.stagedEvidenceId = evidenceId.trim();
       checkpoint.savedEvidenceId = null;
+      if (!checkpoint.nestedTransaction) throw new Error("enea_nested_page_transaction_missing");
+      checkpoint.nestedTransaction.phase = "staged_verified";
+      checkpoint.nestedTransaction.stagedEvidenceId = evidenceId.trim();
+      checkpoint.nestedTransaction.updatedAt = now.toISOString();
       if (item.uncertainPageSave?.pageId === pageId) {
         item.uncertainPageSave.status = "resolved_staged";
         item.uncertainPageSave.reason = "Pagina annidata presente nella tabella, ma non ancora persistita dal Salva esterno.";
@@ -1356,7 +1511,7 @@ export class PersistentAprEneaDraftExecution {
       customerKey,
       reason: `${nestedPageId} verificata lato server dopo l'unico Salva di ${outerPageId}.`,
       nextAction: "Registrare la pagina esterna salvata senza ripetere alcun comando.",
-      appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.greenPreflightDraft, USER_AUTHORIZED_RULE_IDS.testStopAtSavedDraft, SYSTEM_RESUME_RULE],
+      appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.greenPreflightDraft, USER_AUTHORIZED_RULE_IDS.testStopAtSavedDraft, SYSTEM_RESUME_RULE, SYSTEM_NESTED_PAGE_TRANSACTION_RULE],
     }, (next) => {
       const item = next.items.find((candidate) => candidate.customerKey === customerKey);
       const nested = item?.pageCheckpoints.find((candidate) => candidate.pageId === nestedPageId);
@@ -1364,6 +1519,11 @@ export class PersistentAprEneaDraftExecution {
       if (!item || item.draftId !== draftId || item.state !== "save_intent_recorded" || !nested || nested.state !== "staged" || !nested.stagedEvidenceId || !outer || outer.state !== "save_intent_recorded") throw new Error("enea_nested_page_outer_server_state_invalid");
       nested.state = "saved";
       nested.savedEvidenceId = evidenceId.trim();
+      if (!nested.nestedTransaction || nested.nestedTransaction.outerPageId !== outerPageId || !nested.nestedTransaction.outerSaveIntentAt) throw new Error("enea_nested_page_transaction_outer_intent_missing");
+      nested.nestedTransaction.phase = "server_verified";
+      nested.nestedTransaction.serverEvidenceId = evidenceId.trim();
+      nested.nestedTransaction.reconciliationEvidenceIds.push(evidenceId.trim());
+      nested.nestedTransaction.updatedAt = now.toISOString();
       if (!item.completedPageIds.includes(nestedPageId)) item.completedPageIds.push(nestedPageId);
       if (item.uncertainPageSave?.pageId === nestedPageId) {
         item.uncertainPageSave.status = "resolved_saved";
@@ -1458,6 +1618,14 @@ export class PersistentAprEneaDraftExecution {
       item.state = "operator_intervention";
       item.reason = reason;
       item.nextAction = "Richiesto intervento operatore; nessun retry automatico sul caso.";
+      const failedNested = /apr_enea_nested_page_not_persisted_after_outer_save:/.test(reason)
+        ? item.pageCheckpoints.find((checkpoint) => checkpoint.nestedTransaction && reason.includes(`apr_enea_nested_page_not_persisted_after_outer_save:${checkpoint.pageId}`))
+        : null;
+      if (failedNested?.nestedTransaction) {
+        failedNested.nestedTransaction.phase = "operator_required";
+        failedNested.nestedTransaction.reconciliationEvidenceIds.push(evidenceId.trim());
+        failedNested.nestedTransaction.updatedAt = now.toISOString();
+      }
       if (!item.serverEvidenceIds.includes(evidenceId.trim())) item.serverEvidenceIds.push(evidenceId.trim());
       next.currentCustomerKey = null;
       next.sessionEvidenceId = null;
@@ -1643,6 +1811,11 @@ export class PersistentAprEneaDraftExecution {
         reason: `Esito del Salva su ${pageId} non dimostrato.`,
         nextAction: "Raccogliere redirect server, persistenza campi GET e metadati server in sola lettura.",
       };
+      for (const nested of item.pageCheckpoints.filter((candidate) => candidate.nestedTransaction?.outerPageId === pageId && candidate.nestedTransaction.phase === "outer_save_intent_recorded")) {
+        nested.nestedTransaction!.phase = "reconciliation_required";
+        nested.nestedTransaction!.reconciliationEvidenceIds.push(evidenceId.trim());
+        nested.nestedTransaction!.updatedAt = now.toISOString();
+      }
       item.state = "operator_intervention";
       item.reason = `Esito tecnico incerto dopo il Salva di ${pageId}; nessun retry automatico.`;
       item.nextAction = "APR esegue tre prove read-only; se inconcludenti richiede decisione operatore.";
@@ -2505,7 +2678,7 @@ export class PersistentAprEneaDraftExecution {
       item.pageCheckpoints = newExpectedPageIds.map((pageId) => ({
         pageId,
         state: "pending",
-        saveAttemptCount: 0,
+        saveAttemptCount: pageId === resolution.pageId ? 1 : 0,
         recoverySaveAttemptCount: 0,
         recoveryAuthorizedEvidenceId: pageId === resolution.pageId ? evidenceId.trim() : null,
         preparedEvidenceId: null,
@@ -2568,7 +2741,7 @@ export class PersistentAprEneaDraftExecution {
       item.pageCheckpoints = newExpectedPageIds.map((pageId) => ({
         pageId,
         state: "pending",
-        saveAttemptCount: 0,
+        saveAttemptCount: pageId === resolution.pageId ? 1 : 0,
         recoverySaveAttemptCount: 0,
         recoveryAuthorizedEvidenceId: pageId === resolution.pageId ? evidenceId.trim() : null,
         preparedEvidenceId: null,
@@ -2631,7 +2804,7 @@ export class PersistentAprEneaDraftExecution {
       item.pageCheckpoints = newExpectedPageIds.map((pageId) => ({
         pageId,
         state: "pending",
-        saveAttemptCount: 0,
+        saveAttemptCount: pageId === resolution.pageId ? 1 : 0,
         recoverySaveAttemptCount: 0,
         recoveryAuthorizedEvidenceId: pageId === resolution.pageId ? evidenceId.trim() : null,
         preparedEvidenceId: null,
@@ -2649,6 +2822,128 @@ export class PersistentAprEneaDraftExecution {
       next.sessionVerifiedAt = null;
       next.status = "ready";
     });
+  }
+
+  repairVerifiedPackageRecoveryIntentAccounting(customerKey: string, commandId: string, now = new Date()) {
+    return this.transition("apr-enea-browser-worker", commandId, now, {
+      type: "verified_package_recovery_intent_accounting_repaired",
+      customerKey,
+      reason: "Il Salva gia tentato dopo una correzione verificata del pacchetto viene contabilizzato come unico recupero della stessa bozza; nessun nuovo click e autorizzato.",
+      nextAction: "Eseguire soltanto la verifica server read-only dell'esito del Salva gia tentato.",
+      appliedRuleIds: [SYSTEM_FAIL_CLOSED_RULE, SYSTEM_SINGLE_RULE, SYSTEM_RESUME_RULE, "system-verified-package-recovery-intent-accounting-v1"],
+    }, (next) => {
+      const item = next.items.find((candidate) => candidate.customerKey === customerKey);
+      const resolution = item?.uncertainPageSave;
+      const checkpoint = resolution ? item?.pageCheckpoints.find((candidate) => candidate.pageId === resolution.pageId) : null;
+      if (!item || !checkpoint || !verifiedPackageRecoveryIntentAccountingCandidate(next, customerKey)) throw new Error("enea_verified_package_recovery_intent_accounting_state_invalid");
+      checkpoint.recoverySaveAttemptCount = 1;
+      item.reason = "Unico Salva del pacchetto corretto gia tentato; verifica server read-only obbligatoria, nessun ulteriore tentativo.";
+      item.nextAction = "Verificare lato server la pagina sulla stessa bozza canonica; vietato un nuovo Salva.";
+    });
+  }
+
+  restoreCanonicalDraftCheckpoint(input: {
+    customerKey: string;
+    generationId: string;
+    draftId: string;
+    portalUrl: string;
+    pageId: string;
+    createdAt: string;
+    preparedEvidenceId: string;
+    recoveryAuthorizedEvidenceId: string;
+    sourceFingerprintEvidence: string;
+    driverMappingEvidenceId: string;
+    workerJournalEvidenceId: string;
+    serviceRepairEvidenceId: string;
+    probes: AprUncertainPageSaveProbe[];
+    commandId: string;
+  }, now = new Date()) {
+    const proofIds = [input.driverMappingEvidenceId, input.workerJournalEvidenceId, input.serviceRepairEvidenceId];
+    if (!input.customerKey.trim()
+      || !input.generationId.trim()
+      || !input.draftId.trim()
+      || !input.pageId.trim()
+      || !input.preparedEvidenceId.trim()
+      || !input.recoveryAuthorizedEvidenceId.trim()
+      || !input.sourceFingerprintEvidence.trim()
+      || new Set(proofIds).size !== 3
+      || proofIds.some((proof) => !proof.trim())
+      || input.probes.length < 2
+      || !input.probes.some((probe) => probe.method === "persisted_fields_get" && probe.outcome === "not_saved")
+      || input.probes.some((probe) => !probe.evidenceId.trim() || !probe.observedAt.trim() || !probe.reason.trim())) {
+      throw new Error("enea_canonical_draft_checkpoint_restore_proof_invalid");
+    }
+    const restored = this.transition("checkpoint-recovery", input.commandId, now, {
+      type: "canonical_draft_checkpoint_restored",
+      customerKey: input.customerKey,
+      reason: `Checkpoint della generazione ${input.generationId} ricostruito sulla bozza canonica ${input.draftId} da tre prove persistenti indipendenti; nessun comando browser eseguito.`,
+      nextAction: "Verificare esclusivamente lato server l'esito dell'unico Salva gia tentato sulla bozza canonica.",
+      appliedRuleIds: [SYSTEM_FAIL_CLOSED_RULE, SYSTEM_SINGLE_RULE, SYSTEM_RESUME_RULE, SYSTEM_GENERATION_CANONICAL_DRAFT_RULE, "system-checkpoint-roundtrip-fail-closed-restore-v1"],
+    }, (next) => {
+      const item = next.items.find((candidate) => candidate.customerKey === input.customerKey);
+      const page = item?.pageCheckpoints.find((candidate) => candidate.pageId === input.pageId);
+      if (next.sourceFingerprint !== input.sourceFingerprintEvidence
+        || next.currentCustomerKey !== null
+        || !item
+        || item.generationId !== input.generationId
+        || item.state !== "queued"
+        || item.draftId !== null
+        || item.canonicalDraftId !== null
+        || item.createAttemptCount !== 0
+        || item.saveAttemptCount !== 0
+        || item.completedPageIds.length !== 0
+        || item.uncertainPageSave !== null
+        || !page
+        || item.pageCheckpoints.some((checkpoint) => checkpoint.state !== "pending" || checkpoint.saveAttemptCount !== 0 || checkpoint.recoverySaveAttemptCount !== 0)
+        || !this.portalUrlAllowed(input.portalUrl)
+        || !input.portalUrl.split(/[?#]/, 1)[0].endsWith(`/${input.draftId}`)) {
+        throw new Error("enea_canonical_draft_checkpoint_restore_state_invalid");
+      }
+      item.draftId = input.draftId;
+      item.canonicalDraftId = input.draftId;
+      item.portalUrl = input.portalUrl;
+      item.createdAt = input.createdAt;
+      item.createIntentAt = input.createdAt;
+      item.createAttemptCount = 1;
+      item.state = "save_intent_recorded";
+      page.state = "save_intent_recorded";
+      page.saveAttemptCount = 1;
+      page.recoverySaveAttemptCount = 1;
+      page.recoveryAuthorizedEvidenceId = input.recoveryAuthorizedEvidenceId;
+      page.preparedEvidenceId = input.preparedEvidenceId;
+      page.stagedEvidenceId = null;
+      page.savedEvidenceId = null;
+      item.uncertainPageSave = {
+        pageId: input.pageId,
+        status: "recovery_authorized",
+        detectedAt: input.probes[0].observedAt,
+        detectedEvidenceId: input.probes[0].evidenceId,
+        probes: structuredClone(input.probes),
+        operatorDecision: null,
+        reason: "Checkpoint ricostruito da prove persistenti: l'unico Salva della generazione era gia stato tentato.",
+        nextAction: "Verificare esclusivamente lato server; nessun ulteriore Salva autorizzato.",
+        transientProbeRetryCounts: {},
+      };
+      item.serverEvidenceIds = Array.from(new Set([
+        ...item.serverEvidenceIds,
+        ...input.probes.map((probe) => probe.evidenceId),
+        input.recoveryAuthorizedEvidenceId,
+        input.preparedEvidenceId,
+        ...proofIds,
+      ]));
+      item.reason = "Bozza canonica ricostruita da prove persistenti; unico Salva gia consumato.";
+      item.nextAction = "Verificare esclusivamente lato server la pagina sulla stessa bozza canonica.";
+      next.currentCustomerKey = input.customerKey;
+      next.sessionEvidenceId = null;
+      next.sessionVerifiedAt = null;
+      next.status = "ready";
+    });
+    const persisted = this.load(now);
+    const item = persisted.items.find((candidate) => candidate.customerKey === input.customerKey);
+    if (!item || item.draftId !== input.draftId || item.canonicalDraftId !== input.draftId || item.generationId !== input.generationId) {
+      throw new Error("enea_canonical_draft_checkpoint_restore_roundtrip_invalid");
+    }
+    return restored;
   }
 
   requeueAfterVerifiedDraftDeletion(
@@ -2683,6 +2978,7 @@ export class PersistentAprEneaDraftExecution {
 
       item.state = "queued";
       item.draftId = null;
+      item.canonicalDraftId = null;
       item.portalUrl = null;
       item.createIntentAt = null;
       item.createdAt = null;
@@ -2983,6 +3279,7 @@ export class PersistentAprEneaDraftExecution {
       const item = next.items.find((candidate) => candidate.customerKey === customerKey);
       if (!item || item.state !== "operator_intervention" || item.draftId !== draftId || item.createAttemptCount !== 1 || item.saveAttemptCount !== 0 || item.completedPageIds.length !== 0 || item.pageCheckpoints.some((checkpoint) => checkpoint.state !== "pending" || checkpoint.saveAttemptCount !== 0 || checkpoint.recoverySaveAttemptCount !== 0)) throw new Error(`enea_cross_cohort_discovery_recovery_case_invalid:${customerKey}`);
       item.draftId = null;
+      item.canonicalDraftId = null;
       item.portalUrl = null;
       item.state = "queued";
       item.recoverableCreateIntent = true;

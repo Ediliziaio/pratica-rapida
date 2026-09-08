@@ -1,5 +1,6 @@
 import type { SchermaturaTipo } from "@/types/form-cliente";
 import { resolveScreeningMechanism } from "@/features/enea-shadow-crm/operationalRules";
+import { classifyScreeningProduct, resolveScreeningGTot } from "@/features/enea-shadow-crm/productClassifier";
 
 export const ENEA_SCREENING_TYPE = {
   awning: "Tenda o veneziana",
@@ -31,8 +32,10 @@ export const ENEA_SCREENING_REGULATION = {
 export interface EneaScreeningRuleResult {
   type: string;
   installation: string;
-  gTot: number;
+  gTot: number | null;
   gTotFromDocument: boolean;
+  gTotResolutionStatus: "resolved" | "operator_required";
+  gTotRuleId: string;
   calculation: string;
   material: string;
   regulation: string;
@@ -47,27 +50,16 @@ function normalize(value: string): string {
     .toLocaleLowerCase("it");
 }
 
-function isZanzariera(description: string): boolean {
-  return /zanzarier/.test(normalize(description));
-}
-
-function isShutter(description: string): boolean {
-  return /tapparell|avvolgibil/.test(normalize(description));
-}
-
-function isPersiana(description: string): boolean {
-  return /persian[ae]/.test(normalize(description));
-}
-
 export function screeningRules(
   declaredType: SchermaturaTipo | "",
   description: string,
   documentedGTot: number | null | undefined,
 ): EneaScreeningRuleResult {
   const normalized = normalize(description);
-  const zanzariera = isZanzariera(description);
-  const shutter = isShutter(description);
-  const persiana = isPersiana(description);
+  const classification = classifyScreeningProduct(description, declaredType);
+  const zanzariera = classification.family === "zanzariera";
+  const shutter = classification.family === "tapparella" || classification.family === "avvolgibile";
+  const persiana = classification.family === "persiana";
   const pergotenda = declaredType === "pergotenda" || /pergotend/.test(normalized);
   const pergola = declaredType === "pergola" || /pergola/.test(normalized);
   const awning = declaredType === "tende_da_sole"
@@ -76,6 +68,7 @@ export function screeningRules(
     && documentedGTot !== undefined
     && documentedGTot > 0
     && documentedGTot <= 0.35;
+  const gTotResolution = resolveScreeningGTot(description, declaredType, documentedGTot);
 
   let material = "";
   if (persiana || shutter) material = ENEA_SCREENING_MATERIAL.metal;
@@ -113,8 +106,10 @@ export function screeningRules(
     installation: declaredType || description.trim()
       ? ENEA_SCREENING_INSTALLATION.external
       : "",
-    gTot: validDocumentedGTot ? documentedGTot : persiana || shutter ? 0.08 : zanzariera ? 0.33 : 0.06,
+    gTot: gTotResolution.value,
     gTotFromDocument: validDocumentedGTot,
+    gTotResolutionStatus: gTotResolution.source === "operator_required" ? "operator_required" : "resolved",
+    gTotRuleId: gTotResolution.ruleId,
     calculation: declaredType || description.trim()
       ? ENEA_SCREENING_CALCULATION.supplierDeclared
       : "",

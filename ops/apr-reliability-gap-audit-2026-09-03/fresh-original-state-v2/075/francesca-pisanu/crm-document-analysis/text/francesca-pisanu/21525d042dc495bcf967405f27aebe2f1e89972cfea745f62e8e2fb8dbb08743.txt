@@ -1,0 +1,1064 @@
+APR_OCR_ORIENTATION:270
+Scadenze
+ACCONTO
+Telefono
+1.120
+Cod. Cli.
+101 NR.01 BBa A VISTA
+Imponibile
+Codice e descrizione pagamento
+Codice
+IVA
+2.500,00
+Serramenti in PVC
+DA VENT'ANNI INFISSI IN PVC DI QUALITÀ
+Sistem
+Ideal 20
+2.500,00 10,00
+PVC
+Agente
+EURO
+Valuta
+2001-2021
+BBa 2.750,00 27/02/2026
+Tot.
+AL.IVA
+Copia della fattura elettronica disponibile nella tua area riservata dell'Agenzia delle Entrate
+CHM. CHESSA MARCO
+PER ECOBONUS L.296/06 E S.M.I.
+DESTINAZIONE ABITATIVA PRIVATA OGGETTO DI
+Codice fiscale
+07100 SASSARI
+Importo IVA
+FORNITURA E POSA IN UN IMMOBILE A PREVALENTE
+PSNFNC78L45E281B
+INTERVENTO IDONEO A USUFRUIRE DI DETRAZIONE FISCALE
+MANUTENZIONE ORDINARIA art.3 c.1 lett.a del DPR 380/2001
+ACCONTO PER FORNITURA E POSA DI FINESTRE E PORTONE IN
+Descrizione
+TEL/FAX 079 268047 - 079 269656
+Z.I. PREDDA NIEDDA NORD, STR. 33
+STABILIMENTO ED ESPOSIZIONE
+IDEAL SISTEM S.R.L.
+250,00
+250,00
+PIVA 01959880905
+Codice SDI
+Banca
+Partita IVA
+TOTALE DOCUMENTO
+Spese Bolli
+Totale merce
+Euro 2.750,00
+2.500,00
+NR
+U.M.
+CUP
+Spettle
+% Sconto
+Firma per Accettazione
+Spese incasso
+Quantità
+C/C 000047463714 - IBAN: IT44L0344017210000047463714
+FATTURA
+Luogo di Destinazione
+Tipo documento
+07049 USINI (SS)
+Sconto in fattura
+0,00
+1,00
+Bonificare c/o BANCO DI DESIO E DELLA BRIANZA - ABI 3440 -
+VIA SANDRO PERTINI 15
+PISANA FRANCESCA
+Varie
+Importo sconto
+Prezzo Un.
+84/00
+Num. Doc.
+2.500,00
+FATTURA IMMEDIATA - COPIA DI CORTESIA
+Sottwaro fomito da: Data Symposlum sil - Sassari •
+Commessa:
+TOTALE A PAGARE
+Imp. Netto
+Acconto
+27/02/2026
+Data Docum.
+Netto merce
+Euro 2.750,00
+2.500,00
+2.500,00
+IVA
+Ns. Rif
+111
+Pag.
+
+APR_OCR_ORIENTATION:0
+Software fornito da: Data Symposium srl - Sassari -
+Copia della fattura elettronica disponibile nella tua area riservata dell'Agenzia delle Entrate
+A MEZZO MITTENTE
+Incaricato al trasporto
+Trasporto a cura
+09/04/2026
+A VISTA
+Data del trasporto
+VEN C/Vendita
+Aspetto dei beni
+N. Colli
+Causale del trasporto
+Firma per Accettazione
+03/04/2026
+BBa 2.750,00
+Euro 2.750,00
+Euro 2.750,00
+298.69
+Tot.
+2.451,31
+Scadenze
+TOTALE A PAGARE
+Sconto in fattura
+TOTALE DOCUMENTO
+Acconto
+Varie
+Spese incasso
+Spese Bolli
+2.451,31
+0,00
+2.451,31
+98,19
+Netto merce
+Importo sconto
+200,50
+446,31| 22,00
+% Sconto
+Totale merce
+2.005,00 10,00
+Importo IVA
+AI.IVA
+Imponibile
+INTERVENTO IDONEO A USUFRUIRE DI DETRAZIONE FISCALE
+PER ECOBONUS L.296/06 E SM.I.
+MANUTENZIONE ORDINARIA art.3 c.1 lelt.a del DPR 380/2001
+DESTINAZIONE ABITATIVA PRIVATA OGGETTO DI
+FORNITURA E POSA IN UN IMMOBILE A PREVALENTE
+10
+-2.500,00
+2.500,00
+1,00
+22
+NR
+ACCONTO PER FORNITURA E POSA FATTURA N°84 DEL
+27/02/2026
+446,31
+446,31
+1,00
+N.
+10
+A CORPO INFISSI BENI SIGNIFICATIVI AI SENSI EX DM 29/12/1999
+ACCONTO
+2.252,50
+2.252,50
+10
+1,00
+N.
+A CORPO INFISSI BENI SIGNIFICATIVI AI SENSI EX DM 29/12/1999
+A CORPO
+1.177,50
+1.177,50
+1,00
+N.
+SERVIZI DI VENDITA
+A CORPO
+10
+200,00
+200,00
+1,00
+10
+875,00
+875,00
+1,00
+N.
+MANODOPERA PER FACCHINAGGIO
+SEVEN
+N.
+MANODOPERA PER POSA IN OPERA
+MAFAC
+0,00
+0,00
+1,00
+N.
+FINESTRA TELAIO RESTAURO 1 ANTA 78,3X62
+MAPOS
+22
+0,00
+0,00
+4,00
+N.
+FINESTRA TELAIO RESTAURO 2 ANTE 118X62
+FIRESIA
+22
+0,00
+0,00
+1,00
+N.
+PORTONCINO PVC 1 ANTA CON SERRATURA 101x215,4 SX
+FIRES2A
+IVA
+Imp. Netto
+Prezzo Un.
+Quantità
+U.M.
+Descrizione
+POPVC1A
+CUP
+Codice
+Commessa:
+CIG
+CHM. CHESSA MARCO
+Codice SDI
+Agente
+Ns. Rif
+Bonificare c/o BANCO DI DESIO E DELLA BRIANZA - ABI 3440 -
+C/C 000047463714 - IBAN: IT44L0344017210000047463714
+101 NR.01 BBa A VISTA
+Telefono
+1 / 1
+03/04/2026
+156/00
+FATTURA
+Banca
+Codice e descrizione pagamento
+PSNFNC78L45E281B
+EURO
+Pag.
+Data Docum.
+Num. Doc.
+Tipo documento
+1.120
+Partita IVA
+Codice fiscale
+Valuta
+IVA
+Cod. Cli.
+Luogo di Destinazione
+07049 USINI (SS)
+TEL./FAX 079 268047 - 079 269656
+Serramenti in PVC
+P.IVA 01959880905
+DA VENT'ANNI INFISSI IN PVC DI QUALITÀ
+VIA SANDRO PERTINI 15
+L.L. PREDDA NIEDDA NORD, STR. 33
+07100 SASSARI
+STABILIMENTO ED ESPOSIZIONE
+PISANU FRANCESCA
+IDEAL SISTEM S.R.L.
+Sistem
+Spett.le
+FATTURA IMMEDIATA DDT (D.P.R. 472 del 14i8/96)
+
+APR_OCR_ORIENTATION:0
+per operazione' secondo le modalità previste dal contratto di conto corrente o carta.
+L'operazione potrebbe essere conteggiata e assoggettata al pagamento del 'Costo unitario
+2.750,00 Euro
+Totale operazione
+0,00 Euro
+2.750,00 Euro
+Commissioni
+Importo
+03.04.2026
+03.04.2026
+Data addebito ordinante
+Data regolamento beneficiario
+sostituzione infissi e portoncino
+0306922352378100489784099999IT
+Saldo fatt n. 156/00 del 03/04/2026
+TRN
+Causale
+Risparmio energetico - L. 296/06
+Spese su beni di proprietà
+Tipologia di agevolazione
+Tipologia di spese
+PSNFNC78L45E281B
+01959880905
+C.F/P.IVA del fruitore della detrazione
+C.F/P.IVA del beneficiario del bonifico
+SPA
+BANCO DI DESIO E DELLA BRIANZA
+-
+Banca
+Beneficiario effettivo
+BDBDIT22XXX
+IT44L0344017210000047463714
+Codice BIC/SWIFT
+IBAN
+IT
+-
+Sede legale o residenza beneficiario
+Paese
+Località
+Indirizzo
+IDEAL SISTEM SRL
+MILANO FIL DIP G ISP
+Beneficiario
+Filiale
+PISANU FRANCESCA
+0000/35112862
+Intestato a
+N. C/C
+FRANCESCA PISANU
+INTER20260403BOSBE607175082
+Operazione effettuata da
+Numero operazione
+Di seguito il riepilogo dell'operazione:
+autorizzato in data 03.04.2026 16:51
+Eseguito - Bonifico per Agevolazioni Fiscali Istantaneo
+nn SANPAOTO
+INTESA n
+
+APR_OCR_ORIENTATION:0
+• per operazione' secondo le modalità previste dal contratto di conto corrente o carta.
+L'operazione potrebbe essere conteggiata e assoggettata al pagamento del 'Costo unitario
+2.750,00 Euro
+Totale operazione
+0,00 Euro
+2.750,00 Euro
+Commissioni
+Importo
+27.02.2026
+27.02.2026
+Data addebito ordinante
+Data regolamento beneficiario
+sostituzione finestre e portone
+0306925219247111489784099999IT
+Saldo fattura n. 84/00 del 27.02.2026
+TRN
+Causale
+Risparmio energetico - L. 296/06
+Spese su beni di proprietà
+Tipologia di agevolazione
+Tipologia di spese
+PSNFNC78L45E281B
+01959880905
+C.F/P.IVA del fruitore della detrazione
+C.F/P.IVA del beneficiario del bonifico
+SPA
+BANCO DI DESIO E DELLA BRIANZA
+Banca
+Beneficiario effettivo
+BDBDIT22XXX
+IT44L0344017210000047463714
+Codice BIC/SWIFT
+IBAN
+IT
+Sede legale o residenza beneficiario
+Paese
+-
+Località
+Indirizzo
+IDEAL SISTEM SRL
+MILANO FIL DIP G ISP
+Beneficiario
+Filiale
+PISANU FRANCESCA
+0000/35112862
+Intestato a
+N. C/C
+FRANCESCA PISANU
+INTER20260227BOSBE649926514
+Operazione effettuata da
+Numero operazione
+Di seguito il riepilogo dell'operazione:
+autorizzato in data 27.02.2026 18:03
+Eseguito - Bonifico per Agevolazioni Fiscali Istantaneo
+INTESA Im SANPAOLO
+
+APR_OCR_ORIENTATION:180
+MINISTERO DELL'INTERNO
+REPUBBLICA ITALIANA
+CA66031PB
+CARTA DI IDENTITÀ / IDENTITY CARD
+COMUNE DI! MUNCIALTY
+GNOME / SURNAM
+PRATI ESCA
+IRD
+HA A 05 1970
+SIATUKA
+2.05.202
+ASURNG
+05.07.2012
+HOLDERE SONATURE
+Fraunuestous
+848350
+413 pl s4-1978 092033
+IA SANDRO PERTINL NE. 15 USINI (S
+DIRIZZO DI RESIDENZA
+BLASE2818
+C<ITACA66031PB8<<<<
+<<<<<
+7807057F3207051ITA<
+<<<0
+PISANU<<FRANCESCA<<.
+<<<<<
+S
+TESSERA SANITARIA
+REPUBBLICA ITALIANA
+GIONI
+E DE SERVIZE
+Fiscale
+Codice PSNFNC78L45E283B Sesso F
+Cognome
+PISANU
+Nome
+ESCA
+scadenza.
+Data di
+di nascita
+Luogo
+20/11/2026 Provincia
+Data
+di nascita
+05/07/1978
+REGIONE
+DELLA SARDEGNA
+AUTONOMA
+TESSERA EUROPEA DI ASSICURAZIONE MALATTIA
+PISANU
+FRANCESCA
+05/07/1978
+PSNFNC78L45E2816
+SSN-MIN SALUTE - 500001
+80380002000:
+403593
+20/11/2026
+
+APR_OCR_ORIENTATION:0
+Annotazioni: Classamento e rendita proposti (D.M.
+701/94)
+860.1/2022)
+DIVERSA DISTRIBUZIONE DEGLI SPAZI INTERNI (n.
+18/01/2022 Pratica n. SS0002803 in atti dal 19/01/2022
+DIVERSA DISTRIBUZIONE DEGLI SPAZI INTERNI del
+Categoria C/6ª), Classe 2, Consistenza 22 m?
+Rendita: Euro 81,81
+› Dati di classamento
+DIVERSA DISTRIBUZIONE DEGLI SPAZI INTERNI (n.
+860.1/2022)
+DIVERSA DISTRIBUZIONE DEGLI SPAZIINTERNI del
+18/01/2022 Pratica n. SS0002803 in atti dal 19/01/2022
+VIA SANDRO PERTINI n. 15 Piano S1
+> Indirizzo
+Foglio 11 Particella 1622
+Comune di 509) (SS)
+Particelle corrispondenti al catasto terreni
+in atti dal 29/09/2005 COSTITUZIONE (n. 2129.1/2005)
+Foglio 11 Particella 1622 Subalterno 2
+COSTITUZIONE del 29/09/2005 Pratica n. SS0168031
+Comune di USINI (L509) (SS)
+> Dati identificativi
+Causali di aggiornamento ed annotazioni
+n.1
+Immobile di catasto fabbricati -
+Totali immobili: di catasto fabbricati 2
+PISANU Francesca nata a IGLESIAS (SU) il 05/07/1978 (CF: PSNFNC78L45E281B)
+Soggetto richiesto:
+Terreni e Fabbricati siti in tutta la provincia di SASSARI
+Dati della richiesta
+Situazione degli atti informatizzati al 25/02/2026
+Visura attuale per soggetto
+Pag: 1 - Segue
+Numero Pratica: T457534/2026
+Servizi Catastali
+Ora: 20:26:21
+Ufficio Provinciale - Territorio
+Data: 25/02/2026
+Direzione Provinciale di Sassari
+ntrate
+genzia
+
+APR_OCR_ORIENTATION:180
+genzia
+intrate
+Direzione Provinciale di Sassari
+Data: 25/02/2026
+Ufficio Provinciale - Territorio
+Servizi Catastali
+Vumero Pratica: T457534/202
+Ora: 20:26:2
+Pag: 2 - Segue
+› Dati di superficie
+Totale: 22 m2
+DIVERSADISTRIBUZIONE DEGLI SPAZI INTERNI del
+18/01/2022 Pratica n. SS0002803 in atti dal 19/01/2022
+SPAZI INTERNI N. 801202IS TRIBUZIONE DEGLI
+19/01/2022. prot. r
+Dati relativi alla planimetria: data di presentazione
+. SS0002803
+› Intestazione attuale dell'immobile n. 1 - totale righe intestati: 2
+› 1. PISANU Francesca
+(CF PSNFNC78L45E281B)
+1. Atto del 09/12/2005 Pubblico ufficiale MANIGA LUIGI
+nata a IGLESIAS (SU) il 05/07/1978
+222407
+. 20070.1/2005 Reparto PI di SASSARI in atti di
+dei beni con STERI CRISTIAN (deriva dall'atto 1)
+Diritto di: Proprieta' per 1/2 in regime di comunione
+5/12/200
+> 2. STERI Cristian (CF STRCST75R20H856V)
+20/10/1975
+nato a
+SAN GAVINO MONREALE (SU) il
+Diritto di: Proprieta' per 1/2 in regime di comunione
+1)
+dei beni con PISANU FRANCESCA (deriva dall'atto
+› Totale Parziale
+Catasto Fabbricati
+Immobili siti nel comune di USINI (L509)
+Numero immobili: 1 Rendita: euro 81,81 Superficie: 22 m?
+Immobile di catasto fabbricati -
+=
+Causali di aggiornamento ed annotazioni
+› Dati identificativi
+
+APR_OCR_ORIENTATION:0
+Foglio 11 Particella 1622 Subalerno 1
+USINI (L509) (SS)
+Diritto di: Proprieta' per 1/2 in regime di comunione
+dei beni con PISANÚ FRANCESCA (deriva dail'atto
+Nel documento sono indicati gli identificativi
+catastali dell'immobile originario dell'attuale
+lato a SAN GAVINO MONREALE (SU) il
+20/10/1975
+Foglio 11 Particella 1622 Subalterno 1
+USIN (509) (SS)
+Nel documento sono indicati gli identificativi
+catastali dell'immobile originario dell'attuale
+1. 20070.1/2005 Reparto PI di SASSARI in atti dal
+15/12/2005
+Diritto di: Proprieta' per 1/2 in regime di comunione
+dei beni con STERI CRISTIAN (deriva dall'atto 1)
+Sede SASSARI (SS) Repertorio n. 222407 -
+COMPRAVENDITA Nota presentata con Modello Unico
+nata a IGLESIAS (SU) il 05/07/1978
+1. Atto del 09/12/2005 Pubblico ufficiale MANIGA LUIGI
+(CF PSNFNC78L45E281B)
+› 1. PISANU Francesca
+› intestazione attuale dell'immobile n. 2 - totale righe intestati: 2
+Dati relativi alla planimetria: data di presentazione
+19/01/2022, prot. n. SS0002803
+Protocollo NSD n. DIVERSA DISTRIBUZIONE DEGLI
+SPAZI INTERNI (n. 860.1/2022)
+18/01/2022 Pratica n. SS0002803 in atti dal 19/01/2022
+Totale escluse aree scoperte ®: 155 m?
+DIVERSA DISTRIBUZIONE DEGLI SPAZI INTERNI del
+Totale: 161 m?
+> Dati di superficie
+Annotazioni: Classamento e rendita proposti (D.M.
+701/94)
+DIVERSA DISTRIBUZIONE DEGLI SPAZI INTERNI (n.
+860.1/2022)
+18/01/2022 Pratica n. SS0002803 in atti dal 19/01/2022
+Categoria A/2'), Classe U, Consistenza 7,5 vani
+DIVERSA DISTRIBUZIONE DEGLI SPAZI INTERNI del
+Rendita: Euro 600,38
+> Dati di classamento
+DISTRIBUZIONE DEGLI SPAZI INTERNI-VARIAZIONE
+DI TOPONOMASTICA (n. 21017.1/2010)
+VARIAZIONE del 26/11/2010 Pratica n. SS0302446 in
+atti dal 26/11/2010 AMPLIAMENTO-DIVERSA
+VIA SANDRO PERTINI n. 15 Piano S1-T
+> Indirizzo
+Foglio 11 Particella 1622
+Comune di USINI (L509) (SS)
+Particelle corrispondenti al catasto terreni
+DISTRIBUZIONE DEGLI SPAZI INTERNI-VARIAZIONE
+DI TOPONOMASTICA (n. 21017.1/2010)
+atti dal 26/11/2010 AMPLIAMENTO-DIVERSA
+Foglio 11 Particella 1622 Subalterno 3
+VARIAZIONE del 26/11/2010 Pratica n. SS0302446 in
+Comune di USINI (L509) (SS)
+Pag: 3 - Segue
+Numero Pratica: T457534/2026
+Servizi Catastali
+Ora: 20:26:21
+Ufficio Provinciale - Territorio
+Data: 25/02/2026
+Direzione Provinciale di Sassari
+intrate
+genzia
+
+APR_OCR_ORIENTATION:180
+genzia
+intrate
+Direzione Provinciale di Sassari
+Data: 25/02/2026
+Ufficio Provinciale - Territorio
+Ora: 20:26:21
+Servizi Catastali
+Numero Pratica: T457534/2026
+Pag: 4 - Fine
+> Totale Parziale
+Catasto Fabbricati
+Immobili siti nel comune di USINI (L509)
+Numero immobili: 1 Rendita: euro 600,38 Vani: 7,5
+› Totale generale
+Catasto Fabbricati
+Totale immobili: 2 Rendita: euro 682,19 Vani: 7,5 Superficie: 22 m?
+Catasto Terreni
+Totale immobili: 0
+Visura telematica
+Legenda
+) A/2: Abitazioni di tioo civile
+) C/6: Stalle, scuderie, rimesse e autorimesse
+c) Escluse le "superfici di balconi. terrazzi e aree scoperte pertinenziali e accessorie, comunicanti o non comunicanti"
+cfr. Provvedimento del Direttore dell'Agenzia delle Entrate 29 marzo 2013
+
+APR_OCR_ORIENTATION:90
+Promissario acquirente (con preliminare di compravendita registrato)
+Edifici adibiti a residenza (tipo abitazioni singole o appartamenti) o
+assimilabili (con carattere continuativo o saltuario tipo gli alberghi)
+Edifici adibiti ad attività ricreative, associative o di culto e assimilabili
+Familiare convivente con il proprietario o il detentore,
+Edifici adibiti a ospedali, cliniche o case di cura e assimilabili
+Edifici adibiti ad attività scolastiche a tutti i livelli e assimilabili
+Edifici adibiti ad attività industriali ed artigianali e assimilabili
+immobiliari come un condominio, una bifamiliare o una trifamiliare:
+(cinema, teatri, sale riunioni, musei, chiese e similari)
+Singola unità immobiliare in un edificio costituito da più unità
+Edifici adibiti ad attività commerciali e assimilabili
+Edifici adibiti ad attività sportive (piscine, palestre...)
+Costruzione isolata (villette mono, bi, o tri familiari),
+Edificio industriale artigianale o commerciale,
+X Edificio costituito da una singola unità immobiliare
+155
+Proprietario o comproprietario,
+Edifici adibiti a uffici e assimilabili
+Edificio oltre i tre piani fuori tera,
+Edificia fino a tre piani fuori terra,
+Detentore o co-detentore,
+Residenziale,
+Non residenziale.
+Anno: 2006
+Superfice m':
+Misto
+Altro
+Numero: 1
+: 1!
+1569 ca
+¡lavori Se spacita poca la spartice coperta artata alla s
+NOTA casatana cosa genere riguarda immobile da 10 ampies
+un a dores tra da condo pio con al piano tema de negos i
+8.Numero totale delle unità immobiliari dell'edificio alla fine dei lavori
+NOTA: di si terse al caso a dal lavor prevedono la fusione di due a 2.0
+2. Superficie utile dell'immobile oggetto dell'intervento (m*)
+9.Si sono verificati degli accorpamenti di unità immobiliari?
+1. Anno di costruzione (anche stimato)
+sera correma rebe edito N510
+4. Destinazione d'uso generale
+5. Destinazione d'uso particolare
+unità che compongono lec.hc.a
+De 10 mar n7
+UnI ULIVEAAL!
+subalterni di termine de lavor
+3. Titolo di possesso
+6. Tipologia edilizia
+.Intervento su
+
+APR_OCR_ORIENTATION:90
+3018
+Potenza utile
+nominale kw
+8,651
+impianto centralizzato con contabilizzazione di calare per
+Rendimento al
+30,5
+impianto centralizzato con più generatori di calore,
+impianto centralizzato con più generatori di calore con
+100% della
+potenza/P.E.A.
+odo dA
+contabilizzazione di calore per singolo utente
+pannelli radianti (riscaldamento a pavimento)
+impianto autonomo,
+impianto centralizzato,
+biomassa, legno e pellet
+singolo utente,
+termoconvettori
+teleriscaldamento
+olio combustibile
+ventilconvettori
+bocchette aria calda
+radiatori / termosifoni
+altro (descrivere):
+gas metano
+energia elettrica
+Caldaia ad acqua calda
+gasolio
+split
+Tipo di generatore
+Caldaia ad acqua calda
+a basse temperature
+GPL
+altro
+Caldaia a gas a
+condensazione
+Caldaia a gasolio a
+condensazione
+Pompa di calore/
+Generatore ad aria
+Marca: BiODOR
+G00 Ou
+nanfran
+standard
+geotermico
+Scambiatore per
+teleriscaldamento
+Caldaia a biomassa
+calda
+altro
+
+APR_OCR_ORIENTATION:180
+IDEAL SISTEM SRL
+Sistem
+5.P..
+07100 Sassari
+Predda Niedda Nord, str. 33
+info@idealsistem.it
+Tel/ Fax 079268047; 079269656
+Serramenti in PVC
+Indirizzo di Fatturazione
+Indirizzo di Destinazione
+PISANU FRANCESCA
+PISANU FRANCESCA
+VIA SANDRO PERTINI, 15
+7049 USINI (**)
+VIA SANDRO PERTINI, 15
+tel
+7049 USINI (**)
+fax
+Prestazioni Energetiche CO 96 Rif:
+10.07.26
+Il sottoscritto, Salvatore Muzzu, in qualità di Amministratore della ditta Ideal Sistem. Sita in Sassari Predda
+Niedda Nord Str.33, Partita Iva 01959880905
+assevera e dichiara
+che, ai sensi della legge 10/91 art. 32, dal DM 2 Aprile 1998 ed all'art. 1 comma 345 della Legge del 27
+dicembre 2006 n. 296, corretta ed integrata dal Decreto ministeriale del 19 Febbraio 2007:
+- la trasmittanza termica complessiva (U) è stata determinata numericamente considerando una finestra tipo
+rappresentativa, utilizzando la metodologia di calcolo semplificato prevista dalla norma UNI EN 10077-1 sulla
+base dei singoli valori di trasmittanza termica dei componenti costituenti la finestra tipo considerata così come
+rilevabile dai certificati di prova in nostro possesso e dai dati dichiarti dalla società produttrice del vetro camera
+(il tipo di vetro utilizzato ed il relativo valore di trasmittanza termica è riportato a margine di ogni posizione). La
+trasmittanza termica delle finestre, di cui alla fornitura menzionata rispetta i limiti previsti dall'Allegato D del
+Decreto ministeriale del 19 Febbraio 2007 prevista per la zona climatica sopra riportata.
+- la trasmissione luminosa (TL) dei serramenti è rilevata dalle schede tecniche del fornitore di vetro camera
+- la permeabilità all'aria dei serramenti corrisponde alle classi indicate nella tabella in calce cosi come definite
+dalla norma UNI 12207.
+Certificazione energetica secondo le norme UNI EN 10077-1
+Comune: USINI
+U max richiesto dal comune : 1.7 W/m2K
+Zona climatica: C
+Trasmissione luminosa: TL = 74 %
+Alt. sul livello del mare: 200 metri
+
+APR_OCR_ORIENTATION:270
+Pos.6
+Pos.4
+Pos.3
+Pos.2
+Pos.1
+Pos.5 Pezzi 1
+Serramenti in PVC
+Uw richiesto = 1.7 W/m2K
+Uw effettivo = 1.45 W/m2K
+Trasmittanza termica totale
+Serramento
+Telaio/anta
+Pezzi 1
+Pezzi 1
+Pezzi 1|
+Pezzi 1
+Selen
+Totale metri quadri infissi: 6.38
+Schermatura
+Vetro / Pann.
+Serramento
+Schermatura
+Vetro / Pann.
+Telaio/anta
+Serramento
+Schermatura
+Vetro / Pann.
+Telaio/anta
+Serramento
+Schermatura
+Vetro / Pann.
+Telaio/anta
+Serramento
+Schermatura
+Vetro / Pann.
+Telaio/anta
+Serramento
+Schermatura
+Vetro / Pann.
+Telaio/anta
+Prestazioni Energetiche CO 96/ /
+Tipologia PI Dx
+Pezzi 1 Tipologia Fin sxDX DK
+Tipologia Fin Sx DK
+Tipologia Fin sxDX DK
+Tipologia Fin sxDX DK
+Tipologia Fin sxDX DK
+Senza schermo
+Senza schermo
+Senza schermo
+Senza schermo
+Senza schermo
+Panza Schern. Sardegna
+MD F.I. Z Tel Fin / PF 4 lati
+MD F.I. Z Tel Fin / PF 4 lati
+MD F.I. Z Tel Fin / PF 4 lati
+MD F.I. Z Tel Fin / PF 4 lati
+MD F.I. Z Tel Fin / PF 4 lati
+Valore stimato vecchi serramenti
+MD76 Z Tel Fin / PF 4 lati / PI Soglia
+Valore stimato vecchi serramenti
+27 - 4 - 16 - 3+3 BASSO EMISSIVO
+Valore stimato vecchi serramenti
+27 - 4 - 16 - 3+3 BASSO EMISSIVO
+Valore stimato vecchi serramenti
+27 - 4 - 16 - 3+3 BASSO EMISSIVO
+Valore stimato vecchi serramenti
+27 - 4 - 16 - 3+3 BASSO EMISSIVO
+Valore stimato vecchi serramenti
+27 4 STC- 16 - 3+3 BASSO EMISSIVO
+Mis. 1000 x 2149 mq: 2.15
+Mis. 773 x 615 mq: 0.48
+Mis. 1170 x 615 mq: 0.72
+Mis. 1170 x 615 mq: 0.72
+Mis. 1170 x 615 mq: 0.72
+Mis. 1170 x 615 mq: 0.72
+Uw
+gtot
+Uw
+gtot
+giot
+Uw
+Uf Nodo:
+gtot
+gtot
+giot
+Uf Nodo :
+Uf Nodo :
+Ug Vetro/Pann:
+Uf Nodo :
+Uf Nodo :
+Uf Nodo :
+U Tot. Serramento :
+Ug Vetro/Pann:
+Ug Vetro/Pann:
+Ug Vetro/Pann:
+U Tot. Serramento :
+U Tot. Serramento :
+Ug Vetro/Pann:
+U Tot. Serramento:
+Ug Vetro/Pann:
+U Tot. Serramento :
+U Tot. Serramento:
+pag. 2/ 10.07.26
+0.01 W/m2K
+1.68 W/m?K
+0W/m2K
+1.10 W/m?K
+1.68 W/m'K
+0.54 W/m2K
+0 W/m'K
+1.30 W/m?K
+1.10 W/m2K
+1.40 W/m'K
+0 W/m?K
+0.54 W/m2K
+1.30 W/m?K
+1.10 W/m2K
+1.41 W/m'K
+0 W/m?K
+0.54 W/m2K
+1.30 W/m2K
+1.10 W/m'K
+1.41 W/m'K
+0 W/m'K
+0.54 W/m2K
+1.30 W/m?K
+1.10 W/m2K
+1.41 W/m?K
+0 W/m?K
+0.54 W/m'K
+1.30 W/m2K
+1.10 W/m'K
+1.41 W/m'K
+
+APR_OCR_ORIENTATION:90
+pag. 3 / 10.07.26
+IDEAL SISTEM SRL
+Amministratore
+Muzzu Salvatore
+Shi Oly
+-Copia del certificato di prova relativo al valore di trasmittanza termica del profilo utilizzato.
+Prestazioni Energetiche CO 96/ /
+Allegati alla presente dichiarazione:
+Selen
+Serramenti in PVC
+
+APR_OCR_ORIENTATION:0
+Il coefficiente Ug (in precedenza detto valore k) è calcolato in base alla norma EN 673. La misura dell' emissività è conforme
+•alle norme EN 673 (allegato A) e EN 12898.
+: I dati sono calcolati sulia base delle misure spettrali conformi alle norme EN 410 (1998), ISO 9050 (1990) e WIS/WINDAT. La
+toileranza dei dati pubblicati in relazione alle proprietà fotometriche è di +/- 3 punti.
+Osservazioni
+Note personali
+30 (-1, -4)
+Isolamento ai rumore aereo diretto (ESTIMATED - Rw (C;Ctr):
+dB)
+NPD / NPD
+Resistenza agli urti (Prova del pendolo) (EN 12600)
+NPD
+Resistenza agli attacchi manuali (EN 356)
+NPD
+Resistenza ai proiettile (EN 1053)
+NPD
+Reazione al fuoco (EN 13501-1)
+NPD
+Resistenza al fuoco (EN 13501-2)
+Altri caratteristiche
+96.0
+Schattenfaktor (DE) (b-Faktor)
+47
+Trasmissione dei raggi ultravioletti (UV)|
+0.89
+0.89
+Coefficiente di shading (SC)
+77
+77
+Fattore solare (g)
+Assorb, energetico vetro 2 (". (2) )
+Assorb, energetico vetro 1 (», (1))
+15
+15
+Assorbimento energetico (a)
+13
+13
+Riflessione energetica (p.)
+72
+72
+Trasmissione energetica diretta (:)
+ISO 9050
+EN 410
+Caratteristiche energetiche
+99|
+Indice di resa dei colori - RO65 (R.)
+FS .. 77
+15
+Piflessione interna (Pv)
+13
+RE
+15
+Riflessione tunimosa (py)
+IL *• 81
+81
+Trasmissione luminosa (")
+15
+RL
+Caratteristiche luminose (EN 410)
+15
+AE ••••• (
+2.7
+valore Ug (W/(m-.K))
+Proprietà termiche (EN 673)
+4 mm Planibel Clear - 16 mm Air - 4 mm Planibel Clear
+Glass Configurator 2 - Risultato
+GLASS URLIMITED
+AGC YourGlass
+
+APR_OCR_ORIENTATION:0
+43
+(kg: CO= couv/m') Medin curapea
+EN 15804-A2 (2019)
+Riscaldamento Glabale Potenziate
+(GWP) - AI-A3
+Seta i altre un ge cia contigurazione in relazione alla
+Impronta di Carbonio
+Sostenibilità
+26.4 mm
+25 kg/m*
+Peso
+Dimensioni di produzione
+Spessore nominale
+EN 556
+NPD
+Resartenza allettrazione
+"Ansi-attraziono
+NP121282
+EN 12600
+Classe di sicurezza
+Ress: gre al perento
+93.5
+CIE (15-2004)
+97.5
+lessiene (Ra
+Resa coloro
+N/A
+N/A
+CITC (ASTM EX332)
+STC (ASTM EC:3)
+33 de
+29 dB
+Valori acustici in accorde allo EN 12758 e da ente netificato
+34 (-2; -5) 68
+Rw (C.Ct))
+PLANICLEAR (3mm) - Ricollo
+EN 12759
++ Acustica
+PLANICLEAR (3mm) - Ricotto
+PVB STANDARD (0.38mm)
+inga reato lo ariste
+PLANITHERM CLEAR 1.0
+Vetrata 2
+ENS73-2012
+i Trasmittanza termica
+0.62
+Coeficiente di ombregsiamento (SC)
+AIR 16 mm
+EN410 (2012-04)
+0.54
+* Fattore solare
+Fattore solare (g)
+intercapedine 1
+12%
+ssordimento snergetico A2 (A82
+PLANICLEAR (4mm) - Ricotto
+37%
+33%
+7%
+flessione energetica interna (Rei
+serb mento energetico AL (AEL
+Vetrata 1
+EN410 (2012-04)
+43%
+fessione energetica miema Res
+Trasmissione energetico (TE)
+Fattori energetiei
+20%
+18%
+fessione interna (RU)
+CIE (25-2006)
+14%5
+Trasmissione Luminosa (TL)
+mersiene esterna (RLe
+Fattori Luminosi
+Dati simulati sulle prestazioni
+Tipo di vetrata
+EM410 (2011-04)
+taly
+22/01/2025
+PLANTHERIA CLEAR 1.0 73
+VETRERIA FOIS SRL
+4 (16 AIR) 33.1
+12, Calumen

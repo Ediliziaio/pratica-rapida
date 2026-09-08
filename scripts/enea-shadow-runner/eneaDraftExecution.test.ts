@@ -3,7 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { USER_AUTHORIZED_RULE_IDS } from "../../src/features/enea-shadow-crm/operationalRegistry";
-import { conclusiveNestedPageAbsenceEvidence, isTransientCdpReadOnlyFailure, nestedOuterSavePersistenceVerificationCandidate, nestedPageAbsenceRecoveryCandidate, PersistentAprEneaDraftExecution, savedPayloadPostCompletionVerificationEligible, type AprNestedPageAbsenceEvidence } from "./eneaDraftExecution";
+import { conclusiveNestedPageAbsenceEvidence, isTransientCdpReadOnlyFailure, nestedOuterSavePersistenceVerificationCandidate, nestedPageAbsenceRecoveryCandidate, partialInfissiEmptyCanonicalRecoveryCandidate, PersistentAprEneaDraftExecution, resolveAprInitialFreshGenerationPolicy, savedPayloadPostCompletionVerificationEligible, verifiedPackageRecoveryIntentAccountingCandidate, type AprNestedPageAbsenceEvidence, type AprUncertainPageSaveProbe } from "./eneaDraftExecution";
 import type { AprEneaDraftPackage } from "./aprEneaBrowserWorker";
 
 const directories: string[] = [];
@@ -12,6 +12,12 @@ function temporaryDirectory() {
   const directory = mkdtempSync(path.join(os.tmpdir(), "apr-enea-draft-execution-"));
   directories.push(directory);
   return directory;
+}
+
+function writeGenerationSeed(directory: string, policy: null | { mode: "fresh_generation"; experimentId: string }) {
+  const seedDirectory = path.join(directory, "cohort-seed");
+  mkdirSync(seedDirectory, { recursive: true });
+  writeFileSync(path.join(seedDirectory, "checkpoint.json"), `${JSON.stringify({ draftGenerationPolicy: policy })}\n`, "utf8");
 }
 
 function nestedAbsenceEvidence(draftId: string, overrides: Partial<AprNestedPageAbsenceEvidence> = {}): [AprNestedPageAbsenceEvidence, AprNestedPageAbsenceEvidence] {
@@ -76,6 +82,130 @@ function preflightFixture() {
 }
 
 describe("esecuzione persistente della sola bozza ENEA TEST", () => {
+  it("deriva fresh_generation dal seed autorevole anche se un altro processo ha inizializzato prima il checkpoint", () => {
+    const directory = temporaryDirectory();
+    const supervisorInstance = new PersistentAprEneaDraftExecution(directory);
+    supervisorInstance.initialize(new Date("2026-09-04T20:38:00.843Z"));
+    writeGenerationSeed(directory, { mode: "fresh_generation", experimentId: "apr-lucia-clean-generation-r51-2026-09-04" });
+
+    const prepared = supervisorInstance.prepare(preflightFixture(), new Date("2026-09-04T20:38:29.390Z"));
+
+    expect(prepared.items).not.toHaveLength(0);
+    expect(prepared.items.every((item) => item.requiresFreshDraft)).toBe(true);
+    expect(prepared.items.every((item) => item.draftId === null && item.canonicalDraftId === null)).toBe(true);
+  });
+
+  it("mantiene false per una coorte ordinaria e rifiuta seed invalido o override divergente", () => {
+    const ordinary = temporaryDirectory();
+    writeGenerationSeed(ordinary, null);
+    expect(resolveAprInitialFreshGenerationPolicy(ordinary)).toBe(false);
+    expect(new PersistentAprEneaDraftExecution(ordinary).prepare(preflightFixture()).items.every((item) => !item.requiresFreshDraft)).toBe(true);
+
+    const mismatch = temporaryDirectory();
+    writeGenerationSeed(mismatch, { mode: "fresh_generation", experimentId: "apr-fresh-generation-mismatch-r51" });
+    expect(() => resolveAprInitialFreshGenerationPolicy(mismatch, false)).toThrow("enea_draft_generation_seed_policy_mismatch");
+
+    const invalid = temporaryDirectory();
+    writeGenerationSeed(invalid, { mode: "fresh_generation", experimentId: "apr-invalid-policy-r51" });
+    writeFileSync(path.join(invalid, "cohort-seed", "checkpoint.json"), "{invalid\n", "utf8");
+    expect(() => new PersistentAprEneaDraftExecution(invalid).initialize()).toThrow("enea_draft_generation_seed_checkpoint_unreadable");
+  });
+  it("rifiuta un checkpoint esistente invalido senza sostituirne i byte", () => {
+    const directory = temporaryDirectory();
+    const runner = new PersistentAprEneaDraftExecution(directory);
+    runner.prepare(preflightFixture());
+    const parsed = JSON.parse(readFileSync(runner.checkpointPath, "utf8"));
+    parsed.previewAllowed = true;
+    const invalidBytes = `${JSON.stringify(parsed, null, 2)}\n`;
+    writeFileSync(runner.checkpointPath, invalidBytes, "utf8");
+
+    expect(() => new PersistentAprEneaDraftExecution(directory).snapshot()).toThrow("enea_draft_execution_checkpoint_invalid_on_load");
+    expect(readFileSync(runner.checkpointPath, "utf8")).toBe(invalidBytes);
+
+    const malformedBytes = "{ checkpoint non leggibile\n";
+    writeFileSync(runner.checkpointPath, malformedBytes, "utf8");
+    expect(() => new PersistentAprEneaDraftExecution(directory).snapshot()).toThrow("enea_draft_execution_checkpoint_unreadable_on_load");
+    expect(readFileSync(runner.checkpointPath, "utf8")).toBe(malformedBytes);
+  });
+
+  it("ricostruisce la stessa generazione e bozza da tre prove indipendenti lasciando solo la verifica read-only", () => {
+    const directory = temporaryDirectory();
+    const runner = new PersistentAprEneaDraftExecution(directory);
+    runner.prepare(preflightFixture());
+    const before = runner.snapshot();
+    const item = before.items.find((candidate) => candidate.customerKey === "lorena-brendas")!;
+    const pageId = item.expectedPageIds.find((page) => /beneficiario/i.test(page))!;
+    const restored = runner.restoreCanonicalDraftCheckpoint({
+      customerKey: item.customerKey,
+      generationId: item.generationId,
+      draftId: "462287",
+      portalUrl: "https://bonusfiscali.enea.it/pratica/ecobonus/2026/beneficiario/462287",
+      pageId,
+      createdAt: "2026-09-04T10:26:42.608Z",
+      preparedEvidenceId: "driver-prepared-27",
+      recoveryAuthorizedEvidenceId: "server-recovery-25",
+      sourceFingerprintEvidence: before.sourceFingerprint!,
+      driverMappingEvidenceId: "driver-mapping-26",
+      workerJournalEvidenceId: "worker-journal-56",
+      serviceRepairEvidenceId: "service-audit-77",
+      probes: [
+        { method: "server_redirect", outcome: "inconclusive", evidenceId: "server-redirect-12", observedAt: "2026-09-04T11:52:45.401Z", reason: "Nessun redirect server conclusivo.", url: "https://bonusfiscali.enea.it/pratica/ecobonus/2026/beneficiario/462287" },
+        { method: "persisted_fields_get", outcome: "not_saved", evidenceId: "server-fields-14", observedAt: "2026-09-04T11:53:25.941Z", reason: "Tutti i campi significativi sono vuoti.", url: "https://bonusfiscali.enea.it/pratica/ecobonus/2026/beneficiario/462287" },
+      ],
+      commandId: "restore:canonical:462287",
+    });
+    expect(restored.currentCustomerKey).toBe(item.customerKey);
+    expect(restored.items.find((candidate) => candidate.customerKey === item.customerKey)).toMatchObject({
+      generationId: item.generationId,
+      state: "save_intent_recorded",
+      draftId: "462287",
+      canonicalDraftId: "462287",
+      createAttemptCount: 1,
+      completedPageIds: [],
+      uncertainPageSave: { status: "recovery_authorized" },
+    });
+    expect(restored.items.find((candidate) => candidate.customerKey === item.customerKey)?.pageCheckpoints.find((page) => page.pageId === pageId)).toMatchObject({
+      state: "save_intent_recorded",
+      saveAttemptCount: 1,
+      recoverySaveAttemptCount: 1,
+      recoveryAuthorizedEvidenceId: "server-recovery-25",
+    });
+    expect(new PersistentAprEneaDraftExecution(directory).resumeDecision()).toEqual({ action: "verify_page_saved_state_readonly", customerKey: item.customerKey, draftId: "462287", pageId });
+  });
+
+  it("rifiuta prove duplicate o una fonte congelata discordante senza mutare il checkpoint", () => {
+    const directory = temporaryDirectory();
+    const runner = new PersistentAprEneaDraftExecution(directory);
+    runner.prepare(preflightFixture());
+    const before = runner.snapshot();
+    const item = before.items.find((candidate) => candidate.customerKey === "lorena-brendas")!;
+    const pageId = item.expectedPageIds.find((page) => /beneficiario/i.test(page))!;
+    const bytes = readFileSync(runner.checkpointPath, "utf8");
+    const base = {
+      customerKey: item.customerKey,
+      generationId: item.generationId,
+      draftId: "462287",
+      portalUrl: "https://bonusfiscali.enea.it/pratica/ecobonus/2026/beneficiario/462287",
+      pageId,
+      createdAt: "2026-09-04T10:26:42.608Z",
+      preparedEvidenceId: "driver-prepared-27",
+      recoveryAuthorizedEvidenceId: "server-recovery-25",
+      sourceFingerprintEvidence: before.sourceFingerprint!,
+      driverMappingEvidenceId: "same-proof",
+      workerJournalEvidenceId: "same-proof",
+      serviceRepairEvidenceId: "service-audit-77",
+      probes: [
+        { method: "server_redirect", outcome: "inconclusive", evidenceId: "server-redirect-12", observedAt: "2026-09-04T11:52:45.401Z", reason: "Nessun redirect server conclusivo." },
+        { method: "persisted_fields_get", outcome: "not_saved", evidenceId: "server-fields-14", observedAt: "2026-09-04T11:53:25.941Z", reason: "Campi vuoti." },
+      ] as AprUncertainPageSaveProbe[],
+      commandId: "restore:invalid-proofs",
+    };
+    expect(() => runner.restoreCanonicalDraftCheckpoint(base)).toThrow("enea_canonical_draft_checkpoint_restore_proof_invalid");
+    expect(readFileSync(runner.checkpointPath, "utf8")).toBe(bytes);
+    expect(() => runner.restoreCanonicalDraftCheckpoint({ ...base, sourceFingerprintEvidence: "different-source", driverMappingEvidenceId: "driver-mapping-26", workerJournalEvidenceId: "worker-journal-56", commandId: "restore:wrong-source" })).toThrow("enea_canonical_draft_checkpoint_restore_state_invalid");
+    expect(readFileSync(runner.checkpointPath, "utf8")).toBe(bytes);
+  });
+
   it("classifica in un solo punto gli errori CDP read-only recuperabili e resta fail-closed sugli altri errori protocollo", () => {
     expect(isTransientCdpReadOnlyFailure("Errore circoscritto alla pratica: apr_cdp_protocol_error:-32000:Promise was collected")).toBe(true);
     expect(isTransientCdpReadOnlyFailure("Errore circoscritto alla pratica: apr_cdp_protocol_error:-32000:Inspected target navigated or closed")).toBe(true);
@@ -816,7 +946,6 @@ describe("esecuzione persistente della sola bozza ENEA TEST", () => {
     const resumed = runner.resumeCreatedDraftAfterTransientReadOnlyTimeout("lorena-brendas", "pre-save-timeout", "lorena:resume:runtime-evaluate-60s");
     expect(resumed).toMatchObject({ status: "running", currentCustomerKey: "lorena-brendas" });
     expect(resumed.items[0]).toMatchObject({ state: "created", draftId: "DRAFT-100", createAttemptCount: 1, saveAttemptCount: 0, completedPageIds: [] });
-    expect(resumed.items[0].pageCheckpoints.every((checkpoint) => checkpoint.state === "pending" && checkpoint.saveAttemptCount === 0)).toBe(true);
   });
 
   it("riprende dopo timeout pre-Salva della pagina pendente preservando le pagine già verificate", () => {
@@ -876,9 +1005,11 @@ describe("esecuzione persistente della sola bozza ENEA TEST", () => {
     runner.recordCaseBlockedAndContinue("lorena-brendas", "Errore circoscritto alla pratica: apr_cdp_command_timeout:Runtime.evaluate", "pre-save-timeout-bad-staged", "lorena:blocked:timeout-bad-staged");
     const corrupted = runner.load();
     corrupted.items[0].pageCheckpoints[screeningIndex].stagedEvidenceId = null;
-    writeFileSync(runner.checkpointPath, `${JSON.stringify(corrupted, null, 2)}\n`);
+    const corruptedBytes = `${JSON.stringify(corrupted, null, 2)}\n`;
+    writeFileSync(runner.checkpointPath, corruptedBytes);
 
-    expect(() => runner.resumeCreatedDraftAfterTransientReadOnlyTimeout("lorena-brendas", "pre-save-timeout-bad-staged", "lorena:resume:timeout-bad-staged")).toThrow("enea_transient_readonly_timeout_recovery_case_invalid");
+    expect(() => runner.resumeCreatedDraftAfterTransientReadOnlyTimeout("lorena-brendas", "pre-save-timeout-bad-staged", "lorena:resume:timeout-bad-staged")).toThrow("enea_draft_execution_checkpoint_invalid_on_load");
+    expect(readFileSync(runner.checkpointPath, "utf8")).toBe(corruptedBytes);
   });
 
   it("riprende dopo Promise was collected preservando la pagina salvata e senza tentare il Salva successivo", () => {
@@ -1304,6 +1435,11 @@ describe("esecuzione persistente della sola bozza ENEA TEST", () => {
     state.status = "completed";
     writeFileSync(runner.checkpointPath, `${JSON.stringify(state, null, 2)}\n`, "utf8");
 
+    expect(partialInfissiEmptyCanonicalRecoveryCandidate(item)).toBe(true);
+    item.pageCheckpoints.find((checkpoint) => checkpoint.pageId === "screening:5")!.recoverySaveAttemptCount = 1;
+    expect(partialInfissiEmptyCanonicalRecoveryCandidate(item)).toBe(false);
+    item.pageCheckpoints.find((checkpoint) => checkpoint.pageId === "screening:5")!.recoverySaveAttemptCount = 0;
+
     const recovered = runner.resumePartialInfissiRowsAfterEmptyCanonicalSummary("lorena-brendas", "canonical-zero-rows", "infissi-prefix:resume");
     expect(recovered).toMatchObject({ status: "running", currentCustomerKey: "lorena-brendas" });
     const checkpoints = recovered.items[0].pageCheckpoints;
@@ -1480,7 +1616,45 @@ describe("esecuzione persistente della sola bozza ENEA TEST", () => {
     const resumed = runner.requeueVerifiedInfissiPackageCorrection(upgradedPackage, "lorena-brendas", "mapping-get-proof", "foreign-place:requeue");
     expect(resumed.items[0]).toMatchObject({ state: "recovery_queued", draftId: "DRAFT-FOREIGN", mappingFingerprint: "package-foreign-place-corrected", workflowFingerprint: "workflow-foreign-place-corrected", uncertainPageSave: { status: "recovery_authorized" } });
     expect(resumed.items[0].expectedPageIds).toEqual(expect.arrayContaining(["screening:1", "screening:2", "page:Serramenti e infissi", "page:Calcolo costi e detrazioni"]));
-    expect(resumed.items[0].pageCheckpoints.every((checkpoint) => checkpoint.state === "pending" && checkpoint.saveAttemptCount === 0)).toBe(true);
+    expect(resumed.items[0].pageCheckpoints.find((checkpoint) => checkpoint.pageId === pageId)).toMatchObject({ state: "pending", saveAttemptCount: 1, recoverySaveAttemptCount: 0, recoveryAuthorizedEvidenceId: "mapping-get-proof" });
+    expect(resumed.items[0].pageCheckpoints.filter((checkpoint) => checkpoint.pageId !== pageId).every((checkpoint) => checkpoint.state === "pending" && checkpoint.saveAttemptCount === 0)).toBe(true);
+
+    runner.recordSessionReady("session-proof-3", "foreign-place:session-3");
+    runner.claimUncertainPageSaveRecovery("lorena-brendas", "foreign-place:claim-corrected");
+    runner.recordPagePrepared("lorena-brendas", "DRAFT-FOREIGN", pageId, "corrected-prepared", "foreign-place:corrected-prepared");
+    runner.recordPageSaveIntent("lorena-brendas", "DRAFT-FOREIGN", pageId, "foreign-place:corrected-intent");
+    const legacy = runner.snapshot();
+    const legacyItem = legacy.items[0];
+    const legacyPage = legacyItem.pageCheckpoints.find((checkpoint) => checkpoint.pageId === pageId)!;
+    legacyPage.recoverySaveAttemptCount = 0;
+    writeFileSync(runner.checkpointPath, `${JSON.stringify(legacy, null, 2)}\n`, "utf8");
+    expect(verifiedPackageRecoveryIntentAccountingCandidate(runner.snapshot(), "lorena-brendas")).toBe(true);
+    const repaired = runner.repairVerifiedPackageRecoveryIntentAccounting("lorena-brendas", "foreign-place:repair-accounting");
+    expect(repaired.items[0]).toMatchObject({ state: "save_intent_recorded", draftId: "DRAFT-FOREIGN", canonicalDraftId: "DRAFT-FOREIGN" });
+    expect(repaired.items[0].pageCheckpoints.find((checkpoint) => checkpoint.pageId === pageId)).toMatchObject({ saveAttemptCount: 1, recoverySaveAttemptCount: 1 });
+    expect(repaired.audit.at(-1)).toMatchObject({ type: "verified_package_recovery_intent_accounting_repaired", appliedRuleIds: expect.arrayContaining(["system-verified-package-recovery-intent-accounting-v1"]) });
+    expect(runner.snapshot().items[0]).toMatchObject({ state: "save_intent_recorded", draftId: "DRAFT-FOREIGN", canonicalDraftId: "DRAFT-FOREIGN" });
+    expect(() => runner.repairVerifiedPackageRecoveryIntentAccounting("lorena-brendas", "foreign-place:repair-again")).toThrow("enea_verified_package_recovery_intent_accounting_state_invalid");
+  });
+
+  it("non confonde un recupero ordinario con il repair accounting riservato a un pacchetto corretto", () => {
+    const directory = temporaryDirectory();
+    const runner = new PersistentAprEneaDraftExecution(directory);
+    runner.prepare(preflightFixture());
+    runner.recordSessionReady("session-proof", "ordinary:session");
+    runner.recordCreateIntent("lorena-brendas", "ordinary:create");
+    runner.recordDraftCreated("lorena-brendas", "DRAFT-ORDINARY", "https://bonusfiscali.enea.it/pratica/ecobonus/2026/beneficiario/DRAFT-ORDINARY", "draft-proof", "ordinary:created");
+    const pageId = runner.snapshot().items[0].expectedPageIds.find((page) => /beneficiario/i.test(page))!;
+    runner.recordPagePrepared("lorena-brendas", "DRAFT-ORDINARY", pageId, "primary-prepared", "ordinary:primary-prepared");
+    runner.recordPageSaveIntent("lorena-brendas", "DRAFT-ORDINARY", pageId, "ordinary:primary-intent");
+    runner.recordUncertainPageSaveDetected("lorena-brendas", pageId, "timeout", "primary-timeout", "ordinary:uncertain");
+    runner.recordUncertainPageSaveProbe("lorena-brendas", { method: "persisted_fields_get", outcome: "not_saved", evidenceId: "ordinary-empty", reason: "Pagina vuota.", url: "https://bonusfiscali.enea.it/pratica/ecobonus/2026/beneficiario/DRAFT-ORDINARY" }, "ordinary:probe");
+    runner.recordSessionReady("session-proof-2", "ordinary:session-2");
+    runner.claimUncertainPageSaveRecovery("lorena-brendas", "ordinary:claim");
+    runner.recordPagePrepared("lorena-brendas", "DRAFT-ORDINARY", pageId, "ordinary-recovery-prepared", "ordinary:recovery-prepared");
+    runner.recordPageSaveIntent("lorena-brendas", "DRAFT-ORDINARY", pageId, "ordinary:recovery-intent");
+    expect(verifiedPackageRecoveryIntentAccountingCandidate(runner.snapshot(), "lorena-brendas")).toBe(false);
+    expect(() => runner.repairVerifiedPackageRecoveryIntentAccounting("lorena-brendas", "ordinary:repair-accounting")).toThrow("enea_verified_package_recovery_intent_accounting_state_invalid");
   });
 
   it("applica il pacchetto Infissi senza falso cointestatario prima di consumare un recupero", () => {
@@ -1503,7 +1677,8 @@ describe("esecuzione persistente della sola bozza ENEA TEST", () => {
     } as never;
     const resumed = runner.requeueVerifiedInfissiPackageCorrectionAfterPrimaryNotSaved(correctedPackage, "lorena-brendas", "primary-empty", "self-co:requeue");
     expect(resumed.items[0]).toMatchObject({ state: "recovery_queued", draftId: "DRAFT-SELF-CO", mappingFingerprint: "package-without-self-co", uncertainPageSave: { status: "recovery_authorized", probes: expect.arrayContaining([expect.objectContaining({ method: "persisted_fields_get", outcome: "not_saved" })]) } });
-    expect(resumed.items[0].pageCheckpoints.every((checkpoint) => checkpoint.state === "pending" && checkpoint.saveAttemptCount === 0 && checkpoint.recoverySaveAttemptCount === 0)).toBe(true);
+    expect(resumed.items[0].pageCheckpoints.find((checkpoint) => checkpoint.pageId === pageId)).toMatchObject({ state: "pending", saveAttemptCount: 1, recoverySaveAttemptCount: 0, recoveryAuthorizedEvidenceId: "primary-empty" });
+    expect(resumed.items[0].pageCheckpoints.filter((checkpoint) => checkpoint.pageId !== pageId).every((checkpoint) => checkpoint.state === "pending" && checkpoint.saveAttemptCount === 0 && checkpoint.recoverySaveAttemptCount === 0)).toBe(true);
     expect(resumed.audit.at(-1)).toMatchObject({ type: "verified_infissi_package_correction_requeued", appliedRuleIds: expect.arrayContaining(["user-2026-08-16-invoice-identity-over-customer-form", "user-2026-08-17-invoice-co-beneficiary-person-flow"]) });
   });
 
@@ -1698,17 +1873,60 @@ describe("esecuzione persistente della sola bozza ENEA TEST", () => {
     runner.recordCreateIntent("allocation-case", "allocation:create");
     runner.recordDraftCreated("allocation-case", "DRAFT-36", "https://bonusfiscali.enea.it/pratica/ecobonus/2026/calcolo/DRAFT-36", "draft-created", "allocation:created");
     runner.recordPagePrepared("allocation-case", "DRAFT-36", "page:Allocazione costi e detrazioni", "allocation-prepared", "allocation:prepared");
+    expect(runner.snapshot().items[0].pageCheckpoints[0].nestedTransaction).toMatchObject({ phase: "nested_prepared", outerPageId: "page:Calcolo costi e detrazioni", preparedEvidenceId: "allocation-prepared" });
     runner.recordPageSaveIntent("allocation-case", "DRAFT-36", "page:Allocazione costi e detrazioni", "allocation:intent");
+    expect(runner.snapshot().items[0].pageCheckpoints[0].nestedTransaction).toMatchObject({ phase: "nested_save_intent_recorded" });
     runner.recordNestedPageStaged("allocation-case", "DRAFT-36", "page:Allocazione costi e detrazioni", "modal-click-staged", "allocation:staged");
+    expect(runner.snapshot().items[0].pageCheckpoints[0].nestedTransaction).toMatchObject({ phase: "staged_verified", stagedEvidenceId: "modal-click-staged" });
     expect(runner.snapshot().items[0].serverEvidenceIds).not.toContain("modal-click-staged");
     runner.recordPagePrepared("allocation-case", "DRAFT-36", "page:Calcolo costi e detrazioni", "calculation-prepared", "calculation:prepared");
     runner.recordPageSaveIntent("allocation-case", "DRAFT-36", "page:Calcolo costi e detrazioni", "calculation:intent");
+    expect(runner.snapshot().items[0].pageCheckpoints[0].nestedTransaction).toMatchObject({ phase: "outer_save_intent_recorded", outerSaveIntentCommandId: "calculation:intent" });
 
     const verified = runner.recordNestedPageServerVerifiedAfterOuterSave("allocation-case", "DRAFT-36", "page:Allocazione costi e detrazioni", "page:Calcolo costi e detrazioni", "allocation-server-get", "allocation:server-verified");
     const item = verified.items[0];
-    expect(item.pageCheckpoints.find((page) => page.pageId === "page:Allocazione costi e detrazioni")).toMatchObject({ state: "saved", saveAttemptCount: 1, savedEvidenceId: "allocation-server-get" });
+    expect(item.pageCheckpoints.find((page) => page.pageId === "page:Allocazione costi e detrazioni")).toMatchObject({ state: "saved", saveAttemptCount: 1, savedEvidenceId: "allocation-server-get", nestedTransaction: { phase: "server_verified", serverEvidenceId: "allocation-server-get" } });
     expect(item.pageCheckpoints.find((page) => page.pageId === "page:Calcolo costi e detrazioni")).toMatchObject({ state: "save_intent_recorded", saveAttemptCount: 1 });
     expect(verified.audit.at(-1)).toMatchObject({ type: "nested_page_server_verified_after_outer_save" });
+  });
+
+  it("dopo un timeout del Salva esterno conserva l'esito ambiguo e vieta un secondo click", () => {
+    const directory = temporaryDirectory();
+    const runner = new PersistentAprEneaDraftExecution(directory);
+    runner.prepare({
+      status: "completed",
+      sourceFingerprint: "nested-timeout-source",
+      items: [{
+        customerKey: "nested-timeout-case",
+        displayName: "Nested Timeout Fixture",
+        practiceId: "crm-nested-timeout",
+        state: "ready_local_plan",
+        report: { eneaPayloadAudit: { draftReady: true, mappingFingerprint: "mapping-nested-timeout", requiredPortalFieldCount: 2, portalGate: { status: "ready", workflowFingerprint: "workflow-nested-timeout", supportedPages: ["Allocazione costi e detrazioni", "Calcolo costi e detrazioni"], screeningItemCount: 0 } } },
+      }, {
+        customerKey: "nested-timeout-isolated-fixture",
+        displayName: "Nested Timeout Isolated Fixture",
+        practiceId: "crm-nested-timeout-isolated",
+        state: "blocked_case",
+        report: { outcome: "blocked_case", blockers: [{ code: "fixture" }] },
+      }],
+    } as never);
+    runner.recordSessionReady("session", "nested-timeout:session");
+    runner.recordCreateIntent("nested-timeout-case", "nested-timeout:create");
+    runner.recordDraftCreated("nested-timeout-case", "DRAFT-TIMEOUT", "https://bonusfiscali.enea.it/pratica/ecobonus/2026/calcolo/DRAFT-TIMEOUT", "draft-created", "nested-timeout:created");
+    runner.recordPagePrepared("nested-timeout-case", "DRAFT-TIMEOUT", "page:Allocazione costi e detrazioni", "allocation-prepared", "nested-timeout:allocation:prepared");
+    runner.recordPageSaveIntent("nested-timeout-case", "DRAFT-TIMEOUT", "page:Allocazione costi e detrazioni", "nested-timeout:allocation:intent");
+    runner.recordNestedPageStaged("nested-timeout-case", "DRAFT-TIMEOUT", "page:Allocazione costi e detrazioni", "allocation-staged", "nested-timeout:allocation:staged");
+    runner.recordPagePrepared("nested-timeout-case", "DRAFT-TIMEOUT", "page:Calcolo costi e detrazioni", "calculation-prepared", "nested-timeout:calculation:prepared");
+    runner.recordPageSaveIntent("nested-timeout-case", "DRAFT-TIMEOUT", "page:Calcolo costi e detrazioni", "nested-timeout:calculation:intent");
+
+    const uncertain = runner.recordUncertainPageSaveDetected("nested-timeout-case", "page:Calcolo costi e detrazioni", "timeout dopo il click", "outer-timeout", "nested-timeout:calculation:uncertain");
+    expect(uncertain.items[0].pageCheckpoints.find((page) => page.pageId === "page:Allocazione costi e detrazioni")).toMatchObject({
+      state: "staged",
+      saveAttemptCount: 1,
+      nestedTransaction: { phase: "reconciliation_required", outerSaveIntentCommandId: "nested-timeout:calculation:intent", reconciliationEvidenceIds: ["outer-timeout"] },
+    });
+    expect(uncertain.items[0].pageCheckpoints.find((page) => page.pageId === "page:Calcolo costi e detrazioni")).toMatchObject({ state: "save_intent_recorded", saveAttemptCount: 1, recoverySaveAttemptCount: 0 });
+    expect(() => runner.recordPageSaveIntent("nested-timeout-case", "DRAFT-TIMEOUT", "page:Calcolo costi e detrazioni", "nested-timeout:forbidden-second-click")).toThrow("enea_draft_page_save_state_invalid");
   });
 
   it("accetta come prova il redirect server Beneficiario→Immobile della stessa bozza senza nuovo Salva", () => {
@@ -2559,7 +2777,7 @@ describe("esecuzione persistente della sola bozza ENEA TEST", () => {
       uncertainPageSave: { status: "recovery_authorized" },
     });
     expect(requeued.items[0].pageCheckpoints.find((page) => page.pageId === pageId)).toMatchObject({
-      state: "pending", saveAttemptCount: 0, recoverySaveAttemptCount: 0, recoveryAuthorizedEvidenceId: "readonly-rebind-proof",
+      state: "pending", saveAttemptCount: 1, recoverySaveAttemptCount: 0, recoveryAuthorizedEvidenceId: "readonly-rebind-proof",
     });
     expect(requeued.audit.at(-1)).toMatchObject({ type: "verified_payload_correction_requeued", appliedRuleIds: expect.arrayContaining(["user-2026-08-16-fiscal-code-identity-cross-check"]) });
     expect(runner.requeueVerifiedPayloadCorrection(corrected, "lorena-brendas", "readonly-rebind-proof", "payload-fix:requeue:v1").revision).toBe(requeued.revision);
@@ -2569,7 +2787,7 @@ describe("esecuzione persistente della sola bozza ENEA TEST", () => {
     runner.claimUncertainPageSaveRecovery("lorena-brendas", "payload-fix:claim-corrected");
     runner.recordPagePrepared("lorena-brendas", "DRAFT-PAYLOAD", pageId, "corrected-prepared", "payload-fix:corrected-prepared");
     const correctedIntent = runner.recordPageSaveIntent("lorena-brendas", "DRAFT-PAYLOAD", pageId, "payload-fix:corrected-intent");
-    expect(correctedIntent.items[0].pageCheckpoints.find((page) => page.pageId === pageId)).toMatchObject({ saveAttemptCount: 1, recoverySaveAttemptCount: 0 });
+    expect(correctedIntent.items[0].pageCheckpoints.find((page) => page.pageId === pageId)).toMatchObject({ saveAttemptCount: 1, recoverySaveAttemptCount: 1 });
   });
 
   it("conserva le pagine precedenti quando corregge edificio a unita unica dopo GET vuota di Immobile", () => {
@@ -2765,9 +2983,10 @@ describe("esecuzione persistente della sola bozza ENEA TEST", () => {
     corruptedItem.draftId = "DRAFT-FALSE-COMPLETE";
     corruptedItem.savedAt = "2026-08-17T20:00:00.000Z";
     corruptedItem.serverEvidenceIds = ["server-proof"];
-    writeFileSync(runner.checkpointPath, `${JSON.stringify(corrupted, null, 2)}\n`);
+    const corruptedBytes = `${JSON.stringify(corrupted, null, 2)}\n`;
+    writeFileSync(runner.checkpointPath, corruptedBytes);
 
-    const failClosed = new PersistentAprEneaDraftExecution(directory).load(new Date("2026-08-17T20:01:00.000Z"));
-    expect(failClosed).toMatchObject({ status: "blocked_preflight", items: [] });
+    expect(() => new PersistentAprEneaDraftExecution(directory).load(new Date("2026-08-17T20:01:00.000Z"))).toThrow("enea_draft_execution_checkpoint_invalid_on_load");
+    expect(readFileSync(runner.checkpointPath, "utf8")).toBe(corruptedBytes);
   });
 });

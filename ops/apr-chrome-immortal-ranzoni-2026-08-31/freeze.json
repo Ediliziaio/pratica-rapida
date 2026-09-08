@@ -1,0 +1,23 @@
+{
+  "version": "apr-chrome-immortal-ranzoni-freeze-v6",
+  "frozenAt": "2026-08-31T11:37:03Z",
+  "authorizationId": "user-2026-08-31-chrome-immortal-ranzoni-then-same-30x3",
+  "portalMode": "real_enea_draft_only",
+  "sourceSnapshot": {"path": "/private/tmp/apr-promote-command-boundary-renewal-20260831-R12", "gitCommit": "4b4161473e603d41f1a6692fc321cfbd69c155d9", "treeHash": "c69f04b7111e49a54f610403f782f1e02d6db0e8"},
+  "sequencer": {"path": "/private/tmp/apr-promote-command-boundary-renewal-20260831-R12/ops/apr-global-controller-test10-2026-08-29/sequencer.mjs", "sha256": "7272edc599725e20d325c6ee4dee9c6f6993357422670800eca437fd28f60d05"},
+  "manifest": {"path": "/private/tmp/apr-promote-command-boundary-renewal-20260831-R12/ops/apr-global-controller-test10-2026-08-29/manifest-autonomy30.json", "sha256": "6c684df774a48899a6ff4e2a6e52dfe83c2b9c357a81a6c6c52034abe687a953", "caseCount": 30, "requiredCustomerKeys": ["cristina-ricchi", "zeno-righetti"], "excludedCustomerKeys": ["beatrice-ciotta"]},
+  "monotonicGate": {"status": "PASS", "suites": 431, "tests": 1597, "failed": 0, "reportPath": "/private/tmp/apr-full-gate-20260831-r12.json", "reportSha256": "f469fde6c1350774a3fcc42e767473e6efaeca435a2339077a57469ee0a21e57", "matrixVersion": "apr-enea-rule-test-matrix-v71", "registryVersion": "enea-operational-registry-v94", "matrixRules": 85, "sourceFingerprint": "6e020f8b465607804c661da87f568caddbe9db44643f8974d76a967d7494196e"},
+  "canonicalBundle": {"versionId": "b9d73db-command-boundary-renewal-20260831", "supervisorSha256": "9802545a7939678ae0a2eaf42d2b2783114d4dced62ca3a43727702ed257c4d9", "workerSha256": "b9d73db702e1cca6e682965ece141a6f67858cd6422db3361309950a891a7419", "watchdogSha256": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0", "activationStatus": "active_tested_deployed"},
+  "targeted": {
+    "customerKey": "armando-ranzoni", "cohort": 1546,
+    "manifestPath": "/private/tmp/apr-promote-command-boundary-renewal-20260831-R12/ops/apr-chrome-immortal-ranzoni-2026-08-31/manifest-targeted-ranzoni.json", "manifestSha256": "736cefd16e16362eeb347fe9020cd89b2aa78071d3e08886f67e63a29c41c888",
+    "runRoot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-chrome-immortal-targeted-ranzoni-v6",
+    "priorInvalidRuns": [{"cohort": 1346, "reason": "Checkpoint terminale riutilizzato: nessuna riesecuzione reale."}, {"cohort": 1446, "reason": "Riesecuzione reale terminata da lease scaduta durante preparePage; causa corretta con rinnovo ai confini di comando."}]
+  },
+  "rounds": [
+    {"round": 1, "cohortOffset": 1500, "cohortRange": "1728-1757", "runRoot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-chrome-immortal-r12-round1"},
+    {"round": 2, "cohortOffset": 1530, "cohortRange": "1758-1787", "runRoot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-chrome-immortal-r12-round2"},
+    {"round": 3, "cohortOffset": 1560, "cohortRange": "1788-1817", "runRoot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-chrome-immortal-r12-round3"}
+  ],
+  "constraints": {"chromeKeepaliveMayTerminate": false, "roundsMayOverlap": false, "noCodeChangesBetweenRounds": true, "sameBundleHashesRequired": true, "sameManifestRequired": true, "previewAllowed": false, "submitAllowed": false, "communicationsAllowed": false}
+}

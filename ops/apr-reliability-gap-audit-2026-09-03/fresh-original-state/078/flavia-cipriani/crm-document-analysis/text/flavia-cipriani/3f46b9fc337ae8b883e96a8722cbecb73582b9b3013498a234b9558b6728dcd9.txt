@@ -1,0 +1,24 @@
+Desio Web Remote Banking Movimenti consolidati
+28/07/26 11:59
+Società: BTK76
+Banca: 03440
+INNOVA SERRAMENTI S.R.L. SEMPLIFICATA
+BANCO DI DESIO E DELLA BRIANZA
+Conto:
+IT70O0344003210000000386500 EUR INNOVA SERRAMENT
+Dettaglio singolo movimento
+Data contabile: 22/07/26 22/07/26
+Data valuta:
+Caus.:
+48PY
+Dare: Avere:
+1.949,37
+Desc. movimento:
+Rif. banca (CRO):
+Bonifico Instant agevolazioni fisc - YYY22072026 CIPRIANI FLAVIA 00000 YY2
+IT96H0301503200000005870165 ali CIPRIANI FLAVIA Data Regolamento: 22/07/26 Cod.Id.Ord: IT96 H030
+1503 2000 0000 5870 165 Banca Ordinante: FEBIITM1XXX Cro: 2607223289575823ZX0320000000IT Valuta Fissa: 22/07/26
+Note: Secondo acconto per produzione ed installazione infissi comm. 1394/2026 Fattura 321/FE 22.07.2026-Id.Operazione:
+NOTPROVIDED
+0859905888028PY
+W2464480 - admin Pag. 1 di 1

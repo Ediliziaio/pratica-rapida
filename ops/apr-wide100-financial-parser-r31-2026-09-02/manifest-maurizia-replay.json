@@ -1,0 +1,52 @@
+{
+  "version": "apr-financial-parser-r31-single-authorized-replay-manifest-v1",
+  "authorizationId": "user-2026-09-02-maurizia-contradiction-r31-replay",
+  "authorizedAt": "2026-09-02T21:00:00.000Z",
+  "mode": "real_enea_draft_only",
+  "safety": {
+    "draftOnly": true,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false,
+    "priorDraftPolicy": "preserve_and_ignore_for_new_test_draft"
+  },
+  "sourceManifest": {
+    "path": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-wide100-financial-parser-r29-2026-09-02/manifest-reviewed-eight.json",
+    "sha256": "1a15fa809e161424eff8c30fc5cb5f5289f0ec6d004244b747b8798827173b12",
+    "authorizationId": "user-2026-09-02-financial-parser-r29-retest"
+  },
+  "selection": {
+    "version": "apr-financial-parser-r31-single-authorized-replay-selection-v1",
+    "purpose": "maurizia-contradiction-operational-proof",
+    "total": 1,
+    "selectedCount": 1,
+    "allowedStages": [
+      "archiviate",
+      "recensione"
+    ],
+    "excludedCustomerKeys": [
+      "beatrice-ciotta",
+      "nicoletta-garbarino",
+      "vittorio-paolinelli",
+      "samuele-beretta"
+    ],
+    "identityPolicy": "exact_single_case_from_already_authorized_frozen_manifest"
+  },
+  "cases": [
+    {
+      "cohort": 1,
+      "practiceId": "81b4934a-3d6a-49ff-8f08-8d1400d55dff",
+      "customerKey": "maurizia-coreggioli",
+      "displayName": "MAURIZIA COREGGIOLI",
+      "stage": "archiviate",
+      "stageName": "Archiviate",
+      "module": "infissi",
+      "productEvidence": "Infissi / Serramenti",
+      "reseller": "TECNOESTENSE SRL",
+      "invoiceCount": 2,
+      "complexity": "medium",
+      "historicalRetest": true,
+      "sourceCohort": 70
+    }
+  ]
+}

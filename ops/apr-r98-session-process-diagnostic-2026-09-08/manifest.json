@@ -1,0 +1,38 @@
+{
+  "version": "apr-wide100-final-r67-single-case-v1",
+  "experimentId": "apr-r98-session-process-diagnostic-20260908",
+  "authorizationId": "user-2026-09-02-wide-infissi-screening-single-run-v2",
+  "authorizedAt": "2026-09-02T00:00:00.000Z",
+  "mode": "real_enea_draft_only",
+  "sourceManifest": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-wide100-province-lineage-2026-09-02/manifest.json",
+  "sourceManifestSha256": "51842252f71cabb6714f78923fe59ec9789ad06739393f61a553bb4bdb9154e0",
+  "selection": {
+    "total": 1,
+    "allowedStages": ["archiviate", "recensione"],
+    "excludedCustomerKeys": ["beatrice-ciotta", "nicoletta-garbarino", "vittorio-paolinelli", "samuele-beretta"]
+  },
+  "cases": [
+    {
+      "cohort": 4102,
+      "practiceId": "7ebb9a52-2196-4ddc-9dc8-f431ff40e1b5",
+      "customerKey": "guido-calvacchi",
+      "displayName": "GUIDO CALVACCHI",
+      "stage": "recensione",
+      "stageName": "Recensione",
+      "module": "infissi",
+      "productEvidence": "Infissi / Serramenti",
+      "reseller": "IKONA SRL",
+      "invoiceCount": 2,
+      "complexity": "medium",
+      "historicalRetest": true,
+      "generationMode": "fresh_generation"
+    }
+  ],
+  "safety": {
+    "draftOnly": true,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false,
+    "priorDraftPolicy": "preserve_and_ignore_for_new_test_draft"
+  }
+}

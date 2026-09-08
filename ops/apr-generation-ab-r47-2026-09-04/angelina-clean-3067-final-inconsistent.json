@@ -1,0 +1,69 @@
+{
+  "version": "apr-angelina-clean-3067-final-inconsistent-v1",
+  "observedAt": "2026-09-04T16:45:07.985Z",
+  "customerKey": "angelina-stricelli",
+  "displayName": "Angelina Stricelli",
+  "practiceId": "ae88aed9-0b83-42c7-87fb-a03c76a46113",
+  "cohort": 3067,
+  "classification": "INCONSISTENT",
+  "operatorDisposition": {
+    "classification": "OPERATOR_REQUIRED_COMPLEX_CASE",
+    "decidedBy": "Giuliano",
+    "decidedAt": "2026-09-04",
+    "propagation": "case_specific_non_propagable",
+    "reason": "Caso sufficientemente complesso da essere destinato a un operatore umano nel flusso reale; nessun ulteriore tentativo APR autorizzato.",
+    "automaticRetryAllowed": false
+  },
+  "canonicalDraftId": "464009",
+  "supersededDraftId": "462287",
+  "completedPages": 5,
+  "expectedPages": 14,
+  "lastPage": "screening:1",
+  "exactCause": "Il primo Salva di screening:1 non ha prodotto una mutazione applicativa ENEA e la GET canonica ha provato not_saved. APR ha autorizzato un solo recupero con budget residuo uno. Anche il recupero non ha prodotto persistenza e la GET canonica finale ha nuovamente provato not_saved. Durante la transizione del worker dal recupero in corso allo stato terminale operator_intervention, il sequencer ha campionato una combinazione transitoria filling/recovery_authorized con recoverySaveAttemptCount=1 che il guard considera invalid e ha pubblicato technical_block circa due secondi prima della stabilizzazione del checkpoint worker. Il problema e quindi duplice: mancata persistenza del comando Salva della modale Infissi e classificazione terminale prematura del sequencer durante la transizione di recovery.",
+  "pipelinePoint": "aprEneaBrowserWorker save_page_once screening:1 -> persisted_fields_get not_saved -> single recovery -> persisted_fields_get not_saved; sequencer resolveUncertainSaveLifecycle campiona stato transitorio e termina prima del worker",
+  "sourceTruth": {
+    "executionCheckpoint": {
+      "state": "operator_intervention",
+      "reason": "La GET canonica dimostra che anche l'unico recupero non è persistito.",
+      "uncertainPageSaveStatus": "operator_required",
+      "sha256": "3a533f5b96e336000365027f1ba773f2a4c39e2f7869d0951051431f48ef0cc1"
+    },
+    "sequencerReport": {
+      "state": "technical_block",
+      "technicalReason": "angelina-stricelli:uncertain_save_lifecycle_invalid:recovery_filling_checkpoint_invalid",
+      "sha256": "b5766552f2fa115269445651e359bcd1207e87b51e520e28b92ecd081b849385"
+    },
+    "dashboardSnapshot": {
+      "publicStatus": "TECHNICAL_BLOCK",
+      "statusSource": "worker",
+      "reason": "La GET canonica dimostra che anche l'unico recupero non è persistito.",
+      "sha256": "a90683bb487713bc6540e77bba125f8a6e125146cfc9f78a56fd7d95f62a664b"
+    },
+    "dashboardApi": {
+      "reachable": false,
+      "endpoint": "http://127.0.0.1:7492/api/case-truth"
+    }
+  },
+  "mutationAudit": {
+    "newDraftCreated": true,
+    "draftId": "464009",
+    "savedPages": [
+      "page:Anagrafica Beneficiario",
+      "page:Immobile",
+      "page:Intervento",
+      "page:Generatore dell'impianto termico",
+      "page:Impianto termico esistente"
+    ],
+    "screeningPrimarySaveAttemptCount": 1,
+    "screeningRecoverySaveAttemptCount": 1,
+    "screeningPersisted": false,
+    "furtherSaveAllowed": false,
+    "previewAttempted": false,
+    "submitAttempted": false,
+    "communicationsAttempted": false
+  },
+  "safetyAction": "Il sequencer ha terminato; nessun ulteriore Salva e consentito sulla generazione. Flavia non viene avviata. Keepalive e Chrome APR restano vivi.",
+  "missingDocumentType": null,
+  "operatorQuestion": "Quale operatore prende in carico manualmente Angelina Stricelli dalla bozza 464009, senza riattivare APR su questa pratica?",
+  "onboardingGap": null
+}

@@ -1,0 +1,314 @@
+{
+  "version": "apr-crm-local-preflight-v1",
+  "revision": 1,
+  "status": "completed",
+  "sourceFingerprint": "003a7bc3e5532c9102d041b276c4e16df5312adbeddf1dbf43cd552aace59745",
+  "currentCustomerKey": null,
+  "items": [
+    {
+      "customerKey": "eugenio-codognato",
+      "displayName": "EUGENIO CODOGNATO",
+      "practiceId": "5f669e8b-9ef1-45f6-b00d-12449d741314",
+      "dossierPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2936-global-controller-eugenio-codognato/crm-acquisition/dossiers/eugenio-codognato.json",
+      "state": "blocked_case",
+      "attemptCount": 1,
+      "startedAt": null,
+      "endedAt": null,
+      "report": {
+        "outcome": "blocked_case",
+        "formAvailable": true,
+        "startDate": "2026-03-05",
+        "startDateSource": "13356a34d7bddad11ced326297d55eb68b4b61be5b60bc5f4638d4131f3f6424:invoice:264f0ccd0374",
+        "completionDate": "2026-06-19",
+        "completionDateSource": "a35d359ed6c04845dffe0f6bc0640f411f9057c62e31bf04c652e1eb5a084d09:invoice:264f0ccd0374",
+        "buildingQualification": "single_unit",
+        "buildingUnitCount": 1,
+        "deductionRate": null,
+        "taxCodeStatus": "verified_form",
+        "resolvedTaxCode": "CDGGNE46D02D612A",
+        "taxCodeSourceIds": [
+          "eugenio-codognato"
+        ],
+        "primaryBeneficiaryResolution": {
+          "status": "not_found",
+          "identity": null,
+          "sourceIds": [],
+          "authority": null
+        },
+        "coBeneficiaryResolution": {
+          "status": "not_declared",
+          "present": false,
+          "identity": null,
+          "sourceIds": []
+        },
+        "products": [],
+        "financial": {
+          "invoiceTotal": 18997,
+          "eligibleExpense": 18997,
+          "tripleReconciliationVerified": true,
+          "reconciledTotal": 18997,
+          "evidence": [
+            {
+              "sourceId": "eca2f44af100b81c628541f054531301cc8f093137d807df913c72cd02574262:invoice:264f0ccd0374",
+              "kind": "invoice",
+              "taxableAmount": 4388,
+              "vatAmount": 965.36,
+              "grossTotal": 5353.36,
+              "interventionGrossAmount": 5353.36,
+              "extractionConfidence": "certain",
+              "extractionIssues": []
+            },
+            {
+              "sourceId": "13356a34d7bddad11ced326297d55eb68b4b61be5b60bc5f4638d4131f3f6424:invoice:264f0ccd0374",
+              "kind": "invoice",
+              "taxableAmount": 2520,
+              "vatAmount": 252,
+              "grossTotal": 2772,
+              "interventionGrossAmount": 2772,
+              "extractionConfidence": "certain",
+              "extractionIssues": []
+            },
+            {
+              "sourceId": "88454d2ede51fe93c91b190a656a577ba01882425d057085bf20bf4592825322:invoice:264f0ccd0374",
+              "kind": "invoice",
+              "taxableAmount": 5485,
+              "vatAmount": 548.5,
+              "grossTotal": 6033.5,
+              "interventionGrossAmount": 6033.5,
+              "extractionConfidence": "certain",
+              "extractionIssues": []
+            },
+            {
+              "sourceId": "a57033863e6d29bb8e1fd1f1c7be0ac56b855b1b9dd2464efe8b99fb0336272e:invoice:264f0ccd0374",
+              "kind": "invoice",
+              "taxableAmount": 3150,
+              "vatAmount": 315,
+              "grossTotal": 3465,
+              "interventionGrossAmount": 3465,
+              "extractionConfidence": "certain",
+              "extractionIssues": []
+            },
+            {
+              "sourceId": "a35d359ed6c04845dffe0f6bc0640f411f9057c62e31bf04c652e1eb5a084d09:invoice:264f0ccd0374",
+              "kind": "invoice",
+              "taxableAmount": 1097,
+              "vatAmount": -416.86,
+              "grossTotal": 680.14,
+              "interventionGrossAmount": 680.14,
+              "extractionConfidence": "certain",
+              "extractionIssues": []
+            },
+            {
+              "sourceId": "9e39665553291fb24b25d01c19697b14e702dc2c17ea40fbdb36f48dff253133:invoice:264f0ccd0374",
+              "kind": "invoice",
+              "taxableAmount": 630,
+              "vatAmount": 63,
+              "grossTotal": 693,
+              "interventionGrossAmount": 693,
+              "extractionConfidence": "certain",
+              "extractionIssues": []
+            }
+          ],
+          "bankTransfers": [],
+          "bankTransferReconciliation": {
+            "status": "not_provided",
+            "principalTotal": null,
+            "feesTotal": null,
+            "debitedTotal": null,
+            "difference": null,
+            "referenceStatus": "not_provided",
+            "missingInvoiceReferences": [],
+            "taxReliefTypes": []
+          },
+          "methods": [
+            {
+              "method": "structured_extraction",
+              "ok": true,
+              "total": 18997,
+              "sources": [
+                "eca2f44af100b81c628541f054531301cc8f093137d807df913c72cd02574262:invoice:264f0ccd0374",
+                "13356a34d7bddad11ced326297d55eb68b4b61be5b60bc5f4638d4131f3f6424:invoice:264f0ccd0374",
+                "88454d2ede51fe93c91b190a656a577ba01882425d057085bf20bf4592825322:invoice:264f0ccd0374",
+                "a57033863e6d29bb8e1fd1f1c7be0ac56b855b1b9dd2464efe8b99fb0336272e:invoice:264f0ccd0374",
+                "a35d359ed6c04845dffe0f6bc0640f411f9057c62e31bf04c652e1eb5a084d09:invoice:264f0ccd0374",
+                "9e39665553291fb24b25d01c19697b14e702dc2c17ea40fbdb36f48dff253133:invoice:264f0ccd0374"
+              ],
+              "reason": "Ogni documento ha imponibile, IVA e totale verificati."
+            },
+            {
+              "method": "accounting_reconciliation",
+              "ok": true,
+              "total": 18997,
+              "sources": [
+                "eca2f44af100b81c628541f054531301cc8f093137d807df913c72cd02574262:invoice:264f0ccd0374",
+                "13356a34d7bddad11ced326297d55eb68b4b61be5b60bc5f4638d4131f3f6424:invoice:264f0ccd0374",
+                "88454d2ede51fe93c91b190a656a577ba01882425d057085bf20bf4592825322:invoice:264f0ccd0374",
+                "a57033863e6d29bb8e1fd1f1c7be0ac56b855b1b9dd2464efe8b99fb0336272e:invoice:264f0ccd0374",
+                "a35d359ed6c04845dffe0f6bc0640f411f9057c62e31bf04c652e1eb5a084d09:invoice:264f0ccd0374",
+                "9e39665553291fb24b25d01c19697b14e702dc2c17ea40fbdb36f48dff253133:invoice:264f0ccd0374"
+              ],
+              "reason": "Somma dei totali lordi IVA inclusa delle fatture uniche deduplicate; gli storni interni sono solo note auditabili."
+            },
+            {
+              "method": "intervention_cross_check",
+              "ok": true,
+              "total": 18997,
+              "sources": [
+                "eca2f44af100b81c628541f054531301cc8f093137d807df913c72cd02574262:invoice:264f0ccd0374",
+                "13356a34d7bddad11ced326297d55eb68b4b61be5b60bc5f4638d4131f3f6424:invoice:264f0ccd0374",
+                "88454d2ede51fe93c91b190a656a577ba01882425d057085bf20bf4592825322:invoice:264f0ccd0374",
+                "a57033863e6d29bb8e1fd1f1c7be0ac56b855b1b9dd2464efe8b99fb0336272e:invoice:264f0ccd0374",
+                "a35d359ed6c04845dffe0f6bc0640f411f9057c62e31bf04c652e1eb5a084d09:invoice:264f0ccd0374",
+                "9e39665553291fb24b25d01c19697b14e702dc2c17ea40fbdb36f48dff253133:invoice:264f0ccd0374"
+              ],
+              "reason": "Totale ricostruito esclusivamente dalle righe pertinenti all'intervento."
+            }
+          ],
+          "discardedDuplicateSourceIds": [],
+          "supersededTechnicalSourceIds": [],
+          "appliedRuleIds": [
+            "user-2026-08-16-invoice-gross-total-vat-included",
+            "user-2026-08-18-bundled-professional-expense-separation",
+            "user-2026-08-18-mandatory-bank-transfer-invoice-expense-cross-check",
+            "core-gross-triple-reconciliation",
+            "user-2026-08-14-preserve-technical-product-cardinality",
+            "system-explicit-advance-invoice-reference-marker-v1",
+            "user-2026-08-26-unique-invoice-base-reference-match-v1",
+            "user-2026-08-16-distinct-invoice-numbers-same-customer-sum"
+          ]
+        },
+        "warnings": [
+          {
+            "code": "invoice_reference_unique_base_matched",
+            "reason": "Riferimenti fattura risolti tramite numero base univoco: 260/26 -> 260, 534/26 -> 534, 261/26 -> 261, 535/26 -> 535. Riferimento e numero documento completi restano separati nell'audit.",
+            "appliedRuleIds": [
+              "user-2026-08-26-unique-invoice-base-reference-match-v1",
+              "user-2026-08-16-missing-invoice-operator-requeue"
+            ]
+          },
+          {
+            "code": "enea_2026_june_25_ninety_day_window_applied",
+            "reason": "Avviso ENEA 25/06/2026 applicato: inizio lavori 2026-03-05, fine lavori 2026-06-19; i 90 giorni decorrono dal 25/06/2026 e terminano il 23/09/2026.",
+            "appliedRuleIds": [
+              "user-2026-08-23-enea-2026-june-25-ninety-day-window"
+            ]
+          }
+        ],
+        "blockers": [
+          {
+            "code": "screenings_missing",
+            "field": "screenings",
+            "reason": "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+            "sourceIds": [
+              "eca2f44af100b81c628541f054531301cc8f093137d807df913c72cd02574262",
+              "13356a34d7bddad11ced326297d55eb68b4b61be5b60bc5f4638d4131f3f6424",
+              "88454d2ede51fe93c91b190a656a577ba01882425d057085bf20bf4592825322",
+              "a57033863e6d29bb8e1fd1f1c7be0ac56b855b1b9dd2464efe8b99fb0336272e",
+              "a35d359ed6c04845dffe0f6bc0640f411f9057c62e31bf04c652e1eb5a084d09",
+              "9e39665553291fb24b25d01c19697b14e702dc2c17ea40fbdb36f48dff253133"
+            ],
+            "appliedRuleIds": [
+              "user-2026-08-14-preserve-technical-product-cardinality"
+            ]
+          },
+          {
+            "code": "screening_primary_measurements_missing",
+            "field": "screenings.dimensions",
+            "reason": "La fattura descrive la schermatura ma nessuna fonte primaria riporta le misure fisiche del prodotto. APR non usa le misure della finestra protetta come misure del prodotto: acquisire o confermare le misure e rimettere la pratica in Pronte da fare.",
+            "sourceIds": [
+              "eca2f44af100b81c628541f054531301cc8f093137d807df913c72cd02574262",
+              "13356a34d7bddad11ced326297d55eb68b4b61be5b60bc5f4638d4131f3f6424",
+              "88454d2ede51fe93c91b190a656a577ba01882425d057085bf20bf4592825322",
+              "a57033863e6d29bb8e1fd1f1c7be0ac56b855b1b9dd2464efe8b99fb0336272e",
+              "a35d359ed6c04845dffe0f6bc0640f411f9057c62e31bf04c652e1eb5a084d09",
+              "9e39665553291fb24b25d01c19697b14e702dc2c17ea40fbdb36f48dff253133"
+            ],
+            "appliedRuleIds": [
+              "system-screening-primary-measurements-operator-routing",
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "system-apr-operator-intervention-routing"
+            ]
+          }
+        ],
+        "sourceIds": [
+          "eca2f44af100b81c628541f054531301cc8f093137d807df913c72cd02574262",
+          "13356a34d7bddad11ced326297d55eb68b4b61be5b60bc5f4638d4131f3f6424",
+          "88454d2ede51fe93c91b190a656a577ba01882425d057085bf20bf4592825322",
+          "a57033863e6d29bb8e1fd1f1c7be0ac56b855b1b9dd2464efe8b99fb0336272e",
+          "a35d359ed6c04845dffe0f6bc0640f411f9057c62e31bf04c652e1eb5a084d09",
+          "9e39665553291fb24b25d01c19697b14e702dc2c17ea40fbdb36f48dff253133"
+        ],
+        "eneaPayloadAudit": {
+          "status": "payload_incomplete",
+          "mappingFingerprint": null,
+          "fieldSummary": {
+            "ready": 0,
+            "review": 0,
+            "missing": 0
+          },
+          "requiredPortalFieldCount": 0,
+          "blockerCount": 3,
+          "blockers": [
+            {
+              "code": "crm-source-not-screening",
+              "fieldId": null,
+              "message": "Il dossier non è mappabile come pratica schermature."
+            },
+            {
+              "code": "screenings_missing",
+              "fieldId": "screenings",
+              "message": "Nessun prodotto fisico riconciliato dalle fatture originarie."
+            },
+            {
+              "code": "screening_primary_measurements_missing",
+              "fieldId": "screenings.dimensions",
+              "message": "La fattura descrive la schermatura ma nessuna fonte primaria riporta le misure fisiche del prodotto. APR non usa le misure della finestra protetta come misure del prodotto: acquisire o confermare le misure e rimettere la pratica in Pronte da fare."
+            }
+          ],
+          "excludedUnverifiedFields": [],
+          "draftReady": false,
+          "officialSubmissionAllowed": false,
+          "portalGate": {
+            "status": "blocked",
+            "reason": "screening-component-blocked",
+            "workflowFingerprint": null,
+            "supportedPages": [],
+            "screeningItemCount": 0,
+            "saveAllowedOnlyBySeparateCapability": true,
+            "previewAllowed": false,
+            "submitAllowed": false
+          },
+          "externalActionAllowed": false,
+          "reason": "2 blocker della componente Schermature invalidano il payload della bozza TEST."
+        },
+        "draftPlan": {
+          "status": "blocked",
+          "externalActionAllowed": false,
+          "previewAllowed": false,
+          "submitAllowed": false,
+          "communicationsAllowed": false,
+          "nextAction": "Risolvere i blocker con sole fonti originarie; la coda prosegue sugli altri casi."
+        }
+      },
+      "reason": "Fresh replay dai documenti originali"
+    }
+  ],
+  "externalActionAllowed": false,
+  "reason": "Fresh replay locale",
+  "nextAction": "Nessuna azione esterna.",
+  "validationRevisionsApplied": [],
+  "sourceRevisionsApplied": [],
+  "operatorMeasurementResolutions": [],
+  "audit": [
+    {
+      "revision": 1,
+      "at": "2026-09-03T10:00:00.000Z",
+      "type": "completed",
+      "customerKey": null,
+      "reason": "Fresh replay locale",
+      "appliedRuleIds": [
+        "system-single-active-practice"
+      ]
+    }
+  ]
+}

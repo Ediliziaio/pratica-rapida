@@ -1,0 +1,770 @@
+Dichiarazione di conformità energetica
+alla legislazione nazionale in ambito di risparmio energetico in edilizia
+[D.Lgs. 192 del 19 agosto 2005 e successive modificazioni ed integrazioni]
+Il sottoscritto ALFREDO COMITINO, rappresentante legale della ditta "STARPUR S.R.L.", in qualità di costruttore
+dei prodotti:
+Rif. tipologia: 35760/2025 01 Modello: SYNEGO-B2AS, Portafinestra 2 ante con soglia ribassata, dimensioni: 1485 x 2434, pezzi: 3;
+Rif. tipologia: 35760/2025 02 Modello: SYNEGO-F2A, finestra 2 ante, dimensioni: 1300 x 1527, pezzi: 1;
+Rif. tipologia: 35760/2025 03 Modello: SYNEGO-F2A, finestra 2 ante, dimensioni: 1080 x 1527, pezzi: 1;
+Rif. tipologia: 35760/2025 04 Modello: SYNEGO-B2AS, Portafinestra 2 ante con soglia ribassata, dimensioni: 1290 x 2434, pezzi: 1;
+D I C H I A R A
+che i serramenti e le vetrazioni, di cui alla fornitura n°35760/2025 del cliente EUROINFISSI S.N.C., via rodolfo
+morandi, 114 Civitella in Val di Chiana (AR), con cantiere in via rodolfo morandi, 114 Civitella in Val di Chiana (AR),
+prodotti nello stabilimento situato in VIA F.LLI BUSCETTO 54/56, 84014, NOCERA INFERIORE (SA), sono conformi
+a quanto previsto dal D.Lgs. 192/2005 e successive modificazioni ed integrazioni e dall'Allegato C del D.Lgs.
+192/2005 e successive modificazioni ed integrazioni e che:
+1. i serramenti di fornitura sono impiegabili in edifici ubicati in Comuni appartenenti fino alla zona climatica "E".
+2. la trasmittanza termica complessiva dei serramenti è stata determinata mediante metodologia di calcolo
+semplificato così come previsto dalla norma UNI EN ISO 10077-1:2018 e corrisponde a 1,19 W/m²K. Tale valore
+è stato determinato numericamente sulla base dei singoli valori di trasmittanza termica dei componenti
+costituenti il serramento così come dichiarati dalla ditta produttrice dei profili sistema REHAU della serie S 969
+SYNEGO e dalla ditta produttrice di Vetro camera 33.1 -20 Argon W.E.- 33.1 B.E. 1.0;
+3. la permeabilità all'aria dei serramenti corrisponde alla classe 4, così come definita dalla norma UNI EN 12207.
+Il test di permeabilità all'aria è stato eseguito in conformità alla UNI EN 1026;
+4. la trasmittanza termica delle vetrazioni è pari rispettivamente a 1,1W/m²K per il vetro
+VC33.1-20ARGONT-33.1BE 1.0. La trasmissione luminosa e il fattore solare delle vetrazioni sono
+rispettivamente pari a 0.69 (69%) per il vetro VC33.1-20ARGONT-33.1BE 1.0, 0.47 (47%) per il vetro
+VC33.1-20ARGONT-33.1BE 1.0.
+Si allegano alla presente dichiarazione di conformità i seguenti documenti:
+Allegato A: Determinazione numerica della trasmittanza termica complessiva dei serramenti eseguita secondo la
+metodologia di calcolo semplificata descritta dalla norma UNI EN ISO 10077-1:2018
+Allegato B: Certificazione, da parte del produttore dei profili sistema REHAU, serie S 969 SYNEGO dei valori di
+trasmittanza termica serie;
+Allegato C: Certificazione, da parte del produttore di VC33.1-20ARGONT-33.1BE 1.0 del valore di trasmittanza
+termica.
+NOCERA INFERIORE (SA), 03/02/2026
+Timbro e firma
+
+Tabelle e metodologie di calcolo
+Tabella conforme ai valori limite della trasmittanza termica U dettati dai decreti ministeriali e legislativi relativi alle chiusure
+trasparenti comprensive degli infissi espressa in W/m²K
+Zona climatica 01/10/2015 01/10/2015 01/01/2021 Superbonus/Ecobonus
+D.Lgs. 192/2005
+Appendice A
+D.Lgs. 192/2005
+Appendice B
+DM 26 Giugno 2015
+(CAM e Bonus Casa)
+DM 06 Agosto 2020
+Allegato E
+A 3,2 3,2 3,0 2,6
+B 3,2 3,2 3,0 2,6
+C 2,4 2,4 2,0 1,75
+D 2,0 2,1 1,8 1,67
+E 1,8 1,9 1,4 1,3
+F 1,5 1,7 1,0 1,0
+Tabella conforme alla Tabella 4b - Allegato C del D.Lgs. 192/2005 e s.m. e i. contenente i valori limite della trasmittanza centrale
+termica U dei vetri espressa in W/m²K
+Zona climatica Dall' 1° luglio 2011
+A 3,7
+B 2,7
+C 2,1
+D 1,9
+E 1,7
+F 1,3
+I limiti possono subire variazioni dettate dal progettista
+Formule utilizzate per il calcolo trasmittanza termica
+Calcolo della trasmittanza termica infissi secondo EN 10077-1:2018
+Effetto di eventuali chiusure oscuranti secondo norma TS 11300-1:2014
+pag 2
+
+35760/2025 Allegato A (pag. 1/2)
+01
+1485
+449,5 1035,5 Zone trasmittanza
+Serie REHAU - S 969 SYNEGO 1.39m² × 1W/m²K = 1.39W/K 32.2%
+Riempimento VC33.1-20ARGONT-33.1BE 1.0 2.22m² × 1,1W/m²K = 2.44W/K 56.4%
+Riempimento VC33.1-20ARGONT-33.1BE 1.0 15.46m × 0,032W/mK = 0.49W/K 11.4%
+1,1
+1
+W/m²K
+W/mK
+0,032
+2434
+Potenza trasmessa: 4,33 W/K
+Superficie: 3,614 m²
+Trasmittanza termica: 1,19839 W/m²K
+Uw: 1,2 W/m²K
+N° pezzi: 3 pz
+Superficie totale: 10,84 m²
+02
+Zone trasmittanza
+1300
+Serie REHAU - S 969 SYNEGO 0.82m² × 1W/m²K = 0.82W/K 35.4%
+Riempimento VC33.1-20ARGONT-33.1BE 1.0 1.16m² × 1,1W/m²K = 1.28W/K 55.0%
+Riempimento VC33.1-20ARGONT-33.1BE 1.0 6.97m × 0,032W/mK = 0.22W/K 9.6%
+1,1
+1
+W/m²K
+W/mK
+0,032
+1527
+Potenza trasmessa: 2,32 W/K
+Superficie: 1,985 m²
+Trasmittanza termica: 1,17092 W/m²K
+Uw: 1,17 W/m²K
+
+35760/2025 Allegato A (pag. 2/2)
+03
+Zone trasmittanza
+1080
+Serie REHAU - S 969 SYNEGO 0.77m² × 1W/m²K = 0.77W/K 39.6%
+Riempimento VC33.1-20ARGONT-33.1BE 1.0 0.88m² × 1,1W/m²K = 0.97W/K 49.7%
+Riempimento VC33.1-20ARGONT-33.1BE 1.0 6.53m × 0,032W/mK = 0.21W/K 10.7%
+1,1
+1
+W/m²K
+W/mK
+0,032
+1527
+Potenza trasmessa: 1,95 W/K
+Superficie: 1,649 m²
+Trasmittanza termica: 1,17996 W/m²K
+Uw: 1,18 W/m²K
+04 1290
+Zone trasmittanza
+Serie REHAU - S 969 SYNEGO 1.16m² × 1W/m²K = 1.16W/K 31.5%
+Riempimento VC33.1-20ARGONT-33.1BE 1.0 1.98m² × 1,1W/m²K = 2.18W/K 59.3%
+Riempimento VC33.1-20ARGONT-33.1BE 1.0 10.69m × 0,032W/mK = 0.34W/K 9.2%
+1,1
+1
+W/m²K
+W/mK
+0,032
+2434
+Potenza trasmessa: 3,68 W/K
+Superficie: 3,139 m²
+Trasmittanza termica: 1,17208 W/m²K
+Uw: 1,17 W/m²K
+
+APR_OCR_ORIENTATION:0
+35760/2025
+Allegato B (pag. 1/9)
+Nachweis
+Berechnung des Wärmedurchgangskoeffizienten
+ift
+Prüfbericht
+Nr. 14-001759-PR10
+(PB-K20-06-de-02)
+ROSENHEIM
+Auftraggeber
+REHAU AG + Co.
+Verwaltung Erlangen
+ift-Richtlinie VVA-02/3 2005-02
+Grundlagen "
+Ytterbium 4
+91058 Erlangen-Eltersdorf
+(PB-K20-06-de-01)
+ift Prüfbericht 14 001653-PR15
+Deutschland®
+IPB-K20-08-d2-011
+ift Prüfbericht 14 001653 PR17
+Produkt
+Kunststoff-Hohlkammerprofile mit Aussteifung
+(PB-K20-05-de-01)
+ift Prüfbericht 14 00175g PR09
+Bezeichnung System: SYNEGO (MD 1.0)
+ift Prüfbericht 14 00175g-PR11|
+(PB-K20-05-de-01)
+Leistungsrelevante Material Polyvinylchlorid (PVC-U) hart; Dichtungssys-
+Produktdetails
+ift Prüfbericht 14 001759 PR10|
+tem; Typ 1 × Überschlagdichtung, 1 × Mittel dichtung,
+1 x Anschlagdichtung; Aussteifung; Material Stahl -
+09.03.2015
+(PB-K20-08-de-01) vom
+verzinkt; Anzahl der Vorkammern 1 bis 3; Flügelrahmen;
+") und entsalechende nabanale Fassungen |
+Iz. B. CIN EN)
+Profilquerschnitt, Dicke in mm 80; Aussteifung Profilquerschnitt,
+Dicke in mm 35 / 41; Blendrahmen; Profiluerschnitt, Dicke in
+mm 80; Aussteifung; Profilquerschnitt, Dicke in mm 23 / 35;
+Plasmen PK01
+Darstellung
+Ersatzpaneel; Dicke in mm 36; Einstand in mm 19
+Besonderheiten --
+Ergebnis
+Ermittlung des Wärmedurchgangskoeffizienten
+nach ift Richtlinie WA-02/3 2005-02
+Uf = 1,0 W/(m-K)
+Webie Posie 9e Anlage
+schnitt 3 zur Kennlinienermittlung verwendeten und in Anlage 1 dargestellten Profilkombinationen.
+Der angegebene Wert für die Profilkombinationen der Systemkennlinie bezieht sich auf die in Ab-
+Verwendungshinweise
+anhand der Kennlinie nach Abschnitt 3 dieses Prüfberichts
+Die Ermittlung der Va medurchgangskoeffizienten U, für Profilkombinationen des Systems erfolgt
+nen für den Nachweis entspre-
+Die ermittelten Ergebnisse kön-
+Grundlagen verwendet werden.
+chend den oben angegebenen
+Gültigkeit
+ift Rosenheim
+schließlich auf den geprüften und
+gebnisse beziehen sich aus
+Die genannten Daten und Er-
+05.05.2015
+beschriebenen Probekörper.
+Aussage Über weitere leistungs-
+Diese Prüfung ermöglicht keine
+genschaften der vorliegenden
+und qualitätsbestimmende Ei-
+Konstruktion.
+Manuel Damal
+T. hades
+Veröffentlichungshinweise
+Manuel Demel, M. BP. Dipl.-Ing. (FH)
+zung von ift-Prüfdokumenta-
+Es gilt das "Merkblatt zur Benut-
+Stv. Prüfstellenleiter
+Till Stübben, Dipl.-Ing. (FH)
+Bauphysik
+Bauphysik
+Prüfingenieur
+vollständig veröffentlicht werden.
+tionen". Das Dokument darf nur
+Inhalt
+Der Nachweis umfasst insgesamt
+6 Seiten und Anlagen (3 Seiten).
+Ve. PBQ•1190 de |01.10.2012)
++liera-temi-t-
+
+APR_OCR_ORIENTATION:0
+35760/2025
+Allegato B (pag. 2/9)
+Nachweis
+Blatt 2 von 6
+Berechnung des Wärmedurchgangskoeffizienten
+Prüfbericht Nr. 14-001759-PR10 (PB-K20-08-de-02)|
+vom 05.05.2015
+ift
+Auftraggeber:
+Verwaltung Erlangen, 91058 Erlangen-Eltersdorf (Deutschland)
+REHAU AG + Co.
+ROSENHEIM
+Gegenstand
+1.1 Probekörperbeschreibung
+Kunststoff-Hohlkammerprofile mit Aussteifung
+Profilkombination: Flügelrahmen-Blendrahmen
+Hersteller
+REHAU AG + Co.
+Systembezeichnung
+SYNEGO (MD 1.0)
+Material
+Polyvinylchlorid (PVG-U) hart
+Dichtungssystem
+1 × Überschlagdichtung, 1 x Mitteldichtung,
+1 x Anschlagdichtung
+Aussteifungen
+Material
+Stahl - verzinktR
+Anzahl der Vorkammern
+1 bis 3
+Ersatzpaneel
+Dicke in mm
+36
+Einstand in mm
+19
+Probekörper der Kennlinie
+PK01
+PKO2
+PK03
+Ansichtsbreite B in mm
+117
+127
+144
+Summe bin mm
+56,0
+66,0
+81,0
+Verhältnis b / B
+0,48
+0,52
+0,56
+Flügelrahmen
+Profilquerschritt, Dicke in mm
+80
+80
+80
+Aussteifung
+Profilquerschnitt, Dicke in mm
+41
+41
+Anzahl der Vorkammern
+Blendrahmen
+Profilquerschritt, Dicke in mm
+80
+80
+80
+Aussteifung
+Profilquerschnitt, Dicke in min
+23
+23
+23
+Anzahl der Vorkammern
+2
+2
+2
+2012
+101.03
+Ve.PB1.1199.d-
+
+APR_OCR_ORIENTATION:180
+ver0 1190•0e 101.05.2012
+ift-Pk-Nummer: 14-001759-PK10
+Ein Probennahmebericht liegt dem ift nicht vor.
+Nachweis:
+05.12.2014
+Datum:
+Probennehmer: REHAU AG + Co. Verwaltung Erlangen, 91058 Erlangen-Eltersdorf
+Dem ift liegen folgende Angaben zur Probennahme vor:
+1.2 Probennahme
+Zeichnungen basieren auf unveränderten Unterlagen des Auftraggebers, wenn nicht anders ausgewiesen.
+Die konstruktiven Details wurden ausschließlich hinsichtlich der nachzuweisenden Merkmale / Leistung Dberprüft;
+Probekörperdarstellung/en sind in der Anlage , Darstellung Produkt/Probekörper' dokumentiert.
+zeichnungen/-nummem sowie Matenalangaben sind Angaben des Auftraggebers, wenn nicht als „ff-geprüft" ausgewiesen.)|
+Die Beschreibung basiert auf den Angaben des Auftraggebers und der Uberprüfung des Probekörpers im Ift. (Artikelbe-
+2
+Anzahl der Vorkammem
+23
+35
+Profilquerschnitt, Dicke in mm
+Aussteifung
+80
+80
+Profilquerschnitt, Dicke in min
+Blendrahmen
+1
+1
+Anzahl der Vorkammern
+35
+35
+Profilquerschnitt, Dicke in mm
+Aussteifung
+80
+80
+Profilquerschnitt, Dicke in mm
+Flügelrahmen
+0,48
+0,48
+Verhältnis b / B
+56,0
+56,0
+Summe b in mm
+117
+117
+Ansichtsbreite B in mm
+PKD5
+PKD4
+Zusätzliche Probekörper
+ROSENHEIM
+Verwaltung Erlangen, 91058 Erlangen-Eltersdorf (Deutschland)
+REHAU AG + Co.
+Auftraggeber:
+ift
+Prüfbericht Nr. 14-001759-PR10 (PB-K20-05-de-02) vom 05.05.2015
+Berechnung des Wärmedurchgangskoeffizienten
+Blatt 3 von 6
+Nachweis
+Allegato B (pag. 3/9)
+35760/2025
+
+APR_OCR_ORIENTATION:180
+ver011190 0e 1101.05.2012
+auf das Niveau der Messung parallel verschoben werden.
+stellen der Kennlinienermittlung Messungen nach EN 12412-2 vor, kann die Kennlinie
+Wärmedurchgangskoeffizienten innerhalb eines Profilsystems. Liegen für die Stütz-
+Ansichtsbreite der Profilkombinationen und dem nach EN ISO 10077-2 ermittelten
+Zusammenhangs zwischen dem Verhältnis der Summe der Aussteifungsbreiten zur
+nach den Regelungen der ift Richtlinie WA-02/3 durch Definition eines linearen
+Die Erstellung der Kennlinien für die Rahmen-Wärmedurchgangskoeffizienten erfolgt
+Erstellung der Uf-Systemkennlinien:
+Verfahrenskurzbeschreibung
+2.2
+*) und die entsprechenden nationalen Fassungen, 2.B. DIN EN
+¡fFEM Protokoll 14-001653-PR19
+ifFEM Protokoll 14-001653-PR18
+ifFEM Protokoll 14-001653-PR16
+ift Prüfbericht 14-001759-PR11 (PB-K20-06-de-01)
+ift Prüfbericht 14-001759-PR09 (PB-K20-06-de-01)
+ift Prüfbericht 14-001653-PR17 (PB-K20-06-de-01)
+ift Prüfbericht 14-001653-PR15 (PB-K20-06-de-01)
+Uf-Werte für Kunststoffprofile aus Fenstersystemen
+ift-Richtlinie WA-02/3 2005-02
+Grundlagendokumente *) der Verfahren
+2.1
+Durchführung
+2
+ROSENHEIM
+Verwaltung Erlangen, 91058 Erlangen-Eltersdorf (Deutschland)
+Auftraggeber: REHAU AG + Co.
+ift
+Prüfbericht Nr. 14-001759-PR10 (PB-K20-0S-de-D2) vom 05.05.2015
+Berechnung des Warmedurchgangs koeffizienten
+Blatt 4 von 6
+Nachweis
+Allegato B (pag. 4/9)
+35760/2025
+
+APR_OCR_ORIENTATION:180
+Ve-PB1-1197-de 1.01.03.2012
+Russisi ausyssiaei sind, Vorawoseikung inerü si duss die sunsligen wamme eui missänelevanen Parameier Luvernder.
+It aben.
+Die hier ausgawissonen Orgebnissc körner auen au' Proflkombinationen Obertragen werden, doron Blendrahmen rit
+Erganzende• Hinwsis:
+'Anmerkung: Zusatzliche Profilkomsinationen die nicht dirckt durch kie Systemkennlirie abgedeckssine kannen danna s
+gleichwertig betrachtet we cer, wenn der rechnerische Nachweis des C.-Wertes nach EN ISO 10077-2 die Bed ngung
+erotiekon erfüll urd sieden ulen Asschnill1 beschriebenen P'of-Merkmelen entspiecten.
+100 11 E ratc01114-001655-3819
+D0ES 0,117010
+TArC Prote sall 14-00 1683-3R18
+D.48
+FDF FR-BR
+Zusätzliche Profilkombinationen - Berechnung nach EN ISO 10077-2°)
+bna: B
+0.055 D,117|
+8
+PK-Nr. Beschrelbung
+FR-BR
+* Auszuweisender Warnedurch gangs ‹oeffizient, gerundet nact cer Regalurger cer EN SO •0077 2 und EN 12412 2
+" Detaillic-tor Wa med archgangskoctfizient zur Bestim nung dor Konnlinic h
+1.317 Priberich 14-001759-FR11/PE-K20-06-deD1:
+FK03 FR-BK
+A7 Protherichl 14001759 039 802068
+Quelle
+0055 0,117 0.10106
+10.051 0.144 0,56 1,05
+FR-BR
+FK01
+Stützstellen der Kennlinicnermittlung - Messung nach EN 12412-2
+PK-Nr. Beschrolbung
+it Protbericht 14 001603 PR1/ (PB K20 (6 de 01)
+1,1
+1.12
+1,111 D*
+D.UN1
+FRAZ FR BR
+it Prütbenichl 14-001653-FR15 PB-K20-06-d0-01)
+Trei Prietoi i4-Q0i058--K1Ö
+1.1
+1,1
+i i0
+1.14
+D 57
+0,117 0.48
+ü,i27
+0 0551
+0.053
+FROZ FR-BR
+uti ouelle
+FK01
+Su Aste len der Keninieerming- ereha. ach Ev160 100712
+PK.Nr. Beechreihung
+if: wky
+vi meda yangstuel cienl ges Prolils
+Al inti abns e des Piolila
+Finhpil
+st nea de-Aussx furyst wieor
+in=
+Pcfinition
+Ermittlung der Wärmedurchgangskoeffizianten (/,
+Es gielkeine Acweichurger zum Prufve-ahren gemal Norm Gr.ind age.
+Prülvurfatrurı
+Informationen zum Prüfaufbau / Prüfverfahren
+Till Süuben
+Till Soünhe
+Verantwotlicher Pruifer
+Prütor
+14 001759 PK1C
+07.03.2015
+Probekirpernurner
+Prülalur
+FroTiko nicination: Fiugeirahmen Biendraimen
+Kurstskeft-tohlsammeprefile mi. Ausa eifung
+Probekonper
+U-werle fü Kutalsloffe olle aus Fens e syslenen
+Sim:02084 - ift Bersch ungsprogarm
+Verwuch-le: Prülmitel
+11-001769
+ift-Richtlinie WVA-02/3 20C5-02
+Worgang Nr.
+11-001759-PR13
+Grundigen der Prülurg
+Projekt-Hr.
+V, - Systemkennlinie für Kunststoffprofile aus Fonstarsysteman nach ift Richtlinie WA-02
+Einzelergebnisse
+3
+ROSENHEIM
+Verwaltung Enangen, 91058 Erlangen-Eltersdon (Deutschland)
+Afraggeber: REHAU AG + Co.
+ift
+vom 05.05.2015
+Prüfbericht Nr. 14-001759 PR10 (PB-K20-08-de-02) |
+Berechnung des Warmedurchgangskoeffizienten
+Blatt 5 von 6
+Nachweis
+Allegato B (pag. 5/9)
+35760/2025
+
+APR_OCR_ORIENTATION:270
+Allegato B (pag. 6/9)
+0.80
+ift
+ROSENHEIM
+Ü.=-1,163h./B+•:27
+Kennilnle
+C.55
+Blatt 6 von 6
+060
+t=-ü, 163 Anay / B + i, i,1Z7
+*
+PKO5
+iPK01 / PK04
+Verhältnis ... B
+Nach ra-tehtlinie 404-0233 sind repraserten tor alle Rahmenprankombinat snen innerhalb nes Pronisystems zur torg miung
+der kann inie Flugel ahme i-Dland ahman-Korbination er auszuwahlen. Voraussetzung für die Anwer durg der Kernlin en ist.
+dass alle relevanten konstukt ven und materialspezifischer Merkma e der zu cetrachtenden Proilcuerschn tte einheidich mit
+Die Warneduranganuskoe tizienten t, fardia dom Fanstorsystem zuachšnigen Proflelaseen sich in Abhängigkeit vor
+Vere sans auf 2 el er gene salen ge en hangebek erier bestimmen Die abglesener be. berechneten
+0.25
+--. Konline des Prefisystoms ermittet eurch Be-schrung nact CA 150 10077-2
+— Kennl ne des Frofilsystems angepasst auf Niveau der Nessung rach EN 12412-2
+Verwaltung Erlangen, 91058 Erlangen-Eltersdorf (Deutschland)
+den gectuiten Profi kombirationen sind (datallierte Gileuterung siehe Richtline).
+Prüfbericht Nr. 14-001759 PR10 (PB-K20-05-de-02) vom 05.05.2015
+ü,40
+Berechnung des Wärmedurchgangskoeffizienten
+Auftraggeber: REHAU AG + Co.
+Kennlinien der Profilsysteme
+System "SYNEGO MC 1.0)"
+Profilsystam
+1,15
+1.10
+1,CC -
+395035
+Nachweis
+= 1.C5
+Bemerkung:
+WinK
+35760/2025
+Ve.PB1•1198 de 1101.03.2012
+
+APR_OCR_ORIENTATION:180
+Ve-FB5-1238 de |01.01.2111)
+Bild 2: Querschnittsdarstellung Probekörper PK02
+Anschtsbreite • 127
+Blendrahmen 82 MD
+&rl. 1537115
+82
+Abercklung - 161
+Länge der
+Arl. 1537215
+; Flügd 259
+Arl. 1357541
+23/38x1.5
+AK. 1352512
+41/28x2
+Glaserste 20.5mm
+Arl. 1561063
+Abwicklung - 164
+Länge der
+79
+Bild 1: Querschnittsdarstellung Probekörper PK01
+Anschtsbrate • 117
+72
+Blendrahmen 72 MD
+AbwicHung - 151
+Länge der
+Art. 1537215
+Flügel Z59
+Art.1306619
+23x29x1.5
+Gladerte 20.5
+Art. 1561063
+AbscHung - 154
+Lange der
+3a
+ROSENHEIM
+Verwaltung Erlangen, 91058 Erlangen-Eltersdorf (Deutschland)
+Auftraggeber:
+Prüfbericht Nr. 14-001759-PR10 (PB-K20-08-de-02) vom 05.05.2015
+REHAU AG + Co.
+ift
+Berechnung des Wärmedurchgangskoeffizienten
+Nachweis
+Blatt 1 von 3
+Anlage 1: Darstellung Produkt Probakörper
+Allegato B (pag. 7/9)
+35760/2025
+
+APR_OCR_ORIENTATION:270
+Allegato B (pag. 8/9)
+ift
+ROSENHEIM
+Blatt 2 von 3
+Glaslerste 20.5
+Art. 1581083
+19 .
+Gladerste 20.5mm
+Ait. 1581083
+-30-
+vom 05.05.2015
+108
+AI. 1357548
+Verwaltung Erlangen, 91058 Erlangen-Eltersdorf (Deutschland)
+Flügel Z85
+AIt. 1537235
+Anachtsbiate - 144
+1244528
+Flügel Z59
+Ait. 1537215
+Anachsaete - 117
+Blendwhmen 72 MD
+Blendıahmen 72 MD
+Ait. 1537105
+Bild 3: Querschnittsdarstellung Probekörper PK03
+Ait. 1537105
+Bild 4: Querschnittsdarstellung Probekörper PK04
+Prüfbericht Nr. 14-001759-PR10 (PB-K20-08-de-02) |
+Anlage 1: Darstellung Produkt Probekörper
+Berechnung des Wärmedurchgangskoeffizienten
+REHAU AG + Co.
+03=29=1 5
+Ait. 1306619
+AbscHung - 181
+Länge der
+AbricHung - 178
+9 Jacklung - 154
+35.28.2
+Ait. 1244528
+Aaxickung - 151
+anne der
+Länge der
+Länge der
+Nachweis
+Auftraggeber:
+35760/2025
+Ve-PB5-1238 de |01.01.2011)
+
+APR_OCR_ORIENTATION:270
+Allegato B (pag. 9/9)
+ift
+ROSENHEIM
+Blatt 3 von 3
+Gladerte 20.5
+4k. 1981083
+vom 05.05.2015
+Verwaltung Erlangen, 91058 Erlangen-Eltersdorf (Deutschland)
+Ar. 1537215
+35×28 x2
+1244528
+Arc.
+Flugel 259
+Anachtsaiate - 117
+Blendıahmen 72 MD
+Ait. 1537105
+Bild 5: Querschnittsdarstellung Probekörper PK05
+Anlage 1: Darstellung Produkt Probekörper
+Berechnung des Wärmedurchgangskoeffizienten
+Prüfbericht Nr. 14-001759-PR10 (PB-K20-08-de-02)|
+REHAU AG + Co.
+72
+13-78-1 5
+Art. 1303819
+Aznadung - 154
+Länge der
+Aamorlung - 151
+Länge der
+Nachweis
+Auftraggeber:
+ad
+35760/2025
+0000120010120119
+
+APR_OCR_ORIENTATION:180
+www.ducyoursiass.com commurdiol
+Copyright: © 2025 - AGC Glass Europe. Tutti i diritti riservati |
+garanzia fari ile la impra, per sprete di inge trimenti i nessun caso al pu essere lan responsabile per dini direi, indire di consegurizili noidenta di alcun tipo in reazione a privanti arso desuna (
+strumento Glass Configurator.
+presente documento deve essere inteso a scopo informativo e non può, in alcun caso, essere interpretato quale accettazione di alcun ordine da parte del Gruppo AGC. Consultare le Condizioni d'uso specifiche per qli standard
+alcolo utilizzati, il numero del report del test INISMA e l'accuratezza dei valor
+GLASS
+onfiguration. Per maggiori informazioni riguardo la gamma di vetri AGC Low-Carbon, visita il sito YourGlass nella sezione Low-Carbor
+CARBON
+LOW
+lolti prodotti AGC sono adesso disponibili nella versione Low-Carbon Glass. Questa versione non altera le proprietà delle specifiche del glass
+ASC
+Report n° 2018B COU 35741
+member of EMA
+Calculation software verified by INISMa
+EN 410 and EN 673
+Glass Configurator
+- i ota visa sima e non edai cal disi rito iscono a a il ione il minie a 230 gei macedo acrale degli da lordi e arimi pera possono variare in funzione delle r
+ensioni della vetrata e della stanza, del sistema di supporto, del tipo di installazione, dell'ambiente, delle sorgenti di rumore i
+un altra fase del ciclo di vita del prodotto. Questo valore GWP e calcolato secondo i principi di modellizzazione definiti nella norma EN 15804+A2:2019. Un contronto delle prestazioni ambientali dei prodotti da costruzione
+utilizzano informazioni EPD deve basarsi sull'uso dei prodotti e sul loro impatto sulledificio, e deve considerare fintero ciclo di vita (tutti i moduli informativi), che può essere ottenuto tramite l'EPD completa.
+lesto valore rappresenta il potenziale di riscaldamento globale (GWP) associato alla produzione del prodotto in vetro configurato. Esso include lintera fase di produzione (moduli da A1 ad A3); in questo valore non è inc
+Peso: [kg/m?]
+32.8
+31
+Spessore nominale: [mm]
+= Spessore e peso
+NPD
+Resistenza all'esplosione - EN 13541
+2B2 / 2B2
+Resistenza agli urti (Prova del pendolo) - EN 12600
+1.47
+Selettività
+NPD
+Resistenza alle effrazioni - EN 356
+0
+Trasmissione dei raggi ultravioletti : Tuv (%]
+NPD
+Resistenza ai proiettili - EN 1063
+0.54
+Coefficiente di shading : SC
+NPD
+Reazione al fuoco - EN 13501-1
+27
+Assorbimento energetico totale : ae [%]
+NPD
+Resistenza al fuoco - EN 13501-2
+8
+Assorbimento energetico vetro 2: ae2 (%]
+9 Caratteristiche di sicurezza
+19
+Assorbimento energetico vetro 1 : ae1 [%]
+39
+Trasmissione diretta dell'energia : te [%]
+Riflessione energetica interna : pei [%]
+37 (-1;-5)
+Direct airborne sound reduction - Interpolated : Rw
+35
+34
+Riflessione energetica esterna : pe [%]
+*) Riduzione acustica
+47
+Fattore solare : g [%]
+• Caratteristiche energetiche - EN 410
+1.1
+Trasmittanza termica (vetri verticali) : U value [W/
+(m?.K)]
+& Proprietà termiche - EN 673
+95
+Indice di resa dei colori : Ra [%]
+22
+Riflessione luminosa interna : pvi [%]
+Riflessione luminosa : pv [%]
+NPD
+Dalla Culla al Cancello - Surriscaldamento Globale
+Potenziale: Modulo A1-A3 : [kg CO2 eq. /m?] 1
+20
+69
+Trasmissione luminosa: TV%
+& Proprietà ambientali
+¢: Caratteristiche luminose - EN 410
+Simulazione di dati sulle prestazioni in opera del vetro
+0.38 mm PVB Clear + 3 mm Planibel Clearlite) Ricotto
+1 Stratobel Clearlite 33.1 Ricotto 2 20 mm Argon 90% 3 Stratobel 33.1 (3 mm iplus Top 1.0 on Clearlite pos.3 +
+AGC
+Allegato C (pag. 1/1)
+35760/2025

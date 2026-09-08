@@ -1,0 +1,29 @@
+{
+  "version": "apr-cdp-react-remount-r23-round2-terminal-attestation-v1",
+  "verifiedAt": "2026-09-01T23:16:00Z",
+  "freezeSha256": "d7d0a8c42260a0bfd773a2350524658929de84a57c2e7867bbfb7f9f60c39652",
+  "reportSha256": "e2a9762ad98739a4fa46812b0a5eebbcc7fb8ee68d8d70da44fa6bc36ab7bbe4",
+  "checkpointSha256": "3eede1b74f50ef5efc1689b94757d3cc98ff9bb438045ce672a0a1d2aa40e534",
+  "journalSha256": "653007f867673ff0d83594e55dd7042ad9233aded45e117b050a3c33cacfe167",
+  "summary": {
+    "total": 30,
+    "saved": 17,
+    "operatorRequired": 11,
+    "technicalBlock": 2,
+    "inconsistent": 0
+  },
+  "tripleVerification": {
+    "reportVsCheckpointMismatchCount": 0,
+    "journalVsCheckpointMismatchCount": 0,
+    "terminalSnapshotsPresent": 30,
+    "terminalSnapshotsConsistent": 30,
+    "terminalSnapshotVsCheckpointMismatchCount": 0,
+    "status": "PASS"
+  },
+  "observabilityNote": "La fonte terminale atomica concorda con report, checkpoint e journal. La dashboard statica legacy non era una fonte terminale affidabile per tutti i casi quiescenti ed e stata corretta prima del nuovo giro 3.",
+  "safety": {
+    "previewAttempted": false,
+    "submitAttempted": false,
+    "communicationsAttempted": false
+  }
+}

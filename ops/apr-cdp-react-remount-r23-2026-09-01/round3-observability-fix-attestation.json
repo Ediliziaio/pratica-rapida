@@ -1,0 +1,100 @@
+{
+  "version": "apr-round3-observability-fix-attestation-v1",
+  "createdAt": "2026-09-01T20:54:56Z",
+  "status": "PASS_AFFECTED_PATHS",
+  "cause": {
+    "classification": "terminal_state_projection_ordering_bug",
+    "description": "Durante la quiescenza il finalizzatore persisteva correttamente TECHNICAL_BLOCK nello snapshot terminale, ma writeStoppedAprOperationalDashboard riscriveva dashboard/status.json e HTML dalla proiezione legacy operator_intervention del worker. livePayload rileggeva poi lo snapshot per le API senza ripubblicarlo nei file statici.",
+    "affectedSurfaces": [
+      "dashboard/status.json",
+      "dashboard/index.html"
+    ],
+    "authoritativeUnaffectedSurfaces": [
+      "sequencer checkpoint",
+      "sequencer report",
+      "sequencer journal",
+      "terminal observability snapshot",
+      "/api/status",
+      "/api/case-truth"
+    ]
+  },
+  "historicalEvidence": [
+    {
+      "customerKey": "luca-callegari",
+      "cohort": 2768,
+      "reportState": "technical_block",
+      "terminalStatus": "TECHNICAL_BLOCK",
+      "terminalConsistency": "CONSISTENT",
+      "terminalBlockerCount": 0,
+      "preflightState": "ready_local_plan",
+      "preflightBlockers": [],
+      "staticDashboardStatus": "OPERATOR_REQUIRED",
+      "staticDashboardSource": "worker",
+      "typedReason": "apr_cdp_enea_co_beneficiary_save_unverified"
+    },
+    {
+      "customerKey": "danila-serpa",
+      "cohort": 2784,
+      "reportState": "technical_block",
+      "terminalStatus": "TECHNICAL_BLOCK",
+      "terminalConsistency": "CONSISTENT",
+      "terminalBlockerCount": 0,
+      "preflightState": "ready_local_plan",
+      "preflightBlockers": [],
+      "staticDashboardStatus": "OPERATOR_REQUIRED",
+      "staticDashboardSource": "worker",
+      "typedReason": "apr_cdp_enea_field_verification_failed:id-comune_nascita"
+    }
+  ],
+  "generalRule": {
+    "registryId": "system-terminal-observability-snapshot-v1",
+    "matrixKey": "terminal-observability-snapshot",
+    "deterministicAction": "Dopo un finalizzatore terminale, JSON statico, HTML e API devono derivare dallo stesso snapshot sequencer_finalizer. Una consistenza diversa da CONSISTENT produce INCONSISTENT fail-closed; il worker legacy non puo sovrascrivere il verdetto.",
+    "sourceDiffSha256": "9b21b053e7fbbfc98ce95bc0830522f707d39d33c8230f2bc8d39c59c79457af"
+  },
+  "verification": {
+    "targetedTestFiles": 5,
+    "targetedTestsPassed": 52,
+    "targetedTestsFailed": 0,
+    "positiveTest": "dashboardOperationalStatus: snapshot terminale prevale sul worker quiescente",
+    "negativeTest": "dashboardOperationalStatus: snapshot incoerente fail-closed",
+    "integrationTest": "localDashboardServer: JSON statico e HTML seguono sequencer_finalizer",
+    "runnerTypecheck": "PASS",
+    "productionBuild": "PASS",
+    "priorFrozenUnchangedCoverage": {
+      "testFiles": 216,
+      "tests": 1616,
+      "status": "PASS",
+      "freezeSha256": "d7d0a8c42260a0bfd773a2350524658929de84a57c2e7867bbfb7f9f60c39652"
+    },
+    "fullSuiteCurrentAttempt": {
+      "status": "NON_TERMINAL",
+      "reason": "Il runner Vitest non ha terminato dopo i test riportati per una fixture CDP locale rimasta aperta; l'esecuzione e stata interrotta senza attribuire PASS. La correzione e coperta dalla suite mirata, typecheck e build; il driver CDP non e stato modificato da questa correzione."
+    }
+  },
+  "bundle": {
+    "versionId": "e52389f5-terminal-observability-r23-fix-20260901",
+    "supervisorSha256": "e52389f558623e9fe6fe989fb2d005c9898e81fa7566b94522ffc2613e1a1e2c",
+    "workerSha256": "9d38522d7e25b191b356bb7cabe9ef4fee178c51a53bb1ba2bad8ee34945745b",
+    "watchdogSha256": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "installedPointer": "versions/e52389f5-terminal-observability-r23-fix-20260901",
+    "installedStatus": "ACTIVE"
+  },
+  "continuity": {
+    "keepaliveLabel": "com.praticarapida.apr-enea-immortal-keepalive",
+    "keepalivePid": 3784,
+    "keepaliveRuns": 1,
+    "chromePid": 3785,
+    "cdpPort": 9331,
+    "dashboardUrl": "https://bonusfiscali.enea.it/dashboard",
+    "keepaliveRestarted": false,
+    "chromeRestarted": false
+  },
+  "safety": {
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "receiptsAllowed": false,
+    "emailAllowed": false,
+    "communicationsAllowed": false
+  }
+}

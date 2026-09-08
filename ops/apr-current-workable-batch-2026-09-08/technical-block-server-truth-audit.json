@@ -1,0 +1,90 @@
+{
+  "version": "apr-r86-technical-block-server-truth-audit-v1",
+  "observedAt": "2026-09-08T08:12:19Z",
+  "run": {
+    "root": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-current-workable-batch-r86-20260908",
+    "startedAt": "2026-09-07T22:30:01.952Z",
+    "endedAt": "2026-09-08T08:11:52.511Z",
+    "total": 105,
+    "bundleVersion": "f6f8e746-deep-review-terminal-gate-r86-20260907",
+    "manifestSha256": "45c105f7f9f84db093aa2c2b733cfd81bb7375b3f691636ffc0060d3875f34e6",
+    "checkpointSha256": "35e98e7078b8f2625f4aa7282f0a1256b45d07c8d2f92b805e1859f54012f428",
+    "finalReportSha256": "730ce0b7d75481ddd6c12869e18f982cd5938b030be10915a67f49259f11a314"
+  },
+  "formalTotals": {
+    "saved": 37,
+    "operatorRequired": 21,
+    "technicalBlock": 38,
+    "inconsistent": 9
+  },
+  "technicalBlockEvidence": {
+    "withDraftId": 2,
+    "withoutDraftId": 36,
+    "withLocallyCompletedPages": 0,
+    "tripleSourceConcordantTechnicalBlock": 34,
+    "tripleSourceInconsistent": 4
+  },
+  "serverChecks": [
+    {
+      "displayName": "Fausta De Filippo",
+      "draftId": "470773",
+      "method": "three_authenticated_read_only_gets",
+      "httpStatuses": [200, 200, 200],
+      "responsesConcordant": true,
+      "practiceKeys": ["ver"],
+      "practiceVersion": 1,
+      "beneficiaryPresent": false,
+      "interventionPresent": false,
+      "buildingPresent": false,
+      "calculationPresent": false,
+      "serverStatus": "lavorazione",
+      "createdAt": "2026-09-08 02:55:20",
+      "modifiedAt": "2026-09-08 02:55:20",
+      "verdict": "empty_draft_shell_not_completed"
+    },
+    {
+      "displayName": "Danila Serpa",
+      "draftId": "470774",
+      "method": "three_authenticated_read_only_gets",
+      "httpStatuses": [200, 200, 200],
+      "responsesConcordant": true,
+      "practiceKeys": ["ver"],
+      "practiceVersion": 1,
+      "beneficiaryPresent": false,
+      "interventionPresent": false,
+      "buildingPresent": false,
+      "calculationPresent": false,
+      "serverStatus": "lavorazione",
+      "createdAt": "2026-09-08 02:58:24",
+      "modifiedAt": "2026-09-08 02:58:24",
+      "verdict": "empty_draft_shell_not_completed"
+    },
+    {
+      "displayName": "Eugenio Codognato",
+      "draftId": null,
+      "method": "checkpoint_ledger_cdp_driver_cross_check",
+      "createIntentAt": "2026-09-07T22:53:59.389Z",
+      "isolatedAt": "2026-09-07T22:54:02.611Z",
+      "createAttemptCount": 1,
+      "saveAttemptCount": 0,
+      "completedPageIds": [],
+      "cdpMappings": [],
+      "cdpEvents": [],
+      "verdict": "no_identifiable_draft_and_no_completion_evidence"
+    }
+  ],
+  "conclusion": {
+    "verifiedCompleted": 37,
+    "additionalHiddenCompletionsProven": 0,
+    "claimThat32TechnicalBlocksAreCompletedFalseAlarms": "not_supported_and_contradicted_by_persisted_and_server_evidence",
+    "structuralFinalizerCorrectionApplied": false,
+    "reasonNoCorrectionApplied": "No demonstrated finalizer defect explains the 38 technical outcomes. Applying a correction to that hypothesis would weaken fail-closed controls without proof."
+  },
+  "safety": {
+    "serverProbeMethods": ["GET", "HEAD"],
+    "mutatingMethodsRejectedBeforeDispatch": ["POST", "PUT", "PATCH", "DELETE"],
+    "navigationPerformed": false,
+    "formLoadedInUi": false,
+    "serverWritesObserved": false
+  }
+}

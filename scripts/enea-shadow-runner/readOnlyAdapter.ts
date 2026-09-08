@@ -399,9 +399,27 @@ export class PersistentReadOnlyAdapter {
       const validation = validateFixture(fixture, now);
       const revision = current.revision + 1;
       const ok = validation.ok;
-      const reason = ok
-        ? `Fixture locale ${fixture.id} verificata: identità, allowlist e ${validation.evidence.length} prove read-only valide.`
-        : `Fixture locale bloccata: ${validation.reason}.`;
+      const derived = validation.ok
+        ? {
+          reason: `Fixture locale ${fixture.id} verificata: identità, allowlist e ${validation.evidence.length} prove read-only valide.`,
+          identityFingerprint: validation.fingerprint as string | null,
+          allowlistedOrigins: validation.origins,
+          evidence: validation.evidence,
+          keepaliveCount: validation.evidence.filter((entry) => entry.purpose === "keepalive").length,
+          lastKeepaliveAt: validation.evidence.find((entry) => entry.purpose === "keepalive")?.acquiredAt ?? null,
+        }
+        : {
+          // Il progetto compila con strict:false: il restringimento del ramo
+          // "false" di un'unione discriminata a due membri non e' affidabile
+          // in questa configurazione, da qui il cast esplicito verificato dal
+          // controllo runtime validation.ok appena eseguito.
+          reason: `Fixture locale bloccata: ${(validation as { ok: false; reason: string }).reason}.`,
+          identityFingerprint: null as string | null,
+          allowlistedOrigins: [] as string[],
+          evidence: [] as AdapterEvidence[],
+          keepaliveCount: 0,
+          lastKeepaliveAt: null as string | null,
+        };
       const nextAction = ok
         ? "Osservare prove e keepalive nella dashboard; il gate pratiche resta chiuso senza adattatore reale."
         : "Correggere la fixture o il contratto; non collegare sistemi esterni e non avviare pratiche.";
@@ -412,7 +430,7 @@ export class PersistentReadOnlyAdapter {
         type: ok ? "fixture_verified" : "adapter_blocked",
         idempotencyKey,
         appliedRuleIds: ["system-readonly-adapter-contract", "system-atomic-checkpoint-resume"],
-        reason,
+        reason: derived.reason,
         nextAction,
       };
       const next: ReadOnlyAdapterState = {
@@ -422,12 +440,12 @@ export class PersistentReadOnlyAdapter {
         mode: "local_fixture",
         fixtureId: fixture.id,
         identityOutcome: ok ? "verified_fixture" : "blocked",
-        identityFingerprint: ok ? validation.fingerprint : null,
-        allowlistedOrigins: ok ? validation.origins : [],
-        evidence: ok ? validation.evidence : [],
-        keepaliveCount: ok ? validation.evidence.filter((entry) => entry.purpose === "keepalive").length : 0,
-        lastKeepaliveAt: ok ? validation.evidence.find((entry) => entry.purpose === "keepalive")?.acquiredAt ?? null : null,
-        reason,
+        identityFingerprint: derived.identityFingerprint,
+        allowlistedOrigins: derived.allowlistedOrigins,
+        evidence: derived.evidence,
+        keepaliveCount: derived.keepaliveCount,
+        lastKeepaliveAt: derived.lastKeepaliveAt,
+        reason: derived.reason,
         nextAction,
         processedIdempotencyKeys: [...current.processedIdempotencyKeys, idempotencyKey].slice(-1_000),
         audit: [...current.audit, event].slice(-500),

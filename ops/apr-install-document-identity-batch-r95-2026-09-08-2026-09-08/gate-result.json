@@ -1,0 +1,34 @@
+{
+  "artifactId": "1a9eea16b062729f6b0f350b14aac0b98a40323fe4cc6aff4dc26b30d04b5bd4",
+  "payload": {
+    "version": "apr-correction-activation-gate-v1",
+    "checkedAt": "2026-09-08T17:25:20.854Z",
+    "status": "PASS",
+    "reasons": [],
+    "ruleCoverage": {
+      "totalDeclaredRules": 152,
+      "missingMatrixCoverage": []
+    },
+    "ruleWiring": {
+      "totalRuleIds": 154,
+      "unwiredRuleIds": [],
+      "legacyUnwiredRuleIds": [
+        "user-2026-08-06-existing-plant-authoritative-mapping-v1",
+        "user-2026-08-06-intervention-authoritative-sources-and-defaults-v1",
+        "user-2026-08-06-portal-intermediary-physical-beneficiary-v1",
+        "user-2026-08-06-portal-municipality-controlled-selection-v1",
+        "user-2026-09-05-co-beneficiary-trusted-enter-delivery-v2",
+        "user-2026-09-05-terminal-cohort-browser-quiescence-v1"
+      ]
+    },
+    "testExistence": {
+      "totalDeclaredTests": 604,
+      "missingTests": []
+    },
+    "bundleFreshness": {
+      "checked": true,
+      "matched": true,
+      "mismatchedFiles": []
+    }
+  }
+}

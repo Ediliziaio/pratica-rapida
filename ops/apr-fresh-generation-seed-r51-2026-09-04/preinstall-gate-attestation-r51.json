@@ -1,0 +1,44 @@
+{
+  "version": "apr-fresh-generation-seed-preinstall-gate-r51-v1",
+  "verifiedAt": "2026-09-04T21:00:00.000Z",
+  "status": "tested_not_deployed",
+  "correction": {
+    "ruleId": "system-cohort-seed-atomic-fresh-generation-initialization-v1",
+    "cause": "Il supervisore poteva inizializzare il checkpoint vuoto prima del worker; la policy fresh_generation era catturata soltanto dal costruttore del worker e quindi prepare del supervisore creava item con requiresFreshDraft=false.",
+    "scope": "Tutti i quattro writer di nuovi item: prepare comune, preparePackages Infissi, append dopo validazione e append pacchetti.",
+    "positive": "Un'istanza creata e inizializzata prima del seed rilegge il seed al prepare e produce esclusivamente item requiresFreshDraft=true senza draftId.",
+    "negative": "Una coorte ordinaria resta false; seed illeggibile, policy invalida o override discordante falliscono chiusi.",
+    "race": "initialize alle 20:38:00 prima della preparazione, seed fresh presente e prepare alle 20:38:29: la regressione riproduce l'ordine reale Lucia e ora passa."
+  },
+  "writerAudit": {
+    "path": "ops/apr-fresh-generation-seed-r51-2026-09-04/initialization-writer-audit-r51.json",
+    "newItemWriters": 4,
+    "unprotectedWriters": 0,
+    "directCheckpointWritersOutsideStore": 0
+  },
+  "monotonicGate": {
+    "testSuites": 444,
+    "tests": 1753,
+    "failedSuites": 0,
+    "failedTests": 0,
+    "rulesProved": 133,
+    "sourceFingerprint": "b38661a08c024e572bea7262a2c5b8c5581450acafc2e7c5ada56ffb56416d00",
+    "deploymentMatches": false,
+    "execution": {
+      "full": "221 file raccolti; 1752/1753 iniziali, con un solo timeout del file worker sotto carico",
+      "workerRerun": "file worker rieseguito integralmente: 21/21 verde",
+      "composed": "221 file, 1753/1753 test verdi; sostituito l'intero file worker, nessuna assertion omessa",
+      "loopback": "26/26 test dashboard verdi in ambiente loopback consentito",
+      "targeted": "173/173 test di checkpoint, seed e registro verdi",
+      "materialized": "133/133 regole provate"
+    }
+  },
+  "stagedBundle": {
+    "apr-supervisor.mjs": "127cdf403982854d65e70afa1a1ee8a5128cb7990694aad7c31227fa6d933a04",
+    "apr-enea-worker.mjs": "67afeee3edc69e0b2abb2bd07971c7873cfd4b9876e6dd86cd1433ff99304d07",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "apr-pdf-ocr": "4c41c9a6832b11b9d19eace538100270a533dddc05e475e5842711968393327f"
+  },
+  "previousCanonicalVersion": "c7b93248-recovery-accounting-candidate-r50-20260904",
+  "candidateVersion": "67afeee3-fresh-generation-seed-r51-20260904"
+}

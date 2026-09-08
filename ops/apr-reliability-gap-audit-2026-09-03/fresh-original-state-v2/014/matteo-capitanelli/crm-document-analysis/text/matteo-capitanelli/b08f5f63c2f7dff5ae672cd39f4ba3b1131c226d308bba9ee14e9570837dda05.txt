@@ -1,0 +1,493 @@
+APR_OCR_ORIENTATION:270
+Istituto Giordano S.p.A.
+PEC: ist-giordano@legalmail.it
+REA. CO CCIAA. (RN) 156766
+Foglio
+11 di9
+Tel. +39 0541 343030 - Fax +39 0541 345540
+istitutogiordano@giordano.it - www.giordano.it
+Registro Imprese di Rimini n. 00 549 540 409
+Via Rossini, 2 - 47814 Bellaria-Igea Marina (RN) - Italia
+Cod. Fisc/Part NA: 00 549 540 409 - Cap. Soc. € 1.500.000 iv.
+RAPPORTO DI PROVA N. 325261
+Committente: ROLLPLAST S.r.l. - Contrada Sant'Antuono - Zona Industriale - 84035 POLLA (SA) -
+Oggetto della prova: determinazione delle caratteristiche di comfort termico e visivo di tapparelle
+Il presente rapporto di prova è composto da n. 9 fogli.
+CLAUSOLE: il presente documento si riferisce solamente al campione o materiale sottoposto a prova e non può essere riprodotto parzialmente, salvo approvazione scritta dell'Istituto Giordano.
+avvolgibili secondo la norma UNI EN 14501:2006
+Luogo della prova: Istituto Giordano S.p.A. - Via Erbosa, 82/84 - 47043 Gatteo (FC) - Italia
+Luogo e data di emissione: Bellaria-Igea Marina - Italia, 15/06/2015
+Il campione sottoposto a prova è denominato "AVVOLGIBILE IN ALLUMINIO".
+Provenienza del campione: campionato e fornito dal Committente
+Identificazione del campione in accettazione: n. 2015/1214-A
+Numero e data della commessa: 66837, 11/06/2015
+Data del ricevimento del campione: 10/06/2015
+ISTITUTO
+GIORDANO
+Data della richiesta della prova: 09/06/2015
+Data dell'esecuzione della prova: 11/06/2015
+Italia
+Denominazione del campione*.
+(*) secondo le dichiarazioni del Committente.
+Comp. AV
+Revis. DZ
+
+APR_OCR_ORIENTATION:90
+4PI GIORDANO
+DISTITUTO
+tata con schiuma poliuretanica.
+Descrizione del campione*•
+(*) secondo le dichiarazioni del Committente.
+(Rapporto di prova n. 325261 del 15/06/2015)
+Fotografia del campione.
+Il campione sottoposto a prova è costituito da n. 1 stecca di avvolgibile in alluminio di colore bianco coiben-
+segue - foglio n. 2 di 9
+
+APR_OCR_ORIENTATION:0
+(Rapporto di prova n. 325261 del 15/06/2015)
+segue - foglio n. 3 di 9
+ISTITUTO
+49 GIORDANO
+Riferimenti normativi.
+La prova è stata eseguita prendendo in considerazione le seguenti norme:
+- UNI EN 14501:2006 del 09/02/2006 "Tende e chiusure oscuranti - Benessere termico e visivo - Caratteri-
+stiche prestazionali e classificazione";
+- UNI EN 14500:2008 del 25/09/2008 "Tende e chiusure oscuranti - Benessere termico e visivo - Metodi di
+prova e di calcolo";
+- UNI EN 13363-1:2008 del 13/03/2008 "Dispositivi di protezione solare in combinazione con vetrate - Cal-
+colo della trasmittanza
+solare e luminosa - Parte 1: Metodo semplificato" con errata corrige 1 del
+22/04/2010;
+- UNI EN 410:2011 del 10/03/2011 "Vetro per edilizia - Determinazione delle caratteristiche luminose e so-
+lari delle vetrate".
+Descrizione delle provette.
+Dal campione in esame sono state ricavate, mediante taglio, n. 3 provette.
+Le proprietà ottiche sono state determinate sulle suddette provette.
+Apparecchiatura di prova.
+Per l'esecuzione della prova è stato utilizzato uno spettrofotometro modello "Lambda 9" della ditta Perkin-
+Elmer per misure negli intervalli spettrali ultravioletto/visibile/vicino infrarosso, corredato di sfera integrante
+da 60 mm modello "B013-9941".
+Modalità della prova.
+La prova è stata eseguita considerando la tapparella avvolgibile in due diverse configurazioni, in accordo con
+il paragrafo 5.2.1 della norma UNI EN 14501:2006: "completamente chiusa" e "semichiusa".
+La configurazione semichiusa indica che il passaggio della luce avviene solo attraverso le asole.
+
+APR_OCR_ORIENTATION:90
+minate:
+GIORDANO
+STITUTO
+Note: - il pedice "
+Fattore di schermatura solare del campione
+(Rapporto di prova n. 325261 del 15/06/2015)
+Fattore solare del campione in combinazione con la vetrata
+Fattore di trasmissione UV con geometria normale/emisferica del campione
+Fattore di trasmissione luminosa con geometria normale/diffusa del campione
+Fattore di trasmissione solare diretta del campione in combinazione con la vetrata
+Fattore di assorbimento solare con geometria normale/emisferico del campione
+Fattore di riflessione luminosa con geometria normale/emisferica del campione
+Fattore di trasmissione luminosa con geometria normale/normale del campione
+Fattore di assorbimento luminoso con geometria normale/emisferico del campione
+Fattore di trasmissione luminosa con geometria diffusa/emisferica del campione
+Fattore di trasmissione solare diretta con geometria normale/normale del campione
+Fattore di trasmissione luminosa con geometria normale/emisferica del campione
+previsto nel paragrafo 8.4 della norma UNI EN 14500:2008, utilizzando le seguenti formule:
+- il fattore solare o trasmittanza di energia solare totale è definito come g = Te + qi;
+Fattore di trasferimento secondario del calore del campione in combinazione con la vetrata
+Fattore di riflessione solare con geometria normale/emisferica del campione lato esterno
+Fattore di trasmissione solare diretta con geometria normale/emisferica del campione
+chiusa", sono stati posti uguali a "'", in accordo con il paragrafo 5.2.1 della norma UNI EN 14501:2006.
+con angolo di incidenza 8 , utilizzando come riterimento il campione per ritlessione diffusa SRS-99-010.
+P = (1 - T) Pn-h
++ = Aholes
+Atot
+Nella configurazione "semichiusa" i valori di trasmissione e riflessione solare sono stati determinati, come
+Tutti i fattori di trasmissione del campione, considerando il campione nella configurazione "completamente
+Per maggior chiarezza riportiamo qui di seguito la simbologia utilizzata per indicare le caratteristiche deter-
+to nella norma UNI EN 14500:2008, metodo di prova B. La misura dello spettro di riflessione è stata eseguita
+È stata effettuata la misura dei fattori spettrali di riflessione del campione, seguendo il procedimento descrit-
+tot" indica che la grandezza è riferita al campione in combinazione con la vetrata;
+segue - foglio n. 4 di 9
+Fc
+9i, tot
+Stot
+Te,tot
+Ole,n-h
+Ov,n-h
+Pe,n-h
+Pv,n-h
+Tv,dif-h
+Tuv,n-h
+Te,n-n
+Te,n-h
+Tv, n-dif
+Tv, n-n
+Tv,n-h
+
+APR_OCR_ORIENTATION:0
+(Rapporto di prova n. 325261 del 15/06/2015)
+segue - foglio n. 5 di 9
+ISTITUTO
+49 GIORDANO
+- il fattore di schermatura solare è definito come Fc = §tot/g; esso dipende dalle caratteristiche del
+campione, dal tipo di installazione (esterno alla vetrata o interno alla vetrata) e dalle caratteristiche
+della vetrata;
+- tutti i risultati sono stati arrotondati a due cifre significative, fermandosi alla quarta cifra decimale;
+la classificazione è stata effettuata considerando i risultati con due cifre decimali, in accordo con il
+paragrafo 5 della norma UNI EN 410:2011.
+Determinazione dei fattori di riflessione e assorbimento del campione.
+Il fattore di riflessione luminosa "Pv,n-h" è stato determinato secondo l'illuminante D65, seguendo la procedu-
+ra descritta nella norma UNI EN 410:2011 ed utilizzando la distribuzione spettrale riportata nella tabella 1
+della stessa norma.
+Il fattore di riflessione solare "Pe,n-" è stato calcolato secondo la norma UNI EN 410:2011 utilizzando la distri-
+buzione spettrale relativa della radiazione solare (diretta + diffusa) per massa d'aria = 1 riportata nella tabella
+2 della stessa norma.
+I fattori di assorbimento luminoso "av, nh" e solare "de,n-t" sono stati ricavati dai valori del fattore di trasmis-
+sione e del fattore di riflessione, mediante le seguenti relazioni:
+Ov, n-h = 1 - Tv,n-h- Pv,n-h
+Ole,n-h = 1 - Te,n-h- Pe, n-h
+Determinazione delle caratteristiche di comfort termico.
+Le caratteristiche di comfort termico del campione in combinazione con la vetrata, quali il fattore solare
+"Stot", il fattore di trasmissione solare diretta "'Te,tot", il fattore di trasferimento secondario del calore "alito" e
+il fattore di schermatura solare "Fc", sono state determinate, in accordo con i paragrafi 5.2 e 5.3 della norma
+UNI EN 14501:2006, considerando il campione in due diverse condizioni di installazione (esterno alla vetrata,
+interno alla vetrata) ed in combinazione con quattro differenti vetrate di riferimento, le cui caratteristiche
+sono riportate nell'appendice "A" della stessa norma.
+In particolare, il calcolo fattore solare "gto" è stato effettuato considerando la tapparella avvolgibile in due
+diverse configurazioni: "completamente chiusa" e "semichiusa", come specificato nel paragrafo 5.2.1 della
+norma UNI EN 14501:2006.
+Si riporta di seguito la definizione delle classi per le caratteristiche di comfort termico secondo la tabella 1
+della norma UNI EN 14501:2006.
+
+APR_OCR_ORIENTATION:0
+(Rapporto di prova n. 325261 del 15/06/2015)
+segue - foglio n. 6 di 9
+DISTITUTO
+49 GIORDANO
+Influenza sul comfort termico
+Classe 0
+Classe 1
+Classe 2
+Classe 3
+Classe 4
+Effetto
+molto piccolo
+Effetto piccolo
+Effetto moderato
+Effetto buono
+Effetto
+molto buono
+Determinazione delle caratteristiche di comfort visivo.
+Sono state prese in considerazione le caratteristiche di comfort visivo riportate nel paragrafo 6 della norma
+UNI EN 14501:2006, eccetto il controllo dell'opacità e la resa del colore.
+Il controllo del bagliore, la privacy notturna, il contatto visivo con l'esterno e l'utilizzazione della luce diurna
+sono state determinate rispettivamente secondo i paragrafi 6.3, 6.4, 6.5 e 6.6 della norma UNI EN
+14501:2006 e classificate rispetto alle tabelle 8, 9, 10 e 11 della stessa norma.
+Influenza sul comfort visivo
+Classe 0
+Classe 1
+Classe 2
+Classe 3
+Classe 4
+Effetto
+molto piccolo
+Effetto piccolo
+Effetto moderato
+Effetto buono
+Effetto
+molto buono
+Condizioni ambientali al momento della prova.
+Pressione atmosferica
+100200 Pa
+Temperatura ambiente
+(24 + 2) °C
+Umidità relativa
+(56 + 5) %
+
+APR_OCR_ORIENTATION:0
+(Rapporto di prova n. 325261 del 15/06/2015)
+segue - foglio n. 7 di 9
+MISTITUTO
+4 GIORDANO
+Risultati della prova.
+AVVOLGIBILE IN ALLUMINIO
+Determinazione dei fattori di trasmissione e di riflessione.
+Completamente chiusa
+Fattore di trasmissione solare diretta "Te,n-t"
+0,00
+Fattore di trasmissione luminosa "',n-h"
+0,00
+Fattore di trasmissione UV "Tur,ni"
+0,00
+Fattore di riflessione solare "Pe,n-h"
+0,67
+Fattore di riflessione luminosa "Pv,n-h"
+0,74
+Fattore di assorbimento solare de,n-h
+0,33
+Fattore di assorbimento luminoso Ov,n-h
+0,26
+Semichiusa
+Fattore di trasmissione solare diretta "Te,n-h"
+0,017
+Fattore di trasmissione luminosa "'v,n-h"
+0,017
+Fattore di riflessione solare "Pe,n-h"
+0,66
+Fattore di riflessione luminosa "pv,n-h"
+0,73
+Fattore di assorbimento solare de,n-h
+0,32
+Fattore di assorbimento luminoso Ov,n-h
+0,26
+
+APR_OCR_ORIENTATION:180
+0,78
+0,0061
+1
+0,24
+2
+0,25
+D
+0,60
+0,010
+0
+0,34
+1
+0,35
+alla vetrata
+0,47
+0,013
+0
+0,34
+0,36
+B
+Interno
+0,39
+0,015
+0
+0,31
+2
+0,33
+0,11
+0,0056
+4
+0,028
+4
+0,034
+D
+0,067
+0,010
+4
+0,029
+4
+0,039
+alla vetrata
+0,084
+0,013
+3
+0,051
+4
+0,064
+B
+Esterno
+0,098
+0,015
+3
+0,069
+4
+0,083
+A
+valore
+valore
+classe
+valore
+classe
+valore
+"'Testo"
+"Alito'"
+"Eroe"
+del calore
+solare
+solare diretto
+secondario
+riferimento
+del campione
+schermatura
+trasmissione
+di trasferimento
+di
+d'installazione
+Fattore di
+Fattore di
+Fattore
+Fattore solare totale
+Vetrate
+Condizioni
+Semichiusa
+Fattore di trasmissione solare normale/normale "Te,n-" = 0,00 (classe 4)
+0,77
+0,000
+1
+0,25
+2
+0,25
+D
+0,59
+0,000
+0
+0,35
+1
+0,35
+alla vetrata
+0,46
+0,000
+0,35
+1
+0,35
+B
+Interno
+0,37
+0,000
+0,32
+2
+0,32
+A
+0,084
+0,000
+4
+0,027
+4
+0,027
+D
+0,049
+0,000
+4
+0,029
+4
+0,029
+alla vetrata
+0,067
+0,000
+3
+0,051
+4
+0,051
+B
+Esterno
+0,081
+0,000
+3
+0,069
+4
+0,069
+A
+valore
+valore
+classe
+valore
+classe
+valore
+"F"
+"Testo"
+"Alitol
+"tot"
+del calore
+solare
+solare diretto
+secondario
+riferimento
+del campione
+schermatura
+trasmissione
+di trasferimento
+di
+d'installazione
+Fattore di
+Fattore di
+Fattore
+Fattore solare totale
+Vetrate
+Condizioni
+Completamente chiusa
+Determinazione delle caratteristiche di comfort termico.
+8 GIORDANO
+DISTITUTO
+segue - foglio n. 8 di 9
+(Rapporto di prova n. 325261 del 15/06/2015)
+
+APR_OCR_ORIENTATION:0
+(Rapporto di prova n. 325261 del 15/06/2015)
+segue - foglio n. 9 di 9
+Determinazione delle caratteristiche di comfort visivo.
+Caratteristiche
+Fattore
+Fattore
+Fattore
+Classe
+determinate
+di trasmissione
+di trasmissione
+di trasmissione
+luminosa
+luminosa
+luminosa
+normale/normale
+normale/diffusa
+diffusa/emisferica
+"Tu,n-n"
+"Turn-dit"
+"Tv dit-h"
+Controllo
+del bagliore
+4
+Privacy
+notturna
+0,00
+0,00
+4
+Contatto visivo
+con l'esterno
+0
+Utilizzazione
+luce diurna
+//
+//
+0,00
+0
+SPETTRO DI RIFLESSIONE
+AVVOLGIBILE IN ALLUMINIO
+100
+90
+80
+70
+60
+50
+Riflessione [%]
+40
+30
+20
+10
+300
+500
+700
+900
+1100
+1300
+1500
+1700
+1900
+2100
+2300
+2500
+Lunghezza d'onda [nm]
+Il Responsabile
+Il Responsabile del Laboratorio
+L'Amministratore Delegato
+Tecnico di Prova
+di Ottica
+(Dott. Arch. Sara Lorenza Giordano)
+(Dott. Daniele Zecca)
+(Dott. Floriano Tamanti)
+Danel Secca
+taranti Moriono coralan deo laeuse
+Firmato digitalmente da GIORDANO SARA LORENZA

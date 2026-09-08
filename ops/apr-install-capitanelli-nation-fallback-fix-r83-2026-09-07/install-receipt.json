@@ -1,0 +1,23 @@
+{
+  "version": "apr-install-bundle-cli-receipt-v1",
+  "installedAt": "2026-09-07T16:09:03.700Z",
+  "label": "capitanelli-nation-fallback-fix-r83",
+  "versionId": "5596c73b-capitanelli-nation-fallback-fix-r83-20260907",
+  "previousTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/c53ceda9-bank-transfer-suspension-tuttolani-fix-r82-20260907",
+  "currentTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/5596c73b-capitanelli-nation-fallback-fix-r83-20260907",
+  "installedBundle": {
+    "apr-supervisor.mjs": "6077ff1344dadaf993788ba10dd2299c42443ae62afeb81bd61775ecf8f74a37",
+    "apr-enea-worker.mjs": "548f3457053c82f8a947e6622e3b1fecec8aaf2f7b60110f984c0e13263f16c0",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0"
+  },
+  "gateResultArtifactId": "3f910c493cbe5cbd7275da708c0041f2fb541a1a479fb4a0b74eb0bacf8e3dbe",
+  "gateStatus": "PASS",
+  "legacyGovernanceDebtNoticed": [
+    "user-2026-08-06-existing-plant-authoritative-mapping-v1",
+    "user-2026-08-06-intervention-authoritative-sources-and-defaults-v1",
+    "user-2026-08-06-portal-intermediary-physical-beneficiary-v1",
+    "user-2026-08-06-portal-municipality-controlled-selection-v1",
+    "user-2026-09-05-co-beneficiary-trusted-enter-delivery-v2",
+    "user-2026-09-05-terminal-cohort-browser-quiescence-v1"
+  ]
+}

@@ -1,0 +1,1421 @@
+Spett.le. STELLINO DESIGN SRL
+VIA FRANCESCO BARACCA, 80
+00177 ROMA
+Rif. Sellati Claudia
+Dichiarazione di prestazione (DoP) N° 74618-26 pag. 1 / 17.02.26
+Pos. 1 Q.tà 1 [01] Cod.Identif.Prodotto tipo: F1AR 01 (Finestra ad 1 anta Ribalta) [02] N. di Tipo lotto serie: SmartWood 68 F/PF L - 74618 - 1
+[03] Uso previsto: Finestre e porte uso residenziale e commerciale
+da 720 x 670 mm.
+[04] Fabbricante: - Gruppo Cosmet -
+[05] Mandatario: non presente
+[06] Sistema di valutazione e verifica della costanza della prestazione:
+[07] Organismo notificato: LegnoLegno-1709 /IRCCOS Srl/Norma UNI
+[08] ETA: non applicabile.
+Valori Classi Livelli Norma di Class. Rapp. di prova Laboratorio di prova
+[09] Prestazioni dichiarate Resistenza al vento C5 EN 12210 1994-CPR-RPxx1277xx IRCCOS Srl
+Tenuta all'acqua E1500 EN 12208 1994-CPR-RPxx1277xx IRCCOS Srl
+Permeabilità all'aria 4 UNI EN 12207 1994-CPR-RPxx1277xx IRCCOS Srl
+Potere fonoisolante Rw(C;Ctr)=37 dB(-1,-4) UNI EN ISO 717-1 EN 14351 Norma UNI
+Trasmissione luminosa 69 % UNI EN 410
+Trasmittanza termica (Uw) 1.2 UNI EN ISO 10077-1 F3000 Software validato
+Forza di Azionamento Passa Rilascio Sostanze pericolose Vedi dichiarazione
+UNI EN 13115: 2020 Fattore solare g 43 % UNI EN 410
+Si consiglia la verifica dopo la posa
+Norma di prodotto: finestre e porte pedonali esterne - UNI EN 14351-1:2016/REG.(UE) 305/2011
+Pos. 2 Q.tà 1 [01] Cod.Identif.Prodotto tipo: F2AR 01 (Finestra 2 ante, 1 Ribalta) [02] N. di Tipo lotto serie: SmartWood 68 F/PF L - 74618 - 2
+da 1080 x 1435 mm.
+[03] Uso previsto: Finestre e porte uso residenziale e commerciale
+[04] Fabbricante: - Gruppo Cosmet -
+[05] Mandatario: non presente
+[06] Sistema di valutazione e verifica della costanza della prestazione:
+[07] Organismo notificato: LegnoLegno-1709 /IRCCOS Srl/Norma UNI
+[08] ETA: non applicabile.
+Valori Classi Livelli Norma di Class. Rapp. di prova Laboratorio di prova
+[09] Prestazioni dichiarate Resistenza al vento C5 EN 12210 1994-CPR-RPxx1277xx IRCCOS Srl
+Tenuta all'acqua E1500 EN 12208 1994-CPR-RPxx1277xx IRCCOS Srl
+Permeabilità all'aria 4 UNI EN 12207 1994-CPR-RPxx1277xx IRCCOS Srl
+Potere fonoisolante Rw(C;Ctr)=37 dB(-1,-4) UNI EN ISO 717-1 EN 14351 Norma UNI
+Trasmissione luminosa 69 % UNI EN 410
+Trasmittanza termica (Uw) 1.3 UNI EN ISO 10077-1 F3000 Software validato
+Forza di Azionamento Passa Rilascio Sostanze pericolose Vedi dichiarazione
+UNI EN 13115: 2020 Fattore solare g 43 % UNI EN 410
+Si consiglia la verifica dopo la posa
+Norma di prodotto: finestre e porte pedonali esterne - UNI EN 14351-1:2016/REG.(UE) 305/2011
+Pos. 3 Q.tà 1 [01] Cod.Identif.Prodotto tipo: F1AR 01 (Finestra ad 1 anta Ribalta) [02] N. di Tipo lotto serie: SmartWood 68 F/PF L - 74618 - 3
+da 600 x 915 mm.
+[03] Uso previsto: Finestre e porte uso residenziale e commerciale
+[04] Fabbricante: - Gruppo Cosmet -
+[05] Mandatario: non presente
+[06] Sistema di valutazione e verifica della costanza della prestazione:
+[07] Organismo notificato: LegnoLegno-1709 /IRCCOS Srl/Norma UNI
+[08] ETA: non applicabile.
+Valori Classi Livelli Norma di Class. Rapp. di prova Laboratorio di prova
+[09] Prestazioni dichiarate Resistenza al vento C5 EN 12210 1994-CPR-RPxx1277xx IRCCOS Srl
+Tenuta all'acqua E1500 EN 12208 1994-CPR-RPxx1277xx IRCCOS Srl
+Permeabilità all'aria 4 UNI EN 12207 1994-CPR-RPxx1277xx IRCCOS Srl
+Potere fonoisolante Rw(C;Ctr)=37 dB(-1,-4) UNI EN ISO 717-1 EN 14351 Norma UNI
+Trasmissione luminosa 69 % UNI EN 410
+Trasmittanza termica (Uw) 1.2 UNI EN ISO 10077-1 F3000 Software validato
+Forza di Azionamento Passa Rilascio Sostanze pericolose Vedi dichiarazione
+UNI EN 13115: 2020 Fattore solare g 43 % UNI EN 410
+Si consiglia la verifica dopo la posa
+Norma di prodotto: finestre e porte pedonali esterne - UNI EN 14351-1:2016/REG.(UE) 305/2011
+APR_VISUAL_OCR:
+Pos. 3
+Pos. 2
+Pos. 1
+CM
+Fattore solare g
+Fattore solare g
+Forza di Azionamento
+Trasmissione luminosa
+Potere fonoisolante
+Permeabilità all'aria
+Resistenza vento
+[09] Prestazioni dichiarate
+[08] ETA: non applicabile.
+[05] Mandatario: non presente
+Forza di Azionamento
+Resistenza al vento
+[09] Prestazioni dichiarate
+[08] ETA: non applicabile.
+Fattore solare g
+Tenuta all'acqua
+[05] Mandatario: non presente
+Forza di Azionamento
+Resistenza al vento
+[09] Prestazioni dichiarate
+[08] ETA: non applicabile.
+[05] Mandatario: non presente
+Dichiarazione di prestazione (DoP) N° 74618-26
+Trasmittanza termica (Uw)
+[04] Fabbricante: - Gruppo Cosmet -
+Trasmissione luminosa
+Potere fonoisolante
+Permeabilità all'aria
+Tenuta all'acqua
+Rilascio Sostanze pericolose
+Trasmittanza termica (Uw)
+[04] Fabbricante: - Gruppo Cosmet -
+Trasmissione luminosa
+Potere fonoisolante
+Permeabilità all'aria
+Trasmittanza termica (Uw)
+[04] Fabbricante: - Gruppo Cosmet -
+FIDEAL ALWO. COSMET.
+Rilascio Sostanze pericolose Vedi dichiarazione
+Qtà 1 (02) N. di Tipo lotto serio: SmariAood 68 FISiL 21618 a Riballa)
+[02] N. di Tipo lotto serie: SmartWood 68 F/PF L - 74618 - 2
+Q. tà 1 [01] Cod.Identif.Prodotto tipo: F2AR 01 (Finestra 2 ante, 1 Ribalta)
+Rilascio Sostanze pericolose Vedi dichiarazione
+[02] N. di Tipo lotto serie: SmartWood 68 F/PF L - 74618 - 1
+Q.tà 1 [01] Cod.Identif. Prodotto tipo: F1AR 01 (Finestra ad 1 anta Ribalta)
+[07] Organismo notificato: LegnoLegno-1709 /IRCCOS Srl/Norma UNI
+[06] Sistema di valutazione e verifica della costanza della prestazione:
+[03] Uso previsto: Finestre e porte uso residenziale e commerciale
+[07! Organismo notificato: LegnoLegno-1709 /IRCCOS Srl/Norma UNI
+[06] Sistema di valutazione e verifica della costanza della prestazione:
+[03] Uso previsto: Finestre e porte uso residenziale e commerciale
+[07] Organismo notificato: LegnoLegno-1709 /IRCCOS Srl/Norma UNI
+[06] Sistema di valutazione e verifica della costanza della prestazione:
+[03] Uso previsto: Finestre e porte uso residenziale e commerciale
+Passa
+43%
+69%
+E1500
+C5
+Passa
+43 %
+69%
+1.3
+E1500
+C5
+Passa
+43 %
+69 %
+1.2
+E 1500
+C5
+Valori Classi Livelli
+Vedi dichiarazione
+Valori Classi Livelli
+Valori Classi Livelli
+Norma di prodotto: finestre e porte pedonali esterne - UNI EN 14351-1:2016/REG.(UE) 305/2011
+Norma di prodotto: finestre e porte pedonali esterne - UNI EN 14351-1:2016/REG.(UE) 305/2011
+Norma di prodotto: finestre e porte pedonali esterne - UNI EN 14351-1:2016/REG.(UE) 305/2011
+Rw(C;Ctr)=37 dB(-1,-4) UNI EN ISO 717-1
+Rw(C;Ctr)=37 dB(-1,-4) UNI EN ISO 717-1
+Rw(C;Ctr)=37 dB(-1,-4) UNI EN ISO 717-1
+Rif.
+UNI EN 410
+UNI EN 410
+EN 12208
+EN 12210
+UNI EN 12207
+Norma di Class.
+UNI EN 410
+UNI EN 410
+EN 12208
+EN 12210
+UNI EN 12207
+UNI EN 410
+EN 12208
+EN 12210
+Spett.le.
+Norma di Class.
+UNI EN 410
+UNI EN 12207
+Norma di Class.
+UNI EN ISO 10077-1 F3000
+UNI EN ISO 10077-1 F3000
+UNI EN ISO 10077-1 F3000
+Sellati Claudia
+00177 ROMA
+STELLINO DESIGN SRL
+UNI EN 13115: 2020 Si consiglia la verifica dopo la posa
+EN 14351
+UNI EN 13115: 2020 Si consiglia la verifica dopo la posa
+EN 14351
+UNI EN 13115: 2020 Si consiglia la verifica dopo la posa
+EN 14351
+VIA FRANCESCO BARACCA, 80
+1994-CPR-RPxIRCCOS Srl
+1994-CPR-RPXIRCCOS Srl
+1994-CPR-RPxIRCCOS Srl
+1994-CPR-RPxIRCCOS Srl
+1994-CPR-RPxIRCCOS Srl
+1994-CPR-RPXIRCCOS Srl
+1994-CPR-RPxIRCCOS Srl
+1994-CPR-RPxIRCCOS Srl
+Rapp. di prova Laboratorio di prova
+Rapp. di prova Laboratorio di prova
+Norma UNI
+Norma UNI
+Norma UNI
+Software validato
+da 600 x 915 mm.
+Software validato
+Software validato
+da 1080 x 1435 mm.
+da 720 x 670 mm.
+pag. 1/ 17.02.26
+APR_ROTATED_CLOCKWISE_OCR:
+Pos. 3
+Pos. 2
+Pos. 1
+CM
+Fattore solare g
+Fattore solare g
+Forza di Azionamento
+Trasmissione luminosa
+Potere fonoisolante
+Permeabilità all'aria
+Resistenza vento
+[09] Prestazioni dichiarate
+[08] ETA: non applicabile.
+[05] Mandatario: non presente
+Forza di Azionamento
+Resistenza al vento
+[09] Prestazioni dichiarate
+[08] ETA: non applicabile.
+Fattore solare g
+Tenuta all'acqua
+[05] Mandatario: non presente
+Forza di Azionamento
+Resistenza al vento
+[09] Prestazioni dichiarate
+[08] ETA: non applicabile.
+[05] Mandatario: non presente
+Dichiarazione di prestazione (DoP) N° 74618-26
+Trasmittanza termica (Uw)
+[04] Fabbricante: - Gruppo Cosmet -
+Trasmissione luminosa
+Potere fonoisolante
+Permeabilità all'aria
+Tenuta all'acqua
+Rilascio Sostanze pericolose
+Trasmittanza termica (Uw)
+[04] Fabbricante: - Gruppo Cosmet -
+Trasmissione luminosa
+Potere fonoisolante
+Permeabilità all'aria
+Trasmittanza termica (Uw)
+[04] Fabbricante: - Gruppo Cosmet -
+FIDEAL ALWO. COSMET.
+Rilascio Sostanze pericolose Vedi dichiarazione
+Qtà 1 (02) N. di Tipo lotto serio: SmariAood 68 FISiL 21618 a Riballa)
+[02] N. di Tipo lotto serie: SmartWood 68 F/PF L - 74618 - 2
+Q. tà 1 [01] Cod.Identif.Prodotto tipo: F2AR 01 (Finestra 2 ante, 1 Ribalta)
+Rilascio Sostanze pericolose Vedi dichiarazione
+[02] N. di Tipo lotto serie: SmartWood 68 F/PF L - 74618 - 1
+Q.tà 1 [01] Cod.Identif. Prodotto tipo: F1AR 01 (Finestra ad 1 anta Ribalta)
+[07] Organismo notificato: LegnoLegno-1709 /IRCCOS Srl/Norma UNI
+[06] Sistema di valutazione e verifica della costanza della prestazione:
+[03] Uso previsto: Finestre e porte uso residenziale e commerciale
+[07! Organismo notificato: LegnoLegno-1709 /IRCCOS Srl/Norma UNI
+[06] Sistema di valutazione e verifica della costanza della prestazione:
+[03] Uso previsto: Finestre e porte uso residenziale e commerciale
+[07] Organismo notificato: LegnoLegno-1709 /IRCCOS Srl/Norma UNI
+[06] Sistema di valutazione e verifica della costanza della prestazione:
+[03] Uso previsto: Finestre e porte uso residenziale e commerciale
+Passa
+43%
+69%
+E1500
+C5
+Passa
+43 %
+69%
+1.3
+E1500
+C5
+Passa
+43 %
+69 %
+1.2
+E 1500
+C5
+Valori Classi Livelli
+Vedi dichiarazione
+Valori Classi Livelli
+Valori Classi Livelli
+Norma di prodotto: finestre e porte pedonali esterne - UNI EN 14351-1:2016/REG.(UE) 305/2011
+Norma di prodotto: finestre e porte pedonali esterne - UNI EN 14351-1:2016/REG.(UE) 305/2011
+Norma di prodotto: finestre e porte pedonali esterne - UNI EN 14351-1:2016/REG.(UE) 305/2011
+Rw(C;Ctr)=37 dB(-1,-4) UNI EN ISO 717-1
+Rw(C;Ctr)=37 dB(-1,-4) UNI EN ISO 717-1
+Rw(C;Ctr)=37 dB(-1,-4) UNI EN ISO 717-1
+Rif.
+UNI EN 410
+UNI EN 410
+EN 12208
+EN 12210
+UNI EN 12207
+Norma di Class.
+UNI EN 410
+UNI EN 410
+EN 12208
+EN 12210
+UNI EN 12207
+UNI EN 410
+EN 12208
+EN 12210
+Spett.le.
+Norma di Class.
+UNI EN 410
+UNI EN 12207
+Norma di Class.
+UNI EN ISO 10077-1 F3000
+UNI EN ISO 10077-1 F3000
+UNI EN ISO 10077-1 F3000
+Sellati Claudia
+00177 ROMA
+STELLINO DESIGN SRL
+UNI EN 13115: 2020 Si consiglia la verifica dopo la posa
+EN 14351
+UNI EN 13115: 2020 Si consiglia la verifica dopo la posa
+EN 14351
+UNI EN 13115: 2020 Si consiglia la verifica dopo la posa
+EN 14351
+VIA FRANCESCO BARACCA, 80
+1994-CPR-RPxIRCCOS Srl
+1994-CPR-RPXIRCCOS Srl
+1994-CPR-RPxIRCCOS Srl
+1994-CPR-RPxIRCCOS Srl
+1994-CPR-RPxIRCCOS Srl
+1994-CPR-RPXIRCCOS Srl
+1994-CPR-RPxIRCCOS Srl
+1994-CPR-RPxIRCCOS Srl
+Rapp. di prova Laboratorio di prova
+Rapp. di prova Laboratorio di prova
+Norma UNI
+Norma UNI
+Norma UNI
+Software validato
+da 600 x 915 mm.
+Software validato
+Software validato
+da 1080 x 1435 mm.
+da 720 x 670 mm.
+pag. 1/ 17.02.26
+APR_ROTATED_COUNTERCLOCKWISE_OCR:
+da 1080 x 1435 mm.
+pag. 1/ 17.02.26
+da 720 x 670 mm.
+Software validato
+Software validato
+da 600 x 915 mm.
+Software validato
+Norma UNI
+Norma UNI
+Rapp. di prova Laboratorio di prova
+Rapp. di prova Laboratorio di prova
+1994 PRA a o di prova.
+1994-CPR-RPxIRCCOS Srl
+1994-CPR-RPxIRCCOS Srl
+1994-CPR-RPxIRCCOS Srl
+1994-CPR-RPxIRCCOS Srl
+1994-CPR-RPxIRCCOS Srl
+1994-CPR-RPxIRCCOS Srl
+1994-CPR-RPxIRCCOS Srl
+1994-CPR-RPxIRCCOS Srl
+VIA FRANCESCO BARACCA, 80
+UNI EN 13115: 2020 Si consiglia la verifica dopo la posa
+EN 14351
+UNI EN 13115: 2020 Si consiglia la verifica dopo la posa
+EN 14351
+UNI EN 13115: 2020 Si consiglia la verifica dopo la posa
+STELLINO DESIGN SRL
+00177 ROMA
+Sellati Claudia
+UNI EN ISO 10077-1 F3000
+UNI EN ISO 10077-1 F3000
+UNI EN ISO 10077-1 F3000
+Norma di Class.
+UNI EN 12207
+Norma di Class.
+UNI EN 12207
+UNI EN 410
+UNI EN 410
+Norma di Class.
+UNI EN 12207
+Spett.le.
+EN 12210
+EN 12208
+EN 12210
+EN 12208
+UNI EN 410
+UNI EN 410
+Rif.
+Rw(C;Ctr)=37 dB(-1,4) UNI EN ISO 717-1
+Rw(C;Ctr)=37 dB(-1,4) UNI EN ISO 717-1
+Rw(C;Ctr)=37 dB(-1,-4) UNI EN ISO 717-1
+Norma di prodotto: finestre e porte pedonali esterne - UNI EN 14351-1:2016/REG.(UE) 305/2011
+Norma di prodotto: finestre e porte pedonali esterne - UNI EN 14351-1:2016/REG.(UE) 305/2011
+Norma di prodotto: finestre e porte pedonali esterne - UNI EN 14351-1:2016/REG.(UE) 305/2011
+Valori Classi Livelli
+Valori Classi Livelli
+Vedi dichiarazione
+Valori Classi Livelli
+E1500
+C5
+E1500
+1.3
+69 %
+43 %
+Passa
+E1500
+1.2
+69%
+43 %
+Passa
+[03] Uso previsto: Finestre e porte uso residenziale e commerciale
+[06] Sistema di valutazione e verifica della costanza della prestazione:
+[07] Organismo notificato: LegnoLegno-1709 /IRCCOS Srl/Norma UNI
+[03] Uso previsto: Finestre e porte uso residenziale e commerciale
+[06] Sistema di valutazione e verifica della costanza della prestazione:
+[07] Organismo notificato: LegnoLegno-1709 /IRCCOS Srl/Norma UNI
+[03] Uso previsto: Finestre e porte uso residenziale e commerciale
+[06j Sistema di valutazione e verifica della costanza della prestazione:
+[07] Organismo notificato: LegnoLegno-1709 /IRCCOS Srl/Norma UNI
+Q.tà 1 [01] Cod.Identif. Prodotto tipo: F1AR 01 (Finestra ad 1 anta Ribalta)
+[02] N. di Tipo lotto serie: SmartWood 68 F/PF L - 74618 - 1
+Riasci Sostanze pericolose Vedi dichiarazione
+Q.tà 1 [01] Cod.Identif. Prodotto tipo: F2AR 01 (Finestra 2 ante, 1 Ribalta)
+[02] N. di Tipo lotto serie: SmartWood 68 F/PF L - 74618 - 2
+Q.tà 1 [01] Cod.Identif. Prodotto tipo: F1AR 01 (Finestra ad 1 anta Ribalta)
+02] N. di Tipo lotto serie: SmartWood 68 F/PF L - 74618 - 3
+Rilascio Sostanze pericolose Vedi dichiarazione
+FIDEAL ALWO. COSMET.
+[04] Fabbricante: - Gruppo Cosmet -
+Trasmittanza termica (Uw)
+[04] Fabbricante: - Gruppo Cosmet -
+Trasmittanza termica (Uw)
+Rilascio Sostanze pericolose
+[04] Fabbricante: - Gruppo Cosmet -
+Trasmittanza termica (Uw)
+Dichiarazione di prestazione (DoP) N° 74618-26
+[05] Mandatario: non presente
+Trasmissione luminosa
+[05] Mandatario: non presente
+Permeabilità all'aria
+[08j ETA: non applicabile.
+[09] Prestazioni dichiarate
+Resistenza al vento
+Tenuta all'acqua
+Permeabilità all'aria
+Potere fonoisolante
+Fattore solare g
+[08] ETA: non applicabile.
+[09] Prestazioni dichiarate
+Resistenza al vento
+Tenuta all'acqua
+Potere fonoisolante
+Trasmissione luminosa
+Forza di Azionamento
+[05] Mandatario: non presente
+Fattore solare g
+[08j ETA: non applicabile.
+[09] Prestazioni dichiarate
+Resistenza al vento
+Tenuta all'acqua
+Permeabilità all'aria
+Potere fonoisolante
+Trasmissione luminosa
+Forza di Allonamento
+CM
+COSMET GROUP
+APR_DIAGRAM_OCR:
+Dichiarazione di prestazione (DoP) 1
+Pos. 1 Q.tà 1 [01] Cod.Identif. Prodotto tipo: F
+[02] N. di Tipo lotto serie: Smar
+[03] Uso previsto: Finestre e po
+[04] Fabbricante: - Gruppo Cosi
+[05] Mandatario: non presente
+[06] Sistema di valutazione e ve
+[07] Organismo notificato: Legn
+[08] ETA: non applicabile.
+[09] Prestazioni dichiarate
+Resistenza al vento
+Tenuta allacqua
+Permeabilità all'aria
+Trasmittanza termica (Uw)
+Potere fonoisolante
+Trasmissione luminosa
+Fattore solare g
+Forza di Azionamento
+Rilascio Sostanze pericolo
+Norma di prodotto: finestre
+Pos. 2
+Q. tà 1
+[01] Cod. Identif.Prodotto tipo: F
+[02] N. di Tipo lotto serie: Smart
+[03] Uso previsto: Finestre e po
+[04] Fabbricante: - Gruppo Cosi
+[05] Mandatario: non presente
+[06] Sistema di valutazione e ve
+[07] Organismo notificato: Legn
+[08] ETA: non applicabile.
+[09] Prestazioni dichiarate
+Resistenza al vento
+Tenuta all'acqua
+Permeabilità all'aria
+Trasmittanza termica (Uw)
+Potere fonoisolante
+Trasmissione luminosa
+Fattore solare g
+Forza di Azionamento
+Rilascio Sostanze pericolo:
+Norma di prodotto: finestre
+Pos. 3
+Q.tà 1
+[01] Cod. Identif.Prodotto tipo: F
+[02] N. di Tipo lotto serie: Smart
+[03] Uso previsto: Finestre e po
+[04] Fabbricante: - Gruppo Cosi
+[05] Mandatario: non presente
+[06] Sistema di valutazione e ve
+[07] Organismo notificato: Legn
+1081 ETA: non applicabile.
+APR_DIAGRAM_ROTATED_CLOCKWISE_OCR:
+Pos. 3
+Pos. 2
+Pos. 1
+Q. tà 1
+Q.tà 1
+Q. tà 1
+Dichiarazione di prestazione (DoP) I
+1081 ETA: non applicabile.
+Fattore solare g
+Tenuta all'acqua
+[09] Prestazioni dichiarate
+[08] ETA: non applicabile.
+Fattore solare g
+Tenuta all'acqua
+[09] Prestazioni dichiarate
+108] =|A: non applicabile.
+Potere fonoisolante
+Permeabilita all'aria
+Resistenza al vento
+Potere fonoisolante
+Permeabilità all'aria
+Resistenza al vento
+[07] Organismo notificato: Legn
+[06] Sistema di valutazione e vE
+[05] Mandatario: non presente
+[04] Fabbricante: - Gruppo Cosi
+[03] Uso previsto: Finestre e po
+[02] N. di Tipo lotto serie: Smar
+[01] Cod. Identif.Prodotto tipo: F
+Forza di Azionamento
+Trasmissione luminosa
+[07] Organismo notificato: Legn
+[06] Sistema di valutazione e ve
+[05] Mandatario: non presente
+[04] Fabbricante: - Gruppo Cosi
+[03] Uso previsto: Finestre e po
+[02] N. di Tipo lotto serie: Smar
+[01] Cod. Identif.Prodotto tipo: F.
+Forza di Azionamento
+Trasmissione luminosa
+[07] Organismo notificato: Legn
+[06] Sistema di valutazione e ve
+[05] Mandatario: non presente
+[04] Fabbricante: - Gruppo CosI
+[03] Uso previsto: Finestre e po
+[02] N. di Tipo lotto serie: Smar
+[01] Cod. Identif.Prodotto tipo: F
+Norma di prodotto: finestre
+Rilascio Sostanze pericolo
+Trasmittanza termica (Uw)
+Norma di prodotto: finestre
+Rilascio Sostanze pericolo:
+Trasmittanza termica (UW)
+APR_DIAGRAM_ROTATED_COUNTERCLOCKWISE_OCR:
+Trasmittanza termica (Uw)
+Rilascio Sostanze pericolos
+Norma di prodotto: finestre
+Trasmittanza termica (Uw)
+Rilascio Sostanze pericolos
+Norma di prodotto: finestre
+[01] Cod. Identif.Prodotto tipo: F
+[02] N. di Tipo lotto serie: Smart
+[03] Uso previsto: Finestre e pol
+[04] Fabbricante: - Gruppo Cosr
+[06] Sistema di valutazione e ve
+[07] Organismo notificato: Legni
+Trasmissione luminosa
+[05] Mandatario: non presente
+Forza di Azionamento
+[01] Cod.Identif.Prodotto tipo: F:
+[02] N. di Tipo lotto serie: Smart
+[03] Uso previsto: Finestre e pol
+[04] Fabbricante: - Gruppo Cosr
+[06] Sistema di valutazione e ve
+Trasmissione luminosa
+Resistenza al vento
+Permeabilità all'aria
+Potere fonoisolante
+[05] Mandatario: non presente
+[07] Organismo notificato: Legn
+Forza di Azionamento
+[01] Cod.Identif.Prodotto tipo: F
+[02] N. di Tipo lotto serie: Smart
+[03] Uso previsto: Finestre e poi
+[04] Fabbricante: - Gruppo Cosr
+[06] Sistema di valutazione e ve
+[07] Organismo notificato: Legn
+Resistenza al vento
+Permeabilità all'aria
+Potere fonoisolante
+[05] Mandatario: non presente
+[08] ETA: non applicabile.
+[09] Prestazioni dichiarate
+Tenuta all'acqua
+Fattore solare g
+[08] ETA: non applicabile.
+[091 Prestazioni dichiarate
+Tenuta all'acqua
+Fattore solare g
+[081 ETA: non applicabile.
+Dichiarazione di prestazione (DoP) /
+Q.tà 1
+Q.tà 1
+Q.tà 1
+Pos. 1
+Pos. 2
+Pos. 3
+APR_VERTICAL_DIMENSION_CLOCKWISE_OCR:
+nare a
+olare g
+ill'acqua
+ill'acqua
+noisolante
+ilità all'aria
+za al vento
+noisolante
+ilità all'aria
+za al vento
+ni dichiarate
+applicabile.
+ni dichiarate
+1 applicabile.
+Azionamento
+sione luminosa
+anza termica (L
+no notificato: Le
+di valutazione €
+rio: non presen
+nte: - Gruppo C
+isto: Finestre e
+lotto serie: Sr
+tif.Prodotto tipo
+i prodotto: fines
+Sostanze peric
+sione luminosa
+anza termica (L
+no notificato: Le
+di valutazione €
+rio: non presen
+nte: - Gruppo C
+isto: Finestre e
+lotto serie: Sr
+tif.Prodotto tipo
+APR_VERTICAL_DIMENSION_COUNTERCLOCKWISE_OCR:
+tif.Prodotto tipc
+lotto serie: Sn
+isto: Finestre e
+nte: - Gruppo C
+rio: non presen
+di valutazione €
+1o notificato: Le
+anza termica (U
+Sostanze peric
+i prodotto: fines
+tif.Prodotto tipc
+) lotto serie: Sn
+isto: Finestre e
+nte: - Gruppo C
+rio: non presen
+di valutazione €
+1o notificato: Le
+anza termica (U
+sione luminosa
+sione luminosa
+Azionamento
+applicabile.
+ni dichiarate
+applicabile.
+ni dichiarate
+za al vento
+ilità all'aria
+za al vento
+ilità all'aria
+noisolante
+noisolante
+ll'acqua
+ll'acqua
+olare g
+naro a
+
+Spett.le. STELLINO DESIGN SRL
+VIA FRANCESCO BARACCA, 80
+00177 ROMA
+Rif. Sellati Claudia
+Dichiarazione di prestazione (DoP) N° 74618-26 pag. 2 / 17.02.26
+Pos. 4 Q.tà 1 [01] Cod.Identif.Prodotto tipo: F1AR 01 (Finestra ad 1 anta Ribalta) [02] N. di Tipo lotto serie: SmartWood 68 F/PF L - 74618 - 4
+[03] Uso previsto: Finestre e porte uso residenziale e commerciale
+da 570 x 915 mm.
+[04] Fabbricante: - Gruppo Cosmet -
+[05] Mandatario: non presente
+[06] Sistema di valutazione e verifica della costanza della prestazione:
+[07] Organismo notificato: LegnoLegno-1709 /IRCCOS Srl/Norma UNI
+[08] ETA: non applicabile.
+Valori Classi Livelli Norma di Class. Rapp. di prova Laboratorio di prova
+[09] Prestazioni dichiarate Resistenza al vento C5 EN 12210 1994-CPR-RPxx1277xx IRCCOS Srl
+Tenuta all'acqua E1500 EN 12208 1994-CPR-RPxx1277xx IRCCOS Srl
+Permeabilità all'aria 4 UNI EN 12207 1994-CPR-RPxx1277xx IRCCOS Srl
+Potere fonoisolante Rw(C;Ctr)=37 dB(-1,-4) UNI EN ISO 717-1 EN 14351 Norma UNI
+Trasmissione luminosa 69 % UNI EN 410
+Trasmittanza termica (Uw) 1.2 UNI EN ISO 10077-1 F3000 Software validato
+Forza di Azionamento Passa Rilascio Sostanze pericolose Vedi dichiarazione
+UNI EN 13115: 2020 Fattore solare g 43 % UNI EN 410
+Si consiglia la verifica dopo la posa
+Norma di prodotto: finestre e porte pedonali esterne - UNI EN 14351-1:2016/REG.(UE) 305/2011
+Pos. 5 Q.tà 1 [01] Cod.Identif.Prodotto tipo: F2AR 01 (Finestra 2 ante, 1 Ribalta) [02] N. di Tipo lotto serie: SmartWood 68 F/PF L - 74618 - 5
+da 1480 x 915 mm.
+[03] Uso previsto: Finestre e porte uso residenziale e commerciale
+[04] Fabbricante: - Gruppo Cosmet -
+[05] Mandatario: non presente
+[06] Sistema di valutazione e verifica della costanza della prestazione:
+[07] Organismo notificato: LegnoLegno-1709 /IRCCOS Srl/Norma UNI
+[08] ETA: non applicabile.
+Valori Classi Livelli Norma di Class. Rapp. di prova Laboratorio di prova
+[09] Prestazioni dichiarate Resistenza al vento C5 EN 12210 1994-CPR-RPxx1277xx IRCCOS Srl
+Tenuta all'acqua E1500 EN 12208 1994-CPR-RPxx1277xx IRCCOS Srl
+Permeabilità all'aria 4 UNI EN 12207 1994-CPR-RPxx1277xx IRCCOS Srl
+Potere fonoisolante Rw(C;Ctr)=37 dB(-1,-4) UNI EN ISO 717-1 EN 14351 Norma UNI
+Trasmissione luminosa 69 % UNI EN 410
+Trasmittanza termica (Uw) 1.3 UNI EN ISO 10077-1 F3000 Software validato
+Forza di Azionamento Passa Rilascio Sostanze pericolose Vedi dichiarazione
+UNI EN 13115: 2020 Fattore solare g 43 % UNI EN 410
+Si consiglia la verifica dopo la posa
+Norma di prodotto: finestre e porte pedonali esterne - UNI EN 14351-1:2016/REG.(UE) 305/2011
+Pos. 6 Q.tà 1 [01] Cod.Identif.Prodotto tipo: F2AR 01 (Finestra 2 ante, 1 Ribalta) [02] N. di Tipo lotto serie: SmartWood 68 F/PF L - 74618 - 6
+da 1480 x 915 mm.
+[03] Uso previsto: Finestre e porte uso residenziale e commerciale
+[04] Fabbricante: - Gruppo Cosmet -
+[05] Mandatario: non presente
+[06] Sistema di valutazione e verifica della costanza della prestazione:
+[07] Organismo notificato: LegnoLegno-1709 /IRCCOS Srl/Norma UNI
+[08] ETA: non applicabile.
+Valori Classi Livelli Norma di Class. Rapp. di prova Laboratorio di prova
+[09] Prestazioni dichiarate Resistenza al vento C5 EN 12210 1994-CPR-RPxx1277xx IRCCOS Srl
+Tenuta all'acqua E1500 EN 12208 1994-CPR-RPxx1277xx IRCCOS Srl
+Permeabilità all'aria 4 UNI EN 12207 1994-CPR-RPxx1277xx IRCCOS Srl
+Potere fonoisolante Rw(C;Ctr)=37 dB(-1,-4) UNI EN ISO 717-1 EN 14351 Norma UNI
+Trasmissione luminosa 69 % UNI EN 410
+Trasmittanza termica (Uw) 1.3 UNI EN ISO 10077-1 F3000 Software validato
+Forza di Azionamento Passa Rilascio Sostanze pericolose Vedi dichiarazione
+UNI EN 13115: 2020 Fattore solare g 43 % UNI EN 410
+Si consiglia la verifica dopo la posa
+Norma di prodotto: finestre e porte pedonali esterne - UNI EN 14351-1:2016/REG.(UE) 305/2011
+Pos. 7 Q.tà 3 [01] Cod.Identif.Prodotto tipo: P30x2 (Coprifilo piatto da 30x2mm) [02] N. di Tipo lotto serie: SmartWood 68 F/PF L - 74618 - 7
+da 0 x 0 mm.
+[03] Uso previsto:
+[04] Fabbricante: - Gruppo Cosmet -
+[05] Mandatario: non presente
+APR_VISUAL_OCR:
+Spett.le. STELLINO DESIGN SRL
+CM
+FIDEAL ALWO. COSMET
+COSMET GROUP
+00177 ROMA
+VIA FRANCESCO BARACCA, 80
+Rif.
+Sellati Claudia
+Dichiarazione di prestazione (DoP) N° 74618-26
+pag. 2/ 17.02.26
+Pos. 4 Q.tà 1 [01] Cod.Identif. Prodotto tipo: F1AR 01 (Finestra ad 1 anta Ribalta)
+da 570 x 915 mm.
+[03] Uso previsto: Finestre e porte uso residenziale e commerciale
+[02] N. di Tipo lotto serie: SmartWood 68 F/PF L - 74618 - 4
+[04] Fabbricante: - Gruppo Cosmet -
+[05] Mandatario: non presente
+[07] Organismo notificato: LegnoLegno-1709 /IRCCOS Srl/Norma UN
+06] Sistema di valutazione e verifica della costanza della prestazione:
+[08] ETA: non applicabile.
+[09] Prestazioni dichiarate
+Valori Classi Livelli
+NN 1221 Cass
+Tenuta all'acqua
+Resistenza al vento
+Trasmittanza termica (Uw)
+Permeabilità all'aria
+UNI EN 12207
+Trasmissione luminosa
+Potere fonoisolante
+Rw(C;Ctr)=37 dB(-1,-4) UNI EN ISO 717-1
+Fattore solare g
+Forza di Azionamento
+Rilascio Sostanze pericolose Vedi dichiarazione
+UNI EN 13115: 2020 Si consiglia la verifica dopo la posa
+Norma di prodotto: finestre e porte pedonali esterne - UNI EN 14351-1:2016/REG.(UE) 305/2011
+01] Cod.Identif. Prodotto tipo: F2AR 01 (Finestra 2 ante, 1 Ribalta
+121 N. di Tipo lotto serie: SmartWood 68 F/PF L - 74618 - 5
+da 1480 x 915 mm.
+[03] Uso previsto: Finestre e porte uso residenziale e commerciale
+[04] Fabbricante: - Gruppo Cosmet -
+[05] Mandatario: non presente
+[07] Organismo notificato: LegnoLegno-1709 /IRCCOS Srl/Norma UNI
+[06] Sistema di valutazione e verifica della costanza della prestazione:
+[08] ETA: non applicabile.
+[09] Prestazioni dichiarate
+Valori Classi Livelli
+Vorma di Class
+1994-CPR-RPxIRCCOS Sr
+Rapp. di prova Laboratorio di prova
+Potere fonoisolante
+UNI EN ISO 10077-1 F3000
+UNI EN 12207
+1994-CPR-RPxIRCCOS Srl
+1994-CPR-RPXIRCCOS Srl
+Rw(C;Ctr)=37 dB(-1,-4) UNI EN ISO 717-1
+EN 14351
+Software validato
+Trasmissione luminosa
+Norma UNI
+Fattore solare g
+Forza di Azionamento
+Rilascio Sostanze pericolose
+Vedi dichiarazione
+Passa
+UNI EN 410
+UNI EN 13115: 2020 Si consiglia la verifica dopo la posa
+Norma di prodotto: finestre e porte pedonali esterne - UNI EN 14351-1:2016/REG.(UE) 305/2011
+1021 No di Tipo pto ei mara 68 - 24611 balta
+da 1480 x 915 mm.
+j03j Uso previsto: Finestre e porte uso residenziale e commerciale
+[05] Mandatario: non presente
+[04] Fabbricante: - Gruppo Cosmet -
+7] Organismo notificato: LegnoLegno-1709 /IRCCOS Srl/Norma UN
+06] Sistema di valutazione e verifica della costanza della prestazione
+[08] ETA: non applicabile.
+[09] Prestazioni dichiarate
+Resistenza al vento
+Valori Classi Livelli
+P994- di RiVa aCCo So di prova
+Tenuta all'acqua
+Permeabilità all'aria
+4
+E1500
+C5
+No 12di Clas
+EN 1220
+Trasmittanza termica (Uw)
+UNI EN 1220:
+1994-CPR-RPxIRCCOS Srl
+1994-CPR-RPxIRCCOS Srl
+1.3
+UNI EN ISO 10077-1 F3000
+oftware valida
+Fattore solare g
+Trasmissione luminosa
+Potere fonoisolante
+Rw(C;Ctr)=37 dB(-1,-4) UNI EN ISO 717-1
+EN 14351
+Vorma Ul
+69 %
+UNI EN 410
+Forza di Azionamento
+43 %
+UNI EN 410
+Rilascio Sostanze pericolose Vedi dichiarazione
+Passa
+UNI EN 13115: 2020 Si consiglia la verifica dopo la posa
+Norma di prodotto: finestre e porte pedonali esterne - UNI EN 14351-1:2016/REG.(UE) 305/2011
+Pos. 7
+[01] Cod.Identif.Prodotto tipo: P30x2 (Coprifilo piatto da 30x2mm)
+[02j N. di Tipo lotto serie: SmartWood 68 F/PF L - 74618 - 7
+da 0 x 0 mm.
+[03] Uso previsto:
+[05] Mandatario: non presente
+j04j Fabbricante: - Gruppo Cosmet -
+APR_ROTATED_CLOCKWISE_OCR:
+Pos. 6
+CM
+Pos. 5 Q.ta 1
+Fattore solare g
+[09] Prestazioni dichiarate
+[08] ETA: non applicabile.
+Fattore solare g
+Tenuta all'acqua
+Fattore solare g
+[05] Mandatario: non presente
+Forza di Azionamento
+Permeabilità all'aria
+Resistenza vento
+[05] Mandatario: non presente
+Forza di Azionamento
+Resistenza al vento
+[09] Prestazioni dichiarate
+[08] ETA: non applicabile.
+[05] Mandatario: non presente
+Forza di Azionamento
+Permeabilità all'aria
+Tenuta all'acqua
+Resistenza al vento
+[09] Prestazioni dichiarate
+[08] ETA: non applicabile.
+[05] Mandatario: non presente
+Dichiarazione di prestazione (DoP) N° 74618-26
+[04] Fabbricante: - Gruppo Cosmet -
+Trasmissione luminosa
+Potere fonoisolante
+Trasmittanza termica (Uw)
+[04] Fabbricante: - Gruppo Cosmet -
+Trasmissione luminosa
+Potere fonoisolante
+Permeabilità all'aria
+Rilascio Sostanze pericolose
+Trasmittanza termica (Uw)
+[04] Fabbricante: - Gruppo Cosmet -
+Trasmissione luminosa
+Potere fonoisolante
+Trasmittanza termica (Uw)
+[04] Fabbricante: - Gruppo Cosmet -
+FIDEAL ALWO. COSMET.
+Pos. 4 Q.tà 1 [01] Cod. Identif. Prodotto tipo: F1AR 01 (Finestra ad 1 anta Ribalta)
+Rilascio Sostanze pericolose Vedi dichiarazione
+[02j N. di Tipo lotto serie: SmartWood 68 F/PF L - 74618 - 5
+Rilascio Sostanze pericolose Vedi dichiarazione
+[02] N. di Tipo lotto serie: SmartWood 68 F/PF L - 74618 - 4
+[07! Organismo notificato: LegnoLegno-1709 /IRCCOS Srl/Norma UNI
+[06] Sistema di valutazione e verifica della costanza della prestazione:
+[O3] Uso previsto: Finestre e porte uso residenziale e commerciale
+102 No. di Tipi roseto: mara (es 241 Riballa
+[07! Organismo notificato: LegnoLegno-1709 /IRCCOS Srl/Norma UNI
+[06] Sistema di valutazione e verifica della costanza della prestazione:
+[03] Uso previsto: Finestre e porte uso residenziale e commerciale
+[01] Cod. Identif. Prodotto tipo: F2AR 01 (Finestra 2 ante, 1 Ribalta)
+iO7j Organismo notificato: LegnoLegno-1709 /IRCCOS Srl/Norma UNI
+[06] Sistema di valutazione e verifica della costanza della prestazione:
+[03] Uso previsto: Finestre e porte uso residenziale e commerciale
+Passa
+43 %
+69 %
+1.3
+E1500
+C5
+Passa
+43 %
+69 %
+1.3
+E1500
+C5
+Passa
+E1500
+C5
+Valori Classi Livelli
+Vedi dichiarazione
+Valori Classi Livelli
+Valori Classi Livelli
+Norma di prodotto: finestre e porte pedonali esterne - UNI EN 14351-1:2016/REG.(UE) 305/2011
+Norma di prodotto: finestre e porte pedonali esterne - UNI EN 14351-1:2016/REG.(UE) 305/2011
+Norma di prodotto: finestre e porte pedonali esterne - UNI EN 14351-1:2016/REG.(UE) 305/2011
+Rw(C;Ctr)=37 dB(-1,-4) UNI EN ISO 717-1
+Rw(C;Ctr)=37 dB(-1,-4) UNI EN ISO 717-1
+Rw(C;Ctr)=37 dB(-1,-4) UNI EN ISO 717-1
+Rif.
+UNI EN 410
+UNI EN 410
+EN 12208
+EN 12210
+EN 12208
+EN 12210
+Spett.le.
+UNI EN 12207
+EN 12208
+EN 12210
+Norma di Class.
+UNI EN 410
+UNI EN 410
+UNI EN 12207
+Norma di Class.
+UNI EN 410
+UNI EN 410
+UNI EN 12207
+Norma di Class.
+UNI EN ISO 10077-1 F3000
+UNI EN ISO 10077-1 F3000
+UNI EN ISO 10077-1 F3000
+Sellati Claudia
+00177 ROMA
+STELLINO DESIGN SRL
+UNI EN 13115: 2020 Si consiglia la verifica dopo la posa
+EN 14351
+UNI EN 13115: 2020 Si consiglia la verifica dopo la posa
+EN 14351
+UNI EN 13115: 2020 Si consiglia la verifica dopo la posa
+EN 14351
+VIA FRANCESCO BARACCA, 80
+1994-CPR-RPxIRCCOS Srl
+1994-CPR-RPXIRCCOS Srl
+1994-CPR-RPxIRCCOS Srl
+1994-CPR-RPxIRCCOS Srl
+1994-CPR-RPxIRCCOS Srl
+1994-CPR-RPxIRCCOS Srl
+1994-CPR-RPxIRCCOS Srl
+1994-CPR-RPxIRCCOS Srl
+Rapp. di prova Laboratorio di prova
+Rapp. di prova Laboratorio di prova
+da 0x 0 mm.
+Norma UNI
+Norma UNI
+Norma UNI
+Software validato
+da 1480 x 915 mm.
+Software validato
+da 1480 x 915 mm.
+Software validato
+da 570 x 915 mm.
+pag. 2/ 17.02.26
+APR_ROTATED_COUNTERCLOCKWISE_OCR:
+pag. 2/ 17.02.26
+da 570x 915 mm.
+Software validato
+da 1480 x 915 mm.
+Software validato
+da 1480 x 915 mm.
+Software validato
+Norma UNI
+Norma UNI
+da 0x0 mm.
+Rapp. di prova Laboratorio di prova
+Rapp. di prova Laboratorio di prova
+1994 PRA a o di prova.
+1994-CPR-RPx|RCCOS Srl
+1994-CPR-RPxIRCCOS Srl
+1994-CPR-RPxIRCCOS Srl
+1994-CPR-RPxIRCCOS Srl
+1994-CPR-RPxIRCCOS Srl
+1994-CPR-RPxIRCCOS Srl
+1994-CPR-RPxIRCCOS Srl
+1994-CPR-RPxIRCCOS Srl
+VIA FRANCESCO BARACCA, 80
+UNI EN 13115: 2020 Si consiglia la verifica dopo la posa
+EN 14351
+UNI EN 13115: 2020 Si consiglia la verifica dopo la posa
+EN 14351
+UNI EN 13115: 2020 Si consiglia la verifica dopo la posa
+STELLINO DESIGN SRL
+00177 ROMA
+Sellati Claudia
+UNI EN ISO 10077-1 F3000
+UNI EN ISO 10077-1 F3000
+UNI EN ISO 10077-1 F3000
+Norma di Class.
+UNI EN 12207
+Norma di Class.
+UNI EN 12207
+UNI EN 410
+UNI EN 410
+Norma di Class.
+UNI EN 12207
+Spett.le.
+EN 12210
+EN 12208
+EN 12210
+EN 12208
+UNI EN 410
+UNI EN 410
+Rif.
+Rw(C;Ctr)=37 dB(-1,4) UNI EN ISO 717-1
+Rw(C;Ctr)=37 dB(-1,4) UNI EN ISO 717-1
+Rw(C;Ctr)=37 dB(-1,-4) UNI EN ISO 717-1
+Norma di prodotto: finestre e porte pedonali esterne - UNI EN 14351-1:2016/REG.(UE) 305/2011
+Norma di prodotto: finestre e porte pedonali esterne - UNI EN 14351-1:2016/REG.(UE) 305/2011
+Norma di prodotto: finestre e porte pedonali esterne - UNI EN 14351-1:2016/REG.(UE) 305/2011
+Valori Classi Livelli
+Valori Classi Livelli
+Vedi dichiarazione
+Valori Classi Livelli
+E1500
+1.2
+C5
+E1500
+1.3
+69 %
+43 %
+Passa
+C5
+E1500
+1.3
+69 %
+43 %
+Passa
+[06] Sistema di valutazione e verifica della costanza della prestazione:
+[03j Uso previsto: Finestre e porte uso residenziale e commerciale
+[06] Sistema di valutazione e verifica della costanza della prestazione:
+[07] Organismo notificato: LegnoLegno-1709 /IRCCOS Srl/Norma UNI
+[01] Cod.Identif.Prodotto tipo: F2AR 01 (Finestra 2 ante, 1 Ribalta)
+[03] Uso previsto: Finestre e porte uso residenziale e commerciale
+[07] Organismo notificato: LegnoLegno-1709 /IRCCOS Srl/Norma UNI
+[03] Uso previsto: Finestre e porte uso residenziale e commerciale
+[06] Sistema di valutazione e verifica della costanza della prestazione:
+[07] Organismo notificato: LegnoLegno-1709 /IRCCOS Srl/Norma UNI
+[02] N. di Tipo lotto serie: SmartWood 68 F/PF L - 74618 - 4
+Q.tà 1 [01] Cod.Identif.Prodotto tipo: F1AR 01 (Finestra ad 1 anta Ribalta)
+Rilascio Sostanze pericolose Vedi dichiarazione
+021 N. di Tipo lotto serie: SmartWood 68 F/PF L - 74618 - 5|
+Q.tà 1 [01] Cod.Identif.Prodotto tipo: F2AR 01 (Finestra 2 ante, 1 Ribalta)
+[02] N. di Tipo lotto serie: SmartWood 68 F/PF L - 74618 - 6
+Rilascio Sostanze pericolose Vedi dichiarazione
+i02i N. di Tipo lotto serie: SmartWood 68 F/PF L - 74618 - 7
+Pos. 7 Q.tà 3 [01] Cod.Identif.Prodotto tipo: P30x2 (Coprifilo piatto da 30x2mm)
+FIDEAL ALWO. COSMET.
+[04] Fabbricante: - Gruppo Cosmet -
+Trasmittanza termica (Uw)
+[04] Fabbricante: - Gruppo Cosmet -
+Trasmittanza termica (Uw)
+Rilascio Sostanze pericolose
+[04] Fabbricante: - Gruppo Cosmet -
+Trasmittanza termica (Uw)
+[04] Fabbricante: - Gruppo Cosmet -
+Dichiarazione di prestazione (DoP) N° 74618-26
+[05] Mandatario: non presente
+[08] ETA: non applicabile.
+[09] Prestazioni dichiarate
+Resistenza al vento
+Tenuta all'acqua
+Permeabilità all'aria
+Potere fonoisolante
+Trasmissione luminosa
+Forza di Azionamento
+[05] Mandatario: non presente
+Fattore solare g
+[08] ETA: non applicabile.
+[09] Prestazioni dichiarate
+Resistenza al vento
+Tenuta all'acqua
+Permeabilità all'aria
+Potere fonoisolante
+Trasmissione luminosa
+Forza di Azionamento
+[05] Mandatario: non presente
+Trasmissione luminosa
+Forza di Azionamento
+Fattore solare g
+[08j ETA: non applicabile.
+Resistenza al vento
+Tenuta all'acqua
+Permeabilità all'aria
+Potere fonoisolante
+Fattore solare g
+[05] Mandatario: non presente
+[03j Uso previsto:
+CM
+COSMET GROUP
+APR_DIAGRAM_OCR:
+Dichiarazione di prestazione (DoP) l
+Pos. 4 Q.tà 1 [01] Cod.Identif. Prodotto tipo: F
+[02] N. di Tipo lotto serie: Smar
+[03] Uso previsto: Finestre e po
+[04] Fabbricante: - Gruppo Cosi
+[05] Mandatario: non presente
+[06] Sistema di valutazione e ve
+[07] Organismo notificato: Legn
+[08] ETA: non applicabile.
+[09] Prestazioni dichiarate
+Resistenza al vento
+Tenuta allacqua
+Permeabilità all'aria
+Trasmittanza termica (Uw)
+Potere fonoisolante
+Trasmissione luminosa
+Fattore solare g
+Forza di Azionamento
+Rilascio Sostanze pericolo
+Norma di prodotto: finestre
+Pos. 5 Q.tà 1
+[01] Cod.Identif.Prodotto tipo: F
+[02] N. di Tipo lotto serie: Smart
+[03] Uso previsto: Finestre e po
+[04] Fabbricante: - Gruppo Cosi
+[05] Mandatario: non presente
+[06] Sistema di valutazione e ve
+[07] Organismo notificato: Legn
+[08] ETA: non applicabile.
+[09] Prestazioni dichiarate
+Resistenza al vento
+Tenuta all'acqua
+Permeabilità all'aria
+Trasmittanza termica (Uw)
+Potere fonoisolante
+Trasmissione luminosa
+Fattore solare g
+Forza di Azionamento
+Rilascio Sostanze pericolo:
+Norma di prodotto: finestre
+Pos. 6 Q.tà 1
+[01] Cod. Identif.Prodotto tipo: F
+[02] N. di Tipo lotto serie: Smart
+[03] Uso previsto: Finestre e po
+[04] Fabbricante: - Gruppo Cosi
+[05] Mandatario: non presente
+[06] Sistema di valutazione e ve
+[07] Organismo notificato: Legn
+1081 ETA: non applicabile.
+APR_DIAGRAM_ROTATED_CLOCKWISE_OCR:
+Pos. 6
+Pos. 5
+Pos. 4
+Q.tà 1
+Q.tà 1
+Q. tà 1
+Dichiarazione di prestazione (DoP) I
+1081 ETA: non applicabile.
+Fattore solare g
+Tenuta all'acqua
+[09] Prestazioni dichiarate
+[08] ETA: non applicabile.
+Fattore solare g
+Tenuta all'acqua
+[09| Prestazioni dichiarate
+108] ElA non applicabile.
+Potere fonoisolante
+Permeabilita all'aria
+Resistenza al vento
+Potere fonoisolante
+Permeabilita all'aria
+Resistenza al vento
+[07] Organismo notificato: Legn
+[06] Sistema di valutazione e ve
+[05] Mandatario: non presente
+[04] Fabbricante: - Gruppo Cosi
+[03] Uso previsto: Finestre e po
+[02] N. di Tipo lotto serie: Smar
+[01] Cod. Identif.Prodotto tipo: F
+Forza di Azionamento
+Trasmissione luminosa
+[07] Organismo notificato: Legn
+[06] Sistema di valutazione e ve
+[05] Mandatario: non presente
+[04] Fabbricante: - Gruppo Cosi
+[03] Uso previsto: Finestre e po
+[02] N. di Tipo lotto serie: Smar
+[01] Cod. Identif.Prodotto tipo: F.
+Forza di Azionamento
+Trasmissione luminosa
+[07] Organismo notificato: Legn
+[06] Sistema di valutazione e ve
+[05] Mandatario: non presente
+[04) Fabbricante: - Gruppo CosI
+[03] Uso previsto: Finestre e po
+[02] N. di Tipo lotto serie: Smar
+[01] Cod. Identif.Prodotto tipo: F
+Norma di prodotto: finestre
+Rilascio Sostanze pericolo
+Trasmittanza termica (Uw)
+Norma di prodotto: finestre
+Rilascio Sostanze pericolo:
+Trasmittanza termica (UW)
+APR_DIAGRAM_ROTATED_COUNTERCLOCKWISE_OCR:
+Trasmittanza termica (Uw)
+Rilascio Sostanze pericolos
+Norma di prodotto: finestre
+Trasmittanza termica (Uw)
+Rilascio Sostanze pericolos
+Norma di prodotto: finestre
+[01] Cod.Identif.Prodotto tipo: F
+[02] N. di Tipo lotto serie: Smart
+[03] Uso previsto: Finestre e pol
+[04] Fabbricante: - Gruppo Cosr
+[05] Mandatario: non presente
+[06] Sistema di valutazione e ve
+[07] Organismo notificato: Legni
+Trasmissione luminosa
+Forza di Azionamento
+[01] Cod.Identif.Prodotto tipo: F:
+[02] N. di Tipo lotto serie: Smart
+[03] Uso previsto: Finestre e pol
+[04] Fabbricante: - Gruppo Cosr
+[06] Sistema di valutazione e ve
+Trasmissione luminosa
+Resistenza al vento
+Permeabilità all'aria
+Potere fonoisolante
+[05] Mandatario: non presente
+[07] Organismo notificato: Legn
+Forza di Azionamento
+[01] Cod.Identif.Prodotto tipo: F:
+[02] N. di Tipo lotto serie: Smart
+[03] Uso previsto: Finestre e poi
+[04] Fabbricante: - Gruppo Cosr
+[06] Sistema di valutazione e ve
+[07] Organismo notificato: Legn
+Resistenza al vento
+Permeabilità all'aria
+Potere fonoisolante
+[05] Mandatario: non presente
+[08] ETA: non applicabile.
+[09] Prestazioni dichiarate
+Tenuta all'acqua
+Fattore solare g
+[08] ETA: non applicabile.
+[091 Prestazioni dichiarate
+Tenuta all'acqua
+Fattore solare g
+[081 ETA: non applicabile.
+Dichiarazione di prestazione (DoP) N
+Q. tà 1
+Q.tà 1
+Q.tà 1
+Pos. 4
+Pos. 5
+Pos. 6
+APR_VERTICAL_DIMENSION_CLOCKWISE_OCR:
+nare a
+olare g
+ill'acqua
+ill'acqua
+noisolante
+ilità all'aria
+za al vento
+noisolante
+ilità all'aria
+za al vento
+ni dichiarate
+applicabile.
+ni dichiarate
+1 applicabile.
+Azionamento
+sione luminosa
+anza termica (L
+no notificato: Le
+di valutazione €
+rio: non presen
+nte: - Gruppo C
+isto: Finestre e
+lotto serie: Sr
+tif.Prodotto tipo
+i prodotto: fines
+Sostanze peric
+sione luminosa
+anza termica (L
+no notificato: Le
+di valutazione €
+rio: non presen
+nte: - Gruppo C
+isto: Finestre e
+lotto serie: Sr
+tif.Prodotto tipo
+APR_VERTICAL_DIMENSION_COUNTERCLOCKWISE_OCR:
+tif.Prodotto tipc
+lotto serie: Sn
+isto: Finestre e
+nte: - Gruppo C
+rio: non presen
+di valutazione €
+1o notificato: Le
+anza termica (U
+Sostanze peric
+i prodotto: fines
+tif.Prodotto tipc
+) lotto serie: Sn
+isto: Finestre e
+nte: - Gruppo C
+rio: non presen
+di valutazione €
+1o notificato: Le
+anza termica (U
+sione luminosa
+sione luminosa
+Azionamento
+applicabile.
+ni dichiarate
+applicabile.
+ni dichiarate
+za al vento
+ilità all'aria
+za al vento
+ilità all'aria
+noisolante
+noisolante
+ll'acqua
+ll'acqua
+olare g
+naro a
+
+Spett.le. STELLINO DESIGN SRL
+VIA FRANCESCO BARACCA, 80
+00177 ROMA
+Rif. Sellati Claudia
+Dichiarazione di prestazione (DoP) N° 74618-26 pag. 3 / 17.02.26
+Pos. 8 Q.tà 6 [01] Cod.Identif.Prodotto tipo: P50x8 (Coprifilo piatto legno da 50x8mm) [02] N. di Tipo lotto serie: SmartWood 68 F/PF L - 74618 - 8
+da 0 x 0 mm.
+[03] Uso previsto:
+[04] Fabbricante: - Gruppo Cosmet -
+[05] Mandatario: non presente
+Pos. 9 Q.tà 15 [01] Cod.Identif.Prodotto tipo: P30x8 (Coprifilo piatto legno da 30x8mm) [02] N. di Tipo lotto serie: SmartWood 68 F/PF L - 74618 - 9
+da 0 x 0 mm.
+[03] Uso previsto:
+[04] Fabbricante: - Gruppo Cosmet -
+[05] Mandatario: non presente
+DICHIARAZIONE SOSTANZE PERICOLOSE
+Si dichiara inoltre che, i serramenti ad uso esterno costituenti la fornitura, facente capo alla presente,
+risultano CONFORMI alle norme nazionali ed europee, in relazione alla presenza o limitazione delle
+sostanze pericolose contenute, potenzialmente pericolose per l'igiene, la sicurezza e l'ambiente con
+particolare riferimento a:
+- Direttiva 76/769/CE e successive modifiche.
+- Normativa di prodotto su finestre, porte finestre e porte esterne pedonali (UNI EN 14351-1).
+- Normativa di prodotto chiusure oscuranti (UNI EN 13659).
+- Direttiva riguardante la tutela del consumatore.
+- Direttiva riguardante la presenza e cessione di sostanze inquinanti per l'aria, l'acqua e il suolo.
+(10) Le prestazioni dei prodotti di cui ai punti (1) e (2) sono conformi alle prestazioni dichiarate di cui al
+punto (9).
+al punto (4).
+Si rilascia la presente dichiarazione di prestazione sotto la responsabilità esclusiva del fabbricante di cui
+75020 Scanzano Jonico (MT) - Area Artigianale
+_____________________________ _____________________________
+Luogo e data di rilascio Firma del legale rappresentante

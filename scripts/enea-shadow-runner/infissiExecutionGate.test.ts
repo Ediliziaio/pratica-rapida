@@ -1,13 +1,38 @@
 import { describe, expect, it } from "vitest";
-import { applyRequiredInfissiValidationRevisions, APR_REQUIRED_INFISSI_VALIDATION_REVISIONS, dateGateReleaseReadyCustomerKeys, infissiExecutionGateReady } from "./infissiExecutionGate";
+import { AUTO_CURRENT_VALIDATION_REVISION } from "../../src/features/enea-shadow-crm/operationalRegistry";
+import { applyRequiredInfissiValidationRevisions, APR_REQUIRED_INFISSI_VALIDATION_REVISIONS, convergeRequiredInfissiValidationRevisions, dateGateReleaseReadyCustomerKeys, infissiExecutionGateReady } from "./infissiExecutionGate";
 
 describe("gate di avvio esecuzione Infissi", () => {
-  it("applica in ordine tutte le revisioni richieste a una pratica singola senza duplicarle", () => {
+  it("applica in ordine tutte le revisioni richieste a una pratica singola, incluso l'identificatore automatico derivato dal registro, senza duplicarle", () => {
     const applied: string[] = [];
     applyRequiredInfissiValidationRevisions((revision) => applied.push(revision));
 
-    expect(applied).toEqual([...APR_REQUIRED_INFISSI_VALIDATION_REVISIONS]);
-    expect(new Set(applied).size).toBe(APR_REQUIRED_INFISSI_VALIDATION_REVISIONS.length);
+    expect(applied).toEqual([...APR_REQUIRED_INFISSI_VALIDATION_REVISIONS, AUTO_CURRENT_VALIDATION_REVISION]);
+    expect(new Set(applied).size).toBe(APR_REQUIRED_INFISSI_VALIDATION_REVISIONS.length + 1);
+  });
+  it("ripristina una revisione persa da uno scrittore concorrente prima di aprire il gate", () => {
+    const applied = new Set<string>();
+    let dropV4Once = true;
+    convergeRequiredInfissiValidationRevisions(
+      () => ({ validationRevisionsApplied: [...applied] }),
+      (revision) => {
+        if (revision === "infissi-grk-financial-and-assembly-pages-v4" && dropV4Once) {
+          dropV4Once = false;
+          return;
+        }
+        applied.add(revision);
+      },
+    );
+    expect([...applied]).toEqual(expect.arrayContaining([...APR_REQUIRED_INFISSI_VALIDATION_REVISIONS]));
+  });
+
+  it("fallisce chiuso se una revisione obbligatoria non diventa durevole", () => {
+    const applied = new Set<string>();
+    expect(() => convergeRequiredInfissiValidationRevisions(
+      () => ({ validationRevisionsApplied: [...applied] }),
+      (revision) => { if (revision !== "infissi-grk-financial-and-assembly-pages-v4") applied.add(revision); },
+      2,
+    )).toThrow("infissi_required_validation_revisions_not_durable:infissi-grk-financial-and-assembly-pages-v4");
   });
   it("resta chiuso finche il batch non e completato anche se tutte le revisioni sono registrate", () => {
     expect(infissiExecutionGateReady({
@@ -25,11 +50,16 @@ describe("gate di avvio esecuzione Infissi", () => {
     })).toBe(false);
   });
 
-  it("si apre soltanto con batch completato, fingerprint e tutte le revisioni", () => {
+  it("si apre soltanto con batch completato, fingerprint e tutte le revisioni, incluso l'identificatore automatico derivato dal registro", () => {
     expect(infissiExecutionGateReady({
       status: "completed",
       sourceFingerprint: "source",
       validationRevisionsApplied: APR_REQUIRED_INFISSI_VALIDATION_REVISIONS,
+    })).toBe(false);
+    expect(infissiExecutionGateReady({
+      status: "completed",
+      sourceFingerprint: "source",
+      validationRevisionsApplied: [...APR_REQUIRED_INFISSI_VALIDATION_REVISIONS, AUTO_CURRENT_VALIDATION_REVISION],
     })).toBe(true);
   });
 

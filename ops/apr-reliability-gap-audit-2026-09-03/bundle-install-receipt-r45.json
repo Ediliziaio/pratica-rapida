@@ -1,0 +1,17 @@
+{
+  "version": "apr-sequencer-screening-canonical-absence-resume-r45-bundle-install-receipt-v1",
+  "installedAt": "2026-09-04T09:07:37.665Z",
+  "status": "bundle_promoted_local_gate_verified",
+  "preinstallGateSha256": "8a72bb4b0bd791953cbe497980947d6ca3ae64fd6af73424f4edda335decb9c7",
+  "versionId": "3ecfd0a7-canonical-absence-resume-r45-20260904",
+  "previousTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/11757a99-fresh-proof-before-terminal-r44-20260904",
+  "currentTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/3ecfd0a7-canonical-absence-resume-r45-20260904",
+  "installedBundle": {
+    "apr-supervisor.mjs": "7a1e91ea0df31d832e76c2a16aca0159b167297ee7ca8a87fb970e0f2758633c",
+    "apr-enea-worker.mjs": "3ecfd0a7bd41d1e17b2529ac6cf389129d7bd547acd936acb5c334e97d8e811d",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "apr-pdf-ocr": "4c41c9a6832b11b9d19eace538100270a533dddc05e475e5842711968393327f"
+  },
+  "keepaliveRestartRequested": false,
+  "chromeRestartRequested": false
+}

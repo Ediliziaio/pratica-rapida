@@ -1,0 +1,25 @@
+{
+  "version": "apr-screening-rounding-r16-gate-attestation-v1",
+  "recordedAt": "2026-08-31T16:55:00Z",
+  "sourceCommit": "41931f837f4f2153cce9d7c470aab9b9ddf93e5d",
+  "sourceTree": "d0d1b811c1f76740265bb5f06b19bb3a16653d1c",
+  "runtimeGate": {
+    "status": "PASS",
+    "testFiles": 216,
+    "tests": 1606,
+    "failed": 0,
+    "durationSeconds": 411.83,
+    "typecheck": "PASS",
+    "productionBuild": "PASS"
+  },
+  "configurationDeltaAfterRuntimeGate": {
+    "onlyPath": "ops/apr-screening-rounding-final-2026-08-31/manifest-targeted-zeno.json",
+    "change": "added required allowedStages=[archiviate]",
+    "runtimeBundleChanged": false,
+    "manifestValidation": "PASS",
+    "focusedTest": "aprSequencerManifestGuard.test.ts: 3/3 PASS",
+    "directContractValidation": "expectedCount=1; allowedStages=[archiviate]; excluded=[beatrice-ciotta]"
+  },
+  "registryVersion": "enea-operational-registry-v97",
+  "matrixVersion": "apr-enea-rule-test-matrix-v74"
+}

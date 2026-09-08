@@ -1,0 +1,430 @@
+{
+  "version": "apr-crm-local-preflight-v1",
+  "revision": 1,
+  "status": "completed",
+  "sourceFingerprint": "5f671060da9bc8808d2afda4cb122650459984a9b3bb5e19f72305baa6466171",
+  "currentCustomerKey": null,
+  "items": [
+    {
+      "customerKey": "mimosa-freni",
+      "displayName": "Mimosa Freni",
+      "practiceId": "7e1aa416-d53c-431e-bfc3-843e5f8b4df9",
+      "dossierPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3018-global-controller-mimosa-freni/crm-acquisition/dossiers/mimosa-freni.json",
+      "state": "ready_local_plan",
+      "attemptCount": 1,
+      "startedAt": null,
+      "endedAt": null,
+      "report": {
+        "outcome": "ready_local_plan",
+        "formAvailable": true,
+        "startDate": "2026-05-14",
+        "startDateSource": "5307b6061460c9cfcab9d488467808b26b1f04538ce27c99facb85bc15a26793:invoice:264f0ccd0374",
+        "completionDate": "2026-05-14",
+        "completionDateSource": "5307b6061460c9cfcab9d488467808b26b1f04538ce27c99facb85bc15a26793:invoice:264f0ccd0374",
+        "buildingQualification": "multi_unit",
+        "buildingUnitCount": 31,
+        "deductionRate": null,
+        "taxCodeStatus": "verified_original_document",
+        "resolvedTaxCode": "FRNMMS67L47F205M",
+        "taxCodeSourceIds": [
+          "2ce5af8d93330370f27c54f0c28526fbfc3f14e6d017d0196d5b378742b39473",
+          "5307b6061460c9cfcab9d488467808b26b1f04538ce27c99facb85bc15a26793"
+        ],
+        "primaryBeneficiaryResolution": {
+          "status": "verified_document",
+          "identity": {
+            "name": "Mimosa",
+            "surname": "Freni",
+            "taxCode": "FRNMMS67L47F205M",
+            "birthDate": "1967-07-07",
+            "sex": "F"
+          },
+          "sourceIds": [
+            "2ce5af8d93330370f27c54f0c28526fbfc3f14e6d017d0196d5b378742b39473",
+            "5307b6061460c9cfcab9d488467808b26b1f04538ce27c99facb85bc15a26793"
+          ],
+          "authority": "fiscal_document"
+        },
+        "coBeneficiaryResolution": {
+          "status": "confirmed_by_invoice",
+          "present": true,
+          "identity": {
+            "name": "Massimo",
+            "surname": "Ferloni",
+            "taxCode": "FRLMSM71S21C933F"
+          },
+          "sourceIds": [
+            "2ce5af8d93330370f27c54f0c28526fbfc3f14e6d017d0196d5b378742b39473",
+            "5307b6061460c9cfcab9d488467808b26b1f04538ce27c99facb85bc15a26793"
+          ]
+        },
+        "products": [
+          {
+            "rowId": "667c67e484dd9d34b9afd9abb35328cdaf8f1208cff78818e6711fb6acaeb9fb:piece-1",
+            "sourceDocumentKey": "667c67e484dd9d34b9afd9abb35328cdaf8f1208cff78818e6711fb6acaeb9fb",
+            "description": "Persiana in alluminio",
+            "pieceNumber": 1,
+            "widthMm": 2445,
+            "heightMm": 2405,
+            "surfaceM2": 5.8802,
+            "exposure": "ovest",
+            "exposureSource": null,
+            "protectedWindowSurfaceM2": 5.8802,
+            "protectedWindowSurfaceSource": "derived_product_surface",
+            "supplementaryThermalResistance": 0.17,
+            "declaredType": "persiana",
+            "formMappingSource": "one_to_one",
+            "gTot": 0.09,
+            "gTotSource": "invoice_explicit",
+            "material": "Metallo",
+            "materialSource": "invoice_explicit",
+            "movement": "Manuale",
+            "movementSource": "authorized_fallback",
+            "appliedRuleIds": [
+              "user-2026-08-31-documented-gtot-precedence-v1",
+              "user-2026-08-31-persiana-screening-contract-v2",
+              "authorized-22-schermature-materiale",
+              "authorized-16-schermature-meccanismo",
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+              "user-2026-08-18-explicit-technical-surface-precision"
+            ]
+          },
+          {
+            "rowId": "667c67e484dd9d34b9afd9abb35328cdaf8f1208cff78818e6711fb6acaeb9fb:piece-2",
+            "sourceDocumentKey": "667c67e484dd9d34b9afd9abb35328cdaf8f1208cff78818e6711fb6acaeb9fb",
+            "description": "Persiana in alluminio",
+            "pieceNumber": 2,
+            "widthMm": 1060,
+            "heightMm": 2405,
+            "surfaceM2": 2.5493,
+            "exposure": "ovest",
+            "exposureSource": null,
+            "protectedWindowSurfaceM2": 2.5493,
+            "protectedWindowSurfaceSource": "derived_product_surface",
+            "supplementaryThermalResistance": 0.17,
+            "declaredType": "persiana",
+            "formMappingSource": "one_to_one",
+            "gTot": 0.09,
+            "gTotSource": "invoice_explicit",
+            "material": "Metallo",
+            "materialSource": "invoice_explicit",
+            "movement": "Manuale",
+            "movementSource": "authorized_fallback",
+            "appliedRuleIds": [
+              "user-2026-08-31-documented-gtot-precedence-v1",
+              "user-2026-08-31-persiana-screening-contract-v2",
+              "authorized-22-schermature-materiale",
+              "authorized-16-schermature-meccanismo",
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+              "user-2026-08-18-explicit-technical-surface-precision"
+            ]
+          },
+          {
+            "rowId": "667c67e484dd9d34b9afd9abb35328cdaf8f1208cff78818e6711fb6acaeb9fb:piece-3",
+            "sourceDocumentKey": "667c67e484dd9d34b9afd9abb35328cdaf8f1208cff78818e6711fb6acaeb9fb",
+            "description": "Persiana in alluminio",
+            "pieceNumber": 3,
+            "widthMm": 930,
+            "heightMm": 1530,
+            "surfaceM2": 1.4229,
+            "exposure": "ovest",
+            "exposureSource": null,
+            "protectedWindowSurfaceM2": 1.4229,
+            "protectedWindowSurfaceSource": "derived_product_surface",
+            "supplementaryThermalResistance": 0.17,
+            "declaredType": "persiana",
+            "formMappingSource": "one_to_one",
+            "gTot": 0.09,
+            "gTotSource": "invoice_explicit",
+            "material": "Metallo",
+            "materialSource": "invoice_explicit",
+            "movement": "Manuale",
+            "movementSource": "authorized_fallback",
+            "appliedRuleIds": [
+              "user-2026-08-31-documented-gtot-precedence-v1",
+              "user-2026-08-31-persiana-screening-contract-v2",
+              "authorized-22-schermature-materiale",
+              "authorized-16-schermature-meccanismo",
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+              "user-2026-08-18-explicit-technical-surface-precision"
+            ]
+          },
+          {
+            "rowId": "667c67e484dd9d34b9afd9abb35328cdaf8f1208cff78818e6711fb6acaeb9fb:piece-4",
+            "sourceDocumentKey": "667c67e484dd9d34b9afd9abb35328cdaf8f1208cff78818e6711fb6acaeb9fb",
+            "description": "Persiana in alluminio",
+            "pieceNumber": 4,
+            "widthMm": 1630,
+            "heightMm": 2405,
+            "surfaceM2": 3.9202,
+            "exposure": "sud",
+            "exposureSource": null,
+            "protectedWindowSurfaceM2": 3.9202,
+            "protectedWindowSurfaceSource": "derived_product_surface",
+            "supplementaryThermalResistance": 0.17,
+            "declaredType": "persiana",
+            "formMappingSource": "one_to_one",
+            "gTot": 0.09,
+            "gTotSource": "invoice_explicit",
+            "material": "Metallo",
+            "materialSource": "invoice_explicit",
+            "movement": "Manuale",
+            "movementSource": "authorized_fallback",
+            "appliedRuleIds": [
+              "user-2026-08-31-documented-gtot-precedence-v1",
+              "user-2026-08-31-persiana-screening-contract-v2",
+              "authorized-22-schermature-materiale",
+              "authorized-16-schermature-meccanismo",
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+              "user-2026-08-18-explicit-technical-surface-precision"
+            ]
+          },
+          {
+            "rowId": "667c67e484dd9d34b9afd9abb35328cdaf8f1208cff78818e6711fb6acaeb9fb:piece-5",
+            "sourceDocumentKey": "667c67e484dd9d34b9afd9abb35328cdaf8f1208cff78818e6711fb6acaeb9fb",
+            "description": "Persiana in alluminio",
+            "pieceNumber": 5,
+            "widthMm": 840,
+            "heightMm": 1510,
+            "surfaceM2": 1.2684,
+            "exposure": "sud",
+            "exposureSource": null,
+            "protectedWindowSurfaceM2": 1.2684,
+            "protectedWindowSurfaceSource": "derived_product_surface",
+            "supplementaryThermalResistance": 0.17,
+            "declaredType": "persiana",
+            "formMappingSource": "one_to_one",
+            "gTot": 0.09,
+            "gTotSource": "invoice_explicit",
+            "material": "Metallo",
+            "materialSource": "invoice_explicit",
+            "movement": "Manuale",
+            "movementSource": "authorized_fallback",
+            "appliedRuleIds": [
+              "user-2026-08-31-documented-gtot-precedence-v1",
+              "user-2026-08-31-persiana-screening-contract-v2",
+              "authorized-22-schermature-materiale",
+              "authorized-16-schermature-meccanismo",
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+              "user-2026-08-18-explicit-technical-surface-precision"
+            ]
+          },
+          {
+            "rowId": "667c67e484dd9d34b9afd9abb35328cdaf8f1208cff78818e6711fb6acaeb9fb:piece-6",
+            "sourceDocumentKey": "667c67e484dd9d34b9afd9abb35328cdaf8f1208cff78818e6711fb6acaeb9fb",
+            "description": "Persiana in alluminio",
+            "pieceNumber": 6,
+            "widthMm": 1060,
+            "heightMm": 2405,
+            "surfaceM2": 2.5493,
+            "exposure": "sud",
+            "exposureSource": null,
+            "protectedWindowSurfaceM2": 2.5493,
+            "protectedWindowSurfaceSource": "derived_product_surface",
+            "supplementaryThermalResistance": 0.17,
+            "declaredType": "persiana",
+            "formMappingSource": "one_to_one",
+            "gTot": 0.09,
+            "gTotSource": "invoice_explicit",
+            "material": "Metallo",
+            "materialSource": "invoice_explicit",
+            "movement": "Manuale",
+            "movementSource": "authorized_fallback",
+            "appliedRuleIds": [
+              "user-2026-08-31-documented-gtot-precedence-v1",
+              "user-2026-08-31-persiana-screening-contract-v2",
+              "authorized-22-schermature-materiale",
+              "authorized-16-schermature-meccanismo",
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+              "user-2026-08-18-explicit-technical-surface-precision"
+            ]
+          }
+        ],
+        "financial": {
+          "invoiceTotal": 12525,
+          "eligibleExpense": 12525,
+          "tripleReconciliationVerified": true,
+          "reconciledTotal": 12525,
+          "evidence": [
+            {
+              "sourceId": "5307b6061460c9cfcab9d488467808b26b1f04538ce27c99facb85bc15a26793:invoice:264f0ccd0374",
+              "kind": "invoice",
+              "taxableAmount": 11386.36,
+              "vatAmount": 1138.64,
+              "grossTotal": 12525,
+              "interventionGrossAmount": 12525,
+              "extractionConfidence": "certain",
+              "extractionIssues": []
+            }
+          ],
+          "bankTransfers": [],
+          "bankTransferReconciliation": {
+            "status": "not_provided",
+            "principalTotal": null,
+            "feesTotal": null,
+            "debitedTotal": null,
+            "difference": null,
+            "referenceStatus": "not_provided",
+            "missingInvoiceReferences": [],
+            "taxReliefTypes": []
+          },
+          "methods": [
+            {
+              "method": "structured_extraction",
+              "ok": true,
+              "total": 12525,
+              "sources": [
+                "5307b6061460c9cfcab9d488467808b26b1f04538ce27c99facb85bc15a26793:invoice:264f0ccd0374"
+              ],
+              "reason": "Ogni documento ha imponibile, IVA e totale verificati."
+            },
+            {
+              "method": "accounting_reconciliation",
+              "ok": true,
+              "total": 12525,
+              "sources": [
+                "5307b6061460c9cfcab9d488467808b26b1f04538ce27c99facb85bc15a26793:invoice:264f0ccd0374"
+              ],
+              "reason": "Somma dei totali lordi IVA inclusa delle fatture uniche deduplicate; gli storni interni sono solo note auditabili."
+            },
+            {
+              "method": "intervention_cross_check",
+              "ok": true,
+              "total": 12525,
+              "sources": [
+                "5307b6061460c9cfcab9d488467808b26b1f04538ce27c99facb85bc15a26793:invoice:264f0ccd0374"
+              ],
+              "reason": "Totale ricostruito esclusivamente dalle righe pertinenti all'intervento."
+            }
+          ],
+          "discardedDuplicateSourceIds": [],
+          "supersededTechnicalSourceIds": [],
+          "appliedRuleIds": [
+            "user-2026-08-16-invoice-gross-total-vat-included",
+            "user-2026-08-18-bundled-professional-expense-separation",
+            "user-2026-08-18-mandatory-bank-transfer-invoice-expense-cross-check",
+            "core-gross-triple-reconciliation",
+            "user-2026-08-14-preserve-technical-product-cardinality",
+            "system-explicit-advance-invoice-reference-marker-v1"
+          ]
+        },
+        "warnings": [
+          {
+            "code": "original_non_fiscal_technical_source_applied",
+            "reason": "6 prodotti fisici ricavati da scheda tecnica/preventivo originario; nessun importo della fonte non fiscale e stato usato.",
+            "appliedRuleIds": [
+              "user-2026-08-23-documented-product-module-over-label",
+              "user-2026-08-14-preserve-technical-product-cardinality"
+            ]
+          },
+          {
+            "code": "crm_fiscal_code_confirmed_by_invoice_customer_block",
+            "reason": "CF CRM FRNMMS67L47F205M confermato nel blocco CLIENTE di una fattura originaria, con checksum e prefissi fiscali di nome/cognome concordanti.",
+            "appliedRuleIds": [
+              "system-invoice-customer-block-crm-cf-v1",
+              "user-2026-08-16-fiscal-code-identity-cross-check"
+            ]
+          },
+          {
+            "code": "co_beneficiary_confirmed_by_invoice",
+            "reason": "Cointestatario persona fisica confermato dalla fattura originaria: pianificato nel riquadro ENEA Altri beneficiari con verifica idempotente del CF.",
+            "appliedRuleIds": [
+              "user-2026-08-16-invoice-identity-over-customer-form",
+              "user-2026-08-17-invoice-co-beneficiary-person-flow"
+            ]
+          },
+          {
+            "code": "enea_2026_june_25_ninety_day_window_applied",
+            "reason": "Avviso ENEA 25/06/2026 applicato: inizio lavori 2026-05-14, fine lavori 2026-05-14; i 90 giorni decorrono dal 25/06/2026 e terminano il 23/09/2026.",
+            "appliedRuleIds": [
+              "user-2026-08-23-enea-2026-june-25-ninety-day-window"
+            ]
+          }
+        ],
+        "blockers": [],
+        "sourceIds": [
+          "5307b6061460c9cfcab9d488467808b26b1f04538ce27c99facb85bc15a26793",
+          "667c67e484dd9d34b9afd9abb35328cdaf8f1208cff78818e6711fb6acaeb9fb",
+          "2ce5af8d93330370f27c54f0c28526fbfc3f14e6d017d0196d5b378742b39473"
+        ],
+        "eneaPayloadAudit": {
+          "status": "payload_complete",
+          "mappingFingerprint": "1e3cq0p",
+          "fieldSummary": {
+            "ready": 118,
+            "review": 0,
+            "missing": 0
+          },
+          "requiredPortalFieldCount": 109,
+          "blockerCount": 0,
+          "blockers": [],
+          "excludedUnverifiedFields": [
+            "beneficiario.provincia_nascita",
+            "immobile.provincia",
+            "immobile.codice_comune",
+            "immobile.zona_climatica",
+            "immobile.gradi_giorno",
+            "documenti.fatture",
+            "documenti.bonifico",
+            "documenti.tecnici"
+          ],
+          "draftReady": true,
+          "officialSubmissionAllowed": false,
+          "portalGate": {
+            "status": "ready",
+            "reason": null,
+            "workflowFingerprint": "1e3cq0p:109:6",
+            "supportedPages": [
+              "Generatore dell'impianto termico",
+              "Anagrafica Beneficiario",
+              "Immobile",
+              "Intervento",
+              "Impianto termico esistente",
+              "Schermature solari",
+              "Calcolo costi e detrazioni"
+            ],
+            "screeningItemCount": 6,
+            "saveAllowedOnlyBySeparateCapability": true,
+            "previewAllowed": false,
+            "submitAllowed": false
+          },
+          "externalActionAllowed": false,
+          "reason": "Payload TEST completo per la sola bozza salvata; anteprima e submit restano vietati."
+        },
+        "draftPlan": {
+          "status": "ready_before_external_action",
+          "externalActionAllowed": false,
+          "previewAllowed": false,
+          "submitAllowed": false,
+          "communicationsAllowed": false,
+          "nextAction": "Piano locale pronto; fermo prima di ENEA."
+        }
+      },
+      "reason": "Fresh replay dai documenti originali"
+    }
+  ],
+  "externalActionAllowed": false,
+  "reason": "Fresh replay locale",
+  "nextAction": "Nessuna azione esterna.",
+  "validationRevisionsApplied": [],
+  "sourceRevisionsApplied": [],
+  "operatorMeasurementResolutions": [],
+  "audit": [
+    {
+      "revision": 1,
+      "at": "2026-09-03T10:00:00.000Z",
+      "type": "completed",
+      "customerKey": null,
+      "reason": "Fresh replay locale",
+      "appliedRuleIds": [
+        "system-single-active-practice"
+      ]
+    }
+  ]
+}

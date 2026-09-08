@@ -1,0 +1,34 @@
+{
+  "version": "apr-screening-rounding-targeted-zeno-r15-v1",
+  "authorizationId": "user-2026-08-31-definitive-mandate-same-authorized-corpus",
+  "authorizedAt": "2026-08-31T00:00:00.000Z",
+  "mode": "real_enea_draft_only",
+  "safety": {
+    "draftOnly": true,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false,
+    "priorDraftPolicy": "preserve_and_ignore_for_new_test_draft"
+  },
+  "selection": {
+    "total": 1,
+    "selectionMethod": "targeted regression replay from the already-authorized 30-case corpus",
+    "moduleDistribution": {"screening": 1},
+    "complexityDistribution": {"medium": 1},
+    "allowedStages": ["archiviate"],
+    "excludedCustomerKeys": ["beatrice-ciotta"]
+  },
+  "cases": [
+    {
+      "cohort": 234,
+      "customerKey": "zeno-righetti",
+      "displayName": "Zeno Righetti",
+      "practiceId": "513b7f1e-d79f-4efc-86f0-20e4018c9155",
+      "stage": "archiviate",
+      "module": "screening",
+      "invoiceCount": 2,
+      "complexity": "medium",
+      "historicalRetest": true
+    }
+  ]
+}

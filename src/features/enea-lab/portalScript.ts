@@ -8,6 +8,9 @@ export interface EneaPortalRuntimeField {
   /** Qualificatore documentato usato soltanto per disambiguare una voce
    * autorevole dell'autocomplete (per i Comuni italiani: sigla provincia). */
   autocompleteQualifier?: string;
+  /** Codice ISTAT corrente proveniente da una transizione amministrativa
+   * ufficiale. Quando presente, anche il codice deve coincidere esattamente. */
+  autocompleteAuthoritativeIstatCode?: string;
 }
 
 export interface EneaCalculationExpenseAllocation {

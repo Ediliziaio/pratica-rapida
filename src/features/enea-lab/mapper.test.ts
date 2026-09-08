@@ -24,6 +24,24 @@ const analysis: EneaLabDocumentAnalysis = {
 };
 
 describe("mapSchermaturaPractice", () => {
+  it("canonicizza Comune di residenza e lavori soltanto tramite l'identita ISTAT univoca", () => {
+    const source = structuredClone(ENEA_LAB_MOCK_PRACTICES[0]);
+    source.form.residenza.comune = "MONTECOMPATRI (RM)";
+    source.form.residenza.provincia = "ROMA";
+    source.form.residenza.stesso_indirizzo_lavori = true;
+    const fields = mapSchermaturaPractice(source).sections.flatMap((section) => section.fields);
+    for (const fieldId of ["beneficiario.comune_residenza", "immobile.comune"]) {
+      expect(fields.find((field) => field.id === fieldId)).toMatchObject({
+        value: "Monte Compatri",
+        status: "ready",
+        source: "Regola controllata",
+        appliedRuleIds: expect.arrayContaining([USER_AUTHORIZED_RULE_IDS.officialMunicipalityCanonicalIdentity]),
+      });
+      expect(fields.find((field) => field.id === fieldId)?.note).toContain("058060");
+      expect(fields.find((field) => field.id === fieldId)?.note).toContain("F477");
+    }
+  });
+
   it("mappa il nome storico Godiasco al Comune corrente soltanto tramite la fonte ufficiale", () => {
     const source = structuredClone(ENEA_LAB_MOCK_PRACTICES[0]);
     source.form.richiedente.cf = "RNZRND49B18E072J";
@@ -114,9 +132,9 @@ describe("mapSchermaturaPractice", () => {
       editable: true,
     });
     expect(fields.find((field) => field.id === "schermature.1.gtot")).toMatchObject({
-      value: "0,06",
+      value: "Intervento umano richiesto",
       source: "Regola controllata",
-      status: "ready",
+      status: "missing",
     });
     expect(fields.find((field) => field.id === "schermature.numero")).toMatchObject({
       value: "2",
@@ -199,6 +217,27 @@ describe("mapSchermaturaPractice", () => {
 
     expect(fields.find((field) => field.id === "beneficiario.nazione_nascita")).toMatchObject({ value: "Italia", status: "ready" });
     expect(fields.find((field) => field.id === "beneficiario.nazione_residenza")).toMatchObject({ value: "Italia", status: "ready" });
+  });
+
+  it("regressione Capitanelli: usa il comune di nascita/residenza come ripiego quando la sigla provincia CRM non e' standard (es. 'ROM' invece di 'RM')", () => {
+    const source = structuredClone(ENEA_LAB_MOCK_PRACTICES[0]);
+    source.form.richiedente.comune_nascita = "ROMA";
+    source.form.richiedente.provincia_nascita = "ROM";
+    source.form.residenza.comune = "ROMA";
+    source.form.residenza.provincia = "ROM";
+    const fields = mapSchermaturaPractice(source).sections.flatMap((section) => section.fields);
+
+    expect(fields.find((field) => field.id === "beneficiario.nazione_nascita")).toMatchObject({ value: "Italia", status: "ready" });
+    expect(fields.find((field) => field.id === "beneficiario.nazione_residenza")).toMatchObject({ value: "Italia", status: "ready" });
+  });
+
+  it("non deduce una nazione italiana dal solo comune quando ne' la provincia ne' il comune sono riconoscibili", () => {
+    const source = structuredClone(ENEA_LAB_MOCK_PRACTICES[0]);
+    source.form.richiedente.comune_nascita = "Springfield";
+    source.form.richiedente.provincia_nascita = "XX";
+    const fields = mapSchermaturaPractice(source).sections.flatMap((section) => section.fields);
+
+    expect(fields.find((field) => field.id === "beneficiario.nazione_nascita")?.status).not.toBe("ready");
   });
 
   it("risolve da fonte istituzionale Z600 come Argentina anche se il form riporta una provincia italiana", () => {
@@ -493,7 +532,7 @@ describe("mapSchermaturaPractice", () => {
       })),
     };
     const result = mapSchermaturaPractice(ENEA_LAB_MOCK_PRACTICES[0], persianaAnalysis, {
-      resolvedScreeningGTot: Array(2).fill({ value: 0.08, source: "authorized_fallback", ruleId: "user-2026-08-18-persiana-screening-contract-v1" }),
+      resolvedScreeningGTot: Array(2).fill({ value: 0.06, source: "authorized_fallback", ruleId: "user-2026-08-31-rigid-screening-missing-gtot-006-v1" }),
       resolvedScreeningMaterial: Array(2).fill({ value: "Metallo", ruleId: "user-2026-08-18-persiana-screening-contract-v1" }),
       resolvedScreeningRegulation: Array(2).fill({ value: "Manuale", ruleId: "user-2026-08-18-persiana-screening-contract-v1" }),
       resolvedProtectedWindowSurface: [
@@ -503,8 +542,8 @@ describe("mapSchermaturaPractice", () => {
     });
     const fields = result.sections.flatMap((section) => section.fields);
     expect(fields.find((field) => field.id === "schermature.0.tipo")?.value).toBe("Persiana");
-    expect(fields.find((field) => field.id === "schermature.0.gtot")?.value).toBe("0,08");
-    expect(fields.find((field) => field.id === "schermature.0.rsupp")).toMatchObject({ value: "0,17", status: "ready", source: "Regola controllata", appliedRuleIds: ["user-2026-08-18-persiana-screening-contract-v1"] });
+    expect(fields.find((field) => field.id === "schermature.0.gtot")?.value).toBe("0,06");
+    expect(fields.find((field) => field.id === "schermature.0.rsupp")).toMatchObject({ value: "0,17", status: "ready", source: "Regola controllata", appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.persianaScreening] });
     expect(fields.find((field) => field.id === "schermature.0.materiale")?.value).toBe("Metallo");
     expect(fields.find((field) => field.id === "schermature.0.superficie_finestrata")).toMatchObject({ value: "2,9 m²", status: "ready", testOnly: false });
     expect(fields.find((field) => field.id === "schermature.1.superficie_finestrata")).toMatchObject({ value: "3,2 m²", status: "ready", testOnly: false });
@@ -516,14 +555,14 @@ describe("mapSchermaturaPractice", () => {
       items: [{ widthMm: 1200, heightMm: 2450, surfaceM2: 2.94, gTot: null, description: "Avvolgibile in alluminio", sourcePath: "avvolgibili.pdf" }],
     };
     const result = mapSchermaturaPractice(ENEA_LAB_MOCK_PRACTICES[0], avvolgibileAnalysis, {
-      resolvedScreeningGTot: [{ value: 0.08, source: "authorized_fallback", ruleId: USER_AUTHORIZED_RULE_IDS.avvolgibileScreening }],
+      resolvedScreeningGTot: [{ value: 0.06, source: "authorized_fallback", ruleId: USER_AUTHORIZED_RULE_IDS.avvolgibileScreening }],
       resolvedScreeningMaterial: [{ value: "Metallo", ruleId: USER_AUTHORIZED_RULE_IDS.avvolgibileScreening }],
       resolvedScreeningRegulation: [{ value: "Manuale", ruleId: USER_AUTHORIZED_RULE_IDS.avvolgibileScreening }],
       resolvedProtectedWindowSurface: [{ value: 2.94, source: "derived_product_surface", ruleId: USER_AUTHORIZED_RULE_IDS.avvolgibileScreening }],
     });
     const fields = result.sections.flatMap((section) => section.fields);
     expect(fields.find((field) => field.id === "schermature.0.tipo")?.value).toBe("Persiane avvolgibili");
-    expect(fields.find((field) => field.id === "schermature.0.gtot")?.value).toBe("0,08");
+    expect(fields.find((field) => field.id === "schermature.0.gtot")?.value).toBe("0,06");
     expect(fields.find((field) => field.id === "schermature.0.materiale")?.value).toBe("Metallo");
     expect(fields.find((field) => field.id === "schermature.0.regolazione")?.value).toBe("Manuale");
     expect(fields.find((field) => field.id === "schermature.0.rsupp")).toMatchObject({ value: "0,17", status: "ready", appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.avvolgibileScreening] });

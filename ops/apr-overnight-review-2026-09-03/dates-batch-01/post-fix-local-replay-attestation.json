@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "apr-date-blind-review-post-fix-v1",
+  "scope": "local_replay_only_no_enea_action",
+  "blindReview": {
+    "caseCount": 14,
+    "noExplicitDateEvidence": 12,
+    "technicalExtractionErrors": 2,
+    "sha256": "626be0c1ed0094ddc799acefb4eecd6b4bad9bc2dbe8228e488a37222c7cfe40"
+  },
+  "rule": {
+    "id": "system-explicit-original-completion-date-v1",
+    "registryVersion": "enea-operational-registry-v108",
+    "matrixVersion": "apr-enea-rule-test-matrix-v86",
+    "positiveTests": [
+      "dichiarazione originaria esplicita di fine installazione",
+      "collaudo finale datato della posa"
+    ],
+    "negativeTests": [
+      "date amministrative e descrizioni generiche escluse",
+      "date esplicite divergenti fail-closed"
+    ]
+  },
+  "replay": {
+    "manifestCaseCount": 100,
+    "canonicalSha256": "1cf3820f35f3fec303e58bc6aae3f976d5d4673618b5fba63b594052ed0b7bdf",
+    "deterministicRuns": 2,
+    "giuseppeDAdduzio": {
+      "resolvedCompletionDate": "2026-07-17",
+      "dateBlockers": [],
+      "dateExtractionErrorResolved": true,
+      "otherIndependentBlockersRemain": true
+    },
+    "marcellaCapatti": {
+      "resolvedCompletionDate": "2026-02-12",
+      "blockerCodes": [
+        "completion_over_90_days_operator_required"
+      ],
+      "portalYearMismatchRemoved": true,
+      "procedurabilityDecisionStillRequired": true
+    }
+  },
+  "safety": {
+    "localOnly": true,
+    "externalActionAllowed": false,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false
+  }
+}

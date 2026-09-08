@@ -1,0 +1,14 @@
+{
+  "version": "apr-exact-tested-bundle-install-receipt-v1",
+  "installedAt": "2026-09-07T21:17:07.747Z",
+  "versionId": "f6f8e746-deep-review-terminal-gate-r86-20260907",
+  "previousTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/d1681076-manso-cap-typo-fix-r85-20260907",
+  "currentTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/f6f8e746-deep-review-terminal-gate-r86-20260907",
+  "installedBundleSha256": {
+    "apr-supervisor.mjs": "f384bedb9a2f93101f8baa224ab680cf377c2dc4f183d0e5f6b827db867a07d0",
+    "apr-enea-worker.mjs": "fbf41cdd351262848387183d76323769f7c2cd06de73dc370363d96cda491ce0",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0"
+  },
+  "governanceAttestationSha256": "153ee55b6fbe9d5034dcbf83bcfc38369c1122af36d067819dc2b726e852134a",
+  "sourceGateCheckpoint": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-berti-deep-review-terminal-r86-2026-09-07/rule-activation/checkpoint.json"
+}

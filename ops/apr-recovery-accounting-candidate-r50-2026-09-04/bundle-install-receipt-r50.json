@@ -1,0 +1,17 @@
+{
+  "version": "apr-recovery-accounting-candidate-r50-bundle-install-receipt-v1",
+  "installedAt": "2026-09-04T20:35:52.705Z",
+  "status": "bundle_promoted_local_gate_verified",
+  "preinstallGateSha256": "2f4ffeb4ebf239132b2b69f5c6303e9f52ad1f326c2d77eabd2b5565ae23b2ae",
+  "versionId": "c7b93248-recovery-accounting-candidate-r50-20260904",
+  "previousTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/9a77fc9f-recovery-prepared-window-r49-20260904",
+  "currentTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/c7b93248-recovery-accounting-candidate-r50-20260904",
+  "installedBundle": {
+    "apr-supervisor.mjs": "f73d521300398b11a86c1b86c987aa86a751a9642e73b2a75f61a53b3b2d530d",
+    "apr-enea-worker.mjs": "c7b93248da077dc5f9ae26b6f6a469d3eff277e726e7e57a496b0f0b62690b7d",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "apr-pdf-ocr": "4c41c9a6832b11b9d19eace538100270a533dddc05e475e5842711968393327f"
+  },
+  "keepaliveRestartRequested": false,
+  "chromeRestartRequested": false
+}

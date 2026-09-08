@@ -30,9 +30,15 @@ const RULE_IDS = [
   "authorized-19-test-stop-at-saved-draft",
 ] as const;
 
+const SYSTEM_GENERATION_CANONICAL_DRAFT_RULE = "system-generation-scoped-canonical-draft-v1";
+
 export interface AprCohortSeedManifest {
   version: typeof APR_COHORT_SEED_VERSION;
   sourceEvidenceId: string;
+  draftGenerationPolicy?: {
+    mode: "fresh_generation";
+    experimentId: string;
+  };
   candidates: AprPilotCandidate[];
   repeatTest?: {
     authorizationId: string;
@@ -63,6 +69,10 @@ export interface AprCohortSeedCheckpoint {
   sourceEvidenceId: string;
   candidateFingerprint: string;
   candidates: AprPilotCandidate[];
+  draftGenerationPolicy?: null | {
+    mode: "fresh_generation";
+    experimentId: string;
+  };
   externalActionAllowed: false;
   executor: "apr_persistent_runtime";
   /** New cohorts require the verified L4 bridge before browser auto-arm. */
@@ -122,6 +132,10 @@ function priorDrafts(historyRoot: string) {
 }
 
 export function validateAprCohortSeed(manifest: AprCohortSeedManifest, historyRoot: string) {
+  if (manifest.draftGenerationPolicy && (manifest.draftGenerationPolicy.mode !== "fresh_generation"
+    || !/^[a-z0-9][a-z0-9._:-]{7,255}$/.test(manifest.draftGenerationPolicy.experimentId))) {
+    throw new Error("apr_cohort_draft_generation_policy_invalid");
+  }
   if (manifest.version !== APR_COHORT_SEED_VERSION) throw new Error("apr_cohort_seed_version_invalid");
   if (!/^[a-z0-9][a-z0-9._:-]{7,255}$/.test(manifest.sourceEvidenceId)) throw new Error("apr_cohort_seed_evidence_invalid");
   const candidates = normalized(manifest.candidates);
@@ -149,7 +163,7 @@ export function validateAprCohortSeed(manifest: AprCohortSeedManifest, historyRo
   if (!validSize) throw new Error(`apr_cohort_seed_size_invalid:${candidates.length}`);
   if (candidates.some((candidate) => !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(candidate.customerKey) || !candidate.displayName)) throw new Error("apr_cohort_seed_identity_invalid");
   if (candidates.some((candidate) => (candidate.practiceId && !/^[a-f0-9-]{36}$/.test(candidate.practiceId))
-    || (candidate.expectedStageType && !["archiviate", "recensione", "pronte_da_fare"].includes(candidate.expectedStageType))
+    || (candidate.expectedStageType && !["archiviate", "recensione", "pronte_da_fare", "gestionale"].includes(candidate.expectedStageType))
     || (candidate.productModule && !["screening", "infissi"].includes(candidate.productModule))
     || (candidate.expectedStageType && !candidate.practiceId))) throw new Error("apr_cohort_seed_practice_scope_invalid");
   if (new Set(candidates.flatMap((candidate) => candidate.practiceId ? [candidate.practiceId] : [])).size !== candidates.filter((candidate) => candidate.practiceId).length) throw new Error("apr_cohort_seed_duplicate_practice");
@@ -192,6 +206,7 @@ export class PersistentAprCohortSeed {
     if (!existsSync(this.checkpointPath)) return null;
     const value = JSON.parse(readFileSync(this.checkpointPath, "utf8")) as AprCohortSeedCheckpoint;
     value.repeatTest ??= null;
+    value.draftGenerationPolicy ??= null;
     if (value.version !== APR_COHORT_SEED_VERSION || value.executor !== "apr_persistent_runtime" || value.externalActionAllowed !== false || value.audit.some((event) => event.appliedRuleIds.length === 0)) throw new Error("apr_cohort_seed_checkpoint_invalid");
     return value;
   }
@@ -201,14 +216,17 @@ export class PersistentAprCohortSeed {
     const candidateFingerprint = createHash("sha256").update(JSON.stringify(candidates)).digest("hex");
     const current = this.load();
     if (current) {
-      if (current.candidateFingerprint !== candidateFingerprint || current.sourceEvidenceId !== manifest.sourceEvidenceId) throw new Error("apr_cohort_seed_immutable");
+      if (current.candidateFingerprint !== candidateFingerprint || current.sourceEvidenceId !== manifest.sourceEvidenceId
+        || JSON.stringify(current.draftGenerationPolicy) !== JSON.stringify(manifest.draftGenerationPolicy ?? null)) throw new Error("apr_cohort_seed_immutable");
       return current;
     }
     new JournalStore(this.rootDirectory).initialize([]);
     const acquisition = new PersistentAprCrmAuthenticatedReadOnly(this.rootDirectory, new PersistentAprCrmAuth(this.rootDirectory));
     acquisition.prepare(candidates, candidateFingerprint, now, manifest.authorizedSingleCase ? 1 : 2);
     const repeatTest = manifest.repeatTest ? { authorizationId: manifest.repeatTest.authorizationId, priorDrafts: manifest.repeatTest.priorDrafts.map((item) => ({ ...item })), presentDraftIds: manifest.repeatTest.priorDrafts.map((item) => item.draftId), deletionEvidenceId: null, deletionVerifiedAt: null, deletionProofRequired: manifest.repeatTest.deletionProofRequired !== false } : null;
-    const reason = repeatTest
+    const reason = manifest.draftGenerationPolicy
+      ? `Test A/B APR di ${candidates.length} pratiche configurato in modalita fresh_generation (${manifest.draftGenerationPolicy.experimentId}): ogni pratica deve creare una nuova bozza canonica e non puo adottare mapping di generazioni precedenti.`
+      : repeatTest
       ? repeatTest.deletionProofRequired
         ? `Repeat-test APR di ${candidates.length} pratiche configurato; compilazione bloccata finché APR non prova lato server l'assenza delle vecchie bozze.`
         : `Repeat-test APR di ${candidates.length} pratiche configurato; le vecchie bozze sono storico intoccabile e APR produrra nuovi ID senza riusare risultati precedenti.`
@@ -222,6 +240,7 @@ export class PersistentAprCohortSeed {
       sourceEvidenceId: manifest.sourceEvidenceId,
       candidateFingerprint,
       candidates,
+      draftGenerationPolicy: manifest.draftGenerationPolicy ?? null,
       externalActionAllowed: false,
       executor: "apr_persistent_runtime",
       verifiedMapperBridgeRequired: true,
@@ -230,6 +249,7 @@ export class PersistentAprCohortSeed {
       nextAction: "Il supervisore APR persistente acquisirà i dossier in sola lettura; soltanto il worker APR potrà lavorare eventuali piani bozza verdi.",
       createdAt: now.toISOString(),
       audit: [{ at: now.toISOString(), type: "cohort_seeded", reason, appliedRuleIds: [...RULE_IDS,
+        ...(manifest.draftGenerationPolicy ? [SYSTEM_GENERATION_CANONICAL_DRAFT_RULE] : []),
         manifest.authorizedSingleCase ? USER_AUTHORIZED_RULE_IDS.singleCaseRegressionTest
           : manifest.authorizedBatch?.exactCount === 40 ? USER_AUTHORIZED_RULE_IDS.mixedFortyCaseReliabilityTest
           : manifest.authorizedBatch?.exactCount === 11 ? USER_AUTHORIZED_RULE_IDS.elevenCaseCleanRepeat

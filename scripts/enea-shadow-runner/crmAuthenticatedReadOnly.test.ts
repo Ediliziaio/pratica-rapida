@@ -3,7 +3,7 @@ import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { PersistentAprCrmAuthenticatedReadOnly, type AprCrmReadOnlyTransport } from "./crmAuthenticatedReadOnly";
+import { aprDocumentProcessingDossiers, PersistentAprCrmAuthenticatedReadOnly, type AprCrmReadOnlyTransport } from "./crmAuthenticatedReadOnly";
 
 const directories: string[] = [];
 const temporaryDirectory = () => { const directory = mkdtempSync(path.join(os.tmpdir(), "apr-crm-acquisition-")); directories.push(directory); return directory; };
@@ -28,6 +28,23 @@ const row = (firstName: string, lastName: string, suffix: string) => ({
 afterEach(() => { vi.restoreAllMocks(); for (const directory of directories.splice(0)) rmSync(directory, { recursive: true, force: true }); });
 
 describe("acquisizione CRM autenticata e read-only APR", () => {
+  it("non ammette mai un dossier escluso al download documenti", () => {
+    const base = { state: "acquired", practiceId: "p-1", dossierPath: "/tmp/dossier.json" };
+    expect(aprDocumentProcessingDossiers([
+      { ...base, customerKey: "massimiliano-montemorra", automationExclusion: { kind: "supplier", canonicalKey: "erre-emme-rm-legno", displayName: "Erre Emme / RM Legno", reason: "excluded", sourceField: "row.companies.ragione_sociale", sourceValue: "RM Legno" } },
+      { ...base, customerKey: "mario-rossi", practiceId: "p-2", automationExclusion: null },
+    ] as never)).toEqual([{ customerKey: "mario-rossi", practiceId: "p-2", dossierPath: "/tmp/dossier.json" }]);
+  });
+
+  it("marca RM Legno subito dopo il GET dossier affinche gli allegati non siano elaborati", async () => {
+    const practiceId = "00000000-0000-4000-8000-000000000097";
+    const get = vi.fn(async () => new Response(JSON.stringify([{ ...row("Massimiliano", "Montemorra", "97"), id: practiceId, pipeline_stages: { stage_type: "archiviate" }, companies: { ragione_sociale: "RM LEGNO" } }]), { status: 200, headers: { "Content-Type": "application/json" } }));
+    const reader = new PersistentAprCrmAuthenticatedReadOnly(temporaryDirectory(), { snapshot: () => ({ status: "authenticated" }), readOnlyGet: get });
+    reader.prepare([{ customerKey: "massimiliano-montemorra", displayName: "Massimiliano Montemorra", practiceId, expectedStageType: "archiviate" }], "8".repeat(64), new Date("2026-09-03T12:00:00Z"), 1);
+    await reader.tick(new Date("2026-09-03T12:00:01Z"));
+    expect(reader.snapshot().items[0]).toMatchObject({ state: "acquired", automationExclusion: { kind: "supplier", canonicalKey: "erre-emme-rm-legno" }, reason: expect.stringContaining("non saranno scaricati o analizzati") });
+  });
+
   it("acquisisce una pratica Archiviate per ID esatto senza ricerca per nome", async () => {
     const practiceId = "00000000-0000-4000-8000-000000000099";
     const archivedCandidates = [

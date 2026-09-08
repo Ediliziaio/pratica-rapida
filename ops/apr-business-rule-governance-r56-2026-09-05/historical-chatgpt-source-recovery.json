@@ -1,0 +1,865 @@
+{
+  "version": "apr-historical-chat-source-recovery-v1",
+  "retrievedAt": "2026-09-05T12:12:51.595Z",
+  "notice": "Fonte conversazionale recuperata dall'app; contenuto utente non è logica attiva finché non registrato, provato e distribuito.",
+  "messageCount": 107,
+  "messages": [
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "294b9a0f-04c2-48b4-8090-d5a8d719a52c",
+      "messageId": "294b9a0f-04c2-48b4-8090-d5a8d719a52c",
+      "startedAt": "2026-08-04T16:37:24.986Z",
+      "text": "i miei clienti come tu sai mi mandano i dati con un link che ha dati fissi e ricorrenti sempre nelle stesse celle. verifica come inserire almeno i dati principali direttamente dal link al portale enea una volta che io sono già entrato con il mio spid"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "aa05fdff-3af3-482d-8117-407f072c84ca",
+      "messageId": "aa05fdff-3af3-482d-8117-407f072c84ca",
+      "startedAt": "2026-08-04T16:44:12.414Z",
+      "text": "allora...ho aperto con lo spidocchiantesi il portale enea, poi ho cercato di fare copia incolla in una seconda finestra che ho aperto sempre all'interno del tuo browser ma appena ho fatto cmd V mi è uscito un messaggio in rosso in inglese e ora vedo tutto cosi\n\n[User attached 1 image; image contents were not included]"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "0e20d5c9-eca1-4eaf-af86-24e9faa9e621",
+      "messageId": "0e20d5c9-eca1-4eaf-af86-24e9faa9e621",
+      "startedAt": "2026-08-04T16:48:52.812Z",
+      "text": "https://app.praticarapida.it/form/21548471-461d-433d-a5e4-8b1a94719eb2 spero che questo link vada bene , nel senso che non so se è compilato o da compilare, se no ti do gli accessi al crm e lo cerchi tu"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "4b2517df-065e-403f-ad19-02b83cdbe8cd",
+      "messageId": "4b2517df-065e-403f-ad19-02b83cdbe8cd",
+      "startedAt": "2026-08-04T16:54:39.074Z",
+      "text": "si, qualsiasi cosa fai si può comunque eliminar el apratica inserti anche dopo averla inviata ufficialmente"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "07cb9f75-8147-474c-b42a-ddea088cd7db",
+      "messageId": "07cb9f75-8147-474c-b42a-ddea088cd7db",
+      "startedAt": "2026-08-04T17:03:10.114Z",
+      "text": "che facciamo ? ci lavoriamo seriamente? anche perchè ti spiego: arrivati alla sezione intervento, li c'è da mettere i dati che noi adesso ricaviamo dalle fatture che ci arrivano, ma che nonsempre sono PDF , a volte sono foto fatte con il cellulare, e dentro li ci sono i valori gtot, le misure, il totale magari a volte diviso su due fatture... consigliami tu: costruiamo la prima parte che entra in automatico nel portale ENEA ae il restoconituiamo a farlo a mano o puntiamo ad automatizzare tutto?"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "9d138818-8e01-421b-9458-31c6cabd3f19",
+      "messageId": "9d138818-8e01-421b-9458-31c6cabd3f19",
+      "startedAt": "2026-08-04T17:17:13.233Z",
+      "text": "io ho enorme esperienza nelle pratiche enea, ti posso dire i d'amiche mettiamo e che spesso in fattura noncompaiono, insomma.ti posso dire dove noi aprichiamo inventiva e elasticità mentale così onda trasferirla agli automatismi. in pratica sarebbe che oggi scriviamo tutto, domani controlliamo non i dati deiclienti ma solo la fase di fatture e valori sull'intervento. sarebbe tanta tanta roba. il problema è che anche umanamente non posso testare con matteo le nocività per poidirgli che lo lascio a casa. o ci teniamo noi delle pratiche o quanto arrivano nel pratiche vere aereiamo un mondo parallelo dove Lem lavoriamo senza che lui le veda e entriamo nel portale enea con il mio spidocchiantesi e non con quello aziendale, poi le cancelliamo"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "ed1b2648-0d9e-4f49-a053-f09ec68aaf78",
+      "messageId": "ed1b2648-0d9e-4f49-a053-f09ec68aaf78",
+      "startedAt": "2026-08-04T22:44:39.798Z",
+      "text": "no aspetta..facciamo in modo che matteo non veda e sappia niente. se non è un casino farei un portale \" parallelo \", una sorta di pagina che vedo solo io e che fa le p pratiche in un portale ENEA adove accedo con il mio spidocchiantesi. tanto poi le cancello tutet a fine test. è un lavoro lungo?"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "eb6a7aed-73b3-48aa-b41c-840857ebf742",
+      "messageId": "eb6a7aed-73b3-48aa-b41c-840857ebf742",
+      "startedAt": "2026-08-04T22:48:24.861Z",
+      "text": "no beh..puoi metterlo anche sul cruscotto o crm protetto da una password se poi ti è più comodo alla fine dei test girarlo sul crm vero e proprio"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "257a4dbf-341a-4f59-ac9e-4e5de6bf236f",
+      "messageId": "257a4dbf-341a-4f59-ac9e-4e5de6bf236f",
+      "startedAt": "2026-08-04T22:49:35.510Z",
+      "text": "in pratica funziona che quando arriva una pratica matteo la lavora come se niente fosse e si\" duplica \" in una area nascosta e noi ci facciamoquello che vogliamo giusto?"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "934102e6-bba1-4002-a568-fac667c5feb9",
+      "messageId": "934102e6-bba1-4002-a568-fac667c5feb9",
+      "startedAt": "2026-08-04T22:53:22.111Z",
+      "text": "perchè se ti do accesso al crm o a GitHub o a vercel tu non puoi vederlo da solo?"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "95992815-e28f-4c9e-b9e4-e09fb79a071a",
+      "messageId": "95992815-e28f-4c9e-b9e4-e09fb79a071a",
+      "startedAt": "2026-08-04T23:15:02.427Z",
+      "text": "quindi facciamo come per il cruscotto? lavoriamo in locale e poi quando è pronto lo colleghiamo davvero al crm?"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "dcad9fe2-d390-4467-a345-dc6f516c42c9",
+      "messageId": "dcad9fe2-d390-4467-a345-dc6f516c42c9",
+      "startedAt": "2026-08-04T23:16:23.700Z",
+      "text": "dubbio: se noi lavoriamo fuori dal crm non possiamo simulare tutti gli automatismi del crm?"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "17f1ea83-11be-4ff4-906d-b4bf7a9a6a1e",
+      "messageId": "17f1ea83-11be-4ff4-906d-b4bf7a9a6a1e",
+      "startedAt": "2026-08-04T23:23:11.065Z",
+      "text": "ok mandato. ora vado a nanna. domani disveglio, studio un pò poi aspettando la risposta di samu noi lavoriamo su fatturarapida e vialibera ok?"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "d7a81a3b-b7ab-4647-949f-845e92a0b78d",
+      "messageId": "d7a81a3b-b7ab-4647-949f-845e92a0b78d",
+      "startedAt": "2026-08-05T09:01:50.203Z",
+      "text": "ne senso che devo aprire il menù delle tabelle? perchè se tiro vi ail mouse dalla barra laterale a sinistra questa si chiude e io non posso fare lo screen"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "569c54cb-3f05-4359-a768-58814753e784",
+      "messageId": "569c54cb-3f05-4359-a768-58814753e784",
+      "startedAt": "2026-08-05T09:03:42.990Z",
+      "text": "senza GitHub siamo fermi? perchè non so quando miriapode. se siamo fermi possiamopassare a fatturarapida o vialibera"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "38d03285-3244-483f-ba58-dc9991c7c784",
+      "messageId": "38d03285-3244-483f-ba58-dc9991c7c784",
+      "startedAt": "2026-08-05T17:09:12.762Z",
+      "text": "dimmi come vuoi lavorare: idealmente le sezioni potrebbero essere due: si inseriscono i dati certi in automatico e i dati dell'intervento manualmente, oppure si inserisce tutto in automatico, ma a questo punto c'è da capire come puoi far ea incrociare i dati delle fatture e dei certificati che arrivano, perchè noi per sicurezza chiediamo le fatture sia ai rivenditori che ai clienti, poi non sempre ci sono i valori tutti inseriti, e per gli infissi alcuni non mettono le misure nelal fattura ma ci allegano i certificati di trasmittanza da dove ricaviamo il numero dei pezzi e le misure. posso dartene un pò d veder  oppure puoi entrare direttamente dal crm su tutti i clienti per veder gli allegati. oppure ancora possiamo fare un pò di pratiche insieme ( magari anche quelle già chiuse, tanto le facciamo con il mio spiede sul portale ENEA a poi le cancelliamo ). dimmi il metodo più veloce per te e più comodo per me perchè tu possa imparare e arrivare all'obiettivo. se ti fa comodo possiamocambiaer i form dicompilazione e rifarli come tu li hai bisogno. ti anticipo: tutto ciò serve per arrivare a fare un numero di pratiche al giorno elevatissimo, di conseguenza il passo successivo sarà quello di implementare il numero con marketing e tutto ciò che è necessario fare"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "c5456ace-12d8-4e08-9012-b99c53d3bb0c",
+      "messageId": "c5456ace-12d8-4e08-9012-b99c53d3bb0c",
+      "startedAt": "2026-08-05T17:27:04.729Z",
+      "text": "vuoi Cher magari facciamo prima le schermature solari e poi lavoriamo sugli infissi o riesci a fare tutto insieme?"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "226db201-6ac8-4d25-806f-cc477f771957",
+      "messageId": "226db201-6ac8-4d25-806f-cc477f771957",
+      "startedAt": "2026-08-05T17:28:26.282Z",
+      "text": "quindi..ti allego 5 pratiche chiuse e basta o ti serve fare i confronti con il crm?"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "5aa54fb2-4537-4042-9da0-577af857a1f3",
+      "messageId": "5aa54fb2-4537-4042-9da0-577af857a1f3",
+      "startedAt": "2026-08-05T17:33:57.136Z",
+      "text": "questo è il primo cliente, ti hoallegato lapratica enea e le tre fatture che il cliente ha allegato tramite il form, però cos' ti mancano i dati cheb il rivenditore hainserito e i dati che il cliente ha inserito, quindi penso che dovresti veder eun form per far finta che hai ricevuto prima i dati dal rivenditore e poi la compilazione del cliente , infine controllare le fatture\n\n[User attached 4 files; file contents were not included]"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "4967d33f-b242-40fe-a794-ba68c1158216",
+      "messageId": "4967d33f-b242-40fe-a794-ba68c1158216",
+      "startedAt": "2026-08-05T18:10:33.307Z",
+      "text": "complimenti, tutto ok, anzi..mihai trovato un errore: matteo non h ainseito il contestatario. dimmi come vuoi procedere con i test. le misure delle finestre protette abbiamosmesso di chiederle perchè i clienti si lamentavano che dovevano misurale, quindi abbiamo cominciato a inserirle noi con misure che più o meno vanno bene ( andiamo a naso ) , sulle fatture non vengono inserite , cosi come l'esposizione. ho pensatore invece di chiedere l emisur potremmo inserire nei form con un menù a tendina se la finestra protetta è una posta finestra o una finestra. use ha una anta du ante o tre o 4, e da rimettere delle misure un pò più vicine al reale , così il cliente non deve misurare ma ci da un dato. come vuoi procedere per il test?"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "745c1103-7942-461f-88b5-112f07de2c46",
+      "messageId": "745c1103-7942-461f-88b5-112f07de2c46",
+      "startedAt": "2026-08-05T18:12:05.827Z",
+      "text": "https://app.praticarapida.it/form/abf49fb9-d11b-4946-84ed-b23e7fad567c credo si aquesto"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "d0ff13ff-e93b-41f9-bbe9-eadef6c3947e",
+      "messageId": "d0ff13ff-e93b-41f9-bbe9-eadef6c3947e",
+      "startedAt": "2026-08-05T18:19:31.242Z",
+      "text": "cavolo..non so come si fa a guardare cosa h compilato il rivenditore. dammi un secondo . anche perchè fino a poco tempo fa al rivenditore non chiedevamo la fattura o i documenti"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "63e26aae-e90a-45e3-bd65-1a131f300684",
+      "messageId": "63e26aae-e90a-45e3-bd65-1a131f300684",
+      "startedAt": "2026-08-05T18:22:22.286Z",
+      "text": "credo sia questo. se guardi i form nuovi sono molto più completi nelle richieste , nel senso che chiediamo la fattura, chiediamo se la fattura presenta misure e valori, se la risposta è no chiediamo i documenti aggiuntivi, e poi chiediamo la data di fine lavori. aspetta a rispondermi, ti allego in un latro messaggio laschermata che vedono rivenditori quando compilano. poi quando fanno invio, il crm in automatico manda la mail e il messaggio whatsapp al client econ il form da compilare\n\n[User attached 1 image; image contents were not included]"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "37e80ee0-ed90-45b4-8c09-88d02ac4dc79",
+      "messageId": "37e80ee0-ed90-45b4-8c09-88d02ac4dc79",
+      "startedAt": "2026-08-05T18:33:19.725Z",
+      "text": "ok, ma ti posso anticipare che , quando il cliente compilati form, matteo si vede il nominativo del client Enel crm sotto la pipeline \" pronte da fare\" , quindi apre il cliente, ricopia sul portale enea i dati che ha scritto il cliente , apre le fatture e i vari documenti in giro e scrive sul portale enea il tipo di interevnto, lemisure, i totali delle fatture il valore gtot o le trasmittanze degli infissi e poi invia la Pratica Enea. una volta inviata, enea ti fa stampare il pdf che è la pratica vera e propria che viene inserita a mano nel crm centro il cliente cosi come la mail che arriva da enea . poi va sul dropbox e crea una cartellina dove per sicurezza mettiamo i due allegati di enea divisi per cliente. poi sposta l apratica nella pipeline \" da inserire su excel \" e il crm invia una mailcon gli allegato enea al cliente e una mail al rivenditore che avvisa che la pratica è chiusa e che trova la copia se vuole nella sua area riservata. N.B. la pipeline \" da inserire su excel \" sparire tra un paio di mesi, quando siamo sicuri che l'automatismo metta tutti i nomi giusti sul cruscotto"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "ef7bf5d3-ab9f-44fa-b4c6-f0f36b5cc809",
+      "messageId": "ef7bf5d3-ab9f-44fa-b4c6-f0f36b5cc809",
+      "startedAt": "2026-08-05T18:35:58.531Z",
+      "text": "ok, tieni conto che se vuoi fare invii a enea possiamo usare il mio spid e fare tutto quello che vogliano e non succede nulla. dimmi come procedere"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "dad6100c-5bba-4c1f-8812-cd5f2dcdeaf1",
+      "messageId": "dad6100c-5bba-4c1f-8812-cd5f2dcdeaf1",
+      "startedAt": "2026-08-05T18:37:51.528Z",
+      "text": "no no, puoi anche fare l'invio vero e proprio, poi una volta inviato si può eliminar elapratica dal portale"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "2940e1c2-bd43-4ba2-8128-23d7be3db0d0",
+      "messageId": "2940e1c2-bd43-4ba2-8128-23d7be3db0d0",
+      "startedAt": "2026-08-05T18:41:52.304Z",
+      "text": "non hai capito. io nelportal enea a che usa matteo non entro propio, li ci sono le pratiche ufficiali di praticarapida. invece usoil mio spid per entrare nelportale enea ma con altre credenziali. in questo modo possiamo fare tutti gli esperimenti  che vogliamo"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "d3309178-d52b-4556-ba30-c5dad85e391f",
+      "messageId": "d3309178-d52b-4556-ba30-c5dad85e391f",
+      "startedAt": "2026-08-05T18:42:51.256Z",
+      "text": "è per questo che lavoravamo sulla ipotesi di fare un crm ombra asullemprossime pratiche che arrivano: matteo nel lavora come sempre, mentre noi nel crm ombra facciamo tutti i test che vogliamo"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "bdd5f1e5-44a4-4521-a238-9d9569a987fb",
+      "messageId": "bdd5f1e5-44a4-4521-a238-9d9569a987fb",
+      "startedAt": "2026-08-05T18:50:01.166Z",
+      "text": "direi che ilcdm può andare sul portale enea con il mio spid e inviare, così abbiamo due vere pratiche chiuse d confrontare. può fare tutto trannè inviare mail e messaggi al cliente. deve essere in grado di intercettare quando nel crm arriva il form del rivenditore, poi intercettare quando arriva quello del cliente compilato. da li in poi si può fare la pratica. bisogna poi prevedere secondo me i casi in cui chatgpt non può procedere, alloraavvisa l'umano Cher interviene, ma credo che più andremo avanti più imparerai a sbrogliare i problemi"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "76624aaa-dfc3-4602-8077-9b80d6530c86",
+      "messageId": "76624aaa-dfc3-4602-8077-9b80d6530c86",
+      "startedAt": "2026-08-05T18:59:24.332Z",
+      "text": "quindi che facciamo? non ho capito de creato uncrm ombra e partiamo da li o facciamo diversamente"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "e2dd42c2-16d5-40f4-af45-58d6a7a678b8",
+      "messageId": "e2dd42c2-16d5-40f4-af45-58d6a7a678b8",
+      "startedAt": "2026-08-05T19:46:00.897Z",
+      "text": "posso darti un comando che ti facci aòlavorar fino alla versione definitiva prima di essere pubblicata senza che io stia davanti al pc ad atetndere di darti il vi Ada ogni pezzettino? tu fai la versione che ritieni definitiva almeno per le schermature solari, poi la guardiamo insieme se ci sono delle correzioni da fare. sappiamo già che il cliente non compila nel dimensioni delle finestre e che non compila i dati della caldaia. noi mettiamo come potenza un numero che va da 26,4 a 32,8 e che abbi asempr ala virgola, e come potenza utile nominale un numero che va da 96,8 a 98,9 e che abbia sempre la virgola. dimmi se hai bisogno di ulteriori dati prima di iniziare se dimentichiamo qualcosa le tieni in memoria e le rifiniamo insieme. dimmi se vuoi gli accessi al crm così da guardare tutto quello che vuoi"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "a1d84bca-7ee4-4396-b49b-9355e8bae165",
+      "messageId": "a1d84bca-7ee4-4396-b49b-9355e8bae165",
+      "startedAt": "2026-08-05T19:53:40.682Z",
+      "text": "si te lo confermo. una domanda: se mentre lavori ( immagino qualche ora ) io non sono davanti al pc e tu per qualche motivo hai bisogno lo spid pe4chè è scaduto o magari di rientrare nel crm come puoi dirmelo? mi mandi una mail? mi telefoni? se no io magari sono fuori per 4 ore e tu stai fermo ad aspettare"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "24767e21-f1e0-41f4-b5a8-711df98e03e7",
+      "messageId": "24767e21-f1e0-41f4-b5a8-711df98e03e7",
+      "startedAt": "2026-08-05T20:01:59.069Z",
+      "text": "https://app.praticarapida.it/kanban mi dici tu quando cambiare chat se rallenti troppo ?"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "c59e6242-ad21-4b3e-8c21-70e539e451bc",
+      "messageId": "c59e6242-ad21-4b3e-8c21-70e539e451bc",
+      "startedAt": "2026-08-05T20:07:10.682Z",
+      "text": "riprova crm"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "0aa21a44-611c-4f05-8f7c-85f5f171e1d9",
+      "messageId": "0aa21a44-611c-4f05-8f7c-85f5f171e1d9",
+      "startedAt": "2026-08-05T20:14:09.088Z",
+      "text": "riprova crm"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "015af460-0c57-4b23-a145-5fae2c92bf0d",
+      "messageId": "015af460-0c57-4b23-a145-5fae2c92bf0d",
+      "startedAt": "2026-08-05T20:17:09.829Z",
+      "text": "ma io posso fare qualcosa? centra se sono dentro il crm o sono uscito?"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "c8e940b3-d1cb-4288-bf9f-d44453f450b3",
+      "messageId": "c8e940b3-d1cb-4288-bf9f-d44453f450b3",
+      "startedAt": "2026-08-05T20:23:41.642Z",
+      "text": "riprova crm"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "0f26ca5f-e5fe-451a-b88d-45da37d2e2a8",
+      "messageId": "0f26ca5f-e5fe-451a-b88d-45da37d2e2a8",
+      "startedAt": "2026-08-05T20:30:10.803Z",
+      "text": "riprova crm anche con metodi diversi"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "eb63e0d5-7d66-4fd3-8f3e-d7afe585872b",
+      "messageId": "eb63e0d5-7d66-4fd3-8f3e-d7afe585872b",
+      "startedAt": "2026-08-05T20:46:26.688Z",
+      "text": "ti fermo un secondo: ora dovresti avere tutti gli accessi dei clienti già fatti e da fare dal crm, se mi fai fare l'accesso con il mio spid al portale enea puoi fare tutte le prove che vuoi, un consiglio: lospid sul portale enea dopo mi sembra tre minuti scade e ti richiede l'accesso, devi quindi diciamo ogni 90 secondi sollecitarlo, così che veda che c'è qualcuno che lo sta usando . una volt achillei eri do lo spid credo tu posa procedere in autonomia"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "ce94c68a-26c3-4b65-8189-3df85e28c0f0",
+      "messageId": "ce94c68a-26c3-4b65-8189-3df85e28c0f0",
+      "startedAt": "2026-08-05T20:48:52.665Z",
+      "text": "ti ripeto ancora: puoi arrivare fino in fondo e fare persino l'invio dellapratica se vuoi, siamo con il mio spid, posso cancellar tutto quando voglio"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "346bebb8-ae33-411c-8a8b-c2bf4dd75f45",
+      "messageId": "346bebb8-ae33-411c-8a8b-c2bf4dd75f45",
+      "startedAt": "2026-08-05T20:53:31.989Z",
+      "text": "ma scusa...il crm si blocca..il sito enea si blocca...sei sicuro di seguire la procedura giusta?"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "7abbbdf7-c35c-4c82-bf5c-05c237c34184",
+      "messageId": "7abbbdf7-c35c-4c82-bf5c-05c237c34184",
+      "startedAt": "2026-08-05T21:05:34.515Z",
+      "text": "Avvia ora la sessione autonoma di progettazione e sviluppo del CRM ombra ENEA per le schermature solari.\n\nRiparti dallo stato più avanzato del ramo `agent/crm-ombra-enea-lab` e lavora fino a ottenere una versione candidata definitiva, completa e testata, pronta da esaminare insieme.\n\nProcedi autonomamente con analisi, progettazione, codice, correzioni, test, commit e salvataggio sul ramo separato. Non chiedermi conferma per le decisioni intermedie o le modifiche reversibili.\n\nMantieni questi limiti:\n\n* non modificare `main`, il CRM di produzione o Vercel;\n* CRM reale esclusivamente in lettura;\n* nessuna email o WhatsApp;\n* nessuna pubblicazione definitiva;\n* ENEA utilizzabile per prove dopo il mio accesso SPID, mantenendo attiva la sessione almeno ogni 90 secondi;\n* nessun invio ufficiale con dati non verificati.\n\nPer le prove valgono i dati convenzionali già confermati: potenza nominale casuale tra 26,4 e 32,8, rendimento tra 96,8% e 98,9%, sempre con una cifra decimale. Se un dato reale non può essere ricavato con sicurezza, segnala “Intervento umano richiesto”.\n\nFermati e avvisami soltanto se serve lo SPID, manca un accesso indispensabile, occorre un’azione irreversibile oppure serve una decisione che cambierebbe sostanzialmente il progetto. Se una parte è bloccata, continua autonomamente con tutto il resto.\n\nAl termine presentami la versione completa, i test eseguiti e l’elenco delle sole questioni che dovremo rifinire insieme."
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "a58b4948-0fc5-4245-9219-8adeb8dc19d6",
+      "messageId": "a58b4948-0fc5-4245-9219-8adeb8dc19d6",
+      "startedAt": "2026-08-05T21:53:06.908Z",
+      "text": "riparti da crm"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "eb532b22-abb3-4688-86fd-3ec0fc9e8e22",
+      "messageId": "eb532b22-abb3-4688-86fd-3ec0fc9e8e22",
+      "startedAt": "2026-08-05T23:16:16.783Z",
+      "text": "Autorizzo il caricamento su GitHub nel ramo agent/crm-ombra-enea-lab"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "db41bf49-c77c-4d35-9a7b-3c51c3f26ab6",
+      "messageId": "db41bf49-c77c-4d35-9a7b-3c51c3f26ab6",
+      "startedAt": "2026-08-06T07:54:16.248Z",
+      "text": "ok grazie, torniamo al nostro crm, riparti da dove abbi lasciato"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "30609b1f-4004-411d-a13f-a906ff17d61e",
+      "messageId": "30609b1f-4004-411d-a13f-a906ff17d61e",
+      "startedAt": "2026-08-06T08:45:15.943Z",
+      "text": "no, è giusto intermediario. praticarapida è l'intermediario che per conto del beneficiario inserisce la pratica sul portale"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "3abc2a64-05a8-489a-be80-2cab10d22800",
+      "messageId": "3abc2a64-05a8-489a-be80-2cab10d22800",
+      "startedAt": "2026-08-06T09:02:16.646Z",
+      "text": "< <input name=\"nome\" id=\"id-nome\" type=\"text\" class=\"form-control\" aria-invalid=\"false\" value>\n> copy(JSON.stringify([...document.querySelectorAll('input:not([type=\"hidden\"]), select, textarea, button')].map(e => ({tag:e.tagName,id:e.id,name:e.name,type:e.type,required:e.required,label:(document.querySelector(`label[for=\"${e.id}\"]`)?.innerText||e.innerText||'').trim(),choices:e.tagName==='SELECT'?[...e.options].map(o=>({value:o.value,text:o.text.trim()})):undefined})),null,2))"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "958bcd3a-456c-4951-bf42-bdd280b32029",
+      "messageId": "958bcd3a-456c-4951-bf42-bdd280b32029",
+      "startedAt": "2026-08-06T09:05:15.159Z",
+      "text": "< <input name=\"nome\" id=\"id-nome\" type=\"text\" class=\"form-control\" aria-invalid=\"false\" value>\n> copy(JSON.stringify([...document.querySelectorAll('input:not([type=\"hidden\"]), select, textarea, button')].map(e => ({tag:e.tagName,id:e.id,name:e.name,type:e.type,required:e.required,label:(document.querySelector(`label[for=\"${e.id}\"]`)?.innerText||e.innerText||'').trim(),choices:e.tagName==='SELECT'?[...e.options].map(o=>({value:o.value,text:o.text.trim()})):undefined})),null,2))"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "52abb6d8-d677-47dc-b5e7-f1941c248cea",
+      "messageId": "52abb6d8-d677-47dc-b5e7-f1941c248cea",
+      "startedAt": "2026-08-06T15:38:24.752Z",
+      "text": "allora..ho fatto casino , scusami , ho dovuto chiudere il portal enea a , ripartiamo dalla apertura ok? io comincio ad entrare con il mio spid"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "52ea87da-cfe7-4c6c-ab30-dbe858ccb297",
+      "messageId": "52ea87da-cfe7-4c6c-ab30-dbe858ccb297",
+      "startedAt": "2026-08-06T15:43:45.526Z",
+      "text": "no, ti ho già spiegato che praticarapida è un intermediario che inerisce per conto del beneficiario della detrazione. memorizza questo dato per quando sarai tu a compilar Ele pratiche . NO persona giuridica , SI beneficiario della detrazione\n\n[User attached 1 image; image contents were not included]"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "a202da0d-2ae8-4187-96ca-4cbebf14f885",
+      "messageId": "a202da0d-2ae8-4187-96ca-4cbebf14f885",
+      "startedAt": "2026-08-06T16:16:41.106Z",
+      "text": "credimi...è il Mac....cista mettendo una vit asemplicemneeyt ad aprire ik sito delal apple..probabilmente non risce a gestire chatgpt, enea e un altro sito insieme mentre ascolto musica"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "af17ca77-2be9-415b-a3df-08f70059f3c9",
+      "messageId": "af17ca77-2be9-415b-a3df-08f70059f3c9",
+      "startedAt": "2026-08-06T17:57:43.867Z",
+      "text": "allora...dopo cena proviamo ancor aa lavorare sul portale enea, spengo tutte le app e non ascolto musica. ilmcc nuovo molto probabilmente non arriverà prima di una decina di giorni"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "7fa52e60-87b2-4d20-a0ca-6fdcbf663548",
+      "messageId": "7fa52e60-87b2-4d20-a0ca-6fdcbf663548",
+      "startedAt": "2026-08-06T18:47:10.311Z",
+      "text": "(()=>{const d={\"id-nome\":\"CLIENTE\",\"id-cognome\":\"PROVA\",\"id-codice_fiscale\":\"RSSMRA80A01H501U\",\"id-data_nascita\":\"01/01/1980\",\"id-sesso\":\"M\",\"id-nazione_nascita\":\"ita\",\"id-comune_nascita\":\"ROMA\",\"id-nazione_residenza\":\"ita\",\"id-comune_residenza\":\"ROMA\",\"id-indirizzo_residenza\":\"VIA PROVA\",\"id-civico_residenza\":\"1\",\"id-cap_residenza\":\"00100\",\"id-telefono\":\"0000000000\"};const m=Object.keys(d).filter(i=>!document.getElementById(i));if(m.length){console.error(\"STOP — campi non trovati:\",m);return}for(const[i,v]of Object.entries(d)){const e=document.getElementById(i);const p=e.tagName===\"SELECT\"?HTMLSelectElement.prototype:HTMLInputElement.prototype;Object.getOwnPropertyDescriptor(p,\"value\").set.call(e,v);e.dispatchEvent(new Event(\"input\",{bubbles:true}));e.dispatchEvent(new Event(\"change\",{bubbles:true}))}console.log(\"OK — 13 campi compilati. Nessun dato salvato.\")})()"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "413e2621-3526-40e9-9e6e-33388155f86a",
+      "messageId": "413e2621-3526-40e9-9e6e-33388155f86a",
+      "startedAt": "2026-08-06T18:47:58.310Z",
+      "text": "(()=>{const d={\"id-nome\":\"CLIENTE\",\"id-cognome\":\"PROVA\",\"id-codice_fiscale\":\"RSSMRA80A01H501U\",\"id-data_nascita\":\"01/01/1980\",\"id-sesso\":\"M\",\"id-nazione_nascita\":\"ita\",\"id-comune_nascita\":\"ROMA\",\"id-nazione_residenza\":\"ita\",\"id-comune_residenza\":\"ROMA\",\"id-indirizzo_residenza\":\"VIA PROVA\",\"id-civico_residenza\":\"1\",\"id-cap_residenza\":\"00100\",\"id-telefono\":\"0000000000\"};const m=Object.keys(d).filter(i=>!document.getElementById(i));if(m.length){console.error(\"STOP — campi non trovati:\",m);return}for(const[i,v]of Object.entries(d)){const e=document.getElementById(i);const p=e.tagName===\"SELECT\"?HTMLSelectElement.prototype:HTMLInputElement.prototype;Object.getOwnPropertyDescriptor(p,\"value\").set.call(e,v);e.dispatchEvent(new Event(\"input\",{bubbles:true}));e.dispatchEvent(new Event(\"change\",{bubbles:true}))}console.log(\"OK — 13 campi compilati. Nessun dato salvato.\")})()\nOK — 13 campi compilati. Nessun dato salvato.undefined(()=>{const d={\"id-nome\":\"CLIENTE\",\"id-cognome\":\"PROVA\",\"id-codice_fiscale\":\"RSSMRA80A01H501U\",\"id-data_nascita\":\"01/01/1980\",\"id-sesso\":\"M\",\"id-nazione_nascita\":\"ita\",\"id-comune_nascita\":\"ROMA\",\"id-nazione_residenza\":\"ita\",\"id-comune_residenza\":\"ROMA\",\"id-indirizzo_residenza\":\"VIA PROVA\",\"id-civico_residenza\":\"1\",\"id-cap_residenza\":\"00100\",\"id-telefono\":\"0000000000\"};const m=Object.keys(d).filter(i=>!document.getElementById(i));if(m.length){console.error(\"STOP — campi non trovati:\",m);return}for(const[i,v]of Object.entries(d)){const e=document.getElementById(i);const p=e.tagName===\"SELECT\"?HTMLSelectElement.prototype:HTMLInputElement.prototype;Object.getOwnPropertyDescriptor(p,\"value\").set.call(e,v);e.dispatchEvent(new Event(\"input\",{bubbles:true}));e.dispatchEvent(new Event(\"change\",{bubbles:true}))}console.log(\"OK — 13 campi compilati. Nessun dato salvato.\")})()\nOK — 13 campi compilati. Nessun dato salvato."
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "0a232455-4342-4c91-9dad-668a1992677e",
+      "messageId": "0a232455-4342-4c91-9dad-668a1992677e",
+      "startedAt": "2026-08-06T18:49:47.239Z",
+      "text": "piccola parentesi: dentro a enea c'è già tutta la lista dei comuni, se tu digiti le prime lettere ti esce. possiamo metterlo nel form di praticarapida? magari con il cap in automatico ?\n\n[User attached 1 image; image contents were not included]"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "c5de6a7d-0dd8-4112-a8d3-ee06640fe8e6",
+      "messageId": "c5de6a7d-0dd8-4112-a8d3-ee06640fe8e6",
+      "startedAt": "2026-08-06T18:50:57.068Z",
+      "text": "ok, noi or andiamo avanti col crm"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "3b923ff2-633b-420d-b2b9-31fec2a78185",
+      "messageId": "3b923ff2-633b-420d-b2b9-31fec2a78185",
+      "startedAt": "2026-08-06T19:29:29.028Z",
+      "text": "una precisazione: alcuni campi sono in rosso perchè sonoio che clicco per non far scadere la pagina enea"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "93894d3c-3ad9-49f8-8505-eabb9a6e2d41",
+      "messageId": "93894d3c-3ad9-49f8-8505-eabb9a6e2d41",
+      "startedAt": "2026-08-06T19:32:08.168Z",
+      "text": "[Info] ENEA Lab: test immobile concluso. Nessun salvataggio o invio eseguito. – {compiled: Array, notFound: [], notAvailable: [], …}\n{compiled: Array, notFound: [], notAvailable: [], notSelected: []}Object\n\n[User attached 1 image; image contents were not included]"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "a2d190be-e67e-4f1f-8d0c-e811e6e2ebf7",
+      "messageId": "a2d190be-e67e-4f1f-8d0c-e811e6e2ebf7",
+      "startedAt": "2026-08-06T19:43:34.426Z",
+      "text": "qui mi permetto di dire la mia: la data di inizio lavori solitamente l ricaviamo dalla prima data della prima fattura, la data di fine lavori la facciamo mettere al rivenditore, in mancanza di quella mettiamo la fata della ultima fattura o , chi lo allega, il certificato di fine lavori ( poi ti posso far vedere i fan simili di alcuni clienti quandfio sarà l'ora ). numero di unità immobiliari è sempre 1 , e se si sono verificati gli accorpamenti la risposta è sempre no. il tipo di intervento lo prendiamo dal form che compilano i rivenditori, esche a loro facciamo mettere se si tratta di schermature solari, infissi , insufflaggio o pompe di calore. in base a quello mandiamo il form giusto da compilare. zona urbanistica non so cosa sia, mai messa. vai..ti passo la palla\n\n[User attached 1 image; image contents were not included]"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "38cd7fdf-8a01-4633-bf93-dc3efa666e47",
+      "messageId": "38cd7fdf-8a01-4633-bf93-dc3efa666e47",
+      "startedAt": "2026-08-06T20:12:52.587Z",
+      "text": "allora..qui molti clienti vanno in crisiperchè poco sanno che caldaia hanno, diciamo che se compilano tutto dopo averci scritto o chiamato ( e qui faremo un lavoro di automatismo su whatsapp ), tipo di impianti noi chiediamo solo se è autonomo o centralizzato. terminali di erogazione sono o caloriferi o riscaldamento a pavimento, indicato come \" pannelli radianti annegati nella struttura \" quando c'è la caldaia. se invece c'è energia elettrica solitamente cosnigliamo di mettere \" altro \".\nil tipo di distribuzione mettiamopsempre la  voce, \" C \" , tipo di regolazione mettiamo sempre \" ad ambiente o zona \" , vettore energetico anche questo lo mettono i clienti, ma è o gas metano se c'è una caldaia, oppure energia elettrica se non c'è la caldaia e mettono \" altro \" , molto più raramente mettono impianto a biogas. per il rendimento e l potenza utile vale la regola che ci siamo già detti.\n\n[User attached 1 image; image contents were not included]"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "b1e44840-53cb-48bf-8526-fa56f1af542d",
+      "messageId": "b1e44840-53cb-48bf-8526-fa56f1af542d",
+      "startedAt": "2026-08-06T20:39:49.096Z",
+      "text": "qui c'è da cliccare aggiungi, e da inserire i dati della schermatura solare.\n\n[User attached 1 image; image contents were not included]"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "f1a5d0fc-4ac2-4336-b0d7-792e232e8afe",
+      "messageId": "f1a5d0fc-4ac2-4336-b0d7-792e232e8afe",
+      "startedAt": "2026-08-06T20:48:12.647Z",
+      "text": "allora...tipo di schermatura se è una tenda da sole mettiamo schermatura solare, se invece sono tapparelle o avvolgibili one li chiama qualcuno noi mettiamo sempre altra schermatura solare, perchè giusto sarebbe persiana avvolgibile, ma se metti quella voce viene chiesta l resistenza termica supplementare che è un dato che non so dove andare a prendere, quindi mettiamo appunto altra schermatura solare con gtot 3006 , stessa cosa per le zanzariere con gtot 0,33 e le pergole che possono essere pergole o pergitende in PVC oppure pergole bioclimatiche . non tutti mettono il valore gtot in fattura, quindi noi mettiamo in assenza di valore specificato 0,06. la superficie la ricaviamo o dal form del cliente o dalla fattura, la superficie vetrata protetta la mettiamo noi un pò a caso ( e qui ci sarebbe da fare il ragionamento sulle ante che dicevamo, ), l'esposizione la ricaviamo dai dati del form, il material edall afattura, ma è semplice: se è una tenda da sole è praticamente sempre tessuto , rarissime le tende in PVC, ma sono specificate in fattura, se sono tapparelle o avvolgibili sono o in alluminio o in PVC, se sono pergole bioclimaticeh sono in metallo, se sono pergotende in PVC, se sono zanzariere il materiale è misto. ilmeccanismo di regolazione è se c'è il motore o meno. le pergole bioclimatiche sono sempre motorizzate così come le pergotende, le tende da sole possono essere manuali o motorizzate. le tapparelle pure. le zanzariere sono sempre manuali. per motorizzate intendo che ilmeccanismo di regolazione è automatico\n\n[User attached 1 image; image contents were not included]"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "7ad57ec6-1ab9-45d7-b648-c361168cae54",
+      "messageId": "7ad57ec6-1ab9-45d7-b648-c361168cae54",
+      "startedAt": "2026-08-06T20:54:08.480Z",
+      "text": "e la resistenzatermica è sempre dichiaarta dal fornitore"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "45af06fe-1819-44f4-9d44-dc73d3811254",
+      "messageId": "45af06fe-1819-44f4-9d44-dc73d3811254",
+      "startedAt": "2026-08-06T20:54:40.941Z",
+      "text": "scusa..la modalità di calcolo è dichiaarta dal fornitore, la resistenza termica la compila enea in automatico"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "cc923723-16ad-4025-b0c4-b4137d68b2f4",
+      "messageId": "cc923723-16ad-4025-b0c4-b4137d68b2f4",
+      "startedAt": "2026-08-06T21:05:00.984Z",
+      "text": "le spes econgure si possono ricavare dalla fattura che i clienti allegano. in realtà i clienti hanno lo spazio per scrivere quanto hanno speso, ma capita spesso che sbagliano a scrivere o fare i conti...il totale è comprensivo di iva"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "ab96753a-4de3-4e62-a0c9-783ac92112b5",
+      "messageId": "ab96753a-4de3-4e62-a0c9-783ac92112b5",
+      "startedAt": "2026-08-06T21:25:56.686Z",
+      "text": "questa è la penultima schermata: prima di fare l'invio chiede sempre di visualizzare la scheda descrittiva , poi si può confermare l'invio. mell enotecniche non mettiamo mai nulla se non nelle vepa ma ti spiegherò"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "9846d95a-0d82-43ab-8748-f70fc3500614",
+      "messageId": "9846d95a-0d82-43ab-8748-f70fc3500614",
+      "startedAt": "2026-08-06T21:30:36.239Z",
+      "text": "quando clicco su chiudi si chiude, torna alla pagina precedente e permette di fare l'invio. poi una volta fatto l'invio salviamo il pdf che vedi ora e lo inseriamo nel crm nello spazio del cliente , arriva una mail in tempo praticamente zero, facciamo il pdf di quella mail e lo inseriamo nelcrm sotto il cliente. questi du pdf costituiscono la Pratica Enea finita. poi nel crm spostiamo il cliente nella pipeline \" da inserire su excel \" e in automatico invia la mail con i due allegati al cliente, e invia una mail al rivenditore dicendo che la pratica è stata chiusa, che è stata spedita al cliente e che la trovano all'interno dell'area riservata\n\n[User attached 2 images; image contents were not included]"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "f0085c10-195b-47f4-b2e2-bbbe9c29215e",
+      "messageId": "f0085c10-195b-47f4-b2e2-bbbe9c29215e",
+      "startedAt": "2026-08-06T21:34:02.114Z",
+      "text": "aspetta a rispondermi, ti mando altre schermate. qui ho cliccato su invia scheda descrrittiva. alla ultima ti scrivo finito processo\n\n[User attached 1 image; image contents were not included]"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "1a9a82e4-257d-4a5a-a978-23ac995830ff",
+      "messageId": "1a9a82e4-257d-4a5a-a978-23ac995830ff",
+      "startedAt": "2026-08-06T21:36:12.361Z",
+      "text": "qui ho cliccato e ora se clicco stampa faccio il pdf che dicevo prima che poi vado ad inserire nelcliente. poi vado a prendere l amail e inserisco anche quella. finito processo\n\n[User attached 1 image; image contents were not included]"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "fa175870-cefb-47ab-b190-1de11b411fe1",
+      "messageId": "fa175870-cefb-47ab-b190-1de11b411fe1",
+      "startedAt": "2026-08-06T21:58:47.385Z",
+      "text": "Ti autorizzo a pubblicare su GitHub il ramo laboratorio dell’automazione ENEA e a proseguire autonomamente su quel ramo, facendo commit e push. Non sei autorizzato a modificare main, il CRM reale o Vercel senza un mio nuovo consenso. safari è uguale o vuoi che ti apra chrome? devo aprirti una seconda finestra?"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "9b92be3c-c814-4ef0-90dc-200c89945338",
+      "messageId": "9b92be3c-c814-4ef0-90dc-200c89945338",
+      "startedAt": "2026-08-07T09:41:09.229Z",
+      "text": "facciamo il collaudo enea"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "b9ae1d10-0949-477e-a893-c763a805d7cf",
+      "messageId": "b9ae1d10-0949-477e-a893-c763a805d7cf",
+      "startedAt": "2026-08-07T10:21:32.785Z",
+      "text": "riprova a entrare tu in enea. se vuoi esco e rientriamo con spid. perchè se in futuro dovrai compilare tu non possiamo permetterci che ogni 10 secondi succede queato"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "12b877f0-cc34-4e07-956c-165bc82a135f",
+      "messageId": "12b877f0-cc34-4e07-956c-165bc82a135f",
+      "startedAt": "2026-08-07T11:04:42.389Z",
+      "text": "devi spiegarmi come si fa a chiudere e riaprire il cloud browser, oppurefallo tu direttamente e io intervengo con lo spid."
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "7abb0ae7-8543-478e-9f57-d716387d104c",
+      "messageId": "7abb0ae7-8543-478e-9f57-d716387d104c",
+      "startedAt": "2026-08-07T11:34:53.912Z",
+      "text": "ti ho già detto che ho rispieghi come aprire il browser cloud o lo fai tu"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "ba78fa9d-8f8a-4468-90d3-99e962a1ba70",
+      "messageId": "ba78fa9d-8f8a-4468-90d3-99e962a1ba70",
+      "startedAt": "2026-08-07T15:51:29.102Z",
+      "text": "ok. altra domanda. tu puoi entrare a vedere come è fatteli crm giusto?"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "676d4006-e638-47f7-8c42-5a6f1a4fa5f9",
+      "messageId": "676d4006-e638-47f7-8c42-5a6f1a4fa5f9",
+      "startedAt": "2026-08-07T15:54:27.949Z",
+      "text": "adesso sul crm c'è collegato un numero di whatsapp. si può rispondere ai clienti sia dal cellulare che da crm. voglio far si che l'intelligenza artificaile risponda ai clienti al posto mio. devi dirmi fattibilità, tempi, costi eventuali e pro e contro"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "d6c34794-19b0-4929-9279-748f48cc09b9",
+      "messageId": "d6c34794-19b0-4929-9279-748f48cc09b9",
+      "startedAt": "2026-08-07T16:01:07.876Z",
+      "text": "facciamo così: l'obiettivo finale è ridurre il più possibile l'intervento umano sia nelal fase di lavorazione delle pratiche che nell gestione dei clienti. l'idea e l'obiettivo da raggiungere non è di stare a letto a dormire, ma di essere qui comunque alla scrivania a controllare i flussi e intervenire in caso di necessità, ma da settembre voglio dedicarmi e concentrarmi a fare le app e soprattutto a aumentare il numero di pratiche. è tutto un discorso circolare: per aumentare il numero di pratiche devo avere tempo e supporto da parte tu aper riuscire a farlo, se entrano tante pratiche, più automatizzo il processo e evito le dispersioni e la disorganizzazione che oggi costa si ain termini di soldi che di tempo posso gestire molte più pratiche in meno tempo e con meno margine di errore e costi. ti sto chiedendo di costruire la nuova praticarapida intorno ad un ecosistema di intelligenza artificiale che sia di produzione gestione e controllo. per fare questo organizziamo un programma serio. abbiamo 20 giorni di tempo. io ci posso mettere anche 12 ore al giorno di impegno. non mi interessa. devo sfruttare il mese di agosto quando tutti sono in ferie . sto investendo molto: tempo, Mac nuovo, abbonamento a chatgpt da 100 euro al mese. quindi non voglio intoppi, non voglio incertezze, non voglio incomprensioni. voglio programma,. decisioni e lavoro certo e continuo. fatto questo dobbiamo anche creare fatturarapida con l'ecosistema di impresaleggera"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "e19c673c-13cd-4f33-995c-22bc45656215",
+      "messageId": "e19c673c-13cd-4f33-995c-22bc45656215",
+      "startedAt": "2026-08-07T16:52:27.076Z",
+      "text": "ok. una altra cosa: avrai notato che voglio fare un cambio di passo deciso. mentre automatizziamo il tutto, devi aiutarmi a mettere in pratica tutte le idee che ho immense, ma mettere in pratica non significa solo renderle reali, marenderle commercializzatili, anzi,,crearle commercializzatili, primo esempio e non è il caso chebsi ail primo. io posso far e con praticarapida potenzialmente decine e decine di pratiche al giorno, invece sono fermo alla media di 170 al mese più o meno. io voglio un agente ia al mio fianco che mi guidi, mi consigli in modo attivo e propositivo tutte le strategie, le possibilità, mi studi la concorrenza il più profondamente possibiel mi proponga delle strategie a breve ma anche a medio-lungo termine. un agenteia che non aspetti che sia io a avere idee e poi semplicemente facci all'operaio per farle, ma una Siro adi socio, uno con cui nel mondo reale farei riunioni e scambierei ipotesi, idee, strategie,. ti faccio un esempio: tu ora sai come è il crm, io vorrei che fossi tu a dire \" sai che si può far rispondere ai messaggi in automatico \" piuttosto che essere io a pensarci. altro esempio: oggi ho il crm, ho un sistema che manda messaggi al lead, investo sui social di meta..ma i risultati rispetto agli sforzi sono pessimi. io voglio un agente che mi dica \" proviamo a afre cos' \" dopo aver studiato il mercato\", oppure \" proviamo TikTok\" piuttosto che LinkedIn. altro esempio: ora sto costruendo impresalegegra. un portale che nelle mie intenzioni avrà all'interno prataicarapida, fatturarapida e markeyingrapido ( gestito da Samuele ). nella mia testa ho queata idea che può essere errata. tutti vanno sul mondo degli infissi cercano clienti che vendono un sacco, nessuno pensa ai piccoli, disorganizzati, e nessuno pensa a chi vende solo tende da sole , quindi con un approccio disruptive ( credo si dica così ) se io diventassi il punto di riferiemntoin italia dei piccoli che vendono tende da sole, dei semplici idraulici che vendono condizionatori, dei piccoli che vendono infissi , magari è una nicchia di mercato è vero, ma ze tu di quella nicchia controlli una grande fetta sono numeri..prendo sempre come esempio laredbullche è nelmercato delle bevande energetiche, che è una piccola apercentual delle bevande, ma lei di quella piccola percentuale ha quasi il 90 %..un impero.... ecco..ho in testa tutet quest cose3 ma non ho nessuno con cui confrontarmi e che vorrei costruire. poi..ho sempre ela paura che domani lepratiche enea apotrebebro sparire, quindi ecco le idee delle app da vendere, per non rimanere da un giorno all'altro senza lavoro e soldi. vorrei un agente che capisca tutte queste cose e che si confronti con me studiando il mercato, i competitor e dandomi idee e proposte. la figaat sarebbe \" sai giuliano, ho pensato che si potrebebfare questa cosa innovativa..\""
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "d593907a-c34e-4384-8c79-725804d31ae0",
+      "messageId": "d593907a-c34e-4384-8c79-725804d31ae0",
+      "startedAt": "2026-08-07T17:01:21.760Z",
+      "text": "ok, tu puoi memorizzare queat chat e poi lamentiamo in pratica? sto pensandoche eoggi ufficialemnte cominciano le vacanze e tutti chiudono. io sto aspetatndo il Mac nuovo, a questo punto mi prendo un paio di giorni di vacanza e quando arriva il Mac nuovo lo settiamo già per fare tutte quest cose. che ne dici? fermo anche vialibera e le altre chat?"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "cef6aa75-3c10-4757-bb3e-906498362031",
+      "messageId": "cef6aa75-3c10-4757-bb3e-906498362031",
+      "startedAt": "2026-08-08T08:14:39.148Z",
+      "text": "aggiungo che il tuo ruolo di coordinatore deve prevedere non solo praticarapida e impresa leggera ma anche tutte le altre idee e progetti in essere"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "d5bae0b0-673e-44aa-830d-d1d5595c87a3",
+      "messageId": "d5bae0b0-673e-44aa-830d-d1d5595c87a3",
+      "startedAt": "2026-08-12T15:39:17.585Z",
+      "text": "Riprendiamo la configurazione CRM‑ENEA dal punto validato sul nuovo Mac. Prima chiudiamo correttamente le modifiche locali e poi proseguiamo con il laboratorio."
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "1601d875-e8f8-4658-ac2d-c96e21bdaac6",
+      "messageId": "1601d875-e8f8-4658-ac2d-c96e21bdaac6",
+      "startedAt": "2026-08-12T16:19:15.606Z",
+      "text": "ma non si può aprire sia la schermata codex che quella di chatgpt contemporaneamente usando solo la app scaricata sul pc?"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "9633dd7a-41e7-4bc0-92af-48486f746007",
+      "messageId": "9633dd7a-41e7-4bc0-92af-48486f746007",
+      "startedAt": "2026-08-21T09:45:47.457Z",
+      "text": "Sì. Questo è importante perché **non vogliamo modificare il piano di APR né complicarlo adesso**. Vogliamo solo fare in modo che le scelte architetturali prese da qui in avanti non rendano difficile collegarlo successivamente a 400.\n\nVoglio aggiungere un requisito architetturale al progetto APR, **senza modificare la priorità attuale: completare e stabilizzare APR nel modo più semplice, affidabile e rapido possibile**.\n\nQuesto requisito non deve diventare un nuovo cantiere e non deve rallentare inutilmente lo sviluppo attuale.\n\n## CONTESTO FUTURO\n\nDopo il completamento di APR prevedo di sviluppare un sistema di supervisione aziendale, provvisoriamente chiamato **400**.\n\n400 dovrà progressivamente monitorare PraticaRapida e i relativi sistemi, utilizzando anche agenti AI.\n\nAPR dovrà quindi essere progettato, da questo momento in avanti, in modo da poter essere **integrato facilmente con 400**, senza dover essere riscritto.\n\nNON devi però costruire 400 adesso.\n\nDevi soltanto evitare decisioni architetturali che renderebbero difficile la futura integrazione.\n\n## PRINCIPIO\n\nAPR deve poter funzionare autonomamente come applicazione indipendente.\n\nIn futuro, però, un sistema esterno autorizzato dovrà poter:\n\n- inviare un lavoro ad APR;\n- conoscerne lo stato;\n- sapere se è terminato;\n- conoscere l'esito;\n- ricevere eventuali errori;\n- conoscere eventuali documenti mancanti;\n- distinguere una pratica completata automaticamente da una che richiede intervento umano;\n- recuperare metriche operative;\n- ricostruire ciò che APR ha fatto.\n\nL'obiettivo architetturale è quindi:\n\n**APR = motore operativo indipendente**\n\n**400 = futuro supervisore/orchestratore**\n\nAPR non deve dipendere da 400 per funzionare.\n\n## 1. INTERFACCIA CHIARA\n\nQuando ragionevole, mantieni separata la logica interna di APR dall'interfaccia attraverso cui sistemi esterni potranno utilizzarlo.\n\nIn futuro deve essere possibile aggiungere un'API o un altro livello di integrazione senza riscrivere il cuore di APR.\n\nNon è necessario costruire ora un'API completa se non serve al funzionamento attuale.\n\nÈ invece importante evitare che tutta la logica sia inseparabilmente legata all'interfaccia grafica o ad azioni manuali dell'utente.\n\n## 2. STATI DELLE PRATICHE\n\nAPR deve avere stati delle lavorazioni chiari e possibilmente strutturati.\n\nEsempi concettuali:\n\n- ricevuta;\n- in attesa;\n- in elaborazione;\n- completata;\n- completata con avvisi;\n- documenti mancanti;\n- errore recuperabile;\n- errore bloccante;\n- intervento umano richiesto.\n\nNon adottare necessariamente questi nomi se l'architettura attuale utilizza una classificazione migliore.\n\nL'importante è che un sistema esterno possa capire **in modo non ambiguo cosa sta succedendo a ogni pratica**.\n\n## 3. ERRORI STRUTTURATI\n\nEvita, quando possibile, errori comprensibili soltanto leggendo testo libero nei log.\n\nGli errori importanti dovrebbero poter essere identificati attraverso:\n\n- tipo/codice;\n- descrizione;\n- fase in cui si sono verificati;\n- gravità;\n- possibilità di retry;\n- necessità o meno di intervento umano.\n\nQuesto permetterà in futuro a 400 di distinguere automaticamente:\n\n**problema risolvibile da APR → retry**\n\nda\n\n**problema che richiede una persona → escalation.**\n\n## 4. LOG E TRACCIABILITÀ\n\nAPR deve mantenere una traccia sufficiente delle operazioni importanti.\n\nPer ogni pratica dovrebbe essere possibile ricostruire almeno:\n\n- quando è stata ricevuta;\n- quando è iniziata l'elaborazione;\n- quali fasi principali sono state eseguite;\n- eventuali retry;\n- errori;\n- interventi manuali;\n- completamento;\n- tempo totale di elaborazione.\n\nI log devono essere utili sia per debugging sia, in futuro, per analisi automatizzate.\n\n## 5. METRICHE\n\nPredisponi APR affinché sia possibile ottenere facilmente metriche come:\n\n- numero pratiche ricevute;\n- numero completate;\n- numero fallite;\n- numero che richiedono intervento umano;\n- percentuale completata automaticamente;\n- tempo medio di lavorazione;\n- errori per tipologia;\n- retry;\n- pratiche in coda;\n- eventuale backlog.\n\nNon è necessario costruire adesso dashboard sofisticate.\n\nÈ importante che i dati necessari siano disponibili e strutturati.\n\n## 6. IDENTIFICATIVO UNIVOCO\n\nOgni pratica/lavorazione dovrebbe avere un identificativo univoco e persistente che permetta di seguirla attraverso tutte le fasi.\n\nQuesto identificativo dovrà poter essere utilizzato in futuro anche da sistemi esterni.\n\n## 7. INPUT E OUTPUT STRUTTURATI\n\nDove possibile, evita dipendenze inutili da input/output esclusivamente manuali.\n\nIl processo dovrebbe poter essere concettualmente rappresentato come:\n\n**INPUT STRUTTURATO → ELABORAZIONE APR → OUTPUT STRUTTURATO**\n\noltre naturalmente ai documenti/file necessari.\n\nQuesto renderà possibile in futuro inviare automaticamente pratiche ad APR e riceverne il risultato.\n\n## 8. IDEMPOTENZA E RETRY\n\nQuando tecnicamente appropriato, considera il fatto che in futuro un orchestratore potrebbe ripetere una richiesta dopo un errore o un'interruzione.\n\nAPR dovrebbe quindi evitare, per quanto possibile, che un retry produca duplicazioni o conseguenze indesiderate.\n\nLe operazioni critiche dovrebbero essere progettate pensando alla possibilità di:\n\n**retry sicuro → verifica stato → prosecuzione.**\n\n## 9. CONFIGURAZIONE\n\nParametri, credenziali, percorsi, soglie e altre configurazioni importanti non dovrebbero essere inutilmente hardcoded.\n\nDevono essere gestiti in modo sufficientemente ordinato da permettere in futuro l'esecuzione di APR anche in ambienti differenti.\n\nLe credenziali e i dati sensibili devono restare protetti e non devono essere esposti nei log o a sistemi esterni senza necessità.\n\n## 10. CONTROLLO ESTERNO FUTURO\n\nIn futuro 400 potrebbe avere bisogno di operazioni concettualmente simili a:\n\n**submit(pratica)**\n\n**status(pratica\\_id)**\n\n**result(pratica\\_id)**\n\n**retry(pratica\\_id)**\n\n**cancel(pratica\\_id)**\n\n**health()**\n\n**metrics()**\n\nNON implementare automaticamente queste API adesso.\n\nConsiderale però come test architetturale:\n\n> “Con la struttura che stiamo costruendo oggi, sarebbe relativamente semplice aggiungere domani queste funzioni?”\n\nSe la risposta è sì, l'architettura è sufficientemente predisposta.\n\n## 11. SICUREZZA E AUTONOMIA\n\n400 non dovrà necessariamente avere accesso indiscriminato a tutto APR.\n\nL'architettura futura dovrà consentire permessi differenziati, ad esempio:\n\n**sola lettura**\n\n**monitoraggio**\n\n**avvio lavorazioni**\n\n**retry**\n\n**operazioni amministrative**\n\nQuesto è particolarmente importante perché in futuro 400 potrebbe essere utilizzato da agenti AI.\n\nUn agente AI non deve ricevere automaticamente più privilegi di quelli necessari per il proprio compito.\n\n## 12. HUMAN-IN-THE-LOOP\n\nAPR deve poter segnalare chiaramente quando non è sufficientemente sicuro per procedere automaticamente.\n\nL'obiettivo non è obbligare APR a completare il 100% delle pratiche senza persone.\n\nL'obiettivo è:\n\n**automatizzare tutto ciò che è affidabile → identificare automaticamente le eccezioni → passare alla persona solo ciò che richiede realmente una decisione/intervento umano.**\n\nIn futuro 400 dovrà poter ricevere queste eccezioni e assegnarle alla persona appropriata.\n\n## 13. NON COMPLICARE APR ADESSO\n\nQuesto punto è fondamentale.\n\nNON voglio:\n\n- riscrivere APR;\n- cambiare tecnologie senza motivo;\n- creare microservizi inutili;\n- costruire subito un sistema multi-agent;\n- implementare 400 dentro APR;\n- aggiungere infrastruttura che oggi non serve;\n- rallentare il completamento di APR per prepararsi a scenari futuri.\n\nApplica il principio:\n\n**“predisporre oggi, implementare domani.”**\n\nSe una modifica per la futura compatibilità con 400 è piccola e sensata mentre stiamo già lavorando su quella parte di APR, adottala.\n\nSe invece richiede lavoro significativo che non serve ad APR oggi, annotala come requisito futuro e NON implementarla adesso.\n\n## 14. DOCUMENTAZIONE\n\nMantieni una breve sezione nella documentazione tecnica denominata indicativamente:\n\n**“Future 400 Integration”**\n\nin cui registrare:\n\n- punti di integrazione disponibili;\n- dati esportabili;\n- stati;\n- metriche;\n- operazioni che potrebbero essere esposte;\n- limitazioni attuali;\n- interventi che saranno necessari quando inizieremo 400.\n\nQuesto ci permetterà, terminato APR, di sapere immediatamente come collegarlo al nuovo sistema.\n\n## REGOLA FINALE\n\nDa questo momento, durante le decisioni architetturali di APR, considera anche questa domanda:\n\n**“Questa scelta rende APR facilmente controllabile, osservabile e integrabile da un futuro orchestratore esterno?”**\n\nMa l'ordine delle priorità rimane:\n\n**1. Affidabilità di APR.**\n\n**2. Completamento di APR.**\n\n**3. Semplicità e manutenibilità.**\n\n**4. Predisposizione all'integrazione futura con 400.**\n\nSe la predisposizione a 400 entra in conflitto con la stabilità o comporta complessità prematura, privilegia APR e documenta ciò che dovremo fare successivamente.\n\nConsidera questo messaggio un **requisito integrativo del progetto APR**, non una sostituzione delle istruzioni, dell'architettura o delle decisioni già definite nella conversazione, salvo incompatibilità esplicite con quanto scritto qui."
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "42a38eac-af55-4b67-b17c-4d498b87d8ed",
+      "messageId": "42a38eac-af55-4b67-b17c-4d498b87d8ed",
+      "startedAt": "2026-08-22T08:43:54.585Z",
+      "text": "facciamo test con ratiche infissi?"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "923f9a44-9fef-4155-b21e-bcfb6d0bc0e7",
+      "messageId": "923f9a44-9fef-4155-b21e-bcfb6d0bc0e7",
+      "startedAt": "2026-08-22T08:54:56.849Z",
+      "text": "regola: tutto ciò che ci stiamo dicendo non vale per erreemme, e non bisogna prendere le pratiche del rivenditore erremme per fare test fino a mio ordine"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "9502c2bd-3fe8-4b52-b655-9978d130b711",
+      "messageId": "9502c2bd-3fe8-4b52-b655-9978d130b711",
+      "startedAt": "2026-08-22T09:01:49.798Z",
+      "text": "facciamo test su una pratica infissi&#x20;"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "4bb62b99-66e2-41d1-ac03-1dd88075e28d",
+      "messageId": "4bb62b99-66e2-41d1-ac03-1dd88075e28d",
+      "startedAt": "2026-08-22T09:08:34.535Z",
+      "text": "no scusa....che cazzo è che ogni giorno cambiano le regole?????????????????????? ti ho già detto che non sempre posso impartire comandi a voce. abbiamo lavorato così fino a ieri e oggi non si può piu??????????? ripristina tutto ciò che è necessario per tornare al metodo di lavoro sempre usato. io scrivo a te e tu gestisci codex"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "ff789b0b-9dd0-46c3-bdc6-0471665f5445",
+      "messageId": "ff789b0b-9dd0-46c3-bdc6-0471665f5445",
+      "startedAt": "2026-08-22T09:23:08.157Z",
+      "text": "no, ne ho pieni i coglioni di metodi provvisori!!!!!!!!!! io quando pago non pago con soldi provvisori , mi avete già rubato 800 euro e la tu acazzo di assistenza nemmeno risponde, ogni giorno sembra di parlare con una chat diversa che dimentica tutte le regole della precedente. questo è il metodo da utilizzare, ovvero quello utilizzato SEMPRE : io apro la app, entro nella chat che ho SE;PRE usato questa chat gestisce codex . punto. nessuna alternativa . questo è l'ordine che ti do per farti raggiungere l'obiettivo. subito"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "9b8f814a-c985-4351-8487-1714cddb86bd",
+      "messageId": "9b8f814a-c985-4351-8487-1714cddb86bd",
+      "startedAt": "2026-08-22T09:34:08.026Z",
+      "text": "facciamo un test. attiva codex per fare un test su una prtaica infissi"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "fdfbe4aa-5a03-4f5b-8c2c-fc5a08d3feb7",
+      "messageId": "fdfbe4aa-5a03-4f5b-8c2c-fc5a08d3feb7",
+      "startedAt": "2026-08-22T09:42:48.529Z",
+      "text": "fatto. ti dico io la pratica da prendere: prova sebastian costel volf. dimmi se devo fare accesso a spid"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "253d44dc-1956-46d4-b02c-336a9a6edc10",
+      "messageId": "253d44dc-1956-46d4-b02c-336a9a6edc10",
+      "startedAt": "2026-08-22T09:44:18.747Z",
+      "text": "ma dio cane!!!!!!!!!!!!!!!!!!!! ti ho già detto un milione di volte che mi dici che apri questo cazzo di riquadro e NON SI APRE NULLA"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "bc385946-186b-48b1-b61a-a2c229919a2d",
+      "messageId": "bc385946-186b-48b1-b61a-a2c229919a2d",
+      "startedAt": "2026-08-22T09:52:02.049Z",
+      "text": "file apri cartella...........DOVE????????????????????????????????????????????"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "d700a18c-529f-483c-b446-4e9c3d8c0207",
+      "messageId": "d700a18c-529f-483c-b446-4e9c3d8c0207",
+      "startedAt": "2026-08-22T09:54:50.751Z",
+      "text": "se clicoc apri sparisce tiutto e mi si apre una nuova chat"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "3bffec29-c49d-4a7f-8423-26031c152590",
+      "messageId": "3bffec29-c49d-4a7f-8423-26031c152590",
+      "startedAt": "2026-08-22T10:00:44.301Z",
+      "text": "fatto. ti dico io la pratica da prendere: prova sebastian costel volf. dimmi se devo fare accesso a spid\n\nHa lavorato per 30s\n\nNon ancora SPID.\n\nL’accesso è stato fatto in un’altra finestra: **il Cloud Browser che controllo io è ancora sulla pagina di login PraticaRapida**. Apri il riquadro **Cloud Browser di questa chat** ed entra lì nel CRM. Poi scrivi soltanto **“fatto”**.\n\nma dio cane!!!!!!!!!!!!!!!!!!!! ti ho già detto un milione di volte che mi dici che apri questo cazzo di riquadro e NON SI APRE NULLA\n\nHa lavorato per 2min 22s\n\nHai ragione: **il riquadro non funziona nell’app**, quindi basta.\n\nNon serve ancora SPID. Apri nel CRM **Sebastian Costel Volf**, scarica i documenti della pratica e trascinali qui nella chat. Da quel momento gestisco io tutto il test con Codex; **Erremme resta esclusa**.\n\nadesso però mi incazzo davvero. QUESTA COSA ME LA HAI GIà DETTO MILLE VOLTE, TI HO DETTO CHE MNON LO ABBIAMO MAI FATTO E CHE AI FINI DEL TEST NON SOLO E' INUTILE MA E' UNA CAGATA ENORME. MI HAO DETO PIU' VOLTE CHE AVEVO RAGIONE ECHE NON ME LO AVRESTI PIU' CHIESTO, E OR AME LO STAI CHIEDENDO ANCORA. LA COSA CHE PIù MI FA INCAZZARE E' CHE ABBIAMO FATTO DE3CINE DI TEST CON IL METODO CHE IO DICEVO A TE QUELI CLIENTI PRENDERE, TUI GESTIVI CODEX E MOI FACI IL RISULTATO, CORREGGENDO CODEX DIETRO MIE INDICAZIONI, E ADESSO E' DA QUATTRO ORE CHE NON NE VIENE A CAPO. GO PERSO UNA MATTINATA DOI LAVORO E UNA MONTAGNA DI CREDITI. RIPRISTINA IMMEDIATAMENTI IL SISTEMA DI LAVORO SOPRA DESCRITTO E CHE ABBIAMO SEMPRE USATO\n\nHa lavorato per 51s\n\nHo trovato il problema: **la reinstallazione ha scollegato questa chat dalla cartella locale di APR**. Per questo Codex vede GitHub ma non l’ambiente con cui abbiamo sempre lavorato.\n\nFai una sola cosa nell’app:\n\n**File → Apri cartella → Projects → pratica-rapida → Apri**\n\nNon aprire Safari, non scaricare documenti e non fare SPID. Dopo scrivi **“fatto”**: riparto direttamente da **Sebastian Costel Volf** con il metodo abituale.\n\nfile apri cartella...........DOVE????????????????????????????????????????????\n\nIn alto nella barra blu del Mac:\n\n**File** → **Apri cartella**\nÈ la **terza voce**, sotto “Nuova chat”.\n\nPoi seleziona:\n\n**Macintosh HD → Utenti → giulianoberetta → Projects → pratica-rapida**.\n\nnon c'è giulianoberetta, ce condivisa e giulinao lavoro\n\nSeleziona **Giuliano lavoro**.\n\nPoi apri:\n\n**Projects → pratica-rapida**\n\ne premi **Apri**. Non scegliere “Condivisa”.\n\nse clicoc apri sparisce tiutto e mi si apre una nuova chat\n\nHa lavorato per 22s\n\nHai ragione: **“Apri cartella” crea una nuova chat**, quindi la mia indicazione era sbagliata.\n\nSei già tornato nella chat corretta. **Chiudi la nuova chat e non usare più “Apri cartella”**. Non hai perso nulla.\n\ndio santo...ho perso la pazienza, anche oggi sei riuscito a farmi girare i coglioni, ogni giorno la stressa storia. META' GIORNAT AE META' CREITI SE NE VANNO PERCHE' TU NON SEI AFFIDABILE , PERCHE' TU NON CAPISCI UN CAZZO\n\nnuovo comando: fai tu quest eoperazioni. se tra 10 minuti non sei operativo disdico l'abbonamento. mi avete ià rubato troppi soldi. LADRI E INCAPACI"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "9054ba35-3c77-49f4-b22b-fa682cb07ed6",
+      "messageId": "9054ba35-3c77-49f4-b22b-fa682cb07ed6",
+      "startedAt": "2026-08-22T10:05:30.474Z",
+      "text": "no, un cazzo, io DEVO lavorare , e ti pago, mi avete già rubato un sacco di soldi. DEVI FARE I TEST, DEVI FARE APR"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "2a31ab02-e55e-415c-8fd0-1be676746941",
+      "messageId": "2a31ab02-e55e-415c-8fd0-1be676746941",
+      "startedAt": "2026-08-22T10:12:30.898Z",
+      "text": "Autorizzo il push del commit 4ff6308 sul ramo agent/crm-ombra-enea-lab7"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "57f5dc22-9a5e-4c63-8737-fa95c94fd22c",
+      "messageId": "57f5dc22-9a5e-4c63-8737-fa95c94fd22c",
+      "startedAt": "2026-08-22T10:13:45.039Z",
+      "text": "Autorizzo il push del commit 4ff6308 sul ramo agent/crm-ombra-enea-lab"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "1f3dc741-0c6e-4332-a1bf-a1d1f99a8441",
+      "messageId": "1f3dc741-0c6e-4332-a1bf-a1d1f99a8441",
+      "startedAt": "2026-08-22T10:20:29.651Z",
+      "text": "fai quel cazzo che vuoi, basta che andiamo avanti. ho solo due giorni per preparare apr, e meta giornata me la hai già fata buttare via. fai questo cazzo di test sugli infissi. e dammi il risultato paragonato alla stessa pratica già fai apresente nel cdm COME ABBIAMO SEMPRE FATTO PER LE SCHERMATURE SOLARI"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "d5feed60-d635-4e48-aacc-59c443343cf6",
+      "messageId": "d5feed60-d635-4e48-aacc-59c443343cf6",
+      "startedAt": "2026-08-22T10:46:23.466Z",
+      "text": "io devo fare i test per gli infissi come abbiamo già fatto per le schermature solari, stamattina la app scaricata sul Mac di chatgpt non andava perché continuava a bloccarsi, mi hai detto di passare al browser e il browser non riesce, scrivimi un prompt di comando da dare a tener ripristinare tutte le regole usate nei giorni precedenti per continuare a lavorare sulprogetto apr e fare i test necessari presi dal crm. questo test non dice assolutamente niente ed è completamente diverso dai test precedenti. i test è ritenuto reale solo se compilato sul portale enea ."
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "9ca8ba7a-959f-4a8b-a6e3-1afc7b00cfda",
+      "messageId": "9ca8ba7a-959f-4a8b-a6e3-1afc7b00cfda",
+      "startedAt": "2026-08-22T10:48:10.617Z",
+      "text": "RIPRISTINO OPERATIVO APR — TEST REALI INFISSI\n\nRiprendi il progetto APR dal checkpoint e dal repository locale già utilizzati nei giorni precedenti. Ripristina il medesimo metodo operativo usato con successo per i test delle schermature solari.\n\nREGOLA DI COORDINAMENTO\n\nIo comunico esclusivamente in questa chat. ChatGPT coordina il lavoro e gestisce direttamente Codex. Non devo copiare comandi tra finestre, scaricare documenti dal CRM, caricarli in chat, aprire cartelle, usare Terminale o gestire GitHub.\n\nSe qualche collegamento locale necessario è stato perso, ripristinalo autonomamente partendo dal repository e dalla configurazione esistenti. Non inventare nuovi metodi e non propormi soluzioni provvisorie.\n\nOBIETTIVO IMMEDIATO\n\nEseguire un test reale APR sugli infissi utilizzando la pratica:\n\nSEBASTIAN COSTEL VOLF\n\nIl test deve seguire lo stesso metodo già utilizzato per le schermature solari:\n\n1. Codex legge direttamente dal CRM i dati e i documenti della pratica scelta.\n2. Codex genera con APR la compilazione prevista.\n3. Codex apre e utilizza l’automazione del portale ENEA già impiegata nei test precedenti.\n4. Io intervengo soltanto quando è realmente necessario effettuare personalmente l’accesso SPID.\n5. Codex compila realmente sul portale ENEA tutti i campi consentiti dal test.\n6. Codex NON deve premere Salva, Completa, Chiudi pratica, Invia o altri comandi che producano modifiche definitive.\n7. Codex confronta la compilazione prodotta da APR con la pratica ENEA già conclusa presente nel CRM.\n8. Codex elenca corrispondenze, differenze, campi mancanti ed errori.\n9. Codex corregge APR sulla base delle differenze riscontrate.\n10. Dopo ogni correzione ripete il test sul portale ENEA fino a ottenere il risultato corretto o a identificare un blocco tecnico reale e dimostrato.\n\nCRITERIO OBBLIGATORIO\n\nUn controllo dei dati del CRM, dei PDF conclusivi, delle fatture o dei parser è soltanto una verifica preliminare.\n\nNON deve essere presentato come “test reale completato”.\n\nIl test è reale e valido soltanto quando APR ha compilato concretamente la pratica nel portale ENEA e il risultato è stato confrontato con la pratica ENEA conclusa.\n\nBROWSER E ACCESSO\n\nNon chiedermi di aprire un “Cloud Browser” o un “riquadro del browser”: nella mia applicazione quel riquadro non appare.\n\nNon chiedermi di scaricare o trascinare documenti.\n\nRecupera e usa la stessa automazione browser/portale già utilizzata nei precedenti test APR. Se l’automazione non parte, diagnostica e ripristina autonomamente configurazione, dipendenze e collegamento locale.\n\nQuando il portale richiede SPID, fermati e scrivimi immediatamente:\n\n“ORA SERVE ACCESSO SPID”\n\nindicandomi soltanto dove devo effettuare l’accesso nella finestra visibile già aperta. Dopo l’accesso prosegui autonomamente.\n\nVINCOLI DI SICUREZZA\n\n- Nessuna scrittura o modifica nel CRM.\n- Nessun salvataggio o invio sul portale ENEA.\n- Nessuna modifica in produzione.\n- Nessun cambio di tecnologia, repository, ramo o metodo operativo.\n- Nessuna PR o workflow GitHub temporanei per sostituire il test sul portale.\n- Erremme e tutte le pratiche del rivenditore Erremme sono escluse da qualsiasi test fino a mio nuovo ordine esplicito.\n- Il requisito “Future 400 Integration” resta valido come vincolo architetturale, ma non deve rallentare questo test né generare nuovo lavoro.\n\nMODALITÀ DI RISPOSTA\n\nNon limitarti a spiegarmi cosa dovrei fare. Inizia subito a operare.\n\nNon chiedere conferme intermedie salvo:\n\n- accesso SPID;\n- rischio di salvataggio o modifica reale;\n- ambiguità sull’identità della pratica;\n- operazione irreversibile.\n\nLa prima risposta deve indicare concretamente:\n\n1. repository e checkpoint APR recuperati;\n2. automazione locale verificata;\n3. pratica Sebastian Costel Volf individuata;\n4. se serve già lo SPID oppure no;\n5. primo passo operativo effettivamente avviato.\n\nAl termine restituisci il confronto:\n\nCAMPO ENEA | VALORE PRODOTTO DA APR | VALORE DELLA PRATICA CONCLUSA | ESITO\n\ne separa chiaramente:\n\n- test preliminari;\n- compilazione realmente eseguita sul portale;\n- correzioni apportate ad APR;\n- risultato finale;\n- eventuali campi che richiedono intervento umano.\n\nProcedi adesso."
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "19818431-59ba-4a7d-8447-076b6c779941",
+      "messageId": "19818431-59ba-4a7d-8447-076b6c779941",
+      "startedAt": "2026-08-22T10:51:40.579Z",
+      "text": "abbiamo sempre lavorato con chatgpt/codex/ finestre com e enea su Chrome controllate da te, quindi il metodo esiste. trovalo"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "bcf955f5-9021-450c-b2b5-a1f0a01b626f",
+      "messageId": "bcf955f5-9021-450c-b2b5-a1f0a01b626f",
+      "startedAt": "2026-08-22T11:10:11.255Z",
+      "text": "SENTI  MI SONO ROTTO I COGLIONI DI ANDARE A TEBTATIVI. ATTIVATI DA SOLO. ATTIVA APR, CRHOME E CRM E PORTALE ENEA. ATTIVA CODEX DEVI FAR EI TEST SUGLI INFISSI"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "cf75ea08-1a33-4e9b-a355-03e41b2dff69",
+      "messageId": "cf75ea08-1a33-4e9b-a355-03e41b2dff69",
+      "startedAt": "2026-08-22T11:15:12.052Z",
+      "text": "SPIEGAMI PERCHE CAZZO OGNI VOLTA CHE CHIUDO CRHOME MI SI RIAPRE DA SOLO SULLA FINESTRA DI ACCESSO DEL PORTALE ENEA?????????????????????"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "4e40b7c0-0d54-4e44-9620-d7b34818192c",
+      "messageId": "4e40b7c0-0d54-4e44-9620-d7b34818192c",
+      "startedAt": "2026-08-22T11:22:13.987Z",
+      "text": "E IL CRM NON LO APRI???????????????????????"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "845b1528-a525-468d-ab2d-92ea0475fce2",
+      "messageId": "845b1528-a525-468d-ab2d-92ea0475fce2",
+      "startedAt": "2026-08-22T11:26:09.790Z",
+      "text": "senti...basta cagate, adesso ho crome aperto sul portale enea e ho messo la password sul tuo browser"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "e723d54e-1907-4c84-87f2-93ed16ba261b",
+      "messageId": "e723d54e-1907-4c84-87f2-93ed16ba261b",
+      "startedAt": "2026-08-22T11:27:28.991Z",
+      "text": "vogliovedere sul mio chrome anche la pagina del crm che stai usando , come abbiamo sempre fatto"
+    },
+    {
+      "threadId": "6a721510-1d74-83ea-947e-95620b79898d",
+      "threadTitle": "Compilazione automatica ENEA",
+      "turnId": "3573f99c-90db-4e2c-8aea-38c469121222",
+      "messageId": "3573f99c-90db-4e2c-8aea-38c469121222",
+      "startedAt": "2026-08-22T11:32:39.576Z",
+      "text": "allora..è da stamattina che fai tentativi di merda e mi prendi per il culo. DIMMI COSA CAZZO DEVO FARE PER FAR SI CHE RITORNIAMO AL METODO DI LA VORO DELLE SCHERMATURE SOLARI. IO SCRIVO SU CHATGPT, CHATGPT CONTROLLA CODEX, GESTISCE LE PAGINE DI ENEA E DEL CRM,  ATTRAVERSO APR FA I TEST E MI DA IL RISULTATO. DIMMI TU COME DEVO FAER A DARTI QUESTI ORDINI."
+    }
+  ]
+}
+

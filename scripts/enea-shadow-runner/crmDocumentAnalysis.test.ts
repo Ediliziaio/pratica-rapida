@@ -179,4 +179,43 @@ Il costruttore dichiara Uw = 1,2 W/m2K secondo EN 14351-1:2016. Timbro e firma.`
     expect(revised).toMatchObject({ sourceFingerprint: "8".repeat(64), classificationRevisionsApplied: ["infissi-third-party-certificate-classifier-v1"], items: [{ documentKey: input.documentKey, kind: "additional", semanticKind: "third_party_certificate" }] });
     expect(reader.applyTechnicalDocumentClassificationRevision("infissi-third-party-certificate-classifier-v1").revision).toBe(revised.revision);
   });
+
+  it("riarma una sola volta soltanto le vecchie fatture OCR prive di marker orientamento", async () => {
+    const directory = mkdtempSync(path.join(os.tmpdir(), "apr-doc-analysis-orientation-")); directories.push(directory);
+    const inputs = ["ocr", "native"].map((name) => {
+      const localPath = path.join(directory, `${name}.pdf`); const body = Buffer.from(`%PDF-${name}`); writeFileSync(localPath, body);
+      return { documentKey: createHash("sha256").update(name).digest("hex"), customerKey: name, kind: "invoice" as const, localPath, responseSha256: createHash("sha256").update(body).digest("hex") };
+    });
+    const calls = new Map<string, number>();
+    const reader = new PersistentAprCrmDocumentAnalysis(directory, async (pdfPath) => {
+      const name = path.basename(pdfPath, ".pdf"); const count = (calls.get(name) ?? 0) + 1; calls.set(name, count);
+      return { text: `${name === "ocr" && count > 1 ? "APR_OCR_ORIENTATION:180\n" : ""}Fattura n. 1 del 01/02/2026 Totale 100,00`, extractionMode: name === "ocr" ? "macos_vision_ocr" : "native_text", pageCount: 1 };
+    });
+    reader.prepare(inputs, "7".repeat(64)); for (let index = 0; index < 3 && reader.snapshot().status !== "completed"; index += 1) await reader.tick();
+    const revised = reader.applyOcrOrientationRevision("document-ocr-orientation-normalization-v1");
+    expect(revised).toMatchObject({ status: "queued", analyzerRepairsApplied: ["document-ocr-orientation-normalization-v1"], items: [{ customerKey: "ocr", state: "queued" }, { customerKey: "native", state: "analyzed" }] });
+    expect(revised.audit.at(-1)?.appliedRuleIds).toContain("system-document-ocr-orientation-normalization-v1");
+    await reader.tick();
+    expect(reader.snapshot()).toMatchObject({ status: "completed", items: [{ customerKey: "ocr", attemptCount: 2 }, { customerKey: "native", attemptCount: 1 }] });
+    expect(readFileSync(reader.snapshot().items[0].textPath!, "utf8")).toContain("APR_OCR_ORIENTATION:180");
+    expect(reader.applyOcrOrientationRevision("document-ocr-orientation-normalization-v1").revision).toBe(reader.snapshot().revision);
+    expect(calls).toEqual(new Map([["ocr", 2], ["native", 1]]));
+  });
+
+  it("non riarma una fattura OCR che possiede gia il marker di orientamento", async () => {
+    const directory = mkdtempSync(path.join(os.tmpdir(), "apr-doc-analysis-oriented-")); directories.push(directory);
+    const localPath = path.join(directory, "oriented.pdf"); const body = Buffer.from("%PDF-oriented"); writeFileSync(localPath, body);
+    const input = { documentKey: createHash("sha256").update("oriented").digest("hex"), customerKey: "oriented", kind: "invoice" as const, localPath, responseSha256: createHash("sha256").update(body).digest("hex") };
+    const reader = new PersistentAprCrmDocumentAnalysis(directory, async () => ({
+      text: "APR_OCR_ORIENTATION:180\nFattura n. 1 del 01/02/2026 Totale documento 100,00",
+      extractionMode: "macos_vision_ocr",
+      pageCount: 1,
+    }));
+    reader.prepare([input], "6".repeat(64));
+    for (let index = 0; index < 2 && reader.snapshot().status !== "completed"; index += 1) await reader.tick();
+    const before = reader.snapshot();
+    const after = reader.applyOcrOrientationRevision("document-ocr-orientation-normalization-v1");
+    expect(after.revision).toBe(before.revision);
+    expect(after).toMatchObject({ status: "completed", analyzerRepairsApplied: [], items: [{ state: "analyzed", attemptCount: 1 }] });
+  });
 });

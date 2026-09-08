@@ -1,0 +1,67 @@
+{
+  "version": "apr-screening-rounding-final-freeze-r21-v1",
+  "frozenAt": "2026-09-01T00:47:39Z",
+  "supersedes": {
+    "freezeSha256": "0d39e6998ead563a5c85af02d2483a9b9e79007b18ea8a02d7e18eddd1f808c1",
+    "reason": "R20 round 1 completed 30 cases but Marco Colombo was INCONSISTENT because persisted terminal blockers diverged from the preflight report; preserved as diagnostic evidence and not counted as a valid round."
+  },
+  "authorizationId": "user-2026-08-31-definitive-mandate-same-authorized-corpus",
+  "portalMode": "real_enea_draft_only",
+  "sourceSnapshot": {
+    "path": "/private/tmp/apr-promote-screening-rounding-final-20260901-R21.Q71Py1",
+    "gitCommit": "f5b5d8590c1d7837222ac895a695855110cf7ebb",
+    "treeHash": "840faf4c5ca3a03396382943ad9b68c3cdc3c63b"
+  },
+  "sequencer": {
+    "path": "/private/tmp/apr-promote-screening-rounding-final-20260901-R21.Q71Py1/ops/apr-global-controller-test10-2026-08-29/sequencer.mjs",
+    "sha256": "a421dfa2321a7a0d7a9029e4fe3a8a950aaacab398ed826bcffd6b117c2aa61e"
+  },
+  "manifest": {
+    "path": "/private/tmp/apr-promote-screening-rounding-final-20260901-R21.Q71Py1/ops/apr-global-controller-test10-2026-08-29/manifest-autonomy30.json",
+    "sha256": "6c684df774a48899a6ff4e2a6e52dfe83c2b9c357a81a6c6c52034abe687a953",
+    "caseCount": 30,
+    "requiredCustomerKeys": ["cristina-ricchi", "zeno-righetti"],
+    "excludedCustomerKeys": ["beatrice-ciotta"]
+  },
+  "monotonicGate": {
+    "status": "PASS",
+    "testSuites": 433,
+    "testFiles": 216,
+    "tests": 1610,
+    "failed": 0,
+    "typecheck": "PASS",
+    "productionBuild": "PASS",
+    "attestationPath": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-screening-rounding-final-2026-08-31/gate-attestation-r21.json"
+  },
+  "canonicalBundle": {
+    "versionId": "4b7bce9-persisted-preflight-truth-r21-20260901",
+    "supervisorSha256": "3a7477544c7d8a861dc37f4877252f6426e46f49500f457e26c40e71bd723b65",
+    "workerSha256": "4b7bce90fd31382a9944270ee8732a6d42ef0a2642bc4d3954008abb32be8d19",
+    "watchdogSha256": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "activationStatus": "ACTIVE"
+  },
+  "targeted": {
+    "customerKey": "marco-colombo",
+    "cohort": 2451,
+    "manifestPath": "/private/tmp/apr-promote-screening-rounding-final-20260901-R21.Q71Py1/ops/apr-screening-rounding-final-2026-08-31/manifest-targeted-marco-r21.json",
+    "manifestSha256": "48f99c0b97705dbaf13ef5f23500f283c3d9a55336f6e727ecfd3694bd7c7fc1",
+    "runRoot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-screening-rounding-targeted-marco-r21",
+    "plistSha256": "c22552f5721994bc4b9dcba1c8b546ed04162ffb53b66160f7e5a5fe421c3fcb"
+  },
+  "rounds": [
+    {"round": 1, "label": "com.praticarapida.apr-screening-rounding-final-r21-round1", "cohortOffset": 2240, "cohortRange": "2458-2487", "runRoot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-screening-rounding-final-r21-round1", "plistSha256": "55c766bec351616b243b12d9fd98dbb456104aa05c0382024b7ff203af0712ed"},
+    {"round": 2, "label": "com.praticarapida.apr-screening-rounding-final-r21-round2", "cohortOffset": 2270, "cohortRange": "2488-2517", "runRoot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-screening-rounding-final-r21-round2", "plistSha256": "f417e5cd60739a720d3dfd8e0777e5c212856261d2f4768c45aae540dd324ec5"},
+    {"round": 3, "label": "com.praticarapida.apr-screening-rounding-final-r21-round3", "cohortOffset": 2300, "cohortRange": "2518-2547", "runRoot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-screening-rounding-final-r21-round3", "plistSha256": "55093bcc05defbea965b6d56a6936476d7a73cbc6e03edd4c301fed6c290fe19"}
+  ],
+  "constraints": {
+    "chromeKeepaliveMayTerminate": false,
+    "chromePidAtFreeze": 42177,
+    "roundsMayOverlap": false,
+    "noCodeChangesBetweenRounds": true,
+    "sameBundleHashesRequired": true,
+    "sameManifestRequired": true,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false
+  }
+}

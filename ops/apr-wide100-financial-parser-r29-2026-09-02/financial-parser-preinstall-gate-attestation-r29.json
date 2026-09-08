@@ -1,0 +1,58 @@
+{
+  "version": "apr-financial-parser-r29-preinstall-gate-attestation-v1",
+  "attestedAt": "2026-09-02T19:05:00.000Z",
+  "status": "tested_not_deployed",
+  "registryVersion": "enea-operational-registry-v103",
+  "matrixVersion": "apr-enea-rule-test-matrix-v81",
+  "sourceFingerprint": "58aca876e461265fbe0a0532e0a575d48d8cf2e516805a9f73fda06d93710986",
+  "ruleIds": [
+    "system-invoice-multi-document-fiscal-segmentation-v2",
+    "system-zero-total-full-reversal-non-economic-v1",
+    "system-document-ocr-orientation-normalization-v1",
+    "system-label-anchored-invoice-totals-v1",
+    "system-sdi-pa-digitale-fiscal-summary-v1"
+  ],
+  "automaticGate": {
+    "status": "passed",
+    "testSuitesPassed": 442,
+    "testSuitesTotal": 442,
+    "testsPassed": 1652,
+    "testsTotal": 1652,
+    "rulesProved": 95,
+    "vitestReportSha256": "c296c8a47edc489aad7151dbf79373cc7f55785c7014137bb31dbcc021823a8a",
+    "ruleEvidenceSha256": "f91c749b5ab26b630a98e90a22cf2a9609bedf764cd0e274ef66bf74148a252d"
+  },
+  "operationalReadOnlyGate": {
+    "status": "passed",
+    "reviewedEightPersistedReplaySha256": "133287c92016e79e59826b9c7e98ee71247514685a5108ec6095e8be57b50f3c",
+    "francescaPisanuFreshOcrGateSha256": "28c90ec6c4554a2c1d518f87e2d6e3f7e92c4689e2b6579e5bb766dc396028b7",
+    "freshOcrInvoiceCount": 2,
+    "freshOcrGrossTotals": [2750, 2750],
+    "trueMissingInvoiceControl": "gabriele-girelli"
+  },
+  "stagedBundle": {
+    "aprSupervisorSha256": "3f2c957f35a71bdff565cece722679752905651cefaea959a51fd1d8c8aea0fc",
+    "aprEneaWorkerSha256": "a93a1d16bebd35d77ae7d8f0e700b4990216b18ba1dd991e492a6f63f0f01d85",
+    "aprWatchdogSha256": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "aprPdfOcrSha256": "4c41c9a6832b11b9d19eace538100270a533dddc05e475e5842711968393327f"
+  },
+  "retestManifests": {
+    "reviewedEightSha256": "1a15fa809e161424eff8c30fc5cb5f5289f0ec6d004244b747b8798827173b12",
+    "remainingNineSha256": "2d926da68a568de86851face8eb7b53423c8b7305e27b1ee418c3ebf4d609597",
+    "sourceManifestSha256": "51842252f71cabb6714f78923fe59ec9789ad06739393f61a553bb4bdb9154e0"
+  },
+  "continuity": {
+    "keepaliveLabel": "com.praticarapida.apr-enea-immortal-keepalive",
+    "keepalivePid": 35873,
+    "chromePid": 3785,
+    "chromeDashboardObserved": true,
+    "serverReadonlyProofObservedAt": "2026-09-02T19:02:12.180Z",
+    "previousSequencerExitCode": 0
+  },
+  "safety": {
+    "draftOnly": true,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false
+  }
+}

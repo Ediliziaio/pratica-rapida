@@ -214,6 +214,26 @@ export class PersistentAprCrmDocumentAnalysis {
     next.audit.push({ revision: next.revision, at: now.toISOString(), type: "analyzer_repaired", documentKey: null, reason: next.reason, appliedRuleIds: RULE_IDS });
     return this.write(next);
   }
+  applyOcrOrientationRevision(repairId: string, now = new Date()) {
+    const current = this.initialize(now);
+    if (current.analyzerRepairsApplied.includes(repairId) || current.status !== "completed") return current;
+    if (!/^[a-z0-9][a-z0-9._:-]{7,127}$/.test(repairId)) throw new Error("crm_document_analyzer_repair_id_invalid");
+    const repairable = current.items.filter((item) => {
+      if (item.state !== "analyzed" || item.kind !== "invoice" || item.extractionMode !== "macos_vision_ocr" || !item.textPath || item.nonFiscalImageExcluded) return false;
+      return !readFileSync(item.textPath, "utf8").includes("APR_OCR_ORIENTATION:");
+    });
+    if (!repairable.length) return current;
+    const repairableKeys = new Set(repairable.map((item) => item.documentKey));
+    const next = structuredClone(current); next.revision += 1; next.status = "queued"; next.currentDocumentKey = null; next.analyzerRepairsApplied.push(repairId);
+    for (const item of next.items) if (repairableKeys.has(item.documentKey)) {
+      item.state = "queued"; item.reason = `Riarmato per normalizzazione deterministica dell'orientamento OCR ${repairId}; PDF locale e identita fonte preservati.`; item.endedAt = null;
+    }
+    next.reason = `${repairable.length} fatture con OCR precedente prive del marker di orientamento riarmate; nessun nuovo accesso CRM o ENEA.`;
+    next.nextAction = "Ripetere soltanto l'OCR locale dei PDF fiscali riarmati e persistere l'orientamento scelto.";
+    next.audit.push({ revision: next.revision, at: now.toISOString(), type: "analyzer_repaired", documentKey: null, reason: next.reason,
+      appliedRuleIds: [...RULE_IDS, "system-document-ocr-orientation-normalization-v1"] });
+    return this.write(next);
+  }
   applyTechnicalDocumentClassificationRevision(classificationRevision: string, now = new Date()) {
     const current = this.initialize(now);
     if (current.classificationRevisionsApplied.includes(classificationRevision) || current.status !== "completed") return current;
@@ -257,7 +277,11 @@ export class PersistentAprCrmDocumentAnalysis {
           : parserRevision === "invoice-parser-v33-header-identity-over-body-reference" ? [...RULE_IDS, "system-invoice-header-identity-over-body-reference", USER_AUTHORIZED_RULE_IDS.technicalProductCardinality, USER_AUTHORIZED_RULE_IDS.invoiceGrossTotalVatIncluded]
           : ["invoice-parser-v26-zanzasol-description-after-price", "invoice-parser-v28-lm-tende-multi-product-balance", "invoice-parser-v29-odhaus-avvolgibili-supporting-declaration", "invoice-parser-v31-rinaldi-sp-dot-and-vat-layout"].includes(parserRevision) ? [...RULE_IDS, USER_AUTHORIZED_RULE_IDS.narrativeInvoiceProductExtraction, USER_AUTHORIZED_RULE_IDS.technicalProductCardinality, USER_AUTHORIZED_RULE_IDS.invoiceGrossTotalVatIncluded]
           : ["invoice-parser-v34-linea-sole-partial-paper-scomparsa", "invoice-parser-v35-composite-invoice-transfer-segmentation"].includes(parserRevision) ? [...RULE_IDS, USER_AUTHORIZED_RULE_IDS.lineaSolePotitoPaperForm, USER_AUTHORIZED_RULE_IDS.technicalProductCardinality]
+          : parserRevision === "invoice-parser-v38-rotated-fiscal-bank-layouts-r30" ? [...RULE_IDS, "system-rotated-ocr-fiscal-reading-order-v1", "system-multipage-bank-receipt-label-reconciliation-v1", "system-document-ocr-orientation-normalization-v1", "system-invoice-multi-document-fiscal-segmentation-v2", "system-label-anchored-invoice-totals-v1"]
+          : parserRevision === "invoice-parser-v37-financial-document-layouts-r29" ? [...RULE_IDS, "system-invoice-multi-document-fiscal-segmentation-v2", "system-zero-total-full-reversal-non-economic-v1", "system-label-anchored-invoice-totals-v1", "system-sdi-pa-digitale-fiscal-summary-v1"]
           : parserRevision === "invoice-parser-v36-screening-unit-surface-coherence" ? [...RULE_IDS, USER_AUTHORIZED_RULE_IDS.screeningDimensionUnitSurfaceCoherence, USER_AUTHORIZED_RULE_IDS.explicitTechnicalSurfacePrecision]
+          : parserRevision === "invoice-parser-v39-dimensioned-awning-row-preservation" ? [...RULE_IDS, "system-dimensioned-awning-row-preservation-v1", USER_AUTHORIZED_RULE_IDS.genericAwningScreening, USER_AUTHORIZED_RULE_IDS.technicalProductCardinality]
+          : parserRevision === "invoice-parser-v40-labelled-depth-acconto-saldo" ? [...RULE_IDS, "system-labelled-screening-depth-abbreviation-v1", "system-explicit-acconto-saldo-particle-technical-supersession-v1", USER_AUTHORIZED_RULE_IDS.genericAwningScreening, USER_AUTHORIZED_RULE_IDS.technicalProductCardinality]
           : parserRevision === "invoice-parser-v25-vans-awning-missing-gtot" ? [...RULE_IDS, USER_AUTHORIZED_RULE_IDS.genericAwningScreening, USER_AUTHORIZED_RULE_IDS.technicalProductCardinality]
           : RULE_IDS });
     return this.write(next);

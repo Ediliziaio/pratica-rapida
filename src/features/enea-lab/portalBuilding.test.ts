@@ -8,6 +8,51 @@ import {
 } from "./portalBuilding";
 
 describe("compilazione pagina immobile ENEA", () => {
+  it("consegna nome, provincia e codice ISTAT canonici per il Comune lavori", () => {
+    const source = structuredClone(ENEA_LAB_MOCK_PRACTICES[0]);
+    source.form.residenza.comune = "MONTECOMPATRI (RM)";
+    source.form.residenza.provincia = "ROMA";
+    source.form.residenza.stesso_indirizzo_lavori = true;
+    const preparation = buildEneaBuildingPortalScript(mapSchermaturaPractice(source));
+    expect(preparation.runtime.fields).toEqual(expect.arrayContaining([expect.objectContaining({
+      portalId: "id-comune",
+      value: "Monte Compatri",
+      autocompleteQualifier: "RM",
+      autocompleteAuthoritativeIstatCode: "058060",
+    })]));
+  });
+
+  it("consegna a ENEA provincia e codice correnti quando il Comune lavori usa una sigla storica", () => {
+    const source = structuredClone(ENEA_LAB_MOCK_PRACTICES[0]);
+    source.form.residenza.comune = "Trinità d’Agultu e Vignola";
+    source.form.residenza.provincia = "SS";
+    source.form.residenza.stesso_indirizzo_lavori = true;
+    const preparation = buildEneaBuildingPortalScript(mapSchermaturaPractice(source));
+    expect(preparation.runtime.fields).toEqual(expect.arrayContaining([expect.objectContaining({
+      portalId: "id-comune",
+      value: "Trinità d'Agultu e Vignola",
+      autocompleteQualifier: "OT",
+      autocompleteAuthoritativeIstatCode: "113026",
+    })]));
+  });
+
+  it("non converte una provincia estranea al lignaggio ufficiale del Comune lavori", () => {
+    const source = structuredClone(ENEA_LAB_MOCK_PRACTICES[0]);
+    source.form.residenza.comune = "Trinità d’Agultu e Vignola";
+    source.form.residenza.provincia = "NU";
+    source.form.residenza.stesso_indirizzo_lavori = true;
+    const preparation = buildEneaBuildingPortalScript(mapSchermaturaPractice(source));
+    expect(preparation.runtime.fields).toEqual(expect.arrayContaining([expect.objectContaining({
+      portalId: "id-comune",
+      value: "Trinità d’Agultu e Vignola",
+      autocompleteQualifier: "NU",
+    })]));
+    expect(preparation.runtime.fields).not.toEqual(expect.arrayContaining([expect.objectContaining({
+      portalId: "id-comune",
+      autocompleteAuthoritativeIstatCode: expect.any(String),
+    })]));
+  });
+
   it("mappa i 18 identificativi osservati sul portale 2026", () => {
     expect(ENEA_BUILDING_PORTAL_FIELDS.map(({ portalId }) => portalId)).toEqual([
       "id-comune", "id-indirizzo", "id-civico", "id-cap", "id-scala", "id-interno",

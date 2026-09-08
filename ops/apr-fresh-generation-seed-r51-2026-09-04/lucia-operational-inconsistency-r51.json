@@ -1,0 +1,81 @@
+{
+  "version": "apr-lucia-operational-inconsistency-r51-v1",
+  "recordedAt": "2026-09-04T21:10:00.000Z",
+  "classification": "INCONSISTENT",
+  "customerKey": "lucia-droghetti",
+  "practiceId": "652f820b-9d49-4706-a8bc-87931bec5148",
+  "cohort": 3073,
+  "bundle": "versions/67afeee3-fresh-generation-seed-r51-20260904",
+  "freshGenerationVerification": {
+    "seedMode": "fresh_generation",
+    "forbiddenHistoricalDraftId": "464067",
+    "createdDraftId": "464239",
+    "historicalDraftAdopted": false,
+    "newDraftCreated": true,
+    "result": "passed_operationally"
+  },
+  "terminalTruth": {
+    "sequencerReport": {
+      "status": "completed",
+      "caseState": "technical_block",
+      "technicalReason": "lucia-droghetti:uncertain_save_lifecycle_invalid:recovery_save_intent_checkpoint_invalid",
+      "endedAt": "2026-09-04T21:08:24.422Z"
+    },
+    "executionCheckpointAtFirstTerminalObservation": {
+      "revision": 20,
+      "status": "completed",
+      "caseState": "operator_intervention",
+      "reason": "La GET canonica dimostra che anche l'unico recupero non è persistito."
+    },
+    "dashboardCaseTruthAtFirstTerminalObservation": {
+      "sourceState": "blocked_case",
+      "reportOutcome": "blocked_case",
+      "status": "BLOCKED",
+      "blockerCodes": [
+        "execution_case_operator_required"
+      ],
+      "statement": "Richiesto intervento operatore per il solo caso; la coda prosegue: La GET canonica dimostra che anche l'unico recupero non è persistito."
+    },
+    "postTerminalExecutionTransition": {
+      "revision": 21,
+      "at": "2026-09-04T21:09:31.581Z",
+      "type": "municipality_autocomplete_contract_requeued",
+      "effect": "The persistent worker requeued the case after the sequencer had already finalized the cohort."
+    },
+    "conclusion": "The three required truth sources did not agree and the worker remained able to mutate execution state after sequencer finalization. No per-case verdict is attributable."
+  },
+  "saveEvidence": {
+    "draftId": "464239",
+    "pageId": "page:Anagrafica Beneficiario",
+    "primarySaveEvidenceId": "cdp-server-12-d9efec1c633077f901ef",
+    "primaryPersistedFieldsEvidenceId": "cdp-server-14-d9efec1c633077f901ef",
+    "primaryPersistedFieldsOutcome": "not_saved",
+    "recoverySaveEvidenceId": "cdp-server-20-d9efec1c633077f901ef",
+    "recoveryPersistedFieldsEvidenceId": "cdp-server-22-d9efec1c633077f901ef",
+    "recoveryPersistedFieldsOutcome": "not_saved",
+    "completedPages": 0,
+    "previewAttempted": false,
+    "submitAttempted": false,
+    "communicationsAttempted": false
+  },
+  "codexInterventionAudit": {
+    "firstSafetyStop": "A safety stop was issued after misreading requiresFreshDraft=false as an initialization failure. Later inspection proved that false was the expected consumed state after draft creation; this stop caused the first apr_cdp_connection_closed and the same cohort was restarted.",
+    "secondSafetyStop": "After the required three sources diverged and the worker requeued the case after the sequencer had finalized it, only cohort 3073 worker/supervisor/watchdog were unloaded. This stop caused the final apr_cdp_connection_closed persisted at execution revision 24.",
+    "keepalivePreserved": true,
+    "chromePreserved": true
+  },
+  "exactCause": "The sequencer finalized the cohort from a terminal snapshot before the persistent worker's deterministic auto-requeue transition ran. The execution checkpoint can therefore leave the state used by the final report after that report is already immutable. This is a terminalization-versus-auto-recovery race, separate from the fixed seed initialization race.",
+  "missingDocumentType": null,
+  "operatorQuestion": "Autorizzi la correzione generale che impedisce al sequencer di finalizzare una pratica finché tutte le transizioni automatiche di recupero applicabili non sono state esaurite e il checkpoint resta terminale per una finestra stabile?",
+  "onboardingGap": null,
+  "safetyAction": {
+    "cohortServicesUnloaded": [
+      "com.praticarapida.apr-enea-cohort3073-worker",
+      "com.praticarapida.apr-enea-cohort3073-supervisor",
+      "com.praticarapida.apr-enea-cohort3073-watchdog"
+    ],
+    "keepaliveLabel": "com.praticarapida.apr-enea-immortal-keepalive",
+    "keepaliveState": "running",
+    "furtherMutationsAllowed": false
+  }
+}

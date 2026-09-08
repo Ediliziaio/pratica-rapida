@@ -14,7 +14,7 @@ import path from "node:path";
 import type { AprCrmReadOnlyTransport } from "./crmAuthenticatedReadOnly";
 import type { AprPilotCandidate } from "./pilotSample";
 import { USER_AUTHORIZED_RULE_IDS } from "../../src/features/enea-shadow-crm/operationalRegistry";
-import { APR_FUTURE_TEST_EXCLUSION_RULE_ID, aprFutureTestExclusion } from "./aprFutureTestExclusions";
+import { APR_FUTURE_TEST_EXCLUSION_RULE_ID, aprAutomationExclusion } from "./aprFutureTestExclusions";
 
 export const APR_ARCHIVED_SCREENING_DISCOVERY_VERSION = "apr-archived-screening-discovery-v2" as const;
 const DEFAULT_REQUIRED_COUNT = 10;
@@ -32,6 +32,8 @@ interface ArchivedPracticeRow {
   prodotto_installato?: unknown;
   updated_at?: unknown;
   pipeline_stages?: unknown;
+  fornitore?: unknown;
+  companies?: unknown;
 }
 
 export interface ArchivedScreeningDiscoveryCheckpoint {
@@ -129,7 +131,7 @@ export class PersistentAprCrmArchivedScreeningDiscovery {
     if (![10, 15].includes(requiredCount)) throw new Error(`apr_archived_screening_discovery_count_invalid:${requiredCount}`);
     const authorizationRuleId = requiredCount === 15 ? USER_AUTHORIZED_RULE_IDS.fifteenCaseIntermezzoRepeat : USER_AUTHORIZED_RULE_IDS.tenCaseMondayRestart;
     const params = new URLSearchParams({
-      select: "id,cliente_nome,cliente_cognome,prodotto_installato,updated_at,pipeline_stages!inner(stage_type)",
+      select: "id,cliente_nome,cliente_cognome,prodotto_installato,updated_at,fornitore,pipeline_stages!inner(stage_type),companies:reseller_id(ragione_sociale)",
       brand: "eq.enea",
       "pipeline_stages.stage_type": "eq.archiviate",
       order: "updated_at.desc",
@@ -154,7 +156,7 @@ export class PersistentAprCrmArchivedScreeningDiscovery {
       const key = customerKey(displayName);
       const productEvidence = screeningEvidence(row.prodotto_installato);
       if (!displayName || !/^[a-f0-9-]{36}$/i.test(practiceId) || !key) { excluded.invalid += 1; continue; }
-      const futureTestExclusion = aprFutureTestExclusion(key);
+      const futureTestExclusion = aprAutomationExclusion({ customerKey: key, displayName, fornitore: row.fornitore, companies: row.companies });
       if (futureTestExclusion) {
         if (key === "beatrice-ciotta") excluded.beatriceCiotta += 1;
         else excluded.futureTestPolicy += 1;

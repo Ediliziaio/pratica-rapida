@@ -1,0 +1,44 @@
+FATTURA
+nr. FPR 242/26 del 23/05/2026
+Data invio: 23/05/2026
+FORNITORE
+LM TENDE DA SOLE E ZANZARIERE S.R.L.
+P.IVA: IT13223860969
+C.F.: 13223860969
+Via Della Resistenza
+20090 - Buccinasco (MI) - IT
+Telefono: 3348841668
+info@lmtende.it
+CLIENTE
+LEA DETTORI
+C.F.: DTTLEA66C62F205Q
+Via Roma 79
+20090 - Cesano Boscone (MI) - IT
+PRODOTTI E SERVIZI
+NR DESCRIZIONE QUANTITA' PREZZO IMPORTO IVA NATURA IVA
+1 fattura saldo per fornitura e posa di Veneziana 50mm
+guidata colore 028 N° 4 da 157 x 300 cm (3 manovre
+a DX V. I. 1 manovra a SX V. I.) N° 1 da 129 x 300 cm
+(manovra a DX V. I.) N° 5 mantovane
+1 825,00 € 825,00 € 22 % -
+METODO DI PAGAMENTO
+NR RATA MODALITÀ PAGAMENTO BANCA IBAN BIC/SWIFT DATA SCADENZA IMPORTO
+1 Bonifico Pagamento in
+unica soluzione
+Monte dei
+paschi di siena
+IT21X0103032650000007139314 23/05/2026 1.006,50 €
+REGIME FISCALE
+REGIME FISCALE
+RF01 - Ordinario
+IVA NATURA NORMATIVA 22% 825,00 € 181,50 €
+RIEPILOGO IVA CALCOLO FATTURA
+Importo prodotti o servizi 825,00 €
+Totale imponibile 825,00 €
+Totale IVA 181,50 €
+Totale documento 1.006,50 €
+ESIGIBILITA' IMPONIBILE IMPOSTA
+Netto a pagare 1.006,50 €
+Copia analogica della fattura elettronica inviata a SdI | Il documento xml originale è disponibile online sul portale "Fatture e Corrispettivi dell'Agenzia delle Entrate"
+Fattura Nr. FPR 242/26 del 23/05/2026 Fattura generata con:
+Pag.1/1

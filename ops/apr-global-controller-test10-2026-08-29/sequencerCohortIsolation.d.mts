@@ -7,7 +7,7 @@ export function quiescePreviousAprCohorts(input: {
   allowedLabels?: string[];
   allowProcess?: (entry: AprCohortProcess) => boolean;
   bootout: (label: string) => void;
-  terminate: (pid: number) => void;
+  terminate: (pid: number, command: string) => void;
   wait: (milliseconds: number) => Promise<void>;
 }): Promise<{ stopped: true; labels: string[]; pids: number[] }>;
 export function executeWithGuaranteedCohortQuiescence<T>(executeCase: () => Promise<T>, quiesce: () => Promise<void>): Promise<T>;

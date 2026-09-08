@@ -1,0 +1,100 @@
+{
+  "version": "apr-wide100-selection-evidence-v1",
+  "observedAt": "2026-09-02T06:57:46.749Z",
+  "source": {
+    "endpoint": "/rest/v1/enea_practices_public",
+    "method": "GET",
+    "responseSha256": "d914ae7325e528e856f9819773d149fae99bbd5835deb1012b4bbbc530c89962",
+    "returnedRows": 326
+  },
+  "authorizationId": "user-2026-09-02-wide-infissi-screening-single-run-v2",
+  "sourceStages": [
+    "Archiviate",
+    "Da inserire su Excel",
+    "Recensione"
+  ],
+  "allowedStages": [
+    "Archiviate",
+    "Recensione"
+  ],
+  "allowedModules": [
+    "Infissi",
+    "Schermature solari"
+  ],
+  "exclusionsAppliedExactly": [
+    "Beatrice Ciotta",
+    "rivenditore Vans",
+    "rivenditore Erremme",
+    "Overthemol / Samuele Beretta",
+    "fase Da inserire su Excel per questo test",
+    "Nicoletta Garbarino",
+    "Vittorio Paolinelli"
+  ],
+  "excluded": {
+    "beatriceCiotta": 1,
+    "vans": 31,
+    "erremme": 0,
+    "overthemolSamueleBeretta": 1,
+    "daInserireSuExcel": 8,
+    "nicolettaGarbarino": 1,
+    "vittorioPaolinelli": 1
+  },
+  "samueleBerettaCandidates": [
+    {
+      "practiceId": "7a4178c6-33e8-42af-a972-c7afe2311df8",
+      "stage": "recensione",
+      "product": "",
+      "reseller": "Overthemol S.r.l."
+    },
+    {
+      "practiceId": "4492056d-4084-4663-affe-3da595bb068d",
+      "stage": "recensione",
+      "product": "Schermature Solari",
+      "reseller": "prova samu"
+    }
+  ],
+  "filteredByStage": {
+    "archiviate": 283,
+    "gestionale": 8,
+    "recensione": 35
+  },
+  "eligibleCount": 244,
+  "targetCount": 100,
+  "selectedCount": 100,
+  "selectionSeed": "apr-wide100-province-lineage-2026-09-02-v2",
+  "selectionSeedSha256": "12f73bf85e94792d195a49a5cc64b9b539137f0b5804b583607674183a6f50d8",
+  "selectionMethod": "seeded SHA-256 proportional stratification by CRM stage, module and invoice-count complexity; largest-remainder allocation; no additional exclusions",
+  "eligibleDistribution": {
+    "stage": {
+      "archiviate": 215,
+      "recensione": 29
+    },
+    "module": {
+      "infissi": 95,
+      "screening": 149
+    },
+    "complexity": {
+      "complex": 42,
+      "medium": 98,
+      "simple": 104
+    }
+  },
+  "selectedDistribution": {
+    "stage": {
+      "archiviate": 88,
+      "recensione": 12
+    },
+    "module": {
+      "infissi": 39,
+      "screening": 61
+    },
+    "complexity": {
+      "complex": 16,
+      "medium": 42,
+      "simple": 42
+    }
+  },
+  "selectedPracticeIdsSha256": "dbc2d1be90e4d3107622bc315e6dbe102e2d7533606c6691e5bc1aab03859e57",
+  "externalActionAllowed": false,
+  "mutationAllowed": false
+}

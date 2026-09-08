@@ -1,0 +1,21 @@
+{
+  "version": "apr-recovery-continuation-and-scoped-binding-r41-bundle-install-receipt-v1",
+  "installedAt": "2026-09-04T00:35:21.760Z",
+  "status": "bundle_promoted_local_gate_verified",
+  "preinstallGateSha256": "6550e4d94b13c8030c24ff7d252f966ba903417bdfc496e9538242947d42bbda",
+  "versionId": "1c193d9b-recovery-continuation-r41-20260904",
+  "previousTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/eb9e54dd-rinaldi-exclusions-r40-20260904",
+  "currentTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/1c193d9b-recovery-continuation-r41-20260904",
+  "installedBundle": {
+    "apr-supervisor.mjs": "0ebe09b584f7edc95a15ef481088fc8a386a69e3d4fc2dff63d96fba5bbd68f3",
+    "apr-enea-worker.mjs": "1c193d9bdbf4551f9309aeeccedab1a328f07fd757fac5ee059da12113f507c3",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "apr-pdf-ocr": "4c41c9a6832b11b9d19eace538100270a533dddc05e475e5842711968393327f"
+  },
+  "sequencer": {
+    "path": "ops/apr-global-controller-test10-2026-08-29/sequencer.mjs",
+    "sha256": "0ea14724843a045dc38b938f736df92086f20839eec6b70d82a44f9068b70a7c"
+  },
+  "keepaliveRestartRequested": false,
+  "chromeRestartRequested": false
+}

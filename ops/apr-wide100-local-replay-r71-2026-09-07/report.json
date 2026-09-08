@@ -1,0 +1,1483 @@
+{
+  "artifactId": "473a506efdaa1ccb4c0be04c815b9e58071c28c777632525405739b3cfa2191a",
+  "payload": {
+    "version": "apr-wide100-local-replay-r71-v1",
+    "replayAt": "2026-09-07T03:45:00.000Z",
+    "installedVersionId": "02aca904-fiorini-classification-connect-r71-20260907",
+    "installReceiptVersionId": "02aca904-fiorini-classification-connect-r71-20260907",
+    "manifestPath": "ops/apr-wide100-province-lineage-2026-09-02/manifest.json",
+    "manifestSha256": "51842252f71cabb6714f78923fe59ec9789ad06739393f61a553bb4bdb9154e0",
+    "totalCases": 100,
+    "readyCount": 28,
+    "blockedCount": 72,
+    "caseNotFoundCount": 0,
+    "errorCount": 0,
+    "blockerFrequency": {
+      "gross_triple_reconciliation_failed": 26,
+      "product_cardinality_form_invoice_mismatch": 23,
+      "screenings_missing": 54,
+      "screening_primary_measurements_missing": 11,
+      "permanent_supplier_automation_exclusion": 3,
+      "completion_date_portal_year_mismatch": 11,
+      "completion_over_90_days_operator_required": 14,
+      "invoice_332a5af9": 36,
+      "original_invoice_missing_or_unavailable": 9,
+      "completion_date_missing": 9,
+      "invoice_929a8665": 7,
+      "customer_form_missing": 7,
+      "tax_code_missing_or_invalid": 7,
+      "bank_transfer_principal_exceeds_invoices": 2,
+      "bank_transfer_invoice_cross_check_failed": 1,
+      "works_municipality_invoice_conflict": 1,
+      "permanent_customer_automation_exclusion": 1,
+      "draft_payload_mapping_incomplete": 2,
+      "persiana_measurement_ambiguous_1": 1,
+      "co_beneficiary_invoice_identity_unresolved": 1,
+      "invoice_schedule_amount_missing": 1
+    },
+    "results": [
+      {
+        "customerKey": "adelfio-pietro-spinelli",
+        "displayName": "Adelfio Pietro Spinelli",
+        "cohort": 43,
+        "module": "screening",
+        "outcome": "ready_local_plan",
+        "blockerCodes": [],
+        "warningCodes": [
+          "invoice_reference_unique_base_matched",
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "alessandro-zaniboni",
+        "displayName": "Alessandro Zaniboni",
+        "cohort": 9,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "product_cardinality_form_invoice_mismatch",
+          "screenings_missing",
+          "original_invoice_missing_or_unavailable",
+          "completion_date_missing",
+          "gross_triple_reconciliation_failed"
+        ],
+        "warningCodes": []
+      },
+      {
+        "customerKey": "andrea-trabucco",
+        "displayName": "Andrea Trabucco",
+        "cohort": 24,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "screenings_missing",
+          "invoice_332a5af9"
+        ],
+        "warningCodes": [
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "andreea-ioana-olteanu",
+        "displayName": "Andreea Ioana Olteanu",
+        "cohort": 5,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "screenings_missing",
+          "completion_date_portal_year_mismatch",
+          "completion_over_90_days_operator_required",
+          "invoice_332a5af9"
+        ],
+        "warningCodes": [
+          "birth_country_resolved_from_reliable_belfiore_registry",
+          "co_beneficiary_form_overridden_by_invoice"
+        ]
+      },
+      {
+        "customerKey": "angela-tuttolani",
+        "displayName": "Angela Tuttolani",
+        "cohort": 7,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "invoice_929a8665",
+          "gross_triple_reconciliation_failed"
+        ],
+        "warningCodes": [
+          "explicit_building_type_over_apartment_count"
+        ]
+      },
+      {
+        "customerKey": "angelina-stricelli",
+        "displayName": "Angelina Stricelli",
+        "cohort": 61,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "screenings_missing",
+          "invoice_332a5af9"
+        ],
+        "warningCodes": []
+      },
+      {
+        "customerKey": "annalisa-lanzo",
+        "displayName": "ANNALISA LANZO",
+        "cohort": 39,
+        "module": "screening",
+        "outcome": "ready_local_plan",
+        "blockerCodes": [],
+        "warningCodes": [
+          "invoice_reference_unique_base_matched",
+          "explicit_building_type_over_apartment_count"
+        ]
+      },
+      {
+        "customerKey": "antonella-ferletic",
+        "displayName": "Antonella Ferletic",
+        "cohort": 26,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "product_cardinality_form_invoice_mismatch",
+          "screenings_missing",
+          "screening_primary_measurements_missing"
+        ],
+        "warningCodes": [
+          "explicit_building_type_over_apartment_count",
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "antonino-formisabo",
+        "displayName": "Antonino Formisabo",
+        "cohort": 99,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "screenings_missing",
+          "completion_date_portal_year_mismatch",
+          "completion_over_90_days_operator_required",
+          "invoice_332a5af9"
+        ],
+        "warningCodes": [
+          "primary_beneficiary_identity_overridden_by_invoice",
+          "co_beneficiary_form_overridden_by_invoice"
+        ]
+      },
+      {
+        "customerKey": "antonio-scaparrotta",
+        "displayName": "Antonio Scaparrotta",
+        "cohort": 94,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "screenings_missing",
+          "bank_transfer_principal_exceeds_invoices",
+          "invoice_332a5af9",
+          "gross_triple_reconciliation_failed"
+        ],
+        "warningCodes": []
+      },
+      {
+        "customerKey": "armando-ranzoni",
+        "displayName": "Armando Ranzoni",
+        "cohort": 40,
+        "module": "infissi",
+        "outcome": "ready_local_plan",
+        "blockerCodes": [],
+        "warningCodes": [
+          "crm_fiscal_code_confirmed_by_invoice_customer_block"
+        ]
+      },
+      {
+        "customerKey": "cataldo-cassone",
+        "displayName": "Cataldo Cassone",
+        "cohort": 65,
+        "module": "screening",
+        "outcome": "ready_local_plan",
+        "blockerCodes": [],
+        "warningCodes": [
+          "crm_fiscal_code_confirmed_by_invoice_customer_block",
+          "explicit_building_type_over_apartment_count"
+        ]
+      },
+      {
+        "customerKey": "caterina-claudia-garbato",
+        "displayName": "caterina Claudia garbato",
+        "cohort": 77,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "persiana_measurement_ambiguous_1",
+          "completion_date_portal_year_mismatch",
+          "completion_over_90_days_operator_required"
+        ],
+        "warningCodes": [
+          "original_non_fiscal_technical_source_applied",
+          "crm_fiscal_code_confirmed_by_invoice_customer_block",
+          "primary_beneficiary_identity_overridden_by_invoice",
+          "birth_country_resolved_from_reliable_belfiore_registry"
+        ]
+      },
+      {
+        "customerKey": "cesare-imperiali",
+        "displayName": "Cesare Imperiali",
+        "cohort": 45,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "screenings_missing",
+          "invoice_332a5af9"
+        ],
+        "warningCodes": [
+          "crm_fiscal_code_confirmed_by_invoice_customer_block",
+          "secondary_home_36_percent_allocation_planned",
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "claudia-campagna",
+        "displayName": "Claudia Campagna",
+        "cohort": 35,
+        "module": "screening",
+        "outcome": "ready_local_plan",
+        "blockerCodes": [],
+        "warningCodes": []
+      },
+      {
+        "customerKey": "claudia-sellati",
+        "displayName": "CLAUDIA SELLATI",
+        "cohort": 68,
+        "module": "infissi",
+        "outcome": "ready_local_plan",
+        "blockerCodes": [],
+        "warningCodes": [
+          "original_non_fiscal_technical_source_applied",
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "claudio-beghini",
+        "displayName": "Claudio Beghini",
+        "cohort": 83,
+        "module": "screening",
+        "outcome": "ready_local_plan",
+        "blockerCodes": [],
+        "warningCodes": []
+      },
+      {
+        "customerKey": "danila-serpa",
+        "displayName": "Danila Serpa",
+        "cohort": 92,
+        "module": "screening",
+        "outcome": "ready_local_plan",
+        "blockerCodes": [],
+        "warningCodes": []
+      },
+      {
+        "customerKey": "della-maria-carla-vigetti",
+        "displayName": "Della Maria Carla Vigetti",
+        "cohort": 30,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "product_cardinality_form_invoice_mismatch",
+          "screenings_missing",
+          "invoice_332a5af9"
+        ],
+        "warningCodes": [
+          "primary_beneficiary_identity_overridden_by_invoice",
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "diego-mario-mocenighi",
+        "displayName": "diego mario mocenighi",
+        "cohort": 53,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "screenings_missing",
+          "invoice_332a5af9"
+        ],
+        "warningCodes": [
+          "linea_sole_potito_paper_form_accepted",
+          "paper_form_birth_date_separator_ocr_repaired",
+          "building_units_defaulted_to_one",
+          "bank_transfer_below_invoice_total_audited_nonblocking",
+          "bundled_professional_expense_gross_used",
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "elena-depalma",
+        "displayName": "ELENA DEPALMA",
+        "cohort": 73,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "screenings_missing",
+          "invoice_332a5af9"
+        ],
+        "warningCodes": [
+          "crm_fiscal_code_confirmed_by_invoice_customer_block"
+        ]
+      },
+      {
+        "customerKey": "elena-marcella-berti",
+        "displayName": "ELENA MARCELLA BERTI",
+        "cohort": 72,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "draft_payload_mapping_incomplete"
+        ],
+        "warningCodes": [
+          "linea_sole_potito_paper_form_accepted",
+          "crm_fiscal_code_confirmed_by_invoice_customer_block",
+          "primary_beneficiary_identity_overridden_by_invoice",
+          "building_units_defaulted_to_one",
+          "bank_transfer_below_invoice_total_audited_nonblocking",
+          "bank_fees_excluded_invoice_total_authoritative",
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "enrico-amos-maria-berneri",
+        "displayName": "Enrico Amos maria Berneri",
+        "cohort": 86,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "screenings_missing",
+          "invoice_332a5af9"
+        ],
+        "warningCodes": [
+          "linea_sole_potito_paper_form_accepted",
+          "paper_form_birth_date_separator_ocr_repaired",
+          "crm_fiscal_code_confirmed_by_invoice_customer_block",
+          "building_units_defaulted_to_one",
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "eugenio-codognato",
+        "displayName": "EUGENIO CODOGNATO",
+        "cohort": 16,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "screenings_missing",
+          "screening_primary_measurements_missing"
+        ],
+        "warningCodes": [
+          "invoice_reference_unique_base_matched",
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "fabio-sartori",
+        "displayName": "Fabio Sartori",
+        "cohort": 38,
+        "module": "screening",
+        "outcome": "ready_local_plan",
+        "blockerCodes": [],
+        "warningCodes": [
+          "explicit_building_type_over_apartment_count",
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "fabrizio-pelizzari",
+        "displayName": "Fabrizio Pelizzari",
+        "cohort": 95,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "product_cardinality_form_invoice_mismatch",
+          "screenings_missing",
+          "invoice_332a5af9"
+        ],
+        "warningCodes": [
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "fares-hassairi",
+        "displayName": "Fares Hassairi",
+        "cohort": 57,
+        "module": "screening",
+        "outcome": "ready_local_plan",
+        "blockerCodes": [],
+        "warningCodes": [
+          "crm_fiscal_code_confirmed_by_invoice_customer_block",
+          "birth_country_resolved_from_reliable_belfiore_registry"
+        ]
+      },
+      {
+        "customerKey": "fausta-de-filippo",
+        "displayName": "Fausta De Filippo",
+        "cohort": 91,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "product_cardinality_form_invoice_mismatch"
+        ],
+        "warningCodes": [
+          "explicit_building_type_over_apartment_count",
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "filippo-bigalli",
+        "displayName": "Filippo Bigalli",
+        "cohort": 6,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "product_cardinality_form_invoice_mismatch",
+          "screenings_missing",
+          "original_invoice_missing_or_unavailable",
+          "completion_date_missing",
+          "gross_triple_reconciliation_failed"
+        ],
+        "warningCodes": []
+      },
+      {
+        "customerKey": "flavia-cipriani",
+        "displayName": "Flavia Cipriani",
+        "cohort": 78,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "screenings_missing",
+          "invoice_332a5af9"
+        ],
+        "warningCodes": [
+          "bank_transfer_below_invoice_total_audited_nonblocking"
+        ]
+      },
+      {
+        "customerKey": "francesca-monti",
+        "displayName": "francesca monti",
+        "cohort": 80,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "screenings_missing",
+          "invoice_332a5af9"
+        ],
+        "warningCodes": [
+          "linea_sole_potito_paper_form_accepted",
+          "crm_fiscal_code_confirmed_by_invoice_customer_block",
+          "primary_beneficiary_identity_overridden_by_invoice",
+          "building_units_defaulted_to_one",
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "francesca-pisanu",
+        "displayName": "FRANCESCA PISANU",
+        "cohort": 75,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "customer_form_missing",
+          "tax_code_missing_or_invalid",
+          "screenings_missing",
+          "invoice_332a5af9",
+          "gross_triple_reconciliation_failed"
+        ],
+        "warningCodes": [
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "francesco-laurelli",
+        "displayName": "FRANCESCO LAURELLI",
+        "cohort": 90,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "product_cardinality_form_invoice_mismatch",
+          "screenings_missing",
+          "invoice_332a5af9",
+          "invoice_schedule_amount_missing",
+          "gross_triple_reconciliation_failed"
+        ],
+        "warningCodes": [
+          "co_beneficiary_form_overridden_by_invoice",
+          "explicit_building_type_over_apartment_count"
+        ]
+      },
+      {
+        "customerKey": "franco-screpanti",
+        "displayName": "Franco Screpanti",
+        "cohort": 96,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "product_cardinality_form_invoice_mismatch",
+          "screenings_missing",
+          "original_invoice_missing_or_unavailable",
+          "completion_date_missing",
+          "gross_triple_reconciliation_failed"
+        ],
+        "warningCodes": []
+      },
+      {
+        "customerKey": "gabriele-girelli",
+        "displayName": "Gabriele Girelli",
+        "cohort": 18,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "screenings_missing",
+          "original_invoice_missing_or_unavailable",
+          "completion_date_missing",
+          "gross_triple_reconciliation_failed"
+        ],
+        "warningCodes": []
+      },
+      {
+        "customerKey": "gabriello-manso",
+        "displayName": "GABRIELLO MANSO",
+        "cohort": 31,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "gross_triple_reconciliation_failed"
+        ],
+        "warningCodes": [
+          "invoice_reference_unique_base_matched"
+        ]
+      },
+      {
+        "customerKey": "gavina-emanuela-cannas",
+        "displayName": "GAVINA EMANUELA CANNAS",
+        "cohort": 52,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "customer_form_missing",
+          "tax_code_missing_or_invalid",
+          "screenings_missing",
+          "invoice_332a5af9"
+        ],
+        "warningCodes": [
+          "bank_transfer_below_invoice_total_audited_nonblocking",
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "gemma-minore",
+        "displayName": "Gemma Minore",
+        "cohort": 85,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "co_beneficiary_invoice_identity_unresolved",
+          "screenings_missing",
+          "invoice_332a5af9"
+        ],
+        "warningCodes": []
+      },
+      {
+        "customerKey": "gianfranco-lavezzi",
+        "displayName": "gianfranco lavezzi",
+        "cohort": 10,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "product_cardinality_form_invoice_mismatch",
+          "screenings_missing",
+          "completion_over_90_days_operator_required",
+          "invoice_332a5af9",
+          "gross_triple_reconciliation_failed"
+        ],
+        "warningCodes": [
+          "secondary_home_36_percent_allocation_planned"
+        ]
+      },
+      {
+        "customerKey": "gianluigi-chiolini",
+        "displayName": "Gianluigi Chiolini",
+        "cohort": 88,
+        "module": "screening",
+        "outcome": "ready_local_plan",
+        "blockerCodes": [],
+        "warningCodes": [
+          "primary_beneficiary_identity_overridden_by_invoice",
+          "explicit_building_type_over_apartment_count",
+          "product_cardinality_form_invoice_difference_resolved"
+        ]
+      },
+      {
+        "customerKey": "giovanna-atzeni",
+        "displayName": "GIOVANNA ATZENI",
+        "cohort": 23,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "customer_form_missing",
+          "tax_code_missing_or_invalid",
+          "screenings_missing",
+          "bank_transfer_principal_exceeds_invoices",
+          "completion_date_portal_year_mismatch",
+          "completion_over_90_days_operator_required",
+          "invoice_332a5af9"
+        ],
+        "warningCodes": []
+      },
+      {
+        "customerKey": "giovanni-amadu",
+        "displayName": "GIOVANNI AMADU",
+        "cohort": 79,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "customer_form_missing",
+          "tax_code_missing_or_invalid",
+          "screenings_missing",
+          "completion_date_portal_year_mismatch",
+          "completion_over_90_days_operator_required",
+          "invoice_332a5af9"
+        ],
+        "warningCodes": []
+      },
+      {
+        "customerKey": "giovanni-pescatori",
+        "displayName": "Giovanni Pescatori",
+        "cohort": 51,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "product_cardinality_form_invoice_mismatch",
+          "screenings_missing",
+          "invoice_332a5af9"
+        ],
+        "warningCodes": [
+          "explicit_building_type_over_apartment_count",
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "giulia-kasermann",
+        "displayName": "Giulia Kasermann",
+        "cohort": 17,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "product_cardinality_form_invoice_mismatch",
+          "screenings_missing",
+          "screening_primary_measurements_missing"
+        ],
+        "warningCodes": [
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "giuseppe-d-adduzio",
+        "displayName": "GIUSEPPE D'ADDUZIO",
+        "cohort": 28,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "permanent_supplier_automation_exclusion"
+        ],
+        "warningCodes": []
+      },
+      {
+        "customerKey": "gloria-padoani",
+        "displayName": "Gloria Padoani",
+        "cohort": 63,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "product_cardinality_form_invoice_mismatch",
+          "screenings_missing",
+          "invoice_332a5af9",
+          "gross_triple_reconciliation_failed"
+        ],
+        "warningCodes": [
+          "explicit_building_type_over_apartment_count"
+        ]
+      },
+      {
+        "customerKey": "gregorio-fusco",
+        "displayName": "gregorio fusco",
+        "cohort": 20,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "screenings_missing",
+          "invoice_332a5af9"
+        ],
+        "warningCodes": [
+          "secondary_home_36_percent_allocation_planned",
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "guido-calvacchi",
+        "displayName": "GUIDO CALVACCHI",
+        "cohort": 1,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "gross_triple_reconciliation_failed"
+        ],
+        "warningCodes": [
+          "bundled_professional_expense_gross_used",
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "ida-gigliotti",
+        "displayName": "Ida Gigliotti",
+        "cohort": 36,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "product_cardinality_form_invoice_mismatch",
+          "screenings_missing",
+          "completion_date_portal_year_mismatch",
+          "completion_over_90_days_operator_required",
+          "invoice_332a5af9"
+        ],
+        "warningCodes": [
+          "crm_fiscal_code_confirmed_by_invoice_customer_block"
+        ]
+      },
+      {
+        "customerKey": "ivana-mastrangelo",
+        "displayName": "Ivana Mastrangelo",
+        "cohort": 58,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "screenings_missing",
+          "invoice_332a5af9",
+          "invoice_929a8665",
+          "gross_triple_reconciliation_failed"
+        ],
+        "warningCodes": []
+      },
+      {
+        "customerKey": "lea-dettori",
+        "displayName": "Lea Dettori",
+        "cohort": 48,
+        "module": "screening",
+        "outcome": "ready_local_plan",
+        "blockerCodes": [],
+        "warningCodes": [
+          "crm_fiscal_code_confirmed_by_invoice_customer_block",
+          "co_beneficiary_form_overridden_by_invoice",
+          "explicit_building_type_over_apartment_count",
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "leo-manini",
+        "displayName": "Leo Manini",
+        "cohort": 100,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "completion_date_portal_year_mismatch",
+          "completion_over_90_days_operator_required"
+        ],
+        "warningCodes": []
+      },
+      {
+        "customerKey": "lia-chiericati",
+        "displayName": "Lia Chiericati",
+        "cohort": 29,
+        "module": "screening",
+        "outcome": "ready_local_plan",
+        "blockerCodes": [],
+        "warningCodes": []
+      },
+      {
+        "customerKey": "liliana-gloria",
+        "displayName": "liliana gloria",
+        "cohort": 59,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "gross_triple_reconciliation_failed"
+        ],
+        "warningCodes": [
+          "linea_sole_potito_paper_form_accepted",
+          "crm_fiscal_code_confirmed_by_invoice_customer_block",
+          "building_units_defaulted_to_one",
+          "bank_transfer_below_invoice_total_audited_nonblocking"
+        ]
+      },
+      {
+        "customerKey": "loretta-riviera",
+        "displayName": "Loretta Riviera",
+        "cohort": 37,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "original_invoice_missing_or_unavailable",
+          "screenings_missing",
+          "completion_date_missing",
+          "invoice_332a5af9",
+          "gross_triple_reconciliation_failed"
+        ],
+        "warningCodes": []
+      },
+      {
+        "customerKey": "luca-cigognetti",
+        "displayName": "Luca Cigognetti",
+        "cohort": 27,
+        "module": "infissi",
+        "outcome": "ready_local_plan",
+        "blockerCodes": [],
+        "warningCodes": [
+          "original_non_fiscal_technical_source_applied",
+          "crm_fiscal_code_confirmed_by_invoice_customer_block",
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "luca-ronconi",
+        "displayName": "Luca Ronconi",
+        "cohort": 22,
+        "module": "screening",
+        "outcome": "ready_local_plan",
+        "blockerCodes": [],
+        "warningCodes": [
+          "explicit_building_type_over_apartment_count",
+          "bank_transfer_below_invoice_total_audited_nonblocking"
+        ]
+      },
+      {
+        "customerKey": "lucia-droghetti",
+        "displayName": "LUCIA DROGHETTI",
+        "cohort": 3,
+        "module": "screening",
+        "outcome": "ready_local_plan",
+        "blockerCodes": [],
+        "warningCodes": []
+      },
+      {
+        "customerKey": "lucia-lagrasta",
+        "displayName": "Lucia Lagrasta",
+        "cohort": 60,
+        "module": "screening",
+        "outcome": "ready_local_plan",
+        "blockerCodes": [],
+        "warningCodes": [
+          "explicit_building_type_over_apartment_count",
+          "product_cardinality_form_invoice_difference_resolved",
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "luigi-carfora",
+        "displayName": "Luigi Carfora",
+        "cohort": 84,
+        "module": "screening",
+        "outcome": "ready_local_plan",
+        "blockerCodes": [],
+        "warningCodes": [
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "marcella-capatti",
+        "displayName": "Marcella Capatti",
+        "cohort": 13,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "screenings_missing",
+          "completion_over_90_days_operator_required",
+          "invoice_332a5af9"
+        ],
+        "warningCodes": [
+          "explicit_original_completion_date_applied"
+        ]
+      },
+      {
+        "customerKey": "marco-de-marinis",
+        "displayName": "MARCO DE MARINIS",
+        "cohort": 12,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "screenings_missing",
+          "completion_date_portal_year_mismatch",
+          "completion_over_90_days_operator_required",
+          "invoice_332a5af9",
+          "invoice_929a8665",
+          "gross_triple_reconciliation_failed"
+        ],
+        "warningCodes": [
+          "works_municipality_overridden_by_invoice"
+        ]
+      },
+      {
+        "customerKey": "marco-tocchetti",
+        "displayName": "Marco Tocchetti",
+        "cohort": 66,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "original_invoice_missing_or_unavailable",
+          "gross_triple_reconciliation_failed"
+        ],
+        "warningCodes": [
+          "invoice_reference_unique_base_matched",
+          "product_cardinality_form_invoice_difference_resolved",
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "maria-sofia-tosatti",
+        "displayName": "MARIA SOFIA TOSATTI",
+        "cohort": 8,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "screenings_missing",
+          "screening_primary_measurements_missing"
+        ],
+        "warningCodes": [
+          "linea_sole_potito_paper_form_accepted",
+          "paper_form_birth_date_separator_ocr_repaired",
+          "crm_fiscal_code_confirmed_by_invoice_customer_block",
+          "building_units_defaulted_to_one"
+        ]
+      },
+      {
+        "customerKey": "marian-maeschi",
+        "displayName": "Marian Maeschi",
+        "cohort": 82,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "screenings_missing",
+          "screening_primary_measurements_missing"
+        ],
+        "warningCodes": [
+          "crm_fiscal_code_confirmed_by_invoice_customer_block",
+          "birth_country_resolved_from_reliable_belfiore_registry",
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "massimiliano-montemorra",
+        "displayName": "MASSIMILIANO MONTEMORRA",
+        "cohort": 42,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "permanent_supplier_automation_exclusion"
+        ],
+        "warningCodes": []
+      },
+      {
+        "customerKey": "massimo-cappello",
+        "displayName": "massimo cappello",
+        "cohort": 50,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "screenings_missing",
+          "invoice_332a5af9"
+        ],
+        "warningCodes": [
+          "invoice_reference_unique_base_matched",
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "matteo-capitanelli",
+        "displayName": "MATTEO CAPITANELLI",
+        "cohort": 14,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "gross_triple_reconciliation_failed"
+        ],
+        "warningCodes": [
+          "secondary_home_36_percent_allocation_planned",
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "mattia-vatieri",
+        "displayName": "Mattia Vatieri",
+        "cohort": 97,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "product_cardinality_form_invoice_mismatch",
+          "screenings_missing",
+          "completion_date_portal_year_mismatch",
+          "completion_over_90_days_operator_required",
+          "screening_primary_measurements_missing"
+        ],
+        "warningCodes": [
+          "crm_fiscal_code_confirmed_by_invoice_customer_block"
+        ]
+      },
+      {
+        "customerKey": "maurizia-coreggioli",
+        "displayName": "MAURIZIA COREGGIOLI",
+        "cohort": 70,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "customer_form_missing",
+          "tax_code_missing_or_invalid",
+          "completion_over_90_days_operator_required"
+        ],
+        "warningCodes": [
+          "resolved_non_economic_total_blocker_retired"
+        ]
+      },
+      {
+        "customerKey": "mauro-ballabio",
+        "displayName": "Mauro Ballabio",
+        "cohort": 74,
+        "module": "screening",
+        "outcome": "ready_local_plan",
+        "blockerCodes": [],
+        "warningCodes": [
+          "invoice_reference_unique_base_matched",
+          "explicit_building_type_over_apartment_count"
+        ]
+      },
+      {
+        "customerKey": "mauro-leonardi",
+        "displayName": "Mauro Leonardi",
+        "cohort": 76,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "screenings_missing",
+          "completion_date_portal_year_mismatch",
+          "completion_over_90_days_operator_required",
+          "screening_primary_measurements_missing"
+        ],
+        "warningCodes": [
+          "crm_fiscal_code_confirmed_by_invoice_customer_block",
+          "explicit_building_type_over_apartment_count"
+        ]
+      },
+      {
+        "customerKey": "milena-albertoni",
+        "displayName": "Milena Albertoni",
+        "cohort": 64,
+        "module": "screening",
+        "outcome": "ready_local_plan",
+        "blockerCodes": [],
+        "warningCodes": [
+          "crm_fiscal_code_confirmed_by_invoice_customer_block"
+        ]
+      },
+      {
+        "customerKey": "milena-fiorini",
+        "displayName": "Milena Fiorini",
+        "cohort": 71,
+        "module": "screening",
+        "outcome": "ready_local_plan",
+        "blockerCodes": [],
+        "warningCodes": [
+          "explicit_building_type_over_apartment_count",
+          "product_cardinality_form_invoice_difference_resolved",
+          "bundled_professional_expense_gross_used",
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "mimosa-freni",
+        "displayName": "Mimosa Freni",
+        "cohort": 98,
+        "module": "screening",
+        "outcome": "ready_local_plan",
+        "blockerCodes": [],
+        "warningCodes": [
+          "original_non_fiscal_technical_source_applied",
+          "crm_fiscal_code_confirmed_by_invoice_customer_block",
+          "co_beneficiary_confirmed_by_invoice",
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "monica-ambra-fioravanti",
+        "displayName": "MONICA AMBRA FIORAVANTI",
+        "cohort": 41,
+        "module": "screening",
+        "outcome": "ready_local_plan",
+        "blockerCodes": [],
+        "warningCodes": [
+          "invoice_reference_unique_base_matched",
+          "product_cardinality_form_invoice_difference_resolved"
+        ]
+      },
+      {
+        "customerKey": "monica-molteni",
+        "displayName": "Monica Molteni",
+        "cohort": 32,
+        "module": "screening",
+        "outcome": "ready_local_plan",
+        "blockerCodes": [],
+        "warningCodes": [
+          "invoice_reference_unique_base_matched",
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "nadia-ragni",
+        "displayName": "Nadia Ragni",
+        "cohort": 62,
+        "module": "screening",
+        "outcome": "ready_local_plan",
+        "blockerCodes": [],
+        "warningCodes": [
+          "secondary_home_36_percent_allocation_planned"
+        ]
+      },
+      {
+        "customerKey": "natale-tiraboschi",
+        "displayName": "Natale Tiraboschi",
+        "cohort": 46,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "works_municipality_invoice_conflict",
+          "product_cardinality_form_invoice_mismatch",
+          "screenings_missing",
+          "invoice_332a5af9",
+          "invoice_929a8665",
+          "gross_triple_reconciliation_failed"
+        ],
+        "warningCodes": [
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "nicla-biagioni",
+        "displayName": "Nicla Biagioni",
+        "cohort": 15,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "original_invoice_missing_or_unavailable",
+          "screenings_missing",
+          "completion_date_missing",
+          "screening_primary_measurements_missing",
+          "gross_triple_reconciliation_failed"
+        ],
+        "warningCodes": []
+      },
+      {
+        "customerKey": "paolino-bellini",
+        "displayName": "Paolino Bellini",
+        "cohort": 47,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "product_cardinality_form_invoice_mismatch",
+          "screenings_missing",
+          "invoice_332a5af9",
+          "invoice_929a8665",
+          "gross_triple_reconciliation_failed"
+        ],
+        "warningCodes": [
+          "explicit_building_type_over_apartment_count"
+        ]
+      },
+      {
+        "customerKey": "patrizia-muzzi",
+        "displayName": "Patrizia Muzzi",
+        "cohort": 34,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "product_cardinality_form_invoice_mismatch",
+          "screenings_missing",
+          "completion_date_missing",
+          "gross_triple_reconciliation_failed"
+        ],
+        "warningCodes": [
+          "secondary_home_36_percent_allocation_planned"
+        ]
+      },
+      {
+        "customerKey": "prova-rivenditore-1-30-04",
+        "displayName": "prova rivenditore 1 30/04",
+        "cohort": 55,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "permanent_customer_automation_exclusion"
+        ],
+        "warningCodes": []
+      },
+      {
+        "customerKey": "riccardo-coda",
+        "displayName": "RICCARDO CODA",
+        "cohort": 49,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "invoice_929a8665",
+          "gross_triple_reconciliation_failed"
+        ],
+        "warningCodes": [
+          "linea_sole_potito_paper_form_accepted",
+          "crm_fiscal_code_confirmed_by_invoice_customer_block",
+          "primary_beneficiary_identity_overridden_by_invoice",
+          "building_units_defaulted_to_one",
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "roberta-di-cesare",
+        "displayName": "roberta di cesare",
+        "cohort": 11,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "customer_form_missing",
+          "screenings_missing",
+          "screening_primary_measurements_missing"
+        ],
+        "warningCodes": [
+          "crm_fiscal_code_confirmed_by_invoice_customer_block",
+          "primary_beneficiary_identity_overridden_by_invoice"
+        ]
+      },
+      {
+        "customerKey": "rocco-giacotto",
+        "displayName": "Rocco Giacotto",
+        "cohort": 69,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "product_cardinality_form_invoice_mismatch",
+          "screenings_missing",
+          "original_invoice_missing_or_unavailable",
+          "completion_date_missing",
+          "gross_triple_reconciliation_failed"
+        ],
+        "warningCodes": [
+          "birth_country_resolved_from_reliable_belfiore_registry",
+          "explicit_building_type_over_apartment_count"
+        ]
+      },
+      {
+        "customerKey": "romeo-ropa",
+        "displayName": "Romeo Ropa",
+        "cohort": 67,
+        "module": "screening",
+        "outcome": "ready_local_plan",
+        "blockerCodes": [],
+        "warningCodes": [
+          "fiscal_code_single_ocr_confusable_repaired",
+          "explicit_building_type_over_apartment_count"
+        ]
+      },
+      {
+        "customerKey": "rosa-toscano",
+        "displayName": "rosa toscano",
+        "cohort": 81,
+        "module": "screening",
+        "outcome": "ready_local_plan",
+        "blockerCodes": [],
+        "warningCodes": [
+          "invoice_reference_unique_base_matched",
+          "product_cardinality_form_invoice_difference_resolved",
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "rossella-munafo",
+        "displayName": "Rossella Munafò",
+        "cohort": 21,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "product_cardinality_form_invoice_mismatch",
+          "screenings_missing",
+          "invoice_332a5af9"
+        ],
+        "warningCodes": [
+          "crm_fiscal_code_confirmed_by_invoice_customer_block",
+          "explicit_building_type_over_apartment_count",
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "sabrina-eustomi",
+        "displayName": "Sabrina Eustomi",
+        "cohort": 44,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "customer_form_missing",
+          "tax_code_missing_or_invalid"
+        ],
+        "warningCodes": [
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "santo-giuga",
+        "displayName": "Santo Giuga",
+        "cohort": 33,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "screenings_missing",
+          "bank_transfer_invoice_cross_check_failed",
+          "screening_primary_measurements_missing",
+          "invoice_929a8665",
+          "gross_triple_reconciliation_failed"
+        ],
+        "warningCodes": []
+      },
+      {
+        "customerKey": "sarah-mondini",
+        "displayName": "Sarah Mondini",
+        "cohort": 2,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "product_cardinality_form_invoice_mismatch",
+          "screenings_missing",
+          "screening_primary_measurements_missing"
+        ],
+        "warningCodes": [
+          "explicit_building_type_over_apartment_count"
+        ]
+      },
+      {
+        "customerKey": "smaj-hhhhh",
+        "displayName": "Smaj Hhhhh",
+        "cohort": 93,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "tax_code_missing_or_invalid",
+          "product_cardinality_form_invoice_mismatch",
+          "screenings_missing",
+          "completion_date_missing",
+          "gross_triple_reconciliation_failed"
+        ],
+        "warningCodes": []
+      },
+      {
+        "customerKey": "stefania-spina",
+        "displayName": "STEFANIA SPINA",
+        "cohort": 4,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "permanent_supplier_automation_exclusion"
+        ],
+        "warningCodes": []
+      },
+      {
+        "customerKey": "stefania-venturi",
+        "displayName": "Stefania Venturi",
+        "cohort": 89,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "draft_payload_mapping_incomplete"
+        ],
+        "warningCodes": [
+          "original_pratica_rapida_paper_form_explicit_values_accepted",
+          "paper_form_birth_date_separator_ocr_repaired",
+          "building_units_defaulted_to_one"
+        ]
+      },
+      {
+        "customerKey": "stefano-buosi",
+        "displayName": "Stefano Buosi",
+        "cohort": 54,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "screenings_missing",
+          "invoice_332a5af9"
+        ],
+        "warningCodes": [
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "vera-buracchi",
+        "displayName": "VERA BURACCHI",
+        "cohort": 25,
+        "module": "infissi",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "original_invoice_missing_or_unavailable",
+          "screenings_missing",
+          "invoice_332a5af9"
+        ],
+        "warningCodes": [
+          "secondary_home_36_percent_allocation_planned",
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "vincenzo-falconi",
+        "displayName": "VINCENZO FALCONI",
+        "cohort": 19,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "product_cardinality_form_invoice_mismatch",
+          "screenings_missing",
+          "invoice_332a5af9"
+        ],
+        "warningCodes": [
+          "explicit_building_type_over_apartment_count",
+          "enea_2026_june_25_ninety_day_window_applied"
+        ]
+      },
+      {
+        "customerKey": "vito-fusillo",
+        "displayName": "VITO FUSILLO",
+        "cohort": 56,
+        "module": "screening",
+        "outcome": "blocked_case",
+        "blockerCodes": [
+          "product_cardinality_form_invoice_mismatch",
+          "screenings_missing",
+          "completion_date_portal_year_mismatch",
+          "completion_over_90_days_operator_required",
+          "invoice_332a5af9"
+        ],
+        "warningCodes": [
+          "crm_fiscal_code_confirmed_by_invoice_customer_block",
+          "explicit_building_type_over_apartment_count"
+        ]
+      },
+      {
+        "customerKey": "zeno-righetti",
+        "displayName": "Zeno Righetti",
+        "cohort": 87,
+        "module": "screening",
+        "outcome": "ready_local_plan",
+        "blockerCodes": [],
+        "warningCodes": [
+          "crm_fiscal_code_confirmed_by_invoice_customer_block",
+          "explicit_building_type_over_apartment_count",
+          "product_cardinality_form_invoice_difference_resolved"
+        ]
+      }
+    ]
+  }
+}

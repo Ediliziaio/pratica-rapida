@@ -1,0 +1,282 @@
+{
+  "version": "apr-natural-autonomy12-simple-final-report-v1",
+  "generatedAt": "2026-09-05T01:31:00+02:00",
+  "scope": {
+    "total": 12,
+    "firstRunCase": "santo-giuga",
+    "simpleSequentialCases": 11,
+    "mode": "real_enea_draft_only",
+    "diagnosisOrCorrectionDuringRun": false,
+    "noMaterialProgressLimitMinutes": 7,
+    "absolutePerCaseLimitMinutes": 25
+  },
+  "outcome": {
+    "saved": 3,
+    "operatorRequired": 7,
+    "technicalBlock": 2,
+    "inconsistent": 0,
+    "total": 12,
+    "timeoutIsolations": 0
+  },
+  "safety": {
+    "draftOnly": true,
+    "previewAttempted": false,
+    "submitAttempted": false,
+    "communicationsAttempted": false,
+    "allCaseServicesQuiesced": true,
+    "keepaliveStillRunning": true,
+    "chromeAprStillRunning": true
+  },
+  "verification": {
+    "result": "CONSISTENT",
+    "method": [
+      "launchctl/process inspection: outer exited 0 and all cohort worker/supervisor/watchdog services are quiesced",
+      "persistent sequencer report plus the relevant preflight or ENEA execution checkpoint",
+      "immutable terminal-observability snapshot, equivalent to the persisted /api/case-truth source"
+    ],
+    "note": "For Santo Giuga, Marcella Capatti and Giovanna Atzeni, the sequencer reason counts every failed preflight condition, while caseTruth reports only operatorGateBlockers. The status is concordant; non-operator repair conditions are retained separately and are not silently discarded."
+  },
+  "cases": [
+    {
+      "displayName": "Santo Giuga",
+      "customerKey": "santo-giuga",
+      "cohort": 3074,
+      "classification": "OPERATOR_REQUIRED",
+      "draftId": null,
+      "exactCause": "The final operator gate contains three economic blockers: the bank-transfer/invoice cross-check is not conclusive, at least one fiscal-document total was not recognized, and the gross triple reconciliation is not demonstrated. The Infissi preflight also records unverified practice binding for the technical document and missing dimensions/cardinality as repair conditions.",
+      "blockerCodes": [
+        "bank_transfer_invoice_cross_check_failed",
+        "invoice_929a8665",
+        "gross_triple_reconciliation_failed"
+      ],
+      "missingDocumentType": null,
+      "operatorQuestion": "Confermi che il documento tecnico appartiene agli ordini della pratica e puoi indicare il totale lordo della fattura non leggibile, abbinando i bonifici alle fatture 124/FE, 184/FE e 297/FE?",
+      "onboardingGap": "Richiedere riferimenti univoci tra cliente/cantiere, commessa, documento tecnico, fatture e bonifici, con totali leggibili.",
+      "evidence": {
+        "sequencerReport": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-natural-autonomy12-r52-retry1/report.json",
+        "checkpoint": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3074-global-controller-santo-giuga/infissi-batch-preflight/checkpoint.json",
+        "caseTruthSnapshot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-3074-global-controller-santo-giuga.json"
+      }
+    },
+    {
+      "displayName": "CLAUDIA SELLATI",
+      "customerKey": "claudia-sellati",
+      "cohort": 3086,
+      "classification": "TECHNICAL_BLOCK",
+      "draftId": null,
+      "exactCause": "The required-revisions step stopped because the Infissi common-applicability reconciliation gate was not ready (infissi_common_applicability_reconciliation_gate_not_ready). No ENEA draft was created in this fresh cohort.",
+      "blockerCodes": [],
+      "missingDocumentType": null,
+      "operatorQuestion": "Vuoi autorizzare una diagnosi separata del gate di applicabilità Infissi che ha fermato Sellati prima della creazione della bozza?",
+      "onboardingGap": null,
+      "evidence": {
+        "sequencerReport": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-natural-autonomy11-simple-r53/case-3086-claudia-sellati/report.json",
+        "checkpoint": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-natural-autonomy11-simple-r53/case-3086-claudia-sellati/checkpoint.json",
+        "caseTruthSnapshot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-3086-global-controller-claudia-sellati.json"
+      }
+    },
+    {
+      "displayName": "Marcella Capatti",
+      "customerKey": "marcella-capatti",
+      "cohort": 3087,
+      "classification": "OPERATOR_REQUIRED",
+      "draftId": null,
+      "exactCause": "Fine lavori 12 febbraio 2026, 204 giorni prima della lavorazione: la procedibilità oltre 90 giorni richiede decisione dell'operatore. Il preflight Infissi conserva inoltre conflitto tra fonti automatiche e cardinalità/misure mancanti come condizioni di riparazione tecnica.",
+      "blockerCodes": ["completion_over_90_days_operator_required"],
+      "missingDocumentType": null,
+      "operatorQuestion": "Confermi che la pratica con fine lavori 12 febbraio 2026 è ancora procedibile sul portale ENEA 2026 nonostante siano trascorsi più di 90 giorni?",
+      "onboardingGap": "Raccogliere e validare la data di fine lavori con un avviso automatico prima della scadenza dei 90 giorni.",
+      "evidence": {
+        "sequencerReport": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-natural-autonomy11-simple-r53/case-3087-marcella-capatti/report.json",
+        "checkpoint": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3087-global-controller-marcella-capatti/infissi-batch-preflight/checkpoint.json",
+        "caseTruthSnapshot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-3087-global-controller-marcella-capatti.json"
+      }
+    },
+    {
+      "displayName": "GIOVANNA ATZENI",
+      "customerKey": "giovanna-atzeni",
+      "cohort": 3088,
+      "classification": "OPERATOR_REQUIRED",
+      "draftId": null,
+      "exactCause": "Mancano un modulo cliente originario utilizzabile e un codice fiscale valido; la fine lavori è 31 dicembre 2025, incompatibile con il portale 2026 e oltre il limite di 90 giorni. Il preflight Infissi conserva anche una risposta ambigua sulle chiusure oscuranti.",
+      "blockerCodes": [
+        "customer_form_missing",
+        "tax_code_missing_or_invalid",
+        "completion_date_portal_year_mismatch",
+        "completion_over_90_days_operator_required"
+      ],
+      "missingDocumentType": "modulo cliente originario compilato con codice fiscale valido",
+      "operatorQuestion": "Puoi inserire il modulo cliente originario con un codice fiscale valido e confermare se la fine lavori 31 dicembre 2025 è ancora procedibile sul portale ENEA 2025?",
+      "onboardingGap": "Rendere obbligatori modulo cliente originario, CF validato e data di fine lavori prima dell'ingresso nella coda APR.",
+      "evidence": {
+        "sequencerReport": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-natural-autonomy11-simple-r53/case-3088-giovanna-atzeni/report.json",
+        "checkpoint": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3088-global-controller-giovanna-atzeni/infissi-batch-preflight/checkpoint.json",
+        "caseTruthSnapshot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-3088-global-controller-giovanna-atzeni.json"
+      }
+    },
+    {
+      "displayName": "ANNALISA LANZO",
+      "customerKey": "annalisa-lanzo",
+      "cohort": 3089,
+      "classification": "OPERATOR_REQUIRED",
+      "draftId": null,
+      "exactCause": "Il form descrive una riga ma dalle fatture non è stato riconciliato alcun prodotto fisico; non sono state riconosciute righe di schermatura con dimensioni e gTot.",
+      "blockerCodes": [
+        "product_cardinality_form_invoice_mismatch",
+        "screenings_missing",
+        "invoice_332a5af9"
+      ],
+      "missingDocumentType": "elenco o scheda tecnica delle schermature con quantità, misure e gTot",
+      "operatorQuestion": "Quante schermature fisiche sono state installate e puoi inserire un documento che riporti per ciascuna misure e gTot?",
+      "onboardingGap": "Richiedere un elenco strutturato dei prodotti fisici con quantità, larghezza, altezza e gTot.",
+      "evidence": {
+        "sequencerReport": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-natural-autonomy11-simple-r53/case-3089-annalisa-lanzo/report.json",
+        "checkpoint": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3089-global-controller-annalisa-lanzo/crm-local-preflight/checkpoint.json",
+        "caseTruthSnapshot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-3089-global-controller-annalisa-lanzo.json"
+      }
+    },
+    {
+      "displayName": "Nadia Ragni",
+      "customerKey": "nadia-ragni",
+      "cohort": 3090,
+      "classification": "OPERATOR_REQUIRED",
+      "draftId": null,
+      "exactCause": "Il form descrive una riga ma nessun prodotto fisico è riconciliabile dalle fatture; nessuna fonte primaria riporta le misure della schermatura.",
+      "blockerCodes": [
+        "product_cardinality_form_invoice_mismatch",
+        "screenings_missing",
+        "screening_primary_measurements_missing"
+      ],
+      "missingDocumentType": "scheda tecnica, ordine o conferma d'ordine con quantità e misure fisiche delle schermature",
+      "operatorQuestion": "Quante schermature fisiche sono state installate e quali sono larghezza e altezza di ciascuna, come risultano da una fonte primaria?",
+      "onboardingGap": "Rendere obbligatorie quantità e misure fisiche delle schermature in un documento primario.",
+      "evidence": {
+        "sequencerReport": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-natural-autonomy11-simple-r53/case-3090-nadia-ragni/report.json",
+        "checkpoint": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3090-global-controller-nadia-ragni/crm-local-preflight/checkpoint.json",
+        "caseTruthSnapshot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-3090-global-controller-nadia-ragni.json"
+      }
+    },
+    {
+      "displayName": "MARIA SOFIA TOSATTI",
+      "customerKey": "maria-sofia-tosatti",
+      "cohort": 3091,
+      "classification": "OPERATOR_REQUIRED",
+      "draftId": null,
+      "exactCause": "Nessun prodotto fisico è stato riconciliato dalle fonti originarie e nessuna fonte primaria riporta le misure fisiche delle schermature.",
+      "blockerCodes": [
+        "screenings_missing",
+        "screening_primary_measurements_missing"
+      ],
+      "missingDocumentType": "scheda tecnica, ordine o conferma d'ordine con quantità e misure fisiche delle schermature",
+      "operatorQuestion": "Puoi indicare il numero delle schermature installate e inserire una fonte primaria con larghezza e altezza di ciascuna?",
+      "onboardingGap": "Richiedere quantità e misure di ogni schermatura nel modulo o in un allegato tecnico obbligatorio.",
+      "evidence": {
+        "sequencerReport": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-natural-autonomy11-simple-r53/case-3091-maria-sofia-tosatti/report.json",
+        "checkpoint": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3091-global-controller-maria-sofia-tosatti/crm-local-preflight/checkpoint.json",
+        "caseTruthSnapshot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-3091-global-controller-maria-sofia-tosatti.json"
+      }
+    },
+    {
+      "displayName": "Stefania Venturi",
+      "customerKey": "stefania-venturi",
+      "cohort": 3092,
+      "classification": "OPERATOR_REQUIRED",
+      "draftId": null,
+      "exactCause": "Il prodotto e la riconciliazione economica risultano leggibili, ma il payload ENEA manca di titolo sull'immobile, anno di costruzione, superficie utile e dati completi dell'impianto termico.",
+      "blockerCodes": ["draft_payload_mapping_incomplete"],
+      "missingDocumentType": "modulo cliente integrativo con dati dell'immobile e dell'impianto termico",
+      "operatorQuestion": "Puoi indicare titolo sull'immobile, anno di costruzione, superficie utile, tipo e terminali dell'impianto, tipo e numero dei generatori, combustibile e presenza della climatizzazione estiva?",
+      "onboardingGap": "Rendere obbligatori nel modulo iniziale tutti i dati dell'immobile e dell'impianto necessari al payload ENEA.",
+      "evidence": {
+        "sequencerReport": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-natural-autonomy11-simple-r53/case-3092-stefania-venturi/report.json",
+        "checkpoint": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3092-global-controller-stefania-venturi/crm-local-preflight/checkpoint.json",
+        "caseTruthSnapshot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-3092-global-controller-stefania-venturi.json"
+      }
+    },
+    {
+      "displayName": "Andrea Trabucco",
+      "customerKey": "andrea-trabucco",
+      "cohort": 3093,
+      "classification": "READY",
+      "draftId": "464258",
+      "completedPages": 8,
+      "expectedPages": 8,
+      "exactCause": "Nessun problema: bozza TEST completa e verificata read-only.",
+      "blockerCodes": [],
+      "missingDocumentType": null,
+      "operatorQuestion": null,
+      "onboardingGap": null,
+      "durationSeconds": 283.206,
+      "evidence": {
+        "sequencerReport": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-natural-autonomy11-simple-r53/case-3093-andrea-trabucco/report.json",
+        "checkpoint": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3093-global-controller-andrea-trabucco/enea-draft-execution/checkpoint.json",
+        "caseTruthSnapshot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-3093-global-controller-andrea-trabucco.json"
+      }
+    },
+    {
+      "displayName": "ELENA DEPALMA",
+      "customerKey": "elena-depalma",
+      "cohort": 3094,
+      "classification": "READY",
+      "draftId": "464259",
+      "completedPages": 12,
+      "expectedPages": 12,
+      "exactCause": "Nessun problema: bozza TEST completa e verificata read-only.",
+      "blockerCodes": [],
+      "missingDocumentType": null,
+      "operatorQuestion": null,
+      "onboardingGap": null,
+      "durationSeconds": 375.46,
+      "evidence": {
+        "sequencerReport": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-natural-autonomy11-simple-r53/case-3094-elena-depalma/report.json",
+        "checkpoint": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3094-global-controller-elena-depalma/enea-draft-execution/checkpoint.json",
+        "caseTruthSnapshot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-3094-global-controller-elena-depalma.json"
+      }
+    },
+    {
+      "displayName": "Monica Molteni",
+      "customerKey": "monica-molteni",
+      "cohort": 3095,
+      "classification": "READY",
+      "draftId": "464261",
+      "completedPages": 9,
+      "expectedPages": 9,
+      "exactCause": "Nessun problema: bozza TEST completa e verificata read-only.",
+      "blockerCodes": [],
+      "missingDocumentType": null,
+      "operatorQuestion": null,
+      "onboardingGap": null,
+      "durationSeconds": 478.215,
+      "evidence": {
+        "sequencerReport": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-natural-autonomy11-simple-r53/case-3095-monica-molteni/report.json",
+        "checkpoint": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3095-global-controller-monica-molteni/enea-draft-execution/checkpoint.json",
+        "caseTruthSnapshot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-3095-global-controller-monica-molteni.json"
+      }
+    },
+    {
+      "displayName": "Luca Ronconi",
+      "customerKey": "luca-ronconi",
+      "cohort": 3096,
+      "classification": "TECHNICAL_BLOCK",
+      "draftId": "464262",
+      "completedPages": 0,
+      "expectedPages": 8,
+      "exactCause": "La bozza è stata creata, ma la verifica del salvataggio della pagina beneficiario non ha dato esito certo (apr_cdp_enea_co_beneficiary_save_unverified). Nessun retry automatico e nessun salvataggio alla cieca.",
+      "blockerCodes": [],
+      "missingDocumentType": null,
+      "operatorQuestion": "Vuoi autorizzare una diagnosi separata della verifica di salvataggio della pagina beneficiario sulla bozza 464262?",
+      "onboardingGap": null,
+      "evidence": {
+        "sequencerReport": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-natural-autonomy11-simple-r53/case-3096-luca-ronconi/report.json",
+        "checkpoint": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3096-global-controller-luca-ronconi/enea-draft-execution/checkpoint.json",
+        "caseTruthSnapshot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-3096-global-controller-luca-ronconi.json"
+      }
+    }
+  ],
+  "artifacts": {
+    "simpleRunReportSha256": "40d68635a9006e75c4963a1f50ae848afb8077e3100622a8b7b769d9f3627c00",
+    "simpleRunCheckpointSha256": "a43424040dfdd87f35c337c065febcfb419858adf70d6a012ce1cb7390b8a49f",
+    "simpleRunJournalSha256": "09e74e53f0c47758f117d2792dff715c592055d29adb73bbd9750172658f57e3",
+    "santoRunReportSha256": "039d5c33b3c9450d9b91c32c04c2c232b236eb1e47ee64a951b4c1e9f3a7a699"
+  }
+}

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+  <key>Label</key><string>com.praticarapida.apr-cdp-react-remount-r23-target4</string>
+  <key>ProgramArguments</key><array>
+    <string>/usr/local/bin/node</string>
+    <string>/private/tmp/apr-promote-r23.XeVzz4/source/ops/apr-global-controller-test10-2026-08-29/sequencer.mjs</string>
+  </array>
+  <key>WorkingDirectory</key><string>/private/tmp/apr-promote-r23.XeVzz4/source</string>
+  <key>EnvironmentVariables</key><dict>
+    <key>APR_SOURCE_ROOT</key><string>/private/tmp/apr-promote-r23.XeVzz4/source</string>
+    <key>APR_MANIFEST_PATH</key><string>/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-cdp-react-remount-r23-2026-09-01/manifest-target4.json</string>
+    <key>APR_RUN_ROOT</key><string>/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-cdp-react-remount-r23-target4</string>
+    <key>APR_COHORT_OFFSET</key><string>2460</string>
+  </dict>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><false/>
+  <key>ProcessType</key><string>Background</string>
+  <key>StandardOutPath</key><string>/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-cdp-react-remount-r23-target4/sequencer.stdout.log</string>
+  <key>StandardErrorPath</key><string>/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-cdp-react-remount-r23-target4/sequencer.stderr.log</string>
+</dict></plist>

@@ -1,0 +1,21 @@
+{
+  "version": "apr-screening-rounding-r22-activation-receipt-v1",
+  "activatedAt": "2026-09-01T03:49:40Z",
+  "bundleVersionId": "4b7bce9-terminal-truth-r22-20260901",
+  "previousBundleVersionId": "4b7bce9-persisted-preflight-truth-r21-20260901",
+  "activationMethod": "atomic-current-symlink-macos-no-dereference",
+  "chromePidBefore": 42177,
+  "chromePidAfter": 42177,
+  "keepalivePidBefore": 89974,
+  "keepalivePidAfter": 89974,
+  "sessionVerification": {
+    "launchctlKeepalive": "PASS",
+    "persistentHeartbeat": "PASS",
+    "cdpAuthenticatedDashboard": "PASS"
+  },
+  "bundleHashes": {
+    "supervisorSha256": "3a7477544c7d8a861dc37f4877252f6426e46f49500f457e26c40e71bd723b65",
+    "workerSha256": "4b7bce90fd31382a9944270ee8732a6d42ef0a2642bc4d3954008abb32be8d19",
+    "watchdogSha256": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0"
+  }
+}

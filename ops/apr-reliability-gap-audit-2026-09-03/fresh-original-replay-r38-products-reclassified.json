@@ -1,0 +1,3142 @@
+{
+  "schemaVersion": "apr-reliability-fresh-original-replay-v1",
+  "generatedAt": "2026-09-03T18:17:13.443Z",
+  "safety": {
+    "localOnly": true,
+    "crmAccessed": false,
+    "eneaAccessed": false,
+    "externalActionAllowed": false
+  },
+  "manifestSha256": "51842252f71cabb6714f78923fe59ec9789ad06739393f61a553bb4bdb9154e0",
+  "installedOcrSha256": "4c41c9a6832b11b9d19eace538100270a533dddc05e475e5842711968393327f",
+  "sourceIntegrity": {
+    "documents": 359,
+    "bytes": 293624565,
+    "hashMismatches": 0
+  },
+  "summary": {
+    "total": 100,
+    "freshReady": 30,
+    "freshOperatorRequired": 70,
+    "casesWithAnalysisFailure": 0,
+    "changedVersusPersistedReplay": 26
+  },
+  "changedCases": [
+    {
+      "cohort": 1,
+      "operationalCohort": 2921,
+      "practiceId": "7ebb9a52-2196-4ddc-9dc8-f431ff40e1b5",
+      "customerKey": "guido-calvacchi",
+      "displayName": "GUIDO CALVACCHI",
+      "documentCount": 3,
+      "analyzedDocumentCount": 3,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "bundled_professional_expense_unitemized:economic_sources.eligibleTechnicalExpense",
+        "completion_over_90_days_operator_required:dates.completion",
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions",
+        "infissi_dimensions_and_cardinality_missing:technical_rows",
+        "infissi_financial_triple_reconciliation_required:invoice_total"
+      ],
+      "priorBlockerKeys": [
+        "bundled_professional_expense_unitemized:economic_sources.eligibleTechnicalExpense",
+        "completion_over_90_days_operator_required:dates.completion",
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "infissi_dimensions_and_cardinality_missing:technical_rows",
+        "infissi_financial_triple_reconciliation_required:invoice_total"
+      ],
+      "addedBlockers": [
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions"
+      ],
+      "removedBlockers": [],
+      "changed": true
+    },
+    {
+      "cohort": 11,
+      "operationalCohort": 2931,
+      "practiceId": "78ca7885-b996-46c2-86f1-085ca43e9ede",
+      "customerKey": "roberta-di-cesare",
+      "displayName": "roberta di cesare",
+      "documentCount": 2,
+      "analyzedDocumentCount": 2,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "customer_form_missing:customer_form",
+        "screening_primary_measurements_missing:screenings.dimensions",
+        "screenings_missing:screenings",
+        "tax_code_missing_or_invalid:beneficiary.taxCode"
+      ],
+      "priorBlockerKeys": [
+        "customer_form_missing:customer_form",
+        "screening_primary_measurements_missing:screenings.dimensions",
+        "screenings_missing:screenings"
+      ],
+      "addedBlockers": [
+        "tax_code_missing_or_invalid:beneficiary.taxCode"
+      ],
+      "removedBlockers": [],
+      "changed": true
+    },
+    {
+      "cohort": 13,
+      "operationalCohort": 2933,
+      "practiceId": "e5c4f390-461b-43ea-ada7-d44cec4b91fb",
+      "customerKey": "marcella-capatti",
+      "displayName": "Marcella Capatti",
+      "documentCount": 4,
+      "analyzedDocumentCount": 4,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "completion_over_90_days_operator_required:dates.completion",
+        "infissi_automatic_source_conflict:technical_dimensions",
+        "infissi_dimensions_and_cardinality_missing:technical_rows"
+      ],
+      "priorBlockerKeys": [
+        "completion_over_90_days_operator_required:dates.completion"
+      ],
+      "addedBlockers": [
+        "infissi_automatic_source_conflict:technical_dimensions",
+        "infissi_dimensions_and_cardinality_missing:technical_rows"
+      ],
+      "removedBlockers": [],
+      "changed": true
+    },
+    {
+      "cohort": 14,
+      "operationalCohort": 2934,
+      "practiceId": "61b0dc51-4959-46e7-bd6d-37c8f1981c52",
+      "customerKey": "matteo-capitanelli",
+      "displayName": "MATTEO CAPITANELLI",
+      "documentCount": 16,
+      "analyzedDocumentCount": 16,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "infissi_financial_triple_reconciliation_required:invoice_total"
+      ],
+      "priorBlockerKeys": [
+        "gross_triple_reconciliation_failed:economic_sources.total"
+      ],
+      "addedBlockers": [
+        "infissi_financial_triple_reconciliation_required:invoice_total"
+      ],
+      "removedBlockers": [],
+      "changed": true
+    },
+    {
+      "cohort": 15,
+      "operationalCohort": 2935,
+      "practiceId": "2803d6c1-f867-44a9-bff2-e67fcc230f7e",
+      "customerKey": "nicla-biagioni",
+      "displayName": "Nicla Biagioni",
+      "documentCount": 4,
+      "analyzedDocumentCount": 4,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "completion_date_missing:dates.completion",
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions",
+        "infissi_dimensions_and_cardinality_missing:technical_rows",
+        "infissi_financial_triple_reconciliation_required:invoice_total",
+        "original_invoice_missing_or_unavailable:economic_sources"
+      ],
+      "priorBlockerKeys": [
+        "completion_date_missing:dates.completion",
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "infissi_dimensions_and_cardinality_missing:technical_rows",
+        "infissi_financial_triple_reconciliation_required:invoice_total",
+        "original_invoice_missing_or_unavailable:economic_sources"
+      ],
+      "addedBlockers": [
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions"
+      ],
+      "removedBlockers": [],
+      "changed": true
+    },
+    {
+      "cohort": 16,
+      "operationalCohort": 2936,
+      "practiceId": "5f669e8b-9ef1-45f6-b00d-12449d741314",
+      "customerKey": "eugenio-codognato",
+      "displayName": "EUGENIO CODOGNATO",
+      "documentCount": 7,
+      "analyzedDocumentCount": 7,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions",
+        "infissi_dimensions_and_cardinality_missing:technical_rows"
+      ],
+      "priorBlockerKeys": [
+        "infissi_dimensions_and_cardinality_missing:technical_rows"
+      ],
+      "addedBlockers": [
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions"
+      ],
+      "removedBlockers": [],
+      "changed": true
+    },
+    {
+      "cohort": 18,
+      "operationalCohort": 2938,
+      "practiceId": "b35fc3d3-d441-48d0-99f0-1d1e967ab6e7",
+      "customerKey": "gabriele-girelli",
+      "displayName": "Gabriele Girelli",
+      "documentCount": 1,
+      "analyzedDocumentCount": 1,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "completion_date_missing:dates.completion",
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions",
+        "infissi_dimensions_and_cardinality_missing:technical_rows",
+        "infissi_financial_triple_reconciliation_required:invoice_total",
+        "infissi_shading_closures_form_answer_missing_or_ambiguous:shading_closures",
+        "original_invoice_missing_or_unavailable:economic_sources.invoice"
+      ],
+      "priorBlockerKeys": [
+        "completion_date_missing:dates.completion",
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "infissi_dimensions_and_cardinality_missing:technical_rows",
+        "infissi_financial_triple_reconciliation_required:invoice_total",
+        "infissi_shading_closures_form_answer_missing_or_ambiguous:shading_closures",
+        "original_invoice_missing_or_unavailable:economic_sources.invoice"
+      ],
+      "addedBlockers": [
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions"
+      ],
+      "removedBlockers": [],
+      "changed": true
+    },
+    {
+      "cohort": 23,
+      "operationalCohort": 2943,
+      "practiceId": "dc4484cd-c462-49c0-a734-3064dd6469a8",
+      "customerKey": "giovanna-atzeni",
+      "displayName": "GIOVANNA ATZENI",
+      "documentCount": 3,
+      "analyzedDocumentCount": 3,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "completion_date_portal_year_mismatch:dates.completion",
+        "completion_over_90_days_operator_required:dates.completion",
+        "customer_form_missing:customer_form",
+        "infissi_shading_closures_form_answer_missing_or_ambiguous:shading_closures",
+        "tax_code_missing_or_invalid:beneficiary.taxCode"
+      ],
+      "priorBlockerKeys": [
+        "bank_transfer_principal_exceeds_invoices:economic_sources.bankTransfers",
+        "completion_date_portal_year_mismatch:dates.completion",
+        "completion_over_90_days_operator_required:dates.completion",
+        "customer_form_missing:customer_form",
+        "infissi_shading_closures_form_answer_missing_or_ambiguous:shading_closures",
+        "tax_code_missing_or_invalid:beneficiary.taxCode"
+      ],
+      "addedBlockers": [],
+      "removedBlockers": [
+        "bank_transfer_principal_exceeds_invoices:economic_sources.bankTransfers"
+      ],
+      "changed": true
+    },
+    {
+      "cohort": 37,
+      "operationalCohort": 2957,
+      "practiceId": "1d6b08fa-7120-4eab-a118-ce3a263ce001",
+      "customerKey": "loretta-riviera",
+      "displayName": "Loretta Riviera",
+      "documentCount": 4,
+      "analyzedDocumentCount": 4,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "completion_date_missing:dates.completion",
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions",
+        "infissi_dimensions_and_cardinality_missing:technical_rows",
+        "infissi_financial_triple_reconciliation_required:invoice_total",
+        "invoice_schedule_amount_missing:economic_sources.schedule.amount",
+        "original_invoice_missing_or_unavailable:economic_sources"
+      ],
+      "priorBlockerKeys": [
+        "completion_date_missing:dates.completion",
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "infissi_dimensions_and_cardinality_missing:technical_rows",
+        "infissi_financial_triple_reconciliation_required:invoice_total",
+        "original_invoice_missing_or_unavailable:economic_sources"
+      ],
+      "addedBlockers": [
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions",
+        "invoice_schedule_amount_missing:economic_sources.schedule.amount"
+      ],
+      "removedBlockers": [],
+      "changed": true
+    },
+    {
+      "cohort": 45,
+      "operationalCohort": 2965,
+      "practiceId": "752e4dd5-604c-495d-92ff-8d0f89be7531",
+      "customerKey": "cesare-imperiali",
+      "displayName": "Cesare Imperiali",
+      "documentCount": 2,
+      "analyzedDocumentCount": 2,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions",
+        "infissi_dimensions_and_cardinality_missing:technical_rows"
+      ],
+      "priorBlockerKeys": [
+        "infissi_dimensions_and_cardinality_missing:technical_rows"
+      ],
+      "addedBlockers": [
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions"
+      ],
+      "removedBlockers": [],
+      "changed": true
+    },
+    {
+      "cohort": 50,
+      "operationalCohort": 2970,
+      "practiceId": "0a92f92c-22ed-4a43-b47e-6abe1d74282a",
+      "customerKey": "massimo-cappello",
+      "displayName": "massimo cappello",
+      "documentCount": 3,
+      "analyzedDocumentCount": 3,
+      "blockedDocuments": [],
+      "freshOutcome": "READY_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [],
+      "priorBlockerKeys": [
+        "infissi_dimensions_and_cardinality_missing:technical_rows"
+      ],
+      "addedBlockers": [],
+      "removedBlockers": [
+        "infissi_dimensions_and_cardinality_missing:technical_rows"
+      ],
+      "changed": true
+    },
+    {
+      "cohort": 53,
+      "operationalCohort": 2973,
+      "practiceId": "11b99b30-2a58-40dd-96f5-5ef1a06e65d0",
+      "customerKey": "diego-mario-mocenighi",
+      "displayName": "diego mario mocenighi",
+      "documentCount": 2,
+      "analyzedDocumentCount": 2,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "bank_transfer_invoice_cross_check_failed:economic_sources.bankTransfers",
+        "bundled_professional_expense_unitemized:economic_sources.eligibleTechnicalExpense",
+        "invoice_332a5af9:economic_sources",
+        "screenings_missing:screenings"
+      ],
+      "priorBlockerKeys": [
+        "bundled_professional_expense_unitemized:economic_sources.eligibleTechnicalExpense",
+        "invoice_332a5af9:economic_sources",
+        "screenings_missing:screenings"
+      ],
+      "addedBlockers": [
+        "bank_transfer_invoice_cross_check_failed:economic_sources.bankTransfers"
+      ],
+      "removedBlockers": [],
+      "changed": true
+    },
+    {
+      "cohort": 54,
+      "operationalCohort": 2974,
+      "practiceId": "3a393231-4cb9-4bf6-93f0-99da9a2a2972",
+      "customerKey": "stefano-buosi",
+      "displayName": "Stefano Buosi",
+      "documentCount": 5,
+      "analyzedDocumentCount": 5,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions",
+        "infissi_dimensions_and_cardinality_missing:technical_rows"
+      ],
+      "priorBlockerKeys": [
+        "infissi_dimensions_and_cardinality_missing:technical_rows"
+      ],
+      "addedBlockers": [
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions"
+      ],
+      "removedBlockers": [],
+      "changed": true
+    },
+    {
+      "cohort": 55,
+      "operationalCohort": 2975,
+      "practiceId": "83d29fcc-c3d9-4c31-8058-146993ec6b12",
+      "customerKey": "prova-rivenditore-1-30-04",
+      "displayName": "prova rivenditore 1 30/04",
+      "documentCount": 1,
+      "analyzedDocumentCount": 1,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "completion_date_missing:dates.completion",
+        "customer_form_missing:customer_form",
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions",
+        "infissi_dimensions_and_cardinality_missing:technical_rows",
+        "infissi_financial_triple_reconciliation_required:invoice_total",
+        "infissi_shading_closures_form_answer_missing_or_ambiguous:shading_closures",
+        "tax_code_missing_or_invalid:beneficiary.taxCode"
+      ],
+      "priorBlockerKeys": [
+        "completion_date_missing:dates.completion",
+        "customer_form_missing:customer_form",
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "infissi_dimensions_and_cardinality_missing:technical_rows",
+        "infissi_financial_triple_reconciliation_required:invoice_total",
+        "infissi_shading_closures_form_answer_missing_or_ambiguous:shading_closures",
+        "tax_code_missing_or_invalid:beneficiary.taxCode"
+      ],
+      "addedBlockers": [
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions"
+      ],
+      "removedBlockers": [],
+      "changed": true
+    },
+    {
+      "cohort": 66,
+      "operationalCohort": 2986,
+      "practiceId": "1b6d780a-2e81-415f-9a27-c67e2f19e846",
+      "customerKey": "marco-tocchetti",
+      "displayName": "Marco Tocchetti",
+      "documentCount": 3,
+      "analyzedDocumentCount": 3,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "original_invoice_missing_or_unavailable:economic_sources"
+      ],
+      "priorBlockerKeys": [
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "original_invoice_missing_or_unavailable:economic_sources"
+      ],
+      "addedBlockers": [],
+      "removedBlockers": [
+        "gross_triple_reconciliation_failed:economic_sources.total"
+      ],
+      "changed": true
+    },
+    {
+      "cohort": 68,
+      "operationalCohort": 2988,
+      "practiceId": "58f03680-c716-42e7-ad7d-e3ceaee5573d",
+      "customerKey": "claudia-sellati",
+      "displayName": "CLAUDIA SELLATI",
+      "documentCount": 10,
+      "analyzedDocumentCount": 10,
+      "blockedDocuments": [],
+      "freshOutcome": "READY_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [],
+      "priorBlockerKeys": [
+        "infissi_dimensions_and_cardinality_missing:technical_rows"
+      ],
+      "addedBlockers": [],
+      "removedBlockers": [
+        "infissi_dimensions_and_cardinality_missing:technical_rows"
+      ],
+      "changed": true
+    },
+    {
+      "cohort": 75,
+      "operationalCohort": 2995,
+      "practiceId": "2329836b-3d7c-4e55-b5ba-f232515a2299",
+      "customerKey": "francesca-pisanu",
+      "displayName": "FRANCESCA PISANU",
+      "documentCount": 3,
+      "analyzedDocumentCount": 3,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "customer_form_missing:customer_form",
+        "infissi_shading_closures_form_answer_missing_or_ambiguous:shading_closures",
+        "tax_code_missing_or_invalid:beneficiary.taxCode"
+      ],
+      "priorBlockerKeys": [
+        "customer_form_missing:customer_form",
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "infissi_financial_triple_reconciliation_required:invoice_total",
+        "infissi_shading_closures_form_answer_missing_or_ambiguous:shading_closures",
+        "tax_code_missing_or_invalid:beneficiary.taxCode"
+      ],
+      "addedBlockers": [],
+      "removedBlockers": [
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "infissi_financial_triple_reconciliation_required:invoice_total"
+      ],
+      "changed": true
+    },
+    {
+      "cohort": 76,
+      "operationalCohort": 2996,
+      "practiceId": "491cf101-c6cd-4f48-9cf0-78c096d95c0e",
+      "customerKey": "mauro-leonardi",
+      "displayName": "Mauro Leonardi",
+      "documentCount": 2,
+      "analyzedDocumentCount": 2,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "completion_date_portal_year_mismatch:dates.completion",
+        "completion_over_90_days_operator_required:dates.completion",
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions",
+        "infissi_dimensions_and_cardinality_missing:technical_rows"
+      ],
+      "priorBlockerKeys": [
+        "completion_date_portal_year_mismatch:dates.completion",
+        "completion_over_90_days_operator_required:dates.completion",
+        "infissi_dimensions_and_cardinality_missing:technical_rows"
+      ],
+      "addedBlockers": [
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions"
+      ],
+      "removedBlockers": [],
+      "changed": true
+    },
+    {
+      "cohort": 77,
+      "operationalCohort": 2997,
+      "practiceId": "9f44491c-30f7-44ef-84db-14877259d716",
+      "customerKey": "caterina-claudia-garbato",
+      "displayName": "caterina Claudia garbato",
+      "documentCount": 3,
+      "analyzedDocumentCount": 3,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "completion_date_portal_year_mismatch:dates.completion",
+        "completion_over_90_days_operator_required:dates.completion",
+        "product_cardinality_form_invoice_mismatch:screenings.quantity",
+        "screening_primary_measurements_missing:screenings.dimensions",
+        "screenings_missing:screenings"
+      ],
+      "priorBlockerKeys": [
+        "completion_date_portal_year_mismatch:dates.completion",
+        "completion_over_90_days_operator_required:dates.completion",
+        "persiana_measurement_ambiguous_1:screenings.1.dimensions",
+        "screenings_missing:screenings"
+      ],
+      "addedBlockers": [
+        "product_cardinality_form_invoice_mismatch:screenings.quantity",
+        "screening_primary_measurements_missing:screenings.dimensions"
+      ],
+      "removedBlockers": [
+        "persiana_measurement_ambiguous_1:screenings.1.dimensions"
+      ],
+      "changed": true
+    },
+    {
+      "cohort": 80,
+      "operationalCohort": 3000,
+      "practiceId": "30936ae1-80b0-46fd-813c-e1425ca33c7f",
+      "customerKey": "francesca-monti",
+      "displayName": "francesca monti",
+      "documentCount": 2,
+      "analyzedDocumentCount": 2,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "customer_form_missing:customer_form",
+        "invoice_332a5af9:economic_sources",
+        "screenings_missing:screenings",
+        "tax_code_missing_or_invalid:beneficiary.taxCode"
+      ],
+      "priorBlockerKeys": [
+        "invoice_332a5af9:economic_sources",
+        "screenings_missing:screenings"
+      ],
+      "addedBlockers": [
+        "customer_form_missing:customer_form",
+        "tax_code_missing_or_invalid:beneficiary.taxCode"
+      ],
+      "removedBlockers": [],
+      "changed": true
+    },
+    {
+      "cohort": 82,
+      "operationalCohort": 3002,
+      "practiceId": "775bd8e8-f71f-4c00-b93a-eeea9ade948d",
+      "customerKey": "marian-maeschi",
+      "displayName": "Marian Maeschi",
+      "documentCount": 2,
+      "analyzedDocumentCount": 2,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions",
+        "infissi_dimensions_and_cardinality_missing:technical_rows"
+      ],
+      "priorBlockerKeys": [
+        "infissi_dimensions_and_cardinality_missing:technical_rows"
+      ],
+      "addedBlockers": [
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions"
+      ],
+      "removedBlockers": [],
+      "changed": true
+    },
+    {
+      "cohort": 85,
+      "operationalCohort": 3005,
+      "practiceId": "51ec4e1a-2600-482b-9fde-6b3976bbdbc2",
+      "customerKey": "gemma-minore",
+      "displayName": "Gemma Minore",
+      "documentCount": 5,
+      "analyzedDocumentCount": 5,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "co_beneficiary_invoice_identity_unresolved:beneficiary.coBeneficiary"
+      ],
+      "priorBlockerKeys": [
+        "co_beneficiary_invoice_identity_unresolved:beneficiary.coBeneficiary",
+        "infissi_dimensions_and_cardinality_missing:technical_rows"
+      ],
+      "addedBlockers": [],
+      "removedBlockers": [
+        "infissi_dimensions_and_cardinality_missing:technical_rows"
+      ],
+      "changed": true
+    },
+    {
+      "cohort": 90,
+      "operationalCohort": 3010,
+      "practiceId": "12c830b8-1d49-406a-b938-a37cfc68569e",
+      "customerKey": "francesco-laurelli",
+      "displayName": "FRANCESCO LAURELLI",
+      "documentCount": 2,
+      "analyzedDocumentCount": 2,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "invoice_332a5af9:economic_sources",
+        "product_cardinality_form_invoice_mismatch:screenings.quantity",
+        "screenings_missing:screenings"
+      ],
+      "priorBlockerKeys": [
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "invoice_332a5af9:economic_sources",
+        "invoice_schedule_amount_missing:economic_sources.schedule.amount",
+        "product_cardinality_form_invoice_mismatch:screenings.quantity",
+        "screenings_missing:screenings"
+      ],
+      "addedBlockers": [],
+      "removedBlockers": [
+        "invoice_schedule_amount_missing:economic_sources.schedule.amount"
+      ],
+      "changed": true
+    },
+    {
+      "cohort": 97,
+      "operationalCohort": 3017,
+      "practiceId": "c3a6a2ae-3244-4b4c-84fe-1e0bfcdd6c53",
+      "customerKey": "mattia-vatieri",
+      "displayName": "Mattia Vatieri",
+      "documentCount": 3,
+      "analyzedDocumentCount": 3,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "completion_date_portal_year_mismatch:dates.completion",
+        "completion_over_90_days_operator_required:dates.completion",
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions",
+        "infissi_dimensions_and_cardinality_missing:technical_rows",
+        "infissi_shading_closures_form_answer_missing_or_ambiguous:shading_closures"
+      ],
+      "priorBlockerKeys": [
+        "completion_date_portal_year_mismatch:dates.completion",
+        "completion_over_90_days_operator_required:dates.completion",
+        "infissi_dimensions_and_cardinality_missing:technical_rows",
+        "infissi_shading_closures_form_answer_missing_or_ambiguous:shading_closures"
+      ],
+      "addedBlockers": [
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions"
+      ],
+      "removedBlockers": [],
+      "changed": true
+    },
+    {
+      "cohort": 99,
+      "operationalCohort": 3019,
+      "practiceId": "ada3267b-29d0-4765-b15d-489e27b23ec6",
+      "customerKey": "antonino-formisabo",
+      "displayName": "Antonino Formisabo",
+      "documentCount": 14,
+      "analyzedDocumentCount": 14,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "bank_transfer_invoice_cross_check_failed:economic_sources.bankTransfers",
+        "completion_date_portal_year_mismatch:dates.completion",
+        "completion_over_90_days_operator_required:dates.completion",
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "infissi_financial_triple_reconciliation_required:invoice_total",
+        "invoice_929a8665:economic_sources"
+      ],
+      "priorBlockerKeys": [
+        "completion_date_portal_year_mismatch:dates.completion",
+        "completion_over_90_days_operator_required:dates.completion"
+      ],
+      "addedBlockers": [
+        "bank_transfer_invoice_cross_check_failed:economic_sources.bankTransfers",
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "infissi_financial_triple_reconciliation_required:invoice_total",
+        "invoice_929a8665:economic_sources"
+      ],
+      "removedBlockers": [],
+      "changed": true
+    },
+    {
+      "cohort": 100,
+      "operationalCohort": 3020,
+      "practiceId": "dbdc17d6-c279-451c-a042-56d0f6b87f93",
+      "customerKey": "leo-manini",
+      "displayName": "Leo Manini",
+      "documentCount": 1,
+      "analyzedDocumentCount": 1,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "completion_date_portal_year_mismatch:dates.completion",
+        "completion_over_90_days_operator_required:dates.completion",
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions",
+        "infissi_dimensions_and_cardinality_missing:technical_rows"
+      ],
+      "priorBlockerKeys": [
+        "completion_date_portal_year_mismatch:dates.completion",
+        "completion_over_90_days_operator_required:dates.completion",
+        "infissi_dimensions_and_cardinality_missing:technical_rows"
+      ],
+      "addedBlockers": [
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions"
+      ],
+      "removedBlockers": [],
+      "changed": true
+    }
+  ],
+  "cases": [
+    {
+      "cohort": 1,
+      "operationalCohort": 2921,
+      "practiceId": "7ebb9a52-2196-4ddc-9dc8-f431ff40e1b5",
+      "customerKey": "guido-calvacchi",
+      "displayName": "GUIDO CALVACCHI",
+      "documentCount": 3,
+      "analyzedDocumentCount": 3,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "bundled_professional_expense_unitemized:economic_sources.eligibleTechnicalExpense",
+        "completion_over_90_days_operator_required:dates.completion",
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions",
+        "infissi_dimensions_and_cardinality_missing:technical_rows",
+        "infissi_financial_triple_reconciliation_required:invoice_total"
+      ],
+      "priorBlockerKeys": [
+        "bundled_professional_expense_unitemized:economic_sources.eligibleTechnicalExpense",
+        "completion_over_90_days_operator_required:dates.completion",
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "infissi_dimensions_and_cardinality_missing:technical_rows",
+        "infissi_financial_triple_reconciliation_required:invoice_total"
+      ],
+      "addedBlockers": [
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions"
+      ],
+      "removedBlockers": [],
+      "changed": true
+    },
+    {
+      "cohort": 2,
+      "operationalCohort": 2922,
+      "practiceId": "36a9a1ab-0a3d-47d7-8671-e0654167ccb1",
+      "customerKey": "sarah-mondini",
+      "displayName": "Sarah Mondini",
+      "documentCount": 5,
+      "analyzedDocumentCount": 5,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "product_cardinality_form_invoice_mismatch:screenings.quantity",
+        "screening_primary_measurements_missing:screenings.dimensions",
+        "screenings_missing:screenings"
+      ],
+      "priorBlockerKeys": [
+        "product_cardinality_form_invoice_mismatch:screenings.quantity",
+        "screening_primary_measurements_missing:screenings.dimensions",
+        "screenings_missing:screenings"
+      ],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 3,
+      "operationalCohort": 2923,
+      "practiceId": "652f820b-9d49-4706-a8bc-87931bec5148",
+      "customerKey": "lucia-droghetti",
+      "displayName": "LUCIA DROGHETTI",
+      "documentCount": 2,
+      "analyzedDocumentCount": 2,
+      "blockedDocuments": [],
+      "freshOutcome": "READY_LOCAL",
+      "priorOutcome": "READY_LOCAL",
+      "freshBlockerKeys": [],
+      "priorBlockerKeys": [],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 4,
+      "operationalCohort": 2924,
+      "practiceId": "55fdaf83-6b88-4f54-86d6-9fbfd629b966",
+      "customerKey": "stefania-spina",
+      "displayName": "STEFANIA SPINA",
+      "documentCount": 9,
+      "analyzedDocumentCount": 9,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "permanent_supplier_automation_exclusion:supplier"
+      ],
+      "priorBlockerKeys": [
+        "permanent_supplier_automation_exclusion:supplier"
+      ],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 5,
+      "operationalCohort": 2925,
+      "practiceId": "98e93993-e6ce-4fcc-9103-0362331feb4f",
+      "customerKey": "andreea-ioana-olteanu",
+      "displayName": "Andreea Ioana Olteanu",
+      "documentCount": 2,
+      "analyzedDocumentCount": 2,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "completion_date_portal_year_mismatch:dates.completion",
+        "completion_over_90_days_operator_required:dates.completion"
+      ],
+      "priorBlockerKeys": [
+        "completion_date_portal_year_mismatch:dates.completion",
+        "completion_over_90_days_operator_required:dates.completion"
+      ],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 6,
+      "operationalCohort": 2926,
+      "practiceId": "e5a0905b-446b-49f5-9b25-a7d10819d831",
+      "customerKey": "filippo-bigalli",
+      "displayName": "Filippo Bigalli",
+      "documentCount": 1,
+      "analyzedDocumentCount": 1,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "completion_date_missing:dates.completion",
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "original_invoice_missing_or_unavailable:economic_sources.invoice",
+        "product_cardinality_form_invoice_mismatch:screenings.quantity",
+        "screenings_missing:screenings"
+      ],
+      "priorBlockerKeys": [
+        "completion_date_missing:dates.completion",
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "original_invoice_missing_or_unavailable:economic_sources.invoice",
+        "product_cardinality_form_invoice_mismatch:screenings.quantity",
+        "screenings_missing:screenings"
+      ],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 7,
+      "operationalCohort": 2927,
+      "practiceId": "8e011a14-60b7-43f4-8b35-04626b35bc91",
+      "customerKey": "angela-tuttolani",
+      "displayName": "Angela Tuttolani",
+      "documentCount": 3,
+      "analyzedDocumentCount": 3,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "invoice_929a8665:economic_sources"
+      ],
+      "priorBlockerKeys": [
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "invoice_929a8665:economic_sources"
+      ],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 8,
+      "operationalCohort": 2928,
+      "practiceId": "8e15ae63-6a5c-42df-b2be-72ccb9a73cec",
+      "customerKey": "maria-sofia-tosatti",
+      "displayName": "MARIA SOFIA TOSATTI",
+      "documentCount": 2,
+      "analyzedDocumentCount": 2,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "screening_primary_measurements_missing:screenings.dimensions",
+        "screenings_missing:screenings"
+      ],
+      "priorBlockerKeys": [
+        "screening_primary_measurements_missing:screenings.dimensions",
+        "screenings_missing:screenings"
+      ],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 9,
+      "operationalCohort": 2929,
+      "practiceId": "20325492-9c01-4ccc-af20-961882bb010a",
+      "customerKey": "alessandro-zaniboni",
+      "displayName": "Alessandro Zaniboni",
+      "documentCount": 1,
+      "analyzedDocumentCount": 1,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "completion_date_missing:dates.completion",
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "original_invoice_missing_or_unavailable:economic_sources.invoice",
+        "product_cardinality_form_invoice_mismatch:screenings.quantity",
+        "screenings_missing:screenings"
+      ],
+      "priorBlockerKeys": [
+        "completion_date_missing:dates.completion",
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "original_invoice_missing_or_unavailable:economic_sources.invoice",
+        "product_cardinality_form_invoice_mismatch:screenings.quantity",
+        "screenings_missing:screenings"
+      ],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 10,
+      "operationalCohort": 2930,
+      "practiceId": "49f0a3c1-698c-44c4-ae31-d09ad994196d",
+      "customerKey": "gianfranco-lavezzi",
+      "displayName": "gianfranco lavezzi",
+      "documentCount": 3,
+      "analyzedDocumentCount": 3,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "completion_over_90_days_operator_required:dates.completion",
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "invoice_332a5af9:economic_sources",
+        "product_cardinality_form_invoice_mismatch:screenings.quantity",
+        "screenings_missing:screenings"
+      ],
+      "priorBlockerKeys": [
+        "completion_over_90_days_operator_required:dates.completion",
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "invoice_332a5af9:economic_sources",
+        "product_cardinality_form_invoice_mismatch:screenings.quantity",
+        "screenings_missing:screenings"
+      ],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 11,
+      "operationalCohort": 2931,
+      "practiceId": "78ca7885-b996-46c2-86f1-085ca43e9ede",
+      "customerKey": "roberta-di-cesare",
+      "displayName": "roberta di cesare",
+      "documentCount": 2,
+      "analyzedDocumentCount": 2,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "customer_form_missing:customer_form",
+        "screening_primary_measurements_missing:screenings.dimensions",
+        "screenings_missing:screenings",
+        "tax_code_missing_or_invalid:beneficiary.taxCode"
+      ],
+      "priorBlockerKeys": [
+        "customer_form_missing:customer_form",
+        "screening_primary_measurements_missing:screenings.dimensions",
+        "screenings_missing:screenings"
+      ],
+      "addedBlockers": [
+        "tax_code_missing_or_invalid:beneficiary.taxCode"
+      ],
+      "removedBlockers": [],
+      "changed": true
+    },
+    {
+      "cohort": 12,
+      "operationalCohort": 2932,
+      "practiceId": "0e6c3b0f-f4d0-45f9-921a-6f3a23f713ee",
+      "customerKey": "marco-de-marinis",
+      "displayName": "MARCO DE MARINIS",
+      "documentCount": 10,
+      "analyzedDocumentCount": 10,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "completion_date_portal_year_mismatch:dates.completion",
+        "completion_over_90_days_operator_required:dates.completion",
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "infissi_financial_triple_reconciliation_required:invoice_total",
+        "invoice_929a8665:economic_sources"
+      ],
+      "priorBlockerKeys": [
+        "completion_date_portal_year_mismatch:dates.completion",
+        "completion_over_90_days_operator_required:dates.completion",
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "infissi_financial_triple_reconciliation_required:invoice_total",
+        "invoice_929a8665:economic_sources"
+      ],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 13,
+      "operationalCohort": 2933,
+      "practiceId": "e5c4f390-461b-43ea-ada7-d44cec4b91fb",
+      "customerKey": "marcella-capatti",
+      "displayName": "Marcella Capatti",
+      "documentCount": 4,
+      "analyzedDocumentCount": 4,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "completion_over_90_days_operator_required:dates.completion",
+        "infissi_automatic_source_conflict:technical_dimensions",
+        "infissi_dimensions_and_cardinality_missing:technical_rows"
+      ],
+      "priorBlockerKeys": [
+        "completion_over_90_days_operator_required:dates.completion"
+      ],
+      "addedBlockers": [
+        "infissi_automatic_source_conflict:technical_dimensions",
+        "infissi_dimensions_and_cardinality_missing:technical_rows"
+      ],
+      "removedBlockers": [],
+      "changed": true
+    },
+    {
+      "cohort": 14,
+      "operationalCohort": 2934,
+      "practiceId": "61b0dc51-4959-46e7-bd6d-37c8f1981c52",
+      "customerKey": "matteo-capitanelli",
+      "displayName": "MATTEO CAPITANELLI",
+      "documentCount": 16,
+      "analyzedDocumentCount": 16,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "infissi_financial_triple_reconciliation_required:invoice_total"
+      ],
+      "priorBlockerKeys": [
+        "gross_triple_reconciliation_failed:economic_sources.total"
+      ],
+      "addedBlockers": [
+        "infissi_financial_triple_reconciliation_required:invoice_total"
+      ],
+      "removedBlockers": [],
+      "changed": true
+    },
+    {
+      "cohort": 15,
+      "operationalCohort": 2935,
+      "practiceId": "2803d6c1-f867-44a9-bff2-e67fcc230f7e",
+      "customerKey": "nicla-biagioni",
+      "displayName": "Nicla Biagioni",
+      "documentCount": 4,
+      "analyzedDocumentCount": 4,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "completion_date_missing:dates.completion",
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions",
+        "infissi_dimensions_and_cardinality_missing:technical_rows",
+        "infissi_financial_triple_reconciliation_required:invoice_total",
+        "original_invoice_missing_or_unavailable:economic_sources"
+      ],
+      "priorBlockerKeys": [
+        "completion_date_missing:dates.completion",
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "infissi_dimensions_and_cardinality_missing:technical_rows",
+        "infissi_financial_triple_reconciliation_required:invoice_total",
+        "original_invoice_missing_or_unavailable:economic_sources"
+      ],
+      "addedBlockers": [
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions"
+      ],
+      "removedBlockers": [],
+      "changed": true
+    },
+    {
+      "cohort": 16,
+      "operationalCohort": 2936,
+      "practiceId": "5f669e8b-9ef1-45f6-b00d-12449d741314",
+      "customerKey": "eugenio-codognato",
+      "displayName": "EUGENIO CODOGNATO",
+      "documentCount": 7,
+      "analyzedDocumentCount": 7,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions",
+        "infissi_dimensions_and_cardinality_missing:technical_rows"
+      ],
+      "priorBlockerKeys": [
+        "infissi_dimensions_and_cardinality_missing:technical_rows"
+      ],
+      "addedBlockers": [
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions"
+      ],
+      "removedBlockers": [],
+      "changed": true
+    },
+    {
+      "cohort": 17,
+      "operationalCohort": 2937,
+      "practiceId": "b9ecef3e-0431-4f11-9eec-afabea5d5532",
+      "customerKey": "giulia-kasermann",
+      "displayName": "Giulia Kasermann",
+      "documentCount": 1,
+      "analyzedDocumentCount": 1,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "product_cardinality_form_invoice_mismatch:screenings.quantity",
+        "screening_primary_measurements_missing:screenings.dimensions",
+        "screenings_missing:screenings"
+      ],
+      "priorBlockerKeys": [
+        "product_cardinality_form_invoice_mismatch:screenings.quantity",
+        "screening_primary_measurements_missing:screenings.dimensions",
+        "screenings_missing:screenings"
+      ],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 18,
+      "operationalCohort": 2938,
+      "practiceId": "b35fc3d3-d441-48d0-99f0-1d1e967ab6e7",
+      "customerKey": "gabriele-girelli",
+      "displayName": "Gabriele Girelli",
+      "documentCount": 1,
+      "analyzedDocumentCount": 1,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "completion_date_missing:dates.completion",
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions",
+        "infissi_dimensions_and_cardinality_missing:technical_rows",
+        "infissi_financial_triple_reconciliation_required:invoice_total",
+        "infissi_shading_closures_form_answer_missing_or_ambiguous:shading_closures",
+        "original_invoice_missing_or_unavailable:economic_sources.invoice"
+      ],
+      "priorBlockerKeys": [
+        "completion_date_missing:dates.completion",
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "infissi_dimensions_and_cardinality_missing:technical_rows",
+        "infissi_financial_triple_reconciliation_required:invoice_total",
+        "infissi_shading_closures_form_answer_missing_or_ambiguous:shading_closures",
+        "original_invoice_missing_or_unavailable:economic_sources.invoice"
+      ],
+      "addedBlockers": [
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions"
+      ],
+      "removedBlockers": [],
+      "changed": true
+    },
+    {
+      "cohort": 19,
+      "operationalCohort": 2939,
+      "practiceId": "7e616b55-67fd-4d6f-aa4b-42af0fa00ce4",
+      "customerKey": "vincenzo-falconi",
+      "displayName": "VINCENZO FALCONI",
+      "documentCount": 1,
+      "analyzedDocumentCount": 1,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "invoice_332a5af9:economic_sources",
+        "product_cardinality_form_invoice_mismatch:screenings.quantity",
+        "screenings_missing:screenings"
+      ],
+      "priorBlockerKeys": [
+        "invoice_332a5af9:economic_sources",
+        "product_cardinality_form_invoice_mismatch:screenings.quantity",
+        "screenings_missing:screenings"
+      ],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 20,
+      "operationalCohort": 2940,
+      "practiceId": "7b8fa856-36d9-471b-82f5-a0ae194469b2",
+      "customerKey": "gregorio-fusco",
+      "displayName": "gregorio fusco",
+      "documentCount": 7,
+      "analyzedDocumentCount": 7,
+      "blockedDocuments": [],
+      "freshOutcome": "READY_LOCAL",
+      "priorOutcome": "READY_LOCAL",
+      "freshBlockerKeys": [],
+      "priorBlockerKeys": [],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 21,
+      "operationalCohort": 2941,
+      "practiceId": "92f0a811-6199-494e-bc12-dafefe1a37b2",
+      "customerKey": "rossella-munafo",
+      "displayName": "Rossella Munafò",
+      "documentCount": 3,
+      "analyzedDocumentCount": 3,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "invoice_332a5af9:economic_sources",
+        "product_cardinality_form_invoice_mismatch:screenings.quantity",
+        "screenings_missing:screenings"
+      ],
+      "priorBlockerKeys": [
+        "invoice_332a5af9:economic_sources",
+        "product_cardinality_form_invoice_mismatch:screenings.quantity",
+        "screenings_missing:screenings"
+      ],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 22,
+      "operationalCohort": 2942,
+      "practiceId": "98d44d99-86af-4fec-ba55-ffe24d208e83",
+      "customerKey": "luca-ronconi",
+      "displayName": "Luca Ronconi",
+      "documentCount": 2,
+      "analyzedDocumentCount": 2,
+      "blockedDocuments": [],
+      "freshOutcome": "READY_LOCAL",
+      "priorOutcome": "READY_LOCAL",
+      "freshBlockerKeys": [],
+      "priorBlockerKeys": [],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 23,
+      "operationalCohort": 2943,
+      "practiceId": "dc4484cd-c462-49c0-a734-3064dd6469a8",
+      "customerKey": "giovanna-atzeni",
+      "displayName": "GIOVANNA ATZENI",
+      "documentCount": 3,
+      "analyzedDocumentCount": 3,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "completion_date_portal_year_mismatch:dates.completion",
+        "completion_over_90_days_operator_required:dates.completion",
+        "customer_form_missing:customer_form",
+        "infissi_shading_closures_form_answer_missing_or_ambiguous:shading_closures",
+        "tax_code_missing_or_invalid:beneficiary.taxCode"
+      ],
+      "priorBlockerKeys": [
+        "bank_transfer_principal_exceeds_invoices:economic_sources.bankTransfers",
+        "completion_date_portal_year_mismatch:dates.completion",
+        "completion_over_90_days_operator_required:dates.completion",
+        "customer_form_missing:customer_form",
+        "infissi_shading_closures_form_answer_missing_or_ambiguous:shading_closures",
+        "tax_code_missing_or_invalid:beneficiary.taxCode"
+      ],
+      "addedBlockers": [],
+      "removedBlockers": [
+        "bank_transfer_principal_exceeds_invoices:economic_sources.bankTransfers"
+      ],
+      "changed": true
+    },
+    {
+      "cohort": 24,
+      "operationalCohort": 2944,
+      "practiceId": "fe20bff9-ded6-4380-9452-e20c4410a0c7",
+      "customerKey": "andrea-trabucco",
+      "displayName": "Andrea Trabucco",
+      "documentCount": 6,
+      "analyzedDocumentCount": 6,
+      "blockedDocuments": [],
+      "freshOutcome": "READY_LOCAL",
+      "priorOutcome": "READY_LOCAL",
+      "freshBlockerKeys": [],
+      "priorBlockerKeys": [],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 25,
+      "operationalCohort": 2945,
+      "practiceId": "36978c5f-f8fb-43b0-8bd9-26665bf553ad",
+      "customerKey": "vera-buracchi",
+      "displayName": "VERA BURACCHI",
+      "documentCount": 3,
+      "analyzedDocumentCount": 3,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "original_invoice_missing_or_unavailable:economic_sources"
+      ],
+      "priorBlockerKeys": [
+        "original_invoice_missing_or_unavailable:economic_sources"
+      ],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 26,
+      "operationalCohort": 2946,
+      "practiceId": "3e7d38d2-e40d-4304-850c-e128698be78e",
+      "customerKey": "antonella-ferletic",
+      "displayName": "Antonella Ferletic",
+      "documentCount": 1,
+      "analyzedDocumentCount": 1,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "product_cardinality_form_invoice_mismatch:screenings.quantity",
+        "screening_primary_measurements_missing:screenings.dimensions",
+        "screenings_missing:screenings"
+      ],
+      "priorBlockerKeys": [
+        "product_cardinality_form_invoice_mismatch:screenings.quantity",
+        "screening_primary_measurements_missing:screenings.dimensions",
+        "screenings_missing:screenings"
+      ],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 27,
+      "operationalCohort": 2947,
+      "practiceId": "77c5e8b6-34f8-4f1b-830a-526addefdd7d",
+      "customerKey": "luca-cigognetti",
+      "displayName": "Luca Cigognetti",
+      "documentCount": 3,
+      "analyzedDocumentCount": 3,
+      "blockedDocuments": [],
+      "freshOutcome": "READY_LOCAL",
+      "priorOutcome": "READY_LOCAL",
+      "freshBlockerKeys": [],
+      "priorBlockerKeys": [],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 28,
+      "operationalCohort": 2948,
+      "practiceId": "7f5b0c3c-3b37-4309-ac42-73f0c29d7f7f",
+      "customerKey": "giuseppe-d-adduzio",
+      "displayName": "GIUSEPPE D'ADDUZIO",
+      "documentCount": 10,
+      "analyzedDocumentCount": 10,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "infissi_automatic_source_conflict:technical_dimensions",
+        "infissi_dimensions_and_cardinality_missing:technical_rows",
+        "infissi_financial_triple_reconciliation_required:invoice_total",
+        "infissi_shading_closures_form_answer_missing_or_ambiguous:shading_closures",
+        "permanent_supplier_automation_exclusion:supplier"
+      ],
+      "priorBlockerKeys": [
+        "infissi_automatic_source_conflict:technical_dimensions",
+        "infissi_dimensions_and_cardinality_missing:technical_rows",
+        "infissi_financial_triple_reconciliation_required:invoice_total",
+        "infissi_shading_closures_form_answer_missing_or_ambiguous:shading_closures",
+        "permanent_supplier_automation_exclusion:supplier"
+      ],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 29,
+      "operationalCohort": 2949,
+      "practiceId": "2cef7991-a654-4cd6-b2b8-623cefce596b",
+      "customerKey": "lia-chiericati",
+      "displayName": "Lia Chiericati",
+      "documentCount": 5,
+      "analyzedDocumentCount": 5,
+      "blockedDocuments": [],
+      "freshOutcome": "READY_LOCAL",
+      "priorOutcome": "READY_LOCAL",
+      "freshBlockerKeys": [],
+      "priorBlockerKeys": [],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 30,
+      "operationalCohort": 2950,
+      "practiceId": "802a1cc1-c046-4c4b-a245-25401217740f",
+      "customerKey": "della-maria-carla-vigetti",
+      "displayName": "Della Maria Carla Vigetti",
+      "documentCount": 2,
+      "analyzedDocumentCount": 2,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "invoice_332a5af9:economic_sources",
+        "product_cardinality_form_invoice_mismatch:screenings.quantity",
+        "screenings_missing:screenings"
+      ],
+      "priorBlockerKeys": [
+        "invoice_332a5af9:economic_sources",
+        "product_cardinality_form_invoice_mismatch:screenings.quantity",
+        "screenings_missing:screenings"
+      ],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 31,
+      "operationalCohort": 2951,
+      "practiceId": "a62eb4d2-a0e8-4d25-81d1-0a3c91f716e2",
+      "customerKey": "gabriello-manso",
+      "displayName": "GABRIELLO MANSO",
+      "documentCount": 3,
+      "analyzedDocumentCount": 3,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "gross_triple_reconciliation_failed:economic_sources.total"
+      ],
+      "priorBlockerKeys": [
+        "gross_triple_reconciliation_failed:economic_sources.total"
+      ],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 32,
+      "operationalCohort": 2952,
+      "practiceId": "aa8d417f-8450-4283-b328-dc8c9cb573ba",
+      "customerKey": "monica-molteni",
+      "displayName": "Monica Molteni",
+      "documentCount": 4,
+      "analyzedDocumentCount": 4,
+      "blockedDocuments": [],
+      "freshOutcome": "READY_LOCAL",
+      "priorOutcome": "READY_LOCAL",
+      "freshBlockerKeys": [],
+      "priorBlockerKeys": [],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 33,
+      "operationalCohort": 2953,
+      "practiceId": "5323d52a-6473-46f1-a5aa-faf5568ae3fc",
+      "customerKey": "santo-giuga",
+      "displayName": "Santo Giuga",
+      "documentCount": 12,
+      "analyzedDocumentCount": 12,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "bank_transfer_invoice_cross_check_failed:economic_sources.bankTransfers",
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "infissi_financial_triple_reconciliation_required:invoice_total",
+        "invoice_929a8665:economic_sources"
+      ],
+      "priorBlockerKeys": [
+        "bank_transfer_invoice_cross_check_failed:economic_sources.bankTransfers",
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "infissi_financial_triple_reconciliation_required:invoice_total",
+        "invoice_929a8665:economic_sources"
+      ],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 34,
+      "operationalCohort": 2954,
+      "practiceId": "99c19e81-7252-4325-afbd-1e7f2698b6df",
+      "customerKey": "patrizia-muzzi",
+      "displayName": "Patrizia Muzzi",
+      "documentCount": 2,
+      "analyzedDocumentCount": 2,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "completion_date_missing:dates.completion",
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "product_cardinality_form_invoice_mismatch:screenings.quantity",
+        "screenings_missing:screenings"
+      ],
+      "priorBlockerKeys": [
+        "completion_date_missing:dates.completion",
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "product_cardinality_form_invoice_mismatch:screenings.quantity",
+        "screenings_missing:screenings"
+      ],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 35,
+      "operationalCohort": 2955,
+      "practiceId": "eed0922f-b5ec-4e8f-b860-d746ed93528e",
+      "customerKey": "claudia-campagna",
+      "displayName": "Claudia Campagna",
+      "documentCount": 3,
+      "analyzedDocumentCount": 3,
+      "blockedDocuments": [],
+      "freshOutcome": "READY_LOCAL",
+      "priorOutcome": "READY_LOCAL",
+      "freshBlockerKeys": [],
+      "priorBlockerKeys": [],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 36,
+      "operationalCohort": 2956,
+      "practiceId": "be623c28-dac8-425c-9213-e79eae95ee57",
+      "customerKey": "ida-gigliotti",
+      "displayName": "Ida Gigliotti",
+      "documentCount": 4,
+      "analyzedDocumentCount": 4,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "completion_date_portal_year_mismatch:dates.completion",
+        "completion_over_90_days_operator_required:dates.completion",
+        "invoice_332a5af9:economic_sources",
+        "product_cardinality_form_invoice_mismatch:screenings.quantity",
+        "screenings_missing:screenings"
+      ],
+      "priorBlockerKeys": [
+        "completion_date_portal_year_mismatch:dates.completion",
+        "completion_over_90_days_operator_required:dates.completion",
+        "invoice_332a5af9:economic_sources",
+        "product_cardinality_form_invoice_mismatch:screenings.quantity",
+        "screenings_missing:screenings"
+      ],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 37,
+      "operationalCohort": 2957,
+      "practiceId": "1d6b08fa-7120-4eab-a118-ce3a263ce001",
+      "customerKey": "loretta-riviera",
+      "displayName": "Loretta Riviera",
+      "documentCount": 4,
+      "analyzedDocumentCount": 4,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "completion_date_missing:dates.completion",
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions",
+        "infissi_dimensions_and_cardinality_missing:technical_rows",
+        "infissi_financial_triple_reconciliation_required:invoice_total",
+        "invoice_schedule_amount_missing:economic_sources.schedule.amount",
+        "original_invoice_missing_or_unavailable:economic_sources"
+      ],
+      "priorBlockerKeys": [
+        "completion_date_missing:dates.completion",
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "infissi_dimensions_and_cardinality_missing:technical_rows",
+        "infissi_financial_triple_reconciliation_required:invoice_total",
+        "original_invoice_missing_or_unavailable:economic_sources"
+      ],
+      "addedBlockers": [
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions",
+        "invoice_schedule_amount_missing:economic_sources.schedule.amount"
+      ],
+      "removedBlockers": [],
+      "changed": true
+    },
+    {
+      "cohort": 38,
+      "operationalCohort": 2958,
+      "practiceId": "9b996147-82e1-4438-affe-9fcec062c003",
+      "customerKey": "fabio-sartori",
+      "displayName": "Fabio Sartori",
+      "documentCount": 2,
+      "analyzedDocumentCount": 2,
+      "blockedDocuments": [],
+      "freshOutcome": "READY_LOCAL",
+      "priorOutcome": "READY_LOCAL",
+      "freshBlockerKeys": [],
+      "priorBlockerKeys": [],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 39,
+      "operationalCohort": 2959,
+      "practiceId": "b51df57d-dae2-4ddc-bf99-904673ebe50d",
+      "customerKey": "annalisa-lanzo",
+      "displayName": "ANNALISA LANZO",
+      "documentCount": 2,
+      "analyzedDocumentCount": 2,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "invoice_332a5af9:economic_sources",
+        "product_cardinality_form_invoice_mismatch:screenings.quantity",
+        "screenings_missing:screenings"
+      ],
+      "priorBlockerKeys": [
+        "invoice_332a5af9:economic_sources",
+        "product_cardinality_form_invoice_mismatch:screenings.quantity",
+        "screenings_missing:screenings"
+      ],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 40,
+      "operationalCohort": 2960,
+      "practiceId": "54fdcf5f-3092-4f43-a741-ff510c25f51f",
+      "customerKey": "armando-ranzoni",
+      "displayName": "Armando Ranzoni",
+      "documentCount": 2,
+      "analyzedDocumentCount": 2,
+      "blockedDocuments": [],
+      "freshOutcome": "READY_LOCAL",
+      "priorOutcome": "READY_LOCAL",
+      "freshBlockerKeys": [],
+      "priorBlockerKeys": [],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 41,
+      "operationalCohort": 2961,
+      "practiceId": "b8eb5a0a-21f8-4400-bd8c-ed1c39751b10",
+      "customerKey": "monica-ambra-fioravanti",
+      "displayName": "MONICA AMBRA FIORAVANTI",
+      "documentCount": 4,
+      "analyzedDocumentCount": 4,
+      "blockedDocuments": [],
+      "freshOutcome": "READY_LOCAL",
+      "priorOutcome": "READY_LOCAL",
+      "freshBlockerKeys": [],
+      "priorBlockerKeys": [],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 42,
+      "operationalCohort": 2962,
+      "practiceId": "e7850fe5-dd96-4589-bbcb-50c0529e538d",
+      "customerKey": "massimiliano-montemorra",
+      "displayName": "MASSIMILIANO MONTEMORRA",
+      "documentCount": 7,
+      "analyzedDocumentCount": 7,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "permanent_supplier_automation_exclusion:supplier"
+      ],
+      "priorBlockerKeys": [
+        "permanent_supplier_automation_exclusion:supplier"
+      ],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 43,
+      "operationalCohort": 2963,
+      "practiceId": "81c6ec6a-ab2e-4214-a018-5f769c0cf61b",
+      "customerKey": "adelfio-pietro-spinelli",
+      "displayName": "Adelfio Pietro Spinelli",
+      "documentCount": 2,
+      "analyzedDocumentCount": 2,
+      "blockedDocuments": [],
+      "freshOutcome": "READY_LOCAL",
+      "priorOutcome": "READY_LOCAL",
+      "freshBlockerKeys": [],
+      "priorBlockerKeys": [],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 44,
+      "operationalCohort": 2964,
+      "practiceId": "72e6b344-ce0c-4b50-83b6-113d38c31b11",
+      "customerKey": "sabrina-eustomi",
+      "displayName": "Sabrina Eustomi",
+      "documentCount": 1,
+      "analyzedDocumentCount": 1,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "customer_form_missing:customer_form",
+        "tax_code_missing_or_invalid:beneficiary.taxCode"
+      ],
+      "priorBlockerKeys": [
+        "customer_form_missing:customer_form",
+        "tax_code_missing_or_invalid:beneficiary.taxCode"
+      ],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 45,
+      "operationalCohort": 2965,
+      "practiceId": "752e4dd5-604c-495d-92ff-8d0f89be7531",
+      "customerKey": "cesare-imperiali",
+      "displayName": "Cesare Imperiali",
+      "documentCount": 2,
+      "analyzedDocumentCount": 2,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions",
+        "infissi_dimensions_and_cardinality_missing:technical_rows"
+      ],
+      "priorBlockerKeys": [
+        "infissi_dimensions_and_cardinality_missing:technical_rows"
+      ],
+      "addedBlockers": [
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions"
+      ],
+      "removedBlockers": [],
+      "changed": true
+    },
+    {
+      "cohort": 46,
+      "operationalCohort": 2966,
+      "practiceId": "805249c4-7248-40ac-990c-6d00cba517c8",
+      "customerKey": "natale-tiraboschi",
+      "displayName": "Natale Tiraboschi",
+      "documentCount": 2,
+      "analyzedDocumentCount": 2,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "invoice_332a5af9:economic_sources",
+        "invoice_929a8665:economic_sources",
+        "product_cardinality_form_invoice_mismatch:screenings.quantity",
+        "screenings_missing:screenings"
+      ],
+      "priorBlockerKeys": [
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "invoice_332a5af9:economic_sources",
+        "invoice_929a8665:economic_sources",
+        "product_cardinality_form_invoice_mismatch:screenings.quantity",
+        "screenings_missing:screenings"
+      ],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 47,
+      "operationalCohort": 2967,
+      "practiceId": "b02daf33-b4e5-4ba5-90e1-85ebb3578fe9",
+      "customerKey": "paolino-bellini",
+      "displayName": "Paolino Bellini",
+      "documentCount": 2,
+      "analyzedDocumentCount": 2,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "invoice_332a5af9:economic_sources",
+        "invoice_929a8665:economic_sources",
+        "product_cardinality_form_invoice_mismatch:screenings.quantity",
+        "screenings_missing:screenings"
+      ],
+      "priorBlockerKeys": [
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "invoice_332a5af9:economic_sources",
+        "invoice_929a8665:economic_sources",
+        "product_cardinality_form_invoice_mismatch:screenings.quantity",
+        "screenings_missing:screenings"
+      ],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 48,
+      "operationalCohort": 2968,
+      "practiceId": "53420a92-8872-4df5-8915-0b7f76be9e66",
+      "customerKey": "lea-dettori",
+      "displayName": "Lea Dettori",
+      "documentCount": 2,
+      "analyzedDocumentCount": 2,
+      "blockedDocuments": [],
+      "freshOutcome": "READY_LOCAL",
+      "priorOutcome": "READY_LOCAL",
+      "freshBlockerKeys": [],
+      "priorBlockerKeys": [],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 49,
+      "operationalCohort": 2969,
+      "practiceId": "a29f9183-1e31-4295-b5c7-aa3f02803d79",
+      "customerKey": "riccardo-coda",
+      "displayName": "RICCARDO CODA",
+      "documentCount": 1,
+      "analyzedDocumentCount": 1,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "invoice_929a8665:economic_sources"
+      ],
+      "priorBlockerKeys": [
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "invoice_929a8665:economic_sources"
+      ],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 50,
+      "operationalCohort": 2970,
+      "practiceId": "0a92f92c-22ed-4a43-b47e-6abe1d74282a",
+      "customerKey": "massimo-cappello",
+      "displayName": "massimo cappello",
+      "documentCount": 3,
+      "analyzedDocumentCount": 3,
+      "blockedDocuments": [],
+      "freshOutcome": "READY_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [],
+      "priorBlockerKeys": [
+        "infissi_dimensions_and_cardinality_missing:technical_rows"
+      ],
+      "addedBlockers": [],
+      "removedBlockers": [
+        "infissi_dimensions_and_cardinality_missing:technical_rows"
+      ],
+      "changed": true
+    },
+    {
+      "cohort": 51,
+      "operationalCohort": 2971,
+      "practiceId": "20c7c802-85da-4d7e-95a3-482b66151b16",
+      "customerKey": "giovanni-pescatori",
+      "displayName": "Giovanni Pescatori",
+      "documentCount": 1,
+      "analyzedDocumentCount": 1,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "invoice_332a5af9:economic_sources",
+        "product_cardinality_form_invoice_mismatch:screenings.quantity",
+        "screenings_missing:screenings"
+      ],
+      "priorBlockerKeys": [
+        "invoice_332a5af9:economic_sources",
+        "product_cardinality_form_invoice_mismatch:screenings.quantity",
+        "screenings_missing:screenings"
+      ],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 52,
+      "operationalCohort": 2972,
+      "practiceId": "c1c4c938-3b64-462f-b571-db98c26765ef",
+      "customerKey": "gavina-emanuela-cannas",
+      "displayName": "GAVINA EMANUELA CANNAS",
+      "documentCount": 3,
+      "analyzedDocumentCount": 3,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "customer_form_missing:customer_form",
+        "infissi_shading_closures_form_answer_missing_or_ambiguous:shading_closures",
+        "tax_code_missing_or_invalid:beneficiary.taxCode"
+      ],
+      "priorBlockerKeys": [
+        "customer_form_missing:customer_form",
+        "infissi_shading_closures_form_answer_missing_or_ambiguous:shading_closures",
+        "tax_code_missing_or_invalid:beneficiary.taxCode"
+      ],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 53,
+      "operationalCohort": 2973,
+      "practiceId": "11b99b30-2a58-40dd-96f5-5ef1a06e65d0",
+      "customerKey": "diego-mario-mocenighi",
+      "displayName": "diego mario mocenighi",
+      "documentCount": 2,
+      "analyzedDocumentCount": 2,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "bank_transfer_invoice_cross_check_failed:economic_sources.bankTransfers",
+        "bundled_professional_expense_unitemized:economic_sources.eligibleTechnicalExpense",
+        "invoice_332a5af9:economic_sources",
+        "screenings_missing:screenings"
+      ],
+      "priorBlockerKeys": [
+        "bundled_professional_expense_unitemized:economic_sources.eligibleTechnicalExpense",
+        "invoice_332a5af9:economic_sources",
+        "screenings_missing:screenings"
+      ],
+      "addedBlockers": [
+        "bank_transfer_invoice_cross_check_failed:economic_sources.bankTransfers"
+      ],
+      "removedBlockers": [],
+      "changed": true
+    },
+    {
+      "cohort": 54,
+      "operationalCohort": 2974,
+      "practiceId": "3a393231-4cb9-4bf6-93f0-99da9a2a2972",
+      "customerKey": "stefano-buosi",
+      "displayName": "Stefano Buosi",
+      "documentCount": 5,
+      "analyzedDocumentCount": 5,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions",
+        "infissi_dimensions_and_cardinality_missing:technical_rows"
+      ],
+      "priorBlockerKeys": [
+        "infissi_dimensions_and_cardinality_missing:technical_rows"
+      ],
+      "addedBlockers": [
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions"
+      ],
+      "removedBlockers": [],
+      "changed": true
+    },
+    {
+      "cohort": 55,
+      "operationalCohort": 2975,
+      "practiceId": "83d29fcc-c3d9-4c31-8058-146993ec6b12",
+      "customerKey": "prova-rivenditore-1-30-04",
+      "displayName": "prova rivenditore 1 30/04",
+      "documentCount": 1,
+      "analyzedDocumentCount": 1,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "completion_date_missing:dates.completion",
+        "customer_form_missing:customer_form",
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions",
+        "infissi_dimensions_and_cardinality_missing:technical_rows",
+        "infissi_financial_triple_reconciliation_required:invoice_total",
+        "infissi_shading_closures_form_answer_missing_or_ambiguous:shading_closures",
+        "tax_code_missing_or_invalid:beneficiary.taxCode"
+      ],
+      "priorBlockerKeys": [
+        "completion_date_missing:dates.completion",
+        "customer_form_missing:customer_form",
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "infissi_dimensions_and_cardinality_missing:technical_rows",
+        "infissi_financial_triple_reconciliation_required:invoice_total",
+        "infissi_shading_closures_form_answer_missing_or_ambiguous:shading_closures",
+        "tax_code_missing_or_invalid:beneficiary.taxCode"
+      ],
+      "addedBlockers": [
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions"
+      ],
+      "removedBlockers": [],
+      "changed": true
+    },
+    {
+      "cohort": 56,
+      "operationalCohort": 2976,
+      "practiceId": "368cde18-63fc-409c-91bd-5d6a861519a0",
+      "customerKey": "vito-fusillo",
+      "displayName": "VITO FUSILLO",
+      "documentCount": 2,
+      "analyzedDocumentCount": 2,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "completion_date_portal_year_mismatch:dates.completion",
+        "completion_over_90_days_operator_required:dates.completion",
+        "invoice_332a5af9:economic_sources",
+        "product_cardinality_form_invoice_mismatch:screenings.quantity",
+        "screenings_missing:screenings"
+      ],
+      "priorBlockerKeys": [
+        "completion_date_portal_year_mismatch:dates.completion",
+        "completion_over_90_days_operator_required:dates.completion",
+        "invoice_332a5af9:economic_sources",
+        "product_cardinality_form_invoice_mismatch:screenings.quantity",
+        "screenings_missing:screenings"
+      ],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 57,
+      "operationalCohort": 2977,
+      "practiceId": "62510980-062e-4278-83f9-6a583089f783",
+      "customerKey": "fares-hassairi",
+      "displayName": "Fares Hassairi",
+      "documentCount": 4,
+      "analyzedDocumentCount": 4,
+      "blockedDocuments": [],
+      "freshOutcome": "READY_LOCAL",
+      "priorOutcome": "READY_LOCAL",
+      "freshBlockerKeys": [],
+      "priorBlockerKeys": [],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 58,
+      "operationalCohort": 2978,
+      "practiceId": "a8531d2c-05f2-489c-a5df-972b09216acf",
+      "customerKey": "ivana-mastrangelo",
+      "displayName": "Ivana Mastrangelo",
+      "documentCount": 10,
+      "analyzedDocumentCount": 10,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "infissi_financial_triple_reconciliation_required:invoice_total",
+        "invoice_929a8665:economic_sources"
+      ],
+      "priorBlockerKeys": [
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "infissi_financial_triple_reconciliation_required:invoice_total",
+        "invoice_929a8665:economic_sources"
+      ],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 59,
+      "operationalCohort": 2979,
+      "practiceId": "226564d6-44d1-45a2-944e-61ba4c1450f3",
+      "customerKey": "liliana-gloria",
+      "displayName": "liliana gloria",
+      "documentCount": 4,
+      "analyzedDocumentCount": 4,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "gross_triple_reconciliation_failed:economic_sources.total"
+      ],
+      "priorBlockerKeys": [
+        "gross_triple_reconciliation_failed:economic_sources.total"
+      ],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 60,
+      "operationalCohort": 2980,
+      "practiceId": "0f468582-9698-4589-b2d8-a103acced455",
+      "customerKey": "lucia-lagrasta",
+      "displayName": "Lucia Lagrasta",
+      "documentCount": 2,
+      "analyzedDocumentCount": 2,
+      "blockedDocuments": [],
+      "freshOutcome": "READY_LOCAL",
+      "priorOutcome": "READY_LOCAL",
+      "freshBlockerKeys": [],
+      "priorBlockerKeys": [],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 61,
+      "operationalCohort": 2981,
+      "practiceId": "ae88aed9-0b83-42c7-87fb-a03c76a46113",
+      "customerKey": "angelina-stricelli",
+      "displayName": "Angelina Stricelli",
+      "documentCount": 6,
+      "analyzedDocumentCount": 6,
+      "blockedDocuments": [],
+      "freshOutcome": "READY_LOCAL",
+      "priorOutcome": "READY_LOCAL",
+      "freshBlockerKeys": [],
+      "priorBlockerKeys": [],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 62,
+      "operationalCohort": 2982,
+      "practiceId": "47ef4b16-d334-4acf-8c1f-c7c341281771",
+      "customerKey": "nadia-ragni",
+      "displayName": "Nadia Ragni",
+      "documentCount": 3,
+      "analyzedDocumentCount": 3,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "product_cardinality_form_invoice_mismatch:screenings.quantity",
+        "screening_primary_measurements_missing:screenings.dimensions",
+        "screenings_missing:screenings"
+      ],
+      "priorBlockerKeys": [
+        "product_cardinality_form_invoice_mismatch:screenings.quantity",
+        "screening_primary_measurements_missing:screenings.dimensions",
+        "screenings_missing:screenings"
+      ],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 63,
+      "operationalCohort": 2983,
+      "practiceId": "1778bb92-4090-499f-92e6-85599118399f",
+      "customerKey": "gloria-padoani",
+      "displayName": "Gloria Padoani",
+      "documentCount": 2,
+      "analyzedDocumentCount": 2,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "invoice_332a5af9:economic_sources",
+        "product_cardinality_form_invoice_mismatch:screenings.quantity",
+        "screenings_missing:screenings"
+      ],
+      "priorBlockerKeys": [
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "invoice_332a5af9:economic_sources",
+        "product_cardinality_form_invoice_mismatch:screenings.quantity",
+        "screenings_missing:screenings"
+      ],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 64,
+      "operationalCohort": 2984,
+      "practiceId": "3e731c9e-ccea-4b30-b9bc-454f3ec60f06",
+      "customerKey": "milena-albertoni",
+      "displayName": "Milena Albertoni",
+      "documentCount": 2,
+      "analyzedDocumentCount": 2,
+      "blockedDocuments": [],
+      "freshOutcome": "READY_LOCAL",
+      "priorOutcome": "READY_LOCAL",
+      "freshBlockerKeys": [],
+      "priorBlockerKeys": [],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 65,
+      "operationalCohort": 2985,
+      "practiceId": "46a577d1-53f3-438e-9a85-96ae4d246259",
+      "customerKey": "cataldo-cassone",
+      "displayName": "Cataldo Cassone",
+      "documentCount": 4,
+      "analyzedDocumentCount": 4,
+      "blockedDocuments": [],
+      "freshOutcome": "READY_LOCAL",
+      "priorOutcome": "READY_LOCAL",
+      "freshBlockerKeys": [],
+      "priorBlockerKeys": [],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 66,
+      "operationalCohort": 2986,
+      "practiceId": "1b6d780a-2e81-415f-9a27-c67e2f19e846",
+      "customerKey": "marco-tocchetti",
+      "displayName": "Marco Tocchetti",
+      "documentCount": 3,
+      "analyzedDocumentCount": 3,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "original_invoice_missing_or_unavailable:economic_sources"
+      ],
+      "priorBlockerKeys": [
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "original_invoice_missing_or_unavailable:economic_sources"
+      ],
+      "addedBlockers": [],
+      "removedBlockers": [
+        "gross_triple_reconciliation_failed:economic_sources.total"
+      ],
+      "changed": true
+    },
+    {
+      "cohort": 67,
+      "operationalCohort": 2987,
+      "practiceId": "adff093a-ef0d-4013-aa23-5f71dec4234b",
+      "customerKey": "romeo-ropa",
+      "displayName": "Romeo Ropa",
+      "documentCount": 4,
+      "analyzedDocumentCount": 4,
+      "blockedDocuments": [],
+      "freshOutcome": "READY_LOCAL",
+      "priorOutcome": "READY_LOCAL",
+      "freshBlockerKeys": [],
+      "priorBlockerKeys": [],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 68,
+      "operationalCohort": 2988,
+      "practiceId": "58f03680-c716-42e7-ad7d-e3ceaee5573d",
+      "customerKey": "claudia-sellati",
+      "displayName": "CLAUDIA SELLATI",
+      "documentCount": 10,
+      "analyzedDocumentCount": 10,
+      "blockedDocuments": [],
+      "freshOutcome": "READY_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [],
+      "priorBlockerKeys": [
+        "infissi_dimensions_and_cardinality_missing:technical_rows"
+      ],
+      "addedBlockers": [],
+      "removedBlockers": [
+        "infissi_dimensions_and_cardinality_missing:technical_rows"
+      ],
+      "changed": true
+    },
+    {
+      "cohort": 69,
+      "operationalCohort": 2989,
+      "practiceId": "f06f17bc-aeab-4975-a2bd-54b3c023162d",
+      "customerKey": "rocco-giacotto",
+      "displayName": "Rocco Giacotto",
+      "documentCount": 1,
+      "analyzedDocumentCount": 1,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "completion_date_missing:dates.completion",
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "original_invoice_missing_or_unavailable:economic_sources.invoice",
+        "product_cardinality_form_invoice_mismatch:screenings.quantity",
+        "screenings_missing:screenings"
+      ],
+      "priorBlockerKeys": [
+        "completion_date_missing:dates.completion",
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "original_invoice_missing_or_unavailable:economic_sources.invoice",
+        "product_cardinality_form_invoice_mismatch:screenings.quantity",
+        "screenings_missing:screenings"
+      ],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 70,
+      "operationalCohort": 2990,
+      "practiceId": "81b4934a-3d6a-49ff-8f08-8d1400d55dff",
+      "customerKey": "maurizia-coreggioli",
+      "displayName": "MAURIZIA COREGGIOLI",
+      "documentCount": 4,
+      "analyzedDocumentCount": 4,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "completion_over_90_days_operator_required:dates.completion",
+        "customer_form_missing:customer_form",
+        "infissi_shading_closures_form_answer_missing_or_ambiguous:shading_closures",
+        "tax_code_missing_or_invalid:beneficiary.taxCode"
+      ],
+      "priorBlockerKeys": [
+        "completion_over_90_days_operator_required:dates.completion",
+        "customer_form_missing:customer_form",
+        "infissi_shading_closures_form_answer_missing_or_ambiguous:shading_closures",
+        "tax_code_missing_or_invalid:beneficiary.taxCode"
+      ],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 71,
+      "operationalCohort": 2991,
+      "practiceId": "5ffcaa4d-60d6-4c6f-92dd-158ba844b6d1",
+      "customerKey": "milena-fiorini",
+      "displayName": "Milena Fiorini",
+      "documentCount": 3,
+      "analyzedDocumentCount": 3,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "bundled_professional_expense_unitemized:economic_sources.eligibleTechnicalExpense",
+        "screening_gtot_missing_operator_required_1:screenings.1.gTot",
+        "screening_gtot_missing_operator_required_2:screenings.2.gTot",
+        "screening_gtot_missing_operator_required_3:screenings.3.gTot",
+        "screening_gtot_missing_operator_required_4:screenings.4.gTot",
+        "screening_gtot_missing_operator_required_5:screenings.5.gTot",
+        "screenings_missing:screenings"
+      ],
+      "priorBlockerKeys": [
+        "bundled_professional_expense_unitemized:economic_sources.eligibleTechnicalExpense",
+        "screening_gtot_missing_operator_required_1:screenings.1.gTot",
+        "screening_gtot_missing_operator_required_2:screenings.2.gTot",
+        "screening_gtot_missing_operator_required_3:screenings.3.gTot",
+        "screening_gtot_missing_operator_required_4:screenings.4.gTot",
+        "screening_gtot_missing_operator_required_5:screenings.5.gTot",
+        "screenings_missing:screenings"
+      ],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 72,
+      "operationalCohort": 2992,
+      "practiceId": "4e251174-6b43-4c76-98ff-6f00c1caede9",
+      "customerKey": "elena-marcella-berti",
+      "displayName": "ELENA MARCELLA BERTI",
+      "documentCount": 2,
+      "analyzedDocumentCount": 2,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "tax_code_missing_or_invalid:beneficiary.taxCode"
+      ],
+      "priorBlockerKeys": [
+        "tax_code_missing_or_invalid:beneficiary.taxCode"
+      ],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 73,
+      "operationalCohort": 2993,
+      "practiceId": "af39159b-62d9-4c0d-8056-d2462e4b7727",
+      "customerKey": "elena-depalma",
+      "displayName": "ELENA DEPALMA",
+      "documentCount": 2,
+      "analyzedDocumentCount": 2,
+      "blockedDocuments": [],
+      "freshOutcome": "READY_LOCAL",
+      "priorOutcome": "READY_LOCAL",
+      "freshBlockerKeys": [],
+      "priorBlockerKeys": [],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 74,
+      "operationalCohort": 2994,
+      "practiceId": "d3d11e50-d24e-4f38-b2c7-3a16480b007a",
+      "customerKey": "mauro-ballabio",
+      "displayName": "Mauro Ballabio",
+      "documentCount": 3,
+      "analyzedDocumentCount": 3,
+      "blockedDocuments": [],
+      "freshOutcome": "READY_LOCAL",
+      "priorOutcome": "READY_LOCAL",
+      "freshBlockerKeys": [],
+      "priorBlockerKeys": [],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 75,
+      "operationalCohort": 2995,
+      "practiceId": "2329836b-3d7c-4e55-b5ba-f232515a2299",
+      "customerKey": "francesca-pisanu",
+      "displayName": "FRANCESCA PISANU",
+      "documentCount": 3,
+      "analyzedDocumentCount": 3,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "customer_form_missing:customer_form",
+        "infissi_shading_closures_form_answer_missing_or_ambiguous:shading_closures",
+        "tax_code_missing_or_invalid:beneficiary.taxCode"
+      ],
+      "priorBlockerKeys": [
+        "customer_form_missing:customer_form",
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "infissi_financial_triple_reconciliation_required:invoice_total",
+        "infissi_shading_closures_form_answer_missing_or_ambiguous:shading_closures",
+        "tax_code_missing_or_invalid:beneficiary.taxCode"
+      ],
+      "addedBlockers": [],
+      "removedBlockers": [
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "infissi_financial_triple_reconciliation_required:invoice_total"
+      ],
+      "changed": true
+    },
+    {
+      "cohort": 76,
+      "operationalCohort": 2996,
+      "practiceId": "491cf101-c6cd-4f48-9cf0-78c096d95c0e",
+      "customerKey": "mauro-leonardi",
+      "displayName": "Mauro Leonardi",
+      "documentCount": 2,
+      "analyzedDocumentCount": 2,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "completion_date_portal_year_mismatch:dates.completion",
+        "completion_over_90_days_operator_required:dates.completion",
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions",
+        "infissi_dimensions_and_cardinality_missing:technical_rows"
+      ],
+      "priorBlockerKeys": [
+        "completion_date_portal_year_mismatch:dates.completion",
+        "completion_over_90_days_operator_required:dates.completion",
+        "infissi_dimensions_and_cardinality_missing:technical_rows"
+      ],
+      "addedBlockers": [
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions"
+      ],
+      "removedBlockers": [],
+      "changed": true
+    },
+    {
+      "cohort": 77,
+      "operationalCohort": 2997,
+      "practiceId": "9f44491c-30f7-44ef-84db-14877259d716",
+      "customerKey": "caterina-claudia-garbato",
+      "displayName": "caterina Claudia garbato",
+      "documentCount": 3,
+      "analyzedDocumentCount": 3,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "completion_date_portal_year_mismatch:dates.completion",
+        "completion_over_90_days_operator_required:dates.completion",
+        "product_cardinality_form_invoice_mismatch:screenings.quantity",
+        "screening_primary_measurements_missing:screenings.dimensions",
+        "screenings_missing:screenings"
+      ],
+      "priorBlockerKeys": [
+        "completion_date_portal_year_mismatch:dates.completion",
+        "completion_over_90_days_operator_required:dates.completion",
+        "persiana_measurement_ambiguous_1:screenings.1.dimensions",
+        "screenings_missing:screenings"
+      ],
+      "addedBlockers": [
+        "product_cardinality_form_invoice_mismatch:screenings.quantity",
+        "screening_primary_measurements_missing:screenings.dimensions"
+      ],
+      "removedBlockers": [
+        "persiana_measurement_ambiguous_1:screenings.1.dimensions"
+      ],
+      "changed": true
+    },
+    {
+      "cohort": 78,
+      "operationalCohort": 2998,
+      "practiceId": "9f785f33-491a-4954-8423-4316d6842dbb",
+      "customerKey": "flavia-cipriani",
+      "displayName": "Flavia Cipriani",
+      "documentCount": 11,
+      "analyzedDocumentCount": 11,
+      "blockedDocuments": [],
+      "freshOutcome": "READY_LOCAL",
+      "priorOutcome": "READY_LOCAL",
+      "freshBlockerKeys": [],
+      "priorBlockerKeys": [],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 79,
+      "operationalCohort": 2999,
+      "practiceId": "e94df373-f8f5-44b9-bd31-3e6c36025c13",
+      "customerKey": "giovanni-amadu",
+      "displayName": "GIOVANNI AMADU",
+      "documentCount": 3,
+      "analyzedDocumentCount": 3,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "completion_date_portal_year_mismatch:dates.completion",
+        "completion_over_90_days_operator_required:dates.completion",
+        "customer_form_missing:customer_form",
+        "infissi_shading_closures_form_answer_missing_or_ambiguous:shading_closures",
+        "tax_code_missing_or_invalid:beneficiary.taxCode"
+      ],
+      "priorBlockerKeys": [
+        "completion_date_portal_year_mismatch:dates.completion",
+        "completion_over_90_days_operator_required:dates.completion",
+        "customer_form_missing:customer_form",
+        "infissi_shading_closures_form_answer_missing_or_ambiguous:shading_closures",
+        "tax_code_missing_or_invalid:beneficiary.taxCode"
+      ],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 80,
+      "operationalCohort": 3000,
+      "practiceId": "30936ae1-80b0-46fd-813c-e1425ca33c7f",
+      "customerKey": "francesca-monti",
+      "displayName": "francesca monti",
+      "documentCount": 2,
+      "analyzedDocumentCount": 2,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "customer_form_missing:customer_form",
+        "invoice_332a5af9:economic_sources",
+        "screenings_missing:screenings",
+        "tax_code_missing_or_invalid:beneficiary.taxCode"
+      ],
+      "priorBlockerKeys": [
+        "invoice_332a5af9:economic_sources",
+        "screenings_missing:screenings"
+      ],
+      "addedBlockers": [
+        "customer_form_missing:customer_form",
+        "tax_code_missing_or_invalid:beneficiary.taxCode"
+      ],
+      "removedBlockers": [],
+      "changed": true
+    },
+    {
+      "cohort": 81,
+      "operationalCohort": 3001,
+      "practiceId": "48098402-2621-40d9-92ae-eb3d5befe380",
+      "customerKey": "rosa-toscano",
+      "displayName": "rosa toscano",
+      "documentCount": 2,
+      "analyzedDocumentCount": 2,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "original_invoice_missing_or_unavailable:economic_sources",
+        "screening_gtot_missing_operator_required_1:screenings.1.gTot",
+        "screening_gtot_missing_operator_required_2:screenings.2.gTot",
+        "screenings_missing:screenings"
+      ],
+      "priorBlockerKeys": [
+        "original_invoice_missing_or_unavailable:economic_sources",
+        "screening_gtot_missing_operator_required_1:screenings.1.gTot",
+        "screening_gtot_missing_operator_required_2:screenings.2.gTot",
+        "screenings_missing:screenings"
+      ],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 82,
+      "operationalCohort": 3002,
+      "practiceId": "775bd8e8-f71f-4c00-b93a-eeea9ade948d",
+      "customerKey": "marian-maeschi",
+      "displayName": "Marian Maeschi",
+      "documentCount": 2,
+      "analyzedDocumentCount": 2,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions",
+        "infissi_dimensions_and_cardinality_missing:technical_rows"
+      ],
+      "priorBlockerKeys": [
+        "infissi_dimensions_and_cardinality_missing:technical_rows"
+      ],
+      "addedBlockers": [
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions"
+      ],
+      "removedBlockers": [],
+      "changed": true
+    },
+    {
+      "cohort": 83,
+      "operationalCohort": 3003,
+      "practiceId": "d4f1480f-a224-415e-b4c0-121db8040ef8",
+      "customerKey": "claudio-beghini",
+      "displayName": "Claudio Beghini",
+      "documentCount": 2,
+      "analyzedDocumentCount": 2,
+      "blockedDocuments": [],
+      "freshOutcome": "READY_LOCAL",
+      "priorOutcome": "READY_LOCAL",
+      "freshBlockerKeys": [],
+      "priorBlockerKeys": [],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 84,
+      "operationalCohort": 3004,
+      "practiceId": "0572b6a4-a44d-4f13-8fad-d8e91fc5c91d",
+      "customerKey": "luigi-carfora",
+      "displayName": "Luigi Carfora",
+      "documentCount": 1,
+      "analyzedDocumentCount": 1,
+      "blockedDocuments": [],
+      "freshOutcome": "READY_LOCAL",
+      "priorOutcome": "READY_LOCAL",
+      "freshBlockerKeys": [],
+      "priorBlockerKeys": [],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 85,
+      "operationalCohort": 3005,
+      "practiceId": "51ec4e1a-2600-482b-9fde-6b3976bbdbc2",
+      "customerKey": "gemma-minore",
+      "displayName": "Gemma Minore",
+      "documentCount": 5,
+      "analyzedDocumentCount": 5,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "co_beneficiary_invoice_identity_unresolved:beneficiary.coBeneficiary"
+      ],
+      "priorBlockerKeys": [
+        "co_beneficiary_invoice_identity_unresolved:beneficiary.coBeneficiary",
+        "infissi_dimensions_and_cardinality_missing:technical_rows"
+      ],
+      "addedBlockers": [],
+      "removedBlockers": [
+        "infissi_dimensions_and_cardinality_missing:technical_rows"
+      ],
+      "changed": true
+    },
+    {
+      "cohort": 86,
+      "operationalCohort": 3006,
+      "practiceId": "1d5ac555-6ebd-4cb9-b718-c17ba8bccc3e",
+      "customerKey": "enrico-amos-maria-berneri",
+      "displayName": "Enrico Amos maria Berneri",
+      "documentCount": 3,
+      "analyzedDocumentCount": 3,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "invoice_332a5af9:economic_sources",
+        "screenings_missing:screenings"
+      ],
+      "priorBlockerKeys": [
+        "invoice_332a5af9:economic_sources",
+        "screenings_missing:screenings"
+      ],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 87,
+      "operationalCohort": 3007,
+      "practiceId": "513b7f1e-d79f-4efc-86f0-20e4018c9155",
+      "customerKey": "zeno-righetti",
+      "displayName": "Zeno Righetti",
+      "documentCount": 4,
+      "analyzedDocumentCount": 4,
+      "blockedDocuments": [],
+      "freshOutcome": "READY_LOCAL",
+      "priorOutcome": "READY_LOCAL",
+      "freshBlockerKeys": [],
+      "priorBlockerKeys": [],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 88,
+      "operationalCohort": 3008,
+      "practiceId": "d77a8626-54ac-408c-b7c2-58fd10d3e25a",
+      "customerKey": "gianluigi-chiolini",
+      "displayName": "Gianluigi Chiolini",
+      "documentCount": 4,
+      "analyzedDocumentCount": 4,
+      "blockedDocuments": [],
+      "freshOutcome": "READY_LOCAL",
+      "priorOutcome": "READY_LOCAL",
+      "freshBlockerKeys": [],
+      "priorBlockerKeys": [],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 89,
+      "operationalCohort": 3009,
+      "practiceId": "64d1ab0c-7633-4f03-992b-2fe430584a4e",
+      "customerKey": "stefania-venturi",
+      "displayName": "Stefania Venturi",
+      "documentCount": 2,
+      "analyzedDocumentCount": 2,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "draft_payload_mapping_incomplete:enea_payload"
+      ],
+      "priorBlockerKeys": [
+        "draft_payload_mapping_incomplete:enea_payload"
+      ],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 90,
+      "operationalCohort": 3010,
+      "practiceId": "12c830b8-1d49-406a-b938-a37cfc68569e",
+      "customerKey": "francesco-laurelli",
+      "displayName": "FRANCESCO LAURELLI",
+      "documentCount": 2,
+      "analyzedDocumentCount": 2,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "invoice_332a5af9:economic_sources",
+        "product_cardinality_form_invoice_mismatch:screenings.quantity",
+        "screenings_missing:screenings"
+      ],
+      "priorBlockerKeys": [
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "invoice_332a5af9:economic_sources",
+        "invoice_schedule_amount_missing:economic_sources.schedule.amount",
+        "product_cardinality_form_invoice_mismatch:screenings.quantity",
+        "screenings_missing:screenings"
+      ],
+      "addedBlockers": [],
+      "removedBlockers": [
+        "invoice_schedule_amount_missing:economic_sources.schedule.amount"
+      ],
+      "changed": true
+    },
+    {
+      "cohort": 91,
+      "operationalCohort": 3011,
+      "practiceId": "6f274566-2fc3-4e49-a40d-64538988f540",
+      "customerKey": "fausta-de-filippo",
+      "displayName": "Fausta De Filippo",
+      "documentCount": 2,
+      "analyzedDocumentCount": 2,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "product_cardinality_form_invoice_mismatch:screenings.quantity"
+      ],
+      "priorBlockerKeys": [
+        "product_cardinality_form_invoice_mismatch:screenings.quantity"
+      ],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 92,
+      "operationalCohort": 3012,
+      "practiceId": "faed1722-65d5-4527-8aca-9928e1ea6f1e",
+      "customerKey": "danila-serpa",
+      "displayName": "Danila Serpa",
+      "documentCount": 2,
+      "analyzedDocumentCount": 2,
+      "blockedDocuments": [],
+      "freshOutcome": "READY_LOCAL",
+      "priorOutcome": "READY_LOCAL",
+      "freshBlockerKeys": [],
+      "priorBlockerKeys": [],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 93,
+      "operationalCohort": 3013,
+      "practiceId": "63e92880-3323-47f5-99ce-a4ba08949926",
+      "customerKey": "smaj-hhhhh",
+      "displayName": "Smaj Hhhhh",
+      "documentCount": 1,
+      "analyzedDocumentCount": 1,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "completion_date_missing:dates.completion",
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "product_cardinality_form_invoice_mismatch:screenings.quantity",
+        "screenings_missing:screenings",
+        "tax_code_missing_or_invalid:beneficiary.taxCode"
+      ],
+      "priorBlockerKeys": [
+        "completion_date_missing:dates.completion",
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "product_cardinality_form_invoice_mismatch:screenings.quantity",
+        "screenings_missing:screenings",
+        "tax_code_missing_or_invalid:beneficiary.taxCode"
+      ],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 94,
+      "operationalCohort": 3014,
+      "practiceId": "c62c3f57-ab7d-400b-9ef6-edf1bb79e387",
+      "customerKey": "antonio-scaparrotta",
+      "displayName": "Antonio Scaparrotta",
+      "documentCount": 11,
+      "analyzedDocumentCount": 11,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "bank_transfer_principal_exceeds_invoices:economic_sources.bankTransfers",
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "infissi_financial_triple_reconciliation_required:invoice_total"
+      ],
+      "priorBlockerKeys": [
+        "bank_transfer_principal_exceeds_invoices:economic_sources.bankTransfers",
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "infissi_financial_triple_reconciliation_required:invoice_total"
+      ],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 95,
+      "operationalCohort": 3015,
+      "practiceId": "7ff69610-c6d5-4436-9eb5-01883efe08db",
+      "customerKey": "fabrizio-pelizzari",
+      "displayName": "Fabrizio Pelizzari",
+      "documentCount": 1,
+      "analyzedDocumentCount": 1,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "invoice_332a5af9:economic_sources",
+        "product_cardinality_form_invoice_mismatch:screenings.quantity",
+        "screenings_missing:screenings"
+      ],
+      "priorBlockerKeys": [
+        "invoice_332a5af9:economic_sources",
+        "product_cardinality_form_invoice_mismatch:screenings.quantity",
+        "screenings_missing:screenings"
+      ],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 96,
+      "operationalCohort": 3016,
+      "practiceId": "9c7dc277-7e59-4551-b1ef-6910ff4b5d51",
+      "customerKey": "franco-screpanti",
+      "displayName": "Franco Screpanti",
+      "documentCount": 1,
+      "analyzedDocumentCount": 1,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "completion_date_missing:dates.completion",
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "original_invoice_missing_or_unavailable:economic_sources.invoice",
+        "product_cardinality_form_invoice_mismatch:screenings.quantity",
+        "screenings_missing:screenings"
+      ],
+      "priorBlockerKeys": [
+        "completion_date_missing:dates.completion",
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "original_invoice_missing_or_unavailable:economic_sources.invoice",
+        "product_cardinality_form_invoice_mismatch:screenings.quantity",
+        "screenings_missing:screenings"
+      ],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 97,
+      "operationalCohort": 3017,
+      "practiceId": "c3a6a2ae-3244-4b4c-84fe-1e0bfcdd6c53",
+      "customerKey": "mattia-vatieri",
+      "displayName": "Mattia Vatieri",
+      "documentCount": 3,
+      "analyzedDocumentCount": 3,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "completion_date_portal_year_mismatch:dates.completion",
+        "completion_over_90_days_operator_required:dates.completion",
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions",
+        "infissi_dimensions_and_cardinality_missing:technical_rows",
+        "infissi_shading_closures_form_answer_missing_or_ambiguous:shading_closures"
+      ],
+      "priorBlockerKeys": [
+        "completion_date_portal_year_mismatch:dates.completion",
+        "completion_over_90_days_operator_required:dates.completion",
+        "infissi_dimensions_and_cardinality_missing:technical_rows",
+        "infissi_shading_closures_form_answer_missing_or_ambiguous:shading_closures"
+      ],
+      "addedBlockers": [
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions"
+      ],
+      "removedBlockers": [],
+      "changed": true
+    },
+    {
+      "cohort": 98,
+      "operationalCohort": 3018,
+      "practiceId": "7e1aa416-d53c-431e-bfc3-843e5f8b4df9",
+      "customerKey": "mimosa-freni",
+      "displayName": "Mimosa Freni",
+      "documentCount": 3,
+      "analyzedDocumentCount": 3,
+      "blockedDocuments": [],
+      "freshOutcome": "READY_LOCAL",
+      "priorOutcome": "READY_LOCAL",
+      "freshBlockerKeys": [],
+      "priorBlockerKeys": [],
+      "addedBlockers": [],
+      "removedBlockers": [],
+      "changed": false
+    },
+    {
+      "cohort": 99,
+      "operationalCohort": 3019,
+      "practiceId": "ada3267b-29d0-4765-b15d-489e27b23ec6",
+      "customerKey": "antonino-formisabo",
+      "displayName": "Antonino Formisabo",
+      "documentCount": 14,
+      "analyzedDocumentCount": 14,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "bank_transfer_invoice_cross_check_failed:economic_sources.bankTransfers",
+        "completion_date_portal_year_mismatch:dates.completion",
+        "completion_over_90_days_operator_required:dates.completion",
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "infissi_financial_triple_reconciliation_required:invoice_total",
+        "invoice_929a8665:economic_sources"
+      ],
+      "priorBlockerKeys": [
+        "completion_date_portal_year_mismatch:dates.completion",
+        "completion_over_90_days_operator_required:dates.completion"
+      ],
+      "addedBlockers": [
+        "bank_transfer_invoice_cross_check_failed:economic_sources.bankTransfers",
+        "gross_triple_reconciliation_failed:economic_sources.total",
+        "infissi_financial_triple_reconciliation_required:invoice_total",
+        "invoice_929a8665:economic_sources"
+      ],
+      "removedBlockers": [],
+      "changed": true
+    },
+    {
+      "cohort": 100,
+      "operationalCohort": 3020,
+      "practiceId": "dbdc17d6-c279-451c-a042-56d0f6b87f93",
+      "customerKey": "leo-manini",
+      "displayName": "Leo Manini",
+      "documentCount": 1,
+      "analyzedDocumentCount": 1,
+      "blockedDocuments": [],
+      "freshOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "priorOutcome": "OPERATOR_REQUIRED_LOCAL",
+      "freshBlockerKeys": [
+        "completion_date_portal_year_mismatch:dates.completion",
+        "completion_over_90_days_operator_required:dates.completion",
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions",
+        "infissi_dimensions_and_cardinality_missing:technical_rows"
+      ],
+      "priorBlockerKeys": [
+        "completion_date_portal_year_mismatch:dates.completion",
+        "completion_over_90_days_operator_required:dates.completion",
+        "infissi_dimensions_and_cardinality_missing:technical_rows"
+      ],
+      "addedBlockers": [
+        "infissi_dimensions_and_cardinality_missing:technical_dimensions"
+      ],
+      "removedBlockers": [],
+      "changed": true
+    }
+  ]
+}

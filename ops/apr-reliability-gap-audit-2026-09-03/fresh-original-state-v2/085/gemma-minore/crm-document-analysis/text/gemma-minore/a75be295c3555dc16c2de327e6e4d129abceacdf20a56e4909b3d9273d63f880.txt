@@ -1,0 +1,246 @@
+Dichiarazione di conformità energetica
+alla legislazione nazionale in ambito di risparmio energetico in edilizia
+[D.Lgs. 192 del 19 agosto 2005 e successive modificazioni ed integrazioni]
+Il sottoscritto ALFREDO COMITINO, rappresentante legale della ditta "STARPUR S.R.L.", in qualità di costruttore
+dei prodotti:
+Rif. tipologia: 15040/2026 01 Modello: HOME-B2AS, Portafinestra 2 ante con soglia ribassata, dimensioni: 1090 x 2075, pezzi: 1;
+D I C H I A R A
+che i serramenti e le vetrazioni, di cui alla fornitura n°15040/2026 del cliente CISAM INFISSI S.R.L., VIA PIEMONTE,
+7/9 Castel San Pietro Terme (BO), con cantiere in VIA PIEMONTE, 7/9 Castel San Pietro Terme (BO), prodotti nello
+stabilimento situato in VIA F.LLI BUSCETTO 54/56, 84014, NOCERA INFERIORE (SA), sono conformi a quanto
+previsto dal D.Lgs. 192/2005 e successive modificazioni ed integrazioni e dall'Allegato C del D.Lgs. 192/2005 e
+successive modificazioni ed integrazioni e che:
+1. i serramenti di fornitura sono impiegabili in edifici ubicati in Comuni appartenenti fino alla zona climatica "E".
+2. la trasmittanza termica complessiva dei serramenti è stata determinata mediante metodologia di calcolo
+semplificato così come previsto dalla norma UNI EN ISO 10077-1:2018 e corrisponde a 1,29 W/m²K. Tale valore
+è stato determinato numericamente sulla base dei singoli valori di trasmittanza termica dei componenti
+costituenti il serramento così come dichiarati dalla ditta produttrice dei profili sistema REHAU della serie S 799
+BRILLANT DESIGN e dalla ditta produttrice di Vetro camera SATINATO 33.1 -15 Argon W.E.- 33.1 B.E. (Ug 1.0);
+3. la permeabilità all'aria dei serramenti corrisponde alla classe 4, così come definita dalla norma UNI EN 12207.
+Il test di permeabilità all'aria è stato eseguito in conformità alla UNI EN 1026;
+4. la trasmittanza termica delle vetrazioni è pari rispettivamente a 1W/m²K per il vetro
+VCSAT33.1-15ARGONT-33.1BE 1.0. La trasmissione luminosa e il fattore solare delle vetrazioni sono
+rispettivamente pari a 0.69 (69%) per il vetro VCSAT33.1-15ARGONT-33.1BE 1.0, 0.47 (47%) per il vetro
+VCSAT33.1-15ARGONT-33.1BE 1.0.
+Si allegano alla presente dichiarazione di conformità i seguenti documenti:
+Allegato A: Determinazione numerica della trasmittanza termica complessiva dei serramenti eseguita secondo la
+metodologia di calcolo semplificata descritta dalla norma UNI EN ISO 10077-1:2018
+Allegato B: Certificazione, da parte del produttore dei profili sistema REHAU, serie S 799 BRILLANT DESIGN dei
+valori di trasmittanza termica serie. Copia dell'attestato di prova n° 13-000368-PR09 emesso in data
+23/08/2013 dal Laboratorio Prove IFT Rosenheim;
+Allegato C: Certificazione, da parte del produttore di VCSAT33.1-15ARGONT-33.1BE 1.0 del valore di trasmittanza
+termica.
+NOCERA INFERIORE (SA), 29/06/2026
+Timbro e firma
+
+Tabelle e metodologie di calcolo
+Tabella conforme ai valori limite della trasmittanza termica U dettati dai decreti ministeriali e legislativi relativi alle chiusure
+trasparenti comprensive degli infissi espressa in W/m²K
+Zona climatica 01/10/2015 01/10/2015 01/01/2021 Superbonus/Ecobonus
+D.Lgs. 192/2005
+Appendice A
+D.Lgs. 192/2005
+Appendice B
+DM 26 Giugno 2015
+(CAM e Bonus Casa)
+DM 06 Agosto 2020
+Allegato E
+A 3,2 3,2 3,0 2,6
+B 3,2 3,2 3,0 2,6
+C 2,4 2,4 2,0 1,75
+D 2,0 2,1 1,8 1,67
+E 1,8 1,9 1,4 1,3
+F 1,5 1,7 1,0 1,0
+Tabella conforme alla Tabella 4b - Allegato C del D.Lgs. 192/2005 e s.m. e i. contenente i valori limite della trasmittanza centrale
+termica U dei vetri espressa in W/m²K
+Zona climatica Dall' 1° luglio 2011
+A 3,7
+B 2,7
+C 2,1
+D 1,9
+E 1,7
+F 1,3
+I limiti possono subire variazioni dettate dal progettista
+Formule utilizzate per il calcolo trasmittanza termica
+Calcolo della trasmittanza termica infissi secondo EN 10077-1:2018
+Effetto di eventuali chiusure oscuranti secondo norma TS 11300-1:2014
+pag 2
+
+15040/2026 Allegato A (pag. 1/1)
+01
+Zone trasmittanza
+Serie REHAU - S 799 BRILLANT DESIGN 1.27m² × 1,3W/m²K = 1.66W/K 57.1%
+Riempimento VCSAT33.1-15ARGONT-33.1BE 1.0 0.98m² × 1W/m²K = 0.98W/K 33.8%
+Riempimento VCSAT33.1-15ARGONT-33.1BE 1.0 8.27m × 0,032W/mK = 0.26W/K 9.1%
+1,3
+1
+W/m²K
+W/mK
+0,032
+Potenza trasmessa: 2,9 W/K
+Superficie: 2,252 m²
+Trasmittanza termica: 1,28719 W/m²K
+Uw: 1,29 W/m²K
+1090
+650
+2075
+
+APR_OCR_ORIENTATION:0
+15040/2026
+Allegato B (pag. 1/1)
+Nachweis
+Messung / Berechnung des
+Wärmedurchgangskoeffizienten
+ift
+Gutachtliche Stellungnahme
+, Nr. 13-000368-PR09
+(GAS-K20-06-de-01)
+ROSENHEIM
+Auftraggeber
+REHAU AG + Co. Verwaltung Erlangen
+Grundlagen 9
+Ytterbium 4
+91058 Erlangen-Eltersdorf
+SG 06 verpflichtend
+EN ISO 10077-2:2012-02
+Deutschland
+ift Prüfberichte 13-000368-PR07
+NB-CPD/SG06/11/083
+(PB-K20-06-de-02)
+Produkt
+Kunststoff-Rahmenprofile von Fenstersystemen
+in ähnlichen Ausführungsvarianten
+LE. DIN EN
+, und enseremende naborale rassunge
+Profilkombination: Flügelrahmen-Blendrahmen
+Darstellung
+Bezeichnung
+Brillant-Design; Brillant-Design MD; Euro-Design 70;
+Probekörper PK01:
+Character-Design 70
+Leistungsrelevante Material Polyvinylchlorid (PVC-U) hart; Flügelrahmen-
+Produktdetails Blendrahmen; Aussteifung; Material Stahl - verzinkt;
+Flügelrahmen; Profilquerschnitt, Dicke in mm 70; Blend-
+rahmen; Profilquerschnitt, Dicke in mm mind. 70; Ersatz-
+paneel; Dicke in mm 24; Einstand in mm 15
+Besonderheiten -
+weitere Probekörper s. Anlage
+Ergebnis
+Nachweis des Wärmedurchgangskoeffizienten durch gutachtliche
+Verwendungshinweise
+Stellungnahme
+dient zum Nachweis des Wär-
+Die gutachtliche Stellungnahme
+medurchgangskoeffizienten U, für
+Uf = 1,3 - 1,3 W/(m2K)
+Rahmenprofile.
+Die Emittlung der Wärmedurchgangskoeffizienten U, für Profilkombinationen der Rahmen-
+Gültigkeit
+Design 70ª erfolgt anhand der Kennlinie nach Abschnitt 4 dieses Prüfberichts.
+profilsysteme „Brillant-Design", „Brillant-Design MD", „Euro-Design 70" und ,Character-
+gebnisse beziehen sich aus-
+Die genannten Daten und Er-
+beschriebenen Probekörper.
+schließlich auf den geprüften und
+Diese Prüfung ermöglicht keine
+und qualitätsbestimmende Ei-
+Aussage über weitere leistungs-
+Konstruktion
+genschaften der vorliegenden
+Veröffentlichungshinweise
+ift Rosenheim
+zung von ift-Prüfdokumenta-
+Es gilt das "Merkblatt zur Benut-
+23.08.2013
+tionen". Das Dokument darf nur
+vollständig veröffentlicht werden.
+Inhalt
+Wese en S.
+9 Seiten.
+Der Nachweis umfasst insgesamt
+Konrad Huber, Dipl.-Ing. (FH)
+Bauphysik
+Stv. Prüfstellenleiter
+Prüfingenieur
+Sebastian Wassermann, Dipl.-Ing. (FH)
+Rechnergestützte Simulation
+
+APR_OCR_ORIENTATION:270
+1.0
+Allegato C (pag. 1/1)
+NPD
+NPD
+NPD
+NPD
+NPD
+27.8
+31
+36 (-1;-5)
+2B2/ 2B2
+www.agc-yourglass.com/configurator
+Italy
+Value (ma te)mica (vetri verticali) :
+Resistenza agli urti (Prova del pendolo) - EN
+Paese
+& Proprietà termiche - EN 673
+Sterpiate: Riv (Cn) dei .
+• Caratteristiche di sicurezza
+Resistenza al fuoco - EN 13501-2
+Resistenza all'esplosione - EN 13541
+Reazione al fuoco - EN 13501-1
+Resistenza ai proiettili - EN 1063
+Resistenza alle effrazioni - EN 356
+Spessore nominale : [mm]
+*) Riduzione acustica
+= Spessore e peso
+Peso: [kg/m?]
+12600
+11/11/2021
+1. Gli indici acustici sono stimati e non testati o calcolati. Si riferiscono a una vetrata avente dimensione 1230 x 1480 mm secondo la norma EN ISO 10140-3. Le effettive prestazioni in opera
+possono variare in funzione delle reali dimensioni della vetrata e della stanza, del sistema di supporto, del tipo di installazione, dell'ambiente, delle sorgenti di rumore ecc. L'accuratezza degli
+L'AGC Glass Configurator è uno strumento di simulazione che analizza le prestazioni per lo scopo limitato di aiutare l'utente nella valutazione delle prestazioni per la configurazione del vetro
+Lutente si asum Digi risci corlear al risultati forli dalo strumento edei solore poniaine er la se aire dia coniuto one di veri sorprara per la sua dabilita done stesso.
+"use ente documento deve da di inteso sizati, frumero e repori di test Si es areiratezza ate vuale acellazione di alcun ordine da parte del Gruppo AGC. Consultare le Condizioni
+1 Stratobel Clearlite 33.1 Ricotto 2 15 mm Argon 90% 3 Stratobel 33.1 (3 mm iplus Top 1.0 on
+69
+20
+95
+34
+35
+39
+19
+27
+Adeguatera aceo scopo pariziare eres una garanzia sari ritenuta mpicia, pel eto ditegge o litrimenti tornesui els c pur esere ritenuta responsabile perani direti,
+0.54
+1.47
+Calcolato su
+Simulazione di dati sulle prestazioni in opera del vetro
+Clearlite pos.3 + 0.38 mm PVB Clear + 3 mm Planibel Clearlite) Ricotto
+indiretti, consequenziali o incidentali di alcun tipo in relazione a o derivanti dall'uso dello strumento Glass Configurator.
+Glass Configurator
+Calculation software verified by INISMa
+EN 410 and EN 673
+Report n° 2018B COU 35741
+•: Caratteristiche luminose - EN 410
+Riflessione luminosa interna : pvi [%]
+• Caratteristiche energetiche - EN 410
+Assorbimento energetico vetro 2 : de2 [%]
+Riflessione energetica esterna : pe [%]
+Riflessione energetica interna : pei [%]
+Trasmissione diretta dell'energia : Te [%]|
+Assorbimento energetico vetro 1 : ae1 [%]
+Assorbimento energetico totale : de [%]|
+Trasmissione dei raggi ultravioletti : Tuv [%]
+Copyright: @ 2021 - AGC Glass Europe. Tutti i diritti riservati
+Trasmissione luminosa : tv [%]|
+Riflessione luminosa : pv [%]|
+Indice di resa dei colori : Ra [%]
+Coefficiente di shading : SC
+AGC
+Fattore solare : g [%]
+indici riportati è di +/- 2 dB.
+•INISMa
+member of EMP
+Calcolato da
+Selettività
+15040/2026

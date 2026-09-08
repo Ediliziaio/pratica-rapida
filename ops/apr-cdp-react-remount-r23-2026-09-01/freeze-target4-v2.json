@@ -1,0 +1,54 @@
+{
+  "version": "apr-cdp-react-remount-r23-target4-freeze-v2",
+  "frozenAt": "2026-09-01T14:26:05Z",
+  "authorizationId": "user-2026-08-29-apr-autonomy-random30-v1",
+  "purpose": "Targeted operational regression of the Node-side read-only DOM polling correction for four previously authorized R22 cases",
+  "supersedesFailedPreflight": {
+    "label": "com.praticarapida.apr-cdp-react-remount-r23-target4",
+    "processed": 0,
+    "reason": "manifest_excluded_customer_keys_required"
+  },
+  "source": {
+    "root": "/private/tmp/apr-promote-r23.XeVzz4/source",
+    "commit": "e2066cb4f0969633838424d5efb76d604a938617",
+    "tree": "721b140e9d308706499dca869e790ffd6af18930",
+    "workingTree": "clean",
+    "sequencerSha256": "1af06dee2d2e5ab699f5745d0ee7bdf040497a333e1c3860e34f65bb0927bd81"
+  },
+  "bundle": {
+    "version": "aae9775a-cdp-react-remount-r23-20260901",
+    "supervisorSha256": "62b80bf8acab5e8e5a1a0bb8b1d15685771d03708442fbb7c6f4967776b78973",
+    "workerSha256": "aae9775a07fff90039c1db761f373e1a4f75968e6df1a9fbedf642f7bea24871",
+    "watchdogSha256": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0"
+  },
+  "gate": {
+    "attestationPath": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-cdp-react-remount-r23-2026-09-01/gate-attestation.json",
+    "attestationSha256": "0960d0cbd661b195cb1629943d041d173c7e915396771475254939575a823b91",
+    "status": "PASS",
+    "testFiles": 216,
+    "tests": 1616
+  },
+  "manifest": {
+    "path": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-cdp-react-remount-r23-2026-09-01/manifest-target4-v2.json",
+    "sha256": "48e823e3d2c11dd1937883b6f93ba50bd7902f0e5ef239a562ba4ceae878b7bf",
+    "caseCount": 4,
+    "customerKeys": ["lucia-lagrasta", "luca-cigognetti", "emanuela-parolo", "amelia-lerose"],
+    "allowedStages": ["archiviate"],
+    "excludedCustomerKeys": ["beatrice-ciotta"]
+  },
+  "run": {
+    "label": "com.praticarapida.apr-cdp-react-remount-r23-target4-v2",
+    "plistPath": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-cdp-react-remount-r23-2026-09-01/target4-v2.plist",
+    "plistSha256": "80122663541b0d73186a54ed60819bb62cfdecf5384b48b22535c8c77398e04d",
+    "runRoot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-cdp-react-remount-r23-target4-v2",
+    "cohortOffset": 2470
+  },
+  "constraints": {
+    "chromeKeepaliveMayTerminate": false,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false,
+    "testMayStartOnlyAfterTripleSessionVerification": true,
+    "callegariAndMeggiarinMayBeModified": false
+  }
+}

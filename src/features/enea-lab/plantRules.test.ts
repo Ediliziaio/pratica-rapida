@@ -37,4 +37,10 @@ describe("regole impianto termico esistente ENEA", () => {
     expect(energyCarrierFromForm("gasolio")).toBe(ENEA_ENERGY_CARRIER.diesel);
     expect(energyCarrierFromForm("teleriscaldamento")).toBe(ENEA_ENERGY_CARRIER.districtHeating);
   });
+
+  it("lascia vuoti gli input assenti o non riconosciuti senza scegliere una famiglia", () => {
+    expect(plantTypeFromForm("")).toBe("");
+    expect(plantTerminalFromForm("")).toBe("");
+    expect(energyCarrierFromForm("")).toBe("");
+  });
 });

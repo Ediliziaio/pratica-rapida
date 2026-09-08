@@ -1,0 +1,41 @@
+{
+  "version": "apr-screenings-missing-r72-bundle-install-receipt-v1",
+  "installedAt": "2026-09-07T08:33:59.854Z",
+  "status": "bundle_promoted_alternative_verification",
+  "governanceAttestationStatus": "not_performed",
+  "governanceAttestationNote": "Il rituale formale non e' stato eseguito: albero git non pulito, lavoro condiviso in corso. Installazione basata sulla verifica alternativa qui sotto, come per r69 e r71.",
+  "alternativeVerification": {
+    "version": "apr-screenings-missing-r72-alt-verification-v1",
+    "status": "verified_alternative",
+    "verifiedAt": "2026-09-07T10:25:00.000Z",
+    "typecheckCommand": "npm run typecheck",
+    "typecheckExitCode": 0,
+    "testCommands": [
+      "npm run test:apr:sandbox",
+      "npm run test:apr:socket-integration"
+    ],
+    "testFiles": 229,
+    "testsPassed": 1862,
+    "testsFailed": 0,
+    "note": "npm run test:apr:sandbox: 227 file, 1780 test verdi. npm run test:apr:socket-integration: 2 file, 82 test verdi. Nessuna certificazione formale di governance eseguita in questa sessione: albero git non pulito, lavoro condiviso in corso con Codex. Verifica alternativa dichiarata esplicitamente, come per le installazioni r69 e r71 precedenti.",
+    "correctionsIncludedSinceR71": [
+      "user-2026-09-07-linea-sole-potito-scomparsa-totale-model-code-tolerance-v1 (Mocenighi: 'scomparsa totale' riconosciuta anche col codice modello del fornitore tra 'totale' e 'L', e con chiusura plurale 'tende da sole')",
+      "user-2026-09-07-finestra-italia-positional-dimension-notation-v1 (Codognato: formato '(L=NNNN;A=NNNN;)' riconosciuto sia per Infissi sia per Persiane della stessa fattura, senza confondere le due famiglie)"
+    ]
+  },
+  "versionId": "54993e27-screenings-missing-root-causes-r72-20260907",
+  "previousTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/02aca904-fiorini-classification-connect-r71-20260907",
+  "currentTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/54993e27-screenings-missing-root-causes-r72-20260907",
+  "installedBundle": {
+    "apr-supervisor.mjs": "3b6db1aa0b17d2277c7dc66e8a27020c466e0b2bc56b433ff96f6e1cf762f982",
+    "apr-enea-worker.mjs": "984927df4f39734db1672ced9c9a3f48265825729bd7a3cb60db01af6b9930b5",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0"
+  },
+  "correctionsIncluded": [
+    "user-2026-09-07-linea-sole-potito-scomparsa-totale-model-code-tolerance-v1 (Mocenighi: 'scomparsa totale' riconosciuta anche col codice modello del fornitore tra 'totale' e 'L', e con chiusura plurale 'tende da sole')",
+    "user-2026-09-07-finestra-italia-positional-dimension-notation-v1 (Codognato: formato '(L=NNNN;A=NNNN;)' riconosciuto sia per Infissi sia per Persiane della stessa fattura, senza confondere le due famiglie)"
+  ],
+  "keepaliveRestartRequested": false,
+  "chromeRestartRequested": false,
+  "operationalReplayPerformed": false
+}

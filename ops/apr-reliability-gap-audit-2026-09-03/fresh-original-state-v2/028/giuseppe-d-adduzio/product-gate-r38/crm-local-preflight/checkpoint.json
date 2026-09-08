@@ -1,0 +1,151 @@
+{
+  "version": "apr-crm-local-preflight-v1",
+  "revision": 1,
+  "status": "completed",
+  "sourceFingerprint": "335507b334f8ec3a2ac09769d4d440ed967afd07f058b941dea4a30a476b4273",
+  "currentCustomerKey": null,
+  "items": [
+    {
+      "customerKey": "giuseppe-d-adduzio",
+      "displayName": "GIUSEPPE D'ADDUZIO",
+      "practiceId": "7f5b0c3c-3b37-4309-ac42-73f0c29d7f7f",
+      "dossierPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2948-global-controller-giuseppe-d-adduzio/crm-acquisition/dossiers/giuseppe-d-adduzio.json",
+      "state": "blocked_case",
+      "attemptCount": 1,
+      "startedAt": null,
+      "endedAt": null,
+      "report": {
+        "outcome": "blocked_case",
+        "formAvailable": false,
+        "startDate": null,
+        "startDateSource": null,
+        "completionDate": null,
+        "completionDateSource": null,
+        "buildingQualification": null,
+        "buildingUnitCount": null,
+        "deductionRate": null,
+        "taxCodeStatus": "missing_or_invalid",
+        "resolvedTaxCode": null,
+        "taxCodeSourceIds": [],
+        "primaryBeneficiaryResolution": {
+          "status": "not_found",
+          "identity": null,
+          "sourceIds": [],
+          "authority": null
+        },
+        "coBeneficiaryResolution": {
+          "status": "not_declared",
+          "present": false,
+          "identity": null,
+          "sourceIds": []
+        },
+        "products": [],
+        "financial": {
+          "invoiceTotal": null,
+          "eligibleExpense": null,
+          "tripleReconciliationVerified": false,
+          "reconciledTotal": null,
+          "evidence": [],
+          "bankTransfers": [],
+          "bankTransferReconciliation": {
+            "status": "not_provided",
+            "principalTotal": null,
+            "feesTotal": null,
+            "debitedTotal": null,
+            "difference": null,
+            "referenceStatus": "not_provided",
+            "missingInvoiceReferences": [],
+            "taxReliefTypes": []
+          },
+          "methods": [],
+          "discardedDuplicateSourceIds": [],
+          "supersededTechnicalSourceIds": [],
+          "appliedRuleIds": [
+            "user-2026-08-18-future-test-exclusions"
+          ]
+        },
+        "warnings": [],
+        "blockers": [
+          {
+            "code": "permanent_supplier_automation_exclusion",
+            "field": "supplier",
+            "reason": "Erre Emme / RM Legno: Fornitore escluso dall'elaborazione automatica per decisione permanente dell'utente. Nessun allegato viene elaborato e nessuna azione ENEA viene tentata.",
+            "sourceIds": [
+              "row.companies.ragione_sociale:rm legno"
+            ],
+            "appliedRuleIds": [
+              "user-2026-08-18-future-test-exclusions",
+              "system-apr-operator-intervention-routing"
+            ],
+            "operatorQuestion": "Confermi che la pratica collegata a Erre Emme / RM Legno deve restare esclusa dall'automazione APR?",
+            "missingDocumentType": null,
+            "onboardingGap": null
+          }
+        ],
+        "sourceIds": [
+          "row.companies.ragione_sociale:rm legno"
+        ],
+        "eneaPayloadAudit": {
+          "status": "payload_incomplete",
+          "mappingFingerprint": null,
+          "fieldSummary": {
+            "ready": 0,
+            "review": 0,
+            "missing": 0
+          },
+          "requiredPortalFieldCount": 0,
+          "blockerCount": 1,
+          "blockers": [
+            {
+              "code": "permanent_supplier_automation_exclusion",
+              "fieldId": "supplier",
+              "message": "Erre Emme / RM Legno: Fornitore escluso dall'elaborazione automatica per decisione permanente dell'utente. Nessun allegato viene elaborato e nessuna azione ENEA viene tentata."
+            }
+          ],
+          "excludedUnverifiedFields": [],
+          "draftReady": false,
+          "officialSubmissionAllowed": false,
+          "portalGate": {
+            "status": "blocked",
+            "reason": "permanent-supplier-automation-exclusion",
+            "workflowFingerprint": null,
+            "supportedPages": [],
+            "screeningItemCount": 0,
+            "saveAllowedOnlyBySeparateCapability": true,
+            "previewAllowed": false,
+            "submitAllowed": false
+          },
+          "externalActionAllowed": false,
+          "reason": "Erre Emme / RM Legno: Fornitore escluso dall'elaborazione automatica per decisione permanente dell'utente. Nessun allegato viene elaborato e nessuna azione ENEA viene tentata."
+        },
+        "draftPlan": {
+          "status": "blocked",
+          "externalActionAllowed": false,
+          "previewAllowed": false,
+          "submitAllowed": false,
+          "communicationsAllowed": false,
+          "nextAction": "Richiesto intervento operatore: pratica esclusa per fornitore; proseguire con la pratica successiva."
+        }
+      },
+      "reason": "Fresh replay dai documenti originali"
+    }
+  ],
+  "externalActionAllowed": false,
+  "reason": "Fresh replay locale",
+  "nextAction": "Nessuna azione esterna.",
+  "validationRevisionsApplied": [],
+  "sourceRevisionsApplied": [],
+  "operatorMeasurementResolutions": [],
+  "audit": [
+    {
+      "revision": 1,
+      "at": "2026-09-03T10:00:00.000Z",
+      "type": "completed",
+      "customerKey": null,
+      "reason": "Fresh replay locale",
+      "appliedRuleIds": [
+        "system-single-active-practice"
+      ]
+    }
+  ]
+}

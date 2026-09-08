@@ -1,0 +1,43 @@
+{
+  "version": "apr-sequencer-screening-canonical-absence-resume-r45-preinstall-gate-v1",
+  "attestedAt": "2026-09-04T09:07:04.052Z",
+  "status": "tested_not_deployed",
+  "monotonicGate": {
+    "baseline": {
+      "suites": 444,
+      "tests": 1726,
+      "reportSha256": "ceb9d91aeafed8c9e763bb1000bb46cf1b4bb5140c34ed410cd57d7fc64bf3ea"
+    },
+    "candidate": {
+      "suites": 444,
+      "tests": 1728,
+      "reportSha256": "b4b8cd5b4a8a087dee3fbe420c35e0f5d419c3b8a2dca56f5ec21f5a2042f3db"
+    },
+    "registryVersion": "enea-operational-registry-v122",
+    "matrixVersion": "apr-enea-rule-test-matrix-v99",
+    "rulesProved": 119,
+    "ruleEvidenceSha256": "1d25df5163ffabf24032611bfb06928bfb18666b53cd74eeaf6ba1b377f08041",
+    "targetedEvidenceSha256": "31ffa4cbb66fc2da7a29a4eb6d5af6c8f80d1017eac01dcf4bd834a125f7f980"
+  },
+  "correction": {
+    "status": "proved_positive_negative_canonical_absence_resume",
+    "ruleId": "system-sequencer-screening-canonical-absence-resume-v1"
+  },
+  "stagedBundle": {
+    "apr-supervisor.mjs": "7a1e91ea0df31d832e76c2a16aca0159b167297ee7ca8a87fb970e0f2758633c",
+    "apr-enea-worker.mjs": "3ecfd0a7bd41d1e17b2529ac6cf389129d7bd547acd936acb5c334e97d8e811d",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "apr-pdf-ocr": "4c41c9a6832b11b9d19eace538100270a533dddc05e475e5842711968393327f"
+  },
+  "sequencerSha256": "aa5a251d97feff2775ab63467da37d9f15e0df36660ef48fe6bc1dccefd564bf",
+  "sequencerGuardSha256": "532e8982014b0bdeb29c91faec57220323e80f24113a76103093f2a9843b8a0a",
+  "safety": {
+    "localTestsOnly": true,
+    "eneaAccessed": false,
+    "mutationPerformed": false,
+    "previewPerformed": false,
+    "savePerformed": false,
+    "submitPerformed": false,
+    "communicationPerformed": false
+  }
+}

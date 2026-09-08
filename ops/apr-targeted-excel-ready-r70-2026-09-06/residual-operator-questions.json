@@ -1,0 +1,22 @@
+{
+  "version": "apr-targeted-excel-ready-r70-residual-questions-v1",
+  "generatedAt": "2026-09-06T17:00:00.000Z",
+  "items": [
+    {
+      "classification": "technical_block",
+      "affectedPractices": ["Giovanni Pietro Sanvito", "Antonio Sacco", "Tanbir Awal", "Donata Zangrossi", "Chiara Chierichetti", "Francesca Scalia", "Massimo Cotta", "Daniele Buoncompagni"],
+      "exactCause": "apr_cohort_seed_practice_scope_invalid: expectedStageType gestionale is outside the currently admitted seed stages",
+      "missingDocumentType": null,
+      "operatorQuestion": "Autorizzi l'estensione generale e fail-closed del seed APR alla fase CRM gestionale / Da inserire su Excel, mantenendo invariati i controlli su identità pratica, stage effettivo e sola bozza?",
+      "onboardingGap": null
+    },
+    {
+      "classification": "technical_block",
+      "affectedPractices": ["Luca Dragotta", "Lidia Marchisio", "Massimo Grimaldi", "Aldo Gebbia"],
+      "exactCause": "apr_governed_bundle_set_incomplete:apr-rule-governance-attestation.json",
+      "missingDocumentType": null,
+      "operatorQuestion": "Autorizzi la costruzione e il gate completo di un bundle governato successivo a r69, con sidecar valido e hash dei tre eseguibili, prima di ripetere gli stessi quattro casi?",
+      "onboardingGap": null
+    }
+  ]
+}

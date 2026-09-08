@@ -1,0 +1,22 @@
+{
+  "version": "apr-rule-activation-verification-v1",
+  "verifiedAt": "2026-09-05T12:40:04.429Z",
+  "status": "active_tested_deployed",
+  "sourceFingerprint": "566fd25e3f35a1bf806b031a96acbc02b2430eca4ece28f6aa5f65728f8334a3",
+  "matrixRules": 141,
+  "registryLinksVerified": true,
+  "testCommand": "vitest run --maxWorkers=1 --testTimeout=30000 src/features/enea-shadow-crm src/features/enea-lab scripts/enea-shadow-runner",
+  "testEvidenceReused": true,
+  "builtBundleSha256": {
+    "apr-supervisor.mjs": "57503033bbf930fb3fe5ee0b7dac4291728ac0a7f08c3cb9f92a9e52083062de",
+    "apr-enea-worker.mjs": "1c9e8a32d9d7f50b5c3368ed273c608c5483667d65a630947ca38d438b37f293",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0"
+  },
+  "installedBundleSha256": {
+    "apr-supervisor.mjs": "57503033bbf930fb3fe5ee0b7dac4291728ac0a7f08c3cb9f92a9e52083062de",
+    "apr-enea-worker.mjs": "1c9e8a32d9d7f50b5c3368ed273c608c5483667d65a630947ca38d438b37f293",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0"
+  },
+  "deploymentMatches": true,
+  "nextAction": "Regole testate e bundle persistenti corrispondenti: il runtime installato e' certificato."
+}

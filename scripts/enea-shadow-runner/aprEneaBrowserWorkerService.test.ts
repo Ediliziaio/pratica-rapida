@@ -4,7 +4,7 @@ import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { runEconomicVertical } from "./aprEconomicVertical";
 import type { AprEneaDraftPackage } from "./aprEneaBrowserWorker";
-import { aprEneaKeepaliveInterval, aprEneaWorkerLoopFailureDisposition, isAprEneaKeepaliveDue, isAprEneaOperatorCaseSafelyResumable, PersistentAprEneaWorkerService, shouldHoldAprEneaKeepaliveState } from "./aprEneaBrowserWorkerService";
+import { aprEneaKeepaliveInterval, aprEneaWorkerLoopFailureDisposition, isAprEneaKeepaliveDue, isAprEneaOperatorCaseSafelyResumable, PersistentAprEneaWorkerService, shouldHoldAprEneaKeepaliveState, shouldQuiesceTerminalAprEneaWorker } from "./aprEneaBrowserWorkerService";
 import { PersistentAprEneaOperationalBridge } from "./aprEneaOperationalBridge";
 import { mapBusinessDecisionArtifactToEnea } from "./aprEneaPureMapper";
 import { canonicalSha256 } from "./aprMonotonicArtifacts";
@@ -48,6 +48,12 @@ function armVerifiedMapperBridge(root: string, customerKey: string, practiceId: 
 }
 
 describe("gate permanente del servizio browser APR", () => {
+  it("rende quiescente soltanto un worker terminale concordante senza pratica corrente", () => {
+    expect(shouldQuiesceTerminalAprEneaWorker({ executionStatus: "completed", currentCustomerKey: null, serviceStatus: "completed" })).toBe(true);
+    expect(shouldQuiesceTerminalAprEneaWorker({ executionStatus: "completed", currentCustomerKey: "case-active", serviceStatus: "completed" })).toBe(false);
+    expect(shouldQuiesceTerminalAprEneaWorker({ executionStatus: "active", currentCustomerKey: null, serviceStatus: "completed" })).toBe(false);
+    expect(shouldQuiesceTerminalAprEneaWorker({ executionStatus: "completed", currentCustomerKey: null, serviceStatus: "technical_block" })).toBe(false);
+  });
   it("persiste l'identità di autorizzazione specifica della coorte", () => {
     const root = mkdtempSync(path.join(os.tmpdir(), "apr-worker-authorization-")); directories.push(root);
     const service = new PersistentAprEneaWorkerService(root);
@@ -81,7 +87,7 @@ describe("gate permanente del servizio browser APR", () => {
     service.record({ instanceId: "worker-stop-test", processPid: 43210, status: "running", type: "worker_tick", reason: "Compilazione in corso.", nextAction: "Pagina successiva." }, now);
     const signals: Array<[number, NodeJS.Signals]> = [];
 
-    const receipt = service.emergencyStop("dashboard:stop:test", new Date("2026-08-27T10:00:01.000Z"), (pid, signal) => { signals.push([pid, signal]); });
+    const receipt = service.emergencyStop("dashboard:stop:test", new Date("2026-08-27T10:00:01.000Z"), (pid, signal) => { signals.push([pid, signal]); }, () => "/runtime/apr-pilot-600-test/install/apr-enea-worker.mjs serve");
 
     expect(signals).toEqual([[43210, "SIGTERM"]]);
     expect(service.loadConfig()).toMatchObject({ setupEnabled: false, operationalEnabled: false });

@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "apr-claude-blind-document-review-v1",
+  "reviewedAt": "2026-09-03T00:45:00.000Z",
+  "method": {
+    "reviewer": "Claude Code",
+    "blind": true,
+    "inputs": "only documents/ and rendered-pages/ under each case folder",
+    "excluded": ["APR reports", "APR blockers", "source code", "previous diagnoses"]
+  },
+  "cases": [
+    {
+      "caseFolder": "01-massimiliano-montemorra",
+      "identity": { "name": "Massimiliano Montemorra", "taxCode": "MNTMSM78M05D643K", "birthDate": "1978-08-05", "birthPlace": "Foggia (FG)", "source": "07-supporting.pdf page 2" },
+      "findings": ["No photographic identity document in batch", "Invoice 157F/2026 says Segue but the following page is unavailable", "CAP differs between invoices and one bank receipt", "A second name appears only on one bank receipt"],
+      "needsHumanDecision": true
+    },
+    {
+      "caseFolder": "02-francesca-monti",
+      "identity": { "name": "Francesca Maria Monti", "taxCode": "MNTFNC71P59L319D", "birthDate": "1971-09-19", "birthPlace": "Tradate (VA)", "source": "02-supporting.pdf page 5" },
+      "findings": ["No photographic identity document in batch", "Name omits Maria on invoices but includes it on form and bank receipts", "The two source PDFs appear duplicated"],
+      "needsHumanDecision": true
+    },
+    {
+      "caseFolder": "03-enrico-amos-maria-berneri",
+      "identity": { "name": "Enrico Amos Maria Berneri", "taxCode": "BRNNCM64B11F205G", "birthDate": "1964-02-11", "birthPlace": "Milano (MI)", "source": "03-supporting.pdf page 1" },
+      "findings": ["No photographic identity document in batch", "No identity contradictions found"],
+      "needsHumanDecision": true
+    },
+    {
+      "caseFolder": "04-sabrina-eustomi",
+      "identity": { "name": "Sabrina Eustomi", "taxCode": "STMSRN68R68A271A", "birthDate": null, "birthPlace": null, "source": "01-fiscal-or-payment.pdf page 1" },
+      "findings": ["Only invoice available", "Birth date and birth place are not explicit", "No payment receipt available"],
+      "needsHumanDecision": true
+    },
+    {
+      "caseFolder": "05-marco-de-marinis",
+      "identity": { "name": "Marco De Marinis", "taxCode": "DMRMRC75H17E202Q", "birthDate": "1975-06-17", "birthPlace": "Grosseto (GR)", "source": "01-fiscal-or-payment.jpg and 04-fiscal-or-payment.jpg" },
+      "findings": [
+        "EUR 4,090.91 is the taxable amount of present invoice 312/FE, under Imponibile/IMPORTO; it is not a reference to another missing invoice",
+        "Invoice 312/FE total is EUR 4,500.00",
+        "Invoice 317/FE total is EUR 10,000.00",
+        "Findomestic transfer EUR 4,500.00 reconciles with 312/FE",
+        "Deutsche Bank transfer EUR 9,159.80 does not reconcile with invoice 317/FE; difference EUR 840.20"
+      ],
+      "needsHumanDecision": true
+    }
+  ],
+  "note": "This file is a structured faithful condensation of the read-only CLI output. The complete source documents and rendered pages remain unchanged in blind-documents/."
+}

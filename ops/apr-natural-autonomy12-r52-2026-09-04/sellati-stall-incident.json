@@ -1,0 +1,87 @@
+{
+  "version": "apr-natural-autonomy12-r52-sellati-stall-incident-v1",
+  "observedAt": "2026-09-04T22:37:28Z",
+  "lot": {
+    "label": "com.praticarapida.apr-natural-autonomy12-r52",
+    "runRoot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-natural-autonomy12-r52-retry1",
+    "processedBeforeStop": 1,
+    "total": 12,
+    "stoppedByOperatorAuthorization": true
+  },
+  "case": {
+    "customerKey": "claudia-sellati",
+    "cohort": 3075,
+    "classification": "INCONSISTENT",
+    "draftId": null,
+    "completedPages": 0,
+    "expectedPages": 0
+  },
+  "threeWayVerification": {
+    "process": {
+      "beforeStop": {
+        "sequencerPid": 93316,
+        "supervisorPid": 93656,
+        "workerLoaded": false,
+        "watchdogLoaded": false
+      },
+      "afterStop": {
+        "sequencerLoaded": false,
+        "supervisorLoaded": false,
+        "workerLoaded": false,
+        "watchdogLoaded": false
+      }
+    },
+    "persistentCheckpoints": {
+      "commonPreflight": "ready_local_plan",
+      "productPreflight": "ready_local_plan",
+      "productReason": "CLAUDIA SELLATI: nessun problema; 6 infissi 1:1 e totale IVA incluso verificati localmente.",
+      "executionStatus": "blocked_preflight",
+      "executionRevision": 0,
+      "executionItems": 0,
+      "bridgeCheckpointPresent": false,
+      "workerServicePresent": false,
+      "sequencerPhaseAtStop": "monitoring"
+    },
+    "dashboardCaseTruth": {
+      "status": "READY",
+      "hasProblem": false,
+      "blockerCount": 0,
+      "statement": "Nessun problema: preflight batch Infissi pronto; gate portale separato."
+    },
+    "concordance": false,
+    "requiredVerdict": "INCONSISTENT"
+  },
+  "exactObservedCause": {
+    "summary": "Il sequencer ha isolato un'eccezione case-local durante la preparazione successiva al preflight, prima di armare bridge e worker. L'isolatore ha quindi atteso senza termine una verità terminale da un'esecuzione mai avviata.",
+    "sequence": [
+      "Preflight comune e prodotti completati con esito READY.",
+      "Nessun evento case_infissi_validation_gate_prepared o case_worker_started è stato persistito.",
+      "Il bulkhead è entrato nel percorso di isolamento e finalCaseTruth ha posto il sequencer in phase=monitoring.",
+      "Con APR_PRESERVE_CONTINUITY=1, settleCaseTruthWhileWorkerContinues ha continuato ad attendere anche con worker assente, execution revision 0 e coda ENEA vuota.",
+      "Il supervisore ha ripubblicato heartbeat di runner revision 0/run_completed, creando attività apparente senza progresso operativo."
+    ],
+    "initialException": {
+      "persisted": false,
+      "recoverableFromArtifacts": false,
+      "reproductionOnCopiedState": "not_reproduced",
+      "reproductionResult": "Lo stesso comando apply-required-revisions/reconcile-common-applicability su copia locale è terminato con exit code 0 e pratica READY.",
+      "conclusion": "L'eccezione iniziale non può essere nominata con certezza; il difetto strutturale dimostrato è l'attesa infinita dell'isolatore dopo un errore non persistito."
+    }
+  },
+  "safety": {
+    "sellatiReachedEnea": false,
+    "sellatiDraftCreated": false,
+    "previewAttempted": false,
+    "submitAttempted": false,
+    "communicationsAttempted": false,
+    "keepalivePreserved": true,
+    "chromePreserved": true,
+    "globalControllerActiveOwnerAfterStop": null
+  },
+  "changes": {
+    "codeChanged": false,
+    "bundleChanged": false,
+    "checkpointRecoveryChanged": false,
+    "lotRestarted": false
+  }
+}

@@ -3,7 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { DEFAULT_AUDITED_OPERATOR_QUEUE } from "../../src/features/enea-shadow-crm/auditedOperatorQueue";
-import { LocalDashboardSupervisor, prepareEneaDraftExecutionIfAbsent, resolveAprCheckpointMode, shouldRunCheckpointMigration, shouldRunShadowIntake } from "./localDashboardServer";
+import { executionWorkerObservationIsConsistent, LocalDashboardSupervisor, prepareEneaDraftExecutionIfAbsent, resolveAprCheckpointMode, resolveTerminalPreflightObservation, shouldRunCheckpointMigration, shouldRunShadowIntake } from "./localDashboardServer";
 import { PersistentEneaRunner } from "./runner";
 import { SupervisorBusyError } from "./supervisorRuntime";
 import { PersistentReadOnlyAdapter } from "./readOnlyAdapter";
@@ -18,15 +18,41 @@ import { APR_READY_PIPELINE } from "../../src/features/enea-shadow-crm/aprCrmInt
 import { PersistentAprCrmIntegrationWorkflow } from "./crmIntegrationWorkflow";
 import { PersistentAprOperatorUnlockRegistry } from "./operatorUnlockRegistry";
 import { APR_REQUIRED_INFISSI_VALIDATION_REVISIONS } from "./infissiExecutionGate";
+import { AUTO_CURRENT_VALIDATION_REVISION } from "../../src/features/enea-shadow-crm/operationalRegistry";
 import type { AprEneaDraftPackage } from "./aprEneaBrowserWorker";
 import { compareAprParallelCaseTruth, PersistentAprCaseTruthComparisonStore } from "./aprCaseTruthComparisonStore";
 import { resolveAprCaseTruthMode } from "./aprCaseTruthMode";
 import type { AprCollectedCaseObservations } from "./aprCaseObservationCollector";
 import type { AprCaseStatusObservation } from "./aprMonotonicArtifacts";
 import { canonicalSha256 } from "./aprMonotonicArtifacts";
+import { publishSequencerTerminalTruth } from "../../ops/apr-global-controller-test10-2026-08-29/sequencerTerminalTruth.mjs";
 
 const temporaryDirectories: string[] = [];
 const runningSupervisors: LocalDashboardSupervisor[] = [];
+const inProcessDashboards = new Map<string, LocalDashboardSupervisor>();
+
+async function startDashboard(supervisor: LocalDashboardSupervisor) {
+  const url = await supervisor.startInProcessForTest();
+  inProcessDashboards.set(new URL(url).origin, supervisor);
+  return url;
+}
+
+async function dashboardFetch(input: string | URL, init: RequestInit = {}) {
+  const url = new URL(String(input));
+  const supervisor = inProcessDashboards.get(url.origin);
+  if (!supervisor) throw new Error(`dashboard_in_process_origin_unknown:${url.origin}`);
+  const headers: Record<string, string> = {};
+  new Headers(init.headers).forEach((value, key) => { headers[key] = value; });
+  headers.host ??= url.host;
+  if (init.body != null && typeof init.body !== "string") throw new Error("dashboard_in_process_body_must_be_string");
+  const response = await supervisor.requestInProcessForTest(`${url.pathname}${url.search}`, {
+    method: init.method,
+    headers,
+    body: typeof init.body === "string" ? init.body : undefined,
+  });
+  await new Promise<void>((resolve) => setImmediate(resolve));
+  return response;
+}
 
 function temporaryStateDirectory() {
   const directory = mkdtempSync(path.join(os.tmpdir(), "enea-shadow-dashboard-"));
@@ -38,10 +64,86 @@ afterEach(async () => {
   for (const supervisor of runningSupervisors.splice(0)) {
     if (supervisor.url) await supervisor.stop("Pulizia test.");
   }
+  inProcessDashboards.clear();
   for (const directory of temporaryDirectories.splice(0)) rmSync(directory, { recursive: true, force: true });
 });
 
 describe("dashboard HTTP e supervisore persistente", () => {
+  it("serve la verita caso terminale di una coorte quiescente da un osservatore indipendente", async () => {
+    const base = temporaryStateDirectory();
+    const cohortRoot = path.join(base, "cohorts", "apr-pilot-999-fixture");
+    const observerRoot = path.join(base, "cohorts", "apr-terminal-observer-fixture");
+    new PersistentEneaRunner(observerRoot).initialize(DEFAULT_AUDITED_OPERATOR_QUEUE);
+    publishSequencerTerminalTruth({
+      cohortRoot,
+      kind: "case_block",
+      verified: false,
+      entry: {
+        customerKey: "fixture-quiescent",
+        state: "operator_intervention",
+        completedPageIds: [],
+        expectedPageIds: ["page:one"],
+        operatorGateBlockers: [],
+        serverEvidenceIds: ["driver-error-1234567890abcdef"],
+        reason: "Errore circoscritto alla pratica: apr_cdp_command_timeout:Runtime.evaluate",
+      },
+    });
+    const observer = new LocalDashboardSupervisor(observerRoot, { port: 0, heartbeatIntervalMs: 10_000 });
+    runningSupervisors.push(observer);
+    const url = await startDashboard(observer);
+    expect(await (await dashboardFetch(`${url}/api/terminal-snapshot?cohortId=apr-pilot-999-fixture`)).json()).toMatchObject({ aprStatus: { publicStatus: "TECHNICAL_BLOCK", consistency: "CONSISTENT" }, caseTruth: { customerKey: "fixture-quiescent", status: "TECHNICAL_BLOCK" } });
+    expect(await (await dashboardFetch(`${url}/api/case-truth?customerKey=fixture-quiescent`)).json()).toEqual({ customerKey: "fixture-quiescent", status: "TECHNICAL_BLOCK", hasProblem: null, blockerCount: 0, blockerCodes: [], statement: "Errore circoscritto alla pratica: apr_cdp_command_timeout:Runtime.evaluate", reportBlockers: [] });
+  });
+
+  it("conserva il verdetto storico del sequencer senza ripubblicarlo dopo l'avvio di fonti live successive", async () => {
+    const directory = temporaryStateDirectory();
+    new PersistentEneaRunner(directory).initialize(DEFAULT_AUDITED_OPERATOR_QUEUE);
+    const supervisor = new LocalDashboardSupervisor(directory, { port: 0, heartbeatIntervalMs: 10_000 });
+    supervisor.infissiLocalMapping.run({
+      practiceId: "practice-terminal", customerKey: "fixture-terminal", displayName: "Fixture Terminal",
+      invoiceDimensionSource: { sourceId: "fattura", text: "1200 mm x 1400 mm" },
+      invoiceFinancialSources: [{ sourceId: "fattura", text: "TOTALE 1.000,00(EUR)" }],
+      technicalDocumentSource: { sourceId: "dop", text: "WEB/24/1 - 001\nTrasmittanza termica Uw [W/m K] 1.3" },
+      verifiedTechnicalPageDimensions: [{ pageId: "001", widthMm: 1200, heightMm: 1400, verificationMethod: "visual_pdf_page_verified" }],
+      form: { explicitNewFrameMaterial: "PVC", explicitGlassType: "Triplo vetro basso emissivo", alsoInstalledClosures: false, sourceId: "form" },
+    }, new Date("2026-08-31T05:00:00.000Z"));
+    publishSequencerTerminalTruth({ cohortRoot: directory, kind: "common_technical", reason: "sessione ENEA non disponibile", verified: false });
+    runningSupervisors.push(supervisor);
+    const url = await startDashboard(supervisor);
+    const status = await (await dashboardFetch(`${url}/api/status`)).json() as { lifecycleState: string; aprStatus: { publicStatus: string | null; source: string } };
+    expect(status).not.toMatchObject({ lifecycleState: "technical_stop", aprStatus: { publicStatus: "TECHNICAL_BLOCK", source: "sequencer_finalizer" } });
+    expect(await (await dashboardFetch(`${url}/api/terminal-snapshot`)).json()).toMatchObject({ terminal: true, lifecycleState: "technical_stop", aprStatus: { publicStatus: "TECHNICAL_BLOCK", source: "sequencer_finalizer", consistency: "CONSISTENT" } });
+    expect(await (await dashboardFetch(`${url}/api/case-truth?customerKey=fixture-terminal`)).json()).not.toMatchObject({ status: "TECHNICAL_BLOCK", statement: expect.stringContaining("sessione ENEA non disponibile") });
+    expect(JSON.parse(readFileSync(path.join(directory, "dashboard", "status.json"), "utf8"))).not.toMatchObject({ publicStatus: "TECHNICAL_BLOCK", statusSource: "sequencer_finalizer", state: "TECHNICAL_BLOCK" });
+    expect(readFileSync(path.join(directory, "dashboard", "index.html"), "utf8")).not.toContain("sessione ENEA non disponibile");
+  });
+
+  it("considera coerente una coda ready in attesa di login ENEA e resta fail-closed se il worker e disabilitato", () => {
+    const execution = { status: "ready", currentCustomerKey: null };
+    expect(executionWorkerObservationIsConsistent(execution, "login_required")).toBe(true);
+    expect(executionWorkerObservationIsConsistent(execution, "technical_block")).toBe(true);
+    expect(executionWorkerObservationIsConsistent(execution, "disabled")).toBe(false);
+    expect(executionWorkerObservationIsConsistent(execution, "stopped")).toBe(false);
+  });
+
+  it("rende terminale e coerente il preflight con blocked_case e blocker persistente", () => {
+    expect(resolveTerminalPreflightObservation(
+      { status: "blocked_preflight", currentCustomerKey: null },
+      { status: "completed", items: [{ state: "blocked_case", report: { blockers: [{ code: "fixture" }] } }] },
+    )).toEqual({ terminal: true, coherent: true, consistency: "CONSISTENT" });
+  });
+
+  it("rende INCONSISTENT un blocked_preflight terminale senza blocker coerenti", () => {
+    expect(resolveTerminalPreflightObservation(
+      { status: "blocked_preflight", currentCustomerKey: null },
+      { status: "completed", items: [{ state: "blocked_case", report: { blockers: [] } }] },
+    )).toEqual({ terminal: true, coherent: false, consistency: "INCONSISTENT" });
+    expect(resolveTerminalPreflightObservation(
+      { status: "blocked_preflight", currentCustomerKey: null },
+      { status: "unprepared", items: [] },
+    )).toEqual({ terminal: false, coherent: false, consistency: "NOT_TERMINAL" });
+  });
+
   it("usa legacy come default e rifiuta configurazioni case-truth non valide", () => {
     expect(resolveAprCaseTruthMode(undefined)).toBe("legacy");
     expect(resolveAprCaseTruthMode("legacy")).toBe("legacy");
@@ -62,8 +164,8 @@ describe("dashboard HTTP e supervisore persistente", () => {
       verifiedTechnicalPageDimensions: [{ pageId: "001", widthMm: 1200, heightMm: 1400, verificationMethod: "visual_pdf_page_verified" }],
       form: { explicitNewFrameMaterial: "PVC", explicitGlassType: "Triplo vetro basso emissivo", alsoInstalledClosures: false, sourceId: "form" },
     }, new Date("2026-08-23T20:00:00.000Z"));
-    runningSupervisors.push(supervisor); const url = await supervisor.start();
-    const truth = await (await fetch(`${url}/api/case-truth?customerKey=fixture-unified`)).json() as { status: string; reason: string; matchedTransitionId: string | null; version?: string };
+    runningSupervisors.push(supervisor); const url = await startDashboard(supervisor);
+    const truth = await (await dashboardFetch(`${url}/api/case-truth?customerKey=fixture-unified`)).json() as { status: string; reason: string; matchedTransitionId: string | null; version?: string };
     expect(truth).toMatchObject({ status: "INCONSISTENT", reason: expect.stringContaining("preflight_common"), matchedTransitionId: null });
     expect(truth.version).toBeUndefined();
   });
@@ -77,7 +179,7 @@ describe("dashboard HTTP e supervisore persistente", () => {
     expect(shouldRunShadowIntake(historicalDirectory, false)).toBe(false);
     expect(shouldRunShadowIntake(historicalDirectory, true)).toBe(true);
   });
-  it("separa il resume automatico dalla migrazione esplicita", async () => {
+  it("separa la transazione di migrazione atomica all'avvio dalla ri-validazione ricorrente, che deve avvenire comunque", async () => {
     expect(resolveAprCheckpointMode(undefined)).toBe("resume");
     expect(shouldRunCheckpointMigration("resume")).toBe(false);
     expect(shouldRunCheckpointMigration("migrate")).toBe(true);
@@ -91,13 +193,46 @@ describe("dashboard HTTP e supervisore persistente", () => {
     const routingMigration = vi.spyOn(supervisor.infissiBatchPreflight, "reconcileDocumentedProductRouting");
     const parserMigration = vi.spyOn(supervisor.crmDocumentAnalysis, "applyParserRevision");
     runningSupervisors.push(supervisor);
-    await supervisor.start();
+    await startDashboard(supervisor);
 
+    // La transazione atomica di migrazione all'avvio (con possibilita' di
+    // rollback, vedi il test successivo) resta riservata a --checkpoint-mode
+    // migrate: nessuna corsa qui.
     expect(supervisor.checkpointMode).toBe("resume");
     expect(commonMigration).not.toHaveBeenCalled();
     expect(productMigration).not.toHaveBeenCalled();
     expect(routingMigration).not.toHaveBeenCalled();
     expect(parserMigration).not.toHaveBeenCalled();
+
+    // Difetto strutturale (2026-09-08): l'impulso ricorrente NON deve
+    // dipendere dalla modalita' migrate, altrimenti una pratica gia'
+    // calcolata resta ferma al verdetto vecchio per sempre in resume
+    // (la modalita' di fatto sempre usata, dato che nessun avvio reale passa
+    // --checkpoint-mode migrate). Un solo impulso, in resume, deve gia'
+    // tentare la ri-validazione senza attendere una migrazione esplicita.
+    // parserMigration non dipende da fonti CRM gia' acquisite e si osserva
+    // gia' qui; commonMigration/productMigration/routingMigration dipendono
+    // da un ciclo acquisizione->analisi completo (fuori scopo per questo
+    // fixture minimo) e sono provate senza il gate migrate dal test sorgente
+    // statico piu' sotto, che copre l'intero blocco impulso.
+    supervisor.pulseForTest();
+    expect(parserMigration).toHaveBeenCalled();
+  });
+  it("nessuna ri-validazione ricorrente resta condizionata alla modalita' migrate (difetto strutturale 2026-09-08)", () => {
+    // Guardia di regressione a livello di sorgente: piu' affidabile di un
+    // fixture runtime per un ciclo acquisizione CRM completo, e impedisce che
+    // una futura correzione re-introduca per errore lo stesso "if
+    // (this.checkpointMigrationPending)" attorno a una qualunque chiamata di
+    // ri-validazione dentro l'impulso ricorrente pulse().
+    const source = readFileSync(path.join(import.meta.dirname, "localDashboardServer.ts"), "utf8");
+    const pulseStart = source.indexOf("private pulse() {");
+    const startMethodStart = source.indexOf("async start() {");
+    expect(pulseStart).toBeGreaterThan(-1);
+    expect(startMethodStart).toBeGreaterThan(pulseStart);
+    const pulseBody = source.slice(pulseStart, startMethodStart);
+    const revalidationCalls = [...pulseBody.matchAll(/this\.\w+\.(applyValidationRevision|applyParserRevision|applyOcrOrientationRevision|applyTechnicalDocumentClassificationRevision|reconcileDocumentedProductRouting)\(/g)];
+    expect(revalidationCalls.length).toBeGreaterThan(10);
+    expect(pulseBody).not.toMatch(/if\s*\(this\.checkpointMigrationPending\)\s*this\.\w+\.(applyValidationRevision|applyParserRevision|applyOcrOrientationRevision|applyTechnicalDocumentClassificationRevision|reconcileDocumentedProductRouting)\(/);
   });
   it("un rollback MIGRATE conserva gli avanzamenti RESUME gia persistiti", async () => {
     const directory = temporaryStateDirectory();
@@ -119,7 +254,7 @@ describe("dashboard HTTP e supervisore persistente", () => {
       return originalRevision(revision, now);
     });
 
-    await expect(supervisor.start()).rejects.toThrow("simulated_migration_crash");
+    await expect(supervisor.startInProcessForTest()).rejects.toThrow("simulated_migration_crash");
 
     const postRollbackResume = JSON.parse(readFileSync(supervisor.infissiBatchPreflight.checkpointPath, "utf8"));
     expect(postRollbackResume.resumeProof).toBe("post-resume-before-migrate");
@@ -173,7 +308,7 @@ describe("dashboard HTTP e supervisore persistente", () => {
     const intermediate = prepareEneaDraftExecutionIfAbsent(execution, common, new Date("2026-08-23T00:00:00Z"), infissi);
     expect(intermediate.items.map((item) => item.customerKey)).toEqual(["screening-a", "screening-b"]);
 
-    revisions = [...APR_REQUIRED_INFISSI_VALIDATION_REVISIONS];
+    revisions = [...APR_REQUIRED_INFISSI_VALIDATION_REVISIONS, AUTO_CURRENT_VALIDATION_REVISION];
     const final = prepareEneaDraftExecutionIfAbsent(execution, common, new Date("2026-08-23T00:01:00Z"), infissi);
     expect(final.items.map((item) => item.customerKey)).toEqual(["screening-a", "screening-b", "infissi-a"]);
   });
@@ -192,23 +327,23 @@ describe("dashboard HTTP e supervisore persistente", () => {
     auth.configure(APR_CRM_SUPABASE_ORIGIN, key);
     const supervisor = new LocalDashboardSupervisor(directory, { port: 0, heartbeatIntervalMs: 10_000, crmAuth: auth });
     runningSupervisors.push(supervisor);
-    const url = await supervisor.start();
+    const url = await startDashboard(supervisor);
 
-    const page = await (await fetch(`${url}/auth/crm`)).text();
+    const page = await (await dashboardFetch(`${url}/auth/crm`)).text();
     const csrf = page.match(/name="csrf" value="([^"]+)"/)?.[1];
     expect(csrf).toBeTruthy();
     const formBody = `csrf=${encodeURIComponent(csrf!)}&email=apr%40example.test&password=private-password`;
-    const rejected = await fetch(`${url}/auth/crm/session`, { method: "POST", headers: { Origin: "http://attacker.invalid", "Content-Type": "application/x-www-form-urlencoded" }, body: formBody });
+    const rejected = await dashboardFetch(`${url}/auth/crm/session`, { method: "POST", headers: { Origin: "http://attacker.invalid", "Content-Type": "application/x-www-form-urlencoded" }, body: formBody });
     expect(rejected.status).toBe(403);
 
-    const accepted = await fetch(`${url}/auth/crm/session`, { method: "POST", headers: { "Sec-Fetch-Site": "same-origin", "Content-Type": "application/x-www-form-urlencoded" }, body: formBody });
+    const accepted = await dashboardFetch(`${url}/auth/crm/session`, { method: "POST", headers: { "Sec-Fetch-Site": "same-origin", "Content-Type": "application/x-www-form-urlencoded" }, body: formBody });
     const acceptedHtml = await accepted.text();
     expect(accepted.status).toBe(200);
     expect(acceptedHtml).toContain("Accesso verificato dal server");
     expect(acceptedHtml).not.toContain("private-password");
     expect(acceptedHtml).not.toContain("access-private");
     expect(acceptedHtml).not.toContain("refresh-private");
-    const status = await (await fetch(`${url}/api/crm-auth`)).json() as Record<string, unknown>;
+    const status = await (await dashboardFetch(`${url}/api/crm-auth`)).json() as Record<string, unknown>;
     expect(status).toMatchObject({ status: "authenticated", credentialsStoredInCheckpoint: false, accessTokenExposed: false, externalActionAllowed: false });
     expect(JSON.stringify(status)).not.toContain("refresh-private");
   });
@@ -222,20 +357,23 @@ describe("dashboard HTTP e supervisore persistente", () => {
     crmAdapterStore.verifyFixture(VERIFIED_APR_CRM_READONLY_FIXTURE);
     const supervisor = new LocalDashboardSupervisor(directory, { port: 0, heartbeatIntervalMs: 10_000 });
     runningSupervisors.push(supervisor);
-    const url = await supervisor.start();
+    const url = await startDashboard(supervisor);
 
     expect(url).toMatch(/^http:\/\/127\.0\.0\.1:\d+$/);
-    const statusResponse = await fetch(`${url}/api/status`);
-    const status = await statusResponse.json() as { runner: { health: string; revision: number }; operationalStatus: { source: string; publicStatus: string | null }; supervisor: { url: string; status: string }; readiness: { queueMayRun: boolean; leaseState: string }; adapter: { status: string; queueMayRun: boolean } };
+    const statusResponse = await dashboardFetch(`${url}/api/status`);
+    const status = await statusResponse.json() as { legacyJournalRunner: { health: string; revision: number }; aprStatus: { source: string; publicStatus: string | null }; operationalStatus: { source: string; publicStatus: string | null }; supervisor: { url: string; status: string }; readiness: { queueMayRun: boolean; leaseState: string }; adapter: { status: string; queueMayRun: boolean } };
     expect(statusResponse.status).toBe(200);
-    expect(status).toMatchObject({ runner: { health: "runner_off", revision: before.revision }, operationalStatus: { source: "legacy_runner", publicStatus: null }, supervisor: { url, status: "running" }, readiness: { queueMayRun: false, leaseState: "not_acquired" }, adapter: { status: "disconnected", queueMayRun: false } });
+    expect(status).toMatchObject({ legacyJournalRunner: { health: "runner_off", revision: before.revision }, aprStatus: { source: "legacy_runner", publicStatus: null }, operationalStatus: { source: "legacy_runner", publicStatus: null }, supervisor: { url, status: "running" }, readiness: { queueMayRun: false, leaseState: "not_acquired" }, adapter: { status: "disconnected", queueMayRun: false } });
+    expect(status).not.toHaveProperty("runner");
+    const terminal = await (await dashboardFetch(`${url}/api/terminal-snapshot`)).json() as { version: string; revision: number; cohortRoot: string };
+    expect(terminal).toMatchObject({ version: "apr-terminal-observability-snapshot-v1", cohortRoot: directory });
 
     new PersistentReadOnlyAdapter(directory).runLocalFixture(VERIFIED_LOCAL_READ_ONLY_FIXTURE, "dashboard:fixture", new Date("2026-08-14T13:00:01.000Z"));
-    const adapterResponse = await fetch(`${url}/api/adapter`);
+    const adapterResponse = await dashboardFetch(`${url}/api/adapter`);
     const adapter = await adapterResponse.json() as { status: string; evidenceCount: number; keepaliveCount: number; queueMayRun: boolean };
     expect(adapter).toMatchObject({ status: "fixture_verified", evidenceCount: 5, keepaliveCount: 1, queueMayRun: false });
 
-    const pageResponse = await fetch(url);
+    const pageResponse = await dashboardFetch(url);
     const html = await pageResponse.text();
     expect(pageResponse.headers.get("content-security-policy")).toContain("default-src 'none'");
     expect(html).toContain("Automazione PraticaRapida");
@@ -257,7 +395,7 @@ describe("dashboard HTTP e supervisore persistente", () => {
     expect(html).toContain("coda abilitata");
     expect(html).toContain("Adattatore read-only: fixture_verified");
     expect(html).toContain("prove con fingerprint");
-    const matrix = await (await fetch(`${url}/api/rule-matrix`)).json() as { activeCount: number; totalCount: number };
+    const matrix = await (await dashboardFetch(`${url}/api/rule-matrix`)).json() as { activeCount: number; totalCount: number };
     expect(matrix).toEqual(expect.objectContaining({ activeCount: 0, totalCount: APR_RULE_TEST_MATRIX.length }));
     expect(html).toContain(`Matrice regole → test → runtime · 0/${APR_RULE_TEST_MATRIX.length} attive/testate/installate`);
     expect(html).toContain("Adapter CRM read-only");
@@ -281,41 +419,41 @@ describe("dashboard HTTP e supervisore persistente", () => {
     expect(html).toContain("Centro notifiche macOS con inbox durevole");
     expect(html).toContain("Continuità APR · watchdog separato");
     expect(html).toContain("IDLE — coda vuota");
-    const crmAdapter = await (await fetch(`${url}/api/crm-readonly-adapter`)).json() as { status: string; evidenceCount: number; externalActionAllowed: boolean; queueMayRun: boolean };
+    const crmAdapter = await (await dashboardFetch(`${url}/api/crm-readonly-adapter`)).json() as { status: string; evidenceCount: number; externalActionAllowed: boolean; queueMayRun: boolean };
     expect(crmAdapter).toMatchObject({ status: "fixture_verified", evidenceCount: 5, externalActionAllowed: false, queueMayRun: false });
-    const crmWorkflow = await (await fetch(`${url}/api/crm-integration-workflow`)).json() as { status: string; progress: { total: number }; externalActionAllowed: boolean };
+    const crmWorkflow = await (await dashboardFetch(`${url}/api/crm-integration-workflow`)).json() as { status: string; progress: { total: number }; externalActionAllowed: boolean };
     expect(crmWorkflow).toMatchObject({ status: "idle", progress: { total: 0 }, externalActionAllowed: false });
-    const crmIncoming = await (await fetch(`${url}/api/crm-incoming-readonly`)).json() as { status: string; progress: { observed: number }; externalActionAllowed: boolean; mutationAllowed: boolean };
+    const crmIncoming = await (await dashboardFetch(`${url}/api/crm-incoming-readonly`)).json() as { status: string; progress: { observed: number }; externalActionAllowed: boolean; mutationAllowed: boolean };
     expect(crmIncoming).toMatchObject({ status: "idle", progress: { observed: 0 }, externalActionAllowed: false, mutationAllowed: false });
-    const crmLiveProcessing = await (await fetch(`${url}/api/crm-live-processing`)).json() as { status: string; progress: { total: number }; externalActionAllowed: boolean; crmMutationAllowed: boolean; eneaActionAllowed: boolean };
+    const crmLiveProcessing = await (await dashboardFetch(`${url}/api/crm-live-processing`)).json() as { status: string; progress: { total: number }; externalActionAllowed: boolean; crmMutationAllowed: boolean; eneaActionAllowed: boolean };
     expect(crmLiveProcessing).toMatchObject({ status: "idle", progress: { total: 0 }, externalActionAllowed: false, crmMutationAllowed: false, eneaActionAllowed: false });
-    const shadowComparison = await (await fetch(`${url}/api/shadow-comparison`)).json() as { status: string; currentPhase: string; cumulative: { totalPractices: number }; promotionGate: { productionAuthorized: boolean }; externalMutationAllowed: boolean; eneaSubmitAllowed: boolean };
+    const shadowComparison = await (await dashboardFetch(`${url}/api/shadow-comparison`)).json() as { status: string; currentPhase: string; cumulative: { totalPractices: number }; promotionGate: { productionAuthorized: boolean }; externalMutationAllowed: boolean; eneaSubmitAllowed: boolean };
     expect(shadowComparison).toMatchObject({ status: "awaiting_shadow_cases", currentPhase: "SHADOW", cumulative: { totalPractices: 0 }, promotionGate: { productionAuthorized: false }, externalMutationAllowed: false, eneaSubmitAllowed: false });
-    const shadowControl = await (await fetch(`${url}/api/shadow-control`)).json() as { status: string; intakeAllowed: boolean; externalMutationAllowed: boolean; previewAllowed: boolean; submitAllowed: boolean; communicationsAllowed: boolean };
+    const shadowControl = await (await dashboardFetch(`${url}/api/shadow-control`)).json() as { status: string; intakeAllowed: boolean; externalMutationAllowed: boolean; previewAllowed: boolean; submitAllowed: boolean; communicationsAllowed: boolean };
     expect(shadowControl).toMatchObject({ status: "stopped", intakeAllowed: false, externalMutationAllowed: false, previewAllowed: false, submitAllowed: false, communicationsAllowed: false });
-    const localDraftPackages = await (await fetch(`${url}/api/crm-local-draft-packages`)).json() as { status: string; progress: { total: number }; externalActionAllowed: boolean; crmMutationAllowed: boolean; eneaActionAllowed: boolean; previewAllowed: boolean; submitAllowed: boolean; communicationsAllowed: boolean };
+    const localDraftPackages = await (await dashboardFetch(`${url}/api/crm-local-draft-packages`)).json() as { status: string; progress: { total: number }; externalActionAllowed: boolean; crmMutationAllowed: boolean; eneaActionAllowed: boolean; previewAllowed: boolean; submitAllowed: boolean; communicationsAllowed: boolean };
     expect(localDraftPackages).toMatchObject({ status: "unprepared", progress: { total: 0 }, externalActionAllowed: false, crmMutationAllowed: false, eneaActionAllowed: false, previewAllowed: false, submitAllowed: false, communicationsAllowed: false });
-    const localDraftHandoff = await (await fetch(`${url}/api/crm-local-draft-handoff`)).json() as { status: string; progress: { total: number; dispatched: number }; historicalCheckpointImported: boolean; externalActionAllowed: boolean; crmMutationAllowed: boolean; eneaActionAllowed: boolean; previewAllowed: boolean; submitAllowed: boolean; receiptAllowed: boolean; communicationsAllowed: boolean };
+    const localDraftHandoff = await (await dashboardFetch(`${url}/api/crm-local-draft-handoff`)).json() as { status: string; progress: { total: number; dispatched: number }; historicalCheckpointImported: boolean; externalActionAllowed: boolean; crmMutationAllowed: boolean; eneaActionAllowed: boolean; previewAllowed: boolean; submitAllowed: boolean; receiptAllowed: boolean; communicationsAllowed: boolean };
     expect(localDraftHandoff).toMatchObject({ status: "unprepared", progress: { total: 0, dispatched: 0 }, historicalCheckpointImported: false, externalActionAllowed: false, crmMutationAllowed: false, eneaActionAllowed: false, previewAllowed: false, submitAllowed: false, receiptAllowed: false, communicationsAllowed: false });
-    const localExecutorIntake = await (await fetch(`${url}/api/crm-local-executor-intake`)).json() as { status: string; progress: { total: number; active: number }; browserAllowed: boolean; externalActionAllowed: boolean; crmMutationAllowed: boolean; eneaActionAllowed: boolean; previewAllowed: boolean; submitAllowed: boolean; receiptAllowed: boolean; communicationsAllowed: boolean };
+    const localExecutorIntake = await (await dashboardFetch(`${url}/api/crm-local-executor-intake`)).json() as { status: string; progress: { total: number; active: number }; browserAllowed: boolean; externalActionAllowed: boolean; crmMutationAllowed: boolean; eneaActionAllowed: boolean; previewAllowed: boolean; submitAllowed: boolean; receiptAllowed: boolean; communicationsAllowed: boolean };
     expect(localExecutorIntake).toMatchObject({ status: "unprepared", progress: { total: 0, active: 0 }, browserAllowed: false, externalActionAllowed: false, crmMutationAllowed: false, eneaActionAllowed: false, previewAllowed: false, submitAllowed: false, receiptAllowed: false, communicationsAllowed: false });
-    const localCohortPlan = await (await fetch(`${url}/api/crm-local-cohort-execution-plan`)).json() as { status: string; progress: { total: number; active: number }; historicalExecutionCheckpointImported: boolean; historicalExecutionPathRead: boolean; simulatorOnly: boolean; browserAllowed: boolean; externalActionAllowed: boolean; crmMutationAllowed: boolean; eneaActionAllowed: boolean; previewAllowed: boolean; submitAllowed: boolean; receiptAllowed: boolean; communicationsAllowed: boolean };
+    const localCohortPlan = await (await dashboardFetch(`${url}/api/crm-local-cohort-execution-plan`)).json() as { status: string; progress: { total: number; active: number }; historicalExecutionCheckpointImported: boolean; historicalExecutionPathRead: boolean; simulatorOnly: boolean; browserAllowed: boolean; externalActionAllowed: boolean; crmMutationAllowed: boolean; eneaActionAllowed: boolean; previewAllowed: boolean; submitAllowed: boolean; receiptAllowed: boolean; communicationsAllowed: boolean };
     expect(localCohortPlan).toMatchObject({ status: "unprepared", progress: { total: 0, active: 0 }, historicalExecutionCheckpointImported: false, historicalExecutionPathRead: false, simulatorOnly: true, browserAllowed: false, externalActionAllowed: false, crmMutationAllowed: false, eneaActionAllowed: false, previewAllowed: false, submitAllowed: false, receiptAllowed: false, communicationsAllowed: false });
-    const gateOrchestrator = await (await fetch(`${url}/api/apr-gate-orchestrator`)).json() as { status: string; progress: { total: number; active: number }; externalActionAllowed: boolean; browserAllowed: boolean; crmMutationAllowed: boolean; eneaActionAllowed: boolean; previewAllowed: boolean; submitAllowed: boolean; receiptAllowed: boolean; communicationsAllowed: boolean };
+    const gateOrchestrator = await (await dashboardFetch(`${url}/api/apr-gate-orchestrator`)).json() as { status: string; progress: { total: number; active: number }; externalActionAllowed: boolean; browserAllowed: boolean; crmMutationAllowed: boolean; eneaActionAllowed: boolean; previewAllowed: boolean; submitAllowed: boolean; receiptAllowed: boolean; communicationsAllowed: boolean };
     expect(gateOrchestrator).toMatchObject({ status: "unprepared", progress: { total: 0, active: 0 }, externalActionAllowed: false, browserAllowed: false, crmMutationAllowed: false, eneaActionAllowed: false, previewAllowed: false, submitAllowed: false, receiptAllowed: false, communicationsAllowed: false });
-    const readinessAdmission = await (await fetch(`${url}/api/apr-enea-readiness-admission`)).json() as { status: string; phase: string; progress: { completedPhases: number; totalPhases: number }; externalActionAllowed: boolean; browserAllowed: boolean; eneaActionAllowed: boolean };
+    const readinessAdmission = await (await dashboardFetch(`${url}/api/apr-enea-readiness-admission`)).json() as { status: string; phase: string; progress: { completedPhases: number; totalPhases: number }; externalActionAllowed: boolean; browserAllowed: boolean; eneaActionAllowed: boolean };
     expect(readinessAdmission).toMatchObject({ status: "unprepared", phase: "unprepared", progress: { completedPhases: 0, totalPhases: 7 }, externalActionAllowed: false, browserAllowed: false, eneaActionAllowed: false });
-    const readOnlyDiscovery = await (await fetch(`${url}/api/apr-enea-readonly-discovery`)).json() as { status: string; phase: string; progress: { completedPhases: number; totalPhases: number }; plannedSurfaces: unknown[]; externalActionAllowed: boolean; browserAllowed: boolean; eneaActionAllowed: boolean };
+    const readOnlyDiscovery = await (await dashboardFetch(`${url}/api/apr-enea-readonly-discovery`)).json() as { status: string; phase: string; progress: { completedPhases: number; totalPhases: number }; plannedSurfaces: unknown[]; externalActionAllowed: boolean; browserAllowed: boolean; eneaActionAllowed: boolean };
     expect(readOnlyDiscovery).toMatchObject({ status: "unprepared", phase: "unprepared", progress: { completedPhases: 0, totalPhases: 5 }, plannedSurfaces: expect.any(Array), externalActionAllowed: false, browserAllowed: false, eneaActionAllowed: false });
-    const realReadOnlyAttach = await (await fetch(`${url}/api/apr-enea-real-readonly-attach`)).json() as { status: string; phase: string; transportChecksPassed: number; externalActionAllowed: boolean; createWindowAllowed: boolean; createTabsAllowed: boolean; navigationAllowed: boolean; networkRequestAllowed: boolean };
+    const realReadOnlyAttach = await (await dashboardFetch(`${url}/api/apr-enea-real-readonly-attach`)).json() as { status: string; phase: string; transportChecksPassed: number; externalActionAllowed: boolean; createWindowAllowed: boolean; createTabsAllowed: boolean; navigationAllowed: boolean; networkRequestAllowed: boolean };
     expect(realReadOnlyAttach).toMatchObject({ status: "unprepared", phase: "unprepared", transportChecksPassed: 0, externalActionAllowed: false, createWindowAllowed: false, createTabsAllowed: false, navigationAllowed: false, networkRequestAllowed: false });
-    const notifications = await (await fetch(`${url}/api/notifications`)).json() as { codexRequiredForDelivery: boolean; deliveryMode: string };
+    const notifications = await (await dashboardFetch(`${url}/api/notifications`)).json() as { codexRequiredForDelivery: boolean; deliveryMode: string };
     expect(notifications).toMatchObject({ codexRequiredForDelivery: false, deliveryMode: "macos_notification_center_with_durable_inbox" });
-    const health = await (await fetch(`${url}/healthz`)).json() as { codexRequiredForNotification: boolean; externalActionAllowed: boolean; shadowControl: string; shadowIntakeAllowed: boolean; crmIntegrationWorkflow: string; crmIncomingReadOnly: string; crmLiveProcessing: string; crmLocalDraftHandoff: string; crmLocalExecutorIntake: string; crmLocalCohortExecutionPlan: string; aprGateOrchestrator: string; aprEneaReadinessAdmission: string; aprEneaReadOnlyDiscovery: string; aprEneaRealReadOnlyAttach: string };
+    const health = await (await dashboardFetch(`${url}/healthz`)).json() as { codexRequiredForNotification: boolean; externalActionAllowed: boolean; shadowControl: string; shadowIntakeAllowed: boolean; crmIntegrationWorkflow: string; crmIncomingReadOnly: string; crmLiveProcessing: string; crmLocalDraftHandoff: string; crmLocalExecutorIntake: string; crmLocalCohortExecutionPlan: string; aprGateOrchestrator: string; aprEneaReadinessAdmission: string; aprEneaReadOnlyDiscovery: string; aprEneaRealReadOnlyAttach: string };
     expect(health).toMatchObject({ codexRequiredForNotification: false, externalActionAllowed: false, shadowControl: "stopped", shadowIntakeAllowed: false, crmIntegrationWorkflow: "idle", crmIncomingReadOnly: "idle", crmLiveProcessing: "idle", crmLocalDraftHandoff: "unprepared", crmLocalExecutorIntake: "unprepared", crmLocalCohortExecutionPlan: "unprepared", aprGateOrchestrator: "unprepared", aprEneaReadinessAdmission: "unprepared", aprEneaReadOnlyDiscovery: "unprepared", aprEneaRealReadOnlyAttach: "unprepared" });
-    const draftExecution = await (await fetch(`${url}/api/enea-draft-execution`)).json() as { status: string; previewAllowed: boolean; submitAllowed: boolean; communicationsAllowed: boolean };
+    const draftExecution = await (await dashboardFetch(`${url}/api/enea-draft-execution`)).json() as { status: string; previewAllowed: boolean; submitAllowed: boolean; communicationsAllowed: boolean };
     expect(draftExecution).toMatchObject({ status: "blocked_preflight", previewAllowed: false, submitAllowed: false, communicationsAllowed: false });
-    const watchdog = await (await fetch(`${url}/api/watchdog`)).json() as { status: string; currentPhase: string; pendingRecovery: unknown };
+    const watchdog = await (await dashboardFetch(`${url}/api/watchdog`)).json() as { status: string; currentPhase: string; pendingRecovery: unknown };
     expect(watchdog).toMatchObject({ status: "IDLE", currentPhase: "coda_vuota", pendingRecovery: null });
     expect(runner.load().revision).toBe(before.revision);
   });
@@ -335,21 +473,21 @@ describe("dashboard HTTP e supervisore persistente", () => {
       form: { explicitNewFrameMaterial: "PVC", explicitGlassType: "Triplo vetro basso emissivo", alsoInstalledClosures: false, sourceId: "form" },
     }, new Date("2026-08-19T10:00:00Z"));
     runningSupervisors.push(supervisor);
-    const url = await supervisor.start();
+    const url = await startDashboard(supervisor);
 
-    const html = await (await fetch(url)).text();
+    const html = await (await dashboardFetch(url)).text();
     expect(html).toContain("APR · Infissi · preflight fonti originarie");
     expect(html).toContain("Cristina Fabbro");
     expect(html).toContain("1</strong><span>infissi distinti 1:1");
-    const mapping = await (await fetch(`${url}/api/infissi-local-mapping`)).json() as { status: string; item: { caseTruth: string } };
+    const mapping = await (await dashboardFetch(`${url}/api/infissi-local-mapping`)).json() as { status: string; item: { caseTruth: string } };
     expect(mapping).toMatchObject({ status: "ready_for_portal_mapping", item: { caseTruth: "READY" } });
-    const truth = await (await fetch(`${url}/api/case-truth?customerKey=cristina-fabbro`)).json() as { status: string; hasProblem: boolean };
+    const truth = await (await dashboardFetch(`${url}/api/case-truth?customerKey=cristina-fabbro`)).json() as { status: string; hasProblem: boolean };
     expect(truth).toMatchObject({ status: "READY", hasProblem: false });
     await new Promise((resolve) => setTimeout(resolve, 25));
     const comparisons = new PersistentAprCaseTruthComparisonStore(directory).list("cristina-fabbro");
     expect(comparisons).toHaveLength(1);
     expect(comparisons[0].payload).toMatchObject({ classification: "MISSING_SOURCE", oldTruth: { status: "READY" }, newTruth: { status: "INCONSISTENT" } });
-    const summary = await (await fetch(`${url}/api/case-truth-comparison-summary`)).json() as { total: number; counts: Record<string, number>; period: { from: string | null; to: string | null } };
+    const summary = await (await dashboardFetch(`${url}/api/case-truth-comparison-summary`)).json() as { total: number; counts: Record<string, number>; period: { from: string | null; to: string | null } };
     expect(summary).toMatchObject({ total: 1, counts: { AGREE: 0, EXPECTED_STRICTER: 0, DISAGREE: 0, MISSING_SOURCE: 1 } });
     expect(summary.period.from).toBeTruthy(); expect(summary.period.to).toBe(summary.period.from);
   });
@@ -372,9 +510,9 @@ describe("dashboard HTTP e supervisore persistente", () => {
       form: { explicitNewFrameMaterial: "PVC", explicitGlassType: "Triplo vetro basso emissivo", alsoInstalledClosures: false, sourceId: "form" },
     }, new Date("2026-08-23T20:00:00.000Z"));
     runningSupervisors.push(supervisor);
-    const url = await supervisor.start();
+    const url = await startDashboard(supervisor);
 
-    const truth = await (await fetch(`${url}/api/case-truth?customerKey=fixture-shared-snapshot`)).json() as { status: string };
+    const truth = await (await dashboardFetch(`${url}/api/case-truth?customerKey=fixture-shared-snapshot`)).json() as { status: string };
     expect(truth.status).toBe("READY");
     expect(deferredComparison).toBeTypeOf("function");
 
@@ -409,16 +547,16 @@ describe("dashboard HTTP e supervisore persistente", () => {
     const comparison = compareAprParallelCaseTruth({ oldTruth: { version: "apr-case-status-truth-v1", ruleId: "system-apr-case-status-truth", customerKey: "fixture-comparison", displayName: "Fixture Comparison", status: "READY", hasProblem: false, blockerCount: 0, blockerCodes: [], statement: "ready", sourceState: "ready_local_plan", reportOutcome: "ready_local_plan" }, collected, now: new Date("2026-08-23T20:00:01.000Z") });
     new PersistentAprCaseTruthComparisonStore(directory).persist(comparison);
     runningSupervisors.push(supervisor);
-    const url = await supervisor.start();
-    const truthBefore = await (await fetch(`${url}/api/case-truth?customerKey=fixture-comparison`)).json();
-    const list = await (await fetch(`${url}/api/case-truth-comparison?customerKey=fixture-comparison`)).json() as { items: Array<{ artifactId: string }> };
-    const detail = await (await fetch(`${url}/api/case-truth-comparison?artifactId=${comparison.artifactId}`)).json() as { artifactId: string };
-    const truthAfter = await (await fetch(`${url}/api/case-truth?customerKey=fixture-comparison`)).json();
+    const url = await startDashboard(supervisor);
+    const truthBefore = await (await dashboardFetch(`${url}/api/case-truth?customerKey=fixture-comparison`)).json();
+    const list = await (await dashboardFetch(`${url}/api/case-truth-comparison?customerKey=fixture-comparison`)).json() as { items: Array<{ artifactId: string }> };
+    const detail = await (await dashboardFetch(`${url}/api/case-truth-comparison?artifactId=${comparison.artifactId}`)).json() as { artifactId: string };
+    const truthAfter = await (await dashboardFetch(`${url}/api/case-truth?customerKey=fixture-comparison`)).json();
     expect(list.items.map((item) => item.artifactId)).toContain(comparison.artifactId);
     expect(list.items.length).toBeGreaterThanOrEqual(2);
     expect(detail.artifactId).toBe(comparison.artifactId);
     expect(truthAfter).toEqual(truthBefore);
-    expect((await fetch(`${url}/api/case-truth-comparison?artifactId=../checkpoint`)).status).toBe(400);
+    expect((await dashboardFetch(`${url}/api/case-truth-comparison?artifactId=../checkpoint`)).status).toBe(400);
   });
 
   it("ripristina il supervisore dopo crash e lease scaduta conservando la revisione runner", async () => {
@@ -427,19 +565,19 @@ describe("dashboard HTTP e supervisore persistente", () => {
     const runnerState = runner.initialize(DEFAULT_AUDITED_OPERATOR_QUEUE, new Date("2026-08-14T14:00:00.000Z"));
     let clock = new Date("2026-08-14T14:00:01.000Z");
     const first = new LocalDashboardSupervisor(directory, { port: 0, heartbeatIntervalMs: 60_000, instanceId: "supervisor-a", now: () => clock });
-    await first.start();
+    await startDashboard(first);
     await first.simulateCrashForTest();
 
     clock = new Date("2026-08-14T14:00:17.000Z");
     const restarted = new LocalDashboardSupervisor(directory, { port: 0, heartbeatIntervalMs: 60_000, instanceId: "supervisor-b", now: () => clock });
     runningSupervisors.push(restarted);
-    const url = await restarted.start();
-    const response = await fetch(`${url}/api/status`);
-    const payload = await response.json() as { supervisor: { restartCount: number; instanceId: string; audit: Array<{ type: string }> }; runner: { revision: number } };
+    const url = await startDashboard(restarted);
+    const response = await dashboardFetch(`${url}/api/status`);
+    const payload = await response.json() as { supervisor: { restartCount: number; instanceId: string; audit: Array<{ type: string }> }; legacyJournalRunner: { revision: number } };
 
     expect(payload.supervisor).toMatchObject({ restartCount: 1, instanceId: "supervisor-b" });
     expect(payload.supervisor.audit.some((event) => event.type === "supervisor_restarted")).toBe(true);
-    expect(payload.runner.revision).toBe(runnerState.revision);
+    expect(payload.legacyJournalRunner.revision).toBe(runnerState.revision);
     expect(runner.load().queue.map((job) => job.practice.id)).toEqual(runnerState.queue.map((job) => job.practice.id));
   });
 
@@ -452,14 +590,14 @@ describe("dashboard HTTP e supervisore persistente", () => {
     workflow.applyPending();
     const supervisor = new LocalDashboardSupervisor(directory, { port: 0, heartbeatIntervalMs: 10_000 });
     runningSupervisors.push(supervisor);
-    const url = await supervisor.start();
-    const html = await (await fetch(url)).text();
+    const url = await startDashboard(supervisor);
+    const html = await (await dashboardFetch(url)).text();
     const csrf = html.match(/\/crm\/integration\/dashboard-case\/answer[\s\S]*?name="csrf" value="([^"]+)"/)?.[1];
     expect(csrf).toBeTruthy();
     expect(html).toContain("Le misure sono in millimetri?");
-    const response = await fetch(`${url}/crm/integration/dashboard-case/answer`, { method: "POST", redirect: "manual", headers: { "Sec-Fetch-Site": "same-origin", "Content-Type": "application/x-www-form-urlencoded" }, body: `csrf=${encodeURIComponent(csrf!)}&answer=millimeters&note=Confermato` });
+    const response = await dashboardFetch(`${url}/crm/integration/dashboard-case/answer`, { method: "POST", redirect: "manual", headers: { "Sec-Fetch-Site": "same-origin", "Content-Type": "application/x-www-form-urlencoded" }, body: `csrf=${encodeURIComponent(csrf!)}&answer=millimeters&note=Confermato` });
     expect(response.status).toBe(303);
-    const result = await (await fetch(`${url}/api/crm-integration-workflow`)).json() as ReturnType<PersistentAprCrmIntegrationWorkflow["snapshot"]>;
+    const result = await (await dashboardFetch(`${url}/api/crm-integration-workflow`)).json() as ReturnType<PersistentAprCrmIntegrationWorkflow["snapshot"]>;
     expect(result.items[0]).toMatchObject({ state: "resume_ready", operatorResolution: { answer: "millimeters", note: "Confermato" } });
     expect(result.simulation.customers["dashboard-customer"].pipeline).toBe(APR_READY_PIPELINE);
     expect(result.externalActionAllowed).toBe(false);
@@ -474,16 +612,16 @@ describe("dashboard HTTP e supervisore persistente", () => {
     workflow.applyPending();
     const supervisor = new LocalDashboardSupervisor(directory, { port: 0, heartbeatIntervalMs: 10_000 });
     runningSupervisors.push(supervisor);
-    const url = await supervisor.start();
-    const html = await (await fetch(url)).text();
+    const url = await startDashboard(supervisor);
+    const html = await (await dashboardFetch(url)).text();
     const request = workflow.snapshot().items[0].operatorRequest!;
     const encodedRequestId = encodeURIComponent(request.requestId).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     const csrf = html.match(new RegExp(`/operator/unlocks/${encodedRequestId}/submit[\\s\\S]*?name="csrf" value="([^"]+)"`))?.[1];
     expect(csrf).toBeTruthy();
     expect(html).toContain("Non riaccoda la pratica");
-    const response = await fetch(`${url}/operator/unlocks/${encodeURIComponent(request.requestId)}/submit`, { method: "POST", redirect: "manual", headers: { "Sec-Fetch-Site": "same-origin", "Content-Type": "application/x-www-form-urlencoded" }, body: `csrf=${encodeURIComponent(csrf!)}&answer=authorized_single_case&note=${encodeURIComponent("Solo questa pratica")}` });
+    const response = await dashboardFetch(`${url}/operator/unlocks/${encodeURIComponent(request.requestId)}/submit`, { method: "POST", redirect: "manual", headers: { "Sec-Fetch-Site": "same-origin", "Content-Type": "application/x-www-form-urlencoded" }, body: `csrf=${encodeURIComponent(csrf!)}&answer=authorized_single_case&note=${encodeURIComponent("Solo questa pratica")}` });
     expect(response.status).toBe(303);
-    const registry = await (await fetch(`${url}/api/operator-unlocks?customerKey=canonical-customer`)).json() as ReturnType<PersistentAprOperatorUnlockRegistry["snapshot"]>;
+    const registry = await (await dashboardFetch(`${url}/api/operator-unlocks?customerKey=canonical-customer`)).json() as ReturnType<PersistentAprOperatorUnlockRegistry["snapshot"]>;
     expect(registry).toMatchObject({ progress: { total: 1, open: 0, answeredPendingVerification: 1 }, records: [{ descriptor: { status: "answered" }, evidence: { answer: "authorized_single_case", propagation: "forbidden", verificationStatus: "pending", consumed: false } }] });
     const unchanged = new PersistentAprCrmIntegrationWorkflow(directory).snapshot();
     expect(unchanged).toMatchObject({ progress: { operatorRequired: 1, resumeReady: 0 }, items: [{ state: "operator_required", operatorResolution: null }] });
@@ -498,12 +636,12 @@ describe("dashboard HTTP e supervisore persistente", () => {
     planStore.heartbeat("executor-local", new Date("2026-08-14T17:00:02.000Z"));
     const supervisor = new LocalDashboardSupervisor(directory, { port: 0, heartbeatIntervalMs: 10_000 });
     runningSupervisors.push(supervisor);
-    const url = await supervisor.start();
+    const url = await startDashboard(supervisor);
 
-    const plan = await (await fetch(`${url}/api/execution-plan`)).json() as { status: string; bridgeRequired: boolean; executorId: string; items: Array<{ state: string }> };
+    const plan = await (await dashboardFetch(`${url}/api/execution-plan`)).json() as { status: string; bridgeRequired: boolean; executorId: string; items: Array<{ state: string }> };
     expect(plan).toMatchObject({ status: "running", bridgeRequired: false, executorId: "executor-local" });
     expect(plan.items.map((item) => item.state)).toEqual(["queued", "queued", "duplicate_input"]);
-    const html = await (await fetch(url)).text();
+    const html = await (await dashboardFetch(url)).text();
     expect(html).toContain("Piano locale persistente · bridge chat escluso");
     expect(html).toContain("executor-local");
     expect(html).toContain("Avvia APR");
@@ -514,22 +652,22 @@ describe("dashboard HTTP e supervisore persistente", () => {
     new PersistentEneaRunner(directory).initialize(DEFAULT_AUDITED_OPERATOR_QUEUE);
     const first = new LocalDashboardSupervisor(directory, { port: 0, heartbeatIntervalMs: 10_000 });
     runningSupervisors.push(first);
-    const firstUrl = await first.start();
-    const html = await (await fetch(firstUrl)).text();
+    const firstUrl = await startDashboard(first);
+    const html = await (await dashboardFetch(firstUrl)).text();
     const csrf = html.match(/action="\/shadow\/control\/start"[\s\S]*?name="csrf" value="([^"]+)"/)?.[1];
     expect(csrf).toBeTruthy();
 
-    const response = await fetch(`${firstUrl}/shadow/control/start`, { method: "POST", redirect: "manual", headers: { "Sec-Fetch-Site": "same-origin", "Content-Type": "application/x-www-form-urlencoded" }, body: `csrf=${encodeURIComponent(csrf!)}` });
+    const response = await dashboardFetch(`${firstUrl}/shadow/control/start`, { method: "POST", redirect: "manual", headers: { "Sec-Fetch-Site": "same-origin", "Content-Type": "application/x-www-form-urlencoded" }, body: `csrf=${encodeURIComponent(csrf!)}` });
     expect(response.status).toBe(303);
-    expect(await (await fetch(`${firstUrl}/api/shadow-control`)).json()).toMatchObject({ status: "armed", intakeAllowed: true, previewAllowed: false, submitAllowed: false, communicationsAllowed: false });
+    expect(await (await dashboardFetch(`${firstUrl}/api/shadow-control`)).json()).toMatchObject({ status: "armed", intakeAllowed: true, previewAllowed: false, submitAllowed: false, communicationsAllowed: false });
     await first.stop("Riavvio controllato test shadow.");
     runningSupervisors.splice(runningSupervisors.indexOf(first), 1);
 
     const restarted = new LocalDashboardSupervisor(directory, { port: 0, heartbeatIntervalMs: 10_000 });
     runningSupervisors.push(restarted);
-    const restartedUrl = await restarted.start();
-    expect(await (await fetch(`${restartedUrl}/api/shadow-control`)).json()).toMatchObject({ status: "armed", intakeAllowed: true, revision: 1 });
-    const restartedHtml = await (await fetch(restartedUrl)).text();
+    const restartedUrl = await startDashboard(restarted);
+    expect(await (await dashboardFetch(`${restartedUrl}/api/shadow-control`)).json()).toMatchObject({ status: "armed", intakeAllowed: true, revision: 1 });
+    const restartedHtml = await (await dashboardFetch(restartedUrl)).text();
     expect(restartedHtml).toContain("APR ATTIVO");
     expect(restartedHtml).toContain("Sospendi nuove prese in carico");
   });
@@ -539,18 +677,20 @@ describe("dashboard HTTP e supervisore persistente", () => {
     new PersistentEneaRunner(directory).initialize(DEFAULT_AUDITED_OPERATOR_QUEUE);
     const supervisor = new LocalDashboardSupervisor(directory, { port: 0, heartbeatIntervalMs: 10_000 });
     runningSupervisors.push(supervisor);
-    const url = await supervisor.start();
+    const url = await startDashboard(supervisor);
     supervisor.eneaBrowserWorker.configure({ setupEnabled: true, operationalEnabled: false });
-    const html = await (await fetch(url)).text();
+    const html = await (await dashboardFetch(url)).text();
     const csrf = html.match(/action="\/enea\/control\/emergency-stop"[\s\S]*?name="csrf" value="([^"]+)"/)?.[1];
     expect(csrf).toBeTruthy();
 
-    const response = await fetch(`${url}/enea/control/emergency-stop`, { method: "POST", redirect: "manual", headers: { "Sec-Fetch-Site": "same-origin", "Content-Type": "application/x-www-form-urlencoded" }, body: `csrf=${encodeURIComponent(csrf!)}` });
+    const response = await dashboardFetch(`${url}/enea/control/emergency-stop`, { method: "POST", redirect: "manual", headers: { "Sec-Fetch-Site": "same-origin", "Content-Type": "application/x-www-form-urlencoded" }, body: `csrf=${encodeURIComponent(csrf!)}` });
 
     expect(response.status).toBe(303);
     expect(response.headers.get("location")).toBe("/#apr-enea-worker");
-    expect(await (await fetch(`${url}/api/enea-browser-worker`)).json()).toMatchObject({ config: { setupEnabled: false, operationalEnabled: false }, emergencyStop: { signalOutcome: "stale_process_not_signalled", setupEnabled: false, operationalEnabled: false } });
-    expect(await (await fetch(`${url}/api/shadow-control`)).json()).toMatchObject({ status: "paused", intakeAllowed: false });
+    expect(await (await dashboardFetch(`${url}/api/enea-browser-worker`)).json()).toMatchObject({ config: { setupEnabled: false, operationalEnabled: false }, emergencyStop: { signalOutcome: "stale_process_not_signalled", setupEnabled: false, operationalEnabled: false } });
+    expect(await (await dashboardFetch(`${url}/api/shadow-control`)).json()).toMatchObject({ status: "paused", intakeAllowed: false });
+    expect(await (await dashboardFetch(`${url}/api/status`)).json()).toMatchObject({ lifecycleState: "stopped_by_operator", aprStatus: { publicStatus: expect.not.stringMatching(/^stopped_by_operator$/i) } });
+    expect(await (await dashboardFetch(`${url}/api/terminal-snapshot`)).json()).toMatchObject({ terminal: true, lifecycleState: "stopped_by_operator" });
   });
 
   it("rifiuta una seconda istanza mentre la lease del supervisore è attiva", async () => {
@@ -558,9 +698,9 @@ describe("dashboard HTTP e supervisore persistente", () => {
     new PersistentEneaRunner(directory).initialize(DEFAULT_AUDITED_OPERATOR_QUEUE);
     const first = new LocalDashboardSupervisor(directory, { port: 0, heartbeatIntervalMs: 10_000, instanceId: "supervisor-primary" });
     runningSupervisors.push(first);
-    await first.start();
+    await startDashboard(first);
     const second = new LocalDashboardSupervisor(directory, { port: 0, heartbeatIntervalMs: 10_000, instanceId: "supervisor-secondary" });
-    await expect(second.start()).rejects.toBeInstanceOf(SupervisorBusyError);
+    await expect(second.startInProcessForTest()).rejects.toBeInstanceOf(SupervisorBusyError);
   });
 
   it("mantiene vietato il vecchio avvio runner anche se la dashboard espone il gate SHADOW", async () => {
@@ -569,13 +709,13 @@ describe("dashboard HTTP e supervisore persistente", () => {
     runner.initialize(DEFAULT_AUDITED_OPERATOR_QUEUE);
     const supervisor = new LocalDashboardSupervisor(directory, { port: 0, heartbeatIntervalMs: 10_000 });
     runningSupervisors.push(supervisor);
-    const url = await supervisor.start();
-    const html = await (await fetch(url)).text();
+    const url = await startDashboard(supervisor);
+    const html = await (await dashboardFetch(url)).text();
     expect(html).toContain("Avvia APR");
     expect(html).toContain("abilita soltanto la presa in carico dalla pipeline Pronte da fare");
     expect(html).not.toContain("/actions/start-runner");
 
-    const rejected = await fetch(`${url}/actions/start-runner`, { method: "POST", redirect: "manual", headers: { Origin: url } });
+    const rejected = await dashboardFetch(`${url}/actions/start-runner`, { method: "POST", redirect: "manual", headers: { Origin: url } });
     expect(rejected.status).toBe(405);
     const afterAttempt = runner.load();
     expect(afterAttempt.runner.status).toBe("off");
@@ -616,8 +756,8 @@ describe("dashboard HTTP e supervisore persistente", () => {
 
     const supervisor = new LocalDashboardSupervisor(directory, { port: 0, heartbeatIntervalMs: 10_000 });
     runningSupervisors.push(supervisor);
-    const url = await supervisor.start();
-    const html = await (await fetch(url)).text();
+    const url = await startDashboard(supervisor);
+    const html = await (await dashboardFetch(url)).text();
     expect(html).toContain("Salvataggi pagina incerti");
     expect(html).toContain("Federica Fixture");
     expect(html).toContain("DRAFT-DASH");
@@ -629,7 +769,7 @@ describe("dashboard HTTP e supervisore persistente", () => {
     expect(html).toContain("Pagine mancanti");
     expect(html).toContain("page:Intervento");
     expect(html).toContain("Una bozza conta come salvata solo con tutte le pagine e le prove server");
-    const api = await (await fetch(`${url}/api/enea-draft-execution`)).json() as ReturnType<PersistentAprEneaDraftExecution["snapshot"]>;
+    const api = await (await dashboardFetch(`${url}/api/enea-draft-execution`)).json() as ReturnType<PersistentAprEneaDraftExecution["snapshot"]>;
     expect(api.items[0]).toMatchObject({ customerKey: "federica-fixture", uncertainPageSave: { status: "operator_required", probes: expect.arrayContaining([expect.objectContaining({ method: "persisted_fields_get" })]) } });
   });
 });

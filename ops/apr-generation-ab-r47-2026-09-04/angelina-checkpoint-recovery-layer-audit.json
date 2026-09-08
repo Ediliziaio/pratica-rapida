@@ -1,0 +1,95 @@
+{
+  "version": "apr-angelina-checkpoint-recovery-layer-audit-v1",
+  "observedAt": "2026-09-04T15:58:00+02:00",
+  "classification": "INCONSISTENT",
+  "decision": "do_not_resume_current_generation",
+  "customerKey": "angelina-stricelli",
+  "canonicalDraftId": "462287",
+  "findings": {
+    "writeAtomic": {
+      "isCurrentFailure": false,
+      "originalEventAt": "2026-09-04T12:01:37.787Z",
+      "source": "apr-generation-ab-r47-arm-a-rerun-2/sequencer.log",
+      "explanation": "Era un errore del sequencer gia corretto. Il codice corrente persiste con writeFileSync e il test del controller vieta writeAtomic nel sequencer. La dashboard continua a pubblicare quel vecchio terminale perche non e stato ritirato dopo la ricostruzione del checkpoint.",
+      "currentDashboardEffect": "stale_terminal_truth"
+    },
+    "currentWorkerFailure": {
+      "errorCode": "apr_enea_uncertain_page_save_resume_state_invalid",
+      "isSameAsWriteAtomic": false,
+      "explanation": "E un conflitto distinto tra uncertainty.status=recovery_authorized nel checkpoint e il gestore generico che accetta esclusivamente probing con identita prova coincidente."
+    },
+    "mutationHistoryMismatch": {
+      "checkpointRepresentation": {
+        "saveAttemptCount": 1,
+        "recoverySaveAttemptCount": 1
+      },
+      "cdpObservedSaveEvents": [
+        { "revision": 12, "at": "2026-09-04T11:52:45.401Z", "evidenceId": "cdp-server-12-0dfffba3e0cc0f783867" },
+        { "revision": 20, "at": "2026-09-04T11:54:45.169Z", "evidenceId": "cdp-server-20-0dfffba3e0cc0f783867" },
+        { "revision": 28, "at": "2026-09-04T11:56:48.594Z", "evidenceId": "cdp-server-28-0dfffba3e0cc0f783867" }
+      ],
+      "assessment": "La cronologia esterna prova tre invocazioni save_page_once sulla stessa pagina, mentre il checkpoint ricostruito esprime soltanto il modello logico primario+un recupero. Il ripristino e strutturalmente valido ma non e una rappresentazione fedele sufficiente per autorizzare un'altra mutazione."
+    },
+    "idempotencyHistory": {
+      "assessment": "Nel journal esistono action_started di verifiche precedenti con discriminatori derivati da revisioni e contatori. Una ricostruzione parziale puo collidere con comandi gia processati oppure generare una nuova identita per la stessa intenzione logica; questo confine deve essere auditato prima di qualunque ripresa."
+    },
+    "serverOutcome": {
+      "known": false,
+      "lastConclusiveNotSavedEvidence": "cdp-server-14-0dfffba3e0cc0f783867",
+      "laterReadOnlyEvidence": ["cdp-server-22-0dfffba3e0cc0f783867", "cdp-server-24-0dfffba3e0cc0f783867"],
+      "assessment": "Dopo i successivi tentativi non esiste nel checkpoint corrente una prova terminale concordante che consenta di dichiarare la pagina salvata o non salvata."
+    }
+  },
+  "remainingStructuralLayers": [
+    {
+      "layer": "resume_dispatch",
+      "status": "proven_defect",
+      "risk": "Il ramo recovery_authorized viene reinstradato nel gestore probing."
+    },
+    {
+      "layer": "mutation_budget_reconciliation",
+      "status": "proven_inconsistency",
+      "risk": "Tre eventi CDP non sono rappresentati fedelmente dal budget 1+1 ricostruito."
+    },
+    {
+      "layer": "idempotency_command_history",
+      "status": "credible_unresolved_risk",
+      "risk": "Comandi preesistenti possono essere saltati o rigenerati dopo una ricostruzione parziale."
+    },
+    {
+      "layer": "terminal_truth_retirement",
+      "status": "proven_defect",
+      "risk": "La dashboard continua a esporre writeAtomic storico e impedisce una tripla verifica concordante."
+    },
+    {
+      "layer": "remaining_portal_pages",
+      "status": "untested_for_this_generation",
+      "risk": "La pratica e ancora sulla prima di quattordici pagine; non e possibile garantire che non emergano difetti portale distinti."
+    }
+  ],
+  "estimate": {
+    "knownUnresolvedStructuralLayers": 3,
+    "knownObservabilityLayer": 1,
+    "additionalPlausibleRecoveryLayers": "1-3",
+    "confidenceThatCurrentResumeDefectIsLastObstacle": "low",
+    "recommendedCourse": "Accantonare la generazione corrente 462287 senza altre mutazioni. Prima di riprendere Angelina, chiudere con test locali esaustivi l'intero automa checkpoint/recovery e la riconciliazione CDP-checkpoint; quindi scegliere esplicitamente fra sola verifica read-only della bozza esistente e nuova generazione pulita autorizzata."
+  },
+  "threeSourceVerification": {
+    "processes": "Worker non caricato; supervisor, watchdog, keepalive e Chrome APR attivi.",
+    "persistentEvidence": "Checkpoint revision 3 conserva 462287 e budget logico 1/1; journal/CDP conserva tre save_page_once.",
+    "dashboard": "Espone ancora il terminale storico writeAtomic con zero blocker.",
+    "agreement": false,
+    "requiredVerdict": "INCONSISTENT"
+  },
+  "safety": {
+    "workerResumedForAudit": false,
+    "newDraftCreated": false,
+    "newSaveAttempted": false,
+    "previewPerformed": false,
+    "submitPerformed": false,
+    "communicationPerformed": false
+  },
+  "missingDocumentType": null,
+  "operatorQuestion": "Confermi di accantonare senza altre modifiche la bozza 462287 e autorizzare prima un audit locale completo dell'automa checkpoint/recovery, rinviando la scelta fra recupero read-only e nuova generazione pulita?",
+  "onboardingGap": null
+}

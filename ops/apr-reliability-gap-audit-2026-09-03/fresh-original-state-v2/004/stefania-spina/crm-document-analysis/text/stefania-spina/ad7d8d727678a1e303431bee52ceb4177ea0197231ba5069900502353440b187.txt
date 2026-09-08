@@ -1,0 +1,49 @@
+BONIFICO PER DETRAZIONE
+In base alla disposizione ricevuta, si conferma l’inserimento di un ordine di bonifico per detrazione fiscale tramite il servizio di internet banking di
+BNL, come di seguito
+DETTAGLIO
+Numero operazione Stato operazione
+120510903 Eseguita
+Data immissione ordine Data esecuzione
+2026-07-14 2026-07-14
+Data esecuzione effettiva Data valuta regolamento
+2026-07-14 2026-07-15
+Importo Commissioni
+10.139,93 0,00
+Codice ordinante CRI C/C Addebito
+2620009929567 01005 03800 000000018187
+Codice ordinante CRO
+82034542011
+ORDINANTE
+Nome Cognome/Ragione sociale
+STEFANIA SPINA
+FRUITORE DELLA DETRAZIONE
+Codice Fiscale del fruitore della detrazione SPNSFN88R53B519S
+Altro codice fiscale 2 Altro codice fiscale 4
+Altro codice fiscale 1
+Altro codice fiscale 3
+Detrazioni per
+Riqualificazione Energetica - Art.1, comma da 344 a 347, L.296/2006
+0116R800420240801
+Pagina 1 di 2
+
+BENEFICIARIO
+Stato: IT
+Tipo Soggetto: Persona Giuridica
+Nome Cognome/Ragione sociale
+ERRE EMME SRL
+IBAN
+IT05U0200815703000010389704
+Indirizzo CAP
+VIA ALESSANDRO MANZONI, 30 71121
+Comune Provincia
+FOGGIA FG
+Codice fiscale / Partita IVA Società
+03265930713
+Banca Agenzia
+UNICREDIT S.P.A.
+Causale
+saldo fattura d acconto 187F del 29 06 2026
+BANCA NAZIONALE DEL LAVORO S.p.a
+0116R800420240801
+Pagina 2 di 2

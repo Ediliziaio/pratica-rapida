@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, realpathSync } from "node:fs";
 import { readFile } from "node:fs/promises";
+import path from "node:path";
 import { buildCrmLocalPreflightReport } from "./crmLocalPreflight";
 import { extractBankTransferEvidences } from "./bankTransferEvidence";
 import { extractLocalInvoiceFinancialEvidence } from "./localInvoiceFinancialEvidence";
@@ -36,6 +37,20 @@ interface AnalysisItem {
 
 export interface AnalysisCheckpoint { items: AnalysisItem[] }
 
+interface AcquisitionItem {
+  customerKey: string;
+  expectedPracticeId?: string | null;
+  practiceId?: string | null;
+  dossierPath?: string | null;
+  responseSha256?: string | null;
+  state?: string | null;
+}
+
+interface AcquisitionCheckpoint {
+  status?: string | null;
+  items?: AcquisitionItem[];
+}
+
 export interface AprEconomicCorpusReplayReport {
   schemaVersion: typeof APR_ECONOMIC_CORPUS_REPLAY_VERSION;
   caseCount: number;
@@ -56,10 +71,10 @@ export interface AprEconomicCorpusReplayReport {
 const sha256Text = (value: string) => createHash("sha256").update(value).digest("hex");
 const roundMoney = (value: number) => Math.round((value + Number.EPSILON) * 100) / 100;
 
-function fiscalSegment(text: string) {
+export function isFiscalInvoiceSegment(text: string) {
   const bankEvidence = extractBankTransferEvidences("probe", text);
   if (!bankEvidence.length) return true;
-  return /\b(?:totale\s+(?:documento|fattura|imponibile|iva)|riepilogo\s+iva|calcolo\s+fattura|imponibile\s+(?:iva|aliquota))\b/i.test(text);
+  return /\b(?:iva|imponibile|tipo\s+documento|num\.\s*doc\.?|dati\s+generali\s+documento|riepilogh(?:i|o)\s+iva|calcolo\s+fattura)\b/i.test(text);
 }
 
 export function observedEconomicInput(item: ManifestCase, analysis: AnalysisCheckpoint): AprEconomicFactsInput {
@@ -94,7 +109,8 @@ export function observedEconomicInput(item: ManifestCase, analysis: AnalysisChec
     documentKey: document.documentKey,
     text,
     extractionMode: document.extractionMode ?? "macos_vision_ocr",
-  })).filter((segment) => ["invoice", "credit_note"].includes(segment.result.documentType) && fiscalSegment(segment.text));
+  })).filter((segment) => ["invoice", "credit_note"].includes(segment.result.documentType)
+    && isFiscalInvoiceSegment(segment.text));
   const reconciled = reconcileLocalInvoiceSegments(segments);
   const documentByKey = new Map(documents.map((document) => [document.documentKey, document]));
   const invoices = reconciled.observedFinancialSegments.map((segment) => {
@@ -143,6 +159,70 @@ export function runEconomicVerticalForManifestCase(manifestPath: string, custome
   const manifest = JSON.parse(readFileSync(manifestPath, "utf8")) as { cases: ManifestCase[] };
   const item = manifest.cases.find((candidate) => candidate.customerKey === customerKey);
   if (!item) throw new Error(`apr_economic_manifest_case_missing:${customerKey}`);
+  const analysis = JSON.parse(readFileSync(item.evidence.analysisCheckpoint, "utf8")) as AnalysisCheckpoint;
+  return runEconomicVertical(observedEconomicInput(item, analysis));
+}
+
+function currentArtifactFile(stateDir: string, artifactPath: string, errorCode: string) {
+  const root = realpathSync(stateDir);
+  const candidate = realpathSync(artifactPath);
+  const relative = path.relative(root, candidate);
+  if (!relative || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) {
+    throw new Error(`${errorCode}:${artifactPath}`);
+  }
+  return candidate;
+}
+
+function sha256Evidence(value: unknown): value is string {
+  return typeof value === "string" && /^[a-f0-9]{64}$/i.test(value);
+}
+
+export function resolveCurrentCohortManifestCase(stateDir: string, customerKey: string): ManifestCase {
+  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(customerKey)) {
+    throw new Error(`apr_economic_current_customer_key_invalid:${customerKey}`);
+  }
+  const root = realpathSync(path.resolve(stateDir));
+  const acquisitionPath = currentArtifactFile(root, path.join(root, "crm-acquisition", "checkpoint.json"), "apr_economic_current_acquisition_outside_state");
+  const analysisPath = currentArtifactFile(root, path.join(root, "crm-document-analysis", "checkpoint.json"), "apr_economic_current_analysis_outside_state");
+  const acquisition = JSON.parse(readFileSync(acquisitionPath, "utf8")) as AcquisitionCheckpoint;
+  const analysis = JSON.parse(readFileSync(analysisPath, "utf8")) as AnalysisCheckpoint & { status?: string | null };
+  if (acquisition.status !== "completed") throw new Error(`apr_economic_current_acquisition_not_completed:${customerKey}`);
+  if (analysis.status !== "completed" || !Array.isArray(analysis.items)) throw new Error(`apr_economic_current_analysis_not_completed:${customerKey}`);
+  const acquisitions = (acquisition.items ?? []).filter((item) => item.customerKey === customerKey);
+  if (acquisitions.length !== 1) throw new Error(`apr_economic_current_acquisition_case_count:${customerKey}:${acquisitions.length}`);
+  const acquired = acquisitions[0];
+  if (acquired.state !== "acquired") throw new Error(`apr_economic_current_case_not_acquired:${customerKey}`);
+  const practiceId = acquired.practiceId?.trim() ?? "";
+  if (!practiceId || (acquired.expectedPracticeId && acquired.expectedPracticeId !== practiceId)) {
+    throw new Error(`apr_economic_current_practice_identity_mismatch:${customerKey}`);
+  }
+  if (!acquired.dossierPath) throw new Error(`apr_economic_current_dossier_missing:${customerKey}`);
+  const dossierPath = currentArtifactFile(root, acquired.dossierPath, "apr_economic_current_dossier_outside_state");
+  const dossier = JSON.parse(readFileSync(dossierPath, "utf8")) as { row?: { id?: unknown } };
+  if (dossier.row?.id !== practiceId) throw new Error(`apr_economic_current_dossier_identity_mismatch:${customerKey}`);
+  const analysisItems = analysis.items.filter((item) => item.customerKey === customerKey);
+  if (analysisItems.length === 0) throw new Error(`apr_economic_current_analysis_case_missing:${customerKey}`);
+  for (const item of analysisItems) {
+    if (item.textPath) currentArtifactFile(root, item.textPath, "apr_economic_current_text_outside_state");
+  }
+  const sourceSha256 = [
+    acquired.responseSha256,
+    ...analysisItems.flatMap((item) => [item.sourceSha256, item.textSha256]),
+  ].filter(sha256Evidence);
+  if (sourceSha256.length === 0) throw new Error(`apr_economic_current_source_fingerprint_missing:${customerKey}`);
+  return {
+    practiceId,
+    customerKey,
+    evidence: {
+      dossierPath,
+      analysisCheckpoint: analysisPath,
+      sourceSha256: [...new Set(sourceSha256)].sort(),
+    },
+  };
+}
+
+export function runEconomicVerticalForCurrentCohort(stateDir: string, customerKey: string) {
+  const item = resolveCurrentCohortManifestCase(stateDir, customerKey);
   const analysis = JSON.parse(readFileSync(item.evidence.analysisCheckpoint, "utf8")) as AnalysisCheckpoint;
   return runEconomicVertical(observedEconomicInput(item, analysis));
 }

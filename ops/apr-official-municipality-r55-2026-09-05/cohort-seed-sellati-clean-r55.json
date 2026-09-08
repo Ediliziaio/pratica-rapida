@@ -1,0 +1,14 @@
+{
+  "version": "apr-cohort-seed-v1",
+  "sourceEvidenceId": "user-2026-09-05-sellati-official-municipality-clean-r55",
+  "candidates": [{
+    "customerKey": "claudia-sellati",
+    "displayName": "CLAUDIA SELLATI",
+    "practiceId": "58f03680-c716-42e7-ad7d-e3ceaee5573d",
+    "expectedStageType": "archiviate",
+    "productModule": "infissi"
+  }],
+  "authorizedSingleCase": { "authorizationId": "user-2026-09-05-sellati-official-municipality-clean-r55" },
+  "draftGenerationPolicy": { "mode": "fresh_generation", "experimentId": "apr-sellati-clean-r55-2026-09-05" },
+  "historicalRetest": { "authorizationId": "user-2026-09-05-sellati-official-municipality-clean-r55", "preservePriorDrafts": true }
+}

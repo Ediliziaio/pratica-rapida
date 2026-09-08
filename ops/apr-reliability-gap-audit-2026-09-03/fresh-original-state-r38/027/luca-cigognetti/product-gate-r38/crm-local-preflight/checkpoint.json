@@ -1,0 +1,434 @@
+{
+  "version": "apr-crm-local-preflight-v1",
+  "revision": 1,
+  "status": "completed",
+  "sourceFingerprint": "5a3bbef519366f27bc9958c34be6eace7d2293b32b0a34208f6f3126831160b4",
+  "currentCustomerKey": null,
+  "items": [
+    {
+      "customerKey": "luca-cigognetti",
+      "displayName": "Luca Cigognetti",
+      "practiceId": "77c5e8b6-34f8-4f1b-830a-526addefdd7d",
+      "dossierPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2947-global-controller-luca-cigognetti/crm-acquisition/dossiers/luca-cigognetti.json",
+      "state": "ready_local_plan",
+      "attemptCount": 1,
+      "startedAt": null,
+      "endedAt": null,
+      "report": {
+        "outcome": "ready_local_plan",
+        "formAvailable": true,
+        "startDate": "2026-03-24",
+        "startDateSource": "e8ea526211a76c1dd6b96b631d694324a33602e8fd492118505157a616ee5191:invoice:0153b14e9631",
+        "completionDate": "2026-03-24",
+        "completionDateSource": "e8ea526211a76c1dd6b96b631d694324a33602e8fd492118505157a616ee5191:invoice:0153b14e9631",
+        "buildingQualification": "single_unit",
+        "buildingUnitCount": 1,
+        "deductionRate": null,
+        "taxCodeStatus": "verified_original_document",
+        "resolvedTaxCode": "CGGLCU81T26E349T",
+        "taxCodeSourceIds": [
+          "e8ea526211a76c1dd6b96b631d694324a33602e8fd492118505157a616ee5191"
+        ],
+        "primaryBeneficiaryResolution": {
+          "status": "not_found",
+          "identity": null,
+          "sourceIds": [],
+          "authority": null
+        },
+        "coBeneficiaryResolution": {
+          "status": "not_declared",
+          "present": false,
+          "identity": null,
+          "sourceIds": []
+        },
+        "products": [
+          {
+            "rowId": "36ceff70cf647695a77c03c28674fd46b97bffce9f662e735ca53290da4bd002:piece-1",
+            "sourceDocumentKey": "36ceff70cf647695a77c03c28674fd46b97bffce9f662e735ca53290da4bd002",
+            "description": "Avvolgibile in alluminio",
+            "pieceNumber": 1,
+            "widthMm": 1545,
+            "heightMm": 1700,
+            "surfaceM2": 2.6265,
+            "exposure": null,
+            "exposureSource": null,
+            "protectedWindowSurfaceM2": 2.6265,
+            "protectedWindowSurfaceSource": "derived_product_surface",
+            "supplementaryThermalResistance": 0.17,
+            "declaredType": "avvolgibile",
+            "formMappingSource": null,
+            "gTot": 0.06,
+            "gTotSource": "authorized_fallback",
+            "material": "Metallo",
+            "materialSource": "invoice_explicit",
+            "movement": "Manuale",
+            "movementSource": "authorized_fallback",
+            "appliedRuleIds": [
+              "user-2026-08-31-rigid-screening-missing-gtot-006-v1",
+              "user-2026-08-31-avvolgibile-screening-contract-v2",
+              "authorized-22-schermature-materiale",
+              "authorized-16-schermature-meccanismo",
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+              "user-2026-08-18-explicit-technical-surface-precision"
+            ]
+          },
+          {
+            "rowId": "36ceff70cf647695a77c03c28674fd46b97bffce9f662e735ca53290da4bd002:piece-2",
+            "sourceDocumentKey": "36ceff70cf647695a77c03c28674fd46b97bffce9f662e735ca53290da4bd002",
+            "description": "Avvolgibile in alluminio",
+            "pieceNumber": 2,
+            "widthMm": 1545,
+            "heightMm": 1700,
+            "surfaceM2": 2.6265,
+            "exposure": null,
+            "exposureSource": null,
+            "protectedWindowSurfaceM2": 2.6265,
+            "protectedWindowSurfaceSource": "derived_product_surface",
+            "supplementaryThermalResistance": 0.17,
+            "declaredType": "avvolgibile",
+            "formMappingSource": null,
+            "gTot": 0.06,
+            "gTotSource": "authorized_fallback",
+            "material": "Metallo",
+            "materialSource": "invoice_explicit",
+            "movement": "Manuale",
+            "movementSource": "authorized_fallback",
+            "appliedRuleIds": [
+              "user-2026-08-31-rigid-screening-missing-gtot-006-v1",
+              "user-2026-08-31-avvolgibile-screening-contract-v2",
+              "authorized-22-schermature-materiale",
+              "authorized-16-schermature-meccanismo",
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+              "user-2026-08-18-explicit-technical-surface-precision"
+            ]
+          },
+          {
+            "rowId": "36ceff70cf647695a77c03c28674fd46b97bffce9f662e735ca53290da4bd002:piece-3",
+            "sourceDocumentKey": "36ceff70cf647695a77c03c28674fd46b97bffce9f662e735ca53290da4bd002",
+            "description": "Avvolgibile in alluminio",
+            "pieceNumber": 3,
+            "widthMm": 1545,
+            "heightMm": 1700,
+            "surfaceM2": 2.6265,
+            "exposure": null,
+            "exposureSource": null,
+            "protectedWindowSurfaceM2": 2.6265,
+            "protectedWindowSurfaceSource": "derived_product_surface",
+            "supplementaryThermalResistance": 0.17,
+            "declaredType": "avvolgibile",
+            "formMappingSource": null,
+            "gTot": 0.06,
+            "gTotSource": "authorized_fallback",
+            "material": "Metallo",
+            "materialSource": "invoice_explicit",
+            "movement": "Manuale",
+            "movementSource": "authorized_fallback",
+            "appliedRuleIds": [
+              "user-2026-08-31-rigid-screening-missing-gtot-006-v1",
+              "user-2026-08-31-avvolgibile-screening-contract-v2",
+              "authorized-22-schermature-materiale",
+              "authorized-16-schermature-meccanismo",
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+              "user-2026-08-18-explicit-technical-surface-precision"
+            ]
+          },
+          {
+            "rowId": "36ceff70cf647695a77c03c28674fd46b97bffce9f662e735ca53290da4bd002:piece-4",
+            "sourceDocumentKey": "36ceff70cf647695a77c03c28674fd46b97bffce9f662e735ca53290da4bd002",
+            "description": "Avvolgibile in alluminio",
+            "pieceNumber": 4,
+            "widthMm": 1545,
+            "heightMm": 1700,
+            "surfaceM2": 2.6265,
+            "exposure": null,
+            "exposureSource": null,
+            "protectedWindowSurfaceM2": 2.6265,
+            "protectedWindowSurfaceSource": "derived_product_surface",
+            "supplementaryThermalResistance": 0.17,
+            "declaredType": "avvolgibile",
+            "formMappingSource": null,
+            "gTot": 0.06,
+            "gTotSource": "authorized_fallback",
+            "material": "Metallo",
+            "materialSource": "invoice_explicit",
+            "movement": "Manuale",
+            "movementSource": "authorized_fallback",
+            "appliedRuleIds": [
+              "user-2026-08-31-rigid-screening-missing-gtot-006-v1",
+              "user-2026-08-31-avvolgibile-screening-contract-v2",
+              "authorized-22-schermature-materiale",
+              "authorized-16-schermature-meccanismo",
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+              "user-2026-08-18-explicit-technical-surface-precision"
+            ]
+          },
+          {
+            "rowId": "36ceff70cf647695a77c03c28674fd46b97bffce9f662e735ca53290da4bd002:piece-5",
+            "sourceDocumentKey": "36ceff70cf647695a77c03c28674fd46b97bffce9f662e735ca53290da4bd002",
+            "description": "Avvolgibile in alluminio",
+            "pieceNumber": 5,
+            "widthMm": 1545,
+            "heightMm": 1700,
+            "surfaceM2": 2.6265,
+            "exposure": null,
+            "exposureSource": null,
+            "protectedWindowSurfaceM2": 2.6265,
+            "protectedWindowSurfaceSource": "derived_product_surface",
+            "supplementaryThermalResistance": 0.17,
+            "declaredType": "avvolgibile",
+            "formMappingSource": null,
+            "gTot": 0.06,
+            "gTotSource": "authorized_fallback",
+            "material": "Metallo",
+            "materialSource": "invoice_explicit",
+            "movement": "Manuale",
+            "movementSource": "authorized_fallback",
+            "appliedRuleIds": [
+              "user-2026-08-31-rigid-screening-missing-gtot-006-v1",
+              "user-2026-08-31-avvolgibile-screening-contract-v2",
+              "authorized-22-schermature-materiale",
+              "authorized-16-schermature-meccanismo",
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+              "user-2026-08-18-explicit-technical-surface-precision"
+            ]
+          },
+          {
+            "rowId": "36ceff70cf647695a77c03c28674fd46b97bffce9f662e735ca53290da4bd002:piece-6",
+            "sourceDocumentKey": "36ceff70cf647695a77c03c28674fd46b97bffce9f662e735ca53290da4bd002",
+            "description": "Avvolgibile in alluminio",
+            "pieceNumber": 6,
+            "widthMm": 910,
+            "heightMm": 1700,
+            "surfaceM2": 1.547,
+            "exposure": null,
+            "exposureSource": null,
+            "protectedWindowSurfaceM2": 1.547,
+            "protectedWindowSurfaceSource": "derived_product_surface",
+            "supplementaryThermalResistance": 0.17,
+            "declaredType": "avvolgibile",
+            "formMappingSource": null,
+            "gTot": 0.06,
+            "gTotSource": "authorized_fallback",
+            "material": "Metallo",
+            "materialSource": "invoice_explicit",
+            "movement": "Manuale",
+            "movementSource": "authorized_fallback",
+            "appliedRuleIds": [
+              "user-2026-08-31-rigid-screening-missing-gtot-006-v1",
+              "user-2026-08-31-avvolgibile-screening-contract-v2",
+              "authorized-22-schermature-materiale",
+              "authorized-16-schermature-meccanismo",
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+              "user-2026-08-18-explicit-technical-surface-precision"
+            ]
+          },
+          {
+            "rowId": "36ceff70cf647695a77c03c28674fd46b97bffce9f662e735ca53290da4bd002:piece-7",
+            "sourceDocumentKey": "36ceff70cf647695a77c03c28674fd46b97bffce9f662e735ca53290da4bd002",
+            "description": "Avvolgibile in alluminio",
+            "pieceNumber": 7,
+            "widthMm": 915,
+            "heightMm": 1700,
+            "surfaceM2": 1.5555,
+            "exposure": null,
+            "exposureSource": null,
+            "protectedWindowSurfaceM2": 1.5555,
+            "protectedWindowSurfaceSource": "derived_product_surface",
+            "supplementaryThermalResistance": 0.17,
+            "declaredType": "avvolgibile",
+            "formMappingSource": null,
+            "gTot": 0.06,
+            "gTotSource": "authorized_fallback",
+            "material": "Metallo",
+            "materialSource": "invoice_explicit",
+            "movement": "Manuale",
+            "movementSource": "authorized_fallback",
+            "appliedRuleIds": [
+              "user-2026-08-31-rigid-screening-missing-gtot-006-v1",
+              "user-2026-08-31-avvolgibile-screening-contract-v2",
+              "authorized-22-schermature-materiale",
+              "authorized-16-schermature-meccanismo",
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+              "user-2026-08-18-explicit-technical-surface-precision"
+            ]
+          }
+        ],
+        "financial": {
+          "invoiceTotal": 12772.4,
+          "eligibleExpense": 12772.4,
+          "tripleReconciliationVerified": true,
+          "reconciledTotal": 12772.4,
+          "evidence": [
+            {
+              "sourceId": "e8ea526211a76c1dd6b96b631d694324a33602e8fd492118505157a616ee5191:invoice:0153b14e9631",
+              "kind": "invoice",
+              "taxableAmount": 11611.27,
+              "vatAmount": 1161.13,
+              "grossTotal": 12772.4,
+              "interventionGrossAmount": 12772.4,
+              "extractionConfidence": "certain",
+              "extractionIssues": []
+            }
+          ],
+          "bankTransfers": [],
+          "bankTransferReconciliation": {
+            "status": "not_provided",
+            "principalTotal": null,
+            "feesTotal": null,
+            "debitedTotal": null,
+            "difference": null,
+            "referenceStatus": "not_provided",
+            "missingInvoiceReferences": [],
+            "taxReliefTypes": []
+          },
+          "methods": [
+            {
+              "method": "structured_extraction",
+              "ok": true,
+              "total": 12772.4,
+              "sources": [
+                "e8ea526211a76c1dd6b96b631d694324a33602e8fd492118505157a616ee5191:invoice:0153b14e9631"
+              ],
+              "reason": "Ogni documento ha imponibile, IVA e totale verificati."
+            },
+            {
+              "method": "accounting_reconciliation",
+              "ok": true,
+              "total": 12772.4,
+              "sources": [
+                "e8ea526211a76c1dd6b96b631d694324a33602e8fd492118505157a616ee5191:invoice:0153b14e9631"
+              ],
+              "reason": "Somma dei totali lordi IVA inclusa delle fatture uniche deduplicate; gli storni interni sono solo note auditabili."
+            },
+            {
+              "method": "intervention_cross_check",
+              "ok": true,
+              "total": 12772.4,
+              "sources": [
+                "e8ea526211a76c1dd6b96b631d694324a33602e8fd492118505157a616ee5191:invoice:0153b14e9631"
+              ],
+              "reason": "Totale ricostruito esclusivamente dalle righe pertinenti all'intervento."
+            }
+          ],
+          "discardedDuplicateSourceIds": [],
+          "supersededTechnicalSourceIds": [],
+          "appliedRuleIds": [
+            "user-2026-08-16-invoice-gross-total-vat-included",
+            "user-2026-08-18-bundled-professional-expense-separation",
+            "user-2026-08-18-mandatory-bank-transfer-invoice-expense-cross-check",
+            "core-gross-triple-reconciliation",
+            "user-2026-08-14-preserve-technical-product-cardinality",
+            "system-explicit-advance-invoice-reference-marker-v1"
+          ]
+        },
+        "warnings": [
+          {
+            "code": "original_non_fiscal_technical_source_applied",
+            "reason": "7 prodotti fisici ricavati da scheda tecnica/preventivo originario; nessun importo della fonte non fiscale e stato usato.",
+            "appliedRuleIds": [
+              "user-2026-08-23-documented-product-module-over-label",
+              "user-2026-08-14-preserve-technical-product-cardinality"
+            ]
+          },
+          {
+            "code": "crm_fiscal_code_confirmed_by_invoice_customer_block",
+            "reason": "CF CRM CGGLCU81T26E349T confermato nel blocco CLIENTE di una fattura originaria, con checksum e prefissi fiscali di nome/cognome concordanti.",
+            "appliedRuleIds": [
+              "system-invoice-customer-block-crm-cf-v1",
+              "user-2026-08-16-fiscal-code-identity-cross-check"
+            ]
+          },
+          {
+            "code": "enea_2026_june_25_ninety_day_window_applied",
+            "reason": "Avviso ENEA 25/06/2026 applicato: inizio lavori 2026-03-24, fine lavori 2026-03-24; i 90 giorni decorrono dal 25/06/2026 e terminano il 23/09/2026.",
+            "appliedRuleIds": [
+              "user-2026-08-23-enea-2026-june-25-ninety-day-window"
+            ]
+          }
+        ],
+        "blockers": [],
+        "sourceIds": [
+          "e8ea526211a76c1dd6b96b631d694324a33602e8fd492118505157a616ee5191",
+          "36ceff70cf647695a77c03c28674fd46b97bffce9f662e735ca53290da4bd002"
+        ],
+        "eneaPayloadAudit": {
+          "status": "payload_complete",
+          "mappingFingerprint": "1kng28a",
+          "fieldSummary": {
+            "ready": 125,
+            "review": 0,
+            "missing": 1
+          },
+          "requiredPortalFieldCount": 114,
+          "blockerCount": 0,
+          "blockers": [],
+          "excludedUnverifiedFields": [
+            "immobile.provincia",
+            "immobile.codice_comune",
+            "immobile.zona_climatica",
+            "immobile.gradi_giorno",
+            "documenti.fatture",
+            "documenti.bonifico",
+            "documenti.tecnici"
+          ],
+          "draftReady": true,
+          "officialSubmissionAllowed": false,
+          "portalGate": {
+            "status": "ready",
+            "reason": null,
+            "workflowFingerprint": "1kng28a:114:7",
+            "supportedPages": [
+              "Generatore dell'impianto termico",
+              "Anagrafica Beneficiario",
+              "Immobile",
+              "Intervento",
+              "Impianto termico esistente",
+              "Schermature solari",
+              "Calcolo costi e detrazioni"
+            ],
+            "screeningItemCount": 7,
+            "saveAllowedOnlyBySeparateCapability": true,
+            "previewAllowed": false,
+            "submitAllowed": false
+          },
+          "externalActionAllowed": false,
+          "reason": "Payload TEST completo per la sola bozza salvata; anteprima e submit restano vietati."
+        },
+        "draftPlan": {
+          "status": "ready_before_external_action",
+          "externalActionAllowed": false,
+          "previewAllowed": false,
+          "submitAllowed": false,
+          "communicationsAllowed": false,
+          "nextAction": "Piano locale pronto; fermo prima di ENEA."
+        }
+      },
+      "reason": "Fresh replay dai documenti originali"
+    }
+  ],
+  "externalActionAllowed": false,
+  "reason": "Fresh replay locale",
+  "nextAction": "Nessuna azione esterna.",
+  "validationRevisionsApplied": [],
+  "sourceRevisionsApplied": [],
+  "operatorMeasurementResolutions": [],
+  "audit": [
+    {
+      "revision": 1,
+      "at": "2026-09-03T10:00:00.000Z",
+      "type": "completed",
+      "customerKey": null,
+      "reason": "Fresh replay locale",
+      "appliedRuleIds": [
+        "system-single-active-practice"
+      ]
+    }
+  ]
+}

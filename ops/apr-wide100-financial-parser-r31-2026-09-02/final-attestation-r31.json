@@ -1,0 +1,57 @@
+{
+  "version": "apr-financial-parser-r31-final-attestation-v1",
+  "verifiedAt": "2026-09-02T21:56:00Z",
+  "status": "completed_verified",
+  "bundle": "versions/5156569e-resolved-non-economic-blocker-r31-20260902",
+  "tripleVerification": {
+    "launchctlAndProcesses": {
+      "remainingNineSequencer": "unloaded_after_terminal_exit_0",
+      "keepaliveLabel": "com.praticarapida.apr-enea-immortal-keepalive",
+      "keepaliveState": "running",
+      "keepalivePid": 35873,
+      "chromePid": 3785
+    },
+    "persistentReportsAndCheckpoints": {
+      "reviewedEight": "8_terminal_operator_required",
+      "mauriziaReplay": "terminal_operator_required_non_financial_only",
+      "remainingNine": "9_terminal_operator_required",
+      "technicalBlock": 0,
+      "inconsistent": 0
+    },
+    "dashboardOrTerminalSnapshots": {
+      "snapshots": 17,
+      "terminal": 17,
+      "consistent": 17,
+      "blockedCase": 17,
+      "totalResidualBlockers": 53
+    }
+  },
+  "manualComparison": {
+    "confirmedAprFinancialReadingErrorsResolved": 7,
+    "gabrieleGirelliMissingInvoiceStillBlocked": true,
+    "mauriziaCoreggioliFinancialReconciliation": "5000/5000 triple_green",
+    "mauriziaRetiredBlocker": "invoice_929a8665"
+  },
+  "safety": {
+    "preview": false,
+    "submit": false,
+    "protocol": false,
+    "receipts": false,
+    "email": false,
+    "communications": false
+  },
+  "artifacts": {
+    "finalReportJson": {
+      "path": "ops/apr-wide100-financial-parser-r31-2026-09-02/final-report-r31.json",
+      "sha256": "ed35d7a161ecc3836b433811bea161e351f80f2a4618dc16f601e528fc1884fe"
+    },
+    "finalReportMarkdown": {
+      "path": "ops/apr-wide100-financial-parser-r31-2026-09-02/final-report-r31.md",
+      "sha256": "6430dad444225382a4354bbfe21d72ed8c63ae5ebb1f1939875507c167c70f22"
+    },
+    "operatorQuestions": {
+      "path": "ops/apr-wide100-financial-parser-r31-2026-09-02/operator-questions-r31.json",
+      "sha256": "3a1239893e8c8ae81d0588c305d3a8a29a1c4aec3412186913464e13f4c497cb"
+    }
+  }
+}

@@ -1,0 +1,214 @@
+{
+  "version": "apr-targeted-excel-ready-r70-final-verified-report-v1",
+  "generatedAt": "2026-09-06T18:45:00Z",
+  "scope": {
+    "manifest": "ops/apr-targeted-excel-ready-r70-2026-09-06/manifest.json",
+    "manifestSha256": "0d46008ad03b39c4be75b97e2f2b4580889c41e8e9dede0f79bc85cba4aca711",
+    "caseCount": 12,
+    "cohorts": "3413-3424",
+    "runRoot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-targeted-excel-ready-r70-retry1-20260906",
+    "startedAt": "2026-09-06T18:19:48.358Z",
+    "endedAt": "2026-09-06T18:33:05.446Z"
+  },
+  "configuration": {
+    "allowedStages": ["archiviate", "recensione", "pronte_da_fare", "gestionale"],
+    "bundleVersion": "3a865dd6-gestionale-formal-governance-r70-20260906",
+    "workerSha256": "3a865dd6153c967c1fe6a02d2236bbafa6305a36c627819b46d398a6c0e75ded",
+    "governanceAttestationSha256": "889c497cda46b0a688984b0878ca21e64fbf2280187e3f2deebe4a3faf2aab1d",
+    "ruleEvidenceCount": 151,
+    "formalGate": "1786/1786 passed"
+  },
+  "verifiedTotals": {
+    "saved": 0,
+    "operator_required": 10,
+    "technical_block": 1,
+    "inconsistent": 1
+  },
+  "safety": {
+    "previewAttempted": false,
+    "submitAttempted": false,
+    "communicationsAttempted": false,
+    "draftsCreated": 0
+  },
+  "verificationMethod": [
+    "checkpoint persistente della singola coorte",
+    "report.blockers persistente della singola coorte",
+    "snapshot terminal-observability / caseTruth della singola coorte",
+    "journal del controller esterno e stato launchctl/processi per la chiusura del lotto"
+  ],
+  "cases": [
+    {
+      "cohort": 3413,
+      "name": "Giovanni Pietro Sanvito",
+      "practiceId": "562ef10a-2ced-43bd-9eaf-59aeedba7f3d",
+      "pipeline": "Da inserire su Excel",
+      "classification": "OPERATOR_REQUIRED",
+      "exactCause": [
+        "Le fatture non identificano in modo univoco un solo cointestatario persona fisica con nome, cognome e codice fiscale valido.",
+        "La tripla riconciliazione economica non è dimostrata per il segmento fattura 6be71ddd60422f77dcdac0615c22ae719bfc1a9e526e7fb80f0c5d2e1c07668c:invoice:264f0ccd0374."
+      ],
+      "missingDocumentType": "documento ufficiale o fiscale che identifichi univocamente il cointestatario e documento fiscale leggibile con imponibile, IVA e totale lordo",
+      "operatorQuestion": "Indica nome, cognome e codice fiscale del cointestatario corretto e conferma imponibile, IVA e totale lordo della fattura coinvolta.",
+      "onboardingGap": "Raccogliere in campi strutturati l'identità completa del cointestatario e una fattura con terna economica leggibile."
+    },
+    {
+      "cohort": 3414,
+      "name": "Antonio Sacco",
+      "practiceId": "d88895ce-3b15-4b3f-800a-7cbfe0139246",
+      "pipeline": "Da inserire su Excel",
+      "classification": "INCONSISTENT",
+      "exactCause": [
+        "L'acquisizione CRM ha riconosciuto il fornitore relazionato 'rm legno' e ha applicato l'esclusione permanente prima del download/analisi degli allegati.",
+        "Il checkpoint e il report della coorte sono rimasti WORKING senza blocker e senza caseTruth terminale; il controller esterno l'ha invece chiusa come TECHNICAL_BLOCK dopo 7 minuti senza avanzamento materiale."
+      ],
+      "missingDocumentType": null,
+      "operatorQuestion": "Puoi prendere in carico manualmente questa pratica, essendo collegata a RM Legno?",
+      "onboardingGap": "Nessuno: è un'esclusione fornitore; manca la corretta pubblicazione terminale OPERATOR_REQUIRED."
+    },
+    {
+      "cohort": 3415,
+      "name": "Tanbir Awal",
+      "practiceId": "6ff95940-9371-4ad1-b5ad-bf3c06b5a807",
+      "pipeline": "Da inserire su Excel",
+      "classification": "OPERATOR_REQUIRED",
+      "exactCause": [
+        "Le fatture non identificano in modo univoco un solo cointestatario persona fisica con nome, cognome e codice fiscale valido.",
+        "Il preflight ha inoltre rilevato assenza di una riga schermatura riconciliata con misure e gTot; il caseTruth terminale mantiene come blocker autorevole l'identità del cointestatario."
+      ],
+      "missingDocumentType": "documento ufficiale o fiscale del cointestatario e documento tecnico/fattura con riga schermatura, misure e gTot",
+      "operatorQuestion": "Indica nome, cognome e codice fiscale del cointestatario e segnala la pagina che riporta prodotto, misure e gTot della schermatura.",
+      "onboardingGap": "Richiedere identità completa del cointestatario e una scheda prodotto con misure e gTot."
+    },
+    {
+      "cohort": 3416,
+      "name": "Donata Zangrossi",
+      "practiceId": "14b65405-1a32-4c3b-8f64-2afd2fb3f4e1",
+      "pipeline": "Da inserire su Excel",
+      "classification": "TECHNICAL_BLOCK",
+      "exactCause": [
+        "Il seed fresh_generation è stato rifiutato da validateAprCohortSeed con apr_cohort_seed_prior_draft:donata-zangrossi per la presenza di una bozza pregressa nel manifest/stato della pratica."
+      ],
+      "missingDocumentType": null,
+      "operatorQuestion": "Vuoi autorizzare in un'attività separata la diagnosi del conflitto tra fresh_generation e bozza pregressa per questa pratica?",
+      "onboardingGap": "Nessuno: difetto tecnico del seed, non documentale."
+    },
+    {
+      "cohort": 3417,
+      "name": "Chiara Chierichetti",
+      "practiceId": "fd24c40d-3237-4986-abe8-cf37552a2746",
+      "pipeline": "Da inserire su Excel",
+      "classification": "OPERATOR_REQUIRED",
+      "exactCause": [
+        "Per gli Infissi mancano una corrispondenza univoca tra numero di prodotti fisici e misure e righe tecniche sufficienti per costruire gli interventi ENEA."
+      ],
+      "missingDocumentType": "documento tecnico o fattura dettagliata con numero degli infissi e misure di ciascun prodotto",
+      "operatorQuestion": "Indica quanti infissi fisici sono stati installati e le misure larghezza × altezza di ciascuno.",
+      "onboardingGap": "Richiedere una tabella standard con una riga per ogni infisso e relative misure."
+    },
+    {
+      "cohort": 3418,
+      "name": "Francesca Scalia",
+      "practiceId": "3dc3cd09-f5b8-4b73-b86c-c1886aa0ab2d",
+      "pipeline": "Da inserire su Excel",
+      "classification": "OPERATOR_REQUIRED",
+      "exactCause": [
+        "La tripla riconciliazione economica non è dimostrata per due segmenti fattura: d23eed1bd4769a6b2347e0a121107882fb64b5977dddbf84ccadb41df22ebcb1:invoice:264f0ccd0374 e a1632e95dfaaeb0e63270fbb4f16dfcc02d117b956f98fa3d66de1b9e834957a:invoice:264f0ccd0374."
+      ],
+      "missingDocumentType": "fatture o pagine fiscali leggibili con imponibile, IVA e totale lordo dei due segmenti",
+      "operatorQuestion": "Conferma imponibile, IVA e totale lordo di ciascuna delle due fatture indicate.",
+      "onboardingGap": "Verificare al caricamento che ogni fattura esponga chiaramente imponibile, IVA e totale."
+    },
+    {
+      "cohort": 3419,
+      "name": "Massimo Cotta",
+      "practiceId": "8de255c1-5897-405f-82f4-36dc646688c4",
+      "pipeline": "Da inserire su Excel",
+      "classification": "OPERATOR_REQUIRED",
+      "exactCause": [
+        "Cointestatario non identificato univocamente con nome, cognome e codice fiscale valido.",
+        "Il form descrive 1 riga prodotto, ma le fatture non restituiscono prodotti fisici riconciliabili.",
+        "Mancano misure primarie della schermatura: APR non usa le misure della finestra protetta come misure del prodotto.",
+        "Nello scadenziario della fattura manca un importo leggibile; di conseguenza fallisce anche la tripla riconciliazione economica."
+      ],
+      "missingDocumentType": "documento ufficiale/fiscale del cointestatario; scheda o fattura con prodotto e misure; pagina fiscale con importo dello scadenziario",
+      "operatorQuestion": "Indica il cointestatario con codice fiscale, conferma quale e quante schermature sono state installate con le loro misure e specifica l'importo mancante nello scadenziario della fattura.",
+      "onboardingGap": "Raccogliere identità del cointestatario, elenco prodotti/misure e scadenziario completo in forma strutturata."
+    },
+    {
+      "cohort": 3420,
+      "name": "Daniele Buoncompagni",
+      "practiceId": "2b3d17a0-c176-4e7c-9be5-5b84200b281d",
+      "pipeline": "Da inserire su Excel",
+      "classification": "OPERATOR_REQUIRED",
+      "exactCause": [
+        "Le fatture non identificano in modo univoco un solo cointestatario persona fisica con nome, cognome e codice fiscale valido."
+      ],
+      "missingDocumentType": "documento ufficiale o fiscale del cointestatario con nome, cognome e codice fiscale",
+      "operatorQuestion": "Indica nome, cognome e codice fiscale del cointestatario corretto.",
+      "onboardingGap": "Richiedere sempre l'identità completa del cointestatario in un documento ufficiale o fiscale."
+    },
+    {
+      "cohort": 3421,
+      "name": "Luca Dragotta",
+      "practiceId": "98deb6d7-8cd4-4354-871b-45e8b13d2325",
+      "pipeline": "Pronte da fare",
+      "classification": "OPERATOR_REQUIRED",
+      "exactCause": [
+        "Cointestatario non identificato univocamente con nome, cognome e codice fiscale valido.",
+        "Almeno un documento richiede lettura o controllo manuale.",
+        "La riga 1 dichiara superficie 11,08 m², mentre le misure estratte producono 1.110,624 m²: scostamento oltre la tolleranza del 5%."
+      ],
+      "missingDocumentType": "documento ufficiale/fiscale del cointestatario e documento tecnico leggibile che chiarisca misure e superficie della riga 1",
+      "operatorQuestion": "Indica il cointestatario corretto e conferma per la riga 1 larghezza, altezza, quantità e superficie effettiva: 11,08 m² oppure un altro valore.",
+      "onboardingGap": "Richiedere misure con unità esplicita, quantità e superficie calcolabile, oltre all'identità del cointestatario."
+    },
+    {
+      "cohort": 3422,
+      "name": "Lidia Marchisio",
+      "practiceId": "e3d7cbed-1f70-40e3-aeb6-58a2fd0e8683",
+      "pipeline": "Pronte da fare",
+      "classification": "OPERATOR_REQUIRED",
+      "exactCause": [
+        "Cointestatario non identificato univocamente con nome, cognome e codice fiscale valido.",
+        "Il form descrive 2 righe prodotto, ma le fatture non restituiscono prodotti fisici riconciliabili.",
+        "Nessuna riga schermatura con dimensioni e gTot è stata riconosciuta.",
+        "Il totale di almeno un documento fiscale non è stato riconosciuto e la tripla riconciliazione economica resta incerta per il segmento 93731e07217bea85ff4312703604632b309e1047b34dec7673a700769bafa701:invoice:264f0ccd0374."
+      ],
+      "missingDocumentType": "documento ufficiale/fiscale del cointestatario; fattura o scheda con due prodotti, misure e gTot; pagina fiscale con imponibile, IVA e totale",
+      "operatorQuestion": "Indica il cointestatario corretto, conferma i due prodotti con misure e gTot e specifica imponibile, IVA e totale lordo del documento fiscale non riconosciuto.",
+      "onboardingGap": "Raccogliere identità, una riga strutturata per prodotto con misure/gTot e terna economica completa."
+    },
+    {
+      "cohort": 3423,
+      "name": "Massimo Grimaldi",
+      "practiceId": "45cfd987-4ac3-4cd8-be37-dc0442bdb330",
+      "pipeline": "Pronte da fare",
+      "classification": "OPERATOR_REQUIRED",
+      "exactCause": [
+        "Le fatture non identificano in modo univoco un solo cointestatario persona fisica con nome, cognome e codice fiscale valido."
+      ],
+      "missingDocumentType": "documento ufficiale o fiscale del cointestatario con nome, cognome e codice fiscale",
+      "operatorQuestion": "Indica nome, cognome e codice fiscale del cointestatario corretto.",
+      "onboardingGap": "Richiedere sempre l'identità completa del cointestatario in un documento ufficiale o fiscale."
+    },
+    {
+      "cohort": 3424,
+      "name": "Aldo Gebbia",
+      "practiceId": "a35a615c-0fb0-46df-bdf8-a35d34fbd974",
+      "pipeline": "Pronte da fare",
+      "classification": "OPERATOR_REQUIRED",
+      "exactCause": [
+        "Mancano numero univoco e misure complete degli infissi necessari a costruire le righe tecniche ENEA.",
+        "La risposta del form sulla presenza di chiusure oscuranti è mancante o ambigua."
+      ],
+      "missingDocumentType": "documento tecnico/fattura con numero e misure degli infissi e dichiarazione sulla presenza di chiusure oscuranti",
+      "operatorQuestion": "Indica quanti infissi sono stati installati con le misure di ciascuno e conferma sì o no se sono presenti chiusure oscuranti.",
+      "onboardingGap": "Rendere obbligatori tabella infissi e risposta sì/no sulle chiusure oscuranti."
+    }
+  ],
+  "notes": [
+    "Il report grezzo del controller contava 10 OPERATOR_REQUIRED e 2 TECHNICAL_BLOCK. La riclassificazione verificata mantiene 10 OPERATOR_REQUIRED, conferma 1 TECHNICAL_BLOCK e sposta Antonio Sacco a INCONSISTENT perché checkpoint, report e caseTruth non concordano con il timeout esterno.",
+    "Nessuna pratica ha raggiunto una bozza salvata su ENEA; tutti i casi salvo Antonio e Donata sono stati chiusi dal preflight prima di operazioni sul portale.",
+    "Nessuna diagnosi o correzione è stata applicata durante il lotto."
+  ]
+}

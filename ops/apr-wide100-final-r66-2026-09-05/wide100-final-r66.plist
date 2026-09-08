@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.praticarapida.apr-wide100-final-r66</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/usr/local/bin/node</string>
+    <string>/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-wide100-final-r66-2026-09-05/simple-independent-runner.mjs</string>
+  </array>
+  <key>WorkingDirectory</key><string>/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida</string>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><false/>
+  <key>ProcessType</key><string>Background</string>
+  <key>StandardOutPath</key><string>/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-final-r66-20260905/runner.stdout.log</string>
+  <key>StandardErrorPath</key><string>/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-final-r66-20260905/runner.stderr.log</string>
+</dict>
+</plist>

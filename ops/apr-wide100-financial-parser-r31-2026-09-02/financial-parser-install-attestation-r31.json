@@ -1,0 +1,63 @@
+{
+  "version": "apr-financial-parser-r31-install-attestation-v1",
+  "attestedAt": "2026-09-02T21:40:21.249Z",
+  "status": "installed_and_operationally_verified",
+  "bundle": {
+    "versionId": "5156569e-resolved-non-economic-blocker-r31-20260902",
+    "currentTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/5156569e-resolved-non-economic-blocker-r31-20260902",
+    "hashes": {
+      "apr-supervisor.mjs": "c3d9a4b91d319f28b4d0e0ac98cfaa2ff8bf94b92d118758c309cb476346c749",
+      "apr-enea-worker.mjs": "5156569e08740b09b3a35d39c9780c821059a9e20b3931bf5eec18253e283c4b",
+      "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+      "apr-pdf-ocr": "4c41c9a6832b11b9d19eace538100270a533dddc05e475e5842711968393327f"
+    }
+  },
+  "monotonicGate": {
+    "baseline": {
+      "suites": 442,
+      "tests": 1660,
+      "reportSha256": "a546461230da82c58bf54121d415f9c6aadaa6c19f06536b31e141a7ae67a276"
+    },
+    "candidate": {
+      "suites": 442,
+      "tests": 1662,
+      "reportSha256": "d954aa009309204061c9cadc41f45a752220f608572c7971878a9d4b392b7b28"
+    },
+    "registryVersion": "enea-operational-registry-v105",
+    "matrixVersion": "apr-enea-rule-test-matrix-v83",
+    "rulesProved": 98,
+    "ruleEvidenceSha256": "9673641733f82200973c7b4a80fa60dca1e23beb64428c5ea6258da08c469430"
+  },
+  "operationalReplay": {
+    "customerKey": "maurizia-coreggioli",
+    "cohort": 3046,
+    "publicState": "OPERATOR_REQUIRED",
+    "invoiceTotal": 5000,
+    "reconciledTotal": 5000,
+    "tripleReconciliationVerified": true,
+    "blockerCodes": [
+      "customer_form_missing",
+      "tax_code_missing_or_invalid",
+      "completion_over_90_days_operator_required"
+    ],
+    "retiredBlocker": "invoice_929a8665",
+    "warningCode": "resolved_non_economic_total_blocker_retired",
+    "reportSha256": "930d12f3d8725bc95effba1b6c0b7482c65137cd04735feee5f7cf62d5ca0f0b",
+    "checkpointSha256": "4c440766b783e6aa92f5e5b80b5936eb9e04a95923539b8b4d637ee7cb271d63",
+    "dashboardSha256": "fff816523f66e02d9ae3550c6ba4af16abf02e96035c2686d71463fda515b69f"
+  },
+  "continuity": {
+    "keepalivePid": 35873,
+    "chromePid": 3785,
+    "heartbeatAt": "2026-09-02T21:40:19.314Z",
+    "serverProofObservedAt": "2026-09-02T21:40:19.299Z",
+    "operationalUrl": "https://bonusfiscali.enea.it/dashboard",
+    "keepaliveRestarted": false,
+    "chromeRestarted": false
+  },
+  "safety": {
+    "previewAttempted": false,
+    "submitAttempted": false,
+    "communicationsAttempted": false
+  }
+}

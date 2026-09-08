@@ -13,11 +13,12 @@ import { localDossierDashboardSnapshot } from "./localDossierPipeline";
 import { PersistentLocalDossierBatch } from "./localDossierBatch";
 import { PersistentRuleMatrixEvidence } from "./ruleMatrixEvidence";
 import { aprCrmIntegrationContractSnapshot } from "../../src/features/enea-shadow-crm/aprCrmIntegrationContract";
+import { AUTO_CURRENT_VALIDATION_REVISION } from "../../src/features/enea-shadow-crm/operationalRegistry";
 import { PersistentAprCrmReadOnlyAdapter } from "./crmReadOnlyAdapter";
 import { PersistentAprPilotSample } from "./pilotSample";
 import { PersistentAprLocalNotifications, type AprLocalNotificationSink } from "./localNotifications";
 import { constantTimeTokenMatch, PersistentAprCrmAuth } from "./crmAuth";
-import { PersistentAprCrmAuthenticatedReadOnly } from "./crmAuthenticatedReadOnly";
+import { aprDocumentProcessingDossiers, PersistentAprCrmAuthenticatedReadOnly } from "./crmAuthenticatedReadOnly";
 import { PersistentAprCrmOriginalDocuments } from "./crmOriginalDocuments";
 import { PersistentAprCrmDocumentAnalysis } from "./crmDocumentAnalysis";
 import { PersistentAprCrmLocalPreflight } from "./crmLocalPreflight";
@@ -26,6 +27,7 @@ import { PersistentAprEneaWorkerService } from "./aprEneaBrowserWorkerService";
 import { PersistentAprWatchdog } from "./aprWatchdog";
 import { PersistentAprOperatorQuestions, type OperatorAnswerValue } from "./operatorQuestions";
 import { PersistentAprOperatorUnlockRegistry } from "./operatorUnlockRegistry";
+import { PersistentAprUserDecisionRegistry } from "./userDecisionRegistry";
 import { PersistentAprCrmIntegrationWorkflow } from "./crmIntegrationWorkflow";
 import { PersistentAprCrmIncomingReadOnly } from "./crmIncomingReadOnly";
 import { PersistentAprCrmLiveProcessing } from "./crmLiveProcessing";
@@ -42,6 +44,7 @@ import { resolveAprCaseStatusTruth } from "./aprCaseStatusResolver";
 import { resolveAprCaseTruthMode, type AprCaseTruthMode } from "./aprCaseTruthMode";
 import { PersistentAprCheckpointMigrationTransaction, type AprCheckpointMigrationTransaction } from "./checkpointMigrationTransaction";
 import { supervise } from "./supervisor";
+import { PersistentAprTerminalObservability, sequencerTerminalIsCurrent } from "./aprTerminalObservability";
 import {
   SupervisorRuntimeStore,
   type SupervisorRuntimeState,
@@ -61,6 +64,8 @@ export interface LocalDashboardSupervisorOptions {
 }
 
 export type AprCheckpointMode = "resume" | "migrate";
+
+let nextInProcessDashboardPort = 43_170;
 
 export function resolveAprCheckpointMode(value: string | undefined): AprCheckpointMode {
   const normalized = value?.trim().toLowerCase() || "resume";
@@ -89,6 +94,28 @@ export function shouldRunShadowIntake(rootDirectory: string, intakeAllowed: bool
   // ricevere le nuove pratiche senza ricreare servizi o perdere lo storico.
   void rootDirectory;
   return intakeAllowed;
+}
+
+export function resolveTerminalPreflightObservation(
+  execution: { status: string; currentCustomerKey: string | null },
+  preflight: { status: string; items: Array<{ state: string; report?: { blockers?: unknown[] } | null }> },
+) {
+  const terminal = execution.status === "blocked_preflight" && execution.currentCustomerKey === null && preflight.status === "completed";
+  const coherent = terminal && preflight.items.some((item) => item.state === "blocked_case" && (item.report?.blockers?.length ?? 0) > 0);
+  return { terminal, coherent, consistency: terminal ? (coherent ? "CONSISTENT" as const : "INCONSISTENT" as const) : "NOT_TERMINAL" as const };
+}
+
+export function executionWorkerObservationIsConsistent(
+  execution: { status: string; currentCustomerKey: string | null },
+  workerStatus: string,
+) {
+  const executionRequiresWorker = Boolean(execution.currentCustomerKey)
+    || ["ready", "running"].includes(execution.status);
+  if (!executionRequiresWorker) return true;
+  // Login atteso e blocco tecnico sono stati operativi espliciti del worker:
+  // non contraddicono una coda persistente pronta, ma spiegano perche' non
+  // possa avanzare. Disabled/stopped/completed restano fail-closed.
+  return ["starting_browser", "setup_ready", "running", "login_required", "technical_block"].includes(workerStatus);
 }
 
 // Existing execution items are immutable historical records. A later validation
@@ -193,6 +220,7 @@ export class LocalDashboardSupervisor {
   readonly watchdog: PersistentAprWatchdog;
   readonly operatorQuestions: PersistentAprOperatorQuestions;
   readonly operatorUnlockRegistry: PersistentAprOperatorUnlockRegistry;
+  readonly userDecisionRegistry: PersistentAprUserDecisionRegistry;
   readonly crmIntegrationWorkflow: PersistentAprCrmIntegrationWorkflow;
   readonly crmIncomingReadOnly: PersistentAprCrmIncomingReadOnly;
   readonly crmLiveProcessing: PersistentAprCrmLiveProcessing;
@@ -205,6 +233,7 @@ export class LocalDashboardSupervisor {
   readonly checkpointMode: AprCheckpointMode;
   readonly caseTruthComparisonScheduler: (task: () => void) => void;
   readonly checkpointMigration: PersistentAprCheckpointMigrationTransaction;
+  readonly terminalObservability: PersistentAprTerminalObservability;
   private server: Server | null = null;
   private heartbeatTimer: ReturnType<typeof setInterval> | null = null;
   private runtime: SupervisorRuntimeState | null = null;
@@ -250,6 +279,7 @@ export class LocalDashboardSupervisor {
     this.watchdog = new PersistentAprWatchdog(rootDirectory, { instanceId: "dashboard-readonly-watchdog", processPid: process.pid, now: this.now });
     this.operatorQuestions = new PersistentAprOperatorQuestions(rootDirectory);
     this.operatorUnlockRegistry = new PersistentAprOperatorUnlockRegistry(rootDirectory);
+    this.userDecisionRegistry = new PersistentAprUserDecisionRegistry(rootDirectory);
     this.crmIntegrationWorkflow = new PersistentAprCrmIntegrationWorkflow(rootDirectory);
     this.crmIncomingReadOnly = new PersistentAprCrmIncomingReadOnly(rootDirectory, this.crmAuth, this.crmIntegrationWorkflow);
     this.crmLiveProcessing = new PersistentAprCrmLiveProcessing(rootDirectory, this.crmIncomingReadOnly, this.crmAuth);
@@ -259,6 +289,7 @@ export class LocalDashboardSupervisor {
     this.infissiBatchPreflight = new PersistentAprInfissiBatchPreflight(rootDirectory);
     this.deepCaseReview = new PersistentAprDeepCaseReview(rootDirectory);
     this.checkpointMigration = new PersistentAprCheckpointMigrationTransaction(rootDirectory);
+    this.terminalObservability = new PersistentAprTerminalObservability(rootDirectory);
   }
 
   private captureCaseTruthRequestSnapshot(): AprCaseTruthRequestSnapshot {
@@ -345,10 +376,45 @@ export class LocalDashboardSupervisor {
     const eneaBrowserWorker = this.eneaBrowserWorker.snapshot(this.now());
     const watchdog = this.watchdog.load(this.now());
     this.operatorUnlockRegistry.syncFromCrmWorkflow(this.crmIntegrationWorkflow.snapshot(this.now()), this.now());
-    const operationalStatus = deriveDashboardOperationalStatus(snapshot, this.now(), eneaBrowserWorker, watchdog);
-    return {
+    const operationalStatus = deriveDashboardOperationalStatus(snapshot, this.now(), eneaBrowserWorker, watchdog, eneaDraftExecution, crmLocalPreflight);
+    const executionWorkerConsistent = executionWorkerObservationIsConsistent(eneaDraftExecution, eneaBrowserWorker.service.status);
+    const preflightObservation = resolveTerminalPreflightObservation(eneaDraftExecution, crmLocalPreflight);
+    const terminalPreflight = preflightObservation.terminal;
+    const coherentTerminalPreflight = preflightObservation.coherent;
+    const inconsistent = !executionWorkerConsistent || (terminalPreflight && !coherentTerminalPreflight);
+    const stoppedByOperator = Boolean(eneaBrowserWorker.emergencyStop)
+      && eneaBrowserWorker.config.setupEnabled === false
+      && eneaBrowserWorker.config.operationalEnabled === false;
+    const derivedLifecycleState = stoppedByOperator
+      ? "stopped_by_operator" as const
+      : (eneaDraftExecution.status === "completed" || terminalPreflight) && !eneaDraftExecution.currentCustomerKey
+        ? "completed" as const
+        : eneaBrowserWorker.service.status === "technical_block"
+          ? "technical_stop" as const
+          : "active" as const;
+    const derivedAprStatus = {
+      publicStatus: inconsistent ? "INCONSISTENT" : operationalStatus.publicStatus,
+      source: inconsistent ? "reconciled_inconsistent" : operationalStatus.source,
+      executionStatus: eneaDraftExecution.status,
+      workerStatus: eneaBrowserWorker.service.status,
+      currentCustomerKey: eneaDraftExecution.currentCustomerKey,
+      reason: inconsistent ? "Checkpoint esecuzione e stato worker non concordano; nessuna diagnosi della pratica e valida." : operationalStatus.reason,
+      nextAction: inconsistent ? "Correggere e riconciliare il software di osservabilita prima di proseguire." : operationalStatus.nextAction,
+      consistency: inconsistent ? "INCONSISTENT" as const : "CONSISTENT" as const,
+    };
+    const persistedTerminal = this.terminalObservability.load();
+    const sequencerTerminal = sequencerTerminalIsCurrent(persistedTerminal, eneaDraftExecution, eneaBrowserWorker.service)
+      ? persistedTerminal
+      : null;
+    const lifecycleState = sequencerTerminal?.lifecycleState ?? derivedLifecycleState;
+    const aprStatus = sequencerTerminal?.aprStatus ?? derivedAprStatus;
+    const payload = {
       supervisor: this.runtime,
-      runner: snapshot,
+      // Nome esplicito: questo e' il journal storico del vecchio runner e non
+      // la fonte autoritativa dello stato APR persistente.
+      legacyJournalRunner: snapshot,
+      aprStatus,
+      lifecycleState,
       operationalStatus,
       readiness,
       adapter,
@@ -396,6 +462,16 @@ export class LocalDashboardSupervisor {
         workflows: state.queue.filter((job) => job.workflowTiming).map((job) => ({ practiceId: job.practice.id, displayName: job.practice.displayName, executionState: job.executionState, timing: job.workflowTiming })),
       },
     };
+    this.terminalObservability.publish({
+      observedAt: this.now().toISOString(),
+      terminal: lifecycleState !== "active",
+      lifecycleState,
+      aprStatus,
+      sourceRevisions: { journal: snapshot.revision, execution: eneaDraftExecution.revision, worker: eneaBrowserWorker.service.revision },
+      sourceFingerprints: { execution: eneaDraftExecution.sourceFingerprint, workerIdentity: eneaBrowserWorker.service.instanceId ?? null },
+      safety: { previewAllowed: false, submitAllowed: false, communicationsAllowed: false },
+    });
+    return payload;
   }
 
   private async handleRequest(request: IncomingMessage, response: ServerResponse) {
@@ -460,8 +536,25 @@ export class LocalDashboardSupervisor {
         const value = form.get("answer") as OperatorAnswerValue;
         const commandId = `dashboard-answer:${questionId}:${crypto.randomUUID()}`;
         const now = this.now();
-        let questions = this.operatorQuestions.answer(questionId, value, form.get("note") ?? "", "dashboard-local-operator", commandId, now);
+        // Le domande "missing_measurement" (misura del tutto assente, mai
+        // trovata dal parser) chiedono all'operatore di digitare larghezza e
+        // altezza reali, non di confermare soltanto l'unita' di un valore
+        // gia' individuato: il form invia anche widthValue/heightValue.
+        const rawWidthValue = Number(form.get("widthValue") ?? "");
+        const rawHeightValue = Number(form.get("heightValue") ?? "");
+        const explicitMeasurement = Number.isFinite(rawWidthValue) && Number.isFinite(rawHeightValue) && rawWidthValue > 0 && rawHeightValue > 0
+          ? { rawWidth: rawWidthValue, rawHeight: rawHeightValue }
+          : undefined;
+        let questions = this.operatorQuestions.answer(questionId, value, form.get("note") ?? "", "dashboard-local-operator", commandId, now, explicitMeasurement);
         const question = questions.questions.find((item) => item.id === questionId)!;
+        this.userDecisionRegistry.recordCandidate({
+          statement: `${question.prompt} Risposta dell'operatore: ${value}.`,
+          normalizedPattern: `operator measurement resolution ${question.field}`,
+          semanticInputs: ["document.measurement.unit", "document.measurement.dimensions"],
+          answer: value,
+          source: { kind: "operator_answer", sourceId: questionId, observedAt: now.toISOString() },
+          caseEvidence: { practiceId: null, customerKey: question.customerKey, generationId: null },
+        }, now);
         if (value !== "cannot_determine") {
           this.crmLocalPreflight.applyOperatorMeasurementResolution({ questionId, customerKey: question.customerKey, sourceId: question.sourceIds[0], description: question.payload.description, rawWidth: question.payload.rawWidth, rawHeight: question.payload.rawHeight, unit: value, note: question.answer?.note ?? "", operatorId: question.answer?.operatorId ?? "dashboard-local-operator", commandId, answeredAt: question.answer?.answeredAt ?? now.toISOString() }, now);
           questions = this.operatorQuestions.markApplied(questionId, now);
@@ -483,7 +576,7 @@ export class LocalDashboardSupervisor {
         const record = this.operatorUnlockRegistry.snapshot(this.now()).records.find((candidate) => candidate.descriptor.blockId === blockId);
         if (!record) throw new Error("operator_unlock_block_not_found");
         const now = this.now();
-        this.operatorUnlockRegistry.submit({
+        const submitted = this.operatorUnlockRegistry.submit({
           blockId,
           commandId: `dashboard-operator-unlock:${blockId}:${crypto.randomUUID()}`,
           expectedScope: structuredClone(record.descriptor.scope),
@@ -491,6 +584,15 @@ export class LocalDashboardSupervisor {
           note: (form.get("note") ?? "").trim(),
           operatorId: "dashboard-local-operator",
           answeredAt: now.toISOString(),
+        }, now);
+        const answered = submitted.records.find((candidate) => candidate.descriptor.blockId === blockId)!;
+        this.userDecisionRegistry.recordCandidate({
+          statement: `${answered.descriptor.question} Risposta dell'operatore: ${answered.evidence?.answer ?? ""}.`,
+          normalizedPattern: `operator unlock ${answered.descriptor.stage} ${answered.descriptor.code} ${answered.descriptor.fieldPath}`,
+          semanticInputs: [`blocker.${answered.descriptor.code}`, `evidence.${answered.descriptor.fieldPath}`],
+          answer: answered.evidence?.answer ?? "",
+          source: { kind: "operator_answer", sourceId: blockId, observedAt: now.toISOString() },
+          caseEvidence: { practiceId: answered.descriptor.scope.practiceId, customerKey: answered.descriptor.scope.customerKey, generationId: answered.descriptor.scope.generationId },
         }, now);
         this.csrfToken = crypto.randomUUID();
         response.statusCode = 303; response.setHeader("Location", "/#operator-unlocks"); response.end();
@@ -511,13 +613,22 @@ export class LocalDashboardSupervisor {
         const answer = (form.get("answer") ?? "").trim();
         if (!answer || (item.operatorRequest.choices.length && !item.operatorRequest.choices.some((choice) => choice.value === answer))) throw new Error("crm_workflow_operator_answer_invalid");
         const now = this.now();
+        const commandId = `dashboard-crm-answer:${practiceId}:${crypto.randomUUID()}`;
         this.crmIntegrationWorkflow.answerOperator(practiceId, {
           requestId: item.operatorRequest.requestId,
-          commandId: `dashboard-crm-answer:${practiceId}:${crypto.randomUUID()}`,
+          commandId,
           answer,
           note: (form.get("note") ?? "").trim().slice(0, 500),
           operatorId: "dashboard-local-operator",
           answeredAt: now.toISOString(),
+        }, now);
+        this.userDecisionRegistry.recordCandidate({
+          statement: `${item.operatorRequest.question} Risposta dell'operatore: ${answer}.`,
+          normalizedPattern: `crm operator ${item.operatorRequest.block.stage} ${item.operatorRequest.block.code} ${item.operatorRequest.field}`,
+          semanticInputs: [`blocker.${item.operatorRequest.block.code}`, `evidence.${item.operatorRequest.field}`],
+          answer,
+          source: { kind: "operator_answer", sourceId: item.operatorRequest.requestId, observedAt: now.toISOString() },
+          caseEvidence: { practiceId, customerKey: item.event.customerId, generationId: item.operatorRequest.block.scope.generationId },
         }, now);
         this.csrfToken = crypto.randomUUID();
         response.statusCode = 303; response.setHeader("Location", "/#crm-integration-workflow"); response.end();
@@ -542,6 +653,16 @@ export class LocalDashboardSupervisor {
         response.end(request.method === "HEAD" ? undefined : renderCrmAuthPage(this.csrfToken, this.crmAuth.snapshot(this.now())));
       } else if (requestUrl.pathname === "/api/status") {
         sendJson(response, 200, this.livePayload());
+      } else if (requestUrl.pathname === "/api/terminal-snapshots") {
+        // Questo endpoint legge lo store condiviso, non la memoria del worker
+        // della coorte: un supervisore APR ancora vivo continua quindi a
+        // servire la verita terminale delle coorti gia quiescenti.
+        sendJson(response, 200, { version: "apr-terminal-observability-index-v1", snapshots: this.terminalObservability.list() });
+      } else if (requestUrl.pathname === "/api/terminal-snapshot") {
+        const cohortId = requestUrl.searchParams.get("cohortId")?.trim() ?? "";
+        const terminal = cohortId ? this.terminalObservability.find(cohortId) : this.terminalObservability.load();
+        if (!terminal) sendJson(response, 404, { error: "terminal_snapshot_not_found" });
+        else sendJson(response, 200, terminal);
       } else if (requestUrl.pathname === "/api/readiness") {
         sendJson(response, 200, this.readinessStore.snapshot(this.now()));
       } else if (requestUrl.pathname === "/api/adapter") {
@@ -554,6 +675,8 @@ export class LocalDashboardSupervisor {
         sendJson(response, 200, new PersistentLocalDossierBatch(this.rootDirectory).report() ?? { status: "absent" });
       } else if (requestUrl.pathname === "/api/rule-matrix") {
         sendJson(response, 200, new PersistentRuleMatrixEvidence(this.rootDirectory).snapshot());
+      } else if (requestUrl.pathname === "/api/user-decisions") {
+        sendJson(response, 200, this.userDecisionRegistry.snapshot(this.now()));
       } else if (requestUrl.pathname === "/api/crm-integration-contract") {
         sendJson(response, 200, aprCrmIntegrationContractSnapshot());
       } else if (requestUrl.pathname === "/api/crm-readonly-adapter") {
@@ -576,7 +699,29 @@ export class LocalDashboardSupervisor {
         const customerKey = requestUrl.searchParams.get("customerKey")?.trim() ?? "";
         const captured = customerKey ? this.captureCaseTruthRequestSnapshot() : null;
         const legacyTruth = captured ? this.legacyCaseTruth(customerKey, captured) : null;
-        if (!legacyTruth) sendJson(response, 404, { error: "case_not_found" });
+        const persistedTerminal = this.terminalObservability.load();
+        const currentWorker = this.eneaBrowserWorker.snapshot(this.now()).service;
+        const sequencerTerminal = sequencerTerminalIsCurrent(persistedTerminal, captured?.sources.execution, currentWorker)
+          ? persistedTerminal
+          : null;
+        const terminalCaseTruth = customerKey
+          ? this.terminalObservability.list()
+            .filter((snapshot) => snapshot.terminal && snapshot.aprStatus.source === "sequencer_finalizer" && snapshot.caseTruth?.customerKey === customerKey)
+            .sort((left, right) => left.observedAt.localeCompare(right.observedAt))
+            .at(-1)?.caseTruth ?? null
+          : null;
+        // Il supervisore osservatore ha una root propria e non possiede i
+        // checkpoint della coorte quiescente. In quel caso serve direttamente
+        // la verita caso inclusa nello snapshot atomico del finalizzatore.
+        if (!legacyTruth && terminalCaseTruth) sendJson(response, 200, terminalCaseTruth);
+        else if (!legacyTruth) sendJson(response, 404, { error: "case_not_found" });
+        else if (captured?.sources.execution.currentCustomerKey === customerKey
+          && !executionWorkerObservationIsConsistent(captured.sources.execution, currentWorker.status)) {
+          sendJson(response, 200, { ...legacyTruth, status: "INCONSISTENT", hasProblem: null, blockerCount: 0, blockerCodes: [], statement: "Checkpoint esecuzione e stato worker corrente non concordano; nessun verdetto attribuibile alla pratica.", terminalSnapshotId: null });
+        }
+        else if (sequencerTerminal?.aprStatus.publicStatus === "TECHNICAL_BLOCK") {
+          sendJson(response, 200, { ...legacyTruth, status: "TECHNICAL_BLOCK", hasProblem: null, blockerCount: 0, blockerCodes: [], statement: `Difetto tecnico comune del lotto: ${sequencerTerminal.aprStatus.reason}`, terminalSnapshotId: sequencerTerminal.snapshotId });
+        }
         else if (this.caseTruthMode === "legacy") {
           sendJson(response, 200, legacyTruth);
           this.scheduleCaseTruthComparison(customerKey, legacyTruth, captured!);
@@ -677,8 +822,7 @@ export class LocalDashboardSupervisor {
     this.crmAcquisition.applyRecordedOperatorResolutions(now);
     const acquired = this.crmAcquisition.snapshot(now);
     if (acquired.status === "completed" && acquired.progress.acquired > 0) {
-      const dossierInputs = acquired.items.filter((item) => item.state === "acquired" && item.practiceId && item.dossierPath)
-        .map((item) => ({ customerKey: item.customerKey, practiceId: item.practiceId!, dossierPath: item.dossierPath! }));
+      const dossierInputs = aprDocumentProcessingDossiers(acquired.items);
       const documentsBefore = this.crmDocuments.snapshot(now);
       if (!documentsBefore.sourceSetFingerprint) this.crmDocuments.prepare(dossierInputs, now);
       else if (documentsBefore.status === "completed") this.crmDocuments.extendAfterAcquisitionCorrection(dossierInputs, now);
@@ -691,32 +835,54 @@ export class LocalDashboardSupervisor {
       if (!analysisBefore.sourceFingerprint) this.crmDocumentAnalysis.prepare(analysisInputs, documents.sourceSetFingerprint, now);
       else if (analysisBefore.status === "completed") this.crmDocumentAnalysis.extendAfterDocumentCorrection(analysisInputs, documents.sourceSetFingerprint, now);
     }
-    if (this.checkpointMigrationPending) this.crmDocumentAnalysis.applyParserRevision("invoice-parser-v3-ciotta-and-historical-exclusion", now);
-    if (this.checkpointMigrationPending) this.crmDocumentAnalysis.applyParserRevision("invoice-parser-v4-embedded-copy-deduplication", now);
-    if (this.checkpointMigrationPending) this.crmDocumentAnalysis.applyParserRevision("invoice-parser-v5-rinaldi-ghitti-identity", now);
-    if (this.checkpointMigrationPending) this.crmDocumentAnalysis.applyParserRevision("invoice-parser-v6-parolo-desando-formats", now);
-    if (this.checkpointMigrationPending) this.crmDocumentAnalysis.applyParserRevision("invoice-parser-v7-split-header-document-identity", now);
-    if (this.checkpointMigrationPending) this.crmDocumentAnalysis.applyParserRevision("invoice-parser-v8-rinaldi-galbiati-identity-totals", now);
-    if (this.checkpointMigrationPending) this.crmDocumentAnalysis.applyParserRevision("invoice-parser-v9-cohort39-vendor-measures", now);
-    if (this.checkpointMigrationPending) this.crmDocumentAnalysis.applyParserRevision("invoice-parser-v10-multipage-invoice-segmentation", now);
-    if (this.checkpointMigrationPending) this.crmDocumentAnalysis.applyParserRevision("invoice-parser-v11-invoice-reference-and-date", now);
-    if (this.checkpointMigrationPending) this.crmDocumentAnalysis.applyParserRevision("invoice-parser-v12-vans-grouped-products", now);
-    if (this.checkpointMigrationPending) this.crmDocumentAnalysis.applyParserRevision("invoice-parser-v13-vepa-recognition", now);
-    if (this.checkpointMigrationPending) this.crmDocumentAnalysis.applyParserRevision("invoice-parser-v14-multipage-vat-inclusive-total", now);
-    if (this.checkpointMigrationPending) this.crmDocumentAnalysis.applyParserRevision("invoice-parser-v15-narrative-product-groups", now);
-    if (this.checkpointMigrationPending) this.crmDocumentAnalysis.applyParserRevision("invoice-parser-v16-suman-vans-bank-transfer", now);
-    if (this.checkpointMigrationPending) this.crmDocumentAnalysis.applyParserRevision("invoice-parser-v17-lm-tende-motorized-zanzariera", now);
-    if (this.checkpointMigrationPending) this.crmDocumentAnalysis.applyParserRevision("invoice-parser-v25-vans-awning-missing-gtot", now);
-    if (this.checkpointMigrationPending) this.crmDocumentAnalysis.applyParserRevision("invoice-parser-v26-zanzasol-description-after-price", now);
-    if (this.checkpointMigrationPending) this.crmDocumentAnalysis.applyParserRevision("invoice-parser-v28-lm-tende-multi-product-balance", now);
-    if (this.checkpointMigrationPending) this.crmDocumentAnalysis.applyParserRevision("invoice-parser-v29-odhaus-avvolgibili-supporting-declaration", now);
-    if (this.checkpointMigrationPending) this.crmDocumentAnalysis.applyParserRevision("invoice-parser-v30-explicit-surface-and-lm-cardinality", now);
-    if (this.checkpointMigrationPending) this.crmDocumentAnalysis.applyParserRevision("invoice-parser-v31-rinaldi-sp-dot-and-vat-layout", now);
-    if (this.checkpointMigrationPending) this.crmDocumentAnalysis.applyParserRevision("invoice-parser-v32-infissi-vertical-totals-and-table-identity", now);
-    if (this.checkpointMigrationPending) this.crmDocumentAnalysis.applyParserRevision("invoice-parser-v33-header-identity-over-body-reference", now);
-    if (this.checkpointMigrationPending) this.crmDocumentAnalysis.applyAnalyzerRepair("pdf-analyzer-cohort-path-v1", now);
-    if (this.checkpointMigrationPending) this.crmDocumentAnalysis.applyTechnicalPerformanceDiagramOcrRepair("infissi-performance-diagram-ocr-v2", now);
-    if (this.checkpointMigrationPending) this.crmDocumentAnalysis.applyTechnicalDocumentClassificationRevision("infissi-third-party-certificate-classifier-v1", now);
+    // Difetto strutturale (2026-09-08): queste righe erano condizionate a
+    // "this.checkpointMigrationPending" (vero soltanto se il supervisore era
+    // avviato esplicitamente con --checkpoint-mode migrate, il che NON e' il
+    // default e non risulta usato in alcun avvio reale) - in funzionamento
+    // normale nessuna di queste chiamate veniva mai eseguita: un documento
+    // gia' analizzato restava interpretato per sempre con la logica del
+    // giorno in cui era stato analizzato, indipendentemente da quante
+    // correzioni fossero spedite dopo. Ogni chiamata qui sotto e' gia'
+    // idempotente per stringa di revisione (no-op se gia' applicata): eseguirle
+    // sempre, a ogni impulso, non ripete mai un lavoro gia' fatto e garantisce
+    // che una correzione nuova venga sempre raccolta entro un impulso, mai
+    // soltanto dopo un riavvio con una modalita' che nessuno sceglie di fatto.
+    this.crmDocumentAnalysis.applyOcrOrientationRevision("document-ocr-orientation-normalization-v1", now);
+    this.crmDocumentAnalysis.applyParserRevision("invoice-parser-v3-ciotta-and-historical-exclusion", now);
+    this.crmDocumentAnalysis.applyParserRevision("invoice-parser-v4-embedded-copy-deduplication", now);
+    this.crmDocumentAnalysis.applyParserRevision("invoice-parser-v5-rinaldi-ghitti-identity", now);
+    this.crmDocumentAnalysis.applyParserRevision("invoice-parser-v6-parolo-desando-formats", now);
+    this.crmDocumentAnalysis.applyParserRevision("invoice-parser-v7-split-header-document-identity", now);
+    this.crmDocumentAnalysis.applyParserRevision("invoice-parser-v8-rinaldi-galbiati-identity-totals", now);
+    this.crmDocumentAnalysis.applyParserRevision("invoice-parser-v9-cohort39-vendor-measures", now);
+    this.crmDocumentAnalysis.applyParserRevision("invoice-parser-v10-multipage-invoice-segmentation", now);
+    this.crmDocumentAnalysis.applyParserRevision("invoice-parser-v11-invoice-reference-and-date", now);
+    this.crmDocumentAnalysis.applyParserRevision("invoice-parser-v12-vans-grouped-products", now);
+    this.crmDocumentAnalysis.applyParserRevision("invoice-parser-v13-vepa-recognition", now);
+    this.crmDocumentAnalysis.applyParserRevision("invoice-parser-v14-multipage-vat-inclusive-total", now);
+    this.crmDocumentAnalysis.applyParserRevision("invoice-parser-v15-narrative-product-groups", now);
+    this.crmDocumentAnalysis.applyParserRevision("invoice-parser-v16-suman-vans-bank-transfer", now);
+    this.crmDocumentAnalysis.applyParserRevision("invoice-parser-v17-lm-tende-motorized-zanzariera", now);
+    this.crmDocumentAnalysis.applyParserRevision("invoice-parser-v25-vans-awning-missing-gtot", now);
+    this.crmDocumentAnalysis.applyParserRevision("invoice-parser-v26-zanzasol-description-after-price", now);
+    this.crmDocumentAnalysis.applyParserRevision("invoice-parser-v28-lm-tende-multi-product-balance", now);
+    this.crmDocumentAnalysis.applyParserRevision("invoice-parser-v29-odhaus-avvolgibili-supporting-declaration", now);
+    this.crmDocumentAnalysis.applyParserRevision("invoice-parser-v30-explicit-surface-and-lm-cardinality", now);
+    this.crmDocumentAnalysis.applyParserRevision("invoice-parser-v31-rinaldi-sp-dot-and-vat-layout", now);
+    this.crmDocumentAnalysis.applyParserRevision("invoice-parser-v32-infissi-vertical-totals-and-table-identity", now);
+    this.crmDocumentAnalysis.applyParserRevision("invoice-parser-v33-header-identity-over-body-reference", now);
+    this.crmDocumentAnalysis.applyParserRevision("invoice-parser-v38-rotated-fiscal-bank-layouts-r30", now);
+    this.crmDocumentAnalysis.applyParserRevision("invoice-parser-v39-dimensioned-awning-row-preservation", now);
+    this.crmDocumentAnalysis.applyParserRevision("invoice-parser-v40-labelled-depth-acconto-saldo", now);
+    this.crmDocumentAnalysis.applyAnalyzerRepair("pdf-analyzer-cohort-path-v1", now);
+    this.crmDocumentAnalysis.applyTechnicalPerformanceDiagramOcrRepair("infissi-performance-diagram-ocr-v2", now);
+    this.crmDocumentAnalysis.applyTechnicalDocumentClassificationRevision("infissi-third-party-certificate-classifier-v1", now);
+    // Sostituisce l'elenco storico per ogni correzione futura: questo
+    // identificatore e' derivato dal contenuto del registro (non scritto a
+    // mano) e cambia da solo a ogni modifica. Nessuna riga da aggiungere qui
+    // per le correzioni successive a oggi.
+    this.crmDocumentAnalysis.applyParserRevision(AUTO_CURRENT_VALIDATION_REVISION, now);
+    this.crmDocumentAnalysis.applyTechnicalDocumentClassificationRevision(AUTO_CURRENT_VALIDATION_REVISION, now);
     const analyzed = this.crmDocumentAnalysis.snapshot(now);
     if (acquired.status === "completed" && acquired.progress.acquired > 0 && analyzed.status === "completed" && analyzed.sourceFingerprint) {
       const preflightFingerprint = createHash("sha256").update(JSON.stringify({ candidateFingerprint: acquired.candidateFingerprint, sourceFingerprint: analyzed.sourceFingerprint, parserRevisionsApplied: analyzed.parserRevisionsApplied })).digest("hex");
@@ -725,51 +891,61 @@ export class LocalDashboardSupervisor {
       if (!preflightBefore.sourceFingerprint) this.crmLocalPreflight.prepare(acquiredItems, preflightFingerprint, now);
       else if (preflightBefore.sourceFingerprint !== preflightFingerprint && this.eneaDraftExecution.snapshot(now).items.length === 0) this.crmLocalPreflight.applySourceRevision(acquiredItems, preflightFingerprint, `source-set-${preflightFingerprint.slice(0, 16)}`, now);
       this.crmLocalPreflight.tick(now);
-      if (this.checkpointMigrationPending) this.crmLocalPreflight.applyValidationRevision("form-group-product-inheritance-v1", now);
-      if (this.checkpointMigrationPending) this.crmLocalPreflight.applyValidationRevision("full-enea-payload-audit-v1", now);
-      if (this.checkpointMigrationPending) this.crmLocalPreflight.applyValidationRevision("authorized-gtot-payload-provenance-v2", now);
-      if (this.checkpointMigrationPending) this.crmLocalPreflight.applyValidationRevision("test-draft-payload-gate-v3", now);
-      if (this.checkpointMigrationPending) this.crmLocalPreflight.applyValidationRevision("italian-province-label-normalization-v4", now);
-      if (this.checkpointMigrationPending) this.crmLocalPreflight.applyValidationRevision("test-draft-portal-workflow-gate-v5", now);
-      if (this.checkpointMigrationPending) this.crmLocalPreflight.applyValidationRevision("analysis-results-after-local-repair-v6", now);
-      if (this.checkpointMigrationPending) this.crmLocalPreflight.applyValidationRevision("financial-signed-rinaldi-rows-v7", now);
-      if (this.checkpointMigrationPending) this.crmLocalPreflight.applyValidationRevision("financial-vendor-total-labels-v8", now);
-      if (this.checkpointMigrationPending) this.crmLocalPreflight.applyValidationRevision("financial-rinaldi-galbiati-v9", now);
-      if (this.checkpointMigrationPending) this.crmLocalPreflight.applyValidationRevision("missing-invoice-default-unit-bank-transfer-v10", now);
-      if (this.checkpointMigrationPending) this.crmLocalPreflight.applyValidationRevision("invoice-reference-date-v11", now);
-      if (this.checkpointMigrationPending) this.crmLocalPreflight.applyValidationRevision("financial-total-from-unique-invoices-v12", now);
-      if (this.checkpointMigrationPending) this.crmLocalPreflight.applyValidationRevision("payment-rounding-third-evidence-v13", now);
-      if (this.checkpointMigrationPending) this.crmLocalPreflight.applyValidationRevision("worker-validator-ownership-v14", now);
-      if (this.checkpointMigrationPending) this.crmLocalPreflight.applyValidationRevision("invoice-type-over-form-group-v15", now);
-      if (this.checkpointMigrationPending) this.crmLocalPreflight.applyValidationRevision("vepa-deferred-current-phase-v16", now);
-      if (this.checkpointMigrationPending) this.crmLocalPreflight.applyValidationRevision("vat-inclusive-multipage-total-v17", now);
-      if (this.checkpointMigrationPending) this.crmLocalPreflight.applyValidationRevision("distinct-invoice-numbers-same-customer-sum-v18", now);
-      if (this.checkpointMigrationPending) this.crmLocalPreflight.applyValidationRevision("narrative-product-groups-v19", now);
-      if (this.checkpointMigrationPending) this.crmLocalPreflight.applyValidationRevision("invoice-family-over-form-cardinality-v20", now);
-      if (this.checkpointMigrationPending) this.crmLocalPreflight.applyValidationRevision("secondary-home-36-percent-allocation-v21", now);
-      if (this.checkpointMigrationPending) this.crmLocalPreflight.applyValidationRevision("linea-sole-potito-paper-form-fallbacks-v22", now);
-      if (this.checkpointMigrationPending) this.crmLocalPreflight.applyValidationRevision("multipage-bank-transfer-classification-v23", now);
-      if (this.checkpointMigrationPending) this.crmLocalPreflight.applyValidationRevision("lm-tende-motorized-zanzariera-v24", now);
-      if (this.checkpointMigrationPending) this.crmLocalPreflight.applyValidationRevision("vans-awning-missing-gtot-v25", now);
-      if (this.checkpointMigrationPending) this.crmLocalPreflight.applyValidationRevision("zanzasol-description-after-price-v26", now);
-      if (this.checkpointMigrationPending) this.crmLocalPreflight.applyValidationRevision("zanzasol-intervention-reconciliation-v27", now);
-      if (this.checkpointMigrationPending) this.crmLocalPreflight.applyValidationRevision("lm-tende-multi-product-balance-v28", now);
-      if (this.checkpointMigrationPending) this.crmLocalPreflight.applyValidationRevision("odhaus-avvolgibili-supporting-declaration-v29", now);
-      if (this.checkpointMigrationPending) this.crmLocalPreflight.applyValidationRevision("explicit-surface-and-lm-cardinality-v30", now);
-      if (this.checkpointMigrationPending) this.crmLocalPreflight.applyValidationRevision("invoice-primary-identity-and-single-unit-precedence-v31", now);
-      if (this.checkpointMigrationPending) this.crmLocalPreflight.applyValidationRevision("rinaldi-sp-dot-and-vat-layout-v32", now);
-      if (this.checkpointMigrationPending) this.crmLocalPreflight.applyValidationRevision("infissi-vertical-totals-and-table-identity-v33", now);
-      if (this.checkpointMigrationPending) this.crmLocalPreflight.applyValidationRevision("bank-transfer-invoice-authority-v34", now);
-      if (this.checkpointMigrationPending) this.crmLocalPreflight.applyValidationRevision("invoice-header-identity-over-body-reference-v35", now);
-      if (this.checkpointMigrationPending) this.crmLocalPreflight.applyValidationRevision("enea-2026-june25-deadline-window-v36", now);
-      if (this.checkpointMigrationPending) this.crmLocalPreflight.applyValidationRevision("documented-product-module-over-label-v65", now);
+      // Difetto strutturale (2026-09-08), stessa correzione della sezione
+      // crmDocumentAnalysis sopra: eseguire sempre, mai soltanto in modalita'
+      // migrate. Vedi la nota li' sopra per il ragionamento completo.
+      this.crmLocalPreflight.applyValidationRevision("form-group-product-inheritance-v1", now);
+      this.crmLocalPreflight.applyValidationRevision("full-enea-payload-audit-v1", now);
+      this.crmLocalPreflight.applyValidationRevision("authorized-gtot-payload-provenance-v2", now);
+      this.crmLocalPreflight.applyValidationRevision("test-draft-payload-gate-v3", now);
+      this.crmLocalPreflight.applyValidationRevision("italian-province-label-normalization-v4", now);
+      this.crmLocalPreflight.applyValidationRevision("test-draft-portal-workflow-gate-v5", now);
+      this.crmLocalPreflight.applyValidationRevision("analysis-results-after-local-repair-v6", now);
+      this.crmLocalPreflight.applyValidationRevision("financial-signed-rinaldi-rows-v7", now);
+      this.crmLocalPreflight.applyValidationRevision("financial-vendor-total-labels-v8", now);
+      this.crmLocalPreflight.applyValidationRevision("financial-rinaldi-galbiati-v9", now);
+      this.crmLocalPreflight.applyValidationRevision("missing-invoice-default-unit-bank-transfer-v10", now);
+      this.crmLocalPreflight.applyValidationRevision("invoice-reference-date-v11", now);
+      this.crmLocalPreflight.applyValidationRevision("financial-total-from-unique-invoices-v12", now);
+      this.crmLocalPreflight.applyValidationRevision("payment-rounding-third-evidence-v13", now);
+      this.crmLocalPreflight.applyValidationRevision("worker-validator-ownership-v14", now);
+      this.crmLocalPreflight.applyValidationRevision("invoice-type-over-form-group-v15", now);
+      this.crmLocalPreflight.applyValidationRevision("vepa-deferred-current-phase-v16", now);
+      this.crmLocalPreflight.applyValidationRevision("vat-inclusive-multipage-total-v17", now);
+      this.crmLocalPreflight.applyValidationRevision("distinct-invoice-numbers-same-customer-sum-v18", now);
+      this.crmLocalPreflight.applyValidationRevision("narrative-product-groups-v19", now);
+      this.crmLocalPreflight.applyValidationRevision("invoice-family-over-form-cardinality-v20", now);
+      this.crmLocalPreflight.applyValidationRevision("secondary-home-36-percent-allocation-v21", now);
+      this.crmLocalPreflight.applyValidationRevision("linea-sole-potito-paper-form-fallbacks-v22", now);
+      this.crmLocalPreflight.applyValidationRevision("multipage-bank-transfer-classification-v23", now);
+      this.crmLocalPreflight.applyValidationRevision("lm-tende-motorized-zanzariera-v24", now);
+      this.crmLocalPreflight.applyValidationRevision("vans-awning-missing-gtot-v25", now);
+      this.crmLocalPreflight.applyValidationRevision("zanzasol-description-after-price-v26", now);
+      this.crmLocalPreflight.applyValidationRevision("zanzasol-intervention-reconciliation-v27", now);
+      this.crmLocalPreflight.applyValidationRevision("lm-tende-multi-product-balance-v28", now);
+      this.crmLocalPreflight.applyValidationRevision("odhaus-avvolgibili-supporting-declaration-v29", now);
+      this.crmLocalPreflight.applyValidationRevision("explicit-surface-and-lm-cardinality-v30", now);
+      this.crmLocalPreflight.applyValidationRevision("invoice-primary-identity-and-single-unit-precedence-v31", now);
+      this.crmLocalPreflight.applyValidationRevision("rinaldi-sp-dot-and-vat-layout-v32", now);
+      this.crmLocalPreflight.applyValidationRevision("infissi-vertical-totals-and-table-identity-v33", now);
+      this.crmLocalPreflight.applyValidationRevision("bank-transfer-invoice-authority-v34", now);
+      this.crmLocalPreflight.applyValidationRevision("invoice-header-identity-over-body-reference-v35", now);
+      this.crmLocalPreflight.applyValidationRevision("enea-2026-june25-deadline-window-v36", now);
+      this.crmLocalPreflight.applyValidationRevision("documented-product-module-over-label-v65", now);
+      // Sostituisce l'elenco storico per ogni correzione futura (vedi nota
+      // crmDocumentAnalysis sopra): nessuna riga da aggiungere qui d'ora in poi.
+      this.crmLocalPreflight.applyValidationRevision(AUTO_CURRENT_VALIDATION_REVISION, now);
       const completedPreflight = this.crmLocalPreflight.snapshot(now);
       if (completedPreflight.status === "completed" && completedPreflight.items.some((item) => item.customerKey === "beatrice-ciotta" && item.state !== "deferred_operator")) this.crmLocalPreflight.deferCiottaForPilot("user-2026-08-15-ciotta-leave-aside", "Accantonata dal pilot su istruzione utente; report e fonti conservati, nessuna azione CRM o ENEA.", now);
       this.operatorQuestions.discoverMeasurementUnitAmbiguities(this.crmLocalPreflight.snapshot(now), analyzed, now);
-      if (this.checkpointMigrationPending) this.infissiBatchPreflight.reconcileDocumentedProductRouting("migrate", now);
-      if (this.checkpointMigrationPending) this.infissiBatchPreflight.applyValidationRevision("infissi-vertical-totals-and-table-identity-v1", now);
-      if (this.checkpointMigrationPending) this.infissiBatchPreflight.applyValidationRevision("infissi-bank-transfer-invoice-authority-v12", now);
-      if (this.checkpointMigrationPending) this.infissiBatchPreflight.applyValidationRevision("infissi-enea-2026-june25-deadline-window-v13", now);
+      this.operatorQuestions.discoverAmbiguousDualDimensionQuestions(this.crmLocalPreflight.snapshot(now), analyzed, now);
+      this.operatorQuestions.discoverComplexMultiVendorQuestions(this.crmLocalPreflight.snapshot(now), analyzed, now);
+      this.operatorQuestions.discoverMissingMeasurementQuestions(this.crmLocalPreflight.snapshot(now), analyzed, now);
+      this.infissiBatchPreflight.reconcileDocumentedProductRouting("migrate", now);
+      this.infissiBatchPreflight.applyValidationRevision("infissi-vertical-totals-and-table-identity-v1", now);
+      this.infissiBatchPreflight.applyValidationRevision("infissi-bank-transfer-invoice-authority-v12", now);
+      this.infissiBatchPreflight.applyValidationRevision("infissi-enea-2026-june25-deadline-window-v13", now);
+      this.infissiBatchPreflight.applyValidationRevision(AUTO_CURRENT_VALIDATION_REVISION, now);
       this.infissiBatchPreflight.tick(now);
       const infissiSnapshot = this.infissiBatchPreflight.snapshot(now);
       if (infissiExecutionGateReady(infissiSnapshot)) this.crmLocalPreflight.reconcileAuthoritativeInfissiApplicability(infissiSnapshot, undefined, now);
@@ -819,7 +995,7 @@ export class LocalDashboardSupervisor {
     writeLocalDashboard(this.rootDirectory, state, now, this.runtime, this.readinessStore.snapshot(now), this.adapterStore.snapshot(now),
       executionPlan, localDossierDashboardSnapshot(this.rootDirectory),
       new PersistentLocalDossierBatch(this.rootDirectory).report(), new PersistentRuleMatrixEvidence(this.rootDirectory).snapshot(),
-      this.crmReadOnlyAdapterStore.snapshot(now), pilotSample, this.notifications.snapshot(), this.crmAuth.snapshot(now), this.crmAcquisition.snapshot(now), this.crmDocuments.snapshot(now), this.crmDocumentAnalysis.snapshot(now), this.crmLocalPreflight.snapshot(now), this.eneaDraftExecution.snapshot(now), this.eneaBrowserWorker.snapshot(now), this.watchdog.load(now), this.operatorQuestions.snapshot(now), this.csrfToken, this.crmIntegrationWorkflow.snapshot(now), this.crmIncomingReadOnly.snapshot(now), this.crmLiveProcessing.snapshot(now), this.shadowComparison.snapshot(now), this.shadowControl.snapshot(now), this.infissiLocalMapping.snapshot(now), this.infissiBatchPreflight.snapshot(now), this.deepCaseReview.snapshot(now), this.operatorUnlockRegistry.snapshot(now));
+      this.crmReadOnlyAdapterStore.snapshot(now), pilotSample, this.notifications.snapshot(), this.crmAuth.snapshot(now), this.crmAcquisition.snapshot(now), this.crmDocuments.snapshot(now), this.crmDocumentAnalysis.snapshot(now), this.crmLocalPreflight.snapshot(now), this.eneaDraftExecution.snapshot(now), this.eneaBrowserWorker.snapshot(now), this.watchdog.load(now), this.operatorQuestions.snapshot(now), this.csrfToken, this.crmIntegrationWorkflow.snapshot(now), this.crmIncomingReadOnly.snapshot(now), this.crmLiveProcessing.snapshot(now), this.shadowComparison.snapshot(now), this.shadowControl.snapshot(now), this.infissiLocalMapping.snapshot(now), this.infissiBatchPreflight.snapshot(now), this.deepCaseReview.snapshot(now), this.operatorUnlockRegistry.snapshot(now), this.terminalObservability.load());
   }
 
   async start() {
@@ -833,7 +1009,11 @@ export class LocalDashboardSupervisor {
       server.listen(this.requestedPort, this.host);
     });
     const address = server.address() as AddressInfo;
-    this.currentUrl = `http://${this.host}:${address.port}`;
+    return this.initializeStartedRuntime(server, `http://${this.host}:${address.port}`);
+  }
+
+  private async initializeStartedRuntime(server: Server | null, url: string) {
+    this.currentUrl = url;
     try {
       const state = this.journal.load();
       const now = this.now();
@@ -879,8 +1059,7 @@ export class LocalDashboardSupervisor {
       this.crmAcquisition.applyRecordedOperatorResolutions(now);
       const acquired = this.crmAcquisition.snapshot(now);
       if (acquired.status === "completed" && acquired.progress.acquired > 0) {
-        this.crmDocuments.prepare(acquired.items.filter((item) => item.state === "acquired" && item.practiceId && item.dossierPath)
-          .map((item) => ({ customerKey: item.customerKey, practiceId: item.practiceId!, dossierPath: item.dossierPath! })), now);
+        this.crmDocuments.prepare(aprDocumentProcessingDossiers(acquired.items), now);
       }
       const documents = this.crmDocuments.snapshot(now);
       if (documents.status === "completed" && documents.progress.downloaded > 0 && documents.sourceSetFingerprint) {
@@ -902,6 +1081,7 @@ export class LocalDashboardSupervisor {
       this.infissiBatchPreflight.tick(now);
       prepareEneaDraftExecutionIfAbsent(this.eneaDraftExecution, this.crmLocalPreflight.snapshot(now), now, this.infissiBatchPreflight);
       if (this.checkpointMigrationPending) this.activeCheckpointMigration = this.checkpointMigration.begin(now);
+      if (this.checkpointMigrationPending) this.crmDocumentAnalysis.applyOcrOrientationRevision("document-ocr-orientation-normalization-v1", now);
       if (this.checkpointMigrationPending) this.crmDocumentAnalysis.applyParserRevision("invoice-parser-v3-ciotta-and-historical-exclusion", now);
       if (this.checkpointMigrationPending) this.crmDocumentAnalysis.applyParserRevision("invoice-parser-v4-embedded-copy-deduplication", now);
       if (this.checkpointMigrationPending) this.crmDocumentAnalysis.applyParserRevision("invoice-parser-v5-rinaldi-ghitti-identity", now);
@@ -925,6 +1105,9 @@ export class LocalDashboardSupervisor {
       if (this.checkpointMigrationPending) this.crmDocumentAnalysis.applyParserRevision("invoice-parser-v31-rinaldi-sp-dot-and-vat-layout", now);
       if (this.checkpointMigrationPending) this.crmDocumentAnalysis.applyParserRevision("invoice-parser-v32-infissi-vertical-totals-and-table-identity", now);
       if (this.checkpointMigrationPending) this.crmDocumentAnalysis.applyParserRevision("invoice-parser-v33-header-identity-over-body-reference", now);
+      if (this.checkpointMigrationPending) this.crmDocumentAnalysis.applyParserRevision("invoice-parser-v38-rotated-fiscal-bank-layouts-r30", now);
+      if (this.checkpointMigrationPending) this.crmDocumentAnalysis.applyParserRevision("invoice-parser-v39-dimensioned-awning-row-preservation", now);
+      if (this.checkpointMigrationPending) this.crmDocumentAnalysis.applyParserRevision("invoice-parser-v40-labelled-depth-acconto-saldo", now);
       if (this.checkpointMigrationPending) this.crmDocumentAnalysis.applyAnalyzerRepair("pdf-analyzer-cohort-path-v1", now);
       if (this.checkpointMigrationPending) this.crmDocumentAnalysis.applyTechnicalPerformanceDiagramOcrRepair("infissi-performance-diagram-ocr-v2", now);
       if (this.checkpointMigrationPending) this.crmDocumentAnalysis.applyTechnicalDocumentClassificationRevision("infissi-third-party-certificate-classifier-v1", now);
@@ -968,6 +1151,9 @@ export class LocalDashboardSupervisor {
         if (this.checkpointMigrationPending) this.crmLocalPreflight.applyValidationRevision("enea-2026-june25-deadline-window-v36", now);
         if (this.checkpointMigrationPending) this.crmLocalPreflight.applyValidationRevision("documented-product-module-over-label-v65", now);
         this.operatorQuestions.discoverMeasurementUnitAmbiguities(this.crmLocalPreflight.snapshot(now), analyzed, now);
+        this.operatorQuestions.discoverAmbiguousDualDimensionQuestions(this.crmLocalPreflight.snapshot(now), analyzed, now);
+        this.operatorQuestions.discoverComplexMultiVendorQuestions(this.crmLocalPreflight.snapshot(now), analyzed, now);
+        this.operatorQuestions.discoverMissingMeasurementQuestions(this.crmLocalPreflight.snapshot(now), analyzed, now);
         if (this.checkpointMigrationPending) this.infissiBatchPreflight.reconcileDocumentedProductRouting("migrate", now);
         if (this.checkpointMigrationPending) this.infissiBatchPreflight.applyValidationRevision("infissi-vertical-totals-and-table-identity-v1", now);
         if (this.checkpointMigrationPending) this.infissiBatchPreflight.applyValidationRevision("infissi-bank-transfer-invoice-authority-v12", now);
@@ -983,7 +1169,8 @@ export class LocalDashboardSupervisor {
       writeLocalDashboard(this.rootDirectory, state, now, this.runtime, this.readinessStore.snapshot(now), this.adapterStore.snapshot(now),
         executionPlan, localDossierDashboardSnapshot(this.rootDirectory),
         new PersistentLocalDossierBatch(this.rootDirectory).report(), new PersistentRuleMatrixEvidence(this.rootDirectory).snapshot(),
-        this.crmReadOnlyAdapterStore.snapshot(now), pilotSample, this.notifications.snapshot(), this.crmAuth.snapshot(now), this.crmAcquisition.snapshot(now), this.crmDocuments.snapshot(now), this.crmDocumentAnalysis.snapshot(now), this.crmLocalPreflight.snapshot(now), this.eneaDraftExecution.snapshot(now), this.eneaBrowserWorker.snapshot(now), this.watchdog.load(now), this.operatorQuestions.snapshot(now), this.csrfToken, this.crmIntegrationWorkflow.snapshot(now), this.crmIncomingReadOnly.snapshot(now), this.crmLiveProcessing.snapshot(now), this.shadowComparison.snapshot(now), this.shadowControl.snapshot(now), this.infissiLocalMapping.snapshot(now), this.infissiBatchPreflight.snapshot(now), this.deepCaseReview.snapshot(now), this.operatorUnlockRegistry.snapshot(now));
+        this.crmReadOnlyAdapterStore.snapshot(now), pilotSample, this.notifications.snapshot(), this.crmAuth.snapshot(now), this.crmAcquisition.snapshot(now), this.crmDocuments.snapshot(now), this.crmDocumentAnalysis.snapshot(now), this.crmLocalPreflight.snapshot(now), this.eneaDraftExecution.snapshot(now), this.eneaBrowserWorker.snapshot(now), this.watchdog.load(now), this.operatorQuestions.snapshot(now), this.csrfToken, this.crmIntegrationWorkflow.snapshot(now), this.crmIncomingReadOnly.snapshot(now), this.crmLiveProcessing.snapshot(now), this.shadowComparison.snapshot(now), this.shadowControl.snapshot(now), this.infissiLocalMapping.snapshot(now), this.infissiBatchPreflight.snapshot(now), this.deepCaseReview.snapshot(now), this.operatorUnlockRegistry.snapshot(now), this.terminalObservability.load());
+      this.livePayload();
       if (!this.crmAuthRefreshInFlight) {
         this.crmAuthRefreshInFlight = true;
         void this.crmAuth.maintainSession(now)
@@ -1000,10 +1187,47 @@ export class LocalDashboardSupervisor {
         this.checkpointMigration.rollback(this.activeCheckpointMigration.transactionId, error instanceof Error ? error.message : String(error), this.now());
         this.activeCheckpointMigration = null;
       }
-      await new Promise<void>((resolve) => server.close(() => resolve()));
+      if (server) await new Promise<void>((resolve) => server.close(() => resolve()));
       this.currentUrl = null;
       throw error;
     }
+  }
+
+  /** Test-only transport: exercises the exact HTTP handler and startup path
+   * without opening a loopback socket, which is forbidden in restricted CI. */
+  async startInProcessForTest() {
+    if (this.currentUrl) return this.currentUrl;
+    return this.initializeStartedRuntime(null, `http://127.0.0.1:${nextInProcessDashboardPort++}`);
+  }
+
+  /** Test-only: esegue un impulso ricorrente senza attendere heartbeatIntervalMs,
+   * per verificare che la ri-validazione automatica avvenga a ogni impulso e
+   * non soltanto durante l'avvio in modalita' migrate. */
+  pulseForTest() {
+    this.pulse();
+  }
+
+  async requestInProcessForTest(pathname: string, init: { method?: string; headers?: Record<string, string>; body?: string } = {}): Promise<Response> {
+    if (!this.currentUrl) throw new Error("dashboard_in_process_not_started");
+    const requestHeaders = Object.fromEntries(Object.entries(init.headers ?? {}).map(([key, value]) => [key.toLowerCase(), value]));
+    const body = init.body ?? "";
+    const request = {
+      url: pathname,
+      method: init.method ?? "GET",
+      headers: requestHeaders,
+      async *[Symbol.asyncIterator]() { if (body) yield Buffer.from(body); },
+    } as unknown as IncomingMessage;
+    const responseHeaders = new Map<string, string>();
+    let statusCode = 200;
+    let responseBody: string | Buffer | undefined;
+    const response = {
+      get statusCode() { return statusCode; },
+      set statusCode(value: number) { statusCode = value; },
+      setHeader(name: string, value: string | number | readonly string[]) { responseHeaders.set(name, Array.isArray(value) ? value.join(", ") : String(value)); return this; },
+      end(value?: string | Buffer) { responseBody = value; return this; },
+    } as unknown as ServerResponse;
+    await this.handleRequest(request, response);
+    return new Response(statusCode === 204 ? null : responseBody ?? null, { status: statusCode, headers: Object.fromEntries(responseHeaders) });
   }
 
   async stop(reason = "Stop supervisore richiesto.") {
@@ -1023,7 +1247,11 @@ export class LocalDashboardSupervisor {
       this.eneaDraftExecution.snapshot(now),
       this.eneaBrowserWorker.snapshot(now),
       this.watchdog.load(now),
+      this.terminalObservability.load(),
     );
+    // Scrittura finale dopo la quiescenza reale: il file atomico rimane
+    // interrogabile da qualunque supervisore APR tramite /api/terminal-*.
+    this.livePayload();
     this.currentUrl = null;
     return this.runtime;
   }

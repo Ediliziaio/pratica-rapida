@@ -1,0 +1,51 @@
+import { createHash } from "node:crypto";
+import { execFileSync } from "node:child_process";
+import { readFileSync, readlinkSync, writeFileSync } from "node:fs";
+import path from "node:path";
+
+const root = process.cwd();
+const ops = path.join(root, "ops/apr-reliability-gap-audit-2026-09-03");
+const state = "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/keepalive/immortal-enea-session";
+const canonicalRoot = "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle";
+const expectedVersionId = "a7f4c2d1-product-evidence-r38-20260903";
+const readJson = (target) => JSON.parse(readFileSync(target, "utf8"));
+const sha256 = (target) => createHash("sha256").update(readFileSync(target)).digest("hex");
+const assert = (condition, reason) => { if (!condition) throw new Error(`apr_r38_postinstall_failed:${reason}`); };
+
+const receipt = readJson(path.join(ops, "bundle-install-receipt-r38.json"));
+const service = readJson(path.join(state, "enea-browser-worker/service.json"));
+const driver = readJson(path.join(state, "enea-browser-worker/cdp-driver.json"));
+const launchctl = execFileSync("launchctl", ["print", `gui/${process.getuid()}/com.praticarapida.apr-enea-immortal-keepalive`], { encoding: "utf8" });
+const processTable = execFileSync("ps", ["-p", `${service.processPid},${service.chromePid}`, "-o", "pid=,ppid=,state=,etime=,command="], { encoding: "utf8" });
+const targets = JSON.parse(execFileSync("curl", ["--fail", "--silent", "--show-error", "http://127.0.0.1:9331/json/list"], { encoding: "utf8" }));
+const currentTarget = path.resolve(canonicalRoot, readlinkSync(path.join(canonicalRoot, "current")));
+const activeBundleSha256 = Object.fromEntries(Object.keys(receipt.installedBundle).map((name) => [name, sha256(path.join(canonicalRoot, "current", name))]));
+const page = targets.find((target) => target.type === "page" && target.id === driver.activeTargetId);
+
+assert(currentTarget === path.join(canonicalRoot, "versions", expectedVersionId), "current_pointer");
+assert(JSON.stringify(activeBundleSha256) === JSON.stringify(receipt.installedBundle), "active_bundle_hashes");
+assert(/state = running/.test(launchctl) && new RegExp(`pid = ${service.processPid}\\b`).test(launchctl) && /last exit code = 0/.test(launchctl), "launchctl_state");
+assert(processTable.includes(`${service.processPid}`) && processTable.includes(`${service.chromePid}`), "processes_missing");
+assert(processTable.includes("immortal-enea-session") && processTable.includes("remote-debugging-port=9331") && processTable.includes("enea-browser-worker/chrome-profile"), "process_identity");
+assert(service.status === "setup_ready" && service.chromePid > 0 && Date.now() - Date.parse(service.heartbeatAt) < 60_000, "persistent_heartbeat");
+assert(service.forbiddenActionCount === 0 && service.previewAttemptCount === 0 && service.submitAttemptCount === 0 && service.communicationAttemptCount === 0, "forbidden_action_counter");
+assert(driver.contract?.ready === true && driver.contract?.operationalUrl === "https://bonusfiscali.enea.it/dashboard", "persisted_contract");
+assert(page?.title === "Bonus Fiscali - ENEA" && page?.url === "https://bonusfiscali.enea.it/dashboard", "local_cdp_target");
+
+const artifact = {
+  version: "apr-product-evidence-r38-postinstall-attestation-v1",
+  verifiedAt: new Date().toISOString(),
+  status: "installed_selected_session_preserved_operational_replay_pending",
+  versionId: expectedVersionId,
+  tripleVerification: {
+    launchctlAndProcesses: { keepaliveLabel: "com.praticarapida.apr-enea-immortal-keepalive", state: "running", pid: service.processPid, chromeAprPid: service.chromePid, chromeRestarted: false, keepaliveRestarted: false },
+    persistentCheckpointAndJournal: { serviceVersion: service.version, revision: service.revision, status: service.status, heartbeatAt: service.heartbeatAt, reason: service.reason, contractObservedAt: driver.contract.observedAt, contractEvidenceId: driver.contract.evidenceId, forbiddenActionCount: service.forbiddenActionCount, previewAttemptCount: service.previewAttemptCount, submitAttemptCount: service.submitAttemptCount, communicationAttemptCount: service.communicationAttemptCount },
+    dashboardOrApi: { endpoint: "http://127.0.0.1:9331/json/list", targetId: page.id, pageTitle: page.title, pageUrl: page.url, pageType: page.type },
+  },
+  activeBundleSha256,
+  activationBoundary: { canonicalPointerSelected: true, existingKeepaliveProcessWasNotRestarted: true, residentKeepaliveCodePredatesR38: true, nextFreshAprProcessWillLoadR38: true, operationalR38ReplayPerformed: false },
+  safety: { eneaMutationPerformed: false, crmMutationPerformed: false, previewPerformed: false, savePerformed: false, submitPerformed: false, communicationPerformed: false },
+};
+const target = path.join(ops, "postinstall-attestation-r38.json");
+writeFileSync(target, `${JSON.stringify(artifact, null, 2)}\n`, "utf8");
+process.stdout.write(`${JSON.stringify({ target, status: artifact.status, tripleVerification: artifact.tripleVerification, activationBoundary: artifact.activationBoundary }, null, 2)}\n`);

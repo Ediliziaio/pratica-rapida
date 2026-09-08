@@ -9,7 +9,7 @@ import { PersistentAprEneaDraftExecution } from "./eneaDraftExecution";
 const roots: string[] = [];
 afterEach(() => { while (roots.length) rmSync(roots.pop()!, { recursive: true, force: true }); });
 
-function fixture(options: { rawSelfCoBeneficiary?: boolean; resolvedCoBeneficiaryPresent?: boolean } = {}) {
+function fixture(options: { rawSelfCoBeneficiary?: boolean; resolvedCoBeneficiaryPresent?: boolean; resolvedPrimaryBeneficiary?: { name: string; surname: string; taxCode: string; birthDate?: string | null; sex?: "M" | "F" }; resolvedWorksMunicipality?: { comune: string; provincia: string } } = {}) {
   const root = mkdtempSync(path.join(os.tmpdir(), "apr-infissi-draft-package-"));
   roots.push(root);
   const dossierPath = path.join(root, "dossier.json");
@@ -19,6 +19,7 @@ function fixture(options: { rawSelfCoBeneficiary?: boolean; resolvedCoBeneficiar
     dati_form: {
       richiedente: { nome: "Ada", cognome: "Lovelace", cf: "LVLDAA80A41H501U", data_nascita: "1980-01-01", comune_nascita: "Roma", provincia_nascita: "Roma", telefono: "3330000000", abitazione_principale: true },
       residenza: { comune: "Roma", provincia: "Roma", indirizzo: "Via Test", civico: "1", cap: "00100", stesso_indirizzo_lavori: true },
+      appartamento_lavori: { comune: "Roma", provincia: "Roma", indirizzo: "Via Test", numero: "1", cap: "00100" },
       edificio: { tipologia: "casa_singola_o_plurifamiliare", superficie_mq: 100, anno_costruzione: 1980, titolo_richiedente: "proprietario_o_comproprietario", numero_appartamenti: 1 },
       catastali: { foglio: "1", mappale: "2" },
       impianto: { tipo: "autonomo", terminali: "caloriferi", combustibile: "gas_metano", tipo_caldaia: "altro", aria_condizionata: false },
@@ -38,7 +39,7 @@ function fixture(options: { rawSelfCoBeneficiary?: boolean; resolvedCoBeneficiar
     portalManagedFields: { energySavings: "leave_unset_portal_computed" },
     audit: { appliedRuleIds: ["user-2026-08-19-infissi-portal-managed-energy-savings-v1"], fieldEvidence: [] },
   };
-  const draftPackage = buildAprInfissiDraftPackage({ customerKey: "ada-lovelace", displayName: "Ada Lovelace", practiceId: payload.practiceId, dossierPath, startDate: "2026-01-10", completionDate: "2026-01-20", resolvedTaxCode: "LVLDAA80A41H501U", resolvedCoBeneficiaryPresent: options.resolvedCoBeneficiaryPresent, infissiPayload: payload, oldFrameMaterial: "legno", oldGlazingType: "vetro_singolo", sourceFingerprint: "source-infissi-fixture" });
+  const draftPackage = buildAprInfissiDraftPackage({ customerKey: "ada-lovelace", displayName: "Ada Lovelace", practiceId: payload.practiceId, dossierPath, startDate: "2026-01-10", completionDate: "2026-01-20", resolvedTaxCode: "LVLDAA80A41H501U", resolvedPrimaryBeneficiary: options.resolvedPrimaryBeneficiary, resolvedWorksMunicipality: options.resolvedWorksMunicipality, resolvedCoBeneficiaryPresent: options.resolvedCoBeneficiaryPresent, infissiPayload: payload, oldFrameMaterial: "legno", oldGlazingType: "vetro_singolo", sourceFingerprint: "source-infissi-fixture" });
   return { root, draftPackage };
 }
 
@@ -86,5 +87,29 @@ describe("APR Infissi · pacchetto bozza persistente", () => {
     const beneficiary = draftPackage.workflow.steps.find((step) => step.pageName === "Anagrafica Beneficiario");
     expect(beneficiary?.coBeneficiary).toBeUndefined();
     expect(beneficiary?.fields.some((field) => field.portalId.includes("cointestat"))).toBe(false);
+  });
+
+  it("propaga fino al payload Infissi l'identita documentale che prevale sul form CRM", () => {
+    const { draftPackage } = fixture({ resolvedPrimaryBeneficiary: { name: "Antonino", surname: "Formisano", taxCode: "FRMNNN66P27L259X", birthDate: "1966-09-27", sex: "M" } });
+    const beneficiary = draftPackage.workflow.steps.find((step) => step.pageName === "Anagrafica Beneficiario");
+    expect(beneficiary?.fields).toEqual(expect.arrayContaining([
+      expect.objectContaining({ portalId: "id-nome", value: "Antonino" }),
+      expect.objectContaining({ portalId: "id-cognome", value: "Formisano" }),
+      expect.objectContaining({ portalId: "id-codice_fiscale", value: "FRMNNN66P27L259X" }),
+      expect.objectContaining({ portalId: "id-data_nascita", value: "27/09/1966" }),
+      expect.objectContaining({ portalId: "id-sesso", value: "M" }),
+    ]));
+  });
+
+  it("propaga fino al payload Infissi il Comune lavori documentale che prevale sul form CRM", () => {
+    const { draftPackage } = fixture({ resolvedWorksMunicipality: { comune: "Reggiolo", provincia: "RE" } });
+    const building = draftPackage.workflow.steps.find((step) => step.pageName === "Immobile");
+    expect(building?.fields).toEqual(expect.arrayContaining([expect.objectContaining({ portalId: "id-comune", value: "Reggiolo" })]));
+  });
+
+  it("lascia invariato il Comune lavori del form CRM quando nessuna fattura fornisce una risoluzione documentale", () => {
+    const { draftPackage } = fixture();
+    const building = draftPackage.workflow.steps.find((step) => step.pageName === "Immobile");
+    expect(building?.fields).toEqual(expect.arrayContaining([expect.objectContaining({ portalId: "id-comune", value: "Roma" })]));
   });
 });

@@ -2,12 +2,96 @@ import { createHash } from "node:crypto";
 import { closeSync, existsSync, fsyncSync, mkdirSync, openSync, readFileSync, readdirSync, renameSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import type { EneaPortalRuntimeField, EneaPortalWorkflowStep } from "../../src/features/enea-lab/portalScript";
-import type { AprEneaBrowserDriver, AprEneaDraftCreationAbsenceProof, AprEneaDraftEvidence, AprEneaDraftPackage, AprEneaDriverEvidence, AprEneaPageSaveProbeEvidence, AprEneaSessionEvidence } from "./aprEneaBrowserWorker";
+import type { AprEneaBrowserDriver, AprEneaDraftCreationAbsenceProof, AprEneaDraftDiscoveryScope, AprEneaDraftEvidence, AprEneaDraftPackage, AprEneaDriverEvidence, AprEneaPageSaveProbeEvidence, AprEneaSessionEvidence } from "./aprEneaBrowserWorker";
 import { CdpPageClient, PersistentAprChromeRuntime, type CdpTargetInfo } from "./cdpClient";
+import type { AprEneaCdpCapability, AprEneaMutatingCdpCapability } from "./aprEneaGlobalBrowserController";
 import { infissiRowPersistenceSurfaceOutcome } from "./infissiUncertainSavePolicy";
 
 const VERSION = "apr-cdp-enea-driver-v1" as const;
 const PAGE_DIAGNOSTIC_CONTRACT_REVISION = "autocomplete-structure-v2" as const;
+export const APR_ENEA_NESTED_SERVER_PROOF_RULE_ID = "apr-2026-08-31-nested-server-json-proof-v1" as const;
+
+/**
+ * Distingue la mutazione applicativa della bozza dai POST opachi di
+ * telemetria/anti-bot che il portale puo' emettere per qualunque evento
+ * attendibile. Questi ultimi non provano che il comando Salva sia arrivato al
+ * reducer ENEA e non devono quindi consumare il fallback dello stesso intento.
+ */
+export function isEneaDraftBusinessMutation(
+  trace: { method: string; url: string },
+  allowedOrigin: string,
+  draftId: string,
+) {
+  try {
+    const url = new URL(trace.url);
+    return url.origin === allowedOrigin
+      && ["POST", "PUT", "PATCH"].includes(trace.method.toUpperCase())
+      && url.pathname === `/api/pratica/ecobonus/2026/tmp/${draftId}`;
+  } catch {
+    return false;
+  }
+}
+
+export function serverResponseAuditSummary(body: string, parsed: unknown) {
+  const record = parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed as Record<string, unknown> : null;
+  const result = record?.result && typeof record.result === "object" && !Array.isArray(record.result)
+    ? record.result as Record<string, unknown>
+    : null;
+  return {
+    topLevelKeys: record ? Object.keys(record).sort() : [],
+    resultKeys: result ? Object.keys(result).sort() : [],
+    envelopeError: typeof record?.error === "boolean" ? record.error : null,
+    envelopeStatus: typeof record?.status === "number" || typeof record?.status === "string" ? record.status : null,
+    // Le risposte brevi sono indispensabili per distinguere un vero payload
+    // draft da un wrapper/errore applicativo. I payload potenzialmente ricchi
+    // di dati personali restano invece soltanto hashati e classificati.
+    responseBody: body.length <= 4_096 ? body : null,
+    responseBodyTruncated: body.length > 4_096,
+  };
+}
+
+export function nestedServerJsonContainsExpectedGenerator(
+  value: unknown,
+  activationLabel: string,
+  fields: readonly { portalId: string; value: string }[],
+) {
+  const normalize = (input: unknown) => String(input ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().replace(/\s+/g, " ").toLocaleLowerCase("it");
+  const candidates: Array<{ path: string; node: Record<string, unknown> }> = [];
+  const visit = (node: unknown, keyPath = "", depth = 0) => {
+    if (!node || typeof node !== "object" || depth > 10) return;
+    if (Array.isArray(node)) { node.forEach((item, index) => visit(item, `${keyPath}[${index}]`, depth + 1)); return; }
+    const record = node as Record<string, unknown>;
+    const marker = normalize(`${keyPath} ${Object.keys(record).join(" ")} ${Object.values(record).filter((item) => typeof item !== "object").join(" ")}`);
+    if (/generat/.test(marker)) candidates.push({ path: keyPath, node: record });
+    for (const [key, child] of Object.entries(record)) visit(child, keyPath ? `${keyPath}.${key}` : key, depth + 1);
+  };
+  visit(value);
+  const expectedLabel = normalize(activationLabel);
+  const outcome = [...candidates].sort((left, right) => right.path.length - left.path.length).find(({ node }) => {
+    const scalarEntries: Array<[string, unknown]> = [];
+    const scalars = (current: unknown, keyPath = "", depth = 0) => {
+      if (depth > 6 || current === null || current === undefined) return;
+      if (Array.isArray(current)) { current.forEach((item, index) => scalars(item, `${keyPath}[${index}]`, depth + 1)); return; }
+      if (typeof current === "object") { for (const [key, child] of Object.entries(current as Record<string, unknown>)) scalars(child, keyPath ? `${keyPath}.${key}` : key, depth + 1); return; }
+      scalarEntries.push([keyPath, current]);
+    };
+    scalars(node);
+    const corpus = normalize(scalarEntries.map(([key, scalar]) => `${key}=${scalar}`).join(" | "));
+    if (expectedLabel && !corpus.includes(expectedLabel) && !/generat/.test(corpus)) return false;
+    return fields.every((field) => {
+      const key = normalize(field.portalId.replace(/^id-/, "").replace(/[-_]+/g, " "));
+      const wantedNumber = portalNumberValue(field.value);
+      return scalarEntries.some(([keyPath, scalar]) => {
+        if (key && !normalize(keyPath.replace(/[-_]+/g, " ")).includes(key)) return false;
+        const actualNumber = portalNumberValue(scalar);
+        if (wantedNumber !== null && actualNumber !== null) return Math.abs(wantedNumber - actualNumber) < 0.001;
+        const wanted = normalize(field.value); const actual = normalize(scalar);
+        return Boolean(wanted) && (actual === wanted || actual.includes(wanted) || wanted.includes(actual));
+      });
+    });
+  });
+  return { matched: Boolean(outcome), candidatePaths: candidates.map((candidate) => candidate.path), matchedPath: outcome?.path ?? null };
+}
 
 /** Confronta importi/decimali indipendentemente dal formato UI italiano. */
 export function portalNumberValue(value: unknown): number | null {
@@ -108,6 +192,7 @@ interface DriverState {
 type PortalContractInventory = { url: string; createCandidates: Array<{ tag: string; text: string; href: string }>; forbiddenCandidates: Array<{ tag: string; text: string }>; navigationCandidates: Array<{ tag: string; label: string; path: string }> };
 
 export interface CdpEneaBrowserDriverOptions {
+  accessCapability: AprEneaCdpCapability;
   allowedOrigin?: string;
   dashboardUrl?: string;
   createActionLabels?: string[];
@@ -179,6 +264,12 @@ export interface CalculationAllocationTableResult {
   observed50: number | null;
   observed36: number | null;
   observedTotal: number | null;
+}
+
+/** Consente una seconda consegna dello stesso intento soltanto se il modale
+ * e ancora aperto e la tabella autorevole non mostra il nuovo valore. */
+export function calculationAllocationDeliveryStillUncommitted(modalOpen: boolean, tableMatched: boolean, observedMutationCount = 0) {
+  return modalOpen && !tableMatched && observedMutationCount === 0;
 }
 
 export function classifyInfissiFinalIntegrity(input: {
@@ -348,6 +439,25 @@ export async function pollPersistedPageFieldsReadOnly(
   return result;
 }
 
+/**
+ * Attende una condizione DOM esclusivamente dal processo Node. Ogni probe e'
+ * una Runtime.evaluate sincrona distinta: nessuna Promise resta nel renderer
+ * durante un remount React e nessuna operazione mutativa viene ritentata.
+ */
+export async function pollBooleanDomReadOnly(
+  read: () => Promise<boolean>,
+  options: { attempts?: number; intervalMs?: number; wait?: (milliseconds: number) => Promise<void> } = {},
+) {
+  const attempts = options.attempts ?? 150;
+  const intervalMs = options.intervalMs ?? 100;
+  const wait = options.wait ?? ((milliseconds: number) => new Promise<void>((resolve) => setTimeout(resolve, milliseconds)));
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    if (await read()) return true;
+    if (attempt + 1 < attempts) await wait(intervalMs);
+  }
+  return false;
+}
+
 type DriverEvent = DriverState["events"][number];
 
 export function findCompleteDraftServerEvidence(input: {
@@ -375,15 +485,22 @@ export function findCompleteDraftServerEvidence(input: {
     const allowedVerificationActions = pageId.startsWith("screening:")
       ? ["verify_screening_staged_page_state", "verify_screening_post_save_failed_readonly_diagnostic", "verify_infissi_row_staged_page_state"]
       : /Generatore/.test(pageId)
-        ? ["verify_generator_staged_page_state"]
+        ? ["verify_generator_staged_page_state", "verify_nested_page_saved_server_network_json_readonly"]
         : ["verify_page_saved_server_redirect", "verify_page_saved_readonly"];
     const verified = [...events].reverse().find((event) => event.pageId === pageId && event.revision > save.revision && allowedVerificationActions.includes(event.action) && validEvent(event));
     if (!verified) return null;
+    const rejected = [...events].reverse().find((event) => event.pageId === pageId
+      && event.revision > save.revision
+      && event.action === "verify_nested_page_server_network_json_rejected_readonly"
+      && validEvent(event));
+    if (rejected && rejected.revision > verified.revision) return null;
   }
   const final = [...events].reverse().find((event) => event.pageId === "page:Calcolo costi e detrazioni"
-    && event.action === "verify_page_saved_server_redirect"
     && validEvent(event)
-    && new URL(event.url).pathname === `/pratica/ecobonus/2026/riepilogo/${input.draftId}`);
+    && ((event.action === "verify_page_saved_server_redirect"
+      && new URL(event.url).pathname === `/pratica/ecobonus/2026/riepilogo/${input.draftId}`)
+      || (event.action === "verify_page_saved_readonly"
+        && new URL(event.url).pathname === `/pratica/ecobonus/2026/calcolo/${input.draftId}`)));
   return final ?? null;
 }
 
@@ -421,8 +538,33 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
   readonly dashboardUrl: string;
   readonly createActionLabels: string[];
   readonly allowOpenInitialPage: boolean;
+  readonly accessCapability: AprEneaCdpCapability;
 
-  constructor(readonly rootDirectory: string, readonly runtime: PersistentAprChromeRuntime, options: CdpEneaBrowserDriverOptions = {}) {
+  constructor(readonly rootDirectory: string, readonly runtime: PersistentAprChromeRuntime, options: CdpEneaBrowserDriverOptions) {
+    if (!options?.accessCapability) throw new Error("apr_cdp_driver_access_capability_required");
+    this.accessCapability = options.accessCapability;
+    this.accessCapability.assertValid();
+    this.runtime.setAccessGuard((mode) => {
+      try {
+        if (mode === "mutating") {
+          if (this.accessCapability.kind !== "apr_enea_cdp_mutating") throw new Error("apr_cdp_driver_mutation_without_capability");
+          this.accessCapability.assertMutationAllowed();
+        } else this.accessCapability.assertValid();
+      } catch (error) { this.runtime.closeAllPageClients(); throw error; }
+    }, { ownerId: this.accessCapability.access.ownerId, fencingEpoch: this.accessCapability.access.fencingEpoch }, (mode) => {
+      try {
+        if (mode === "mutating") {
+          if (this.accessCapability.kind !== "apr_enea_cdp_mutating") throw new Error("apr_cdp_driver_mutation_without_capability");
+          this.accessCapability.assertMutationAllowed();
+        } else this.accessCapability.assertValid();
+        // Un solo rinnovo al confine del comando assegna a quel comando una
+        // lease completa. Nessun timer rinnova durante l'esecuzione: se il
+        // comando si blocca, la lease scade e il fencing lo interrompe.
+        this.accessCapability.renew();
+        if (mode === "mutating") (this.accessCapability as AprEneaMutatingCdpCapability).assertMutationAllowed();
+        else this.accessCapability.assertValid();
+      } catch (error) { this.runtime.closeAllPageClients(); throw error; }
+    });
     this.allowedOrigin = new URL(options.allowedOrigin ?? "https://bonusfiscali.enea.it").origin;
     this.dashboardUrl = safeUrl(options.dashboardUrl ?? `${this.allowedOrigin}/`, this.allowedOrigin);
     this.createActionLabels = options.createActionLabels ?? ["Nuova pratica", "Ecobonus", "Schermature solari"];
@@ -450,6 +592,21 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
   }
   private write(state: DriverState) { atomicWrite(this.checkpointPath, `${JSON.stringify(state, null, 2)}\n`); return state; }
 
+  private assertReadAccess() {
+    try { this.accessCapability.assertValid(); }
+    catch (error) { this.runtime.closeAllPageClients(); throw error; }
+  }
+
+  private renewMutationAccess() {
+    if (this.accessCapability.kind !== "apr_enea_cdp_mutating") throw new Error("apr_cdp_driver_mutation_without_capability");
+    try {
+      const capability = this.accessCapability as AprEneaMutatingCdpCapability;
+      capability.assertMutationAllowed();
+      capability.renew();
+      capability.assertMutationAllowed();
+    } catch (error) { this.runtime.closeAllPageClients(); throw error; }
+  }
+
   private async target() {
     const state = this.load();
     const targets = await this.runtime.targets();
@@ -462,18 +619,18 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
     return target;
   }
 
-  private async client() { const target = await this.target(); return { target, client: await this.runtime.pageClient(target) }; }
+  private async client() { this.assertReadAccess(); const target = await this.target(); return { target, client: await this.runtime.pageClient(target) }; }
 
   private async ensureAllowedLocation(client: CdpPageClient) {
-    const currentUrl = await client.evaluate<string>("location.href");
+    const currentUrl = await client.evaluateDomRead<string>("location.href");
     try {
       safeUrl(currentUrl, this.allowedOrigin);
       return;
     } catch (error) {
       if (!this.allowOpenInitialPage) throw error;
     }
-    await client.navigate(this.dashboardUrl);
-    safeUrl(await client.evaluate<string>("location.href"), this.allowedOrigin);
+    await client.navigateReadonlyGet(this.dashboardUrl, this.allowedOrigin);
+    safeUrl(await client.evaluateDomRead<string>("location.href"), this.allowedOrigin);
   }
 
   private async allowedPageTargets() {
@@ -502,7 +659,7 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
   }
 
   private async capture(action: string, target: CdpTargetInfo, client: CdpPageClient, input: { customerKey?: string | null; draftId?: string | null; pageId?: string | null; appliedRuleIds?: string[] } = {}) {
-    const snapshot = await client.evaluate<{ url: string; title: string; readyState: string; markers: string[]; text: string }>(`(()=>({url:location.href,title:document.title,readyState:document.readyState,markers:[...document.querySelectorAll('[id]')].slice(0,250).map(node=>node.id).filter(Boolean).sort(),text:(document.body?.innerText||"").slice(0,4000)}))()`);
+    const snapshot = await client.evaluateDomRead<{ url: string; title: string; readyState: string; markers: string[]; text: string }>(`(()=>({url:location.href,title:document.title,readyState:document.readyState,markers:[...document.querySelectorAll('[id]')].slice(0,250).map(node=>node.id).filter(Boolean).sort(),text:(document.body?.innerText||"").slice(0,4000)}))()`);
     safeUrl(snapshot.url, this.allowedOrigin);
     const state = this.load(); state.revision += 1;
     const domSha256 = sha256(snapshot);
@@ -523,7 +680,7 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
 
   private async waitForStable(client: CdpPageClient, previousUrl?: string) {
     for (let attempt = 0; attempt < 150; attempt += 1) {
-      const state = await client.evaluate<{ ready: string; url: string }>(`({ready:document.readyState,url:location.href})`);
+      const state = await client.evaluateDomRead<{ ready: string; url: string }>(`({ready:document.readyState,url:location.href})`);
       if ((state.ready === "interactive" || state.ready === "complete") && (!previousUrl || state.url !== previousUrl || attempt > 10)) return state.url;
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
@@ -531,7 +688,7 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
   }
 
   private async collectDraftIds(client: CdpPageClient) {
-    return client.evaluate<string[]>(`(()=>[...new Set([...document.querySelectorAll('a[href]')].map(a=>{try{return new URL(a.href,location.href).pathname.match(/\\/(\\d{4,})(?:\\/)?$/)?.[1]||null}catch{return null}}).filter(Boolean))])()`);
+    return client.evaluateDomRead<string[]>(`(()=>[...new Set([...document.querySelectorAll('a[href]')].map(a=>{try{return new URL(a.href,location.href).pathname.match(/\\/(\\d{4,})(?:\\/)?$/)?.[1]||null}catch{return null}}).filter(Boolean))])()`);
   }
 
   async verifySession(): Promise<AprEneaSessionEvidence> {
@@ -545,12 +702,12 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
       for (const candidate of orderedTargets) {
         const candidateClient = candidate.id === target.id ? client : await this.runtime.pageClient(candidate);
         await this.ensureAllowedLocation(candidateClient);
-        const domAuthenticated = await candidateClient.evaluate<boolean>(`(()=>{const normalize=value=>String(value||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").trim().replace(/\\s+/g," ").toLocaleLowerCase("it");const pageText=normalize(document.body?.innerText||"");const controls=[...document.querySelectorAll('a,button,input[type="button"],input[type="submit"]')];const exitControl=controls.some(node=>normalize(node.textContent||node.value)==="esci");const createCapability=[...document.querySelectorAll('a[href]')].some(a=>{try{return new URL(a.href,location.href).origin===location.origin&&new URL(a.href,location.href).pathname==="/pratica/ecobonus/2026/nuova"}catch{return false}});return Boolean(document.querySelector('[data-apr-authenticated="true"],[data-user-authenticated="true"]'))||Boolean(document.querySelector('a[href*="logout" i],form[action*="logout" i],button[name*="logout" i]'))||exitControl||createCapability||(/(utente connesso|connesso come|profilo utente)/.test(pageText)&&Boolean(document.querySelector('[class*="user" i],[id*="user" i],[class*="profile" i],[id*="profile" i]')) )})()`);
+        const domAuthenticated = await candidateClient.evaluateDomRead<boolean>(`(()=>{const normalize=value=>String(value||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").trim().replace(/\\s+/g," ").toLocaleLowerCase("it");const pageText=normalize(document.body?.innerText||"");const controls=[...document.querySelectorAll('a,button,input[type="button"],input[type="submit"]')];const exitControl=controls.some(node=>normalize(node.textContent||node.value)==="esci");const createCapability=[...document.querySelectorAll('a[href]')].some(a=>{try{return new URL(a.href,location.href).origin===location.origin&&new URL(a.href,location.href).pathname==="/pratica/ecobonus/2026/nuova"}catch{return false}});return Boolean(document.querySelector('[data-apr-authenticated="true"],[data-user-authenticated="true"]'))||Boolean(document.querySelector('a[href*="logout" i],form[action*="logout" i],button[name*="logout" i]'))||exitControl||createCapability||(/(utente connesso|connesso come|profilo utente)/.test(pageText)&&Boolean(document.querySelector('[class*="user" i],[id*="user" i],[class*="profile" i],[id*="profile" i]')) )})()`);
         if (domAuthenticated) { target = candidate; client = candidateClient; break; }
       }
       await this.ensureAllowedLocation(client);
       this.selectTarget(target.id);
-    let result = await client.evaluate<{ authenticated: boolean; explicitLogin: boolean; url: string }>(`(async()=>{
+    let result = await client.evaluateServerReconciliation<{ authenticated: boolean; explicitLogin: boolean; url: string }>(`(async()=>{
       const normalize=value=>String(value||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLocaleLowerCase("it");
       const pageText=normalize(document.body?.innerText||"");
       const explicitAuthenticatedMarker=Boolean(document.querySelector('[data-apr-authenticated="true"],[data-user-authenticated="true"]'));
@@ -580,14 +737,14 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
     let evidenceAction = "verify_session_dom_server_get";
     if (!result.authenticated && !result.explicitLogin) {
       const dashboardUrl = safeUrl(`${this.allowedOrigin}/dashboard`, this.allowedOrigin);
-      const previousUrl = await client.evaluate<string>("location.href");
+      const previousUrl = await client.evaluateDomRead<string>("location.href");
       if (previousUrl !== dashboardUrl) {
-        await client.navigate(dashboardUrl);
+        await client.navigateReadonlyGet(dashboardUrl, this.allowedOrigin);
         await this.waitForStable(client, previousUrl);
         evidenceAction = "verify_session_dashboard_navigation_readonly_get";
       }
       for (let attempt = 0; attempt < 25; attempt += 1) {
-        result = await client.evaluate<{ authenticated: boolean; explicitLogin: boolean; url: string }>(`(()=>{
+        result = await client.evaluateDomRead<{ authenticated: boolean; explicitLogin: boolean; url: string }>(`(()=>{
           const normalize=value=>String(value||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLocaleLowerCase("it");
           const text=normalize(document.body?.innerText||"");
           const exitControl=[...document.querySelectorAll('a,button,input[type="button"],input[type="submit"]')].some(node=>normalize(node.textContent||node.value).trim().replace(/\\s+/g," ")==="esci");
@@ -633,12 +790,12 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
       const inventoryExpression = `(()=>{const normalize=value=>String(value||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").trim().replace(/\\s+/g," ").toLocaleLowerCase("it");const nodes=[...document.querySelectorAll('a[href],button,input[type="button"],input[type="submit"]')];const createLabels=["nuova pratica","inserisci pratica","nuova dichiarazione","crea pratica"];const ecobonus2026Path="/pratica/ecobonus/2026/nuova";const forbidden=/anteprima|invia|submit|ricevuta|email|comunicazione|salva|elimina|cancella|logout|esci/;const mapped=nodes.map(node=>{const label=normalize(node.textContent||node.value).slice(0,120);let path="";try{const parsed=node.href?new URL(node.href,location.href):null;if(parsed&&parsed.origin===location.origin)path=parsed.pathname}catch{}return {tag:node.tagName.toLowerCase(),text:label,href:node.href||"",label,path}});return {url:location.href,createCandidates:mapped.filter(item=>createLabels.some(label=>item.text===label||item.text.startsWith(label+" "))||(item.path===ecobonus2026Path&&item.text.startsWith("inserisci nuova scheda descrittiva ecobonus"))),forbiddenCandidates:mapped.filter(item=>forbidden.test(item.text)),navigationCandidates:mapped.filter(item=>item.label&&item.path&&!forbidden.test(item.label)).slice(0,80).map(({tag,label,path})=>({tag,label,path}))}})()`;
       for (const candidate of orderedTargets) {
         const candidateClient = candidate.id === target.id ? client : await this.runtime.pageClient(candidate);
-        let candidateInventory = await candidateClient.evaluate<PortalContractInventory>(inventoryExpression);
+        let candidateInventory = await candidateClient.evaluateDomRead<PortalContractInventory>(inventoryExpression);
       const safeDashboard = candidateInventory.navigationCandidates.find((item) => item.path === "/dashboard" && /^(area riservata|dashboard|cruscotto|accedi)$/.test(item.label));
       if (candidateInventory.createCandidates.length === 0 && safeDashboard && new URL(candidateInventory.url).pathname !== safeDashboard.path) {
-        await candidateClient.navigate(`${this.allowedOrigin}${safeDashboard.path}`);
+        await candidateClient.navigateReadonlyGet(`${this.allowedOrigin}${safeDashboard.path}`, this.allowedOrigin);
         await this.waitForStable(candidateClient);
-        candidateInventory = await candidateClient.evaluate<PortalContractInventory>(inventoryExpression);
+        candidateInventory = await candidateClient.evaluateDomRead<PortalContractInventory>(inventoryExpression);
         await this.capture("navigate_dashboard_readonly_get", candidate, candidateClient);
       }
         if (!inventory || candidateInventory.createCandidates.length > 0) { target = candidate; client = candidateClient; inventory = candidateInventory; }
@@ -662,8 +819,8 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
   async verifyDraftIdsAbsentReadOnly(draftIds: string[]) {
     if (draftIds.length < 1 || new Set(draftIds).size !== draftIds.length || draftIds.some((id) => !/^\d{4,}$/.test(id))) throw new Error("apr_cdp_repeat_draft_ids_invalid");
     const { target, client } = await this.client();
-    if (await client.evaluate<string>("location.href") !== this.dashboardUrl) {
-      await client.navigate(this.dashboardUrl);
+    if (await client.evaluateDomRead<string>("location.href") !== this.dashboardUrl) {
+      await client.navigateReadonlyGet(this.dashboardUrl, this.allowedOrigin);
       await this.waitForStable(client);
     }
     const observed = new Set(await this.collectDraftIds(client));
@@ -717,12 +874,12 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
     if (!pending) return null;
     const { target, client } = await this.client();
     const creationUrl = `${this.allowedOrigin}/pratica/ecobonus/2026/nuova`;
-    if (await client.evaluate<string>("location.href") !== creationUrl) await client.navigate(creationUrl);
+    if (await client.evaluateDomRead<string>("location.href") !== creationUrl) await client.navigateReadonlyGet(creationUrl, this.allowedOrigin);
     const inventoryExpression = `(()=>{const normalize=value=>String(value||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").trim().replace(/\\s+/g," ").slice(0,160);const path=value=>{try{const parsed=new URL(value||"",location.href);return parsed.origin===location.origin?parsed.pathname:""}catch{return ""}};const labelFor=node=>{const direct=node.labels?.[0]?.textContent||node.getAttribute("aria-label")||node.getAttribute("placeholder")||node.textContent||node.value||"";return normalize(direct)};return {url:location.href,forms:[...document.forms].slice(0,20).map(form=>({id:form.id||"",method:(form.method||"get").toLowerCase(),path:path(form.action)})),controls:[...document.querySelectorAll('input,select,textarea,button')].slice(0,120).map(node=>({tag:node.tagName.toLowerCase(),type:(node.type||"").toLowerCase(),id:node.id||"",name:node.name||"",label:labelFor(node),options:node instanceof HTMLSelectElement?[...node.options].slice(0,40).map(option=>normalize(option.textContent||option.value)):[]})),actions:[...document.querySelectorAll('a[href],button,input[type="button"],input[type="submit"]')].slice(0,120).map(node=>({tag:node.tagName.toLowerCase(),type:(node.type||"").toLowerCase(),label:labelFor(node),path:path(node.href||"")}))}})()`;
-    let inventory = await client.evaluate<{ url: string; forms: Array<{ id: string; method: string; path: string }>; controls: Array<{ tag: string; type: string; id: string; name: string; label: string; options: string[] }>; actions: Array<{ tag: string; type: string; label: string; path: string }> }>(inventoryExpression);
+    let inventory = await client.evaluateDomRead<{ url: string; forms: Array<{ id: string; method: string; path: string }>; controls: Array<{ tag: string; type: string; id: string; name: string; label: string; options: string[] }>; actions: Array<{ tag: string; type: string; label: string; path: string }> }>(inventoryExpression);
     for (let attempt = 0; attempt < 75 && inventory.forms.length + inventory.controls.length + inventory.actions.length === 0; attempt += 1) {
       await new Promise((resolve) => setTimeout(resolve, 200));
-      inventory = await client.evaluate<typeof inventory>(inventoryExpression);
+      inventory = await client.evaluateDomRead<typeof inventory>(inventoryExpression);
     }
     safeUrl(inventory.url, this.allowedOrigin);
     const evidence = await this.capture("inspect_pending_creation_surface_readonly", target, client, { customerKey: pending.customerKey });
@@ -730,10 +887,10 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
     return state.creationSurface;
   }
 
-  async discoverExistingDraft(draftPackage: AprEneaDraftPackage): Promise<AprEneaDraftEvidence | null> {
+  async discoverExistingDraft(draftPackage: AprEneaDraftPackage, scope: AprEneaDraftDiscoveryScope = "resume_generation"): Promise<AprEneaDraftEvidence | null> {
     const state = this.load();
     const mapped = state.mappings.find((mapping) => mapping.packageFingerprint === draftPackage.packageFingerprint);
-    if (mapped) {
+    if (mapped && scope === "resume_generation") {
       const { target, client } = await this.client();
       const evidence = await this.capture("discover_mapped_draft_readonly", target, client, { customerKey: draftPackage.customerKey, draftId: mapped.draftId });
       return { ...evidence, draftId: mapped.draftId, url: mapped.url };
@@ -748,11 +905,11 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
     let discovered = candidates;
     if (discovered.length !== 1 && state.pendingCreate.wizardSubmitAttemptCount === 1) {
       const { target, client } = await this.client();
-      if (await client.evaluate<string>("location.href") !== this.dashboardUrl) {
-        await client.navigate(this.dashboardUrl);
+      if (await client.evaluateDomRead<string>("location.href") !== this.dashboardUrl) {
+        await client.navigateReadonlyGet(this.dashboardUrl, this.allowedOrigin);
         await this.waitForStable(client);
       }
-      const dashboardCandidates = await client.evaluate<Array<{ id: string; url: string }>>(`(()=>Array.from(document.querySelectorAll('a[href]')).flatMap(a=>{try{const url=new URL(a.href,location.href),parts=url.pathname.split('/').filter(Boolean),id=parts[parts.length-1];return url.origin===location.origin&&/^[0-9]{4,}$/.test(id)?[{id,url:url.href}]:[]}catch{return []}}))()`);
+      const dashboardCandidates = await client.evaluateDomRead<Array<{ id: string; url: string }>>(`(()=>Array.from(document.querySelectorAll('a[href]')).flatMap(a=>{try{const url=new URL(a.href,location.href),parts=url.pathname.split('/').filter(Boolean),id=parts[parts.length-1];return url.origin===location.origin&&/^[0-9]{4,}$/.test(id)?[{id,url:url.href}]:[]}catch{return []}}))()`);
       const unseen = dashboardCandidates.filter((candidate) => !state.pendingCreate!.beforeDraftIds.includes(candidate.id) && !alreadyMappedDraftIds.has(candidate.id) && !siblingOwnedDraftIds.has(candidate.id));
       if (unseen.length === 1) discovered = [{ target: { ...target, url: unseen[0].url }, id: unseen[0].id }];
     }
@@ -763,7 +920,7 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
     // coorte precedente.
     if (siblingCohortOwnedDraftIds(this.rootDirectory).has(id)) return null;
     const client = await this.runtime.pageClient(target);
-    if (await client.evaluate<string>("location.href") !== target.url) { await client.navigate(target.url); await this.waitForStable(client); }
+    if (await client.evaluateDomRead<string>("location.href") !== target.url) { await client.navigateReadonlyGet(target.url, this.allowedOrigin); await this.waitForStable(client); }
     const evidence = await this.capture("discover_pending_draft_readonly", target, client, { customerKey: draftPackage.customerKey, draftId: id });
     this.runtime.closePageClientsExcept(target.id);
     const next = this.load(); next.revision += 1; next.activeTargetId = target.id; next.mappings.push({ packageFingerprint: draftPackage.packageFingerprint, customerKey: draftPackage.customerKey, draftId: id, url: evidence.url, mappedAt: new Date().toISOString() }); next.pendingCreate = null; this.write(next);
@@ -784,9 +941,9 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
     for (let sequence = 1; sequence <= 2; sequence += 1) {
       const session = await this.verifySession();
       const { target, client } = await this.client();
-      await client.navigate(this.dashboardUrl);
+      await client.navigateReadonlyGet(this.dashboardUrl, this.allowedOrigin);
       await this.waitForStable(client);
-      const currentUrl = safeUrl(await client.evaluate<string>("location.href"), this.allowedOrigin);
+      const currentUrl = safeUrl(await client.evaluateDomRead<string>("location.href"), this.allowedOrigin);
       const observed = await this.collectDraftIds(client);
       const state = this.load();
       const excluded = new Set([...pending.beforeDraftIds, ...state.mappings.map((mapping) => mapping.draftId), ...siblingCohortOwnedDraftIds(this.rootDirectory)]);
@@ -867,9 +1024,9 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
     const canonicalUrl = safeUrl(current.url, this.allowedOrigin);
     if (draftIdFromUrl(canonicalUrl) !== draftId) throw new Error("apr_cdp_enea_legacy_mapping_url_invalid");
     const { target, client } = await this.client();
-    if (await client.evaluate<string>("location.href") !== canonicalUrl) await client.navigate(canonicalUrl);
+    if (await client.evaluateDomRead<string>("location.href") !== canonicalUrl) await client.navigateReadonlyGet(canonicalUrl, this.allowedOrigin);
     await this.waitForStable(client);
-    const observedUrl = await client.evaluate<string>("location.href");
+    const observedUrl = await client.evaluateDomRead<string>("location.href");
     if (draftIdFromUrl(observedUrl) !== draftId) throw new Error("apr_cdp_enea_legacy_mapping_server_mismatch");
     const evidence = await this.capture("rebind_legacy_mapping_readonly", target, client, { customerKey: draftPackage.customerKey, draftId });
     const next = this.load();
@@ -917,48 +1074,49 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
   }
 
   async createDraft(draftPackage: AprEneaDraftPackage): Promise<AprEneaDraftEvidence> {
+    this.renewMutationAccess();
     const { target, client } = await this.client();
-    if (new URL(await client.evaluate<string>("location.href")).origin !== this.allowedOrigin) throw new Error("apr_cdp_enea_origin_rejected");
+    if (new URL(await client.evaluateDomRead<string>("location.href")).origin !== this.allowedOrigin) throw new Error("apr_cdp_enea_origin_rejected");
     const operationalUrl = this.load().contract?.ready ? this.load().contract?.operationalUrl ?? this.dashboardUrl : this.dashboardUrl;
     let state = this.load();
     if (state.pendingCreate && state.pendingCreate.packageFingerprint !== draftPackage.packageFingerprint) throw new Error("apr_cdp_enea_other_create_intent_pending");
     if (state.pendingCreate?.packageFingerprint === draftPackage.packageFingerprint && state.pendingCreate.wizardSubmitAttemptCount === 1) throw new Error("apr_cdp_enea_wizard_submit_already_attempted");
     if (!state.pendingCreate) {
-      if (await client.evaluate<string>("location.href") !== operationalUrl) await client.navigate(operationalUrl);
+      if (await client.evaluateDomRead<string>("location.href") !== operationalUrl) await client.navigate(operationalUrl);
       const targetDraftIds = (await this.runtime.targets()).flatMap((candidate) => { try { const id = new URL(candidate.url).origin === this.allowedOrigin ? draftIdFromUrl(candidate.url) : null; return id ? [id] : []; } catch { return []; } });
       const beforeDraftIds = [...new Set([...(await this.collectDraftIds(client)), ...state.mappings.map((mapping) => mapping.draftId), ...targetDraftIds])];
       state.revision += 1;
       state.pendingCreate = { packageFingerprint: draftPackage.packageFingerprint, customerKey: draftPackage.customerKey, beforeDraftIds, startedAt: new Date().toISOString(), wizardSubmitAttemptCount: 0, wizardSubmitAttemptedAt: null, wizardContractFingerprint: null };
       this.write(state);
-      const beforeEcobonusCreateUrl = await client.evaluate<string>("location.href");
-      const ecobonusCreateClicked = await client.evaluate<boolean>(`(()=>{const normalize=value=>String(value||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").trim().replace(/\\s+/g," ").toLocaleLowerCase("it");const wantedPath="/pratica/ecobonus/2026/nuova";const element=[...document.querySelectorAll('a[href]')].find(node=>{const parsed=new URL(node.href,location.href);return parsed.origin===location.origin&&parsed.pathname===wantedPath&&normalize(node.textContent).startsWith("inserisci nuova scheda descrittiva ecobonus")});if(!element)return false;element.click();return true})()`);
+      const beforeEcobonusCreateUrl = await client.evaluateDomRead<string>("location.href");
+      const ecobonusCreateClicked = await client.evaluateShortMutation<boolean>(`(()=>{const normalize=value=>String(value||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").trim().replace(/\\s+/g," ").toLocaleLowerCase("it");const wantedPath="/pratica/ecobonus/2026/nuova";const element=[...document.querySelectorAll('a[href]')].find(node=>{const parsed=new URL(node.href,location.href);return parsed.origin===location.origin&&parsed.pathname===wantedPath&&normalize(node.textContent).startsWith("inserisci nuova scheda descrittiva ecobonus")});if(!element)return false;element.click();return true})()`);
       if (ecobonusCreateClicked) await this.waitForStable(client, beforeEcobonusCreateUrl);
-    } else if (state.pendingCreate.wizardSubmitAttemptCount === 0 && new URL(await client.evaluate<string>("location.href")).pathname !== "/pratica/ecobonus/2026/nuova") {
+    } else if (state.pendingCreate.wizardSubmitAttemptCount === 0 && new URL(await client.evaluateDomRead<string>("location.href")).pathname !== "/pratica/ecobonus/2026/nuova") {
       await client.navigate(`${this.allowedOrigin}/pratica/ecobonus/2026/nuova`);
     }
 
-    let currentUrl = await client.evaluate<string>("location.href");
+    let currentUrl = await client.evaluateDomRead<string>("location.href");
     if (!draftIdFromUrl(currentUrl) && new URL(currentUrl).pathname === "/pratica/ecobonus/2026/nuova") {
       state = this.load();
       if (state.pendingCreate?.wizardSubmitAttemptCount === 1) throw new Error("apr_cdp_enea_wizard_submit_already_attempted");
-      const wizard = await client.evaluate<{ roleReady: boolean; roleLabel: string; typeReady: boolean; typeLabel: string; createReady: boolean; createLabel: string }>(`(async()=>{const normalize=value=>String(value||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").trim().replace(/\\s+/g," ").toLocaleLowerCase("it");const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));const waitFor=async predicate=>{for(let attempt=0;attempt<30;attempt+=1){if(predicate())return true;await wait(100)}return false};const controlsReady=await waitFor(()=>Boolean(document.getElementById("id-role-intermediario")&&document.getElementById("id-tipo-pf")));const role=document.getElementById("id-role-intermediario");const type=document.getElementById("id-tipo-pf");if(!controlsReady||!role||!type)return {roleReady:false,roleLabel:normalize(role?.textContent),typeReady:false,typeLabel:normalize(type?.textContent),createReady:false,createLabel:""};role.click();const roleReady=await waitFor(()=>normalize(role.textContent)==="intermediario"&&!role.disabled);const typeReady=await waitFor(()=>!type.disabled);if(typeReady){type.click()}const findCreate=()=>[...document.querySelectorAll('button[type="submit"],input[type="submit"]')].find(node=>normalize(node.textContent||node.value)==="crea scheda descrittiva");const createReady=await waitFor(()=>{const create=findCreate();return Boolean(create&&!create.disabled)});const create=findCreate();return {roleReady,roleLabel:normalize(role.textContent),typeReady,typeLabel:normalize(type.textContent),createReady,createLabel:normalize(create?.textContent||create?.value)}})()`);
+      const wizard = await client.evaluateShortMutation<{ roleReady: boolean; roleLabel: string; typeReady: boolean; typeLabel: string; createReady: boolean; createLabel: string }>(`(async()=>{const normalize=value=>String(value||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").trim().replace(/\\s+/g," ").toLocaleLowerCase("it");const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));const waitFor=async predicate=>{for(let attempt=0;attempt<30;attempt+=1){if(predicate())return true;await wait(100)}return false};const controlsReady=await waitFor(()=>Boolean(document.getElementById("id-role-intermediario")&&document.getElementById("id-tipo-pf")));const role=document.getElementById("id-role-intermediario");const type=document.getElementById("id-tipo-pf");if(!controlsReady||!role||!type)return {roleReady:false,roleLabel:normalize(role?.textContent),typeReady:false,typeLabel:normalize(type?.textContent),createReady:false,createLabel:""};role.click();const roleReady=await waitFor(()=>normalize(role.textContent)==="intermediario"&&!role.disabled);const typeReady=await waitFor(()=>!type.disabled);if(typeReady){type.click()}const findCreate=()=>[...document.querySelectorAll('button[type="submit"],input[type="submit"]')].find(node=>normalize(node.textContent||node.value)==="crea scheda descrittiva");const createReady=await waitFor(()=>{const create=findCreate();return Boolean(create&&!create.disabled)});const create=findCreate();return {roleReady,roleLabel:normalize(role.textContent),typeReady,typeLabel:normalize(type.textContent),createReady,createLabel:normalize(create?.textContent||create?.value)}})()`);
       if (!wizard.roleReady || !wizard.typeReady || !wizard.createReady) throw new Error(`apr_cdp_enea_creation_wizard_contract_invalid:${sha256(wizard).slice(0, 16)}:role=${wizard.roleReady}:type=${wizard.typeReady}:create=${wizard.createReady}`);
       state = this.load();
       if (!state.pendingCreate || state.pendingCreate.packageFingerprint !== draftPackage.packageFingerprint || state.pendingCreate.wizardSubmitAttemptCount !== 0) throw new Error("apr_cdp_enea_creation_wizard_intent_invalid");
       state.revision += 1; state.pendingCreate.wizardSubmitAttemptCount = 1; state.pendingCreate.wizardSubmitAttemptedAt = new Date().toISOString(); state.pendingCreate.wizardContractFingerprint = sha256(wizard); this.write(state);
-      const beforeWizardSubmitUrl = await client.evaluate<string>("location.href");
-      const submitted = await client.evaluate<boolean>(`(()=>{const normalize=value=>String(value||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").trim().replace(/\\s+/g," ").toLocaleLowerCase("it");const create=[...document.querySelectorAll('button[type="submit"],input[type="submit"]')].find(node=>normalize(node.textContent||node.value)==="crea scheda descrittiva");if(!create||create.disabled)return false;create.click();return true})()`);
+      const beforeWizardSubmitUrl = await client.evaluateDomRead<string>("location.href");
+      const submitted = await client.evaluateShortMutation<boolean>(`(()=>{const normalize=value=>String(value||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").trim().replace(/\\s+/g," ").toLocaleLowerCase("it");const create=[...document.querySelectorAll('button[type="submit"],input[type="submit"]')].find(node=>normalize(node.textContent||node.value)==="crea scheda descrittiva");if(!create||create.disabled)return false;create.click();return true})()`);
       if (!submitted) throw new Error("apr_cdp_enea_creation_wizard_submit_not_available");
       await this.waitForStable(client, beforeWizardSubmitUrl);
-      currentUrl = await client.evaluate<string>("location.href");
+      currentUrl = await client.evaluateDomRead<string>("location.href");
     }
     for (const label of this.createActionLabels) {
       if (draftIdFromUrl(currentUrl)) break;
-      const beforeUrl = await client.evaluate<string>("location.href");
-      const clicked = await client.evaluate<boolean>(`(()=>{const normalize=value=>String(value||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").trim().replace(/\\s+/g," ").toLocaleLowerCase("it");const wanted=${JSON.stringify(normalize(label))};const candidates=[...document.querySelectorAll('a,button,input[type="button"],input[type="submit"]')];const element=candidates.find(node=>normalize(node.textContent||node.value)===wanted);if(!element)return false;if(/anteprima|invia|submit|ricevuta|email/.test(wanted))throw new Error("forbidden-action");element.click();return true})()`);
+      const beforeUrl = await client.evaluateDomRead<string>("location.href");
+      const clicked = await client.evaluateShortMutation<boolean>(`(()=>{const normalize=value=>String(value||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").trim().replace(/\\s+/g," ").toLocaleLowerCase("it");const wanted=${JSON.stringify(normalize(label))};const candidates=[...document.querySelectorAll('a,button,input[type="button"],input[type="submit"]')];const element=candidates.find(node=>normalize(node.textContent||node.value)===wanted);if(!element)return false;if(/anteprima|invia|submit|ricevuta|email/.test(wanted))throw new Error("forbidden-action");element.click();return true})()`);
       if (!clicked) continue;
       await this.waitForStable(client, beforeUrl);
-      currentUrl = await client.evaluate<string>("location.href");
+      currentUrl = await client.evaluateDomRead<string>("location.href");
       const currentId = draftIdFromUrl(currentUrl);
       if (currentId) break;
     }
@@ -976,7 +1134,7 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
   }
 
   private async calculationAllocationTable(client: CdpPageClient, allocation: NonNullable<EneaPortalWorkflowStep["expenseAllocation"]>) {
-    const tables = await client.evaluate<Array<{ headers: string[]; rows: string[][] }>>(`(()=>{const clean=value=>String(value??"").trim().replace(/\\s+/g," ");return [...document.querySelectorAll("table")].map(table=>({headers:[...table.querySelectorAll("thead th")].map(cell=>clean(cell.textContent)),rows:[...table.querySelectorAll("tbody tr")].map(row=>[...row.querySelectorAll("td")].map(cell=>clean(cell.textContent))).filter(row=>row.length>0)}))})()`);
+    const tables = await client.evaluateDomRead<Array<{ headers: string[]; rows: string[][] }>>(`(()=>{const clean=value=>String(value??"").trim().replace(/\\s+/g," ");return [...document.querySelectorAll("table")].map(table=>({headers:[...table.querySelectorAll("thead th")].map(cell=>clean(cell.textContent)),rows:[...table.querySelectorAll("tbody tr")].map(row=>[...row.querySelectorAll("td")].map(cell=>clean(cell.textContent))).filter(row=>row.length>0)}))})()`);
     const classified = tables.map((table) => classifyCalculationAllocationTable(table.headers, table.rows, allocation));
     return classified.find((item) => item.matched) ?? classified.find((item) => item.interventionRow) ?? { matched: false, reason: "calculation-allocation-table-not-found", interventionRow: null, observed50: null, observed36: null, observedTotal: null };
   }
@@ -985,13 +1143,13 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
     const allocation = step.expenseAllocation;
     if (!allocation || allocation.rate !== 36 || allocation.appliedRuleIds.length === 0) throw new Error("apr_cdp_enea_calculation_allocation_contract_invalid");
     const targetUrl = `${this.allowedOrigin}/pratica/ecobonus/2026/calcolo/${draftId}`;
-    if (await client.evaluate<string>("location.href") !== targetUrl) {
+    if (await client.evaluateDomRead<string>("location.href") !== targetUrl) {
       await client.navigate(targetUrl);
       await this.waitForStable(client);
     }
-    const opened = await client.evaluate<boolean>(`(async()=>{const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));const clean=value=>String(value??"").trim().replace(/\\s+/g," ");const normalize=value=>clean(value).normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLocaleLowerCase("it");const wanted=${JSON.stringify(normalize(allocation.interventionLabel))};for(let attempt=0;attempt<100;attempt+=1){const rows=[...document.querySelectorAll("table tbody tr")].filter(row=>normalize(row.querySelector("td")?.textContent).includes(wanted));if(rows.length===1){const controls=[...rows[0].querySelectorAll('button,input[type="button"]')].filter(control=>!control.disabled);if(controls.length===1){const label=normalize(controls[0].textContent||controls[0].value||controls[0].title||controls[0].getAttribute("aria-label")||"");if(/salva|anteprima|invia|submit|ricevuta|email|elimina|cancella/.test(label))throw new Error("forbidden-action");controls[0].click();return true}if(controls.length>1)return false}if(rows.length>1)return false;await wait(100)}return false})()`, true, 20_000);
+    const opened = await client.evaluateNestedSave<boolean>(`(async()=>{const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));const clean=value=>String(value??"").trim().replace(/\\s+/g," ");const normalize=value=>clean(value).normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLocaleLowerCase("it");const wanted=${JSON.stringify(normalize(allocation.interventionLabel))};for(let attempt=0;attempt<100;attempt+=1){const rows=[...document.querySelectorAll("table tbody tr")].filter(row=>normalize(row.querySelector("td")?.textContent).includes(wanted));if(rows.length===1){const controls=[...rows[0].querySelectorAll('button,input[type="button"]')].filter(control=>!control.disabled);if(controls.length===1){const label=normalize(controls[0].textContent||controls[0].value||controls[0].title||controls[0].getAttribute("aria-label")||"");if(/salva|anteprima|invia|submit|ricevuta|email|elimina|cancella/.test(label))throw new Error("forbidden-action");controls[0].click();return true}if(controls.length>1)return false}if(rows.length>1)return false;await wait(100)}return false})()`);
     if (!opened) {
-      const diagnostic = await client.evaluate<{ url: string; body: string; rows: string[]; controls: string[] }>(`(()=>({url:location.href,body:String(document.body?.innerText||"").trim().replace(/\\s+/g," ").slice(0,1000),rows:[...document.querySelectorAll("table tbody tr")].map(row=>String(row.textContent||"").trim().replace(/\\s+/g," ")),controls:[...document.querySelectorAll('button,input[type="button"]')].map(node=>String(node.textContent||node.value||node.title||"").trim())}))()`);
+      const diagnostic = await client.evaluateDomRead<{ url: string; body: string; rows: string[]; controls: string[] }>(`(()=>({url:location.href,body:String(document.body?.innerText||"").trim().replace(/\\s+/g," ").slice(0,1000),rows:[...document.querySelectorAll("table tbody tr")].map(row=>String(row.textContent||"").trim().replace(/\\s+/g," ")),controls:[...document.querySelectorAll('button,input[type="button"]')].map(node=>String(node.textContent||node.value||node.title||"").trim())}))()`);
       throw new Error(`apr_cdp_enea_calculation_allocation_edit_not_unique:${JSON.stringify(diagnostic)}`);
     }
     // In questa fase la lettura deve restare priva di effetti. In precedenza
@@ -999,10 +1157,10 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
     // controllati React questo poteva aggiornare il value-tracker senza
     // aggiornare lo stato applicativo, facendo apparire corretto il DOM ma
     // inviando ancora zero al Salva.
-    const prepared = await client.evaluate<{ ready: boolean; inputId: string; actual: string; derived50: number | null; saveCount: number }>(`(async()=>{const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));const clean=value=>String(value??"").trim().replace(/\\s+/g," ");const normalize=value=>clean(value).normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLocaleLowerCase("it");const number=value=>{const compact=String(value??"").replace(/[^0-9,.-]/g,"");if(!compact)return 0;const parsed=Number(compact.includes(",")?compact.replace(/\\./g,"").replace(",","."):compact);return Number.isFinite(parsed)?parsed:null};const expected=number(${JSON.stringify(allocation.value)});for(let attempt=0;attempt<100;attempt+=1){const inputs=[...document.querySelectorAll('input:not([type="hidden"])')].filter(input=>{const context=normalize(input.closest("div")?.textContent||input.parentElement?.textContent||"");return context.includes("2025-2026")&&context.includes("36%")});if(inputs.length===1){const input=inputs[0];const scope=input.closest('form,[role="dialog"],.modal-content')||input.parentElement?.parentElement?.parentElement;const text=clean(scope?.textContent);const fiftyMatch=text.match(/Spese congrue sostenute nel 2025-2026\\s*\\(aliquota 50%\\)\\s*([0-9.,]+)\\s*€/i);const derived50=fiftyMatch?number(fiftyMatch[1]):null;const current36=number(input.value);const saves=[...(scope?.querySelectorAll('button,input[type="submit"],input[type="button"]')||[])].filter(node=>normalize(node.textContent||node.value)==="salva"&&!node.disabled);const balanced=expected!==null&&current36!==null&&derived50!==null&&Math.abs(current36+derived50-expected)<0.01;return {ready:balanced&&saves.length===1,inputId:input.id||"",actual:String(input.value??""),derived50,saveCount:saves.length}}await wait(100)}return {ready:false,inputId:"",actual:"",derived50:null,saveCount:0}})()`, true, 20_000);
+    const prepared = await client.evaluateServerReconciliation<{ ready: boolean; inputId: string; actual: string; derived50: number | null; saveCount: number }>(`(async()=>{const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));const clean=value=>String(value??"").trim().replace(/\\s+/g," ");const normalize=value=>clean(value).normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLocaleLowerCase("it");const number=value=>{const compact=String(value??"").replace(/[^0-9,.-]/g,"");if(!compact)return 0;const parsed=Number(compact.includes(",")?compact.replace(/\\./g,"").replace(",","."):compact);return Number.isFinite(parsed)?parsed:null};const expected=number(${JSON.stringify(allocation.value)});for(let attempt=0;attempt<100;attempt+=1){const inputs=[...document.querySelectorAll('input:not([type="hidden"])')].filter(input=>{const context=normalize(input.closest("div")?.textContent||input.parentElement?.textContent||"");return context.includes("2025-2026")&&context.includes("36%")});if(inputs.length===1){const input=inputs[0];const scope=input.closest('form,[role="dialog"],.modal-content')||input.parentElement?.parentElement?.parentElement;const text=clean(scope?.textContent);const fiftyMatch=text.match(/Spese congrue sostenute nel 2025-2026\\s*\\(aliquota 50%\\)\\s*([0-9.,]+)\\s*€/i);const derived50=fiftyMatch?number(fiftyMatch[1]):null;const current36=number(input.value);const saves=[...(scope?.querySelectorAll('button,input[type="submit"],input[type="button"]')||[])].filter(node=>normalize(node.textContent||node.value)==="salva"&&!node.disabled);const balanced=expected!==null&&current36!==null&&derived50!==null&&Math.abs(current36+derived50-expected)<0.01;return {ready:balanced&&saves.length===1,inputId:input.id||"",actual:String(input.value??""),derived50,saveCount:saves.length}}await wait(100)}return {ready:false,inputId:"",actual:"",derived50:null,saveCount:0}})()`);
     if (!prepared.ready) throw new Error(`apr_cdp_enea_calculation_allocation_prepare_failed:${prepared.inputId}:${prepared.actual}:${prepared.derived50}:${prepared.saveCount}`);
     const localizedExpected = italianCalculationInput(allocation.value);
-    const focused = await client.evaluate<boolean>(`(()=>{const normalize=value=>String(value??"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").trim().replace(/\\s+/g," ").toLocaleLowerCase("it");const inputs=[...document.querySelectorAll('input:not([type="hidden"])')].filter(input=>{const context=normalize(input.closest("div")?.textContent||input.parentElement?.textContent||"");return context.includes("2025-2026")&&context.includes("36%")});if(inputs.length!==1)return false;inputs[0].focus();inputs[0].select();return true})()`);
+    const focused = await client.evaluateShortMutation<boolean>(`(()=>{const normalize=value=>String(value??"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").trim().replace(/\\s+/g," ").toLocaleLowerCase("it");const inputs=[...document.querySelectorAll('input:not([type="hidden"])')].filter(input=>{const context=normalize(input.closest("div")?.textContent||input.parentElement?.textContent||"");return context.includes("2025-2026")&&context.includes("36%")});if(inputs.length!==1)return false;inputs[0].focus();inputs[0].select();return true})()`);
     if (!focused) throw new Error("apr_cdp_enea_calculation_allocation_input_not_unique");
     // Svuota e riscrive con eventi utente reali. Il passaggio intermedio vuoto
     // e' intenzionale: forza React a osservare un cambio effettivo anche quando
@@ -1016,12 +1174,12 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
     // poteva attraversare due volte il wrapper React/Formik e lasciare il DOM
     // ottimistico diverso dal payload del submit. Il bridge manuale resta solo
     // come fallback per fixture o widget che non hanno osservato l'evento reale.
-    const reactAlreadyMatches = await client.evaluate<boolean>(`(()=>{const clean=value=>String(value??"").trim().replace(/\s+/g," ");const normalize=value=>clean(value).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLocaleLowerCase("it");const number=value=>{const compact=String(value??"").replace(/[^0-9,.-]/g,"");if(!compact)return null;const parsed=Number(compact.includes(",")?compact.replace(/\./g,"").replace(",", "."):compact);return Number.isFinite(parsed)?parsed:null};const inputs=[...document.querySelectorAll('input:not([type="hidden"])')].filter(input=>{const context=normalize(input.closest("div")?.textContent||input.parentElement?.textContent||"");return context.includes("2025-2026")&&context.includes("36%")});if(inputs.length!==1)return false;const input=inputs[0];const propsKey=Object.keys(input).find(key=>key.startsWith("__reactProps$"));const propsValue=propsKey?input[propsKey]?.value:undefined;return propsValue!==undefined&&number(propsValue)!==null&&Math.abs(number(propsValue)-number(${JSON.stringify(allocation.value)}))<0.01})()`);
-    if (!reactAlreadyMatches) await client.evaluate(`(()=>{const clean=value=>String(value??"").trim().replace(/\s+/g," ");const normalize=value=>clean(value).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLocaleLowerCase("it");const inputs=[...document.querySelectorAll('input:not([type="hidden"])')].filter(input=>{const context=normalize(input.closest("div")?.textContent||input.parentElement?.textContent||"");return context.includes("2025-2026")&&context.includes("36%")});if(inputs.length!==1)return false;const input=inputs[0];const propsKey=Object.keys(input).find(key=>key.startsWith("__reactProps$"));const handler=propsKey&&input[propsKey]?.onChange;if(typeof handler!=="function")return false;const event={type:"change",target:input,currentTarget:input,nativeEvent:new Event("change"),preventDefault(){},stopPropagation(){},isDefaultPrevented(){return false},isPropagationStopped(){return false},persist(){}};handler(event);return true})()`);
+    const reactAlreadyMatches = await client.evaluateDomRead<boolean>(`(()=>{const clean=value=>String(value??"").trim().replace(/\s+/g," ");const normalize=value=>clean(value).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLocaleLowerCase("it");const number=value=>{const compact=String(value??"").replace(/[^0-9,.-]/g,"");if(!compact)return null;const parsed=Number(compact.includes(",")?compact.replace(/\./g,"").replace(",", "."):compact);return Number.isFinite(parsed)?parsed:null};const inputs=[...document.querySelectorAll('input:not([type="hidden"])')].filter(input=>{const context=normalize(input.closest("div")?.textContent||input.parentElement?.textContent||"");return context.includes("2025-2026")&&context.includes("36%")});if(inputs.length!==1)return false;const input=inputs[0];const propsKey=Object.keys(input).find(key=>key.startsWith("__reactProps$"));const propsValue=propsKey?input[propsKey]?.value:undefined;return propsValue!==undefined&&number(propsValue)!==null&&Math.abs(number(propsValue)-number(${JSON.stringify(allocation.value)}))<0.01})()`);
+    if (!reactAlreadyMatches) await client.evaluateShortMutation(`(()=>{const clean=value=>String(value??"").trim().replace(/\s+/g," ");const normalize=value=>clean(value).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLocaleLowerCase("it");const inputs=[...document.querySelectorAll('input:not([type="hidden"])')].filter(input=>{const context=normalize(input.closest("div")?.textContent||input.parentElement?.textContent||"");return context.includes("2025-2026")&&context.includes("36%")});if(inputs.length!==1)return false;const input=inputs[0];const propsKey=Object.keys(input).find(key=>key.startsWith("__reactProps$"));const handler=propsKey&&input[propsKey]?.onChange;if(typeof handler!=="function")return false;const event={type:"change",target:input,currentTarget:input,nativeEvent:new Event("change"),preventDefault(){},stopPropagation(){},isDefaultPrevented(){return false},isPropagationStopped(){return false},persist(){}};handler(event);return true})()`);
     await client.send("Input.dispatchKeyEvent", { type: "keyDown", key: "Tab", code: "Tab", windowsVirtualKeyCode: 9, nativeVirtualKeyCode: 9 });
     await client.send("Input.dispatchKeyEvent", { type: "keyUp", key: "Tab", code: "Tab", windowsVirtualKeyCode: 9, nativeVirtualKeyCode: 9 });
     await new Promise((resolve) => setTimeout(resolve, 500));
-    const userInputVerified = await client.evaluate<boolean>(`(()=>{const clean=value=>String(value??"").trim().replace(/\\s+/g," ");const normalize=value=>clean(value).normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLocaleLowerCase("it");const number=value=>{const compact=String(value??"").replace(/[^0-9,.-]/g,"");if(!compact)return null;const parsed=Number(compact.includes(",")?compact.replace(/\\./g,"").replace(",","."):compact);return Number.isFinite(parsed)?parsed:null};const inputs=[...document.querySelectorAll('input:not([type="hidden"])')].filter(input=>{const context=normalize(input.closest("div")?.textContent||input.parentElement?.textContent||"");return context.includes("2025-2026")&&context.includes("36%")});if(inputs.length!==1||String(inputs[0].value)!==${JSON.stringify(localizedExpected)})return false;const input=inputs[0];const propsKey=Object.keys(input).find(key=>key.startsWith("__reactProps$"));const propsValue=propsKey?input[propsKey]?.value:undefined;const reactMatches=propsValue===undefined||(number(propsValue)!==null&&Math.abs(number(propsValue)-number(${JSON.stringify(allocation.value)}))<0.01);const scope=input.closest('form,[role="dialog"],.modal-content')||input.parentElement?.parentElement?.parentElement;const fiftyMatch=clean(scope?.textContent).match(/Spese congrue sostenute nel 2025-2026\\s*\\(aliquota 50%\\)\\s*([0-9.,]+)\\s*€/i);const derived50=fiftyMatch?number(fiftyMatch[1]):null;return reactMatches&&derived50===0})()`);
+    const userInputVerified = await client.evaluateDomRead<boolean>(`(()=>{const clean=value=>String(value??"").trim().replace(/\\s+/g," ");const normalize=value=>clean(value).normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLocaleLowerCase("it");const number=value=>{const compact=String(value??"").replace(/[^0-9,.-]/g,"");if(!compact)return null;const parsed=Number(compact.includes(",")?compact.replace(/\\./g,"").replace(",","."):compact);return Number.isFinite(parsed)?parsed:null};const inputs=[...document.querySelectorAll('input:not([type="hidden"])')].filter(input=>{const context=normalize(input.closest("div")?.textContent||input.parentElement?.textContent||"");return context.includes("2025-2026")&&context.includes("36%")});if(inputs.length!==1||String(inputs[0].value)!==${JSON.stringify(localizedExpected)})return false;const input=inputs[0];const propsKey=Object.keys(input).find(key=>key.startsWith("__reactProps$"));const propsValue=propsKey?input[propsKey]?.value:undefined;const reactMatches=propsValue===undefined||(number(propsValue)!==null&&Math.abs(number(propsValue)-number(${JSON.stringify(allocation.value)}))<0.01);const scope=input.closest('form,[role="dialog"],.modal-content')||input.parentElement?.parentElement?.parentElement;const fiftyMatch=clean(scope?.textContent).match(/Spese congrue sostenute nel 2025-2026\\s*\\(aliquota 50%\\)\\s*([0-9.,]+)\\s*€/i);const derived50=fiftyMatch?number(fiftyMatch[1]):null;return reactMatches&&derived50===0})()`);
     if (!userInputVerified) throw new Error("apr_cdp_enea_calculation_allocation_user_input_not_verified");
   }
 
@@ -1030,14 +1188,16 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
       await this.openCalculationAllocation(client, draftId, step);
       return;
     }
-    const waitForMarkers = () => client.evaluate<boolean>(`(async()=>{const ids=${JSON.stringify(step.markerIds)};const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));for(let attempt=0;attempt<150;attempt+=1){if(ids.every(id=>document.getElementById(id)))return true;await wait(100)}return false})()`, true, 20_000);
-    const markersPresent = await client.evaluate<boolean>(`(()=>${JSON.stringify(step.markerIds)}.every(id=>document.getElementById(id)))()`);
+    const waitForMarkers = () => pollBooleanDomReadOnly(
+      () => client.evaluateDomRead<boolean>(`(()=>${JSON.stringify(step.markerIds)}.every(id=>document.getElementById(id)))()`),
+    );
+    const markersPresent = await client.evaluateDomRead<boolean>(`(()=>${JSON.stringify(step.markerIds)}.every(id=>document.getElementById(id)))()`);
     if (markersPresent) return;
     // ENEA can expose the route before React has mounted its controls. On the
     // direct route, wait for those controls instead of searching for a link to
     // the page that is already being rendered.
     const directRoute = new Map<string, string>([["page:Beneficiario", "beneficiario"], ["page:Anagrafica Beneficiario", "beneficiario"], ["page:Immobile", "immobile"], ["page:Intervento", "intervento"], ["page:Impianto termico esistente", "impianto_esistente"], ["page:Schermature solari", "schermature"], ["page:Serramenti e infissi", "serramenti"], ["page:Calcolo costi e detrazioni", "calcolo"]]).get(pageId) ?? null;
-    const currentRoute = new URL(await client.evaluate<string>("location.href")).pathname;
+    const currentRoute = new URL(await client.evaluateDomRead<string>("location.href")).pathname;
     if (!step.activationLabel && !pageId.startsWith("screening:") && directRoute && currentRoute === `/pratica/ecobonus/2026/${directRoute}/${draftId}`) {
       if (await waitForMarkers()) return;
       throw new Error(`apr_cdp_enea_page_markers_missing:${pageId}`);
@@ -1051,8 +1211,8 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
     if (pageId.startsWith("screening:")) {
       const infissi = module === "infissi";
       const hostUrl = `${this.allowedOrigin}/pratica/ecobonus/2026/${infissi ? "serramenti" : "schermature"}/${draftId}`;
-      if (await client.evaluate<string>("location.href") !== hostUrl) { await client.navigate(hostUrl); await this.waitForStable(client); }
-      const opened = await client.evaluate<boolean>(`(async()=>{const normalize=value=>String(value||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").trim().replace(/\\s+/g," ").toLocaleLowerCase("it");const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));for(let attempt=0;attempt<150;attempt+=1){const candidates=[...document.querySelectorAll('button,input[type="button"]')].filter(node=>!node.disabled&&normalize(node.textContent||node.value)==="aggiungi");if(candidates.length===1){const label=normalize(candidates[0].textContent||candidates[0].value);if(/salva|anteprima|invia|submit|ricevuta|email|elimina|cancella/.test(label))throw new Error("forbidden-action");candidates[0].click();return true}if(candidates.length>1)return false;await wait(100)}return false})()`, true, 20_000);
+      if (await client.evaluateDomRead<string>("location.href") !== hostUrl) { await client.navigate(hostUrl); await this.waitForStable(client); }
+      const opened = await client.evaluateNestedSave<boolean>(`(async()=>{const normalize=value=>String(value||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").trim().replace(/\\s+/g," ").toLocaleLowerCase("it");const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));for(let attempt=0;attempt<150;attempt+=1){const candidates=[...document.querySelectorAll('button,input[type="button"]')].filter(node=>!node.disabled&&normalize(node.textContent||node.value)==="aggiungi");if(candidates.length===1){const label=normalize(candidates[0].textContent||candidates[0].value);if(/salva|anteprima|invia|submit|ricevuta|email|elimina|cancella/.test(label))throw new Error("forbidden-action");candidates[0].click();return true}if(candidates.length>1)return false;await wait(100)}return false})()`);
       if (!opened) throw new Error(`apr_cdp_enea_${infissi ? "infissi" : "screening"}_add_not_unique:${pageId}`);
       if (!await waitForMarkers()) throw new Error(`apr_cdp_enea_${infissi ? "infissi" : "screening"}_markers_missing:${pageId}`);
       return;
@@ -1065,13 +1225,13 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
     }
     if (step.hostRoute && step.activationLabel) {
       const hostUrl = `${this.allowedOrigin}/pratica/ecobonus/2026/${step.hostRoute}/${draftId}`;
-      if (await client.evaluate<string>("location.href") !== hostUrl) { await client.navigate(hostUrl); await this.waitForStable(client); }
+      if (await client.evaluateDomRead<string>("location.href") !== hostUrl) { await client.navigate(hostUrl); await this.waitForStable(client); }
       // Poll from Node with short CDP evaluations. A single long async
       // Runtime.evaluate can outlive a React remount and time out even when the
       // generator row becomes available. Each probe is read-only until the one
       // unequivocal row/control pair is found; that control is clicked once.
       const activationLabels = eneaGeneratorActivationLabels(step.activationLabel);
-      const activateOnce = () => client.evaluate<boolean>(`(()=>{const normalize=value=>String(value||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").trim().replace(/\\s+/g," ").toLocaleLowerCase("it");const wanted=${JSON.stringify(activationLabels)}.map(normalize);const row=[...document.querySelectorAll('tr')].find(candidate=>{const first=normalize(candidate.querySelector("th,td")?.textContent);return wanted.some(label=>first===label||first.includes(label)||label.includes(first))});if(!row)return false;const controls=[...row.querySelectorAll('button,input[type="button"]')].filter(control=>!control.disabled);const control=controls.find(candidate=>/inserisci|aggiungi|modifica|edit/i.test(candidate.title||candidate.getAttribute("aria-label")||candidate.textContent||""))||controls[0];if(!control)return false;control.click();return true})()`);
+      const activateOnce = () => client.evaluateShortMutation<boolean>(`(()=>{const normalize=value=>String(value||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").trim().replace(/\\s+/g," ").toLocaleLowerCase("it");const wanted=${JSON.stringify(activationLabels)}.map(normalize);const row=[...document.querySelectorAll('tr')].find(candidate=>{const first=normalize(candidate.querySelector("th,td")?.textContent);return wanted.some(label=>first===label||first.includes(label)||label.includes(first))});if(!row)return false;const controls=[...row.querySelectorAll('button,input[type="button"]')].filter(control=>!control.disabled);const control=controls.find(candidate=>/inserisci|aggiungi|modifica|edit/i.test(candidate.title||candidate.getAttribute("aria-label")||candidate.textContent||""))||controls[0];if(!control)return false;control.click();return true})()`);
       let activated = false;
       for (let attempt = 0; attempt < 120 && !activated; attempt += 1) {
         activated = await activateOnce();
@@ -1079,14 +1239,14 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
       }
       let markersReady = false;
       for (let attempt = 0; attempt < 120 && !markersReady; attempt += 1) {
-        markersReady = await client.evaluate<boolean>(`(()=>${JSON.stringify(step.markerIds)}.every(id=>document.getElementById(id)))()`);
+        markersReady = await client.evaluateDomRead<boolean>(`(()=>${JSON.stringify(step.markerIds)}.every(id=>document.getElementById(id)))()`);
         if (!markersReady) await new Promise((resolve) => setTimeout(resolve, 250));
       }
       if (!activated || !markersReady) throw new Error(`apr_cdp_enea_generator_activation_failed:${pageId}`);
       return;
     }
-    const beforeUrl = await client.evaluate<string>("location.href");
-    const opened = await client.evaluate<boolean>(`(()=>{const normalize=value=>String(value||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").trim().replace(/\\s+/g," ").toLocaleLowerCase("it");const pageId=${JSON.stringify(pageId)};const pageName=${JSON.stringify(normalize(step.pageName))};const draftId=${JSON.stringify(draftId)};const screeningIndex=pageId.startsWith("screening:")?Number(pageId.slice(10)):null;const exact=document.querySelector('[data-apr-page-id="'+CSS.escape(pageId)+'"],[data-apr-screening-index="'+screeningIndex+'"]');const links=[...document.querySelectorAll('a[href],button')];const element=exact||links.find(node=>{const text=normalize(node.textContent||node.value);const href=node.href||"";return (text===pageName||text.includes(pageName))&&(!href||href.includes(draftId))});if(!element)return false;element.click();return true})()`);
+    const beforeUrl = await client.evaluateDomRead<string>("location.href");
+    const opened = await client.evaluateShortMutation<boolean>(`(()=>{const normalize=value=>String(value||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").trim().replace(/\\s+/g," ").toLocaleLowerCase("it");const pageId=${JSON.stringify(pageId)};const pageName=${JSON.stringify(normalize(step.pageName))};const draftId=${JSON.stringify(draftId)};const screeningIndex=pageId.startsWith("screening:")?Number(pageId.slice(10)):null;const exact=document.querySelector('[data-apr-page-id="'+CSS.escape(pageId)+'"],[data-apr-screening-index="'+screeningIndex+'"]');const links=[...document.querySelectorAll('a[href],button')];const element=exact||links.find(node=>{const text=normalize(node.textContent||node.value);const href=node.href||"";return (text===pageName||text.includes(pageName))&&(!href||href.includes(draftId))});if(!element)return false;element.click();return true})()`);
     if (!opened) throw new Error(`apr_cdp_enea_page_navigation_not_found:${pageId}`);
     await this.waitForStable(client, beforeUrl);
     const matches = await waitForMarkers();
@@ -1094,11 +1254,11 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
   }
 
   private async fillAndRead(client: CdpPageClient, fields: EneaPortalRuntimeField[]) {
-    return client.evaluate<{ compiled: string[]; missing: string[]; mismatched: string[] }>(`(async()=>{const fields=${JSON.stringify(fields)};const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));const normalize=value=>String(value??"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").trim().replace(/\\s+/g," ").toLocaleLowerCase("it");const setValue=(element,value)=>{const prototype=element instanceof HTMLSelectElement?HTMLSelectElement.prototype:element instanceof HTMLTextAreaElement?HTMLTextAreaElement.prototype:HTMLInputElement.prototype;const setter=Object.getOwnPropertyDescriptor(prototype,"value")?.set;if(setter)setter.call(element,value);else element.value=value;element.dispatchEvent(new Event("input",{bubbles:true}));element.dispatchEvent(new Event("change",{bubbles:true}))};const result={compiled:[],missing:[],mismatched:[]};for(const field of fields){const element=document.getElementById(field.portalId);if(!element){result.missing.push(field.portalId);continue}let verified=true;if(field.control==="select"){const wanted=normalize(field.value);const option=[...element.options].find(option=>(field.selectValue&&option.value===field.selectValue)||normalize(option.value)===wanted||normalize(option.text)===wanted);if(!option){result.mismatched.push(field.portalId);continue}const selectedValue=option.value;setValue(element,selectedValue);verified=false;for(let attempt=0;attempt<15;attempt+=1){const selected=element.options[element.selectedIndex];if(selected&&((field.selectValue&&selected.value===field.selectValue)||selected.value===selectedValue||normalize(selected.text)===wanted)){verified=true;break}await wait(100)}}else if(field.control==="button"){if(element.disabled){result.mismatched.push(field.portalId);continue}element.click()}else if(field.control==="autocomplete"){setValue(element,field.value);element.dispatchEvent(new KeyboardEvent("keyup",{key:field.value.slice(-1),bubbles:true}));await wait(250);const option=[...document.querySelectorAll('[role="option"],.ui-autocomplete li,.autocomplete-item')].find(item=>normalize(item.textContent).startsWith(normalize(field.value)));if(option)option.querySelector('a,button')?.click()||option.click();await wait(100);verified=normalize(element.value)===normalize(field.value)||normalize(element.value).startsWith(normalize(field.value)+" (")}else{setValue(element,field.value);verified=normalize(element.value??"")===normalize(field.value)}if(!verified){result.mismatched.push(field.portalId);continue}result.compiled.push(field.portalId)}return result})()`);
+    return client.evaluateShortMutation<{ compiled: string[]; missing: string[]; mismatched: string[] }>(`(async()=>{const fields=${JSON.stringify(fields)};const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));const normalize=value=>String(value??"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").trim().replace(/\\s+/g," ").toLocaleLowerCase("it");const setValue=(element,value)=>{const prototype=element instanceof HTMLSelectElement?HTMLSelectElement.prototype:element instanceof HTMLTextAreaElement?HTMLTextAreaElement.prototype:HTMLInputElement.prototype;const setter=Object.getOwnPropertyDescriptor(prototype,"value")?.set;if(setter)setter.call(element,value);else element.value=value;element.dispatchEvent(new Event("input",{bubbles:true}));element.dispatchEvent(new Event("change",{bubbles:true}))};const result={compiled:[],missing:[],mismatched:[]};for(const field of fields){const element=document.getElementById(field.portalId);if(!element){result.missing.push(field.portalId);continue}let verified=true;if(field.control==="select"){const wanted=normalize(field.value);const option=[...element.options].find(option=>(field.selectValue&&option.value===field.selectValue)||normalize(option.value)===wanted||normalize(option.text)===wanted);if(!option){result.mismatched.push(field.portalId);continue}const selectedValue=option.value;setValue(element,selectedValue);verified=false;for(let attempt=0;attempt<15;attempt+=1){const selected=element.options[element.selectedIndex];if(selected&&((field.selectValue&&selected.value===field.selectValue)||selected.value===selectedValue||normalize(selected.text)===wanted)){verified=true;break}await wait(100)}}else if(field.control==="button"){if(element.disabled){result.mismatched.push(field.portalId);continue}element.click()}else if(field.control==="autocomplete"){setValue(element,field.value);element.dispatchEvent(new KeyboardEvent("keyup",{key:field.value.slice(-1),bubbles:true}));await wait(250);const option=[...document.querySelectorAll('[role="option"],.ui-autocomplete li,.autocomplete-item')].find(item=>normalize(item.textContent).startsWith(normalize(field.value)));if(option)option.querySelector('a,button')?.click()||option.click();await wait(100);verified=normalize(element.value)===normalize(field.value)||normalize(element.value).startsWith(normalize(field.value)+" (")}else{setValue(element,field.value);verified=normalize(element.value??"")===normalize(field.value)}if(!verified){result.mismatched.push(field.portalId);continue}result.compiled.push(field.portalId)}return result})()`);
   }
 
-  private async fillAndReadStable(client: CdpPageClient, fields: EneaPortalRuntimeField[]) {
-    return client.evaluate<{ compiled: string[]; missing: string[]; mismatched: string[]; autocompleteDiagnostics: unknown[]; fieldDiagnostics: unknown[] }>(`(async()=>{
+  private async fillAndReadStableSingleCommand(client: CdpPageClient, fields: EneaPortalRuntimeField[]) {
+    return client.evaluateShortMutation<{ compiled: string[]; missing: string[]; mismatched: string[]; autocompleteDiagnostics: unknown[]; fieldDiagnostics: unknown[] }>(`(async()=>{
       const fields=${JSON.stringify(fields)};
       const orderedFields=[...fields].sort((left,right)=>Number(left.portalId==="id-dpr412")-Number(right.portalId==="id-dpr412"));
       const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
@@ -1201,12 +1361,36 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
       const autocompleteDiagnostics=fields.filter(field=>field.control==="autocomplete").map(field=>{const element=document.getElementById(field.portalId);const wanted=normalize(field.value);const candidates=[...document.querySelectorAll('body *')].filter(node=>{const text=normalize(node.textContent);const style=getComputedStyle(node);return text&&text.length<240&&(text.startsWith(wanted)||text.includes(wanted))&&style.display!=="none"&&style.visibility!=="hidden"}).slice(0,80).map(node=>({tag:node.tagName.toLowerCase(),id:node.id||"",className:String(node.className||""),text:String(node.textContent||"").trim().replace(/\s+/g," ").slice(0,240),outerHtml:String(node.outerHTML||"").slice(0,1000)}));return {portalId:field.portalId,expected:field.value,actual:String(element?.value??""),parentHtml:String(element?.parentElement?.outerHTML||"").slice(0,3000),candidates}});
       const fieldDiagnostics=mismatched.map(portalId=>{const field=fields.find(candidate=>candidate.portalId===portalId);const element=document.getElementById(portalId);const actual=element instanceof HTMLSelectElement?(element.options[element.selectedIndex]?.text||element.value):element?.value;return {portalId,control:field?.control,expected:field?.value,selectValue:field?.selectValue??null,actual:String(actual??""),rawValue:String(element?.value??""),disabled:Boolean(element?.disabled),outerHtml:String(element?.parentElement?.outerHTML||element?.outerHTML||"").slice(0,3000)}});
       return {compiled:fields.filter(field=>!missing.includes(field.portalId)&&!mismatched.includes(field.portalId)).map(field=>field.portalId),missing,mismatched,autocompleteDiagnostics,fieldDiagnostics};
-    })()`, true, 60_000);
+    })()`);
+  }
+
+  private async fillAndReadStable(client: CdpPageClient, fields: EneaPortalRuntimeField[]) {
+    if (fields.length === 0) return this.readFieldMatches(client, fields);
+    // Un'intera pagina Anagrafica puo contenere decine di controlli React.
+    // La compilazione precedente li aggregava in un solo Runtime.evaluate:
+    // i retry locali dei select e le attese di render si sommavano fino a
+    // superare SHORT_MUTATION, rendendo ambiguo quali campi fossero gia stati
+    // consegnati a React. Ogni comando mutativo ora riguarda un solo campo;
+    // fra due campi il boundary CDP rinnova il fencing token e il riscontro
+    // complessivo resta una lettura DOM separata.
+    const orderedFields = [...fields].sort((left, right) => Number(left.portalId === "id-dpr412") - Number(right.portalId === "id-dpr412"));
+    let result = await this.readFieldMatches(client, fields);
+    for (let pass = 0; pass < 4; pass += 1) {
+      const pendingIds = pass === 0
+        ? new Set(orderedFields.map((field) => field.portalId))
+        : new Set([...result.missing, ...result.mismatched]);
+      const pending = orderedFields.filter((field) => pendingIds.has(field.portalId) && field.control !== "autocomplete");
+      if (pending.length === 0) break;
+      for (const field of pending) await this.fillAndReadStableSingleCommand(client, [field]);
+      result = await this.readFieldMatches(client, fields);
+      if (result.missing.length === 0 && result.mismatched.length === 0) break;
+    }
+    return result;
   }
 
   private async selectAutocompleteWithPhysicalInput(client: CdpPageClient, field: EneaPortalRuntimeField) {
     if (field.control !== "autocomplete") return false;
-    const pointFor = (expression: string) => client.evaluate<{ x: number; y: number } | null>(expression);
+    const pointFor = (expression: string) => client.evaluateDomRead<{ x: number; y: number } | null>(expression);
     const clickPoint = async (point: { x: number; y: number }, clickCount = 1) => {
       await client.send("Input.dispatchMouseEvent", { type: "mouseMoved", x: point.x, y: point.y });
       await client.send("Input.dispatchMouseEvent", { type: "mousePressed", x: point.x, y: point.y, button: "left", clickCount });
@@ -1254,7 +1438,7 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
         if (modalOptionPoint) {
           await clickPoint(modalOptionPoint);
           await new Promise((resolve) => setTimeout(resolve, 700));
-          const selected = await client.evaluate<boolean>(`(()=>{const clean=value=>String(value??"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLocaleLowerCase("it").replace(/[.'’]/g," ").replace(/\\bs\\b/g,"san").trim().replace(/\\s+/g," ");const element=document.getElementById(${JSON.stringify(field.portalId)});if(!(element instanceof HTMLInputElement)||element.getAttribute("aria-invalid")==="true")return false;const actual=clean(element.value),wanted=clean(${JSON.stringify(field.value)}),qualifier=clean(${JSON.stringify(field.autocompleteQualifier ?? "")}),selected=(actual.startsWith(wanted+" (")||wanted.startsWith(actual+" ("))&&(!qualifier||actual.includes("("+qualifier+")"));if(selected)element.dataset.aprAutocompleteSelected="true";return selected})()`);
+          const selected = await client.evaluateDomRead<boolean>(`(()=>{const clean=value=>String(value??"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLocaleLowerCase("it").replace(/[.'’]/g," ").replace(/\\bs\\b/g,"san").trim().replace(/\\s+/g," ");const element=document.getElementById(${JSON.stringify(field.portalId)});if(!(element instanceof HTMLInputElement)||element.getAttribute("aria-invalid")==="true")return false;const actual=clean(element.value),wanted=clean(${JSON.stringify(field.value)}),qualifier=clean(${JSON.stringify(field.autocompleteQualifier ?? "")}),selected=(actual.startsWith(wanted+" (")||wanted.startsWith(actual+" ("))&&(!qualifier||actual.includes("("+qualifier+")"));if(selected)element.dataset.aprAutocompleteSelected="true";return selected})()`);
           if (selected) return true;
         }
       }
@@ -1262,7 +1446,7 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
       await client.send("Input.dispatchKeyEvent", { type: "keyUp", key: "Escape", code: "Escape", windowsVirtualKeyCode: 27, nativeVirtualKeyCode: 27 });
     }
     await clearAndType(inputPoint, searchText);
-    const candidatePoint = () => client.evaluate<{ x: number; y: number } | null>(`(()=>{const clean=value=>String(value??"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLocaleLowerCase("it").replace(/[.'’]/g," ").replace(/\\bs\\b/g,"san").trim().replace(/\\s+/g," ");const wanted=clean(${JSON.stringify(field.value)}),qualifier=clean(${JSON.stringify(field.autocompleteQualifier ?? "")});const selectors='[role="option"],[role="menuitem"],[role="listbox"] li,.ui-autocomplete li,.ui-menu-item,.easy-autocomplete-container li,.autocomplete-item,.dropdown-menu li,.dropdown-item,.tt-suggestion,.select2-results__option,datalist option,[role="dialog"] tr,.modal tr,[role="dialog"] li,.modal li';const nodes=[...document.querySelectorAll(selectors)].filter(node=>{const style=getComputedStyle(node);const rect=node.getBoundingClientRect();const value=clean(node.textContent||node.value);const labelMatches=value===wanted||value.startsWith(wanted+" (")||value.startsWith(wanted+" ")||wanted.startsWith(value+" (");return style.display!=="none"&&style.visibility!=="hidden"&&rect.width>0&&rect.height>0&&labelMatches&&(!qualifier||value.includes("("+qualifier+")"))});if(nodes.length===0)return null;nodes.sort((left,right)=>String(left.textContent||left.value).length-String(right.textContent||right.value).length);const node=nodes[0];const clickable=node.querySelector?.('button,a,[role="button"]')||node;if(clickable instanceof HTMLOptionElement)return null;const rect=clickable.getBoundingClientRect();return rect.width>0&&rect.height>0?{x:rect.left+rect.width/2,y:rect.top+rect.height/2}:null})()`);
+    const candidatePoint = () => client.evaluateDomRead<{ x: number; y: number } | null>(`(()=>{const clean=value=>String(value??"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLocaleLowerCase("it").replace(/[.'’]/g," ").replace(/\\bs\\b/g,"san").trim().replace(/\\s+/g," ");const wanted=clean(${JSON.stringify(field.value)}),qualifier=clean(${JSON.stringify(field.autocompleteQualifier ?? "")});const selectors='[role="option"],[role="menuitem"],[role="listbox"] li,.ui-autocomplete li,.ui-menu-item,.easy-autocomplete-container li,.autocomplete-item,.dropdown-menu li,.dropdown-item,.tt-suggestion,.select2-results__option,datalist option,[role="dialog"] tr,.modal tr,[role="dialog"] li,.modal li';const nodes=[...document.querySelectorAll(selectors)].filter(node=>{const style=getComputedStyle(node);const rect=node.getBoundingClientRect();const value=clean(node.textContent||node.value);const labelMatches=value===wanted||value.startsWith(wanted+" (")||value.startsWith(wanted+" ")||wanted.startsWith(value+" (");return style.display!=="none"&&style.visibility!=="hidden"&&rect.width>0&&rect.height>0&&labelMatches&&(!qualifier||value.includes("("+qualifier+")"))});if(nodes.length===0)return null;nodes.sort((left,right)=>String(left.textContent||left.value).length-String(right.textContent||right.value).length);const node=nodes[0];const clickable=node.querySelector?.('button,a,[role="button"]')||node;if(clickable instanceof HTMLOptionElement)return null;const rect=clickable.getBoundingClientRect();return rect.width>0&&rect.height>0?{x:rect.left+rect.width/2,y:rect.top+rect.height/2}:null})()`);
     let optionPoint: { x: number; y: number } | null = null;
     for (let attempt = 0; attempt < 30 && !optionPoint; attempt += 1) {
       optionPoint = await candidatePoint();
@@ -1273,7 +1457,7 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
     // onChange pubblico per far partire la GET /geo/comuni; la selezione finale
     // resta comunque un vero clic sull'opzione restituita dal portale.
     if (!optionPoint) {
-      await client.evaluate<boolean>(`(()=>{const input=document.getElementById(${JSON.stringify(field.portalId)});if(!(input instanceof HTMLInputElement))return false;const propsKey=Object.keys(input).find(key=>key.startsWith("__reactProps$"));const onChange=propsKey&&input[propsKey]?.onChange;if(typeof onChange!=="function")return false;onChange({target:{value:${JSON.stringify(searchText)},name:input.name},currentTarget:input,type:"change",preventDefault(){},stopPropagation(){},persist(){}});return true})()`);
+      await client.evaluateDomRead<boolean>(`(()=>{const input=document.getElementById(${JSON.stringify(field.portalId)});if(!(input instanceof HTMLInputElement))return false;const propsKey=Object.keys(input).find(key=>key.startsWith("__reactProps$"));const onChange=propsKey&&input[propsKey]?.onChange;if(typeof onChange!=="function")return false;onChange({target:{value:${JSON.stringify(searchText)},name:input.name},currentTarget:input,type:"change",preventDefault(){},stopPropagation(){},persist(){}});return true})()`);
       for (let attempt = 0; attempt < 60 && !optionPoint; attempt += 1) {
         optionPoint = await candidatePoint();
         if (!optionPoint) await new Promise((resolve) => setTimeout(resolve, 100));
@@ -1287,7 +1471,7 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
     for (const fallbackSearchText of fallbackSearchTexts) {
       if (optionPoint) break;
       await clearAndType(inputPoint, fallbackSearchText);
-      await client.evaluate<boolean>(`(()=>{const input=document.getElementById(${JSON.stringify(field.portalId)});if(!(input instanceof HTMLInputElement))return false;const propsKey=Object.keys(input).find(key=>key.startsWith("__reactProps$"));const onChange=propsKey&&input[propsKey]?.onChange;if(typeof onChange!=="function")return false;onChange({target:{value:${JSON.stringify(fallbackSearchText)},name:input.name},currentTarget:input,type:"change",preventDefault(){},stopPropagation(){},persist(){}});return true})()`);
+      await client.evaluateDomRead<boolean>(`(()=>{const input=document.getElementById(${JSON.stringify(field.portalId)});if(!(input instanceof HTMLInputElement))return false;const propsKey=Object.keys(input).find(key=>key.startsWith("__reactProps$"));const onChange=propsKey&&input[propsKey]?.onChange;if(typeof onChange!=="function")return false;onChange({target:{value:${JSON.stringify(fallbackSearchText)},name:input.name},currentTarget:input,type:"change",preventDefault(){},stopPropagation(){},persist(){}});return true})()`);
       for (let attempt = 0; attempt < 60 && !optionPoint; attempt += 1) {
         optionPoint = await candidatePoint();
         if (!optionPoint) await new Promise((resolve) => setTimeout(resolve, 100));
@@ -1308,11 +1492,19 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
     // del componente sono quindi la fonte autorevole primaria; il clic resta
     // un fallback quando il contratto non e' risolvibile in modo univoco.
     {
-      const authoritativeCodeDelivered = await client.evaluate<boolean>(`(async()=>{const clean=value=>String(value??"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLocaleLowerCase("it").replace(/[.'’]/g," ").replace(/\\bs\\b/g,"san").trim().replace(/\\s+/g," ");const input=document.getElementById(${JSON.stringify(field.portalId)});if(!(input instanceof HTMLInputElement))return false;input.dataset.aprAutocompleteAuthoritativeStage="started";const wanted=clean(${JSON.stringify(field.value)}),qualifier=clean(${JSON.stringify(field.autocompleteQualifier ?? "")}),queries=${JSON.stringify([searchText, ...fallbackSearchTexts])},api=String(window.ENV?.REACT_APP_API||location.origin+"/api").replace(/\\/$/,"");let rows=[],responseCodes=[];try{for(const query of queries){const response=await fetch(api+"/geo/comuni?search="+encodeURIComponent(query),{method:"GET",credentials:"include",headers:{accept:"application/json"}});responseCodes.push(response.status);if(!response.ok)continue;const payload=await response.json();if(Array.isArray(payload?.result))rows.push(...payload.result)}}catch{input.dataset.aprAutocompleteAuthoritativeStage="fetch-failed";return false}input.dataset.aprAutocompleteAuthoritativeStage="responses-"+responseCodes.join("-");const uniqueRows=[...new Map(rows.map(row=>[String(row?.codice_istat||""),row])).values()];const matches=uniqueRows.filter(row=>{const names=[row?.nome,row?.nome_alt].filter(Boolean).map(clean);return row?.cessato!==true&&names.includes(wanted)&&(!qualifier||clean(row?.sigla_pro)===qualifier)&&/^[0-9]{6}$/.test(String(row?.codice_istat||""))});input.dataset.aprAutocompleteAuthoritativeStage="matches-"+matches.length;if(matches.length!==1)return false;const fiberKey=Object.keys(input).find(key=>key.startsWith("__reactFiber$"));let fiber=fiberKey?input[fiberKey]:null,callback=null;for(let depth=0;fiber&&depth<40;depth+=1,fiber=fiber.return){const props=fiber.memoizedProps;if(props&&typeof props.autocompleteFunction==="function"&&typeof props.resolveFunction==="function"&&typeof props.onChange==="function"){callback=props.onChange;input.dataset.aprAutocompleteAuthoritativeDepth=String(depth);break}}if(typeof callback!=="function"){input.dataset.aprAutocompleteAuthoritativeStage=fiberKey?"callback-missing":"fiber-missing";return false}input.dataset.aprAutocompleteAuthoritativeStage="callback-found";callback({target:{name:input.name,value:String(matches[0].codice_istat)},currentTarget:input,type:"change",preventDefault(){},stopPropagation(){},persist(){}});input.dataset.aprAutocompleteAuthoritativeStage="callback-delivered";return true})()`);
+      const authoritativeCodeDelivered = await client.evaluateShortMutation<boolean>(`(async()=>{const clean=value=>String(value??"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLocaleLowerCase("it").replace(/[.'’]/g," ").replace(/\\bs\\b/g,"san").trim().replace(/\\s+/g," ");const input=document.getElementById(${JSON.stringify(field.portalId)});if(!(input instanceof HTMLInputElement))return false;input.dataset.aprAutocompleteAuthoritativeStage="started";const wanted=clean(${JSON.stringify(field.value)}),qualifier=clean(${JSON.stringify(field.autocompleteQualifier ?? "")}),authoritativeIstat=${JSON.stringify(field.autocompleteAuthoritativeIstatCode ?? "")},queries=${JSON.stringify([searchText, ...fallbackSearchTexts])},api=String(window.ENV?.REACT_APP_API||location.origin+"/api").replace(/\\/$/,"");let rows=[],responseCodes=[];const controller=new AbortController(),fetchDeadline=setTimeout(()=>controller.abort(),15000);try{for(const query of queries){const response=await fetch(api+"/geo/comuni?search="+encodeURIComponent(query),{method:"GET",credentials:"include",headers:{accept:"application/json"},signal:controller.signal});responseCodes.push(response.status);if(!response.ok)continue;const payload=await response.json();if(Array.isArray(payload?.result))rows.push(...payload.result)}}catch(error){input.dataset.aprAutocompleteAuthoritativeStage=error?.name==="AbortError"?"fetch-deadline":"fetch-failed";return false}finally{clearTimeout(fetchDeadline)}input.dataset.aprAutocompleteAuthoritativeStage="responses-"+responseCodes.join("-");const uniqueRows=[...new Map(rows.map(row=>[String(row?.codice_istat||""),row])).values()];const matches=uniqueRows.filter(row=>{const names=[row?.nome,row?.nome_alt].filter(Boolean).map(clean),istat=String(row?.codice_istat||"");return row?.cessato!==true&&names.includes(wanted)&&(!qualifier||clean(row?.sigla_pro)===qualifier)&&(!authoritativeIstat||istat===authoritativeIstat)&&/^[0-9]{6}$/.test(istat)});input.dataset.aprAutocompleteAuthoritativeStage="matches-"+matches.length;if(matches.length!==1)return false;const fiberKey=Object.keys(input).find(key=>key.startsWith("__reactFiber$"));let fiber=fiberKey?input[fiberKey]:null,callback=null;for(let depth=0;fiber&&depth<40;depth+=1,fiber=fiber.return){const props=fiber.memoizedProps;if(props&&typeof props.autocompleteFunction==="function"&&typeof props.resolveFunction==="function"&&typeof props.onChange==="function"){callback=props.onChange;input.dataset.aprAutocompleteAuthoritativeDepth=String(depth);break}}if(typeof callback!=="function"){input.dataset.aprAutocompleteAuthoritativeStage=fiberKey?"callback-missing":"fiber-missing";return false}input.dataset.aprAutocompleteAuthoritativeStage="callback-found";callback({target:{name:input.name,value:String(matches[0].codice_istat)},currentTarget:input,type:"change",preventDefault(){},stopPropagation(){},persist(){}});input.dataset.aprAutocompleteAuthoritativeStage="callback-delivered";return true})()`);
       if (authoritativeCodeDelivered) {
         await new Promise((resolve) => setTimeout(resolve, 1_000));
-        const selected = await client.evaluate<boolean>(`(()=>{const clean=value=>String(value??"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLocaleLowerCase("it").replace(/[.'’]/g," ").replace(/\\bs\\b/g,"san").trim().replace(/\\s+/g," ");const input=document.getElementById(${JSON.stringify(field.portalId)});if(!(input instanceof HTMLInputElement)||input.getAttribute("aria-invalid")==="true")return false;const actual=clean(input.value),wanted=clean(${JSON.stringify(field.value)}),qualifier=clean(${JSON.stringify(field.autocompleteQualifier ?? "")}),selected=(actual.startsWith(wanted+" (")||wanted.startsWith(actual+" ("))&&(!qualifier||actual.includes("("+qualifier+")"));if(selected)input.dataset.aprAutocompleteSelected="true";return selected})()`);
+        const selected = await client.evaluateDomRead<boolean>(`(()=>{const clean=value=>String(value??"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLocaleLowerCase("it").replace(/[.'’]/g," ").replace(/\\bs\\b/g,"san").trim().replace(/\\s+/g," ");const input=document.getElementById(${JSON.stringify(field.portalId)});if(!(input instanceof HTMLInputElement)||input.getAttribute("aria-invalid")==="true")return false;const actual=clean(input.value),wanted=clean(${JSON.stringify(field.value)}),qualifier=clean(${JSON.stringify(field.autocompleteQualifier ?? "")}),selected=(actual.startsWith(wanted+" (")||wanted.startsWith(actual+" ("))&&(!qualifier||actual.includes("("+qualifier+")"));if(selected)input.dataset.aprAutocompleteSelected="true";return selected})()`);
         if (selected) return true;
+      }
+      // Una transizione amministrativa autorizzata porta con se anche il
+      // codice ISTAT corrente. Se la GET non consegna esattamente quel codice,
+      // non degradare al clic grafico: il testo/provincia potrebbero apparire
+      // corretti pur riferendosi a un'identita amministrativa diversa.
+      if (field.autocompleteAuthoritativeIstatCode) {
+        const authoritativeStage = await client.evaluateDomRead<string>(`document.getElementById(${JSON.stringify(field.portalId)})?.dataset.aprAutocompleteAuthoritativeStage ?? "missing"`);
+        throw new Error(`apr_cdp_enea_authoritative_istat_not_verified:${field.portalId}:${authoritativeStage}`);
       }
     }
     // Nel portale reale il Comune e' affiancato da una lente. Quando la
@@ -1351,7 +1543,7 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
     }
     if (!optionPoint && !field.autocompleteQualifier) return false;
     if (optionPoint) { await clickPoint(optionPoint); await new Promise((resolve) => setTimeout(resolve, 500)); }
-    const verifySelected = () => client.evaluate<boolean>(`(()=>{const clean=value=>String(value??"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLocaleLowerCase("it").replace(/[.'’]/g," ").replace(/\\bs\\b/g,"san").trim().replace(/\\s+/g," ");const element=document.getElementById(${JSON.stringify(field.portalId)});if(!(element instanceof HTMLInputElement)||element.getAttribute("aria-invalid")==="true")return false;const actual=clean(element.value),wanted=clean(${JSON.stringify(field.value)}),qualifier=clean(${JSON.stringify(field.autocompleteQualifier ?? "")});const nationId=${JSON.stringify(field.portalId.includes("nascita") ? "id-nazione_nascita" : field.portalId.includes("residenza") ? "id-nazione_residenza" : null)};const italy=nationId?document.getElementById(nationId)?.value==="ita":${JSON.stringify(field.portalId.startsWith("id-comune"))};const selected=(actual.startsWith(wanted+" (")||wanted.startsWith(actual+" ("))&&(!qualifier||actual.includes("("+qualifier+")"));const matches=italy?selected:(actual===wanted||selected);if(matches)element.dataset.aprAutocompleteSelected="true";return matches})()`);
+    const verifySelected = () => client.evaluateDomRead<boolean>(`(()=>{const clean=value=>String(value??"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLocaleLowerCase("it").replace(/[.'’]/g," ").replace(/\\bs\\b/g,"san").trim().replace(/\\s+/g," ");const element=document.getElementById(${JSON.stringify(field.portalId)});if(!(element instanceof HTMLInputElement)||element.getAttribute("aria-invalid")==="true")return false;const actual=clean(element.value),wanted=clean(${JSON.stringify(field.value)}),qualifier=clean(${JSON.stringify(field.autocompleteQualifier ?? "")});const nationId=${JSON.stringify(field.portalId.includes("nascita") ? "id-nazione_nascita" : field.portalId.includes("residenza") ? "id-nazione_residenza" : null)};const italy=nationId?document.getElementById(nationId)?.value==="ita":${JSON.stringify(field.portalId.startsWith("id-comune"))};const selected=(actual.startsWith(wanted+" (")||wanted.startsWith(actual+" ("))&&(!qualifier||actual.includes("("+qualifier+")"));const matches=italy?selected:(actual===wanted||selected);if(matches)element.dataset.aprAutocompleteSelected="true";return matches})()`);
     if (await verifySelected()) return true;
     // Due menu Comune possono rimanere aperti contemporaneamente e occupare
     // lo stesso punto dello schermo. In quel caso il clic CDP attendibile puo
@@ -1360,7 +1552,7 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
     // come fallback il click React dell'unico pulsante il cui testo coincide
     // col Comune atteso. Questo aggiorna il valore ISTAT nel form padre e non
     // emette alcun salvataggio o altra mutazione server.
-    const reactOptionDelivered = await client.evaluate<boolean>(`(()=>{const clean=value=>String(value??"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLocaleLowerCase("it").replace(/[.'’]/g," ").replace(/\\bs\\b/g,"san").trim().replace(/\\s+/g," ");const wanted=clean(${JSON.stringify(field.value)}),qualifier=clean(${JSON.stringify(field.autocompleteQualifier ?? "")});const visible=node=>{const style=getComputedStyle(node),rect=node.getBoundingClientRect();return style.display!=="none"&&style.visibility!=="hidden"&&rect.width>0&&rect.height>0};const matches=node=>{const value=clean(node.textContent||node.value);const labelMatches=value===wanted||value.startsWith(wanted+" (")||value.startsWith(wanted+" ")||wanted.startsWith(value+" (");return labelMatches&&(!qualifier||value.includes("("+qualifier+")"))};const candidates=[...document.querySelectorAll('button[role="menuitem"].dropdown-item,[role="option"],.ui-autocomplete li,.easy-autocomplete-container li')].filter(node=>visible(node)&&matches(node));if(candidates.length!==1)return false;const candidate=candidates[0];if(!(candidate instanceof HTMLElement))return false;candidate.click();return true})()`);
+    const reactOptionDelivered = await client.evaluateShortMutation<boolean>(`(()=>{const clean=value=>String(value??"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLocaleLowerCase("it").replace(/[.'’]/g," ").replace(/\\bs\\b/g,"san").trim().replace(/\\s+/g," ");const wanted=clean(${JSON.stringify(field.value)}),qualifier=clean(${JSON.stringify(field.autocompleteQualifier ?? "")});const visible=node=>{const style=getComputedStyle(node),rect=node.getBoundingClientRect();return style.display!=="none"&&style.visibility!=="hidden"&&rect.width>0&&rect.height>0};const matches=node=>{const value=clean(node.textContent||node.value);const labelMatches=value===wanted||value.startsWith(wanted+" (")||value.startsWith(wanted+" ")||wanted.startsWith(value+" (");return labelMatches&&(!qualifier||value.includes("("+qualifier+")"))};const candidates=[...document.querySelectorAll('button[role="menuitem"].dropdown-item,[role="option"],.ui-autocomplete li,.easy-autocomplete-container li')].filter(node=>visible(node)&&matches(node));if(candidates.length!==1)return false;const candidate=candidates[0];if(!(candidate instanceof HTMLElement))return false;candidate.click();return true})()`);
     if (!reactOptionDelivered) return false;
     await new Promise((resolve) => setTimeout(resolve, 500));
     return verifySelected();
@@ -1368,13 +1560,13 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
 
   private async selectWithKeyboard(client: CdpPageClient, field: EneaPortalRuntimeField) {
     if (field.control !== "select") return false;
-    const selection = await client.evaluate<{ found: boolean; optionIndex: number }>(`(()=>{const element=document.getElementById(${JSON.stringify(field.portalId)});if(!(element instanceof HTMLSelectElement)||element.disabled)return {found:false,optionIndex:-1};const normalize=value=>String(value??"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").trim().replace(/\\s+/g," ").toLocaleLowerCase("it");const wanted=${JSON.stringify(field.value)};const selectValue=${JSON.stringify(field.selectValue ?? null)};const option=[...element.options].find(candidate=>(selectValue&&candidate.value===selectValue)||normalize(candidate.value)===normalize(wanted)||normalize(candidate.text)===normalize(wanted));if(!option)return {found:false,optionIndex:-1};element.focus();return {found:true,optionIndex:option.index}})()`);
+    const selection = await client.evaluateShortMutation<{ found: boolean; optionIndex: number }>(`(()=>{const element=document.getElementById(${JSON.stringify(field.portalId)});if(!(element instanceof HTMLSelectElement)||element.disabled)return {found:false,optionIndex:-1};const normalize=value=>String(value??"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").trim().replace(/\\s+/g," ").toLocaleLowerCase("it");const wanted=${JSON.stringify(field.value)};const selectValue=${JSON.stringify(field.selectValue ?? null)};const option=[...element.options].find(candidate=>(selectValue&&candidate.value===selectValue)||normalize(candidate.value)===normalize(wanted)||normalize(candidate.text)===normalize(wanted));if(!option)return {found:false,optionIndex:-1};element.focus();return {found:true,optionIndex:option.index}})()`);
     if (!selection.found) return false;
     const dispatch = (type: "keyDown" | "keyUp", key: string, code: string, virtualKeyCode: number) => client.send("Input.dispatchKeyEvent", { type, key, code, windowsVirtualKeyCode: virtualKeyCode, nativeVirtualKeyCode: virtualKeyCode });
     await dispatch("keyDown", "Home", "Home", 36); await dispatch("keyUp", "Home", "Home", 36);
     for (let index = 0; index < selection.optionIndex; index += 1) { await dispatch("keyDown", "ArrowDown", "ArrowDown", 40); await dispatch("keyUp", "ArrowDown", "ArrowDown", 40); }
     await dispatch("keyDown", "Enter", "Enter", 13); await dispatch("keyUp", "Enter", "Enter", 13);
-    await client.evaluate(`(()=>{const element=document.getElementById(${JSON.stringify(field.portalId)});if(!(element instanceof HTMLSelectElement))return false;const normalize=value=>String(value??"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").trim().replace(/\\s+/g," ").toLocaleLowerCase("it");const wanted=${JSON.stringify(field.value)};const selectValue=${JSON.stringify(field.selectValue ?? null)};const option=[...element.options].find(candidate=>(selectValue&&candidate.value===selectValue)||normalize(candidate.value)===normalize(wanted)||normalize(candidate.text)===normalize(wanted));if(!option)return false;for(const candidate of element.options)candidate.selected=candidate===option;const setter=Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype,"value")?.set;if(setter)setter.call(element,option.value);else element.value=option.value;const propsKey=Object.keys(element).find(key=>key.startsWith("__reactProps$"));const handler=propsKey&&element[propsKey]?.onChange;if(typeof handler==="function")handler({type:"change",target:element,currentTarget:element,nativeEvent:new Event("change"),preventDefault(){},stopPropagation(){},isDefaultPrevented(){return false},isPropagationStopped(){return false},persist(){}});element.dispatchEvent(new Event("input",{bubbles:true}));element.dispatchEvent(new Event("change",{bubbles:true}));return true})()`);
+    await client.evaluateShortMutation(`(()=>{const element=document.getElementById(${JSON.stringify(field.portalId)});if(!(element instanceof HTMLSelectElement))return false;const normalize=value=>String(value??"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").trim().replace(/\\s+/g," ").toLocaleLowerCase("it");const wanted=${JSON.stringify(field.value)};const selectValue=${JSON.stringify(field.selectValue ?? null)};const option=[...element.options].find(candidate=>(selectValue&&candidate.value===selectValue)||normalize(candidate.value)===normalize(wanted)||normalize(candidate.text)===normalize(wanted));if(!option)return false;for(const candidate of element.options)candidate.selected=candidate===option;const setter=Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype,"value")?.set;if(setter)setter.call(element,option.value);else element.value=option.value;const propsKey=Object.keys(element).find(key=>key.startsWith("__reactProps$"));const handler=propsKey&&element[propsKey]?.onChange;if(typeof handler==="function")handler({type:"change",target:element,currentTarget:element,nativeEvent:new Event("change"),preventDefault(){},stopPropagation(){},isDefaultPrevented(){return false},isPropagationStopped(){return false},persist(){}});element.dispatchEvent(new Event("input",{bubbles:true}));element.dispatchEvent(new Event("change",{bubbles:true}));return true})()`);
     await new Promise((resolve) => setTimeout(resolve, 750));
     return true;
   }
@@ -1382,22 +1574,22 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
   private async markPersistedAutocompleteMatches(client: CdpPageClient, fields: EneaPortalRuntimeField[]) {
     const autocompleteFields = fields.filter((field) => field.control === "autocomplete");
     if (autocompleteFields.length === 0) return;
-    await client.evaluate(`(()=>{const clean=value=>String(value??"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLocaleLowerCase("it").replace(/[.'’]/g," ").replace(/\\bs\\b/g,"san").trim().replace(/\\s+/g," ");for(const field of ${JSON.stringify(autocompleteFields)}){const element=document.getElementById(field.portalId);if(!(element instanceof HTMLInputElement)||element.getAttribute("aria-invalid")==="true")continue;const actual=clean(element.value),wanted=clean(field.value),nationId=field.portalId.includes("nascita")?"id-nazione_nascita":field.portalId.includes("residenza")?"id-nazione_residenza":null,italy=nationId?document.getElementById(nationId)?.value==="ita":field.portalId.startsWith("id-comune"),selected=actual.startsWith(wanted+" (")||wanted.startsWith(actual+" (");if(italy?selected:(actual===wanted||selected))element.dataset.aprAutocompleteSelected="true"}})()`);
+    await client.evaluateDomRead(`(()=>{const clean=value=>String(value??"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLocaleLowerCase("it").replace(/[.'’]/g," ").replace(/\\bs\\b/g,"san").trim().replace(/\\s+/g," ");for(const field of ${JSON.stringify(autocompleteFields)}){const element=document.getElementById(field.portalId);if(!(element instanceof HTMLInputElement)||element.getAttribute("aria-invalid")==="true")continue;const actual=clean(element.value),wanted=clean(field.value),nationId=field.portalId.includes("nascita")?"id-nazione_nascita":field.portalId.includes("residenza")?"id-nazione_residenza":null,italy=nationId?document.getElementById(nationId)?.value==="ita":field.portalId.startsWith("id-comune"),selected=actual.startsWith(wanted+" (")||wanted.startsWith(actual+" (");if(italy?selected:(actual===wanted||selected))element.dataset.aprAutocompleteSelected="true"}})()`);
   }
 
   private async readFieldMatches(client: CdpPageClient, fields: EneaPortalRuntimeField[]) {
-    return client.evaluate<{ compiled: string[]; missing: string[]; mismatched: string[]; autocompleteDiagnostics: unknown[]; fieldDiagnostics: unknown[] }>(`(()=>{const fields=${JSON.stringify(fields)};const normalize=value=>String(value??"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").trim().replace(/\\s+/g," ").toLocaleLowerCase("it");const autocompleteKey=value=>normalize(value).replace(/[.'’]/g," ").replace(/\\bs\\b/g,"san").replace(/\\s+/g," ").trim();const number=value=>{const parsed=Number(String(value??"").replace(/[^0-9,.-]/g,"").replace(",","."));return Number.isFinite(parsed)?parsed:null};const missing=[],mismatched=[],compiled=[];for(const field of fields){const element=document.getElementById(field.portalId);if(!element){missing.push(field.portalId);continue}let matches;if(field.control==="button")matches=!element.disabled;else if(field.control==="checkbox")matches=element instanceof HTMLInputElement&&element.type==="checkbox"&&element.checked===(field.value==="true");else if(field.portalId==="id-impianto_centralizzato"&&["S","N"].includes(field.selectValue)&&element.disabled&&element.value===""&&["253","254"].includes(document.getElementById("id-immobile")?.value)&&document.getElementById("id-unita")?.value==="1")matches=true;else if(field.control==="select"&&field.selectValue)matches=element.value===field.selectValue;else{const actual=field.control==="select"?(element.options[element.selectedIndex]?.text||element.value):element.value;const observed=normalize(actual),wanted=normalize(field.value),actualNumber=number(actual),wantedNumber=number(field.value);if(field.control==="autocomplete"){const nationId=field.portalId.includes("nascita")?"id-nazione_nascita":field.portalId.includes("residenza")?"id-nazione_residenza":null,italy=nationId?document.getElementById(nationId)?.value==="ita":field.portalId.startsWith("id-comune"),selected=autocompleteKey(actual).startsWith(autocompleteKey(field.value)+" (")||autocompleteKey(field.value).startsWith(autocompleteKey(actual)+" (");matches=element.dataset.aprAutocompleteSelected==="true"&&element.getAttribute("aria-invalid")!=="true"&&(italy?selected:(autocompleteKey(actual)===autocompleteKey(field.value)||selected))}else matches=observed===wanted||(actualNumber!==null&&wantedNumber!==null&&Math.abs(actualNumber-wantedNumber)<0.001)}if(matches)compiled.push(field.portalId);else mismatched.push(field.portalId)}return {compiled,missing,mismatched,autocompleteDiagnostics:[],fieldDiagnostics:[]}})()`);
+    return client.evaluateDomRead<{ compiled: string[]; missing: string[]; mismatched: string[]; autocompleteDiagnostics: unknown[]; fieldDiagnostics: unknown[] }>(`(()=>{const fields=${JSON.stringify(fields)};const normalize=value=>String(value??"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").trim().replace(/\\s+/g," ").toLocaleLowerCase("it");const autocompleteKey=value=>normalize(value).replace(/[.'’]/g," ").replace(/\\bs\\b/g,"san").replace(/\\s+/g," ").trim();const number=value=>{const parsed=Number(String(value??"").replace(/[^0-9,.-]/g,"").replace(",","."));return Number.isFinite(parsed)?parsed:null};const missing=[],mismatched=[],compiled=[];for(const field of fields){const element=document.getElementById(field.portalId);if(!element){missing.push(field.portalId);continue}let matches;if(field.control==="button")matches=!element.disabled;else if(field.control==="checkbox")matches=element instanceof HTMLInputElement&&element.type==="checkbox"&&element.checked===(field.value==="true");else if(field.portalId==="id-impianto_centralizzato"&&["S","N"].includes(field.selectValue)&&element.disabled&&element.value===""&&["253","254"].includes(document.getElementById("id-immobile")?.value)&&document.getElementById("id-unita")?.value==="1")matches=true;else if(field.control==="select"&&field.selectValue)matches=element.value===field.selectValue;else{const actual=field.control==="select"?(element.options[element.selectedIndex]?.text||element.value):element.value;const observed=normalize(actual),wanted=normalize(field.value),actualNumber=number(actual),wantedNumber=number(field.value);if(field.control==="autocomplete"){const nationId=field.portalId.includes("nascita")?"id-nazione_nascita":field.portalId.includes("residenza")?"id-nazione_residenza":null,italy=nationId?document.getElementById(nationId)?.value==="ita":field.portalId.startsWith("id-comune"),selected=autocompleteKey(actual).startsWith(autocompleteKey(field.value)+" (")||autocompleteKey(field.value).startsWith(autocompleteKey(actual)+" (");matches=element.dataset.aprAutocompleteSelected==="true"&&element.getAttribute("aria-invalid")!=="true"&&(italy?selected:(autocompleteKey(actual)===autocompleteKey(field.value)||selected))}else matches=observed===wanted||(actualNumber!==null&&wantedNumber!==null&&Math.abs(actualNumber-wantedNumber)<0.001)}if(matches)compiled.push(field.portalId);else mismatched.push(field.portalId)}return {compiled,missing,mismatched,autocompleteDiagnostics:[],fieldDiagnostics:[]}})()`);
   }
 
   private async ensureCoBeneficiary(target: CdpTargetInfo, client: CdpPageClient, draftPackage: AprEneaDraftPackage, draftId: string, pageId: string, step: EneaPortalWorkflowStep) {
     const person = step.coBeneficiary;
     if (!person) return null;
-    const readRows = () => client.evaluate<string[][]>(`(()=>{const clean=value=>String(value??"").trim().replace(/\\s+/g," ");return [...document.querySelectorAll("table")].filter(table=>{const header=clean(table.querySelector("thead")?.textContent||table.querySelector("tr")?.textContent);return /nome/i.test(header)&&/cognome/i.test(header)&&/codice fiscale/i.test(header)}).flatMap(table=>[...table.querySelectorAll("tbody tr")].map(row=>[...row.querySelectorAll("th,td")].map(cell=>clean(cell.textContent))).filter(cells=>cells.some(cell=>/[A-Z0-9]{16}/i.test(cell))))})()`);
+    const readRows = () => client.evaluateDomRead<string[][]>(`(()=>{const clean=value=>String(value??"").trim().replace(/\\s+/g," ");return [...document.querySelectorAll("table")].filter(table=>{const header=clean(table.querySelector("thead")?.textContent||table.querySelector("tr")?.textContent);return /nome/i.test(header)&&/cognome/i.test(header)&&/codice fiscale/i.test(header)}).flatMap(table=>[...table.querySelectorAll("tbody tr")].map(row=>[...row.querySelectorAll("th,td")].map(cell=>clean(cell.textContent))).filter(cells=>cells.some(cell=>/[A-Z0-9]{16}/i.test(cell))))})()`);
     let classification = classifyCoBeneficiaryRows(await readRows(), person.taxCode);
     if (classification.status === "present") return this.capture("co_beneficiary_already_present_readonly", target, client, { customerKey: draftPackage.customerKey, draftId, pageId });
     if (classification.status === "conflict") throw new Error(`apr_cdp_enea_co_beneficiary_conflict:${classification.conflictingFiscalCodes.join(",") || "duplicate"}`);
 
-    const opened = await client.evaluate<{ ready: boolean; reason: string }>(`(async()=>{const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));const normalize=value=>String(value??"").trim().normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLocaleLowerCase("it");const add=[...document.querySelectorAll('button,input[type="button"],a')].filter(node=>normalize(node.textContent||node.value)==="aggiungi persona fisica"&&!node.disabled);if(add.length!==1)return {ready:false,reason:"add-person-control-count-"+add.length};add[0].click();for(let attempt=0;attempt<80;attempt+=1){const heading=[...document.querySelectorAll('h1,h2,h3,h4,h5,[role="heading"],.modal-title')].find(node=>normalize(node.textContent)==="altro beneficiario (persona fisica)");const scope=heading?.closest('[role="dialog"],.modal-content,.modal-dialog,form')||heading?.parentElement?.parentElement;if(scope)return {ready:true,reason:"ready"};await wait(100)}return {ready:false,reason:"person-dialog-not-found"}})()`, true, 20_000);
+    const opened = await client.evaluateNestedSave<{ ready: boolean; reason: string }>(`(async()=>{const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));const normalize=value=>String(value??"").trim().normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLocaleLowerCase("it");const add=[...document.querySelectorAll('button,input[type="button"],a')].filter(node=>normalize(node.textContent||node.value)==="aggiungi persona fisica"&&!node.disabled);if(add.length!==1)return {ready:false,reason:"add-person-control-count-"+add.length};add[0].click();for(let attempt=0;attempt<80;attempt+=1){const heading=[...document.querySelectorAll('h1,h2,h3,h4,h5,[role="heading"],.modal-title')].find(node=>normalize(node.textContent)==="altro beneficiario (persona fisica)");const scope=heading?.closest('[role="dialog"],.modal-content,.modal-dialog,form')||heading?.parentElement?.parentElement;if(scope)return {ready:true,reason:"ready"};await wait(100)}return {ready:false,reason:"person-dialog-not-found"}})()`);
     if (!opened.ready) throw new Error(`apr_cdp_enea_co_beneficiary_prepare_failed:${opened.reason}`);
 
     const assignments = [
@@ -1410,7 +1602,7 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
     // evento React, così un remount non può deviare la digitazione su un altro
     // campo o sull'anagrafica principale.
     for (const assignment of assignments) {
-      const input = await client.evaluate<{ x: number; y: number } | null>(`(()=>{const normalize=value=>String(value??"").trim().normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLocaleLowerCase("it");const heading=[...document.querySelectorAll('h1,h2,h3,h4,h5,[role="heading"],.modal-title')].find(node=>normalize(node.textContent)==="altro beneficiario (persona fisica)");const scope=heading?.closest('[role="dialog"],.modal-content,.modal-dialog,form')||heading?.parentElement?.parentElement;if(!scope)return null;const portalId=${JSON.stringify(assignment.portalId)},labelText=${JSON.stringify(assignment.label)};const byId=[...scope.querySelectorAll("input")].find(node=>node.id===portalId);const label=[...scope.querySelectorAll("label")].find(node=>normalize(node.textContent).replace("*","").trim()===normalize(labelText));const byLabel=label&&((label.htmlFor&&[...scope.querySelectorAll("input")].find(node=>node.id===label.htmlFor))||label.querySelector("input")||label.parentElement?.querySelector("input"));const field=byId||byLabel;if(!(field instanceof HTMLInputElement))return null;field.scrollIntoView({block:"center",inline:"center"});const rect=field.getBoundingClientRect();return rect.width>0&&rect.height>0?{x:rect.left+rect.width/2,y:rect.top+rect.height/2}:null})()`);
+      const input = await client.evaluateDomRead<{ x: number; y: number } | null>(`(()=>{const normalize=value=>String(value??"").trim().normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLocaleLowerCase("it");const heading=[...document.querySelectorAll('h1,h2,h3,h4,h5,[role="heading"],.modal-title')].find(node=>normalize(node.textContent)==="altro beneficiario (persona fisica)");const scope=heading?.closest('[role="dialog"],.modal-content,.modal-dialog,form')||heading?.parentElement?.parentElement;if(!scope)return null;const portalId=${JSON.stringify(assignment.portalId)},labelText=${JSON.stringify(assignment.label)};const byId=[...scope.querySelectorAll("input")].find(node=>node.id===portalId);const label=[...scope.querySelectorAll("label")].find(node=>normalize(node.textContent).replace("*","").trim()===normalize(labelText));const byLabel=label&&((label.htmlFor&&[...scope.querySelectorAll("input")].find(node=>node.id===label.htmlFor))||label.querySelector("input")||label.parentElement?.querySelector("input"));const field=byId||byLabel;if(!(field instanceof HTMLInputElement))return null;field.scrollIntoView({block:"center",inline:"center"});const rect=field.getBoundingClientRect();return rect.width>0&&rect.height>0?{x:rect.left+rect.width/2,y:rect.top+rect.height/2}:null})()`);
       if (!input) throw new Error(`apr_cdp_enea_co_beneficiary_trusted_input_not_available:${assignment.portalId}`);
       await client.send("Input.dispatchMouseEvent", { type: "mouseMoved", x: input.x, y: input.y });
       await client.send("Input.dispatchMouseEvent", { type: "mousePressed", x: input.x, y: input.y, button: "left", clickCount: 3 });
@@ -1418,19 +1610,31 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
       await client.send("Input.dispatchKeyEvent", { type: "keyDown", key: "Backspace", code: "Backspace", windowsVirtualKeyCode: 8, nativeVirtualKeyCode: 8 });
       await client.send("Input.dispatchKeyEvent", { type: "keyUp", key: "Backspace", code: "Backspace", windowsVirtualKeyCode: 8, nativeVirtualKeyCode: 8 });
       await client.send("Input.insertText", { text: assignment.value });
-      await client.evaluate(`(()=>{const normalize=value=>String(value??"").trim().normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLocaleLowerCase("it");const heading=[...document.querySelectorAll('h1,h2,h3,h4,h5,[role="heading"],.modal-title')].find(node=>normalize(node.textContent)==="altro beneficiario (persona fisica)");const scope=heading?.closest('[role="dialog"],.modal-content,.modal-dialog,form')||heading?.parentElement?.parentElement;if(!scope)return false;const input=[...scope.querySelectorAll("input")].find(node=>node.id===${JSON.stringify(assignment.portalId)});if(!(input instanceof HTMLInputElement))return false;const value=${JSON.stringify(assignment.value)};const setter=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,"value")?.set;if(setter&&input.value!==value)setter.call(input,value);const propsKey=Object.keys(input).find(key=>key.startsWith("__reactProps$"));const handler=propsKey&&input[propsKey]?.onChange;if(typeof handler==="function")handler({type:"change",target:input,currentTarget:input,nativeEvent:new Event("change"),preventDefault(){},stopPropagation(){},isDefaultPrevented(){return false},isPropagationStopped(){return false},persist(){}});return true})()`);
+      await client.evaluateShortMutation(`(()=>{const normalize=value=>String(value??"").trim().normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLocaleLowerCase("it");const heading=[...document.querySelectorAll('h1,h2,h3,h4,h5,[role="heading"],.modal-title')].find(node=>normalize(node.textContent)==="altro beneficiario (persona fisica)");const scope=heading?.closest('[role="dialog"],.modal-content,.modal-dialog,form')||heading?.parentElement?.parentElement;if(!scope)return false;const input=[...scope.querySelectorAll("input")].find(node=>node.id===${JSON.stringify(assignment.portalId)});if(!(input instanceof HTMLInputElement))return false;const value=${JSON.stringify(assignment.value)};const setter=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,"value")?.set;if(setter&&input.value!==value)setter.call(input,value);const propsKey=Object.keys(input).find(key=>key.startsWith("__reactProps$"));const handler=propsKey&&input[propsKey]?.onChange;if(typeof handler==="function")handler({type:"change",target:input,currentTarget:input,nativeEvent:new Event("change"),preventDefault(){},stopPropagation(){},isDefaultPrevented(){return false},isPropagationStopped(){return false},persist(){}});return true})()`);
       await new Promise((resolve) => setTimeout(resolve, 150));
     }
     await client.send("Input.dispatchKeyEvent", { type: "keyDown", key: "Tab", code: "Tab", windowsVirtualKeyCode: 9, nativeVirtualKeyCode: 9 });
     await client.send("Input.dispatchKeyEvent", { type: "keyUp", key: "Tab", code: "Tab", windowsVirtualKeyCode: 9, nativeVirtualKeyCode: 9 });
     await new Promise((resolve) => setTimeout(resolve, 400));
-    const trustedSavePoint = await client.evaluate<{ x: number; y: number } | null>(`(()=>{const clean=value=>String(value??"").trim();const normalize=value=>clean(value).normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLocaleLowerCase("it");const person=${JSON.stringify(person)};const heading=[...document.querySelectorAll('h1,h2,h3,h4,h5,[role="heading"],.modal-title')].find(node=>normalize(node.textContent)==="altro beneficiario (persona fisica)");const scope=heading?.closest('[role="dialog"],.modal-content,.modal-dialog,form')||heading?.parentElement?.parentElement;if(!scope)return null;const values=[person.name,person.surname,person.taxCode].map(normalize);const inputs=[...scope.querySelectorAll("input")].filter(input=>input.type!=="hidden");if(inputs.length<3||!values.every(value=>inputs.some(input=>normalize(input.value)===value&&input.validity.valid&&input.getAttribute("aria-invalid")!=="true")))return null;const saves=[...scope.querySelectorAll('button,input[type="submit"],input[type="button"]')].filter(node=>normalize(node.textContent||node.value)==="salva"&&!node.disabled);if(saves.length!==1)return null;saves[0].scrollIntoView({block:"center",inline:"center"});const rect=saves[0].getBoundingClientRect();return rect.width>0&&rect.height>0?{x:rect.left+rect.width/2,y:rect.top+rect.height/2}:null})()`);
+    const saveScrolled = await client.evaluateDomRead<boolean>(`(()=>{const clean=value=>String(value??"").trim();const normalize=value=>clean(value).normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLocaleLowerCase("it");const person=${JSON.stringify(person)};const heading=[...document.querySelectorAll('h1,h2,h3,h4,h5,[role="heading"],.modal-title')].find(node=>normalize(node.textContent)==="altro beneficiario (persona fisica)");const scope=heading?.closest('[role="dialog"],.modal-content,.modal-dialog,form')||heading?.parentElement?.parentElement;if(!scope)return false;const values=[person.name,person.surname,person.taxCode].map(normalize);const inputs=[...scope.querySelectorAll("input")].filter(input=>input.type!=="hidden");if(inputs.length<3||!values.every(value=>inputs.some(input=>normalize(input.value)===value&&input.validity.valid&&input.getAttribute("aria-invalid")!=="true")))return false;const saves=[...scope.querySelectorAll('button,input[type="submit"],input[type="button"]')].filter(node=>normalize(node.textContent||node.value)==="salva"&&!node.disabled);if(saves.length!==1)return false;saves[0].scrollIntoView({block:"center",inline:"center",behavior:"instant"});return true})()`);
+    await new Promise((resolve) => setTimeout(resolve, 250));
+    const trustedSavePoint = saveScrolled ? await client.evaluateDomRead<{ x: number; y: number } | null>(`(()=>{const clean=value=>String(value??"").trim();const normalize=value=>clean(value).normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLocaleLowerCase("it");const heading=[...document.querySelectorAll('h1,h2,h3,h4,h5,[role="heading"],.modal-title')].find(node=>normalize(node.textContent)==="altro beneficiario (persona fisica)");const scope=heading?.closest('[role="dialog"],.modal-content,.modal-dialog,form')||heading?.parentElement?.parentElement;if(!scope)return null;const saves=[...scope.querySelectorAll('button,input[type="submit"],input[type="button"]')].filter(node=>normalize(node.textContent||node.value)==="salva"&&!node.disabled);if(saves.length!==1)return null;const rect=saves[0].getBoundingClientRect();if(rect.width<=0||rect.height<=0)return null;const x=rect.left+rect.width/2,y=rect.top+rect.height/2,hit=document.elementFromPoint(x,y);return hit&&(hit===saves[0]||saves[0].contains(hit))?{x,y}:null})()`) : null;
     if (!trustedSavePoint) {
-      const diagnostic = await client.evaluate(`(()=>{const clean=value=>String(value??"").trim();const normalize=value=>clean(value).normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLocaleLowerCase("it");const heading=[...document.querySelectorAll('h1,h2,h3,h4,h5,[role="heading"],.modal-title')].find(node=>normalize(node.textContent)==="altro beneficiario (persona fisica)");const scope=heading?.closest('[role="dialog"],.modal-content,.modal-dialog,form')||heading?.parentElement?.parentElement;return {heading:clean(heading?.textContent),scopeFound:Boolean(scope),fields:scope?[...scope.querySelectorAll("input")].map(input=>({id:input.id||"",name:input.name||"",type:input.type,value:String(input.value??""),disabled:input.disabled,valid:input.validity.valid,ariaInvalid:input.getAttribute("aria-invalid"),reactProps:Object.keys(input).filter(key=>key.startsWith("__reactProps$")).map(key=>Object.keys(input[key]||{}))})):[],saves:scope?[...scope.querySelectorAll('button,input[type="submit"],input[type="button"]')].filter(node=>normalize(node.textContent||node.value)==="salva").map(node=>({tag:node.tagName.toLowerCase(),disabled:Boolean(node.disabled),text:clean(node.textContent||node.value)})):[],alerts:[...document.querySelectorAll('[role="alert"],.alert,.invalid-feedback,.error,[class*="error" i]')].map(node=>clean(node.textContent)).filter(Boolean).slice(0,40)}})()`);
+      const diagnostic = await client.evaluateDomRead(`(()=>{const clean=value=>String(value??"").trim();const normalize=value=>clean(value).normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLocaleLowerCase("it");const heading=[...document.querySelectorAll('h1,h2,h3,h4,h5,[role="heading"],.modal-title')].find(node=>normalize(node.textContent)==="altro beneficiario (persona fisica)");const scope=heading?.closest('[role="dialog"],.modal-content,.modal-dialog,form')||heading?.parentElement?.parentElement;return {heading:clean(heading?.textContent),scopeFound:Boolean(scope),fields:scope?[...scope.querySelectorAll("input")].map(input=>({id:input.id||"",name:input.name||"",type:input.type,value:String(input.value??""),disabled:input.disabled,valid:input.validity.valid,ariaInvalid:input.getAttribute("aria-invalid"),reactProps:Object.keys(input).filter(key=>key.startsWith("__reactProps$")).map(key=>Object.keys(input[key]||{}))})):[],saves:scope?[...scope.querySelectorAll('button,input[type="submit"],input[type="button"]')].filter(node=>normalize(node.textContent||node.value)==="salva").map(node=>({tag:node.tagName.toLowerCase(),disabled:Boolean(node.disabled),text:clean(node.textContent||node.value)})):[],alerts:[...document.querySelectorAll('[role="alert"],.alert,.invalid-feedback,.error,[class*="error" i]')].map(node=>clean(node.textContent)).filter(Boolean).slice(0,40)}})()`);
       const evidence = await this.capture("co_beneficiary_trusted_input_not_verified_diagnostic", target, client, { customerKey: draftPackage.customerKey, draftId, pageId });
       const state = this.load(); state.revision += 1; state.pagePreparationDiagnostic = { kind: "co-beneficiary-trusted-input-v4", observedAt: new Date().toISOString(), customerKey: draftPackage.customerKey, draftId, pageId, evidenceId: evidence.evidenceId, diagnostic }; this.write(state);
       throw new Error("apr_cdp_enea_co_beneficiary_trusted_input_not_verified");
     }
+    type CoBeneficiaryMutationTrace = { requestId: string; method: string; url: string; status: number | null; failed: string; finished: boolean };
+    const mutationTraces = new Map<string, CoBeneficiaryMutationTrace>();
+    await client.send("Network.enable");
+    const offRequest = client.onEvent<{ requestId: string; request: { method: string; url: string } }>("Network.requestWillBeSent", ({ requestId, request }) => {
+      let sameOrigin = false; try { sameOrigin = new URL(request.url).origin === this.allowedOrigin; } catch { /* URL non HTTP */ }
+      if (sameOrigin && !["GET", "HEAD", "OPTIONS"].includes(request.method.toUpperCase())) mutationTraces.set(requestId, { requestId, method: request.method.toUpperCase(), url: request.url, status: null, failed: "", finished: false });
+    });
+    const offResponse = client.onEvent<{ requestId: string; response: { status: number } }>("Network.responseReceived", ({ requestId, response }) => { const trace = mutationTraces.get(requestId); if (trace) trace.status = response.status; });
+    const offFinished = client.onEvent<{ requestId: string }>("Network.loadingFinished", ({ requestId }) => { const trace = mutationTraces.get(requestId); if (trace) trace.finished = true; });
+    const offFailed = client.onEvent<{ requestId: string; errorText?: string }>("Network.loadingFailed", ({ requestId, errorText }) => { const trace = mutationTraces.get(requestId); if (trace) trace.failed = errorText ?? "network_failed"; });
     await this.capture("co_beneficiary_save_intent", target, client, { customerKey: draftPackage.customerKey, draftId, pageId });
     // Il modale "Altro beneficiario" ignora in alcuni casi element.click().
     // Usa quindi l'unico controllo gia' validato sopra con un vero evento
@@ -1439,28 +1643,52 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
     await client.send("Input.dispatchMouseEvent", { type: "mouseMoved", x: trustedSavePoint.x, y: trustedSavePoint.y });
     await client.send("Input.dispatchMouseEvent", { type: "mousePressed", x: trustedSavePoint.x, y: trustedSavePoint.y, button: "left", clickCount: 1 });
     await client.send("Input.dispatchMouseEvent", { type: "mouseReleased", x: trustedSavePoint.x, y: trustedSavePoint.y, button: "left", clickCount: 1 });
+    let deliveryFallback: "none" | "trusted_enter_after_proven_no_mutation" = "none";
+    for (let attempt = 0; attempt < 50; attempt += 1) {
+      classification = classifyCoBeneficiaryRows(await readRows(), person.taxCode);
+      if (classification.status !== "missing" || mutationTraces.size > 0) break;
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+    if (classification.status === "missing" && mutationTraces.size === 0) {
+      const focused = await client.evaluateShortMutation<boolean>(`(()=>{const clean=value=>String(value??"").trim();const normalize=value=>clean(value).normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLocaleLowerCase("it");const person=${JSON.stringify(person)};const heading=[...document.querySelectorAll('h1,h2,h3,h4,h5,[role="heading"],.modal-title')].find(node=>normalize(node.textContent)==="altro beneficiario (persona fisica)");const scope=heading?.closest('[role="dialog"],.modal-content,.modal-dialog,form')||heading?.parentElement?.parentElement;if(!scope)return false;const values=[person.name,person.surname,person.taxCode].map(normalize);const inputs=[...scope.querySelectorAll("input")].filter(input=>input.type!=="hidden");if(inputs.length<3||!values.every(value=>inputs.some(input=>normalize(input.value)===value&&input.validity.valid&&input.getAttribute("aria-invalid")!=="true")))return false;const saves=[...scope.querySelectorAll('button,input[type="submit"],input[type="button"]')].filter(node=>normalize(node.textContent||node.value)==="salva"&&!node.disabled);if(saves.length!==1||!(saves[0] instanceof HTMLElement))return false;saves[0].focus({preventScroll:true});return document.activeElement===saves[0]})()`);
+      if (focused) {
+        deliveryFallback = "trusted_enter_after_proven_no_mutation";
+        await client.send("Input.dispatchKeyEvent", { type: "keyDown", key: "Enter", code: "Enter", text: "\r", windowsVirtualKeyCode: 13, nativeVirtualKeyCode: 13 });
+        await client.send("Input.dispatchKeyEvent", { type: "keyUp", key: "Enter", code: "Enter", windowsVirtualKeyCode: 13, nativeVirtualKeyCode: 13 });
+      }
+    }
     for (let attempt = 0; attempt < 100; attempt += 1) {
       await new Promise((resolve) => setTimeout(resolve, 100));
       classification = classifyCoBeneficiaryRows(await readRows(), person.taxCode);
-      if (classification.status === "present") return this.capture("co_beneficiary_saved_verified", target, client, { customerKey: draftPackage.customerKey, draftId, pageId });
-      if (classification.status === "conflict") throw new Error(`apr_cdp_enea_co_beneficiary_conflict_after_save:${classification.conflictingFiscalCodes.join(",") || "duplicate"}`);
+      if (classification.status === "present") {
+        offRequest(); offResponse(); offFinished(); offFailed();
+        const evidence = await this.capture("co_beneficiary_saved_verified", target, client, { customerKey: draftPackage.customerKey, draftId, pageId });
+        const state = this.load(); state.revision += 1; state.pagePreparationDiagnostic = { kind: "co-beneficiary-single-intent-delivery-v2", observedAt: new Date().toISOString(), customerKey: draftPackage.customerKey, draftId, pageId, evidenceId: evidence.evidenceId, deliveryFallback, mutationTraces: [...mutationTraces.values()] }; this.write(state);
+        return evidence;
+      }
+      if (classification.status === "conflict") {
+        offRequest(); offResponse(); offFinished(); offFailed();
+        throw new Error(`apr_cdp_enea_co_beneficiary_conflict_after_save:${classification.conflictingFiscalCodes.join(",") || "duplicate"}`);
+      }
     }
-    const diagnostic = await client.evaluate(`(()=>{const clean=value=>String(value??"").trim();return {dialogOpen:Boolean(document.querySelector('[role="dialog"],.modal-content,.modal-dialog')),fields:[...document.querySelectorAll('[role="dialog"] input,.modal-content input,.modal-dialog input')].map(input=>({id:input.id||"",name:input.name||"",value:String(input.value??""),ariaInvalid:input.getAttribute("aria-invalid"),valid:input.validity.valid})),alerts:[...document.querySelectorAll('[role="alert"],.alert,.invalid-feedback,.error,[class*="error" i]')].map(node=>clean(node.textContent)).filter(Boolean).slice(0,40)}})()`);
+    offRequest(); offResponse(); offFinished(); offFailed();
+    const diagnostic = await client.evaluateDomRead(`(()=>{const clean=value=>String(value??"").trim();return {dialogOpen:Boolean(document.querySelector('[role="dialog"],.modal-content,.modal-dialog')),fields:[...document.querySelectorAll('[role="dialog"] input,.modal-content input,.modal-dialog input')].map(input=>({id:input.id||"",name:input.name||"",value:String(input.value??""),ariaInvalid:input.getAttribute("aria-invalid"),valid:input.validity.valid})),alerts:[...document.querySelectorAll('[role="alert"],.alert,.invalid-feedback,.error,[class*="error" i]')].map(node=>clean(node.textContent)).filter(Boolean).slice(0,40)}})()`);
     const evidence = await this.capture("co_beneficiary_save_unverified_diagnostic", target, client, { customerKey: draftPackage.customerKey, draftId, pageId });
-    const state = this.load(); state.revision += 1; state.pagePreparationDiagnostic = { kind: "co-beneficiary-trusted-input-v2", observedAt: new Date().toISOString(), customerKey: draftPackage.customerKey, draftId, pageId, evidenceId: evidence.evidenceId, diagnostic }; this.write(state);
+    const state = this.load(); state.revision += 1; state.pagePreparationDiagnostic = { kind: "co-beneficiary-single-intent-delivery-v2", observedAt: new Date().toISOString(), customerKey: draftPackage.customerKey, draftId, pageId, evidenceId: evidence.evidenceId, deliveryFallback, mutationTraces: [...mutationTraces.values()], diagnostic }; this.write(state);
     throw new Error("apr_cdp_enea_co_beneficiary_save_unverified");
   }
 
   async preparePage(draftPackage: AprEneaDraftPackage, draftId: string, pageId: string): Promise<AprEneaDriverEvidence> {
+    this.renewMutationAccess();
     const step = this.stepFor(draftPackage, pageId); if (!step) throw new Error(`apr_cdp_enea_page_not_allowlisted:${pageId}`);
     const mapping = this.load().mappings.find((item) => item.packageFingerprint === draftPackage.packageFingerprint && item.draftId === draftId); if (!mapping) throw new Error("apr_cdp_enea_mapping_missing");
     const { target, client } = await this.client();
-    if (draftIdFromUrl(await client.evaluate<string>("location.href")) !== draftId) await client.navigate(mapping.url);
+    if (draftIdFromUrl(await client.evaluateDomRead<string>("location.href")) !== draftId) await client.navigate(mapping.url);
     try {
       await this.openPage(client, draftId, pageId, step, draftPackage.module);
     } catch (error) {
       if (draftPackage.module === "infissi" && /serrament|infiss/i.test(step.pageName)) {
-        const surface = await client.evaluate(`(async()=>{const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));const clean=value=>String(value??"").trim().replace(/\\s+/g," ");const normalize=value=>clean(value).normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLocaleLowerCase("it");const labelFor=node=>{const id=node.id||"";const direct=id?document.querySelector('label[for="'+CSS.escape(id)+'"]'):null;return clean(direct?.textContent||node.closest("label")?.textContent||node.parentElement?.textContent||"").slice(0,300)};const add=[...document.querySelectorAll('button,input[type="button"],a')].filter(node=>normalize(node.textContent||node.value)==="aggiungi"&&!node.disabled);let addOpened=false;if(add.length===1){add[0].click();for(let attempt=0;attempt<50;attempt+=1){await wait(100);if(document.querySelector('[role="dialog"],.modal-content,.modal-dialog')){addOpened=true;break}}}const scope=document.querySelector('[role="dialog"],.modal-content,.modal-dialog')||document;return {url:location.href,title:document.title,body:clean(document.body?.innerText).slice(0,5000),addControlCount:add.length,addOpened,controls:[...scope.querySelectorAll("input,select,textarea,button")].map(node=>({tag:node.tagName.toLowerCase(),id:node.id||"",name:node.getAttribute("name")||"",type:node.getAttribute("type")||"",label:labelFor(node),value:String(node.value??"").slice(0,200),options:node instanceof HTMLSelectElement?[...node.options].map(option=>({value:option.value,text:clean(option.text)})).slice(0,80):[]})).filter(item=>item.id||item.name||/salva|annulla/i.test(item.label)).slice(0,250),links:[...document.querySelectorAll("a[href]")].map(node=>({text:clean(node.textContent),href:node.href})).filter(item=>/serrament|infiss|chiusur|calcolo/i.test(item.text+" "+item.href)).slice(0,80)}})()`, true, 15_000);
+        const surface = await client.evaluateShortMutation(`(async()=>{const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));const clean=value=>String(value??"").trim().replace(/\\s+/g," ");const normalize=value=>clean(value).normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLocaleLowerCase("it");const labelFor=node=>{const id=node.id||"";const direct=id?document.querySelector('label[for="'+CSS.escape(id)+'"]'):null;return clean(direct?.textContent||node.closest("label")?.textContent||node.parentElement?.textContent||"").slice(0,300)};const add=[...document.querySelectorAll('button,input[type="button"],a')].filter(node=>normalize(node.textContent||node.value)==="aggiungi"&&!node.disabled);let addOpened=false;if(add.length===1){add[0].click();for(let attempt=0;attempt<50;attempt+=1){await wait(100);if(document.querySelector('[role="dialog"],.modal-content,.modal-dialog')){addOpened=true;break}}}const scope=document.querySelector('[role="dialog"],.modal-content,.modal-dialog')||document;return {url:location.href,title:document.title,body:clean(document.body?.innerText).slice(0,5000),addControlCount:add.length,addOpened,controls:[...scope.querySelectorAll("input,select,textarea,button")].map(node=>({tag:node.tagName.toLowerCase(),id:node.id||"",name:node.getAttribute("name")||"",type:node.getAttribute("type")||"",label:labelFor(node),value:String(node.value??"").slice(0,200),options:node instanceof HTMLSelectElement?[...node.options].map(option=>({value:option.value,text:clean(option.text)})).slice(0,80):[]})).filter(item=>item.id||item.name||/salva|annulla/i.test(item.label)).slice(0,250),links:[...document.querySelectorAll("a[href]")].map(node=>({text:clean(node.textContent),href:node.href})).filter(item=>/serrament|infiss|chiusur|calcolo/i.test(item.text+" "+item.href)).slice(0,80)}})()`);
         const evidence = await this.capture("inspect_infissi_contract_readonly", target, client, { customerKey: draftPackage.customerKey, draftId, pageId });
         const state = this.load();
         state.revision += 1;
@@ -1516,13 +1744,13 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
       if (result.missing.length || result.mismatched.length) result = await this.fillAndReadStable(client, step.fields);
     }
     if (result.missing.length || result.mismatched.length || result.compiled.length !== step.fields.length) {
-      const liveAutocompleteDiagnostics = await client.evaluate(`(()=>{const visible=node=>{if(!(node instanceof HTMLElement))return false;const style=getComputedStyle(node);const rect=node.getBoundingClientRect();return style.display!=="none"&&style.visibility!=="hidden"&&rect.width>0&&rect.height>0};const controls=${JSON.stringify(step.fields.filter((field) => field.control === "autocomplete").map((field) => ({ portalId: field.portalId, expected: field.value, qualifier: field.autocompleteQualifier ?? null })))}.map(field=>{const input=document.getElementById(field.portalId);const fiberKey=input&&Object.keys(input).find(key=>key.startsWith("__reactFiber$"));let fiber=fiberKey?input[fiberKey]:null;const fiberChain=[];for(let depth=0;fiber&&depth<20;depth+=1,fiber=fiber.return){const props=fiber.memoizedProps||{};fiberChain.push({depth,tag:typeof fiber.type==="string"?fiber.type:typeof fiber.type==="function"?(fiber.type.name||"function"):String(fiber.tag),propKeys:Object.keys(props).filter(key=>["name","value","onChange","autocompleteFunction","resolveFunction"].includes(key)),propTypes:{onChange:typeof props.onChange,autocompleteFunction:typeof props.autocompleteFunction,resolveFunction:typeof props.resolveFunction}})}return {...field,actual:String(input?.value??""),ariaInvalid:input?.getAttribute("aria-invalid")??null,authoritativeStage:input?.dataset.aprAutocompleteAuthoritativeStage??null,authoritativeDepth:input?.dataset.aprAutocompleteAuthoritativeDepth??null,fiberChain,parentHtml:String(input?.parentElement?.outerHTML||"").slice(0,3000)}});const surfaces=[...document.querySelectorAll('[role="dialog"],.modal,.modal-content,[role="listbox"],.dropdown-menu,.ui-autocomplete')].filter(visible).map(node=>({tag:node.tagName.toLowerCase(),id:node.id||"",className:String(node.className||""),text:String(node.textContent||"").trim().replace(/\s+/g," ").slice(0,1200),html:String(node.outerHTML||"").slice(0,5000)})).slice(0,20);return {controls,surfaces}})()`);
+      const liveAutocompleteDiagnostics = await client.evaluateDomRead(`(()=>{const visible=node=>{if(!(node instanceof HTMLElement))return false;const style=getComputedStyle(node);const rect=node.getBoundingClientRect();return style.display!=="none"&&style.visibility!=="hidden"&&rect.width>0&&rect.height>0};const controls=${JSON.stringify(step.fields.filter((field) => field.control === "autocomplete").map((field) => ({ portalId: field.portalId, expected: field.value, qualifier: field.autocompleteQualifier ?? null })))}.map(field=>{const input=document.getElementById(field.portalId);const fiberKey=input&&Object.keys(input).find(key=>key.startsWith("__reactFiber$"));let fiber=fiberKey?input[fiberKey]:null;const fiberChain=[];for(let depth=0;fiber&&depth<20;depth+=1,fiber=fiber.return){const props=fiber.memoizedProps||{};fiberChain.push({depth,tag:typeof fiber.type==="string"?fiber.type:typeof fiber.type==="function"?(fiber.type.name||"function"):String(fiber.tag),propKeys:Object.keys(props).filter(key=>["name","value","onChange","autocompleteFunction","resolveFunction"].includes(key)),propTypes:{onChange:typeof props.onChange,autocompleteFunction:typeof props.autocompleteFunction,resolveFunction:typeof props.resolveFunction}})}return {...field,actual:String(input?.value??""),ariaInvalid:input?.getAttribute("aria-invalid")??null,authoritativeStage:input?.dataset.aprAutocompleteAuthoritativeStage??null,authoritativeDepth:input?.dataset.aprAutocompleteAuthoritativeDepth??null,fiberChain,parentHtml:String(input?.parentElement?.outerHTML||"").slice(0,3000)}});const surfaces=[...document.querySelectorAll('[role="dialog"],.modal,.modal-content,[role="listbox"],.dropdown-menu,.ui-autocomplete')].filter(visible).map(node=>({tag:node.tagName.toLowerCase(),id:node.id||"",className:String(node.className||""),text:String(node.textContent||"").trim().replace(/\s+/g," ").slice(0,1200),html:String(node.outerHTML||"").slice(0,5000)})).slice(0,20);return {controls,surfaces}})()`);
       const evidence = await this.capture("prepare_page_failed_readonly_diagnostic", target, client, { customerKey: draftPackage.customerKey, draftId, pageId });
       const state = this.load(); state.revision += 1; state.pagePreparationDiagnostic = { kind: "autocomplete-portal-selection-v48", observedAt: new Date().toISOString(), customerKey: draftPackage.customerKey, draftId, pageId, evidenceId: evidence.evidenceId, missing: result.missing, mismatched: result.mismatched, autocompleteDiagnostics: result.autocompleteDiagnostics, liveAutocompleteDiagnostics, fieldDiagnostics: result.fieldDiagnostics ?? [] }; this.write(state);
       throw new Error(`apr_cdp_enea_field_verification_failed:${[...result.missing, ...result.mismatched].join(",")}`);
     }
     await this.ensureCoBeneficiary(target, client, draftPackage, draftId, pageId, step);
-    const saveControl = await client.evaluate<{ ready: boolean; candidateCount: number; disabled: boolean; formValid: boolean; invalidControls: string[] }>(`(()=>{const normalize=value=>String(value||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").trim().replace(/\\s+/g," ").toLocaleLowerCase("it");const marker=(${JSON.stringify(step.markerIds)}).map(id=>document.getElementById(id)).find(Boolean);const form=marker?.closest("form")||document.querySelector("form");if(!form)return {ready:false,candidateCount:0,disabled:false,formValid:false,invalidControls:["<form-missing>"]};const candidates=[...form.querySelectorAll('button,input[type="submit"],input[type="button"]')].filter(node=>normalize(node.textContent||node.value)==="salva");const control=candidates.length===1?candidates[0]:null;const disabled=Boolean(control?.disabled);const invalidControls=[...form.querySelectorAll("input,select,textarea")].filter(node=>!node.disabled&&!node.validity.valid).map(node=>node.id||node.name||"<unnamed>");const formValid=invalidControls.length===0;return {ready:Boolean(control)&&!disabled&&formValid,candidateCount:candidates.length,disabled,formValid,invalidControls}})()`);
+    const saveControl = await client.evaluateDomRead<{ ready: boolean; candidateCount: number; disabled: boolean; formValid: boolean; invalidControls: string[] }>(`(()=>{const normalize=value=>String(value||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").trim().replace(/\\s+/g," ").toLocaleLowerCase("it");const marker=(${JSON.stringify(step.markerIds)}).map(id=>document.getElementById(id)).find(Boolean);const form=marker?.closest("form")||document.querySelector("form");if(!form)return {ready:false,candidateCount:0,disabled:false,formValid:false,invalidControls:["<form-missing>"]};const candidates=[...form.querySelectorAll('button,input[type="submit"],input[type="button"]')].filter(node=>normalize(node.textContent||node.value)==="salva");const control=candidates.length===1?candidates[0]:null;const disabled=Boolean(control?.disabled);const invalidControls=[...form.querySelectorAll("input,select,textarea")].filter(node=>!node.disabled&&!node.validity.valid).map(node=>node.id||node.name||"<unnamed>");const formValid=invalidControls.length===0;return {ready:Boolean(control)&&!disabled&&formValid,candidateCount:candidates.length,disabled,formValid,invalidControls}})()`);
     if (!saveControl.ready) {
       const evidence = await this.capture("prepare_page_save_control_not_ready", target, client, { customerKey: draftPackage.customerKey, draftId, pageId });
       const state = this.load(); state.revision += 1; state.pagePreparationDiagnostic = { kind: "save-control-readiness-v1", observedAt: new Date().toISOString(), customerKey: draftPackage.customerKey, draftId, pageId, evidenceId: evidence.evidenceId, ...saveControl }; this.write(state);
@@ -1532,6 +1760,7 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
   }
 
   async savePage(draftPackage: AprEneaDraftPackage, draftId: string, pageId: string): Promise<AprEneaDriverEvidence> {
+    this.renewMutationAccess();
     const step = this.stepFor(draftPackage, pageId); if (!step) throw new Error(`apr_cdp_enea_page_not_allowlisted:${pageId}`);
     const { target, client } = await this.client();
     if (step.expenseAllocation) {
@@ -1548,7 +1777,7 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
       });
       const offFinished = client.onEvent<{ requestId: string }>("Network.loadingFinished", ({ requestId }) => { const trace = mutationTraces.get(requestId); if (trace) trace.finished = true; });
       const offFailed = client.onEvent<{ requestId: string; errorText?: string }>("Network.loadingFailed", ({ requestId, errorText }) => { const trace = mutationTraces.get(requestId); if (trace) trace.failed = errorText ?? "network_failed"; });
-      const clickPoint = await client.evaluate<{ x: number; y: number } | null>(`(()=>{const normalize=value=>String(value??"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").trim().replace(/\\s+/g," ").toLocaleLowerCase("it");const number=value=>{const compact=String(value??"").replace(/[^0-9,.-]/g,"");if(!compact)return 0;const parsed=Number(compact.includes(",")?compact.replace(/\\./g,"").replace(",","."):compact);return Number.isFinite(parsed)?parsed:null};const expected=${JSON.stringify(allocation.value)};const inputs=[...document.querySelectorAll('input:not([type="hidden"])')].filter(input=>{const context=normalize(input.closest("div")?.textContent||input.parentElement?.textContent||"");return context.includes("2025-2026")&&context.includes("36%")&&number(input.value)!==null&&Math.abs(number(input.value)-number(expected))<0.01});if(inputs.length!==1)return null;const input=inputs[0];const scope=input.closest('form,[role="dialog"],.modal-content')||input.parentElement?.parentElement?.parentElement;if(!scope)return null;const candidates=[...scope.querySelectorAll('button,input[type="submit"],input[type="button"]')].filter(node=>normalize(node.textContent||node.value)==="salva"&&!node.disabled);if(candidates.length!==1||[...scope.querySelectorAll("input,select,textarea")].some(node=>!node.disabled&&!node.validity.valid))return null;const rect=candidates[0].getBoundingClientRect();if(rect.width<=0||rect.height<=0)return null;return {x:rect.left+rect.width/2,y:rect.top+rect.height/2}})()`);
+      const clickPoint = await client.evaluateDomRead<{ x: number; y: number } | null>(`(()=>{const normalize=value=>String(value??"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").trim().replace(/\\s+/g," ").toLocaleLowerCase("it");const number=value=>{const compact=String(value??"").replace(/[^0-9,.-]/g,"");if(!compact)return 0;const parsed=Number(compact.includes(",")?compact.replace(/\\./g,"").replace(",","."):compact);return Number.isFinite(parsed)?parsed:null};const expected=${JSON.stringify(allocation.value)};const inputs=[...document.querySelectorAll('input:not([type="hidden"])')].filter(input=>{const context=normalize(input.closest("div")?.textContent||input.parentElement?.textContent||"");return context.includes("2025-2026")&&context.includes("36%")&&number(input.value)!==null&&Math.abs(number(input.value)-number(expected))<0.01});if(inputs.length!==1)return null;const input=inputs[0];const scope=input.closest('form,[role="dialog"],.modal-content')||input.parentElement?.parentElement?.parentElement;if(!scope)return null;const candidates=[...scope.querySelectorAll('button,input[type="submit"],input[type="button"]')].filter(node=>normalize(node.textContent||node.value)==="salva"&&!node.disabled);if(candidates.length!==1||[...scope.querySelectorAll("input,select,textarea")].some(node=>!node.disabled&&!node.validity.valid))return null;const rect=candidates[0].getBoundingClientRect();if(rect.width<=0||rect.height<=0)return null;return {x:rect.left+rect.width/2,y:rect.top+rect.height/2}})()`);
       if (!clickPoint) throw new Error(`apr_cdp_enea_unique_enabled_save_button_not_found:${pageId}`);
       // Il click CDP reale produce focusout/blur e gli eventi pointer/mouse che
       // il modale ENEA usa per consolidare lo stato React prima del Salva.
@@ -1559,11 +1788,36 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
       // la GET canonica puo interrompere la richiesta ancora in volo. Aspetta
       // quindi la chiusura del modale e la tabella aggiornata, senza navigare.
       let allocationCommitted = false;
-      for (let attempt = 0; attempt < 150 && !allocationCommitted; attempt += 1) {
-        const modalOpen = await client.evaluate<boolean>(`(()=>{const normalize=value=>String(value??"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").trim().replace(/\\s+/g," ").toLocaleLowerCase("it");return [...document.querySelectorAll('input:not([type="hidden"])')].some(input=>{const context=normalize(input.closest("div")?.textContent||input.parentElement?.textContent||"");return context.includes("2025-2026")&&context.includes("36%")})})()`);
-        const table = await this.calculationAllocationTable(client, allocation);
+      let modalOpen = true;
+      let table = await this.calculationAllocationTable(client, allocation);
+      for (let attempt = 0; attempt < 30 && !allocationCommitted; attempt += 1) {
+        modalOpen = await client.evaluateDomRead<boolean>(`(()=>{const normalize=value=>String(value??"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").trim().replace(/\\s+/g," ").toLocaleLowerCase("it");return [...document.querySelectorAll('input:not([type="hidden"])')].some(input=>{const context=normalize(input.closest("div")?.textContent||input.parentElement?.textContent||"");return context.includes("2025-2026")&&context.includes("36%")})})()`);
+        table = await this.calculationAllocationTable(client, allocation);
         allocationCommitted = !modalOpen && table.matched;
         if (!allocationCommitted) await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+      if (!allocationCommitted && calculationAllocationDeliveryStillUncommitted(modalOpen, table.matched, mutationTraces.size)) {
+        // ENEA governa questo modale con React form.onSubmit. Se il click fisico
+        // non ha prodotto ne tabella ne richiesta, consegna lo stesso intento
+        // persistito al solo form univoco tramite la semantica HTML nativa.
+        // requestSubmit senza submitter evita di generare un secondo click.
+        const formSubmitted = await client.evaluateShortMutation<boolean>(`(()=>{const normalize=value=>String(value??"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").trim().replace(/\\s+/g," ").toLocaleLowerCase("it");const inputs=[...document.querySelectorAll('input:not([type="hidden"])')].filter(input=>{const context=normalize(input.closest("div")?.textContent||input.parentElement?.textContent||"");return context.includes("2025-2026")&&context.includes("36%")});if(inputs.length!==1)return false;const form=inputs[0].closest("form");if(!form||typeof form.requestSubmit!=="function")return false;const propsKey=Object.keys(form).find(key=>key.startsWith("__reactProps$"));const saves=[...form.querySelectorAll('button[type="submit"],input[type="submit"]')].filter(node=>normalize(node.textContent||node.value)==="salva"&&!node.disabled);if(!propsKey||typeof form[propsKey]?.onSubmit!=="function"||saves.length!==1||[...form.querySelectorAll("input,select,textarea")].some(node=>!node.disabled&&!node.validity.valid))return false;form.requestSubmit();return true})()`);
+        // Compatibilita fail-closed con superfici non-React gia collaudate:
+        // conserva il precedente canale tastiera soltanto quando il contratto
+        // form.onSubmit non esiste e l'unico Salva puo essere focalizzato.
+        if (!formSubmitted) {
+          const focused = await client.evaluateShortMutation<boolean>(`(()=>{const normalize=value=>String(value??"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").trim().replace(/\\s+/g," ").toLocaleLowerCase("it");const inputs=[...document.querySelectorAll('input:not([type="hidden"])')].filter(input=>{const context=normalize(input.closest("div")?.textContent||input.parentElement?.textContent||"");return context.includes("2025-2026")&&context.includes("36%")});if(inputs.length!==1)return false;const scope=inputs[0].closest('form,[role="dialog"],.modal-content');const saves=[...(scope?.querySelectorAll('button,input[type="submit"],input[type="button"]')||[])].filter(node=>normalize(node.textContent||node.value)==="salva"&&!node.disabled);if(saves.length!==1)return false;saves[0].focus();return document.activeElement===saves[0]})()`);
+          if (focused) {
+            await client.send("Input.dispatchKeyEvent", { type: "keyDown", key: " ", code: "Space", windowsVirtualKeyCode: 32, nativeVirtualKeyCode: 32 });
+            await client.send("Input.dispatchKeyEvent", { type: "keyUp", key: " ", code: "Space", windowsVirtualKeyCode: 32, nativeVirtualKeyCode: 32 });
+          }
+        }
+        for (let attempt = 0; attempt < 120 && !allocationCommitted; attempt += 1) {
+          modalOpen = await client.evaluateDomRead<boolean>(`(()=>{const normalize=value=>String(value??"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").trim().replace(/\\s+/g," ").toLocaleLowerCase("it");return [...document.querySelectorAll('input:not([type="hidden"])')].some(input=>{const context=normalize(input.closest("div")?.textContent||input.parentElement?.textContent||"");return context.includes("2025-2026")&&context.includes("36%")})})()`);
+          table = await this.calculationAllocationTable(client, allocation);
+          allocationCommitted = !modalOpen && table.matched;
+          if (!allocationCommitted) await new Promise((resolve) => setTimeout(resolve, 100));
+        }
       }
       if (!allocationCommitted) {
         await this.capture("save_calculation_allocation_commit_not_observed", target, client, { customerKey: draftPackage.customerKey, draftId, pageId });
@@ -1581,7 +1835,7 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
       }
       for (let attempt = 0; attempt < 40 && [...mutationTraces.values()].some((trace) => !trace.finished && !trace.failed); attempt += 1) await new Promise((resolve) => setTimeout(resolve, 100));
       for (const trace of mutationTraces.values()) if (trace.finished && trace.status !== null) {
-        try { trace.responseBody = (await client.send<{ body: string }>("Network.getResponseBody", { requestId: trace.requestId })).body.slice(0, 2_000); } catch { trace.responseBody = "<unavailable>"; }
+        try { trace.responseBody = (await client.send<{ body: string }>("Network.getResponseBody", { requestId: trace.requestId }, 500)).body.slice(0, 2_000); } catch { trace.responseBody = "<unavailable>"; }
       }
       offRequest(); offResponse(); offFinished(); offFailed();
       const sanitized = [...mutationTraces.values()].map((trace) => {
@@ -1601,7 +1855,7 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
       const reactContractExpression = `(()=>{const fields=${JSON.stringify(step.fields)};const normalize=value=>String(value??"").trim().replace(",",".");return fields.every(field=>{const element=document.getElementById(field.portalId);if(!element)return false;const propsKey=Object.keys(element).find(key=>key.startsWith("__reactProps$"));const props=propsKey?element[propsKey]:null;if(field.control==="checkbox"){const expected=field.value==="true";return element instanceof HTMLInputElement&&element.checked===expected&&(!props||props.checked===undefined||Boolean(props.checked)===expected)}const expected=String(field.selectValue??field.value);return normalize(element.value)===normalize(expected)&&(!props||props.value===undefined||normalize(props.value)===normalize(expected))})})()`;
       let reactContractReady = false;
       for (let attempt = 0; attempt < 5 && !reactContractReady; attempt += 1) {
-        reactContractReady = await client.evaluate<boolean>(reactContractExpression);
+        reactContractReady = await client.evaluateDomRead<boolean>(reactContractExpression);
         if (!reactContractReady) {
           const reconciled = await this.fillAndReadStable(client, step.fields);
           if (reconciled.missing.length || reconciled.mismatched.length || reconciled.compiled.length !== step.fields.length) break;
@@ -1636,26 +1890,40 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
     // element.click() sintetici pur lasciando i valori visibili nel DOM. Dopo
     // avere verificato campi, validita' e unicita' del solo pulsante Salva,
     // emetti un singolo clic attendibile tramite il canale Input di Chrome.
-    const saveScrolled = await client.evaluate<boolean>(`(()=>{const normalize=value=>String(value||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").trim().replace(/\\s+/g," ").toLocaleLowerCase("it");const form=(${JSON.stringify(step.markerIds)}).map(id=>document.getElementById(id)).find(Boolean)?.closest('form')||document.querySelector('form');if(!(form instanceof HTMLFormElement))return false;const candidates=[...form.querySelectorAll('button,input[type="submit"],input[type="button"]')].filter(node=>normalize(node.textContent||node.value)==="salva"&&!node.disabled);if(candidates.length!==1||[...form.querySelectorAll("input,select,textarea")].some(node=>!node.disabled&&!node.validity.valid))return false;const label=normalize(candidates[0].textContent||candidates[0].value);if(/anteprima|invia|submit|ricevuta|email/.test(label))throw new Error("forbidden-action");candidates[0].scrollIntoView({block:"center",inline:"center",behavior:"instant"});return true})()`);
+    const saveScrolled = await client.evaluateDomRead<boolean>(`(()=>{const normalize=value=>String(value||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").trim().replace(/\\s+/g," ").toLocaleLowerCase("it");const form=(${JSON.stringify(step.markerIds)}).map(id=>document.getElementById(id)).find(Boolean)?.closest('form')||document.querySelector('form');if(!(form instanceof HTMLFormElement))return false;const candidates=[...form.querySelectorAll('button,input[type="submit"],input[type="button"]')].filter(node=>normalize(node.textContent||node.value)==="salva"&&!node.disabled);if(candidates.length!==1||[...form.querySelectorAll("input,select,textarea")].some(node=>!node.disabled&&!node.validity.valid))return false;const label=normalize(candidates[0].textContent||candidates[0].value);if(/anteprima|invia|submit|ricevuta|email/.test(label))throw new Error("forbidden-action");candidates[0].scrollIntoView({block:"center",inline:"center",behavior:"instant"});return true})()`);
     if (!saveScrolled) throw new Error(`apr_cdp_enea_save_not_triggered:${pageId}`);
     // scrollIntoView puo essere soggetto a CSS smooth scrolling. Misura il
     // bersaglio in un secondo tick e accetta il punto solo se elementFromPoint
     // ricade davvero sul controllo Salva (o su un suo figlio).
     await new Promise((resolve) => setTimeout(resolve, 250));
-    const savePoint = await client.evaluate<{ x: number; y: number } | null>(`(()=>{const normalize=value=>String(value||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").trim().replace(/\\s+/g," ").toLocaleLowerCase("it");const form=(${JSON.stringify(step.markerIds)}).map(id=>document.getElementById(id)).find(Boolean)?.closest('form')||document.querySelector('form');if(!(form instanceof HTMLFormElement))return null;const candidates=[...form.querySelectorAll('button,input[type="submit"],input[type="button"]')].filter(node=>normalize(node.textContent||node.value)==="salva"&&!node.disabled);if(candidates.length!==1)return null;const rect=candidates[0].getBoundingClientRect();if(rect.width<=0||rect.height<=0)return null;const x=rect.left+rect.width/2,y=rect.top+rect.height/2;const hit=document.elementFromPoint(x,y);return hit&&(hit===candidates[0]||candidates[0].contains(hit))?{x,y}:null})()`);
+    const savePoint = await client.evaluateDomRead<{ x: number; y: number } | null>(`(()=>{const normalize=value=>String(value||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").trim().replace(/\\s+/g," ").toLocaleLowerCase("it");const form=(${JSON.stringify(step.markerIds)}).map(id=>document.getElementById(id)).find(Boolean)?.closest('form')||document.querySelector('form');if(!(form instanceof HTMLFormElement))return null;const candidates=[...form.querySelectorAll('button,input[type="submit"],input[type="button"]')].filter(node=>normalize(node.textContent||node.value)==="salva"&&!node.disabled);if(candidates.length!==1)return null;const rect=candidates[0].getBoundingClientRect();if(rect.width<=0||rect.height<=0)return null;const x=rect.left+rect.width/2,y=rect.top+rect.height/2;const hit=document.elementFromPoint(x,y);return hit&&(hit===candidates[0]||candidates[0].contains(hit))?{x,y}:null})()`);
     if (!savePoint) throw new Error(`apr_cdp_enea_save_not_triggered:${pageId}`);
-    type StandardMutationTrace = { requestId: string; method: string; url: string; postData: string; status: number | null; responseMimeType: string; failed: string; finished: boolean };
+    type StandardMutationTrace = { requestId: string; method: string; url: string; postData: string; status: number | null; responseMimeType: string; failed: string; finished: boolean; responseBody: string };
     const mutationTraces = new Map<string, StandardMutationTrace>();
     await client.send("Network.enable");
     const offRequest = client.onEvent<{ requestId: string; request: { method: string; url: string; postData?: string } }>("Network.requestWillBeSent", ({ requestId, request }) => {
       let sameOrigin = false; try { sameOrigin = new URL(request.url).origin === this.allowedOrigin; } catch { /* URL non HTTP */ }
-      if (sameOrigin && !["GET", "HEAD", "OPTIONS"].includes(request.method.toUpperCase())) mutationTraces.set(requestId, { requestId, method: request.method.toUpperCase(), url: request.url, postData: request.postData ?? "", status: null, responseMimeType: "", failed: "", finished: false });
+      if (sameOrigin && !["GET", "HEAD", "OPTIONS"].includes(request.method.toUpperCase())) mutationTraces.set(requestId, { requestId, method: request.method.toUpperCase(), url: request.url, postData: request.postData ?? "", status: null, responseMimeType: "", failed: "", finished: false, responseBody: "" });
     });
     const offResponse = client.onEvent<{ requestId: string; response: { status: number; mimeType?: string } }>("Network.responseReceived", ({ requestId, response }) => {
       const trace = mutationTraces.get(requestId); if (trace) { trace.status = response.status; trace.responseMimeType = response.mimeType ?? ""; }
     });
     const offFinished = client.onEvent<{ requestId: string }>("Network.loadingFinished", ({ requestId }) => { const trace = mutationTraces.get(requestId); if (trace) trace.finished = true; });
     const offFailed = client.onEvent<{ requestId: string; errorText?: string }>("Network.loadingFailed", ({ requestId, errorText }) => { const trace = mutationTraces.get(requestId); if (trace) trace.failed = errorText ?? "network_failed"; });
+    const materialDeliveryObserved = async () => {
+      if ([...mutationTraces.values()].some((trace) => isEneaDraftBusinessMutation(trace, this.allowedOrigin, draftId))) return true;
+      if (pageId.startsWith("screening:")) {
+        const rows = await client.evaluateDomRead<string[][]>(`(()=>{const clean=value=>String(value??"").trim().replace(/\\s+/g," ");return [...document.querySelectorAll("tr")].filter(row=>row.querySelectorAll("td").length>=10).map(row=>[...row.querySelectorAll("td")].map(cell=>clean(cell.textContent)))})()`);
+        return matchingScreeningRowIndexes(rows, step.fields).includes(Number(pageId.slice("screening:".length)) - 1);
+      }
+      if (step.activationLabel) {
+        const acceptedLabels = eneaGeneratorActivationLabels(step.activationLabel);
+        return client.evaluateDomRead<boolean>(`(()=>{const normalize=value=>String(value??"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").trim().replace(/\\s+/g," ").toLocaleLowerCase("it");const expected=${JSON.stringify(acceptedLabels)}.map(normalize);const rowVisible=[...document.querySelectorAll("tr")].some(row=>{const text=normalize(row.textContent);return expected.some(label=>text.includes(label))});const nestedFormOpen=${JSON.stringify(step.markerIds)}.some(id=>document.getElementById(id));return rowVisible&&!nestedFormOpen})()`);
+      }
+      const currentPath = await client.evaluateDomRead<string>("location.pathname");
+      const sourceRoute = new Map<string, string>([["page:Beneficiario", "beneficiario"], ["page:Anagrafica Beneficiario", "beneficiario"], ["page:Immobile", "immobile"], ["page:Intervento", "intervento"], ["page:Impianto termico esistente", "impianto_esistente"], ["page:Schermature solari", "schermature"], ["page:Serramenti e infissi", "serramenti"]]).get(pageId);
+      return Boolean(sourceRoute && currentPath !== `/pratica/ecobonus/2026/${sourceRoute}/${draftId}`);
+    };
     await client.send("Input.dispatchMouseEvent", { type: "mouseMoved", x: savePoint.x, y: savePoint.y });
     await client.send("Input.dispatchMouseEvent", { type: "mousePressed", x: savePoint.x, y: savePoint.y, button: "left", clickCount: 1 });
     await client.send("Input.dispatchMouseEvent", { type: "mouseReleased", x: savePoint.x, y: savePoint.y, button: "left", clickCount: 1 });
@@ -1664,7 +1932,7 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
     // timeout. Give the request a bounded window; the worker immediately follows
     // with the canonical read-only GET verification before marking the page saved.
     for (let attempt = 0; attempt < 50; attempt += 1) {
-      if (mutationTraces.size > 0 && [...mutationTraces.values()].every((trace) => trace.finished || Boolean(trace.failed))) break;
+      if (await materialDeliveryObserved()) break;
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
     // Chrome can occasionally acknowledge the physical pointer sequence while
@@ -1676,29 +1944,33 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
     // Keeping this inside the already journaled save intent prevents a new
     // checkpoint attempt and makes the fallback auditable in the diagnostic.
     let deliveryFallback: "none" | "trusted_enter_after_no_mutation" | "trusted_enter_then_react_click_after_no_mutation" = "none";
-    if (mutationTraces.size === 0) {
-      const stillOnSourceForm = await client.evaluate<boolean>(`(()=>{const normalize=value=>String(value||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").trim().replace(/\\s+/g," ").toLocaleLowerCase("it");const form=(${JSON.stringify(step.markerIds)}).map(id=>document.getElementById(id)).find(Boolean)?.closest('form')||document.querySelector('form');if(!(form instanceof HTMLFormElement))return false;const candidates=[...form.querySelectorAll('button,input[type="submit"],input[type="button"]')].filter(node=>normalize(node.textContent||node.value)==="salva"&&!node.disabled);if(candidates.length!==1)return false;const invalid=[...form.querySelectorAll("input,select,textarea")].some(node=>!node.disabled&&(!node.validity.valid||node.getAttribute("aria-invalid")==="true"));if(invalid)return false;candidates[0].focus({preventScroll:true});return document.activeElement===candidates[0]})()`);
+    if (!await materialDeliveryObserved()) {
+      const stillOnSourceForm = await client.evaluateShortMutation<boolean>(`(()=>{const normalize=value=>String(value||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").trim().replace(/\\s+/g," ").toLocaleLowerCase("it");const form=(${JSON.stringify(step.markerIds)}).map(id=>document.getElementById(id)).find(Boolean)?.closest('form')||document.querySelector('form');if(!(form instanceof HTMLFormElement))return false;const candidates=[...form.querySelectorAll('button,input[type="submit"],input[type="button"]')].filter(node=>normalize(node.textContent||node.value)==="salva"&&!node.disabled);if(candidates.length!==1)return false;const invalid=[...form.querySelectorAll("input,select,textarea")].some(node=>!node.disabled&&(!node.validity.valid||node.getAttribute("aria-invalid")==="true"));if(invalid)return false;candidates[0].focus({preventScroll:true});return document.activeElement===candidates[0]})()`);
       if (stillOnSourceForm) {
         deliveryFallback = "trusted_enter_after_no_mutation";
         await client.send("Input.dispatchKeyEvent", { type: "keyDown", key: "Enter", code: "Enter", windowsVirtualKeyCode: 13, nativeVirtualKeyCode: 13 });
         await client.send("Input.dispatchKeyEvent", { type: "keyUp", key: "Enter", code: "Enter", windowsVirtualKeyCode: 13, nativeVirtualKeyCode: 13 });
         for (let attempt = 0; attempt < 50; attempt += 1) {
-          if (mutationTraces.size > 0 && [...mutationTraces.values()].every((trace) => trace.finished || Boolean(trace.failed))) break;
+          if (await materialDeliveryObserved()) break;
           await new Promise((resolve) => setTimeout(resolve, 100));
         }
-        if (mutationTraces.size === 0) {
-          const reactClickDelivered = await client.evaluate<boolean>(`(()=>{const normalize=value=>String(value||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").trim().replace(/\\s+/g," ").toLocaleLowerCase("it");const form=(${JSON.stringify(step.markerIds)}).map(id=>document.getElementById(id)).find(Boolean)?.closest('form')||document.querySelector('form');if(!(form instanceof HTMLFormElement))return false;const candidates=[...form.querySelectorAll('button,input[type="submit"],input[type="button"]')].filter(node=>normalize(node.textContent||node.value)==="salva"&&!node.disabled);if(candidates.length!==1)return false;const invalid=[...form.querySelectorAll("input,select,textarea")].some(node=>!node.disabled&&(!node.validity.valid||node.getAttribute("aria-invalid")==="true"));if(invalid)return false;candidates[0].click();return true})()`);
+        if (!await materialDeliveryObserved()) {
+          const reactClickDelivered = await client.evaluateShortMutation<boolean>(`(()=>{const normalize=value=>String(value||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").trim().replace(/\\s+/g," ").toLocaleLowerCase("it");const form=(${JSON.stringify(step.markerIds)}).map(id=>document.getElementById(id)).find(Boolean)?.closest('form')||document.querySelector('form');if(!(form instanceof HTMLFormElement))return false;const candidates=[...form.querySelectorAll('button,input[type="submit"],input[type="button"]')].filter(node=>normalize(node.textContent||node.value)==="salva"&&!node.disabled);if(candidates.length!==1)return false;const invalid=[...form.querySelectorAll("input,select,textarea")].some(node=>!node.disabled&&(!node.validity.valid||node.getAttribute("aria-invalid")==="true"));if(invalid)return false;candidates[0].click();return true})()`);
           if (reactClickDelivered) {
             deliveryFallback = "trusted_enter_then_react_click_after_no_mutation";
             for (let attempt = 0; attempt < 50; attempt += 1) {
-              if (mutationTraces.size > 0 && [...mutationTraces.values()].every((trace) => trace.finished || Boolean(trace.failed))) break;
+              if (await materialDeliveryObserved()) break;
               await new Promise((resolve) => setTimeout(resolve, 100));
             }
           }
         }
       }
     }
-    const postClick = await client.evaluate<{ urlPath: string; invalidControlIds: string[]; alerts: string[]; modalOpen: boolean; markerFields: Array<{ id: string; value: string; checked: boolean; valid: boolean; ariaInvalid: string | null; reactValue: string | null; reactChecked: boolean | null }>; tables: Array<{ headers: string[]; rows: string[][] }>; saveButtons: Array<{ label: string; disabled: boolean }> }>(`(()=>{const clean=value=>String(value??"").trim().replace(/\\s+/g," ");const markerIds=${JSON.stringify(step.markerIds)};const markerFields=markerIds.map(id=>document.getElementById(id)).filter(Boolean).map(node=>{const propsKey=Object.keys(node).find(key=>key.startsWith("__reactProps$"));const props=propsKey?node[propsKey]:null;return {id:node.id,value:String(node.value??""),checked:Boolean(node.checked),valid:Boolean(node.validity?.valid??true),ariaInvalid:node.getAttribute("aria-invalid"),reactValue:props?.value===undefined?null:String(props.value),reactChecked:props?.checked===undefined?null:Boolean(props.checked)}});const modalOpen=markerFields.length>0;const tables=[...document.querySelectorAll("table")].map(table=>({headers:[...table.querySelectorAll("th")].map(cell=>clean(cell.textContent)),rows:[...table.querySelectorAll("tbody tr")].map(row=>[...row.querySelectorAll("td")].map(cell=>clean(cell.textContent)))}));const saveButtons=[...document.querySelectorAll('button,input[type="submit"],input[type="button"]')].filter(node=>clean(node.textContent||node.value).toLocaleLowerCase("it")==="salva").map(node=>({label:clean(node.textContent||node.value),disabled:Boolean(node.disabled)}));return {urlPath:location.pathname,invalidControlIds:[...document.querySelectorAll('input,select,textarea')].filter(node=>!node.disabled&&(!node.validity.valid||node.getAttribute('aria-invalid')==='true')).map(node=>node.id||node.name||'<unnamed>').slice(0,50),alerts:[...document.querySelectorAll('[role="alert"],.alert,.invalid-feedback,.error,[class*="error" i]')].map(node=>clean(node.textContent)).filter(Boolean).slice(0,40),modalOpen,markerFields,tables,saveButtons}})()`);
+    const postClick = await client.evaluateDomRead<{ urlPath: string; invalidControlIds: string[]; alerts: string[]; modalOpen: boolean; markerFields: Array<{ id: string; value: string; checked: boolean; valid: boolean; ariaInvalid: string | null; reactValue: string | null; reactChecked: boolean | null }>; tables: Array<{ headers: string[]; rows: string[][] }>; saveButtons: Array<{ label: string; disabled: boolean }> }>(`(()=>{const clean=value=>String(value??"").trim().replace(/\\s+/g," ");const markerIds=${JSON.stringify(step.markerIds)};const markerFields=markerIds.map(id=>document.getElementById(id)).filter(Boolean).map(node=>{const propsKey=Object.keys(node).find(key=>key.startsWith("__reactProps$"));const props=propsKey?node[propsKey]:null;return {id:node.id,value:String(node.value??""),checked:Boolean(node.checked),valid:Boolean(node.validity?.valid??true),ariaInvalid:node.getAttribute("aria-invalid"),reactValue:props?.value===undefined?null:String(props.value),reactChecked:props?.checked===undefined?null:Boolean(props.checked)}});const modalOpen=markerFields.length>0;const tables=[...document.querySelectorAll("table")].map(table=>({headers:[...table.querySelectorAll("th")].map(cell=>clean(cell.textContent)),rows:[...table.querySelectorAll("tbody tr")].map(row=>[...row.querySelectorAll("td")].map(cell=>clean(cell.textContent)))}));const saveButtons=[...document.querySelectorAll('button,input[type="submit"],input[type="button"]')].filter(node=>clean(node.textContent||node.value).toLocaleLowerCase("it")==="salva").map(node=>({label:clean(node.textContent||node.value),disabled:Boolean(node.disabled)}));return {urlPath:location.pathname,invalidControlIds:[...document.querySelectorAll('input,select,textarea')].filter(node=>!node.disabled&&(!node.validity.valid||node.getAttribute('aria-invalid')==='true')).map(node=>node.id||node.name||'<unnamed>').slice(0,50),alerts:[...document.querySelectorAll('[role="alert"],.alert,.invalid-feedback,.error,[class*="error" i]')].map(node=>clean(node.textContent)).filter(Boolean).slice(0,40),modalOpen,markerFields,tables,saveButtons}})()`);
+    for (const trace of mutationTraces.values()) if (trace.finished && trace.status !== null) {
+      try { trace.responseBody = (await client.send<{ body: string }>("Network.getResponseBody", { requestId: trace.requestId }, 500)).body.slice(0, 2_000); }
+      catch { trace.responseBody = "<unavailable>"; }
+    }
     offRequest(); offResponse(); offFinished(); offFailed();
     const saveEvidence = await this.capture("save_page_once", target, client, { customerKey: draftPackage.customerKey, draftId, pageId });
     const traces = [...mutationTraces.values()].map((trace) => {
@@ -1707,7 +1979,7 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
         try { return Object.keys(JSON.parse(trace.postData) as Record<string, unknown>).sort(); }
         catch { return [...new URLSearchParams(trace.postData).keys()].sort(); }
       })();
-      return { method: trace.method, urlPath, postDataSha256: createHash("sha256").update(trace.postData).digest("hex"), postDataLength: trace.postData.length, fieldNames, status: trace.status, responseMimeType: trace.responseMimeType, failed: trace.failed, finished: trace.finished };
+      return { method: trace.method, urlPath, postDataSha256: createHash("sha256").update(trace.postData).digest("hex"), postDataLength: trace.postData.length, fieldNames, status: trace.status, responseMimeType: trace.responseMimeType, failed: trace.failed, finished: trace.finished, responseBody: trace.responseBody };
     });
     const diagnosticState = this.load(); diagnosticState.revision += 1; const saveDiagnostic = { kind: "standard-page-save-network-v3", observedAt: new Date().toISOString(), customerKey: draftPackage.customerKey, draftId, pageId, evidenceId: saveEvidence.evidenceId, deliveryFallback, traces, postClick }; diagnosticState.pagePreparationDiagnostic = saveDiagnostic; diagnosticState.pageSaveDiagnostics = [...diagnosticState.pageSaveDiagnostics, saveDiagnostic].slice(-200); this.write(diagnosticState);
     return saveEvidence;
@@ -1736,10 +2008,10 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
     if (pageId.startsWith("screening:")) {
       const infissi = draftPackage.module === "infissi";
       const hostUrl = `${this.allowedOrigin}/pratica/ecobonus/2026/${infissi ? "serramenti" : "schermature"}/${draftId}`;
-      if (await client.evaluate<string>("location.href") !== hostUrl) { await client.navigate(hostUrl); await this.waitForStable(client); }
+      if (await client.evaluateDomRead<string>("location.href") !== hostUrl) { await client.navigate(hostUrl); await this.waitForStable(client); }
       if (infissi) {
         const expectedRows = draftPackage.workflow.screeningSteps.slice(0, Number(pageId.slice("screening:".length))).map((candidate) => candidate.fields);
-        const inspectInfissiRow = () => client.evaluate<{ matched: boolean; rowCount: number; visibleRowCount: number; paginationTotal: number | null; matchingVisibleRows: number; expectedOccurrence: number; rows: string[][]; paginationText: string[] }>(`(()=>{const fields=${JSON.stringify(step.fields)};const expectedRows=${JSON.stringify(expectedRows)};const ordinal=${Number(pageId.slice(10))};const clean=value=>String(value??"").trim().replace(/\s+/g," ");const normalize=value=>clean(value).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLocaleLowerCase("it");const number=value=>{const parsed=Number(String(value??"").replace(/[^0-9,.-]/g,"").replace(",","."));return Number.isFinite(parsed)?parsed:null};const columns={"id-f_pre":0,"id-v_pre":1,"id-u_pre":2,"id-sup":3,"id-f_post":4,"id-v_post":5,"id-u_post":6,"id-conf":7,"id-osc":8};const sameExpected=(left,right)=>left.length===right.length&&left.every(field=>{const other=right.find(candidate=>candidate.portalId===field.portalId);return Boolean(other)&&field.control===other.control&&String(field.selectValue??field.value)===String(other.selectValue??other.value)});const rowMatches=(row,wanted)=>Boolean(row)&&wanted.every(field=>{const column=columns[field.portalId];if(column===undefined)return false;const actual=row[column]??"";if(field.control==="checkbox"){const expected=field.value==="true";return expected?/^(si|sì|true|1|x)$/i.test(actual):/^(no|false|0|-|)$/i.test(actual)}const actualNumber=number(actual),expectedNumber=number(field.value);if(actualNumber!==null&&expectedNumber!==null)return Math.abs(actualNumber-expectedNumber)<0.011;return normalize(actual)===normalize(field.value)||normalize(actual).includes(normalize(field.value))||normalize(field.value).includes(normalize(actual))});const tables=[...document.querySelectorAll("table")];const table=tables.find(candidate=>[...candidate.querySelectorAll("tr")].some(row=>row.querySelectorAll("td").length>=9))||null;const rows=(table?[...table.querySelectorAll("tr")]:[]).map(row=>[...row.querySelectorAll("td")].map(cell=>clean(cell.textContent))).filter(cells=>cells.length>=9);const scope=table?.closest('.dataTables_wrapper,[class*="table" i]')||table?.parentElement||document;const paginationNodes=[...scope.querySelectorAll('.dataTables_info,[id$="_info"],[class*="pagin" i],[aria-label*="pagina" i],[aria-label*="page" i],.MuiTablePagination-root')];const paginationText=[...new Set(paginationNodes.map(node=>clean(node.textContent||node.getAttribute("aria-label"))).filter(Boolean))];const totals=paginationText.flatMap(text=>[...text.matchAll(/(?:di|of)\s*(\d+)/gi)].map(match=>Number(match[1]))).filter(Number.isFinite);const paginationTotal=totals.length?Math.max(...totals):null;const matchingVisibleRows=rows.filter(row=>rowMatches(row,fields)).length;const expectedOccurrence=expectedRows.filter(row=>sameExpected(row,fields)).length;const total=paginationTotal??rows.length;const matched=total>=ordinal&&(matchingVisibleRows>=expectedOccurrence||paginationTotal!==null);return {matched,rowCount:total,visibleRowCount:rows.length,paginationTotal,matchingVisibleRows,expectedOccurrence,rows,paginationText}})()`);
+        const inspectInfissiRow = () => client.evaluateDomRead<{ matched: boolean; rowCount: number; visibleRowCount: number; paginationTotal: number | null; matchingVisibleRows: number; expectedOccurrence: number; rows: string[][]; paginationText: string[] }>(`(()=>{const fields=${JSON.stringify(step.fields)};const expectedRows=${JSON.stringify(expectedRows)};const ordinal=${Number(pageId.slice(10))};const clean=value=>String(value??"").trim().replace(/\s+/g," ");const normalize=value=>clean(value).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLocaleLowerCase("it");const number=value=>{const parsed=Number(String(value??"").replace(/[^0-9,.-]/g,"").replace(",","."));return Number.isFinite(parsed)?parsed:null};const columns={"id-f_pre":0,"id-v_pre":1,"id-u_pre":2,"id-sup":3,"id-f_post":4,"id-v_post":5,"id-u_post":6,"id-conf":7,"id-osc":8};const sameExpected=(left,right)=>left.length===right.length&&left.every(field=>{const other=right.find(candidate=>candidate.portalId===field.portalId);return Boolean(other)&&field.control===other.control&&String(field.selectValue??field.value)===String(other.selectValue??other.value)});const rowMatches=(row,wanted)=>Boolean(row)&&wanted.every(field=>{const column=columns[field.portalId];if(column===undefined)return false;const actual=row[column]??"";if(field.control==="checkbox"){const expected=field.value==="true";return expected?/^(si|sì|true|1|x)$/i.test(actual):/^(no|false|0|-|)$/i.test(actual)}const actualNumber=number(actual),expectedNumber=number(field.value);if(actualNumber!==null&&expectedNumber!==null)return Math.abs(actualNumber-expectedNumber)<0.011;return normalize(actual)===normalize(field.value)||normalize(actual).includes(normalize(field.value))||normalize(field.value).includes(normalize(actual))});const tables=[...document.querySelectorAll("table")];const table=tables.find(candidate=>[...candidate.querySelectorAll("tr")].some(row=>row.querySelectorAll("td").length>=9))||null;const rows=(table?[...table.querySelectorAll("tr")]:[]).map(row=>[...row.querySelectorAll("td")].map(cell=>clean(cell.textContent))).filter(cells=>cells.length>=9);const scope=table?.closest('.dataTables_wrapper,[class*="table" i]')||table?.parentElement||document;const paginationNodes=[...scope.querySelectorAll('.dataTables_info,[id$="_info"],[class*="pagin" i],[aria-label*="pagina" i],[aria-label*="page" i],.MuiTablePagination-root')];const paginationText=[...new Set(paginationNodes.map(node=>clean(node.textContent||node.getAttribute("aria-label"))).filter(Boolean))];const totals=paginationText.flatMap(text=>[...text.matchAll(/(?:di|of)\s*(\d+)/gi)].map(match=>Number(match[1]))).filter(Number.isFinite);const paginationTotal=totals.length?Math.max(...totals):null;const matchingVisibleRows=rows.filter(row=>rowMatches(row,fields)).length;const expectedOccurrence=expectedRows.filter(row=>sameExpected(row,fields)).length;const total=paginationTotal??rows.length;const matched=total>=ordinal&&(matchingVisibleRows>=expectedOccurrence||paginationTotal!==null);return {matched,rowCount:total,visibleRowCount:rows.length,paginationTotal,matchingVisibleRows,expectedOccurrence,rows,paginationText}})()`);
         let result = await inspectInfissiRow();
         for (let attempt = 0; attempt < 120 && !result.matched; attempt += 1) {
           await new Promise((resolve) => setTimeout(resolve, 250));
@@ -1752,7 +2024,11 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
         }
         return this.capture("verify_infissi_row_staged_page_state", target, client, { customerKey: draftPackage.customerKey, draftId, pageId });
       }
-      const inspect = () => client.evaluate<{ staged: boolean; rowCount: number; rows: string[][]; modalOpen: boolean; saveControls: Array<{ label: string; disabled: boolean }>; invalidControls: string[]; alerts: string[]; text: string }>(`(()=>{const fields=${JSON.stringify(step.fields)};const index=${Number(pageId.slice(10)) - 1};const clean=value=>String(value??"").trim().replace(/\\s+/g," ");const normalize=value=>clean(value).normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLocaleLowerCase("it");const number=value=>{const parsed=Number(String(value??"").replace(/[^0-9,.-]/g,"").replace(",","."));return Number.isFinite(parsed)?parsed:null};const baseColumns={"id-tipo":0,"id-inst":1,"id-sup_s":2,"id-sup_f":3,"id-rsup":4,"id-esp":5,"id-calc":6,"id-gtot":7,"id-mat":8,"id-mec":9};const rowNodes=[...document.querySelectorAll("tr")].filter(row=>row.querySelectorAll("td").length>=10);const rows=rowNodes.map(row=>[...row.querySelectorAll("td")].map(cell=>clean(cell.textContent)));const row=rows[index];const expectedType=fields.find(field=>field.portalId==="id-tipo")?.value??"";const offset=row&&normalize(row[0])!==normalize(expectedType)&&normalize(row[1])===normalize(expectedType)?1:0;const staged=Boolean(row)&&fields.every(field=>{const base=baseColumns[field.portalId];if(base===undefined)return false;const actual=row[base+offset]??"",wanted=field.value;const wantedNumber=number(wanted),actualNumber=number(actual);if(wantedNumber!==null&&actualNumber!==null)return Math.abs(wantedNumber-actualNumber)<0.001;return normalize(actual)===normalize(wanted)||normalize(actual).includes(normalize(wanted))||normalize(wanted).includes(normalize(actual))});const modalOpen=fields.some(field=>Boolean(document.getElementById(field.portalId)));const form=fields.map(field=>document.getElementById(field.portalId)).find(Boolean)?.closest("form")||null;const saveControls=form?[...form.querySelectorAll('button,input[type="submit"],input[type="button"]')].filter(node=>normalize(node.textContent||node.value)==="salva").map(node=>({label:clean(node.textContent||node.value),disabled:Boolean(node.disabled)})):[];const invalidControls=form?[...form.querySelectorAll("input,select,textarea")].filter(node=>!node.disabled&&!node.validity.valid).map(node=>node.id||node.name||"<unnamed>"):[];const alerts=[...document.querySelectorAll('[role="alert"],.alert,.invalid-feedback,.error,[class*="error" i]')].map(node=>clean(node.textContent)).filter(Boolean).slice(0,40);return {staged,rowCount:rows.length,rows,modalOpen,saveControls,invalidControls,alerts,text:clean(document.body?.innerText).slice(-4000)}})()`);
+      const index = Number(pageId.slice(10)) - 1;
+      const inspect = async () => {
+        const observed = await client.evaluateDomRead<{ rowCount: number; rows: string[][]; modalOpen: boolean; saveControls: Array<{ label: string; disabled: boolean }>; invalidControls: string[]; alerts: string[]; text: string }>(`(()=>{const fields=${JSON.stringify(step.fields)};const clean=value=>String(value??"").trim().replace(/\\s+/g," ");const normalize=value=>clean(value).normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLocaleLowerCase("it");const rowNodes=[...document.querySelectorAll("tr")].filter(row=>row.querySelectorAll("td").length>=10);const rows=rowNodes.map(row=>[...row.querySelectorAll("td")].map(cell=>clean(cell.textContent)));const modalOpen=fields.some(field=>Boolean(document.getElementById(field.portalId)));const form=fields.map(field=>document.getElementById(field.portalId)).find(Boolean)?.closest("form")||null;const saveControls=form?[...form.querySelectorAll('button,input[type="submit"],input[type="button"]')].filter(node=>normalize(node.textContent||node.value)==="salva").map(node=>({label:clean(node.textContent||node.value),disabled:Boolean(node.disabled)})):[];const invalidControls=form?[...form.querySelectorAll("input,select,textarea")].filter(node=>!node.disabled&&!node.validity.valid).map(node=>node.id||node.name||"<unnamed>"):[];const alerts=[...document.querySelectorAll('[role="alert"],.alert,.invalid-feedback,.error,[class*="error" i]')].map(node=>clean(node.textContent)).filter(Boolean).slice(0,40);return {rowCount:rows.length,rows,modalOpen,saveControls,invalidControls,alerts,text:clean(document.body?.innerText).slice(-4000)}})()`);
+        return { ...observed, staged: matchingScreeningRowIndexes(observed.rows, step.fields).includes(index) };
+      };
       let result = await inspect();
       for (let attempt = 0; attempt < 120 && !result.staged; attempt += 1) {
         await new Promise((resolve) => setTimeout(resolve, 250));
@@ -1767,15 +2043,15 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
     }
     if (step.hostRoute && step.activationLabel) {
       const hostUrl = `${this.allowedOrigin}/pratica/ecobonus/2026/${step.hostRoute}/${draftId}`;
-      if (await client.evaluate<string>("location.href") !== hostUrl) { await client.navigate(hostUrl); await this.waitForStable(client); }
+      if (await client.evaluateDomRead<string>("location.href") !== hostUrl) { await client.navigate(hostUrl); await this.waitForStable(client); }
       const activationLabels = eneaGeneratorActivationLabels(step.activationLabel);
-      const staged = await client.evaluate<boolean>(`(()=>{const normalize=value=>String(value??"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").trim().replace(/\\s+/g," ").toLocaleLowerCase("it");const numbers=value=>[...String(value??"").matchAll(/-?\\d+(?:[.,]\\d+)?/g)].map(match=>Number(match[0].replace(",","."))).filter(Number.isFinite);const current=new URL(location.href);if(current.pathname!==${JSON.stringify(`/pratica/ecobonus/2026/${step.hostRoute}/${draftId}`)})return false;const wanted=${JSON.stringify(activationLabels)}.map(normalize);const row=[...document.querySelectorAll("tr")].find(candidate=>{const first=normalize(candidate.querySelector("th,td")?.textContent);return wanted.some(label=>first===label||first.includes(label)||label.includes(first))});if(!row)return false;const remaining=numbers([...row.querySelectorAll("th,td")].map(cell=>cell.textContent||"").join(" | "));const expected=${JSON.stringify(step.fields)};return expected.every(field=>{const expectedNumbers=numbers(field.value);if(expectedNumbers.length===0)return normalize(row.textContent).includes(normalize(field.value));return expectedNumbers.every(value=>{const index=remaining.findIndex(candidate=>Math.abs(candidate-value)<0.001);if(index<0)return false;remaining.splice(index,1);return true})})})()`);
+      const staged = await client.evaluateDomRead<boolean>(`(()=>{const normalize=value=>String(value??"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").trim().replace(/\\s+/g," ").toLocaleLowerCase("it");const numbers=value=>[...String(value??"").matchAll(/-?\\d+(?:[.,]\\d+)?/g)].map(match=>Number(match[0].replace(",","."))).filter(Number.isFinite);const current=new URL(location.href);if(current.pathname!==${JSON.stringify(`/pratica/ecobonus/2026/${step.hostRoute}/${draftId}`)})return false;const wanted=${JSON.stringify(activationLabels)}.map(normalize);const row=[...document.querySelectorAll("tr")].find(candidate=>{const first=normalize(candidate.querySelector("th,td")?.textContent);return wanted.some(label=>first===label||first.includes(label)||label.includes(first))});if(!row)return false;const remaining=numbers([...row.querySelectorAll("th,td")].map(cell=>cell.textContent||"").join(" | "));const expected=${JSON.stringify(step.fields)};return expected.every(field=>{const expectedNumbers=numbers(field.value);if(expectedNumbers.length===0)return normalize(row.textContent).includes(normalize(field.value));return expectedNumbers.every(value=>{const index=remaining.findIndex(candidate=>Math.abs(candidate-value)<0.001);if(index<0)return false;remaining.splice(index,1);return true})})})()`);
       if (staged) return this.capture("verify_generator_staged_page_state", target, client, { customerKey: draftPackage.customerKey, draftId, pageId });
       // Dopo un Salva incerto il generatore annidato non viene riaperto: la
       // tabella caricata con GET è l'unica prova ammessa.
       return null;
     }
-    const currentUrl = safeUrl(await client.evaluate<string>("location.href"), this.allowedOrigin);
+    const currentUrl = safeUrl(await client.evaluateDomRead<string>("location.href"), this.allowedOrigin);
     const parsedCurrentUrl = new URL(currentUrl);
     const currentRoute = parsedCurrentUrl.pathname.match(new RegExp(`^/pratica/ecobonus/2026/([^/]+)/${draftId}$`))?.[1] ?? null;
     const sourceRouteByPage = new Map<string, string>([["page:Beneficiario", "beneficiario"], ["page:Anagrafica Beneficiario", "beneficiario"], ["page:Immobile", "immobile"], ["page:Intervento", "intervento"], ["page:Impianto termico esistente", "impianto_esistente"], ["page:Schermature solari", "schermature"], ["page:Serramenti e infissi", "serramenti"], ["page:Calcolo costi e detrazioni", "calcolo"]]);
@@ -1795,21 +2071,128 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
     );
     if (persistedFields.missing.length || persistedFields.mismatched.length || persistedFields.compiled.length !== step.fields.length) return null;
     if (step.coBeneficiary) {
-      const rows = await client.evaluate<string[][]>(`(()=>{const clean=value=>String(value??"").trim().replace(/\\s+/g," ");return [...document.querySelectorAll("table")].filter(table=>{const header=clean(table.querySelector("thead")?.textContent||table.querySelector("tr")?.textContent);return /nome/i.test(header)&&/cognome/i.test(header)&&/codice fiscale/i.test(header)}).flatMap(table=>[...table.querySelectorAll("tbody tr")].map(row=>[...row.querySelectorAll("th,td")].map(cell=>clean(cell.textContent))).filter(cells=>cells.some(cell=>/[A-Z0-9]{16}/i.test(cell))))})()`);
+      const rows = await client.evaluateDomRead<string[][]>(`(()=>{const clean=value=>String(value??"").trim().replace(/\\s+/g," ");return [...document.querySelectorAll("table")].filter(table=>{const header=clean(table.querySelector("thead")?.textContent||table.querySelector("tr")?.textContent);return /nome/i.test(header)&&/cognome/i.test(header)&&/codice fiscale/i.test(header)}).flatMap(table=>[...table.querySelectorAll("tbody tr")].map(row=>[...row.querySelectorAll("th,td")].map(cell=>clean(cell.textContent))).filter(cells=>cells.some(cell=>/[A-Z0-9]{16}/i.test(cell))))})()`);
       if (classifyCoBeneficiaryRows(rows, step.coBeneficiary.taxCode).status !== "present") return null;
     }
     return this.capture("verify_page_saved_readonly", target, client, { customerKey: draftPackage.customerKey, draftId, pageId });
   }
 
   async verifyNestedPageSavedCanonicalReadOnly(draftPackage: AprEneaDraftPackage, draftId: string, pageId: string): Promise<AprEneaDriverEvidence | null> {
-    if (!pageId.startsWith("screening:") && !/Generatore/.test(pageId)) throw new Error(`apr_cdp_enea_nested_canonical_verification_not_allowlisted:${pageId}`);
+    const calculationAllocation = pageId === "page:Allocazione costi e detrazioni";
+    if (!pageId.startsWith("screening:") && !/Generatore/.test(pageId) && !calculationAllocation) throw new Error(`apr_cdp_enea_nested_canonical_verification_not_allowlisted:${pageId}`);
     const { client } = await this.client();
-    const route = pageId.startsWith("screening:")
+    const route = calculationAllocation
+      ? "calcolo"
+      : pageId.startsWith("screening:")
       ? draftPackage.module === "infissi" ? "serramenti" : "schermature"
       : "impianto_esistente";
     await client.navigate(`${this.allowedOrigin}/pratica/ecobonus/2026/${route}/${draftId}`);
     await this.waitForStable(client);
     return this.verifyPageSaved(draftPackage, draftId, pageId);
+  }
+
+  async verifyNestedPageSavedServerReadOnly(draftPackage: AprEneaDraftPackage, draftId: string, pageId: string): Promise<AprEneaDriverEvidence | null> {
+    if (!/Generatore/.test(pageId)) throw new Error(`apr_cdp_enea_nested_server_verification_not_allowlisted:${pageId}`);
+    const step = this.stepFor(draftPackage, pageId);
+    if (!step?.activationLabel || !step.hostRoute) throw new Error(`apr_cdp_enea_generator_server_contract_missing:${pageId}`);
+    const activationLabel = step.activationLabel;
+    const expectedFields = step.fields;
+    const { target, client } = await this.client();
+    type ReadTrace = { requestId: string; method: string; url: string; resourceType: string; status: number | null; contentType: string; finished: boolean; failed: string; body: string | null };
+    const traces = new Map<string, ReadTrace>();
+    let lastNetworkAt = Date.now();
+    await client.send("Network.enable");
+    const offRequest = client.onEvent<{ requestId: string; request: { method: string; url: string } }>("Network.requestWillBeSent", ({ requestId, request }) => {
+      let parsed: URL;
+      try { parsed = new URL(request.url); } catch { return; }
+      if (request.method.toUpperCase() !== "GET" || parsed.origin !== this.allowedOrigin || !parsed.pathname.includes(draftId)) return;
+      traces.set(requestId, { requestId, method: "GET", url: request.url, resourceType: "", status: null, contentType: "", finished: false, failed: "", body: null });
+      lastNetworkAt = Date.now();
+    });
+    const offResponse = client.onEvent<{ requestId: string; type?: string; response: { status: number; mimeType?: string } }>("Network.responseReceived", ({ requestId, type, response }) => {
+      const trace = traces.get(requestId); if (!trace) return;
+      trace.status = response.status; trace.contentType = response.mimeType ?? ""; trace.resourceType = type ?? ""; lastNetworkAt = Date.now();
+    });
+    const offFinished = client.onEvent<{ requestId: string }>("Network.loadingFinished", ({ requestId }) => {
+      const trace = traces.get(requestId); if (!trace) return;
+      trace.finished = true; lastNetworkAt = Date.now();
+    });
+    const offFailed = client.onEvent<{ requestId: string; errorText?: string }>("Network.loadingFailed", ({ requestId, errorText }) => {
+      const trace = traces.get(requestId); if (!trace) return;
+      trace.failed = errorText ?? "network_failed"; lastNetworkAt = Date.now();
+    });
+    const hostUrl = `${this.allowedOrigin}/pratica/ecobonus/2026/${step.hostRoute}/${draftId}?apr_no_cache=${Date.now()}`;
+    try {
+      // Non si indovina un endpoint API: si ricarica con GET la pagina host e
+      // si acquisiscono direttamente le risposte JSON che il portale usa per
+      // ricostruire il draft. Nessun dato viene preso dal DOM come prova.
+      await client.navigateReadonlyGet(hostUrl, this.allowedOrigin);
+      await this.waitForStable(client);
+      for (let attempt = 0; attempt < 50; attempt += 1) {
+        const jsonSettled = [...traces.values()].some((trace) => /json/i.test(trace.contentType) && (trace.finished || Boolean(trace.failed)));
+        if (jsonSettled && Date.now() - lastNetworkAt >= 500) break;
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+      for (const trace of traces.values()) {
+        if (!trace.finished || trace.status === null) continue;
+        try { trace.body = (await client.send<{ body: string }>("Network.getResponseBody", { requestId: trace.requestId }, 2_000)).body; }
+        catch { trace.body = null; }
+      }
+    } finally {
+      offRequest(); offResponse(); offFinished(); offFailed();
+    }
+    const classified = [...traces.values()].map((trace) => {
+      const url = new URL(trace.url);
+      let parsed: unknown = null;
+      if (trace.body !== null) try { parsed = JSON.parse(trace.body); } catch { /* risposta non JSON: fail closed */ }
+      const match = parsed === null ? { matched: false, candidatePaths: [] as string[], matchedPath: null as string | null }
+        : nestedServerJsonContainsExpectedGenerator(parsed, activationLabel, expectedFields);
+      return {
+        method: trace.method,
+        urlPath: url.pathname,
+        resourceType: trace.resourceType,
+        status: trace.status,
+        contentType: trace.contentType,
+        finished: trace.finished,
+        failed: trace.failed,
+        responseSha256: trace.body === null ? null : createHash("sha256").update(trace.body).digest("hex"),
+        responseLength: trace.body?.length ?? null,
+        ...(trace.body === null ? { topLevelKeys: [], resultKeys: [], envelopeError: null, envelopeStatus: null, responseBody: null, responseBodyTruncated: false } : serverResponseAuditSummary(trace.body, parsed)),
+        candidatePaths: match.candidatePaths,
+        matchedPath: match.matchedPath,
+        matched: match.matched,
+      };
+    });
+    const authoritative = classified.find((trace) => trace.status === 200 && /json/i.test(trace.contentType) && trace.matched) ?? null;
+    // The event name is itself part of the durable proof chain.  Never record
+    // the same action for a matching and a rejected server response: doing so
+    // would let a later finalizer mistake a failed probe for authoritative
+    // evidence.
+    const evidence = await this.capture(authoritative
+      ? "verify_nested_page_saved_server_network_json_readonly"
+      : "verify_nested_page_server_network_json_rejected_readonly", target, client, { customerKey: draftPackage.customerKey, draftId, pageId });
+    const state = this.load(); state.revision += 1;
+    state.pagePreparationDiagnostic = {
+      kind: "nested-generator-server-network-json-v2",
+      observedAt: new Date().toISOString(),
+      customerKey: draftPackage.customerKey,
+      draftId,
+      pageId,
+      evidenceId: evidence.evidenceId,
+      hostPath: new URL(hostUrl).pathname,
+      traces: classified,
+      authoritativePath: authoritative?.urlPath ?? null,
+      matchedPath: authoritative?.matchedPath ?? null,
+      matched: Boolean(authoritative),
+      appliedRuleIds: [APR_ENEA_NESTED_SERVER_PROOF_RULE_ID],
+    };
+    this.write(state);
+    return authoritative ? evidence : null;
+  }
+
+  async inspectNestedPageServerJsonReadOnly(draftPackage: AprEneaDraftPackage, draftId: string, pageId: string) {
+    const evidence = await this.verifyNestedPageSavedServerReadOnly(draftPackage, draftId, pageId);
+    return { evidence, diagnostic: this.snapshot().pagePreparationDiagnostic };
   }
 
   async inspectPersistedPageValuesReadOnly(draftPackage: AprEneaDraftPackage, draftId: string, pageId: string) {
@@ -1821,7 +2204,7 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
       await client.navigate(url);
       await this.waitForStable(client);
       type InfissiRowRead = { fields: Array<{ portalId: string; control: string; expected: string; actual: string; matches: boolean; tag: string; disabled: boolean; options: Array<{ value: string; text: string }> }>; rowCount: number; surfaceReady: boolean };
-      const read = () => client.evaluate<InfissiRowRead>(`(()=>{const expected=${JSON.stringify(step.fields)};const index=${Number(pageId.slice(10)) - 1};const clean=value=>String(value??"").trim().replace(/\\s+/g," ");const normalize=value=>clean(value).normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLocaleLowerCase("it");const number=value=>{const parsed=Number(String(value??"").replace(/[^0-9,.-]/g,"").replace(",","."));return Number.isFinite(parsed)?parsed:null};const columns={"id-f_pre":0,"id-v_pre":1,"id-u_pre":2,"id-sup":3,"id-f_post":4,"id-v_post":5,"id-u_post":6,"id-conf":7,"id-osc":8};const rows=[...document.querySelectorAll("tr")].map(row=>[...row.querySelectorAll("td")].map(cell=>clean(cell.textContent))).filter(cells=>cells.length>=9);const row=rows[index];const fields=expected.map(field=>{const column=columns[field.portalId];const actual=row&&column!==undefined?row[column]:"<missing>";let matches=false;if(actual!=="<missing>"){if(field.control==="checkbox"){const wanted=field.value==="true";matches=wanted?/^(si|sì|true|1|x)$/i.test(actual):/^(no|false|0|-|)$/i.test(actual)}else{const a=number(actual),w=number(field.value);matches=a!==null&&w!==null?Math.abs(a-w)<0.011:normalize(actual)===normalize(field.value)||normalize(actual).includes(normalize(field.value))||normalize(field.value).includes(normalize(actual))}}return {portalId:field.portalId,control:field.control,expected:field.value,actual,matches,tag:"table-cell",disabled:false,options:[]}});return {fields,rowCount:rows.length,surfaceReady:Boolean(document.querySelector("table"))&&/serramenti|infissi/i.test(document.body?.innerText||"")}})()`);
+      const read = () => client.evaluateDomRead<InfissiRowRead>(`(()=>{const expected=${JSON.stringify(step.fields)};const index=${Number(pageId.slice(10)) - 1};const clean=value=>String(value??"").trim().replace(/\\s+/g," ");const normalize=value=>clean(value).normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLocaleLowerCase("it");const number=value=>{const parsed=Number(String(value??"").replace(/[^0-9,.-]/g,"").replace(",","."));return Number.isFinite(parsed)?parsed:null};const columns={"id-f_pre":0,"id-v_pre":1,"id-u_pre":2,"id-sup":3,"id-f_post":4,"id-v_post":5,"id-u_post":6,"id-conf":7,"id-osc":8};const rows=[...document.querySelectorAll("tr")].map(row=>[...row.querySelectorAll("td")].map(cell=>clean(cell.textContent))).filter(cells=>cells.length>=9);const row=rows[index];const fields=expected.map(field=>{const column=columns[field.portalId];const actual=row&&column!==undefined?row[column]:"<missing>";let matches=false;if(actual!=="<missing>"){if(field.control==="checkbox"){const wanted=field.value==="true";matches=wanted?/^(si|sì|true|1|x)$/i.test(actual):/^(no|false|0|-|)$/i.test(actual)}else{const a=number(actual),w=number(field.value);matches=a!==null&&w!==null?Math.abs(a-w)<0.011:normalize(actual)===normalize(field.value)||normalize(actual).includes(normalize(field.value))||normalize(field.value).includes(normalize(actual))}}return {portalId:field.portalId,control:field.control,expected:field.value,actual,matches,tag:"table-cell",disabled:false,options:[]}});return {fields,rowCount:rows.length,surfaceReady:Boolean(document.querySelector("table"))&&/serramenti|infissi/i.test(document.body?.innerText||"")}})()`);
       let result = await read();
       const ordinal = Number(pageId.slice("screening:".length));
       for (let attempt = 0; attempt < 120 && (!result.surfaceReady || result.rowCount < ordinal - 1); attempt += 1) {
@@ -1865,17 +2248,19 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
     const diagnosticUrl = sourceRoute ? `${this.allowedOrigin}/pratica/ecobonus/2026/${sourceRoute}/${draftId}` : mapping.url;
     await client.navigate(diagnosticUrl);
     await this.waitForStable(client);
-    const directMarkersPresent = await client.evaluate<boolean>(`(async()=>{const ids=${JSON.stringify(step.markerIds)};const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));for(let attempt=0;attempt<150;attempt+=1){if(ids.every(id=>document.getElementById(id)))return true;await wait(100)}return false})()`, true, 20_000);
+    const directMarkersPresent = await pollBooleanDomReadOnly(
+      () => client.evaluateDomRead<boolean>(`(()=>${JSON.stringify(step.markerIds)}.every(id=>document.getElementById(id)))()`),
+    );
     if (!directMarkersPresent) await this.openPage(client, draftId, pageId, step, draftPackage.module);
-    const fields = await client.evaluate<Array<{ portalId: string; control: string; expected: string; actual: string; matches: boolean; tag: string; disabled: boolean; options: Array<{ value: string; text: string }> }>>(`(()=>{const normalize=value=>String(value??"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").trim().replace(/\\s+/g," ").toLocaleLowerCase("it");return ${JSON.stringify(step.fields)}.map(field=>{const element=document.getElementById(field.portalId);if(!element)return {portalId:field.portalId,control:field.control,expected:field.value,actual:"<missing>",matches:false,tag:"missing",disabled:false,options:[]};const tag=element.tagName.toLocaleLowerCase("it"),disabled=Boolean(element.disabled),options=element instanceof HTMLSelectElement?[...element.options].map(option=>({value:String(option.value??""),text:String(option.text??"")})):[];if(field.control==="button")return {portalId:field.portalId,control:field.control,expected:field.value,actual:disabled?"disabled":"enabled",matches:!disabled,tag,disabled,options};const actual=field.control==="select"?(element.options[element.selectedIndex]?.text||element.value):element.value;const observed=normalize(actual),wanted=normalize(field.value),matches=(field.control==="select"&&field.selectValue&&element.value===field.selectValue)||observed===wanted||(field.control==="autocomplete"&&observed.startsWith(wanted+" ("));return {portalId:field.portalId,control:field.control,expected:field.value,actual:String(actual??""),matches:Boolean(matches),tag,disabled,options}})})()`);
+    const fields = await client.evaluateDomRead<Array<{ portalId: string; control: string; expected: string; actual: string; matches: boolean; tag: string; disabled: boolean; options: Array<{ value: string; text: string }> }>>(`(()=>{const normalize=value=>String(value??"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").trim().replace(/\\s+/g," ").toLocaleLowerCase("it");return ${JSON.stringify(step.fields)}.map(field=>{const element=document.getElementById(field.portalId);if(!element)return {portalId:field.portalId,control:field.control,expected:field.value,actual:"<missing>",matches:false,tag:"missing",disabled:false,options:[]};const tag=element.tagName.toLocaleLowerCase("it"),disabled=Boolean(element.disabled),options=element instanceof HTMLSelectElement?[...element.options].map(option=>({value:String(option.value??""),text:String(option.text??"")})):[];if(field.control==="button")return {portalId:field.portalId,control:field.control,expected:field.value,actual:disabled?"disabled":"enabled",matches:!disabled,tag,disabled,options};const actual=field.control==="select"?(element.options[element.selectedIndex]?.text||element.value):element.value;const observed=normalize(actual),wanted=normalize(field.value),matches=(field.control==="select"&&field.selectValue&&element.value===field.selectValue)||observed===wanted||(field.control==="autocomplete"&&observed.startsWith(wanted+" ("));return {portalId:field.portalId,control:field.control,expected:field.value,actual:String(actual??""),matches:Boolean(matches),tag,disabled,options}})})()`);
     if (step.coBeneficiary) {
-      const rows = await client.evaluate<string[][]>(`(()=>{const clean=value=>String(value??"").trim().replace(/\\s+/g," ");return [...document.querySelectorAll("table")].filter(table=>{const header=clean(table.querySelector("thead")?.textContent||table.querySelector("tr")?.textContent);return /nome/i.test(header)&&/cognome/i.test(header)&&/codice fiscale/i.test(header)}).flatMap(table=>[...table.querySelectorAll("tbody tr")].map(row=>[...row.querySelectorAll("th,td")].map(cell=>clean(cell.textContent))).filter(cells=>cells.some(cell=>/[A-Z0-9]{16}/i.test(cell))))})()`);
+      const rows = await client.evaluateDomRead<string[][]>(`(()=>{const clean=value=>String(value??"").trim().replace(/\\s+/g," ");return [...document.querySelectorAll("table")].filter(table=>{const header=clean(table.querySelector("thead")?.textContent||table.querySelector("tr")?.textContent);return /nome/i.test(header)&&/cognome/i.test(header)&&/codice fiscale/i.test(header)}).flatMap(table=>[...table.querySelectorAll("tbody tr")].map(row=>[...row.querySelectorAll("th,td")].map(cell=>clean(cell.textContent))).filter(cells=>cells.some(cell=>/[A-Z0-9]{16}/i.test(cell))))})()`);
       const coBeneficiary = classifyCoBeneficiaryRows(rows, step.coBeneficiary.taxCode);
       fields.push({ portalId: "semantic:beneficiary:co-beneficiary-tax-code", control: "input", expected: step.coBeneficiary.taxCode, actual: coBeneficiary.status === "present" ? step.coBeneficiary.taxCode : coBeneficiary.conflictingFiscalCodes.join(","), matches: coBeneficiary.status === "present", tag: coBeneficiary.status === "present" ? "table-row" : "table-row-absent", disabled: false, options: [] });
     }
     for (const field of fields.filter((item) => item.control === "autocomplete")) field.matches = autocompleteLabelsMatch(field.actual, field.expected);
-    const surface = await client.evaluate<{ forms: Array<{ id: string; method: string; action: string }>; controls: Array<{ id: string; name: string; tag: string; type: string; value: string; text: string; label: string; checked: boolean; disabled: boolean; required: boolean; options: Array<{ value: string; text: string }> }>; text: string }>(`(()=>{const clean=value=>String(value??"").trim().replace(/\\s+/g," ");const controls=[...document.querySelectorAll('input,select,textarea,button')].slice(0,200).map(element=>({id:element.id||"",name:element.name||"",tag:element.tagName.toLowerCase(),type:String(element.type||"").toLowerCase(),value:String(element.value??""),text:clean(element.textContent),label:clean(element.labels?.[0]?.textContent||element.getAttribute('aria-label')||element.getAttribute('placeholder')),checked:Boolean(element.checked),disabled:Boolean(element.disabled),required:Boolean(element.required),options:element instanceof HTMLSelectElement?[...element.options].map(option=>({value:String(option.value??""),text:clean(option.text)})):[]}));return {forms:[...document.forms].slice(0,20).map(form=>({id:form.id||"",method:(form.method||"get").toLowerCase(),action:form.action||""})),controls,text:(document.body?.innerText||"").slice(0,6000)}})()`);
-    const autocompleteStructure = await client.evaluate<{ autocompleteStructures: unknown[]; scripts: string[] }>(`(()=>{const clean=value=>String(value??"").trim().replace(/\\s+/g," ");const ids=${JSON.stringify(step.fields.filter((field) => field.control === "autocomplete").map((field) => field.portalId))};return {autocompleteStructures:ids.map(portalId=>{const element=document.getElementById(portalId);const parent=element?.parentElement;const scope=parent?.parentElement||parent;return {portalId,elementClass:String(element?.className||""),parentHtml:String(parent?.outerHTML||"").slice(0,4000),siblingHtml:String(element?.nextElementSibling?.outerHTML||"").slice(0,4000),listCandidates:[...(scope?.querySelectorAll('ul,li,[role="listbox"],[role="option"],[class*="auto" i],[id*="auto" i]')||[])].slice(0,80).map(node=>({tag:node.tagName.toLowerCase(),id:node.id||"",className:String(node.className||""),text:clean(node.textContent).slice(0,300)}))}}),scripts:[...document.scripts].map(script=>script.src||clean(script.textContent).slice(0,500)).filter(Boolean).slice(0,100)}})()`);
+    const surface = await client.evaluateDomRead<{ forms: Array<{ id: string; method: string; action: string }>; controls: Array<{ id: string; name: string; tag: string; type: string; value: string; text: string; label: string; checked: boolean; disabled: boolean; required: boolean; options: Array<{ value: string; text: string }> }>; text: string }>(`(()=>{const clean=value=>String(value??"").trim().replace(/\\s+/g," ");const controls=[...document.querySelectorAll('input,select,textarea,button')].slice(0,200).map(element=>({id:element.id||"",name:element.name||"",tag:element.tagName.toLowerCase(),type:String(element.type||"").toLowerCase(),value:String(element.value??""),text:clean(element.textContent),label:clean(element.labels?.[0]?.textContent||element.getAttribute('aria-label')||element.getAttribute('placeholder')),checked:Boolean(element.checked),disabled:Boolean(element.disabled),required:Boolean(element.required),options:element instanceof HTMLSelectElement?[...element.options].map(option=>({value:String(option.value??""),text:clean(option.text)})):[]}));return {forms:[...document.forms].slice(0,20).map(form=>({id:form.id||"",method:(form.method||"get").toLowerCase(),action:form.action||""})),controls,text:(document.body?.innerText||"").slice(0,6000)}})()`);
+    const autocompleteStructure = await client.evaluateDomRead<{ autocompleteStructures: unknown[]; scripts: string[] }>(`(()=>{const clean=value=>String(value??"").trim().replace(/\\s+/g," ");const ids=${JSON.stringify(step.fields.filter((field) => field.control === "autocomplete").map((field) => field.portalId))};return {autocompleteStructures:ids.map(portalId=>{const element=document.getElementById(portalId);const parent=element?.parentElement;const scope=parent?.parentElement||parent;return {portalId,elementClass:String(element?.className||""),parentHtml:String(parent?.outerHTML||"").slice(0,4000),siblingHtml:String(element?.nextElementSibling?.outerHTML||"").slice(0,4000),listCandidates:[...(scope?.querySelectorAll('ul,li,[role="listbox"],[role="option"],[class*="auto" i],[id*="auto" i]')||[])].slice(0,80).map(node=>({tag:node.tagName.toLowerCase(),id:node.id||"",className:String(node.className||""),text:clean(node.textContent).slice(0,300)}))}}),scripts:[...document.scripts].map(script=>script.src||clean(script.textContent).slice(0,500)).filter(Boolean).slice(0,100)}})()`);
     Object.assign(surface, autocompleteStructure);
     const evidence = await this.capture("inspect_persisted_page_values_readonly", target, client, { customerKey: draftPackage.customerKey, draftId, pageId });
     const state = this.load(); state.revision += 1; state.pageDiagnostic = { observedAt: new Date().toISOString(), customerKey: draftPackage.customerKey, draftId, pageId, contractRevision: PAGE_DIAGNOSTIC_CONTRACT_REVISION, fields, surface, evidenceId: evidence.evidenceId }; state.pageDiagnostics = state.pageDiagnostics.filter((item) => !(item.customerKey === draftPackage.customerKey && item.draftId === draftId && item.pageId === pageId)); state.pageDiagnostics.push(state.pageDiagnostic); this.write(state);
@@ -1888,7 +2273,7 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
     const mapping = this.load().mappings.find((item) => item.packageFingerprint === draftPackage.packageFingerprint && item.draftId === draftId);
     if (!mapping) throw new Error(`apr_cdp_enea_mapping_missing:${draftId}`);
     const { target, client } = await this.client();
-    const diagnostic = await client.evaluate<{
+    const diagnostic = await client.evaluateDomRead<{
       urlPath: string;
       fieldCount: number;
       fields: Array<{ portalId: string; domMatches: boolean; reactValuePresent: boolean; reactMatches: boolean; trackerMatches: boolean; valid: boolean; ariaInvalid: boolean }>;
@@ -1944,7 +2329,7 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
     // This never reopens the modal and never emits Save/preview/submit.
     await client.navigate(hostUrl);
     await this.waitForStable(client);
-    const readSummary = () => client.evaluate<{ url: string; headers: string[]; rows: string[][]; costValue: string; bodyText: string; loading: boolean; surfaceReady: boolean; filters: Array<{ label: string; value: string }> }>(`(()=>{const clean=value=>String(value??"").trim().replace(/\\s+/g," ");const bodyText=clean(document.body?.innerText).slice(-5000);const actionLabels=[...document.querySelectorAll("button,input[type='button'],input[type='submit']")].map(node=>clean(node.textContent||node.value).toLocaleLowerCase("it"));const filterNodes=[...new Set([...document.querySelectorAll('input[type="search"],.dataTables_filter input,[aria-label*="cerca" i],[aria-label*="search" i]')])];return {url:location.href,headers:[...document.querySelectorAll("th")].map(cell=>clean(cell.textContent)),rows:[...document.querySelectorAll("tr")].map(row=>[...row.querySelectorAll("td")].map(cell=>clean(cell.textContent))).filter(cells=>cells.length>0),costValue:String(document.getElementById("id-costo")?.value??""),bodyText,loading:/caricamento(?:\\.\\.\\.)?/i.test(bodyText),surfaceReady:Boolean(document.querySelector("table,form"))||actionLabels.some(label=>label==="aggiungi"||label==="salva"),filters:filterNodes.map(node=>({label:clean(node.getAttribute("aria-label")||node.name||node.id),value:String(node.value??"")}))}})()`);
+    const readSummary = () => client.evaluateDomRead<{ url: string; headers: string[]; rows: string[][]; costValue: string; bodyText: string; loading: boolean; surfaceReady: boolean; filters: Array<{ label: string; value: string }> }>(`(()=>{const clean=value=>String(value??"").trim().replace(/\\s+/g," ");const bodyText=clean(document.body?.innerText).slice(-5000);const actionLabels=[...document.querySelectorAll("button,input[type='button'],input[type='submit']")].map(node=>clean(node.textContent||node.value).toLocaleLowerCase("it"));const filterNodes=[...new Set([...document.querySelectorAll('input[type="search"],.dataTables_filter input,[aria-label*="cerca" i],[aria-label*="search" i]')])];return {url:location.href,headers:[...document.querySelectorAll("th")].map(cell=>clean(cell.textContent)),rows:[...document.querySelectorAll("tr")].map(row=>[...row.querySelectorAll("td")].map(cell=>clean(cell.textContent))).filter(cells=>cells.length>0),costValue:String(document.getElementById("id-costo")?.value??""),bodyText,loading:/caricamento(?:\\.\\.\\.)?/i.test(bodyText),surfaceReady:Boolean(document.querySelector("table,form"))||actionLabels.some(label=>label==="aggiungi"||label==="salva"),filters:filterNodes.map(node=>({label:clean(node.getAttribute("aria-label")||node.name||node.id),value:String(node.value??"")}))}})()`);
     let summary = await readSummary();
     // Poll from Node with short, independent Runtime.evaluate calls.  A single
     // long async expression previously collided with the CDP command timeout
@@ -1985,9 +2370,9 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
     if (!mapping) throw new Error(`apr_cdp_enea_mapping_missing:${draftId}`);
     const { target, client } = await this.client();
     const expectedPath = `/pratica/ecobonus/2026/serramenti/${draftId}`;
-    const currentPath = await client.evaluate<string>("location.pathname");
+    const currentPath = await client.evaluateDomRead<string>("location.pathname");
     if (currentPath !== expectedPath) { await client.navigate(`${this.allowedOrigin}${expectedPath}`); await this.waitForStable(client); }
-    const diagnostic = await client.evaluate<{
+    const diagnostic = await client.evaluateDomRead<{
       url: string;
       bodyText: string;
       tables: Array<{ headers: string[]; rows: string[][] }>;
@@ -2005,7 +2390,7 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
     if (!step || pageId.startsWith("screening:") || step.expenseAllocation || /Generatore/.test(pageId)) throw new Error(`apr_cdp_enea_standard_page_diagnostic_not_allowlisted:${pageId}`);
     await this.preparePage(draftPackage, draftId, pageId);
     const { target, client } = await this.client();
-    const diagnostic = await client.evaluate<{
+    const diagnostic = await client.evaluateDomRead<{
       urlPath: string;
       fields: Array<{ id: string; control: string; expected: string; value: string; checked: boolean; matches: boolean; valid: boolean; ariaInvalid: string | null; validationMessage: string; reactValue: string | null; reactChecked: boolean | null }>;
       invalidControlIds: string[];
@@ -2025,17 +2410,17 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
     if (!mapping) throw new Error(`apr_cdp_enea_mapping_missing:${draftId}`);
     const { target, client } = await this.client();
     const expectedPath = `/pratica/ecobonus/2026/serramenti/${draftId}`;
-    if (await client.evaluate<string>("location.pathname") !== expectedPath) { await client.navigate(`${this.allowedOrigin}${expectedPath}`); await this.waitForStable(client); }
-    const open = () => client.evaluate<boolean>(`(()=>{const normalize=value=>String(value??"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").trim().replace(/\\s+/g," ").toLocaleLowerCase("it");const controls=[...document.querySelectorAll('button,input[type="button"]')].filter(node=>!node.disabled&&normalize(node.textContent||node.value)==="aggiungi");if(controls.length!==1)return false;controls[0].click();return true})()`);
-    const alreadyOpen = await client.evaluate<boolean>(`(${JSON.stringify(step.markerIds)}).every(id=>document.getElementById(id))`);
+    if (await client.evaluateDomRead<string>("location.pathname") !== expectedPath) { await client.navigate(`${this.allowedOrigin}${expectedPath}`); await this.waitForStable(client); }
+    const open = () => client.evaluateShortMutation<boolean>(`(()=>{const normalize=value=>String(value??"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").trim().replace(/\\s+/g," ").toLocaleLowerCase("it");const controls=[...document.querySelectorAll('button,input[type="button"]')].filter(node=>!node.disabled&&normalize(node.textContent||node.value)==="aggiungi");if(controls.length!==1)return false;controls[0].click();return true})()`);
+    const alreadyOpen = await client.evaluateDomRead<boolean>(`(${JSON.stringify(step.markerIds)}).every(id=>document.getElementById(id))`);
     if (!alreadyOpen && !await open()) throw new Error(`apr_cdp_enea_infissi_add_not_unique:${pageId}`);
     let markersReady = false;
     for (let attempt = 0; attempt < 80 && !markersReady; attempt += 1) {
-      markersReady = await client.evaluate<boolean>(`(${JSON.stringify(step.markerIds)}).every(id=>document.getElementById(id))`);
+      markersReady = await client.evaluateDomRead<boolean>(`(${JSON.stringify(step.markerIds)}).every(id=>document.getElementById(id))`);
       if (!markersReady) await new Promise((resolve) => setTimeout(resolve, 250));
     }
     if (!markersReady) throw new Error(`apr_cdp_enea_infissi_markers_missing:${pageId}`);
-    const diagnostic = await client.evaluate<{
+    const diagnostic = await client.evaluateDomRead<{
       controls: Array<{ id: string; tag: string; type: string; value: string; min: string; max: string; step: string; required: boolean; disabled: boolean; validity: Record<string, boolean>; options: Array<{ value: string; text: string }>; reactProps: string[] }>;
       buttons: Array<{ label: string; disabled: boolean }>;
       formText: string;
@@ -2052,20 +2437,20 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
     if (!mapping) throw new Error(`apr_cdp_enea_mapping_missing:${draftId}`);
     const { target, client } = await this.client();
     const expectedPath = `/pratica/ecobonus/2026/serramenti/${draftId}`;
-    if (await client.evaluate<string>("location.pathname") !== expectedPath) { await client.navigate(`${this.allowedOrigin}${expectedPath}`); await this.waitForStable(client); }
-    let markersReady = await client.evaluate<boolean>(`(${JSON.stringify(step.markerIds)}).every(id=>document.getElementById(id))`);
+    if (await client.evaluateDomRead<string>("location.pathname") !== expectedPath) { await client.navigate(`${this.allowedOrigin}${expectedPath}`); await this.waitForStable(client); }
+    let markersReady = await client.evaluateDomRead<boolean>(`(${JSON.stringify(step.markerIds)}).every(id=>document.getElementById(id))`);
     if (!markersReady) {
-      const opened = await client.evaluate<boolean>(`(()=>{const normalize=value=>String(value??"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").trim().replace(/\\s+/g," ").toLocaleLowerCase("it");const controls=[...document.querySelectorAll('button,input[type="button"]')].filter(node=>!node.disabled&&normalize(node.textContent||node.value)==="aggiungi");if(controls.length!==1)return false;controls[0].click();return true})()`);
+      const opened = await client.evaluateShortMutation<boolean>(`(()=>{const normalize=value=>String(value??"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").trim().replace(/\\s+/g," ").toLocaleLowerCase("it");const controls=[...document.querySelectorAll('button,input[type="button"]')].filter(node=>!node.disabled&&normalize(node.textContent||node.value)==="aggiungi");if(controls.length!==1)return false;controls[0].click();return true})()`);
       if (!opened) throw new Error(`apr_cdp_enea_infissi_add_not_unique:${pageId}`);
       for (let attempt = 0; attempt < 80 && !markersReady; attempt += 1) {
-        markersReady = await client.evaluate<boolean>(`(${JSON.stringify(step.markerIds)}).every(id=>document.getElementById(id))`);
+        markersReady = await client.evaluateDomRead<boolean>(`(${JSON.stringify(step.markerIds)}).every(id=>document.getElementById(id))`);
         if (!markersReady) await new Promise((resolve) => setTimeout(resolve, 250));
       }
     }
     if (!markersReady) throw new Error(`apr_cdp_enea_infissi_markers_missing:${pageId}`);
     const filled = await this.fillAndReadStable(client, step.fields);
     await new Promise((resolve) => setTimeout(resolve, 500));
-    const diagnostic = await client.evaluate<{
+    const diagnostic = await client.evaluateDomRead<{
       fields: Array<{ id: string; value: string; checked: boolean; valid: boolean; ariaInvalid: string | null; validationMessage: string; reactValue: string; reactChecked: boolean | null }>;
       saveControls: Array<{ label: string; disabled: boolean; reactOnClick: string }>;
       alerts: string[];
@@ -2088,9 +2473,9 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
       table = await this.calculationAllocationTable(client, step.expenseAllocation);
     }
     if (!table.interventionRow) throw new Error("apr_cdp_enea_calculation_modal_diagnostic_table_missing");
-    const opened = await client.evaluate<boolean>(`(()=>{const clean=value=>String(value??"").trim().replace(/\\s+/g," ");const normalize=value=>clean(value).normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLocaleLowerCase("it");const wanted=${JSON.stringify(normalize(step.expenseAllocation.interventionLabel))};const rows=[...document.querySelectorAll("table tbody tr")].filter(row=>normalize(row.querySelector("td")?.textContent).includes(wanted));if(rows.length!==1)return false;const controls=[...rows[0].querySelectorAll('button,input[type="button"]')].filter(control=>!control.disabled);if(controls.length!==1)return false;controls[0].click();return true})()`);
+    const opened = await client.evaluateShortMutation<boolean>(`(()=>{const clean=value=>String(value??"").trim().replace(/\\s+/g," ");const normalize=value=>clean(value).normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLocaleLowerCase("it");const wanted=${JSON.stringify(normalize(step.expenseAllocation.interventionLabel))};const rows=[...document.querySelectorAll("table tbody tr")].filter(row=>normalize(row.querySelector("td")?.textContent).includes(wanted));if(rows.length!==1)return false;const controls=[...rows[0].querySelectorAll('button,input[type="button"]')].filter(control=>!control.disabled);if(controls.length!==1)return false;controls[0].click();return true})()`);
     if (!opened) throw new Error("apr_cdp_enea_calculation_modal_diagnostic_edit_not_unique");
-    const read = () => client.evaluate<{ modalFound: boolean; heading: string; inputs: unknown[]; buttons: unknown[]; forms: unknown[]; ancestors: unknown[]; alerts: string[]; body: string }>(`(()=>{const clean=value=>String(value??"").trim().replace(/\\s+/g," ");const normalize=value=>clean(value).normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLocaleLowerCase("it");const visible=node=>{if(!(node instanceof HTMLElement))return false;const rect=node.getBoundingClientRect(),style=getComputedStyle(node);return rect.width>0&&rect.height>0&&style.display!=="none"&&style.visibility!=="hidden"};const target=[...document.querySelectorAll('input:not([type="hidden"])')].find(input=>{const context=normalize(input.closest("div")?.textContent||input.parentElement?.textContent||"");return visible(input)&&context.includes("2025-2026")&&context.includes("36%")});const modal=target?.closest('[role="dialog"],.modal-content,.modal,form')||null;const props=node=>{const key=Object.keys(node||{}).find(item=>item.startsWith("__reactProps$"));const value=key?node[key]:null;if(!value)return null;return Object.fromEntries(Object.entries(value).map(([name,item])=>[name,typeof item==="function"?String(item).slice(0,1200):typeof item==="object"?Object.prototype.toString.call(item):String(item)]))};const describe=node=>({tag:node.tagName.toLocaleLowerCase(),id:node.id||"",name:node.name||"",type:String(node.type||""),value:String(node.value??""),text:clean(node.textContent||node.value),label:clean(node.labels?.[0]?.textContent||node.getAttribute("aria-label")||node.getAttribute("placeholder")||node.closest("div")?.textContent).slice(0,500),disabled:Boolean(node.disabled),valid:Boolean(node.validity?.valid??true),step:node.step||"",min:node.min||"",max:node.max||"",inputMode:node.inputMode||"",reactProps:props(node)});const ancestors=[];for(let node=target,index=0;node&&index<12;node=node.parentElement,index+=1)ancestors.push({index,tag:node.tagName.toLocaleLowerCase(),id:node.id||"",className:String(node.className||""),role:node.getAttribute("role")||"",method:node.method||"",action:node.action||"",reactProps:props(node)});const forms=[...new Set([...(modal?.matches("form")?[modal]:[]),...(modal?.querySelectorAll("form")||[]),...(target?.closest("form")?[target.closest("form")]:[])])];return {modalFound:Boolean(modal),heading:clean(modal?.querySelector("h1,h2,h3,h4,.modal-title")?.textContent),inputs:[...(modal?.querySelectorAll('input:not([type="hidden"]),select,textarea')||[])].filter(visible).map(describe),buttons:[...(modal?.querySelectorAll('button,input[type="button"],input[type="submit"]')||[])].filter(visible).map(describe),forms:forms.map(form=>({id:form.id||"",method:form.method||"",action:form.action||"",reactProps:props(form)})),ancestors,alerts:[...document.querySelectorAll('[role="alert"],.alert,.invalid-feedback,.error,[class*="error" i]')].filter(visible).map(node=>clean(node.textContent)).filter(Boolean).slice(0,30),body:clean(modal?.textContent).slice(0,4000)}})()`);
+    const read = () => client.evaluateDomRead<{ modalFound: boolean; heading: string; inputs: unknown[]; buttons: unknown[]; forms: unknown[]; ancestors: unknown[]; alerts: string[]; body: string }>(`(()=>{const clean=value=>String(value??"").trim().replace(/\\s+/g," ");const normalize=value=>clean(value).normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLocaleLowerCase("it");const visible=node=>{if(!(node instanceof HTMLElement))return false;const rect=node.getBoundingClientRect(),style=getComputedStyle(node);return rect.width>0&&rect.height>0&&style.display!=="none"&&style.visibility!=="hidden"};const target=[...document.querySelectorAll('input:not([type="hidden"])')].find(input=>{const context=normalize(input.closest("div")?.textContent||input.parentElement?.textContent||"");return visible(input)&&context.includes("2025-2026")&&context.includes("36%")});const modal=target?.closest('[role="dialog"],.modal-content,.modal,form')||null;const props=node=>{const key=Object.keys(node||{}).find(item=>item.startsWith("__reactProps$"));const value=key?node[key]:null;if(!value)return null;return Object.fromEntries(Object.entries(value).map(([name,item])=>[name,typeof item==="function"?String(item).slice(0,1200):typeof item==="object"?Object.prototype.toString.call(item):String(item)]))};const describe=node=>({tag:node.tagName.toLocaleLowerCase(),id:node.id||"",name:node.name||"",type:String(node.type||""),value:String(node.value??""),text:clean(node.textContent||node.value),label:clean(node.labels?.[0]?.textContent||node.getAttribute("aria-label")||node.getAttribute("placeholder")||node.closest("div")?.textContent).slice(0,500),disabled:Boolean(node.disabled),valid:Boolean(node.validity?.valid??true),step:node.step||"",min:node.min||"",max:node.max||"",inputMode:node.inputMode||"",reactProps:props(node)});const ancestors=[];for(let node=target,index=0;node&&index<12;node=node.parentElement,index+=1)ancestors.push({index,tag:node.tagName.toLocaleLowerCase(),id:node.id||"",className:String(node.className||""),role:node.getAttribute("role")||"",method:node.method||"",action:node.action||"",reactProps:props(node)});const forms=[...new Set([...(modal?.matches("form")?[modal]:[]),...(modal?.querySelectorAll("form")||[]),...(target?.closest("form")?[target.closest("form")]:[])])];return {modalFound:Boolean(modal),heading:clean(modal?.querySelector("h1,h2,h3,h4,.modal-title")?.textContent),inputs:[...(modal?.querySelectorAll('input:not([type="hidden"]),select,textarea')||[])].filter(visible).map(describe),buttons:[...(modal?.querySelectorAll('button,input[type="button"],input[type="submit"]')||[])].filter(visible).map(describe),forms:forms.map(form=>({id:form.id||"",method:form.method||"",action:form.action||"",reactProps:props(form)})),ancestors,alerts:[...document.querySelectorAll('[role="alert"],.alert,.invalid-feedback,.error,[class*="error" i]')].filter(visible).map(node=>clean(node.textContent)).filter(Boolean).slice(0,30),body:clean(modal?.textContent).slice(0,4000)}})()`);
     let diagnostic = await read();
     for (let attempt = 0; attempt < 80 && !diagnostic.modalFound; attempt += 1) { await new Promise((resolve) => setTimeout(resolve, 250)); diagnostic = await read(); }
     const evidence = await this.capture("inspect_calculation_allocation_modal_contract_readonly_v9", target, client, { customerKey: draftPackage.customerKey, draftId, pageId });
@@ -2113,7 +2498,7 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
     const hostUrl = `${this.allowedOrigin}/pratica/ecobonus/2026/${step.hostRoute}/${draftId}`;
     await client.navigate(hostUrl);
     await this.waitForStable(client);
-    const read = () => client.evaluate<{ url: string; expectedActivationLabel: string; headers: string[]; rows: string[][]; rowDetails: Array<{ cells: string[]; actions: Array<{ tag: string; type: string; label: string; title: string; disabled: boolean }> }>; actions: Array<{ label: string; title: string; disabled: boolean }>; bodyText: string; loading: boolean; surfaceReady: boolean }>(`(()=>{const clean=value=>String(value??"").trim().replace(/\\s+/g," ");const bodyText=clean(document.body?.innerText).slice(-5000);const rowDetails=[...document.querySelectorAll("tr")].map(row=>({cells:[...row.querySelectorAll("th,td")].map(cell=>clean(cell.textContent)),actions:[...row.querySelectorAll('button,input[type="button"],a')].map(node=>({tag:node.tagName.toLocaleLowerCase(),type:String(node.type||""),label:clean(node.textContent||node.value),title:clean(node.title||node.getAttribute("aria-label")),disabled:Boolean(node.disabled)})).filter(item=>item.label||item.title)})).filter(row=>row.cells.length>0);return {url:location.href,expectedActivationLabel:${JSON.stringify(step.activationLabel)},headers:[...document.querySelectorAll("th")].map(cell=>clean(cell.textContent)),rows:rowDetails.map(row=>row.cells),rowDetails,actions:[...document.querySelectorAll('button,input[type="button"]')].map(node=>({label:clean(node.textContent||node.value),title:clean(node.title||node.getAttribute("aria-label")),disabled:Boolean(node.disabled)})).filter(item=>item.label||item.title).slice(0,100),bodyText,loading:/caricamento(?:\\.\\.\\.)?/i.test(bodyText),surfaceReady:rowDetails.length>0||Boolean(document.querySelector("table,form"))}})()`);
+    const read = () => client.evaluateDomRead<{ url: string; expectedActivationLabel: string; headers: string[]; rows: string[][]; rowDetails: Array<{ cells: string[]; actions: Array<{ tag: string; type: string; label: string; title: string; disabled: boolean }> }>; actions: Array<{ label: string; title: string; disabled: boolean }>; bodyText: string; loading: boolean; surfaceReady: boolean }>(`(()=>{const clean=value=>String(value??"").trim().replace(/\\s+/g," ");const bodyText=clean(document.body?.innerText).slice(-5000);const rowDetails=[...document.querySelectorAll("tr")].map(row=>({cells:[...row.querySelectorAll("th,td")].map(cell=>clean(cell.textContent)),actions:[...row.querySelectorAll('button,input[type="button"],a')].map(node=>({tag:node.tagName.toLocaleLowerCase(),type:String(node.type||""),label:clean(node.textContent||node.value),title:clean(node.title||node.getAttribute("aria-label")),disabled:Boolean(node.disabled)})).filter(item=>item.label||item.title)})).filter(row=>row.cells.length>0);return {url:location.href,expectedActivationLabel:${JSON.stringify(step.activationLabel)},headers:[...document.querySelectorAll("th")].map(cell=>clean(cell.textContent)),rows:rowDetails.map(row=>row.cells),rowDetails,actions:[...document.querySelectorAll('button,input[type="button"]')].map(node=>({label:clean(node.textContent||node.value),title:clean(node.title||node.getAttribute("aria-label")),disabled:Boolean(node.disabled)})).filter(item=>item.label||item.title).slice(0,100),bodyText,loading:/caricamento(?:\\.\\.\\.)?/i.test(bodyText),surfaceReady:rowDetails.length>0||Boolean(document.querySelector("table,form"))}})()`);
     let summary = await read();
     for (let attempt = 0; attempt < 120 && (summary.loading || !summary.surfaceReady); attempt += 1) { await new Promise((resolve) => setTimeout(resolve, 250)); summary = await read(); }
     const evidence = await this.capture("inspect_generator_summary_readonly", target, client, { customerKey: draftPackage.customerKey, draftId, pageId });
@@ -2128,10 +2513,10 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
     const hostUrl = `${this.allowedOrigin}/pratica/ecobonus/2026/${step.hostRoute}/${draftId}`;
     await client.navigate(hostUrl); await this.waitForStable(client);
     const activationLabels = eneaGeneratorActivationLabels(step.activationLabel);
-    const findAndActivate = () => client.evaluate<{ rowFound: boolean; controlFound: boolean; clicked: boolean; rowText: string; controlTitle: string }>(`(()=>{const clean=value=>String(value??"").trim().replace(/\\s+/g," ");const normalize=value=>clean(value).normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLocaleLowerCase("it");const wanted=${JSON.stringify(activationLabels)}.map(normalize);const row=[...document.querySelectorAll("tr")].find(candidate=>{const first=normalize(candidate.querySelector("th,td")?.textContent);return wanted.some(label=>first===label||first.includes(label)||label.includes(first))});if(!row)return {rowFound:false,controlFound:false,clicked:false,rowText:"",controlTitle:""};const control=[...row.querySelectorAll('button,input[type="button"]')].find(node=>!node.disabled&&/(^|\\s)modifica(?:\\s|$)/.test(normalize(node.title||node.getAttribute("aria-label")||node.textContent||node.value)));if(!control)return {rowFound:true,controlFound:false,clicked:false,rowText:clean(row.textContent),controlTitle:""};const controlTitle=clean(control.title||control.getAttribute("aria-label")||control.textContent||control.value);control.click();return {rowFound:true,controlFound:true,clicked:true,rowText:clean(row.textContent),controlTitle}})()`);
+    const findAndActivate = () => client.evaluateShortMutation<{ rowFound: boolean; controlFound: boolean; clicked: boolean; rowText: string; controlTitle: string }>(`(()=>{const clean=value=>String(value??"").trim().replace(/\\s+/g," ");const normalize=value=>clean(value).normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLocaleLowerCase("it");const wanted=${JSON.stringify(activationLabels)}.map(normalize);const row=[...document.querySelectorAll("tr")].find(candidate=>{const first=normalize(candidate.querySelector("th,td")?.textContent);return wanted.some(label=>first===label||first.includes(label)||label.includes(first))});if(!row)return {rowFound:false,controlFound:false,clicked:false,rowText:"",controlTitle:""};const control=[...row.querySelectorAll('button,input[type="button"]')].find(node=>!node.disabled&&/(^|\\s)modifica(?:\\s|$)/.test(normalize(node.title||node.getAttribute("aria-label")||node.textContent||node.value)));if(!control)return {rowFound:true,controlFound:false,clicked:false,rowText:clean(row.textContent),controlTitle:""};const controlTitle=clean(control.title||control.getAttribute("aria-label")||control.textContent||control.value);control.click();return {rowFound:true,controlFound:true,clicked:true,rowText:clean(row.textContent),controlTitle}})()`);
     let activation = await findAndActivate();
     for (let attempt = 0; attempt < 120 && !activation.clicked; attempt += 1) { await new Promise((resolve) => setTimeout(resolve, 250)); activation = await findAndActivate(); }
-    const read = () => client.evaluate<{ markerIdsPresent: string[]; forms: Array<{ id: string; text: string }>; controls: Array<{ id: string; name: string; tag: string; type: string; label: string; value: string; disabled: boolean; required: boolean }>; bodyText: string }>(`(()=>{const clean=value=>String(value??"").trim().replace(/\\s+/g," ");const label=node=>clean(node.labels?.[0]?.textContent||node.getAttribute("aria-label")||node.getAttribute("placeholder")||node.title||node.textContent||node.value);return {markerIdsPresent:${JSON.stringify(step.markerIds)}.filter(id=>document.getElementById(id)),forms:[...document.querySelectorAll("form")].map(form=>({id:form.id||"",text:clean(form.textContent).slice(0,1000)})).slice(-10),controls:[...document.querySelectorAll("input,select,textarea,button")].map(node=>({id:node.id||"",name:node.name||"",tag:node.tagName.toLocaleLowerCase(),type:String(node.type||""),label:label(node),value:String(node.value||""),disabled:Boolean(node.disabled),required:Boolean(node.required)})).slice(-150),bodyText:clean(document.body?.innerText).slice(-5000)}})()`);
+    const read = () => client.evaluateDomRead<{ markerIdsPresent: string[]; forms: Array<{ id: string; text: string }>; controls: Array<{ id: string; name: string; tag: string; type: string; label: string; value: string; disabled: boolean; required: boolean }>; bodyText: string }>(`(()=>{const clean=value=>String(value??"").trim().replace(/\\s+/g," ");const label=node=>clean(node.labels?.[0]?.textContent||node.getAttribute("aria-label")||node.getAttribute("placeholder")||node.title||node.textContent||node.value);return {markerIdsPresent:${JSON.stringify(step.markerIds)}.filter(id=>document.getElementById(id)),forms:[...document.querySelectorAll("form")].map(form=>({id:form.id||"",text:clean(form.textContent).slice(0,1000)})).slice(-10),controls:[...document.querySelectorAll("input,select,textarea,button")].map(node=>({id:node.id||"",name:node.name||"",tag:node.tagName.toLocaleLowerCase(),type:String(node.type||""),label:label(node),value:String(node.value||""),disabled:Boolean(node.disabled),required:Boolean(node.required)})).slice(-150),bodyText:clean(document.body?.innerText).slice(-5000)}})()`);
     let surface = await read();
     for (let attempt = 0; attempt < 80 && activation.clicked && surface.markerIdsPresent.length === 0; attempt += 1) { await new Promise((resolve) => setTimeout(resolve, 250)); surface = await read(); }
     const evidence = await this.capture("inspect_generator_activation_surface_readonly_v2", target, client, { customerKey: draftPackage.customerKey, draftId, pageId });
@@ -2165,7 +2550,7 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
       const { target, client } = await this.client();
       await client.navigate(`${this.allowedOrigin}/pratica/ecobonus/2026/serramenti/${draftId}`);
       await this.waitForStable(client);
-      const readInfissiIntegritySurface = () => client.evaluate<{ visibleRowCount: number; paginationText: string[]; observedCost: number | null; loading: boolean; bodyText: string }>(`(()=>{const number=value=>{const compact=String(value??"").replace(/[^0-9,.-]/g,"");if(!compact)return null;const parsed=Number(compact.includes(",")?compact.replace(/\./g,"").replace(",","."):compact);return Number.isFinite(parsed)?parsed:null};const clean=value=>String(value??"").trim().replace(/\s+/g," ");const bodyText=clean(document.body?.innerText).slice(-5000);const tables=[...document.querySelectorAll("table")];const table=tables.find(candidate=>[...candidate.querySelectorAll("tr")].some(row=>row.querySelectorAll("td").length>=9))||null;const visibleRowCount=table?[...table.querySelectorAll("tr")].filter(row=>row.querySelectorAll("td").length>=9).length:0;const scope=table?.closest('.dataTables_wrapper,[class*="table" i]')||table?.parentElement||document;const paginationText=[...new Set([...scope.querySelectorAll('.dataTables_info,[id$="_info"],[class*="pagin" i],[aria-label*="pagina" i],[aria-label*="page" i],.MuiTablePagination-root')].map(node=>clean(node.textContent||node.getAttribute("aria-label"))).filter(Boolean))];return {visibleRowCount,paginationText,observedCost:number(document.getElementById("id-costo")?.value),loading:/caricamento(?:\.\.\.)?/i.test(bodyText),bodyText}})()`);
+      const readInfissiIntegritySurface = () => client.evaluateDomRead<{ visibleRowCount: number; paginationText: string[]; observedCost: number | null; loading: boolean; bodyText: string }>(`(()=>{const number=value=>{const compact=String(value??"").replace(/[^0-9,.-]/g,"");if(!compact)return null;const parsed=Number(compact.includes(",")?compact.replace(/\./g,"").replace(",","."):compact);return Number.isFinite(parsed)?parsed:null};const clean=value=>String(value??"").trim().replace(/\s+/g," ");const bodyText=clean(document.body?.innerText).slice(-5000);const tables=[...document.querySelectorAll("table")];const table=tables.find(candidate=>[...candidate.querySelectorAll("tr")].some(row=>row.querySelectorAll("td").length>=9))||null;const visibleRowCount=table?[...table.querySelectorAll("tr")].filter(row=>row.querySelectorAll("td").length>=9).length:0;const scope=table?.closest('.dataTables_wrapper,[class*="table" i]')||table?.parentElement||document;const paginationText=[...new Set([...scope.querySelectorAll('.dataTables_info,[id$="_info"],[class*="pagin" i],[aria-label*="pagina" i],[aria-label*="page" i],.MuiTablePagination-root')].map(node=>clean(node.textContent||node.getAttribute("aria-label"))).filter(Boolean))];return {visibleRowCount,paginationText,observedCost:number(document.getElementById("id-costo")?.value),loading:/caricamento(?:\.\.\.)?/i.test(bodyText),bodyText}})()`);
       let observed = await readInfissiIntegritySurface();
       for (let attempt = 0; attempt < 120 && (observed.loading || observed.visibleRowCount === 0 || observed.observedCost === null); attempt += 1) {
         await new Promise((resolve) => setTimeout(resolve, 250));

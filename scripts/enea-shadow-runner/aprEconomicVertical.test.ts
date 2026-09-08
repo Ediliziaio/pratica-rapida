@@ -90,18 +90,11 @@ describe("APR Slice 2 economic vertical", () => {
     expect(result.decisionsArtifact.payload.decisions.flatMap((item) => item.appliedRuleIds)).toContain("user-2026-08-16-distinct-invoice-numbers-same-customer-sum");
   });
 
-  it("negativo: non risolve una terna imponibile/IVA/lordo incoerente", () => {
-    const result = runEconomicVertical(input({ invoices: [invoice("invoice-1", "1", 110, { taxableAmount: 90, vatAmount: 10 })] }));
-    expect(result.outcome).toBe("BLOCKED");
-    expect(result.eligibleExpense).toBeNull();
-    expect(result.invoiceReconciliation.blockers).toContain("imponibile-iva-mismatch:invoice-1");
-  });
-
-  it("confine: accetta EUR 0,05 e rifiuta EUR 0,06 di scarto", () => {
-    const within = runEconomicVertical(input({ invoices: [invoice("invoice-1", "1", 100.05, { taxableAmount: 90, vatAmount: 10, interventionGrossAmount: 100.05 })] }));
-    const outside = runEconomicVertical(input({ invoices: [invoice("invoice-1", "1", 100.06, { taxableAmount: 90, vatAmount: 10, interventionGrossAmount: 100.06 })] }));
-    expect(within.outcome).toBe("RESOLVED");
-    expect(outside.outcome).toBe("BLOCKED");
+  it("regola generale di Giuliano: risolve anche con una terna imponibile/IVA/lordo vistosamente incoerente, perché quella coerenza interna non viene più verificata", () => {
+    const result = runEconomicVertical(input({ invoices: [invoice("invoice-1", "1", 110, { taxableAmount: 1, vatAmount: 1, interventionGrossAmount: 110 })] }));
+    expect(result.outcome).toBe("RESOLVED");
+    expect(result.eligibleExpense).toBe(110);
+    expect(result.invoiceReconciliation.blockers.some((code) => code.startsWith("imponibile-iva-mismatch"))).toBe(false);
   });
 
   it("applica la sostituzione esplicita senza sommare la fattura sostituita", () => {
@@ -128,12 +121,13 @@ describe("APR Slice 2 economic vertical", () => {
     expect(result.bankTransferReconciliation.status).toBe("principal_exceeds_invoices");
   });
 
-  it("mantiene il controllo capitale/lordi anche se la spesa ENEA resta bloccata", () => {
+  it("mantiene il controllo capitale/lordi indipendente dalla riconciliazione dei soli lordi fattura", () => {
     const result = runEconomicVertical(input({
-      invoices: [invoice("invoice-1", "1", 110, { taxableAmount: 90, vatAmount: 10 })],
+      invoices: [invoice("invoice-1", "1", 110, { taxableAmount: 1, vatAmount: 1, interventionGrossAmount: 110 })],
       bankTransfers: [transfer("transfer-1", 120, 1)],
     }));
-    expect(result.invoiceReconciliation.usable).toBe(false);
+    expect(result.invoiceReconciliation.usable).toBe(true);
+    expect(result.outcome).toBe("OPERATOR_REQUIRED");
     expect(result.eligibleExpense).toBeNull();
     expect(result.bankTransferReconciliation.status).toBe("principal_exceeds_invoices");
   });

@@ -315,7 +315,7 @@ if (command === "record-sara-readonly-conflict") {
     reason: step === "dates" ? `Fine lavori assente nel form; derivata dall'ultima fattura originaria al 23/07/2026, ${elapsedDays} giorni prima della lavorazione. Nessun alert oltre 90 giorni applicabile.`
       : step === "economic_sources" ? "490/26 classificata acconto (€2.800,00) e 814/26 saldo (€6.550,01); Fattura 3 e 4 sono copie semantiche rispettivamente di 490/26 e 814/26."
         : step === "gross_reconciliation" ? "Totale ENEA €9.350,01 come somma dei lordi delle due fatture uniche. Lo storno interno di 814/26 resta auditato e non viene sommato né trasformato in fonte separata."
-          : step === "screenings" ? "Una pergola finale riconciliata: 540×532 cm, superficie 28,72 m², esposizione sud, gTot documentato 0,02 dalla fattura originaria 814/26 (fallback 0,08 non applicato), materiale PVC, installazione esterna, meccanismo Manuale e superficie finestrata protetta 2,9 m² secondo registro."
+          : step === "screenings" ? "Una pergola finale riconciliata: 540×532 cm, superficie 28,72 m², esposizione sud, gTot documentato 0,02 dalla fattura originaria 814/26 (fallback 0,06 non applicato), materiale PVC, installazione esterna, meccanismo Manuale e superficie finestrata protetta 2,9 m² secondo registro."
             : step === "plant" ? "Impianto autonomo, caloriferi, gas metano, generatore Altro e climatizzazione sì dal form; distribuzione/regolazione e valori tecnici TEST coperti dalle policy operative registrate."
               : step === "enea_mapping" ? "Matrice completa con provenienza: risparmio energetico 482,50 kWh/anno dalla superficie riconciliata × 16,8; fine test alla bozza salvata, preview e submit vietati."
                 : "Fonte originaria verificata in sola lettura.",
@@ -334,7 +334,7 @@ if (command === "record-sara-readonly-conflict") {
       { sourceId: "invoice-814-26-2026-07-23", kind: "document", verification: "verified", note: "Fattura originaria 814/26 del 23/07/2026, saldo: PERGOLA ROOM 540×532 cm, superficie 28,72 m², tessuto PVC; CLASSE DI SCHERMATURA gTot 0,02 - classe 4; lordo documento €6.550,01; storno interno dell'acconto conservato solo in audit." },
       { sourceId: "invoice-490-26-semantic-duplicate", kind: "document", verification: "verified", note: "Fattura 3: copia semanticamente identica della 490/26; esclusa dal totale." },
       { sourceId: "invoice-814-26-semantic-duplicate", kind: "document", verification: "verified", note: "Fattura 4: copia semanticamente identica della 814/26; esclusa dal totale." },
-      { sourceId: "matteo-screening-policy-row-1", kind: "operator_policy", verification: "verified", note: "Pergola: gTot documentato 0,02 dalla fattura originaria 814/26 con precedenza sul fallback 0,08, non applicato; meccanismo assente→Manuale; superficie finestrata 2,9 m²; risparmio 28,72×16,8=482,50 kWh/anno. Tutti gli ID provengono dal registro unico." },
+      { sourceId: "matteo-screening-policy-row-1", kind: "operator_policy", verification: "verified", note: "Pergola: gTot documentato 0,02 dalla fattura originaria 814/26 con precedenza sul fallback 0,06, non applicato; meccanismo assente→Manuale; superficie finestrata 2,9 m²; risparmio 28,72×16,8=482,50 kWh/anno. Tutti gli ID provengono dal registro unico." },
     ],
     appliedRuleIds: [
       USER_AUTHORIZED_RULE_IDS.testStopAtSavedDraft, USER_AUTHORIZED_RULE_IDS.greenPreflightDraft,
@@ -345,7 +345,7 @@ if (command === "record-sara-readonly-conflict") {
       "authorized-16-schermature-meccanismo", "authorized-22-schermature-materiale", "authorized-23-schermature-esposizione",
       "authorized-26-schermature-risparmio-energia",
     ],
-    reason: `Preflight Matteo Maranesi interamente verde. Fine lavori 23/07/2026 derivata dall'ultima fattura originaria (${elapsedDays} giorni, nessun alert >90). Due fatture uniche riconciliate a €9.350,01; due duplicati esclusi. Una pergola 28,72 m², sud, gTot documentato 0,02 dalla fattura 814/26; fallback 0,08 non applicato. Attributi coperti esclusivamente dal registro unico.`,
+    reason: `Preflight Matteo Maranesi interamente verde. Fine lavori 23/07/2026 derivata dall'ultima fattura originaria (${elapsedDays} giorni, nessun alert >90). Due fatture uniche riconciliate a €9.350,01; due duplicati esclusi. Una pergola 28,72 m², sud, gTot documentato 0,02 dalla fattura 814/26; fallback 0,06 non applicato. Attributi coperti esclusivamente dal registro unico.`,
     nextAction: "Creare, compilare e salvare la sola bozza ENEA completa; fermarsi prima di anteprima e submit.",
   }, option("--command-id") ?? "matteo-readonly-preflight:original-sources-2026-08-14:v1", processingAt);
 } else if (command === "record-zeno-test-readonly") {

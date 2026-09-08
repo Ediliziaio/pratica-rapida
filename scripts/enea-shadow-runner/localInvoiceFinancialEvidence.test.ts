@@ -7,6 +7,37 @@ const extract = (text: string, overrides: Partial<Parameters<typeof extractLocal
 });
 
 describe("evidenza finanziaria da PDF originario locale", () => {
+  it("riconcilia i totali fiscali per etichetta nei layout colonnari senza usare aliquote o IVA come lordo", () => {
+    const evidence = extract(`Imponibile\nAL.IVA\n6.144,70\n10,00\nImporto IVA\nTotale merce\n853,14 22,00\n614,47\n% Sconto\nImporto sconto\nNetto merce\n187,69\n6.997,84\n0,00\nSpese Bolli\n6.997,84\nTOTALE DOCUMENTO\nTOTALE A PAGARE\nTot.\n802,16\nEuro 7.800,00`, { extractionMode: "macos_vision_ocr", grossTotal: 7800 });
+    expect(evidence).toMatchObject({ taxableAmount: 6997.84, vatAmount: 802.16, grossTotal: 7800, interventionGrossAmount: 7800, extractionConfidence: "certain" });
+    expect(reconcileFinancialEvidence([evidence])).toMatchObject({ usable: true, total: 7800 });
+  });
+
+  it("riconcilia il riepilogo IVA PA-Digitale a una o più aliquote e il pagamento separato", () => {
+    const singleRate = extract(`RIEPILOGHI IVA E TOTALI\nESIGIBILITÀ IVA / RIFERIMENTI NORMATIVI %IVA SPESE ACCESSORIE ARR. TOTALE IMPONIBILE TOTALE IMPOSTA\nI (esigibilità immediata) 22,00 0,00 7.175,00 1.578,50\nIMPORTO BOLLO SCONTO/MAGGIORAZIONE ARR. TOTALE DOCUMENTO\n8.753,50\nMODALITÀ PAGAMENTO DETTAGLI SCADENZE IMPORTO\nMP05 Bonifico IBAN\nIT00\n8.753,50`, { documentNumber: "81", grossTotal: 8753.5 });
+    const mixedRates = extract(`RIEPILOGHI IVA E TOTALI\nESIGIBILITÀ IVA / RIFERIMENTI NORMATIVI %IVA SPESE ACCESSORIE ARR. TOTALE IMPONIBILE TOTALE IMPOSTA\nI (esigibilità immediata) I (esigibilità immediata) 10,00 22,00 0,00 0,00 8.350,00 -1.175,00 835,00\n-258,50\nIMPORTO BOLLO SCONTO/MAGGIORAZIONE ARR. TOTALE DOCUMENTO\n7.751,50\nMODALITÀ PAGAMENTO DETTAGLI SCADENZE IMPORTO\nMP05 Bonifico IBAN\nIT00\n7.751,50`, { documentNumber: "88", grossTotal: 7751.5 });
+    expect(singleRate).toMatchObject({ taxableAmount: 7175, vatAmount: 1578.5, interventionGrossAmount: 8753.5 });
+    expect(mixedRates).toMatchObject({ taxableAmount: 7175, vatAmount: 576.5, interventionGrossAmount: 7751.5 });
+    expect(reconcileFinancialEvidence([singleRate, mixedRates])).toMatchObject({ usable: true, total: 16505 });
+  });
+
+  it("regola generale di Giuliano: un riepilogo IVA PA-Digitale che non torna col totale documento è comunque riconciliato sul solo totale dichiarato", () => {
+    const evidence = extract(`RIEPILOGHI IVA E TOTALI\n%IVA TOTALE IMPONIBILE TOTALE IMPOSTA\n22,00 7.175,00 1.500,00\nTOTALE DOCUMENTO\n8.753,50\nMODALITÀ PAGAMENTO DETTAGLI SCADENZE IMPORTO\n8.753,50`, { grossTotal: 8753.5 });
+    expect(reconcileFinancialEvidence([evidence])).toMatchObject({ usable: true, total: 8753.5 });
+  });
+
+  it("classifica come non economica la fattura di puro storno a zero solo con prove contabili complete", () => {
+    const evidence = extract(`FATTURA nr. 99/2026 del 07/04/2026\nSaldo\nA Detrarre nostra fattura N 434 del 29-12-2025\nImporto delle prestazioni € -4.700,00 10\nBeni significativi € -300,00 22\nFattura a saldo 0,00 per consegna ed installazione merce pagata\nImponibile € 0,00\nTotale IVA € 0,00`, { documentNumber: "99/2026", grossTotal: null });
+    expect(evidence).toMatchObject({ kind: "non_economic", taxableAmount: 0, vatAmount: 0, grossTotal: 0, interventionGrossAmount: 0, extractionConfidence: "certain" });
+    expect(evidence.internalAdjustmentNote).toContain("storno integrale");
+  });
+
+  it("non esclude una fattura a zero senza riferimento e righe negative di storno", () => {
+    const evidence = extract(`FATTURA nr. 100/2026 del 08/04/2026\nSaldo 0,00\nImponibile € 0,00\nTotale IVA € 0,00`, { documentNumber: "100/2026", grossTotal: 0 });
+    expect(evidence.kind).not.toBe("non_economic");
+    expect(reconcileFinancialEvidence([evidence]).candidateInvoiceSourceIds).toEqual(["invoice-1"]);
+  });
+
   it("riconcilia etichette fiscali raggruppate e valori sulla riga successiva", () => {
     const evidence = extract(`TOTALE IMPONIBILE SCADENZE
 TOTALE IVA TOTALE ESENTE
@@ -29,12 +60,12 @@ EUR 680,14`, { documentNumber: "619", documentDate: "2026-06-19", grossTotal: 68
     expect(reconcileFinancialEvidence([evidence])).toMatchObject({ usable: true, total: 680.14 });
   });
 
-  it("resta fail-closed se imponibile, IVA firmata e totale non si riconciliano", () => {
+  it("regola generale di Giuliano: imponibile, IVA firmata e totale non riconciliati non bloccano più, si usa il totale dichiarato", () => {
     const evidence = extract(`TOTALE IMPONIBILE TOTALE IVA TOTALE ESENTE
 NETTO A PAGARE
 1.097,00 -400,00 EUR 680,14 SCADENZE
 19-06-26 Bon VF 680,14`, { documentNumber: "619", documentDate: "2026-06-19", grossTotal: 680.14 });
-    expect(reconcileFinancialEvidence([evidence]).usable).toBe(false);
+    expect(reconcileFinancialEvidence([evidence])).toMatchObject({ usable: true, total: 680.14 });
   });
 
   it("riconcilia il riepilogo compatto con IVA prima dell'imponibile", () => {
@@ -46,12 +77,12 @@ Scadenze
     expect(reconcileFinancialEvidence([evidence])).toMatchObject({ usable: true, total: 8250 });
   });
 
-  it("resta fail-closed se il riepilogo compatto non quadra col totale documento", () => {
+  it("regola generale di Giuliano: un riepilogo compatto che non quadra col totale documento non blocca più, si usa il totale dichiarato", () => {
     const evidence = extract(`Merci e servizi 7.500,00 Totale imposta 700,00 Totale imponibile
 7.500,00
 Scadenze
 22/06/2026 Bonifico 8.250,00`, { documentNumber: "146", grossTotal: 8250 });
-    expect(reconcileFinancialEvidence([evidence]).usable).toBe(false);
+    expect(reconcileFinancialEvidence([evidence])).toMatchObject({ usable: true, total: 8250 });
   });
 
   it("riconcilia un riepilogo fiscale multi-aliquota con totale documento autorevole", () => {
@@ -173,7 +204,33 @@ Totale Iva
       explicitDeductibleLines: [expect.objectContaining({ text: "TOTALE SPESE CONGRUE SOSTENUTE IN BASE AI MASSIMALI AMMESSI € 2.113,36", amount: 2113.36, extractionConfidence: "certain" })] });
     const result = reconcileFinancialEvidence([evidence], { mode: "test", scheme: "ecobonus" });
     expect(result).toMatchObject({ usable: true, total: 2113.36 });
-    expect(result.auditNotes[0]).toContain("lordo_fattura=1575.01");
+    expect(result.auditNotes[0]).toContain("lordi_fatture=1575.01");
+  });
+
+  it("legge l'importo Rinaldi sulla riga successiva alla dicitura spese congrue", () => {
+    const evidence = extract(`RINALDI SRL
+TOTALE SPESE CONGRUE SOSTENUTE IN BASE AI MASSIMALI AMMESSI
+€ 3.134,06
+TOTALE IMPONIBILE
+€ 4.000,00
+Totale Iva
+€ 400,00
+Totale
+€ 4.400,00`, { documentNumber: "R-2", grossTotal: 4400 });
+    expect(evidence.explicitDeductibleLines).toEqual([
+      expect.objectContaining({ amount: 3134.06, extractionConfidence: "certain" }),
+    ]);
+    expect(reconcileFinancialEvidence([evidence], { mode: "test", scheme: "ecobonus" })).toMatchObject({ usable: true, total: 3134.06 });
+  });
+
+  it("senza dicitura spese congrue conserva la somma normale della fattura Rinaldi", () => {
+    const evidence = extract(`RINALDI SRL
+TOTALE IMPONIBILE € 4.000,00
+Totale Iva € 400,00
+Totale € 4.400,00
+Netto a pagare € 4.400,00`, { documentNumber: "R-3", grossTotal: 4400 });
+    expect(evidence.explicitDeductibleLines).toEqual([]);
+    expect(reconcileFinancialEvidence([evidence], { mode: "test", scheme: "ecobonus" })).toMatchObject({ usable: true, total: 4400 });
   });
 
   it("riconcilia il layout OCR Rinaldi con imponibile ripetuto prima dell'IVA e lordo nelle scadenze", () => {
@@ -469,6 +526,26 @@ Scadenze
     expect(reconciliation.appliedRuleIds).toContain("user-2026-08-26-invoice-schedule-missing-amount-v1");
   });
 
+  it("regola generale di Giuliano (Laurelli): riconosce come importo valido la scadenza con il punto al posto della virgola nei decimali ('3.759.40')", () => {
+    const evidence = extract(`Imponibile € 3.081,47
+Imposta 22% € 677,93
+Scadenze
+3.759.40 € il 02/07/2026 - Bonifico`, { documentNumber: "169/A", grossTotal: 3759.4 });
+    expect(evidence).toMatchObject({ interventionGrossAmount: 3759.4, extractionIssues: [] });
+    expect(reconcileFinancialEvidence([evidence])).toMatchObject({ usable: true, total: 3759.4, blockers: [] });
+  });
+  it("regola generale di Giuliano: il ripiego per il punto-al-posto-della-virgola non si attiva su un importo a un solo punto, gia' ambiguo di suo", () => {
+    const evidence = extract(`Imponibile € 2.850,00
+Totale IVA € 627,00
+Scadenze
+03-08-2026 €
+840.00`, { documentNumber: "AMBIGUOUS/26", grossTotal: 3477 });
+    expect(evidence).toMatchObject({
+      interventionGrossAmount: null,
+      extractionIssues: [{ code: "schedule_amount_missing", reason: "Scadenza non leggibile, importo mancante" }],
+    });
+  });
+
   it("riconcilia il riepilogo compatto e le rate Bonifico delle fatture GRK", () => {
     const evidence = extract(`Fattura Numero : 6 Data 13.02.2026
 Totale documento € 11.562,71
@@ -495,5 +572,113 @@ pagare
       extractionConfidence: "certain",
     });
     expect(reconcileFinancialEvidence([evidence])).toMatchObject({ usable: true, total: 11562.71 });
+  });
+
+  it("riconcilia una fattura OCR ruotata usando coppia fiscale e totale etichettato", () => {
+    const evidence = extract(`APR_OCR_ORIENTATION:180
+Imponibile
+2.500,00
+Importo IVA
+250,00
+Euro 2.750,00
+TOTALE A PAGARE`, { extractionMode: "macos_vision_ocr", documentNumber: "84/00", grossTotal: 2750 });
+    expect(evidence).toMatchObject({ taxableAmount: 2500, vatAmount: 250, interventionGrossAmount: 2750, extractionConfidence: "certain" });
+  });
+
+  it("riconcilia il punto decimale OCR soltanto dentro una coppia fiscale univoca", () => {
+    const evidence = extract(`APR_OCR_ORIENTATION:0
+Imponibile
+2.451,31
+Importo IVA
+298.69
+Euro 2.750,00
+TOTALE DOCUMENTO`, { extractionMode: "macos_vision_ocr", documentNumber: "156/00", grossTotal: 2750 });
+    expect(evidence).toMatchObject({ taxableAmount: 2451.31, vatAmount: 298.69, interventionGrossAmount: 2750, extractionConfidence: "certain" });
+  });
+
+  it("somma imponibili e IVA di aliquote stampate su righe sfalsate", () => {
+    const evidence = extract(`Imponibile
+AL.IVA
+Importo IVA
+3.341,45 10,00
+334,15
+224,92 22,00
+49,48
+Netto merce
+3.566,37
+Spese Bolli
+Euro 3.950,00
+TOTALE A PAGARE`, { documentNumber: "715/00", grossTotal: 3950 });
+    expect(evidence).toMatchObject({ taxableAmount: 3566.37, vatAmount: 383.63, interventionGrossAmount: 3950, extractionConfidence: "certain" });
+  });
+
+  it("ammette il separatore verticale OCR solo tra imponibile e aliquota riconciliati", () => {
+    const evidence = extract(`APR_OCR_ORIENTATION:180
+Imponibile
+AL.IVA
+Importo IVA
+3.341,45 10,00
+334,15
+224,92| 22,00
+49,48
+Netto merce
+3.566,37
+Spese Bolli
+Euro 3.950,00
+TOTALE A PAGARE`, { extractionMode: "macos_vision_ocr", documentNumber: "715/00", grossTotal: 3950 });
+    expect(evidence).toMatchObject({ taxableAmount: 3566.37, vatAmount: 383.63, interventionGrossAmount: 3950, extractionConfidence: "certain" });
+  });
+
+  it("somma le aliquote sfalsate anche quando l'OCR 180 restituisce il riepilogo dal basso verso l'alto", () => {
+    const evidence = extract(`APR_OCR_ORIENTATION:180
+Spese Bolli
+49,48
+224,92 22,00
+Netto merce
+334,15
+3.341,45 10,00
+Importo IVA
+AL.IVA
+Imponibile
+Euro 3.950,00
+TOTALE A PAGARE`, { extractionMode: "macos_vision_ocr", documentNumber: "715/00", grossTotal: 3950 });
+    expect(evidence).toMatchObject({ taxableAmount: 3566.37, vatAmount: 383.63, interventionGrossAmount: 3950, extractionConfidence: "certain" });
+    expect(reconcileFinancialEvidence([evidence])).toMatchObject({ usable: true, total: 3950 });
+  });
+
+  it("non accetta righe IVA sfalsate che non riconciliano col lordo", () => {
+    const evidence = extract(`Imponibile
+AL.IVA
+Importo IVA
+3.341,45 10,00
+330,15
+224,92 22,00
+49,48
+Spese Bolli`, { extractionMode: "macos_vision_ocr", documentNumber: "BAD/00", grossTotal: 3950 });
+    expect(evidence.extractionConfidence).toBe("uncertain");
+  });
+
+  it("resta fail-closed se la scansione ruotata offre due coppie fiscali compatibili", () => {
+    const evidence = extract(`APR_OCR_ORIENTATION:180
+Imponibile
+2.500,00
+2.400,00
+Importo IVA
+250,00
+350,00
+Euro 2.750,00
+TOTALE A PAGARE`, { extractionMode: "macos_vision_ocr", documentNumber: "AMB/00", grossTotal: 2750 });
+    expect(evidence).toMatchObject({ taxableAmount: null, vatAmount: null, extractionConfidence: "uncertain" });
+  });
+
+  it("regola generale di Giuliano (2026-09-08, regressione Calvacchi): quando il saldo netta un acconto precedente con una riga di credito esplicita, il totale finale stampato resta l'unica prova, mai una ricostruzione dalle righe", () => {
+    const evidence = extract(`Finestre in legno vari modelli\nACCONTO: FATTURA N. 187 DEL 11/12/2025 -3.606,56 € 22% -3.606,56 €\nTotale documento 880,01`, { documentNumber: "16", grossTotal: 880.01 });
+    expect(evidence.interventionGrossAmount).toBe(880.01);
+    expect(reconcileFinancialEvidence([evidence])).toMatchObject({ usable: true, total: 880.01 });
+  });
+
+  it("senza una riga di credito interno verso un acconto, la ricostruzione dalle righe resta attiva come prima (nessuna regressione)", () => {
+    const evidence = extract(`Imponibile\nAL.IVA\n6.144,70\n10,00\nImporto IVA\nTotale merce\n853,14 22,00\n614,47\n% Sconto\nImporto sconto\nNetto merce\n187,69\n6.997,84\n0,00\nSpese Bolli\n6.997,84\nTOTALE DOCUMENTO\nTOTALE A PAGARE\nTot.\n802,16\nEuro 7.800,00`, { extractionMode: "macos_vision_ocr", grossTotal: 7800 });
+    expect(evidence.interventionGrossAmount).toBe(7800);
   });
 });

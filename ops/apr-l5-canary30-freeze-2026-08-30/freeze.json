@@ -1,0 +1,45 @@
+{
+  "version": "apr-l5-canary-freeze-v1",
+  "frozenAt": "2026-08-30T00:00:00.000Z",
+  "authorizationId": "user-2026-08-30-l5-canary30-three-identical-rounds",
+  "portalMode": "real_enea_draft_only",
+  "roundCount": 3,
+  "caseCount": 30,
+  "manifestPath": "../apr-global-controller-test10-2026-08-29/manifest-autonomy30.json",
+  "manifestSha256": "6c684df774a48899a6ff4e2a6e52dfe83c2b9c357a81a6c6c52034abe687a953",
+  "requiredCustomerKeys": ["cristina-ricchi", "zeno-righetti"],
+  "sourceSnapshot": {
+    "path": "/private/tmp/apr-integrated-2877493",
+    "gitCommit": "8412440a847adbeb0f2493d57ac22b7aa127eeab"
+  },
+  "sequencer": {
+    "path": "../apr-global-controller-test10-2026-08-29/sequencer.mjs",
+    "sha256": "f83d8d97dd5e3b287efdddd702899b777afb103766d98cff800ac0e5f86ec3df"
+  },
+  "canonicalBundle": {
+    "versionId": "4ce842bbc734d4a37256732c138f8b3de5a8a201e37eec0c2caf1f47bf7b6bb2-captured-real-a7a9b290c5e7",
+    "gitCommit": "a7a9b290c5e7870477e1657da69325544e79b4d6",
+    "runtimeRevision": "apr-rule-runtime-1fa1ee0097ef08d1673ed838",
+    "receiptStatus": "PASS",
+    "hashes": {
+      "apr-supervisor.mjs": "62355bf3f5cac8a6cedf528de2997558ea350f6393462084f6c15cdbb9518ac7",
+      "apr-enea-worker.mjs": "6ab4cf28b0c0db4c48a0994c530f5c2be5c50bbcf0f4bc970bc939674ab2d623",
+      "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0"
+    }
+  },
+  "rounds": [
+    {"round": 1, "cohortOffset": 82, "cohortRange": "300-329"},
+    {"round": 2, "cohortOffset": 112, "cohortRange": "330-359"},
+    {"round": 3, "cohortOffset": 142, "cohortRange": "360-389"}
+  ],
+  "constraints": {
+    "noCodeChangesBetweenRounds": true,
+    "sameBundleHashesRequired": true,
+    "sameManifestRequired": true,
+    "sameExpectedPagesRequired": true,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false,
+    "correctionsDuringTestAllowed": false
+  }
+}

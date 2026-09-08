@@ -5,6 +5,37 @@ import type { EneaLabMappedPractice } from "./types";
 import { buildEneaPayload, fingerprintPreparedPractice, validatePreparedPractice } from "./preparation";
 
 describe("preparazione pacchetto ENEA", () => {
+  it("regressione Fiorini: non blocca il gTot quando il preflight l'ha gia' risolto tramite la dichiarazione del form (sottotipo 'cristal')", () => {
+    // Riproduce come crmEneaPayloadAudit.ts costruisce options.resolvedScreeningGTot
+    // dal piano prodotti gia' riconciliato dal preflight comune (product.appliedRuleIds[0]),
+    // non una chiamata diretta senza quella riconciliazione a monte.
+    const source = structuredClone(ENEA_LAB_MOCK_PRACTICES[0]);
+    source.form.prodotto = { tipo: "schermature", items: [{ tipo: "tende_da_sole", direzione: "sud" }] };
+    const analysis = { items: [{
+      widthMm: 2700, heightMm: 2020, surfaceM2: 5.454, gTot: null,
+      description: "Tenda tecnica a caduta zip T2Q teli cristal trasparente",
+      sourcePath: "cristal.pdf",
+    }], invoiceTotal: 11_900, documents: [] };
+    const mapped = mapSchermaturaPractice(source, analysis, {
+      resolvedScreeningGTot: [{ value: 0.13, source: "authorized_fallback", ruleId: "user-2026-09-07-form-declared-type-resolves-classification-ambiguity-v1" }],
+    });
+    const issues = validatePreparedPractice(source, mapped);
+    expect(issues.some(({ code }) => code === "unverified-gtot-0")).toBe(false);
+  });
+
+  it("continua a fermarsi per operatore sul sottotipo 'cristal' senza una risoluzione a monte del preflight", () => {
+    const source = structuredClone(ENEA_LAB_MOCK_PRACTICES[0]);
+    source.form.prodotto = { tipo: "schermature", items: [{ tipo: "pergotenda", direzione: "sud" }] };
+    const analysis = { items: [{
+      widthMm: 2700, heightMm: 2020, surfaceM2: 5.454, gTot: null,
+      description: "Tenda tecnica a caduta zip T2Q teli cristal trasparente",
+      sourcePath: "cristal.pdf",
+    }], invoiceTotal: 11_900, documents: [] };
+    const mapped = mapSchermaturaPractice(source, analysis);
+    const issues = validatePreparedPractice(source, mapped);
+    expect(issues.some(({ code }) => code === "unverified-gtot-0")).toBe(true);
+  });
+
   it("include le convenzioni nel test ma le esclude dal pacchetto ufficiale", () => {
     const mapped = mapSchermaturaPractice(ENEA_LAB_MOCK_PRACTICES[0]);
     const issues = validatePreparedPractice(ENEA_LAB_MOCK_PRACTICES[0], mapped);

@@ -1,0 +1,18 @@
+{
+  "version": "apr-terminal-cohort-quiescence-bundle-install-receipt-r67-v1",
+  "installedAt": "2026-09-05T23:19:17.474Z",
+  "status": "bundle_promoted_local_gate_verified",
+  "governanceAttestationSha256": "c4f86d75c44e5a1a1937941e6cc069f2d4f94f46badc40a0912631f6ff11f7b2",
+  "versionId": "b52ec569-terminal-cohort-quiescence-r67-20260906",
+  "previousTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/e4afbcb6-final-canonical-proof-r66-20260905",
+  "currentTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/b52ec569-terminal-cohort-quiescence-r67-20260906",
+  "installedBundle": {
+    "apr-supervisor.mjs": "29465fb99ceff067b4094fee8af53393960f2d2681a3f69a2280646aecf57d4f",
+    "apr-enea-worker.mjs": "b52ec569d32ccc340f315697f294e2e43622dfd9029cc3f8d36f880b9dd6239e",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "apr-rule-governance-attestation.json": "c4f86d75c44e5a1a1937941e6cc069f2d4f94f46badc40a0912631f6ff11f7b2"
+  },
+  "keepaliveRestartRequested": false,
+  "chromeRestartRequested": false,
+  "operationalReplayPerformed": false
+}

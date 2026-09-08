@@ -1,0 +1,95 @@
+{
+  "version": "apr-recovery-prepared-window-operational-verification-r49-v1",
+  "observedAt": "2026-09-04T18:57:48.000Z",
+  "bundle": {
+    "versionId": "9a77fc9f-recovery-prepared-window-r49-20260904",
+    "sourceFingerprint": "f7bc237c49569c2a0ad07399f7abeeaed29fbb34cf2203ebbb6dff23c6797a24",
+    "status": "active_tested_deployed"
+  },
+  "authorizedCorrection": {
+    "ruleId": "system-sequencer-recovery-prepared-window-lifecycle-v1",
+    "causeProved": true,
+    "exactCause": "Il worker persiste legittimamente item=filling e pagina=prepared fra il claim del recupero e l'intento dell'unico Salva; il sequencer precedente accettava soltanto pagina=pending e pubblicava recovery_filling_checkpoint_invalid.",
+    "generalCorrection": "La finestra prepared e accettata soltanto sulla stessa bozza canonica, con una sola prova persisted_fields_get=not_saved, una sola pagina autorizzata, preparedEvidenceId coerente, nessuna savedEvidenceId e budget recovery ancora zero.",
+    "positiveAndNegativeTests": "passed",
+    "monotonicGate": {
+      "testSuites": 444,
+      "tests": 1750,
+      "failedSuites": 0,
+      "failedTests": 0,
+      "rulesProved": 131
+    }
+  },
+  "operationalVerification": {
+    "status": "HALTED_NEW_TECHNICAL_ANOMALY",
+    "mutationSafety": {
+      "previewAttemptCount": 0,
+      "submitAttemptCount": 0,
+      "communicationAttemptCount": 0,
+      "cohort3059ServicesStopped": true,
+      "keepalivePreserved": true,
+      "chromePreserved": true
+    },
+    "cases": [
+      {
+        "customerKey": "lucia-droghetti",
+        "draftId": "464067",
+        "preservedSavedPages": 5,
+        "r49Applicability": "historical_prepared_window_would_be_accepted",
+        "currentTruth": "INCONSISTENT",
+        "exactCause": "Il falso verdetto recovery_filling_checkpoint_invalid e eliminato da r49, ma prima dell'installazione il worker aveva gia eseguito l'unico Salva di recupero su screening:1; la GET canonica successiva ha provato not_saved e il budget e 1/1. Il report/dashboard storico conserva ancora il vecchio TECHNICAL_BLOCK, mentre il checkpoint e terminale operator_intervention.",
+        "operatorQuestion": "Autorizzi una nuova generazione pulita per Lucia Droghetti, mantenendo intatta la bozza 464067, dato che l'unico recupero consentito sulla generazione corrente risulta gia consumato e non persistito?"
+      },
+      {
+        "customerKey": "claudia-sellati",
+        "draftId": "460570",
+        "preservedSavedPages": 0,
+        "r49Applicability": "operationally_confirmed",
+        "currentTruth": "INCONSISTENT",
+        "exactCause": "r49 ha mantenuto non terminale la finestra filling/prepared. Dopo l'intento del Salva, il driver ha registrato save_page_once (evidence cdp-server-24), ma prima della sonda server il worker e entrato in loop su enea_verified_package_recovery_intent_accounting_state_invalid. Checkpoint, report storico e dashboard non concordano; l'esito di persistenza non e attribuibile.",
+        "operatorQuestion": "Autorizzi la diagnosi e l'eventuale correzione generale di enea_verified_package_recovery_intent_accounting_state_invalid, preceduta da una verifica server read-only della pagina Anagrafica Beneficiario della bozza 460570?"
+      },
+      {
+        "customerKey": "cristina-ricchi",
+        "draftId": "462183",
+        "preservedSavedPages": 5,
+        "r49Applicability": "historical_prepared_window_would_be_accepted",
+        "currentTruth": "INCONSISTENT",
+        "exactCause": "La generazione conserva un recupero disponibile su screening:1, ma il replay operativo non e stato avviato perche Sellati ha rivelato un difetto tecnico comune distinto nel percorso successivo al Salva.",
+        "operatorQuestion": "Dopo la correzione del difetto di accounting emerso su Sellati, autorizzi la ripresa controllata di Cristina Ricchi dalla bozza 462183?"
+      },
+      {
+        "customerKey": "orietta-artuso",
+        "draftId": "462232",
+        "preservedSavedPages": 5,
+        "r49Applicability": "historical_prepared_window_would_be_accepted",
+        "currentTruth": "INCONSISTENT",
+        "exactCause": "L'unico recupero era gia stato eseguito prima di r49 e la rilettura server era rimasta inconcludente; r49 elimina il falso arresto nella finestra prepared ma non ricrea un budget mutativo consumato.",
+        "operatorQuestion": "Puoi verificare in sola lettura se la Riga tecnica 1 della bozza 462232 contiene tutti i dati attesi e rispondere SALVATA, NON SALVATA oppure INDETERMINABILE?"
+      },
+      {
+        "customerKey": "angelina-stricelli",
+        "draftId": "464009",
+        "preservedSavedPages": 5,
+        "r49Applicability": "historical_prepared_window_would_be_accepted",
+        "currentTruth": "INCONSISTENT",
+        "exactCause": "L'unico recupero era gia stato eseguito e la GET canonica aveva provato not_saved prima di r49; inoltre il caso resta congelato per precedente decisione dell'utente. r49 non autorizza un secondo recupero.",
+        "operatorQuestion": "Confermi di mantenere Angelina Stricelli assegnata all'operatore, senza nuove mutazioni sulla bozza 464009?"
+      }
+    ],
+    "newTechnicalAnomaly": {
+      "code": "enea_verified_package_recovery_intent_accounting_state_invalid",
+      "isSameAsAuthorizedBug": false,
+      "pipelinePoint": "PersistentAprEneaDraftExecution.repairVerifiedPackageRecoveryIntentAccounting",
+      "proof": "Il checkpoint Sellati e save_intent_recorded con recoverySaveAttemptCount=0 e il driver contiene save_page_once cdp-server-24; il guard di accounting fallisce prima di contabilizzare il recupero e prima della sonda persisted_fields_get.",
+      "actionTaken": "Arrestati soltanto worker, supervisore e watchdog della coorte 3059; nessun altro lotto avviato."
+    }
+  },
+  "continuityVerification": {
+    "launchctlKeepalive": "running pid 42593",
+    "keepaliveCheckpoint": "setup_ready heartbeat 2026-09-04T18:57:47.661Z",
+    "globalBrowserController": "activeOwnerId null; lastReleasedAt 2026-09-04T18:57:47.687Z",
+    "chromePid": 3785,
+    "forbiddenActions": 0
+  }
+}

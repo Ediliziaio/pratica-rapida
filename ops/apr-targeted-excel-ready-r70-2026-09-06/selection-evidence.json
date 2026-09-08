@@ -1,0 +1,173 @@
+{
+  "version": "apr-targeted-excel-ready-r70-selection-evidence-v1",
+  "observedAt": "2026-09-06T16:56:54.718Z",
+  "responseSha256": "06b219c46f6c8a79a3c91259781ddb4d67f096bef009fb64eabdef4aad9e24ca",
+  "returnedRows": 429,
+  "method": "Authenticated CRM GET only; every practice whose current stage name is exactly Da inserire su Excel, plus the four explicitly named practices whose current stage name is exactly Pronte da fare.",
+  "counts": {
+    "excel": 8,
+    "readyNamed": 4,
+    "total": 12
+  },
+  "excel": [
+    {
+      "practiceId": "562ef10a-2ced-43bd-9eaf-59aeedba7f3d",
+      "customerKey": "giovanni-pietro-sanvito",
+      "displayName": "Giovanni Pietro Sanvito",
+      "stage": "gestionale",
+      "stageName": "Da inserire su Excel",
+      "module": "screening",
+      "productEvidence": "Schermature Solari",
+      "reseller": "cor tende",
+      "invoiceCount": 1,
+      "createdAt": "2026-08-31T14:48:49.305602+00:00",
+      "updatedAt": "2026-09-04T09:22:20.360329+00:00"
+    },
+    {
+      "practiceId": "d88895ce-3b15-4b3f-800a-7cbfe0139246",
+      "customerKey": "antonio-sacco",
+      "displayName": "ANTONIO SACCO",
+      "stage": "gestionale",
+      "stageName": "Da inserire su Excel",
+      "module": "infissi",
+      "productEvidence": "Infissi / Serramenti",
+      "reseller": "rm legno",
+      "invoiceCount": 7,
+      "createdAt": "2026-09-02T12:05:26.969668+00:00",
+      "updatedAt": "2026-09-04T09:19:33.836951+00:00"
+    },
+    {
+      "practiceId": "6ff95940-9371-4ad1-b5ad-bf3c06b5a807",
+      "customerKey": "tanbir-awal",
+      "displayName": "Tanbir Awal",
+      "stage": "gestionale",
+      "stageName": "Da inserire su Excel",
+      "module": "infissi",
+      "productEvidence": "Infissi / Serramenti",
+      "reseller": "sa montaggi",
+      "invoiceCount": 1,
+      "createdAt": "2026-08-05T17:09:25.345882+00:00",
+      "updatedAt": "2026-09-04T09:17:01.587717+00:00"
+    },
+    {
+      "practiceId": "14b65405-1a32-4c3b-8f64-2afd2fb3f4e1",
+      "customerKey": "donata-zangrossi",
+      "displayName": "DONATA ZANGROSSI",
+      "stage": "gestionale",
+      "stageName": "Da inserire su Excel",
+      "module": null,
+      "productEvidence": "Pompe di Calore / Climatizzazione",
+      "reseller": "Homnium",
+      "invoiceCount": 2,
+      "createdAt": "2026-08-26T12:30:19.678195+00:00",
+      "updatedAt": "2026-09-04T09:09:09.0239+00:00"
+    },
+    {
+      "practiceId": "fd24c40d-3237-4986-abe8-cf37552a2746",
+      "customerKey": "chiara-chierichetti",
+      "displayName": "Chiara Chierichetti",
+      "stage": "gestionale",
+      "stageName": "Da inserire su Excel",
+      "module": "infissi",
+      "productEvidence": "Infissi / Serramenti",
+      "reseller": "Brianza serramenti",
+      "invoiceCount": 2,
+      "createdAt": "2026-09-04T07:17:31.281881+00:00",
+      "updatedAt": "2026-09-04T08:53:10.302013+00:00"
+    },
+    {
+      "practiceId": "3dc3cd09-f5b8-4b73-b86c-c1886aa0ab2d",
+      "customerKey": "francesca-scalia",
+      "displayName": "Francesca Scalia",
+      "stage": "gestionale",
+      "stageName": "Da inserire su Excel",
+      "module": "screening",
+      "productEvidence": "Schermature Solari",
+      "reseller": "lm tende",
+      "invoiceCount": 2,
+      "createdAt": "2026-09-03T08:23:13.81459+00:00",
+      "updatedAt": "2026-09-04T08:40:27.700417+00:00"
+    },
+    {
+      "practiceId": "8de255c1-5897-405f-82f4-36dc646688c4",
+      "customerKey": "massimo-cotta",
+      "displayName": "MASSIMO COTTA",
+      "stage": "gestionale",
+      "stageName": "Da inserire su Excel",
+      "module": "screening",
+      "productEvidence": "Schermature Solari",
+      "reseller": "zanellato tende",
+      "invoiceCount": 1,
+      "createdAt": "2026-09-03T08:27:10.862088+00:00",
+      "updatedAt": "2026-09-04T08:35:27.584827+00:00"
+    },
+    {
+      "practiceId": "2b3d17a0-c176-4e7c-9be5-5b84200b281d",
+      "customerKey": "daniele-buoncompagni",
+      "displayName": "Daniele Buoncompagni",
+      "stage": "gestionale",
+      "stageName": "Da inserire su Excel",
+      "module": "infissi",
+      "productEvidence": "Infissi / Serramenti",
+      "reseller": "sa montaggi",
+      "invoiceCount": 1,
+      "createdAt": "2026-09-03T15:13:35.50113+00:00",
+      "updatedAt": "2026-09-04T08:29:52.474272+00:00"
+    }
+  ],
+  "ready": [
+    {
+      "practiceId": "98deb6d7-8cd4-4354-871b-45e8b13d2325",
+      "customerKey": "luca-dragotta",
+      "displayName": "luca dragotta",
+      "stage": "pronte_da_fare",
+      "stageName": "Pronte da fare",
+      "module": "screening",
+      "productEvidence": "Schermature Solari",
+      "reseller": "Rinaldi Lab",
+      "invoiceCount": 2,
+      "createdAt": "2026-09-03T14:19:02.565378+00:00",
+      "updatedAt": "2026-09-04T10:57:20.136817+00:00"
+    },
+    {
+      "practiceId": "e3d7cbed-1f70-40e3-aeb6-58a2fd0e8683",
+      "customerKey": "lidia-marchisio",
+      "displayName": "LIDIA MARCHISIO",
+      "stage": "pronte_da_fare",
+      "stageName": "Pronte da fare",
+      "module": "screening",
+      "productEvidence": "Schermature Solari",
+      "reseller": "idea tende cuneo",
+      "invoiceCount": 1,
+      "createdAt": "2026-09-02T14:14:06.437793+00:00",
+      "updatedAt": "2026-09-05T08:18:01.481958+00:00"
+    },
+    {
+      "practiceId": "45cfd987-4ac3-4cd8-be37-dc0442bdb330",
+      "customerKey": "massimo-grimaldi",
+      "displayName": "massimo grimaldi",
+      "stage": "pronte_da_fare",
+      "stageName": "Pronte da fare",
+      "module": "screening",
+      "productEvidence": "Schermature Solari",
+      "reseller": "Rinaldi Lab",
+      "invoiceCount": 2,
+      "createdAt": "2026-09-02T06:53:07.526374+00:00",
+      "updatedAt": "2026-09-04T13:18:45.319376+00:00"
+    },
+    {
+      "practiceId": "a35a615c-0fb0-46df-bdf8-a35d34fbd974",
+      "customerKey": "aldo-gebbia",
+      "displayName": "Aldo Gebbia",
+      "stage": "pronte_da_fare",
+      "stageName": "Pronte da fare",
+      "module": "infissi",
+      "productEvidence": "Infissi / Serramenti",
+      "reseller": "Homnium",
+      "invoiceCount": 3,
+      "createdAt": "2026-08-26T13:05:32.56005+00:00",
+      "updatedAt": "2026-09-03T15:36:23.062534+00:00"
+    }
+  ],
+  "mutationAllowed": false
+}

@@ -1,0 +1,23 @@
+{
+  "version": "apr-install-bundle-cli-receipt-v1",
+  "installedAt": "2026-09-07T09:43:25.959Z",
+  "label": "mixed-infissi-persiane-r73",
+  "versionId": "2118de60-mixed-infissi-persiane-r73-20260907",
+  "previousTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/54993e27-screenings-missing-root-causes-r72-20260907",
+  "currentTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/2118de60-mixed-infissi-persiane-r73-20260907",
+  "installedBundle": {
+    "apr-supervisor.mjs": "a85bd78aba62ba83a03bd568ad08c06cb22f15256acbd3483ebe1c2ddeb93403",
+    "apr-enea-worker.mjs": "284e1286157104dcf6235ef8b35ac63f4e005c05020973b6deb1a026b4243dc3",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0"
+  },
+  "gateResultArtifactId": "4914a46899a8b4dc11d22feae74b825caf3f5cea0a79964fc75aa01067d34f83",
+  "gateStatus": "PASS",
+  "legacyGovernanceDebtNoticed": [
+    "user-2026-08-06-existing-plant-authoritative-mapping-v1",
+    "user-2026-08-06-intervention-authoritative-sources-and-defaults-v1",
+    "user-2026-08-06-portal-intermediary-physical-beneficiary-v1",
+    "user-2026-08-06-portal-municipality-controlled-selection-v1",
+    "user-2026-09-05-co-beneficiary-trusted-enter-delivery-v2",
+    "user-2026-09-05-terminal-cohort-browser-quiescence-v1"
+  ]
+}

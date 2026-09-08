@@ -1,0 +1,146 @@
+{
+  "schemaVersion": "apr-vendor-identity-replay-r33-v1",
+  "localOnly": true,
+  "cases": [
+    {
+      "customerKey": "massimiliano-montemorra",
+      "crmIdentity": {
+        "name": "MASSIMILIANO",
+        "surname": "MONTEMORRA",
+        "taxCode": "MNTMSM78M05D643K"
+      },
+      "supplier": {
+        "fornitore": null,
+        "company": "rm legno"
+      },
+      "outcome": "blocked_case",
+      "primaryBeneficiaryResolution": {
+        "status": "not_found",
+        "identity": null,
+        "sourceIds": [],
+        "authority": null
+      },
+      "blockers": [
+        {
+          "code": "permanent_supplier_automation_exclusion",
+          "field": "supplier",
+          "reason": "Erre Emme / RM Legno: Fornitore escluso dall'elaborazione automatica per decisione permanente dell'utente. Nessun allegato viene elaborato e nessuna azione ENEA viene tentata.",
+          "sourceIds": [
+            "row.companies.ragione_sociale:rm legno"
+          ],
+          "appliedRuleIds": [
+            "user-2026-08-18-future-test-exclusions",
+            "system-apr-operator-intervention-routing"
+          ],
+          "operatorQuestion": "Confermi che la pratica collegata a Erre Emme / RM Legno deve restare esclusa dall'automazione APR?",
+          "missingDocumentType": null,
+          "onboardingGap": null
+        }
+      ],
+      "productsProcessed": 0,
+      "financialEvidenceProcessed": 0,
+      "draftReady": false,
+      "externalActionAllowed": false
+    },
+    {
+      "customerKey": "antonino-formisabo",
+      "crmIdentity": {
+        "name": "Antonino",
+        "surname": "Formisabo",
+        "taxCode": "FRMNNN66P27L259X"
+      },
+      "supplier": {
+        "fornitore": null,
+        "company": "Innova Serramenti"
+      },
+      "outcome": "blocked_case",
+      "primaryBeneficiaryResolution": {
+        "status": "verified_document",
+        "identity": {
+          "name": "Antonino",
+          "surname": "Formisano",
+          "taxCode": "FRMNNN66P27L259X",
+          "birthDate": "1966-09-27",
+          "sex": "M"
+        },
+        "sourceIds": [
+          "3f474befb0a10b53673324445535ebfcc82451255de8b100202149442a4bb706",
+          "d6234418d259872e3244b3c7cabd2fa15258dcbb8676a82fdd965192d4d8982b"
+        ],
+        "authority": "official_identity_document"
+      },
+      "blockers": [
+        {
+          "code": "screenings_missing",
+          "field": "screenings",
+          "reason": "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+          "sourceIds": [
+            "ee3d3fdf397708c7cf85de7519e55d39d79cea1c3e92995ac12f9ec8cf8bc7e2",
+            "1d2e91d7354b3f46507070193131bba0a9ef198178392e64620469f95fe2b9f6",
+            "4ce578f3ddf19e5bc9b0273c8d2e415171983659c5082adfcaf88c636f2dda7b",
+            "b9547f368ca2dda888c0cf2baafe159afc210d5cfef22df8b255ac9540ad75d4",
+            "7b0b698d39187b36cd71eda300bb147bea4e1502aeef1a0365ecc99c50e502f9",
+            "3f474befb0a10b53673324445535ebfcc82451255de8b100202149442a4bb706",
+            "d6234418d259872e3244b3c7cabd2fa15258dcbb8676a82fdd965192d4d8982b",
+            "568a62961f82f78e5c34c3ad6e4def10bbc95cec453b022ba0613afdcd08a2aa",
+            "1509bb91bc694983eaf380594c65f4d528123db9eaef908a7af0bece61ead0c2",
+            "5c7877efb569c3ad9ac8344bdc007eebda66a5f4b73ead4cd2ff533d7eb87fba"
+          ],
+          "appliedRuleIds": [
+            "user-2026-08-14-preserve-technical-product-cardinality"
+          ]
+        },
+        {
+          "code": "completion_date_portal_year_mismatch",
+          "field": "dates.completion",
+          "reason": "Fine lavori 2025-12-16: anno 2025 incompatibile con il portale ENEA 2026. Selezionare il portale annuale corretto senza modificare la data.",
+          "sourceIds": [
+            "5c7877efb569c3ad9ac8344bdc007eebda66a5f4b73ead4cd2ff533d7eb87fba:invoice:264f0ccd0374",
+            "568a62961f82f78e5c34c3ad6e4def10bbc95cec453b022ba0613afdcd08a2aa:invoice:264f0ccd0374"
+          ],
+          "appliedRuleIds": [
+            "user-2026-08-23-completion-portal-year-operator-gate",
+            "user-2026-08-14-missing-completion-use-latest-invoice"
+          ]
+        },
+        {
+          "code": "completion_over_90_days_operator_required",
+          "field": "dates.completion",
+          "reason": "Fine lavori 2025-12-16: 261 giorni prima della lavorazione, oltre il limite di 90 giorni. Verificare la procedibilità e il portale annuale corretto.",
+          "sourceIds": [
+            "5c7877efb569c3ad9ac8344bdc007eebda66a5f4b73ead4cd2ff533d7eb87fba:invoice:264f0ccd0374",
+            "568a62961f82f78e5c34c3ad6e4def10bbc95cec453b022ba0613afdcd08a2aa:invoice:264f0ccd0374"
+          ],
+          "appliedRuleIds": [
+            "user-2026-08-23-completion-over-90-operator-gate",
+            "user-2026-08-14-missing-completion-use-latest-invoice"
+          ]
+        },
+        {
+          "code": "invoice_332a5af9",
+          "field": "economic_sources",
+          "reason": "Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture.",
+          "sourceIds": [
+            "ee3d3fdf397708c7cf85de7519e55d39d79cea1c3e92995ac12f9ec8cf8bc7e2",
+            "1d2e91d7354b3f46507070193131bba0a9ef198178392e64620469f95fe2b9f6",
+            "4ce578f3ddf19e5bc9b0273c8d2e415171983659c5082adfcaf88c636f2dda7b",
+            "b9547f368ca2dda888c0cf2baafe159afc210d5cfef22df8b255ac9540ad75d4",
+            "7b0b698d39187b36cd71eda300bb147bea4e1502aeef1a0365ecc99c50e502f9",
+            "3f474befb0a10b53673324445535ebfcc82451255de8b100202149442a4bb706",
+            "d6234418d259872e3244b3c7cabd2fa15258dcbb8676a82fdd965192d4d8982b",
+            "568a62961f82f78e5c34c3ad6e4def10bbc95cec453b022ba0613afdcd08a2aa",
+            "1509bb91bc694983eaf380594c65f4d528123db9eaef908a7af0bece61ead0c2",
+            "5c7877efb569c3ad9ac8344bdc007eebda66a5f4b73ead4cd2ff533d7eb87fba"
+          ],
+          "appliedRuleIds": [
+            "core-economic-classification"
+          ]
+        }
+      ],
+      "productsProcessed": 0,
+      "financialEvidenceProcessed": 3,
+      "draftReady": false,
+      "externalActionAllowed": false
+    }
+  ]
+}

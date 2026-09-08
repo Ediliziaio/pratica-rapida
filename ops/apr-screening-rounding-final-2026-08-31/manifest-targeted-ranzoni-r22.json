@@ -1,0 +1,34 @@
+{
+  "version": "apr-screening-rounding-targeted-ranzoni-r22-v1",
+  "authorizationId": "user-2026-08-31-definitive-mandate-same-authorized-corpus",
+  "authorizedAt": "2026-08-31T00:00:00.000Z",
+  "mode": "real_enea_draft_only",
+  "safety": {
+    "draftOnly": true,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false,
+    "priorDraftPolicy": "preserve_and_ignore_for_new_test_draft"
+  },
+  "selection": {
+    "total": 1,
+    "selectionMethod": "targeted regression replay from the already-authorized 30-case corpus",
+    "moduleDistribution": { "infissi": 1 },
+    "complexityDistribution": { "medium": 1 },
+    "allowedStages": ["archiviate"],
+    "excludedCustomerKeys": ["beatrice-ciotta"]
+  },
+  "cases": [
+    {
+      "cohort": 246,
+      "customerKey": "armando-ranzoni",
+      "displayName": "Armando Ranzoni",
+      "practiceId": "54fdcf5f-3092-4f43-a741-ff510c25f51f",
+      "stage": "archiviate",
+      "module": "infissi",
+      "invoiceCount": 2,
+      "complexity": "medium",
+      "historicalRetest": true
+    }
+  ]
+}

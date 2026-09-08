@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "apr-manual-review-comparison-v1",
+  "scope": "local_only_no_enea_actions",
+  "reviewMethod": "Claude Code blind review of real documents, followed by APR comparison",
+  "cases": [
+    {
+      "displayName": "Massimiliano Montemorra",
+      "comparison": "HUMAN_SOURCE_ACCEPTABILITY_DECISION_REQUIRED",
+      "cause": "The blind review reads a complete identity and valid tax code from 07-supporting.pdf page 2, while APR rejects the form/invoice corpus. The batch contains no photographic identity document and has address/name inconsistencies in payment evidence, so the identity source must be accepted or rejected explicitly before retiring the blocker.",
+      "missingDocumentType": "signed customer form or accepted authoritative identity source",
+      "operatorQuestion": "Conferma se il documento 07-supporting.pdf pagina 2 può essere usato come fonte autorevole dell’identità; in caso contrario inserisci il modulo cliente completo e firmato o un documento d’identità leggibile.",
+      "onboardingGap": "identity authority and accepted document type are not explicit"
+    },
+    {
+      "displayName": "Francesca Maria Monti",
+      "comparison": "APR_FALSE_IDENTITY_BLOCKER_RESOLVED",
+      "cause": "The blind review reads the complete identity and valid tax code from 02-supporting.pdf page 5. The general invoice-customer-block rule now confirms the same valid CRM tax code only where the same name and tax code occur inside a CLIENTE block on the same invoice page; the former tax_code_missing_or_invalid blocker is retired.",
+      "missingDocumentType": null,
+      "operatorQuestion": null,
+      "onboardingGap": null
+    },
+    {
+      "displayName": "Enrico Amos Maria Berneri",
+      "comparison": "APR_FALSE_IDENTITY_BLOCKER_RESOLVED",
+      "cause": "The blind review and current-source APR now agree on the valid tax code and identity from an original document. The general original-document candidate rule retired the identity blocker.",
+      "missingDocumentType": null,
+      "operatorQuestion": null,
+      "onboardingGap": null
+    },
+    {
+      "displayName": "Sabrina Eustomi",
+      "comparison": "LEGITIMATE_IDENTITY_EVIDENCE_GAP",
+      "cause": "The only invoice proves name and tax code but does not state birth date or birth place; no customer form, identity document or payment receipt is present.",
+      "missingDocumentType": "signed customer form or identity document stating birth date and birth place",
+      "operatorQuestion": "Inserisci il modulo cliente completo e firmato oppure un documento leggibile che riporti data e luogo di nascita della beneficiaria.",
+      "onboardingGap": "birth date and birth place were not collected in an authoritative document"
+    },
+    {
+      "displayName": "Marco De Marinis",
+      "comparison": "APR_FALSE_MISSING_ADVANCE_INVOICE_BLOCKER_RESOLVED",
+      "cause": "The blind review proves that €4,090.91 is the taxable amount of invoice 312/FE, not a reference to a missing advance invoice. The general explicit-invoice-number marker rule now prevents monetary amounts from being treated as invoice references.",
+      "missingDocumentType": null,
+      "operatorQuestion": "Chiarisci la differenza di €840,20 tra la fattura 317/FE da €10.000,00 e il bonifico Deutsche Bank da €9.159,80, indicando se esiste un ulteriore pagamento o una rettifica documentata.",
+      "onboardingGap": "payment reconciliation evidence is incomplete or unexplained"
+    }
+  ],
+  "aggregate": {
+    "resolvedTechnicalIdentityOrReferenceErrors": 3,
+    "candidateTechnicalErrorsRequiringFurtherProof": 0,
+    "legitimateEvidenceGaps": 1,
+    "humanSourceAuthorityDecisions": 1
+  }
+}

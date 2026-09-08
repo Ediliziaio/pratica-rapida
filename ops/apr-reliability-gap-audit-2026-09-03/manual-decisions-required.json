@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "apr-reliability-audit-manual-decisions-v1",
+  "generatedAt": "2026-09-03T17:31:00.000Z",
+  "safety": {
+    "localOnly": true,
+    "eneaMutationPerformed": false,
+    "crmMutationPerformed": false,
+    "communicationsPerformed": false
+  },
+  "decisions": [
+    {
+      "practiceId": "eed0922f-b5ec-4e8f-b860-d746ed93528e",
+      "displayName": "Claudia Campagna",
+      "classification": "AMBIGUOUS_AUTHORIZED_FINANCIAL_PRECEDENCE",
+      "exactCause": "I documenti originali producono un totale lordo fatture di 2960,00 EUR (858,00 + 2102,00), mentre la regola esplicitamente autorizzata user-2026-08-14-rinaldi-explicit-deductible-total usa come spesa ammissibile 3134,06 EUR (858,00 + 2276,06 indicati in fattura come 'TOTALE SPESE CONGRUE SOSTENUTE IN BASE AI MASSIMALI AMMESSI'). Le due grandezze hanno semantica diversa e l'audit non può scegliere autonomamente quale debba essere trasmessa a ENEA.",
+      "missingDocumentType": null,
+      "operatorQuestion": "Per Claudia Campagna, confermi che su ENEA la spesa ammissibile deve restare 3.134,06 EUR (858,00 EUR di acconto + 2.276,06 EUR indicati come 'spese congrue') invece del totale lordo delle due fatture pari a 2.960,00 EUR?",
+      "onboardingGap": "Richiedere e distinguere esplicitamente nel fascicolo totale lordo fatture, totale pagato e importo ammissibile/congruo ENEA, con indicazione della fonte documentale di ciascun valore.",
+      "evidence": {
+        "invoiceGrossTotal": 2960,
+        "eligibleExpenseSelectedByExistingRule": 3134.06,
+        "advanceInvoice": 858,
+        "finalInvoiceGross": 2102,
+        "printedCongruousExpense": 2276.06,
+        "operationalCheckpoint": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2955-global-controller-claudia-campagna/crm-local-preflight/checkpoint.json",
+        "operationalMapping": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2955-global-controller-claudia-campagna/enea-operational-bridge/claudia-campagna-mapping.json",
+        "freshDocumentDiagnostic": "fiscal-copy-diagnostic-r35.json"
+      },
+      "actionTaken": "NONE_FAIL_CLOSED_PENDING_GIULIANO_DECISION"
+    }
+  ]
+}

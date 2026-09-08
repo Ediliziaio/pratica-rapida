@@ -2,6 +2,7 @@ import {
   observeAprInfissiTechnicalCandidates,
   resolveAprInfissiTechnicalCandidates,
   type AprInfissiTechnicalCandidateSet,
+  type AprInfissiTechnicalSourceBinding,
   type AprInfissiTextSource,
 } from "../../src/features/enea-shadow-crm/infissiAutomaticDocumentEvidence";
 import { resolveInfissiTechnicalSources } from "../../src/features/enea-shadow-crm/infissiTechnicalSources";
@@ -282,6 +283,21 @@ function candidateSetFromFacts(factsArtifact: AprCanonicalFactsArtifact): AprInf
         measurementKind: typeof row.measurementKind === "string" ? row.measurementKind as "overall_external" | "other_documented" | "documented_unspecified" : undefined,
       };
     }) : [];
+    const bindingValue = value.sourceBinding && typeof value.sourceBinding === "object" && !Array.isArray(value.sourceBinding)
+      ? value.sourceBinding as Record<string, AprCanonicalValue>
+      : null;
+    const stringArray = (input: AprCanonicalValue | undefined) => Array.isArray(input)
+      ? input.filter((item): item is string => typeof item === "string")
+      : [];
+    const sourceBinding: AprInfissiTechnicalSourceBinding | null = bindingValue ? {
+      status: bindingValue.status === "verified" || bindingValue.status === "not_applicable" ? bindingValue.status : "unverified" as const,
+      customerMatched: bindingValue.customerMatched === true,
+      orderOrJobReferencesPresent: bindingValue.orderOrJobReferencesPresent === true,
+      productSignatureMatched: bindingValue.productSignatureMatched === true,
+      matchedInvoiceSourceIds: stringArray(bindingValue.matchedInvoiceSourceIds),
+      technicalReferences: stringArray(bindingValue.technicalReferences),
+      invoiceReferences: stringArray(bindingValue.invoiceReferences),
+    } : null;
     return {
       sourceId: stringValue(value.sourceId),
       sourceKind: stringValue(value.sourceKind),
@@ -289,6 +305,7 @@ function candidateSetFromFacts(factsArtifact: AprCanonicalFactsArtifact): AprInf
       rows,
       explicitUwCount: numberValue(value.explicitUwCount),
       declaredPerformancePageCount: typeof value.declaredPerformancePageCount === "number" ? value.declaredPerformancePageCount : null,
+      sourceBinding,
     };
   });
   const excludedSources = factsWithPrefix(factsArtifact, "product.infissi.excluded_source.").map((fact) => {
@@ -304,6 +321,7 @@ function candidateSetFromFacts(factsArtifact: AprCanonicalFactsArtifact): AprInf
       USER_AUTHORIZED_RULE_IDS.technicalProductCardinality,
       USER_AUTHORIZED_RULE_IDS.crmInternalTechnicalDocumentUntrusted,
       USER_AUTHORIZED_RULE_IDS.testExNovoOriginalSourcesOnly,
+      USER_AUTHORIZED_RULE_IDS.technicalDocumentPracticeBinding,
     ],
   };
 }
@@ -311,7 +329,7 @@ function candidateSetFromFacts(factsArtifact: AprCanonicalFactsArtifact): AprInf
 function infissiDecision(factsArtifact: AprCanonicalFactsArtifact) {
   const candidateFacts = factsWithPrefix(factsArtifact, "product.infissi.candidate.");
   const excludedFacts = factsWithPrefix(factsArtifact, "product.infissi.excluded_source.");
-  const automatic = resolveAprInfissiTechnicalCandidates(candidateSetFromFacts(factsArtifact));
+  const automatic = resolveAprInfissiTechnicalCandidates(candidateSetFromFacts(factsArtifact), { requirePracticeBinding: true });
   const technical = resolveInfissiTechnicalSources({
     practiceId: factsArtifact.payload.practiceId,
     invoice: automatic.evidence?.kind === "invoice" ? automatic.evidence : undefined,
@@ -325,6 +343,7 @@ function infissiDecision(factsArtifact: AprCanonicalFactsArtifact) {
     USER_AUTHORIZED_RULE_IDS.infissiTransmittanceFallback,
     USER_AUTHORIZED_RULE_IDS.technicalProductCardinality,
     USER_AUTHORIZED_RULE_IDS.crmInternalTechnicalDocumentUntrusted,
+    USER_AUTHORIZED_RULE_IDS.technicalDocumentPracticeBinding,
   ];
   return {
     physicalRows,

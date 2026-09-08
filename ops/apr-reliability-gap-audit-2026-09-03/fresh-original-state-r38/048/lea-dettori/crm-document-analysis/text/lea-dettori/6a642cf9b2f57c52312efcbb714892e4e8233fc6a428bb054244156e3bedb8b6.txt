@@ -1,0 +1,49 @@
+FATTURA
+nr. FPR 241/26 del 23/05/2026
+Data invio: 23/05/2026
+FORNITORE
+LM TENDE DA SOLE E ZANZARIERE S.R.L.
+P.IVA: IT13223860969
+C.F.: 13223860969
+Via Della Resistenza
+20090 - Buccinasco (MI) - IT
+Telefono: 3348841668
+info@lmtende.it
+CLIENTE
+LEA DETTORI
+C.F.: DTTLEA66C62F205Q
+Via Roma 79
+20090 - Cesano Boscone (MI) - IT
+PRODOTTI E SERVIZI
+NR DESCRIZIONE QUANTITA' PREZZO IMPORTO IVA NATURA IVA
+1 Fattura saldo per fornitura e posa di Tenda da sole a
+scomparsa parziale modello MILANO RAL 9010
+Tessuto TEMPOTEST 426 Manovra argano manuale
+asta 200 cm Mantovana a torretta passamaneria
+bianca N° 1 da 450 x 210 cm (manovra a DX V.I.)
+Schermatura superficie mq 9,45 G tot 0.08 classe 4 Dta
+collaudo 23/05/2026
+1 800,00 € 800,00 € 22 % -
+METODO DI PAGAMENTO
+NR RATA MODALITÀ PAGAMENTO BANCA IBAN BIC/SWIFT DATA SCADENZA IMPORTO
+1 Bonifico Pagamento in
+unica soluzione
+Monte dei
+paschi di siena
+IT21X0103032650000007139314 23/05/2026 976,00 €
+REGIME FISCALE
+REGIME FISCALE
+RF01 - Ordinario
+IVA NATURA NORMATIVA 22% 800,00 € 176,00 €
+RIEPILOGO IVA CALCOLO FATTURA
+Importo prodotti o servizi 800,00 €
+Totale imponibile 800,00 €
+Totale IVA 176,00 €
+Totale documento 976,00 €
+ESIGIBILITA' IMPONIBILE IMPOSTA
+Netto a pagare 976,00 €
+Effettuare bonifico per detrazione : Causale intervento di
+riqualificazione energetica L.296/2006
+Copia analogica della fattura elettronica inviata a SdI | Il documento xml originale è disponibile online sul portale "Fatture e Corrispettivi dell'Agenzia delle Entrate"
+Fattura Nr. FPR 241/26 del 23/05/2026 Fattura generata con:
+Pag.1/1

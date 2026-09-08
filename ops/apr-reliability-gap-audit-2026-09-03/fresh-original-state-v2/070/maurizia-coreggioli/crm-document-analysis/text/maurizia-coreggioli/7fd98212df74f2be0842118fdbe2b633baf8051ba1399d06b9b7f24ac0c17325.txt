@@ -1,0 +1,251 @@
+APR_OCR_ORIENTATION:270
+1/4
+Uw Tot. infisso 1,25 W/m2K
+Uw Tot. infisso 1,29 W/m2K
+certificato acustica
+certificato acustica
+Ug Vetro/Pann.: 1,00 W/m?K
+Ug Vetro/Pann.: 1,00 W/m?K
+MQ. 1,83
+MQ. 1,52
+TECNO ESTENSE SRL
+Via Vasco Zappaterra, 7
+EN ISO 10077-1/2
+EN ISO 10077-1/2
+44124 Ferrara (FE)
+EN ISO 717-1
+EN 12210
+EN 12208
+EN 12207
+EN 12210
+EN 12208
+EN 12207
+EN ISO 717-1
+Spett.le
+Norma di prodotto: finestre e porte pedonali esterne - UNI EN 14351-1:2010/REG.(UE) 305/2011
+Vorma di prodotto: finestre e porte pedonali esterne - UNI EN 14351-1:2010/REG.(UE) 305/2011
+Mis. 1.190 x 1.540
+Mis. 985 x 1.540
+Fabbricante: Elledi Finestre in PVC srl - Via Palazzetto 1/A, Castelgomberto - VI
+Fabbricante: Elledi Finestre in PVC srl - Via Palazzetto 1/A, Castelgomberto - VI
+Sistema di valutazione e verifica della costanza della prestazione: Sistema 3
+Sistema di valutazione e verifica della costanza della prestazione: Sistema 3
+35 (-1;-4) dB
+Cod. Identif. Prodotto: Finestra a 2 ante con apertura a ribalta DX
+3+3/16 argon w.e./3+3 G ONE
+35 (-1;-4) dB
+1.25 W/m2K
+Cod. Identif. Prodotto: Finestra a 2 ante con apertura a ribalta DX
+3+3/16 argon w.e./3+3 G ONE
+1,29 W/m°K
+Uso previsto: Finestre e porte uso residenziale e commerciale
+Uso previsto: Finestre e porte uso residenziale e commerciale
+B2/C2
+Sistema prodotto: Piattaforma 70 squadrato - Telaio Z60
+Organismo notificato: IFT ROSENHEIM/LegnoLegno-1709
+B2/C2
+9A
+Sistema prodotto: Piattaforma 70 squadrato - Telaio Z60
+Organismo notificato: IFT ROSENHEIM/LegnoLegno-1709
+9A
+Rilascio Sostanze pericolose: vedi dichiarazione
+Rilascio Sostanze pericolose: vedi dichiarazione
+FINESTREIN PVC
+ETA: non applicabile
+ETA: non applicabile
+Abbattimento acustico:
+Trasmittanza termica:
+Vetro/Pannello:
+Fattore solare (g):
+Resistenza al vento:
+Tenuta all'acqua:
+Permeabilità all'aria:
+Abbattimento acustico:
+Trasmittanza termica:
+Vetro/Pannello:
+Fattore solare (g):
+Resistenza al vento:
+Tenuta all'acqua:
+Permeabilità all'aria:
+•ELLEDI
+Tipologia: 204
+Tipologia: 204
+Dichiarazione di Prestazione (DoP)
+A = 1.040
+Conferma d'ordine: 123572/1
+Vs. Rif.: CORREGGIOLI
+520
+5202-
+RIF. MATRIMONIALE
+L= 1,190
+L1 = 492,50L2 = 492,50
+L= 985
+Pos. 1 Pezzi 1
+Pos. 2 Pezzi 1
+RIF. SCALA
+
+APR_OCR_ORIENTATION:270
+3 /4
+certificato acustica
+EN ISO 10077-1/2
+EN 12210
+EN 12208
+EN 12207
+Norma di prodotto: finestre e porte pedonali esterne - UNI EN 14351-1:2010/REG.(UE) 305/2011
+EN ISO 717-1
+Fabbricante: Elledi Finestre in PVC srl - Via Palazzetto 1/A, Castelgomberto - VI
+Sistema di valutazione e verifica della costanza della prestazione: Sistema 3
+Ug Vetro/Pann.:
+0,00 W/m2K
+Uso previsto: Finestre e porte uso residenziale e commerciale
+Organismo notificato: IFT ROSENHEIM/LegnoLegno-1709
+PND
+PND
+PND
+PND
+Rilascio Sostanze pericolose: vedi dichiarazione
+Cod. Identif. Prodotto: Cassonetto in PVC
+Sistema prodotto: Cassonetto PVC usb= 1.3
+ETA: non applicabile
+Resistenza al vento:
+Trasmittanza termica:
+Vetro/Pannello:
+Fattore solare (g):
+Tenuta all'acqua:
+Permeabilità all'aria:
+Abbattimento acustico:
+Conferma d'ordine: 123572/1
+L = 2.010
+26.01.26
+
+APR_OCR_ORIENTATION:0
+•ELLEDI
+FINESTRE IN PVC
+Spett.le
+TECNO ESTENSE SRL
+Prestazioni Energetiche
+Via Vasco Zappaterra, 7
+Conferma d'ordine: 123572/1
+44124 Ferrara (FE)
+Vs. Rif.: CORREGGIOLI
+Pos. 1 Pezzi 1 Tipologia: 204
+Mis. 1.190 x 1.540 MQ. 1,83
+1 Uw Tot. infisso 1,25 W/m2K
+Piattaforma 70 squadrato - Telaio Z60 - Finestra a 2 ante con apertura a ribalta DX
+Uf Nodo:
+1,30 W/m2K
+Vetro/Pann.: 3+3/16 argon w.e./3+3 G ONE
+Fattore solare (g): 0,5
+Ug Vetro/Pann. 1,00 W/m2K
+Pos. 2 Pezzi 1 Tipologia: 204
+Mis. 985 x 1.540 MQ. 1,52
+Uw Tot. infisso 1,29 W/m2K
+Piattaforma 70 squadrato - Telaio Z60 - Finestra a 2 ante con apertura a ribalta DX
+Uf Nodo:
+1,30 W/m2K
+Vetro/Pann.: 3+3/16 argon w.e./3+3 G ONE
+Fattore solare (g): 0,5
+Ug Vetro/Pann.
+1,00 W/m2K
+Pos. 3 Pezzi 1
+Tipologia: 204
+Mis. 1.487 x 1.588
+MQ. 2,36
+Uw Tot. infisso 1,22 W/m2K
+Piattaforma 70 squadrato - Telaio Z60 - Finestra a 2 ante con apertura a ribalta DX
+Uf Nodo:
+1,30 W/m2K
+Vetro/Pann.: 3+3/16 argon w.e./3+3 G ONE
+Fattore solare (g): 0,5
+Ug Vetro/Pann.
+1,00 W/m2K
+Totali pagine: 1
+1 / 1
+
+APR_OCR_ORIENTATION:0
+Documento: 123.572/1 - Posizione: 1
+Istanza 1 di 1
+FELLEDI
+FINESTRE IN PVC
+Istanza 1 di 1
+Documento: 123.572/1 - Posizione: 2
+FELLEDI
+TIPO: MATRIMONIALE
+TIPO: SCALA
+Colore esterno:
+con apertura a ribalta DX
+DESCRIZIONE: Finestra a 2 ante
+Colore esterno:
+con apertura a ribalta DX
+DESCRIZIONE: Finestra a 2 ante
+Colore interno:
+159 Bianco massa
+159 Bianco massa
+Larghezza: 1.190 Altezza: 1.540
+159 Bianco massa
+1540
+Colore interno:
+Larghezza: 985
+159 Bianco massa
+Altezza: 1.540
+1540
+2x,595
+1190
+2 X 492,5
+985
+CE
+Elledi Finestre in PVC SRL
+Via Palazzetto 1/A
+Elledi Finestre in PVC SRL
+36070 Castelgomberto (VI)
+Via Palazzetto 1/A
+36070 Castelgomberto (VI)
+EN 14351-1:2006 + A2:2016
+EN 14351-1:2006 + A2:2016
+Tenuta all'acqua:
+Resistenza al carico del vento:
+B2/C2
+9A
+B2/C2
+9A
+Trasmittanza termica:
+Potere fonoisolante:
+1,25 W/m2K
+35 (-1;-4)
+Potere fonoisolante:
+Tenuta all'acqua:
+Resistenza al carico del vento:
+Permeabilità all'aria:
+Trasmittanza termica:
+Permeabilità all'aria:
+1,29 W/m2K
+35 (-1:-4)
+Documento: 123.572/1 - Posizione: 3
+Istanza 1 di 1
+FELLEDI
+TIPO: GATTO
+con apertura a ribalta DX
+DESCRIZIONE: Finestra a 2 ante
+159 Bianco massa
+Colore esterno:
+159 Bianco massa
+Colore interno:
+Larghezza: 1.487 Altezza: 1.588
+1588
+2 x 7,43,5
+1487
+CE
+Elledi Finestre in PVC SRL
+Via Palazzetto 1/A
+36070 Castelgomberto (VI)
+EN 14351-1:2006 + A2:2016
+Resistenza al carico del vento:
+B2/C2
+Potere fonoisolante:
+Tenuta all'acqua:
+9A
+Permeabilità all'aria:
+Trasmittanza termica:
+1.22 W/m2K
+34 (-1;-4)
+4

@@ -10,7 +10,7 @@ import { verifyAprInfissiInvoiceCertificateCardinality, type AprInfissiInvoiceCe
 import { resolveInfissiTechnicalSources, type InfissiTechnicalResolution } from "../../src/features/enea-shadow-crm/infissiTechnicalSources";
 import { USER_AUTHORIZED_RULE_IDS, registryRule } from "../../src/features/enea-shadow-crm/operationalRegistry";
 import { buildAprInfissiDraftPackage } from "./infissiDraftPackage";
-import { resolveAprDocumentedProductRouting } from "../../src/features/enea-shadow-crm/documentedProductRouting";
+import { resolveAprDocumentedProductRouting, resolveFormDeclaredProductModule } from "../../src/features/enea-shadow-crm/documentedProductRouting";
 
 export const APR_INFISSI_BATCH_PREFLIGHT_VERSION = "apr-infissi-batch-preflight-v1" as const;
 export type AprInfissiCheckpointMode = "resume" | "migrate";
@@ -24,10 +24,26 @@ const sha256 = (value: unknown) => createHash("sha256").update(typeof value === 
 
 const SYSTEM_RULE_IDS = Object.freeze(["system-single-active-practice", "system-atomic-checkpoint-resume"] as const);
 
+function permanentlyExcludedCustomerKeys(common: { items?: Array<Record<string, unknown>> }) {
+  return new Set((common.items ?? []).flatMap((item) => {
+    const report = object(item.report);
+    const blockers = Array.isArray(report?.blockers) ? report.blockers.map(object).filter((value): value is JsonObject => Boolean(value)) : [];
+    return blockers.some((blocker) => {
+      const code = text(blocker.code);
+      return code === "permanent_supplier_automation_exclusion" || code === "permanent_customer_automation_exclusion";
+    }) ? [text(item.customerKey)] : [];
+  }).filter(Boolean));
+}
+
 export interface AprInfissiBatchBlocker {
   code: string;
   field: string;
   sourceIds: string[];
+  classification?: "operator_required" | "technical_block";
+  exactCause?: string;
+  missingDocumentType?: string | null;
+  operatorQuestion?: string;
+  onboardingGap?: string | null;
 }
 
 export interface AprInfissiBatchItem {
@@ -45,6 +61,7 @@ export interface AprInfissiBatchItem {
     blockers: AprInfissiBatchBlocker[];
     physicalProductCount: number;
     invoiceGrossTotal: number | null;
+    automaticTechnicalEvidenceAudit: ReturnType<typeof extractAprInfissiAutomaticTechnicalEvidence>["audit"];
     technical: InfissiTechnicalResolution;
     productRules: InfissiProductRulesResolution;
     shadingClosureAllocation: AprInfissiShadingClosureAllocation | null;
@@ -72,10 +89,21 @@ export interface AprInfissiBatchPreflightState {
   reason: string;
   nextAction: string;
   validationRevisionsApplied: string[];
+  operatorPracticeBindingResolutions: Array<{
+    practiceId: string;
+    customerKey: string;
+    sourceId: string;
+    sourceSha256: string;
+    evidenceId: string;
+    operatorId: string;
+    commandId: string;
+    answeredAt: string;
+    note: string;
+  }>;
   audit: Array<{
     revision: number;
     at: string;
-    type: "initialized" | "batch_prepared" | "case_claimed" | "case_ready" | "case_blocked" | "batch_completed" | "validation_requeued" | "routing_reconciled";
+    type: "initialized" | "batch_prepared" | "case_claimed" | "case_ready" | "case_blocked" | "batch_completed" | "validation_requeued" | "routing_reconciled" | "operator_resolution_requeued";
     customerKey: string | null;
     reason: string;
     appliedRuleIds: string[];
@@ -111,6 +139,7 @@ function initialState(now: Date): AprInfissiBatchPreflightState {
     reason,
     nextAction: "Attendere acquisizione e analisi locale delle fonti originarie CRM.",
     validationRevisionsApplied: [],
+    operatorPracticeBindingResolutions: [],
     audit: [{ revision: 0, at: now.toISOString(), type: "initialized", customerKey: null, reason, appliedRuleIds: [...SYSTEM_RULE_IDS] }],
   };
 }
@@ -131,6 +160,12 @@ function validState(value: AprInfissiBatchPreflightState) {
     && value.submitAllowed === false
     && value.communicationsAllowed === false
     && value.audit.every((event) => event.appliedRuleIds.length > 0 && event.appliedRuleIds.every((id) => registryRule(id)));
+}
+
+function formDeclaredModuleFromDossierPath(dossierPath: string) {
+  const row = object(object(JSON.parse(readFileSync(dossierPath, "utf8")))?.row);
+  const prodotto = object(object(row?.dati_form)?.prodotto);
+  return resolveFormDeclaredProductModule(prodotto);
 }
 
 function formFromDossier(value: unknown) {
@@ -160,6 +195,7 @@ export class PersistentAprInfissiBatchPreflight {
     try {
       const value = JSON.parse(readFileSync(this.checkpointPath, "utf8")) as AprInfissiBatchPreflightState;
       value.validationRevisionsApplied ??= [];
+      value.operatorPracticeBindingResolutions ??= [];
       return validState(value) ? value : initialState(now);
     } catch { return initialState(now); }
   }
@@ -183,7 +219,7 @@ export class PersistentAprInfissiBatchPreflight {
     }
     const commonPath = path.join(this.rootDirectory, "crm-local-preflight", "checkpoint.json");
     if (!existsSync(commonPath)) throw new Error("infissi_common_preflight_missing");
-    const common = JSON.parse(readFileSync(commonPath, "utf8")) as { items?: Array<{ customerKey?: string; report?: { startDate?: string | null; completionDate?: string | null; resolvedTaxCode?: string | null; coBeneficiaryResolution?: { present?: boolean; identity?: { name?: string; surname?: string; taxCode?: string } | null } } }> };
+    const common = JSON.parse(readFileSync(commonPath, "utf8")) as { items?: Array<{ customerKey?: string; report?: { startDate?: string | null; completionDate?: string | null; resolvedTaxCode?: string | null; primaryBeneficiaryResolution?: { status?: string; identity?: { name?: string; surname?: string; taxCode?: string; birthDate?: string | null; sex?: "M" | "F" } | null }; worksMunicipalityResolution?: { status?: string; value?: { comune?: string; provincia?: string } | null }; coBeneficiaryResolution?: { present?: boolean; identity?: { name?: string; surname?: string; taxCode?: string } | null } } }> };
     const commonItem = common.items?.find((candidate) => candidate.customerKey === customerKey);
     const startDate = text(commonItem?.report?.startDate);
     const completionDate = text(commonItem?.report?.completionDate);
@@ -197,6 +233,18 @@ export class PersistentAprInfissiBatchPreflight {
       startDate,
       completionDate,
       resolvedTaxCode,
+      resolvedPrimaryBeneficiary: commonItem?.report?.primaryBeneficiaryResolution?.status === "verified_document"
+        && commonItem.report.primaryBeneficiaryResolution.identity
+        && text(commonItem.report.primaryBeneficiaryResolution.identity.name)
+        && text(commonItem.report.primaryBeneficiaryResolution.identity.surname)
+        ? { name: text(commonItem.report.primaryBeneficiaryResolution.identity.name), surname: text(commonItem.report.primaryBeneficiaryResolution.identity.surname), taxCode: resolvedTaxCode, birthDate: text(commonItem.report.primaryBeneficiaryResolution.identity.birthDate) || null, sex: commonItem.report.primaryBeneficiaryResolution.identity.sex }
+        : null,
+      resolvedWorksMunicipality: commonItem?.report?.worksMunicipalityResolution?.status === "verified_document"
+        && commonItem.report.worksMunicipalityResolution.value
+        && text(commonItem.report.worksMunicipalityResolution.value.comune)
+        && text(commonItem.report.worksMunicipalityResolution.value.provincia)
+        ? { comune: text(commonItem.report.worksMunicipalityResolution.value.comune), provincia: text(commonItem.report.worksMunicipalityResolution.value.provincia) }
+        : null,
       resolvedCoBeneficiaryPresent: commonItem?.report?.coBeneficiaryResolution?.present,
       resolvedCoBeneficiary: commonItem?.report?.coBeneficiaryResolution?.identity && text(commonItem.report.coBeneficiaryResolution.identity.name) && text(commonItem.report.coBeneficiaryResolution.identity.surname) && text(commonItem.report.coBeneficiaryResolution.identity.taxCode)
         ? { name: text(commonItem.report.coBeneficiaryResolution.identity.name), surname: text(commonItem.report.coBeneficiaryResolution.identity.surname), taxCode: text(commonItem.report.coBeneficiaryResolution.identity.taxCode) }
@@ -247,23 +295,49 @@ export class PersistentAprInfissiBatchPreflight {
     });
   }
 
+  applyOperatorPracticeBindingResolution(input: { practiceId: string; customerKey: string; operatorId: string; commandId: string; answeredAt: string; note: string }, now = new Date()) {
+    if (!input.practiceId.trim() || !input.customerKey.trim() || !input.operatorId.trim() || !input.commandId.trim() || !Number.isFinite(Date.parse(input.answeredAt)) || !input.note.trim()) {
+      throw new Error("infissi_practice_binding_operator_resolution_invalid");
+    }
+    const current = this.initialize(now);
+    if (current.operatorPracticeBindingResolutions.some((entry) => entry.commandId === input.commandId)) return current;
+    const existing = current.items.find((item) => item.practiceId === input.practiceId && item.customerKey === input.customerKey);
+    const bindingBlocker = existing?.report?.blockers.find((blocker) => blocker.code === "infissi_technical_document_practice_binding_unverified");
+    const selectedSourceId = existing?.report?.automaticTechnicalEvidenceAudit.selectedSourceId;
+    const sourceFingerprint = existing?.report?.sourceFingerprints.find((entry) => entry.sourceId === selectedSourceId);
+    if (!existing || existing.state !== "blocked_case" || !bindingBlocker || !selectedSourceId || !sourceFingerprint) {
+      throw new Error("infissi_practice_binding_operator_resolution_scope_invalid");
+    }
+    const evidenceId = `operator-practice-binding:${sha256({ practiceId: input.practiceId, customerKey: input.customerKey, sourceId: selectedSourceId, sourceSha256: sourceFingerprint.sha256, operatorId: input.operatorId, commandId: input.commandId, answeredAt: input.answeredAt, note: input.note.trim() })}`;
+    const resolution = { ...input, practiceId: input.practiceId.trim(), customerKey: input.customerKey.trim(), sourceId: selectedSourceId, sourceSha256: sourceFingerprint.sha256, evidenceId, operatorId: input.operatorId.trim(), commandId: input.commandId.trim(), note: input.note.replace(/\s+/g, " ").trim().slice(0, 500) };
+    const target = { ...existing, state: "queued" as const, startedAt: null, endedAt: null, reason: "Conferma operatore caso-specifica persistita; pratica riaccodata sullo stesso fingerprint documentale.", report: null };
+    const items = current.items.map((item) => item.customerKey === target.customerKey ? target : item);
+    const revision = current.revision + 1;
+    return this.write({ ...current, revision, status: "working", currentCustomerKey: null, items, progress: progress(items), operatorPracticeBindingResolutions: [...current.operatorPracticeBindingResolutions, resolution], reason: target.reason, nextAction: "Rieseguire il preflight sulla stessa fonte; la conferma non si propaga ad altre pratiche o documenti.", audit: [...current.audit, { revision, at: now.toISOString(), type: "operator_resolution_requeued", customerKey: target.customerKey, reason: `${target.reason} evidenceId=${evidenceId}`, appliedRuleIds: [...SYSTEM_RULE_IDS, USER_AUTHORIZED_RULE_IDS.operatorStructuredQuestionResume, USER_AUTHORIZED_RULE_IDS.technicalDocumentPracticeBinding] }] });
+  }
+
   reconcileDocumentedProductRouting(checkpointMode: AprInfissiCheckpointMode = "resume", now = new Date()) {
     const current = this.initialize(now);
     if (checkpointMode !== "migrate" || !current.sourceFingerprint) return current;
     const acquisitionPath = path.join(this.rootDirectory, "crm-acquisition", "checkpoint.json");
     const analysisPath = path.join(this.rootDirectory, "crm-document-analysis", "checkpoint.json");
-    if (![acquisitionPath, analysisPath].every(existsSync)) return current;
+    const commonPreflightPath = path.join(this.rootDirectory, "crm-local-preflight", "checkpoint.json");
+    if (![acquisitionPath, analysisPath, commonPreflightPath].every(existsSync)) return current;
     const acquisition = JSON.parse(readFileSync(acquisitionPath, "utf8")) as { status?: string; items?: Array<Record<string, unknown>> };
     const analysis = JSON.parse(readFileSync(analysisPath, "utf8")) as { status?: string; items?: Array<Record<string, unknown>> };
-    if (acquisition.status !== "completed" || analysis.status !== "completed") return current;
+    const common = JSON.parse(readFileSync(commonPreflightPath, "utf8")) as { status?: string; items?: Array<Record<string, unknown>> };
+    if (acquisition.status !== "completed" || analysis.status !== "completed" || common.status !== "completed") return current;
+    const excludedCustomerKeys = permanentlyExcludedCustomerKeys(common);
 
     const routingByKey = new Map<string, { declaredModule: "screening" | "infissi" | null; resolvedModule: "screening" | "infissi" | "mixed" | "unresolved" }>();
     const acquired = (acquisition.items ?? []).filter((item) => {
       if (item.state !== "acquired") return false;
+      if (excludedCustomerKeys.has(text(item.customerKey))) return false;
       const sources = (analysis.items ?? []).filter((source) => source.customerKey === item.customerKey && source.state === "analyzed" && text(source.textPath))
         .map((source) => ({ sourceId: text(source.documentKey), text: readFileSync(text(source.textPath), "utf8") }));
       const declaredModule = item.productModule === "screening" || item.productModule === "infissi" ? item.productModule : null;
-      const resolvedModule = resolveAprDocumentedProductRouting({ declaredModule, sources }).module;
+      const formDeclaredModule = formDeclaredModuleFromDossierPath(text(item.dossierPath));
+      const resolvedModule = resolveAprDocumentedProductRouting({ declaredModule, formDeclaredModule, sources }).module;
       routingByKey.set(text(item.customerKey), { declaredModule, resolvedModule });
       return resolvedModule !== "screening";
     });
@@ -340,6 +414,7 @@ export class PersistentAprInfissiBatchPreflight {
     const analysis = JSON.parse(readFileSync(analysisPath, "utf8")) as { status?: string; items?: Array<Record<string, unknown>> };
     const common = JSON.parse(readFileSync(commonPreflightPath, "utf8")) as { status?: string; items?: Array<Record<string, unknown>> };
     if (acquisition.status !== "completed" || analysis.status !== "completed" || common.status !== "completed") return this.initialize(now);
+    const excludedCustomerKeys = permanentlyExcludedCustomerKeys(common);
 
     // Le coorti Infissi storiche non avevano ancora il discriminante esplicito.
     // Nelle coorti miste, invece, il routing persistito e' vincolante: una
@@ -347,10 +422,12 @@ export class PersistentAprInfissiBatchPreflight {
     const routingByKey = new Map<string, { declaredModule: "screening" | "infissi" | null; resolvedModule: "screening" | "infissi" | "mixed" | "unresolved" }>();
     const acquired = (acquisition.items ?? []).filter((item) => {
       if (item.state !== "acquired") return false;
+      if (excludedCustomerKeys.has(text(item.customerKey))) return false;
       const sources = (analysis.items ?? []).filter((source) => source.customerKey === item.customerKey && source.state === "analyzed" && text(source.textPath))
         .map((source) => ({ sourceId: text(source.documentKey), text: readFileSync(text(source.textPath), "utf8") }));
       const declaredModule = item.productModule === "screening" || item.productModule === "infissi" ? item.productModule : null;
-      const resolvedModule = resolveAprDocumentedProductRouting({ declaredModule, sources }).module;
+      const formDeclaredModule = formDeclaredModuleFromDossierPath(text(item.dossierPath));
+      const resolvedModule = resolveAprDocumentedProductRouting({ declaredModule, formDeclaredModule, sources }).module;
       routingByKey.set(text(item.customerKey), { declaredModule, resolvedModule });
       return resolvedModule !== "screening";
     });
@@ -406,10 +483,15 @@ export class PersistentAprInfissiBatchPreflight {
         sourceId: text(item.documentKey),
         kind: text(item.semanticKind ?? item.kind),
         certificateScope,
+        practiceCustomerName: queued.displayName,
         text: readFileSync(text(item.textPath), "utf8"),
       };
     });
-    const automatic = extractAprInfissiAutomaticTechnicalEvidence(sources);
+    const bindingResolution = state.operatorPracticeBindingResolutions.find((entry) => entry.practiceId === queued.practiceId && entry.customerKey === queued.customerKey);
+    const bindingResolutionMatches = bindingResolution && sources.some((source) => source.sourceId === bindingResolution.sourceId && sha256(source.text) === bindingResolution.sourceSha256)
+      ? bindingResolution
+      : undefined;
+    const automatic = extractAprInfissiAutomaticTechnicalEvidence(sources, { requirePracticeBinding: true, ...(bindingResolutionMatches ? { confirmedPracticeBinding: { sourceId: bindingResolutionMatches.sourceId, evidenceId: bindingResolutionMatches.evidenceId } } : {}) });
     const technical = resolveInfissiTechnicalSources({
       practiceId: queued.practiceId,
       invoice: automatic.evidence?.kind === "invoice" ? automatic.evidence : undefined,
@@ -462,7 +544,16 @@ export class PersistentAprInfissiBatchPreflight {
           || code === "original_invoice_missing_or_unavailable";
       });
     const blockers: AprInfissiBatchBlocker[] = [
-      ...automatic.blockers.map((code) => ({ code, field: "technical_dimensions", sourceIds: sources.map((source) => source.sourceId) })),
+      ...automatic.blockers.map((code) => code === "infissi_technical_document_practice_binding_unverified" ? {
+        code,
+        field: "technical_dimensions",
+        sourceIds: sources.map((source) => source.sourceId),
+        classification: "operator_required" as const,
+        exactCause: "Il documento tecnico non possiede un collegamento univoco e concordante di cliente/cantiere, ordine/commessa e firma prodotti con le fatture della pratica.",
+        missingDocumentType: null,
+        operatorQuestion: `Confermi che il documento tecnico con riferimento ${automatic.audit.selectedSourceBinding?.technicalReferences.join(", ") || "non leggibile"} appartiene agli ordini fatturati ${automatic.audit.selectedSourceBinding?.invoiceReferences.join(", ") || "non leggibili"} della pratica di ${queued.displayName} e descrive esattamente gli stessi infissi?`,
+        onboardingGap: "Richiedere nel caricamento iniziale un riferimento esplicito che colleghi commessa tecnica, ordine fatturato e cliente/cantiere.",
+      } : { code, field: "technical_dimensions", sourceIds: sources.map((source) => source.sourceId) }),
       ...technical.blockers.map((code) => ({ code, field: "technical_rows", sourceIds: automatic.evidence ? [...automatic.evidence.sourceIds] : [] })),
       ...productRules.blockers.map((code) => ({ code, field: "shading_closures", sourceIds: [formSourceId] })),
       ...(shadingClosureAllocation?.blocker ? [{ code: shadingClosureAllocation.blocker, field: "shading_closures", sourceIds: [...shadingClosureAllocation.sourceIds] }] : []),
@@ -484,6 +575,7 @@ export class PersistentAprInfissiBatchPreflight {
     const appliedRuleIds = [...new Set([
       ...SYSTEM_RULE_IDS,
       ...automatic.audit.appliedRuleIds,
+      ...(bindingResolutionMatches ? [USER_AUTHORIZED_RULE_IDS.operatorStructuredQuestionResume] : []),
       ...technical.audit.appliedRuleIds,
       ...productRules.audit.appliedRuleIds,
       ...(shadingClosureAllocation?.audit.appliedRuleIds ?? []),
@@ -507,6 +599,7 @@ export class PersistentAprInfissiBatchPreflight {
         blockers,
         physicalProductCount: technical.rows.length,
         invoiceGrossTotal,
+        automaticTechnicalEvidenceAudit: automatic.audit,
         technical,
         productRules,
         shadingClosureAllocation,

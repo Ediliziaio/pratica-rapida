@@ -1,0 +1,72 @@
+{
+  "version": "apr-r85-berti-inconsistent-stop-v1",
+  "observedAt": "2026-09-07T20:30:38.000Z",
+  "status": "INCONSISTENT",
+  "largeCohortStarted": false,
+  "case": {
+    "customerKey": "elena-marcella-berti",
+    "practiceId": "4e251174-6b43-4c76-98ff-6f00c1caede9",
+    "cohort": 3425,
+    "draftCreated": false,
+    "draftId": null
+  },
+  "bundle": {
+    "versionId": "d1681076-manso-cap-typo-fix-r85-20260907",
+    "workerSha256Expected": "25c2037e98876c6b49e97908fd1aad6b04c94c991e16a1eaaefa5657975c142d",
+    "workerSha256Current": "25c2037e98876c6b49e97908fd1aad6b04c94c991e16a1eaaefa5657975c142d",
+    "formalGovernanceStatus": "certified_deployed"
+  },
+  "chrome": {
+    "pid": 3785,
+    "remoteDebuggingPort": 9331,
+    "profileDirectory": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/state/enea-browser-worker/chrome-profile",
+    "receiptSha256": "5ab23799d07c955e5397d1875189eea584876d790841a84d2b7e8d2eba83fc70",
+    "sessionAuthenticated": true,
+    "chromeClosed": false
+  },
+  "evidence": {
+    "sequencerReport": {
+      "path": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-r85-berti-operational-proof-20260907/report.json",
+      "status": "completed",
+      "caseState": "operator_required",
+      "reason": "elena-marcella-berti:preflight_blocked:1 blocker per-pratica registrati; coda prosegue."
+    },
+    "checkpoint": {
+      "path": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3425-global-controller-elena-marcella-berti/crm-local-preflight/checkpoint.json",
+      "status": "completed",
+      "caseState": "blocked_case",
+      "blockerCodes": [
+        "draft_payload_mapping_incomplete"
+      ],
+      "missingPortalFieldCount": 21
+    },
+    "deepReview": {
+      "path": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3425-global-controller-elena-marcella-berti/deep-case-review/checkpoint.json",
+      "status": "working",
+      "caseState": "reviewing"
+    },
+    "dashboardSnapshot": {
+      "path": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3425-global-controller-elena-marcella-berti/dashboard/status.json",
+      "health": "run_completed",
+      "state": "off",
+      "publicStatus": null,
+      "statusSource": "legacy_runner"
+    },
+    "caseTruthApi": {
+      "url": "http://127.0.0.1:7850/api/case-truth?customerKey=elena-marcella-berti",
+      "reachable": false
+    }
+  },
+  "decision": {
+    "formalVerdict": "INCONSISTENT",
+    "reason": "Sequencer terminale, checkpoint profondo ancora working e case-truth non disponibile non concordano. Nessun verdetto di caso o ammissione operativa puo essere attribuito.",
+    "nextAction": "Correggere e verificare la coerenza di finalizzazione/osservabilita della singola coorte prima di autorizzare il lotto da 104.",
+    "operatorQuestion": "Autorizzi la diagnosi e la correzione generale della finalizzazione prematura della coorte, che chiude il sequencer mentre la revisione profonda risulta ancora in corso?"
+  },
+  "safety": {
+    "previewAttempted": false,
+    "submitAttempted": false,
+    "communicationsAttempted": false,
+    "largeCohortLaunchAttempted": false
+  }
+}

@@ -5,9 +5,36 @@ import type {
 } from "./types";
 
 const MAX_SCREENING_QUANTITY = 50;
-const PERSIANA_RULE_ID = "user-2026-08-18-persiana-screening-contract-v1";
-const AVVOLGIBILE_RULE_ID = "user-2026-08-18-avvolgibile-screening-contract-v1";
+const PERSIANA_RULE_ID = "user-2026-08-31-persiana-screening-contract-v2";
+const AVVOLGIBILE_RULE_ID = "user-2026-08-31-avvolgibile-screening-contract-v2";
 const SCREENING_DIMENSION_SURFACE_RULE_ID = "user-2026-08-26-screening-dimension-unit-surface-coherence-v1";
+export const POSITIONED_TECHNICAL_ORDER_PRODUCTS_RULE_ID = "system-positioned-technical-order-products-v1" as const;
+export const INLINE_DESCRIPTION_PRODUCT_MEASUREMENTS_RULE_ID = "system-inline-description-product-measurements-v1" as const;
+export const TABULAR_EQUAL_PRICE_AMOUNT_SINGLE_QUANTITY_RULE_ID = "system-tabular-equal-price-amount-single-quantity-v1" as const;
+export const DIMENSIONED_AWNING_ROW_PRESERVATION_RULE_ID = "system-dimensioned-awning-row-preservation-v1" as const;
+export const LABELLED_SCREENING_DEPTH_ABBREVIATION_RULE_ID = "system-labelled-screening-depth-abbreviation-v1" as const;
+export const GENERIC_LABELLED_MEASUREMENT_PAIR_AREA_RULE_ID = "user-2026-09-07-generic-two-measurement-screening-area-fallback-v1" as const;
+export const LINEA_SOLE_POTITO_SCOMPARSA_TOTALE_MODEL_CODE_TOLERANCE_RULE_ID = "user-2026-09-07-linea-sole-potito-scomparsa-totale-model-code-tolerance-v1" as const;
+export const FINESTRA_ITALIA_POSITIONAL_DIMENSION_NOTATION_RULE_ID = "user-2026-09-07-finestra-italia-positional-dimension-notation-v1" as const;
+export const MULTIPLE_MEASUREMENT_PAIRS_ALWAYS_DISTINCT_PRODUCTS_RULE_ID = "user-2026-09-07-multiple-measurement-pairs-always-distinct-products-v1" as const;
+export const LAST_BARE_TOTALE_OCCURRENCE_WINS_RULE_ID = "user-2026-09-07-last-bare-totale-occurrence-wins-v1" as const;
+export const UNLABELLED_UNAMBIGUOUS_MEASUREMENT_PAIR_RULE_ID = "user-2026-09-07-unlabelled-unambiguous-measurement-pair-v1" as const;
+export const ZANZASOL_PLURAL_HEADER_AND_GTOT_PERIOD_TOLERANCE_RULE_ID = "user-2026-09-07-zanzasol-plural-header-and-gtot-period-tolerance-v1" as const;
+export const LM_TENDE_NARRATIVE_AWNING_MEASUREMENT_RULE_ID = "user-2026-09-07-lm-tende-narrative-awning-measurement-v1" as const;
+export const LINEA_SOLE_POTITO_MODELLO_LABEL_DIMENSION_RULE_ID = "user-2026-09-08-linea-sole-potito-modello-label-dimension-v1" as const;
+export const LINEA_SOLE_POTITO_DIMENSION_BEFORE_SCOMPARSA_LABEL_RULE_ID = "user-2026-09-08-linea-sole-potito-dimension-before-scomparsa-label-v1" as const;
+export const LM_TENDE_SALDO_DIMENSION_CONNECTOR_PREPOSITION_RULE_ID = "user-2026-09-08-lm-tende-saldo-dimension-connector-preposition-v1" as const;
+export const DOTTED_NUMBERED_HEADER_DATE_OVER_NARRATIVE_REFERENCE_RULE_ID = "user-2026-09-08-dotted-numbered-header-date-over-narrative-reference-v1" as const;
+export const VAILA_OPEN_HOUSE_PERGOTENDA_ORDER_FORM_DIMENSION_RULE_ID = "user-2026-09-08-vaila-open-house-pergotenda-order-form-dimension-v1" as const;
+export const SCHERMATURA_SOLARE_NARRATIVE_SINGLE_PRODUCT_TRIGGER_RULE_ID = "user-2026-09-08-schermatura-solare-narrative-single-product-trigger-v1" as const;
+export const MULTISERVICE_HOME_MULTI_MEASURE_NARRATIVE_RULE_ID = "user-2026-09-08-multiservice-home-multi-measure-narrative-v1" as const;
+export const VENEZIANA_PERSIANA_EQUIVALENT_TREATMENT_RULE_ID = "user-2026-09-08-veneziana-persiana-equivalent-treatment-v1" as const;
+export const NARRATIVE_PAYMENT_SENTENCE_AWNING_DIMENSION_RULE_ID = "user-2026-09-08-narrative-payment-sentence-awning-dimension-v1" as const;
+export const ZANZASOL_NARRATIVE_QUANTITY_FROM_PRICE_ROW_RULE_ID = "user-2026-09-08-zanzasol-narrative-quantity-from-price-row-v1" as const;
+export const ARCHITECTURAL_OPENING_LABEL_OVER_INCIDENTAL_NUMBER_PAIR_RULE_ID = "user-2026-09-08-architectural-opening-label-over-incidental-number-pair-v1" as const;
+export const FINESTRA_ITALIA_SEPARATED_LABEL_VALUE_BLOCK_DOCUMENT_IDENTITY_RULE_ID = "user-2026-09-08-finestra-italia-separated-label-value-block-document-identity-v1" as const;
+export const TOTALE_CONTRATTO_COMMESSA_NEVER_DOCUMENT_TOTAL_RULE_ID = "user-2026-09-08-totale-contratto-commessa-never-document-total-v1" as const;
+export const FINESTRA_ITALIA_SCADENZE_INTERVENING_LABEL_VERTICAL_RECAP_RULE_ID = "user-2026-09-08-finestra-italia-scadenze-intervening-label-vertical-recap-v1" as const;
 const SCREENING_SURFACE_RELATIVE_TOLERANCE = 0.05;
 
 type ScreeningMeasureUnit = "m" | "cm" | "mm";
@@ -103,6 +130,22 @@ function parseSurfaceNumber(value: string): number | null {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
+/**
+ * Regola generale (Giuliano, 2026-09-07): l'estrazione delle misure tecniche
+ * non deve mai leggere, interpretare o verificare i dati economici della
+ * fattura (importi, aliquote IVA, percentuali di acconto/saldo). Quando
+ * l'estrazione tabellare OCR intercala queste righe fra una descrizione
+ * tecnica e la sua misura, vanno soltanto saltate come rumore — non lette,
+ * non usate per validare nulla — mai richieste ne' vietate.
+ */
+function stripInvoicePricingNoiseLines(text: string): string {
+  return text
+    .split(/\r?\n/)
+    .filter((line) => !/^\s*€?\s*[0-9][0-9.]*,[0-9]{2}\s*€?(?:\s*\d{1,2}\s*%)?\s*$/i.test(line)
+      && !/^\s*\d{1,3}\s*%\)?\s*$/.test(line))
+    .join("\n");
+}
+
 function roundSurface(value: number): number {
   return Math.round((value + Number.EPSILON) * 10_000) / 10_000;
 }
@@ -137,6 +180,60 @@ function extractDocumentIdentity(text: string): {
   documentNumber?: string;
   documentDate?: string;
 } {
+  // Regressione Cirillo: alcune fatture (fatturazione elettronica emessa da
+  // intermediario terzo, es. "Fattura emessa da soggetto terzo") stampano
+  // l'intestazione come "Fattura\nNumero: <n>\n<data con i punti>"
+  // (es. "26.02.2025", non "26/02/2025"). Nessun controllo precedente in
+  // questa funzione riconosce la data con i punti: senza questo controllo,
+  // l'identita' del documento cadeva sull'unica data in formato "/" trovata
+  // altrove nel testo - qui la data di una fattura precedente del 2024,
+  // citata soltanto come riferimento in una riga "a detrarre" - scambiando
+  // un semplice riferimento a un credito pregresso per la data del
+  // documento corrente. Controllato per primo perche' l'intestazione con i
+  // punti e' un'ancora piu' specifica e affidabile di qualunque riferimento
+  // narrativo altrove nel corpo del documento.
+  const dottedNumberedHeader = text.match(/(?:^|\n)\s*Fattura\s*\n\s*Numero\s*:\s*([A-Z0-9./-]+)\s*\n\s*(\d{2})\.(\d{2})\.(\d{4})\b/i);
+  if (dottedNumberedHeader) return {
+    documentNumber: dottedNumberedHeader[1].trim(),
+    documentDate: toIsoDate(`${dottedNumberedHeader[2]}/${dottedNumberedHeader[3]}/${dottedNumberedHeader[4]}`),
+  };
+  // OCR Vision puo restituire una testata tabellare in ordine visuale inverso
+  // (valori prima delle rispettive etichette). Numero e data vengono scelti
+  // soltanto dentro una singola pagina che contiene l'intero set di etichette
+  // Ideal Sistem; la selezione per distanza deve avere un vincitore univoco.
+  if (/\bTipo\s+documento\b/i.test(text) && /\bNum\.\s*Doc\.?\b/i.test(text)
+    && /\bData\s+Docum\.?\b/i.test(text) && /\bFATTURA\b/i.test(text)) {
+    const numberLabelIndex = text.search(/\bNum\.\s*Doc\.?\b/i);
+    const dateLabelIndex = text.search(/\bData\s+Docum\.?\b/i);
+    const numberCandidates = [...text.matchAll(/(?:^|\n)\s*(\d{2,8}\/\d{2,4})\s*(?=\n|$)/g)]
+      .map((match) => ({ value: match[1], distance: Math.abs((match.index ?? 0) - numberLabelIndex) }))
+      .sort((left, right) => left.distance - right.distance);
+    const dateCandidates = [...text.matchAll(/(?:^|\n)\s*(\d{2}\/\d{2}\/\d{4})\s*(?=\n|$)/g)]
+      .map((match) => ({ value: match[1], distance: Math.abs((match.index ?? 0) - dateLabelIndex) }))
+      .sort((left, right) => left.distance - right.distance);
+    if (numberCandidates[0] && dateCandidates[0]
+      && numberCandidates[0].distance !== numberCandidates[1]?.distance
+      && dateCandidates[0].distance !== dateCandidates[1]?.distance) {
+      return { documentNumber: numberCandidates[0].value, documentDate: toIsoDate(dateCandidates[0].value) };
+    }
+  }
+  const sdiPaDigitale = text.match(/\bTD0\d\s+fattura\s+([A-Z0-9./-]+)\s+(\d{2}[/-]\d{2}[/-]\d{4})/i);
+  if (sdiPaDigitale) return { documentNumber: sdiPaDigitale[1].trim(), documentDate: toIsoDate(sdiPaDigitale[2]) };
+  // Una scansione tabellare puo conservare numero e data ma perdere la loro
+  // adiacenza. Accettiamo il numero dalla testata fiscale esplicita soltanto
+  // quando l'intera pagina contiene una sola data civile distinta. Date
+  // discordanti mantengono l'identita irrisolta e il gate fail-closed.
+  const accompanyingHeader = text.match(/(?:^|\n)\s*FATTURA\s+ACCOMPAGNATORIA\s+([A-Z0-9./-]+)\s*(?:\n|$)/i);
+  if (accompanyingHeader) {
+    const uniqueDates = [...new Set([...text.matchAll(/\b(\d{2}[/-]\d{2}[/-]\d{4})\b/g)].map((match) => match[1]))];
+    if (uniqueDates.length === 1) return { documentNumber: accompanyingHeader[1].trim(), documentDate: toIsoDate(uniqueDates[0]) };
+  }
+  // Variante Ideal Sistem nella quale la data del documento e' stampata
+  // prima del valore FATTURA/numero. La distanza dopo la data e' vincolata a
+  // due righe della stessa testata: in questo modo riferimenti narrativi o
+  // totali presenti piu' avanti non possono diventare identita' fiscali.
+  const verticalDateBeforeNumber = text.match(/\bData\s+Docum\.?[^\f]{0,160}?(\d{2}[/-]\d{2}[/-]\d{4})\s*\n(?:[^\n]*\n){0,2}\s*FATTURA\s*\n\s*([A-Z0-9./-]+)/i);
+  if (verticalDateBeforeNumber) return { documentNumber: verticalDateBeforeNumber[2].trim(), documentDate: toIsoDate(verticalDateBeforeNumber[1]) };
   // Intestazione tabellare generica: eventuali colonne prima/dopo le due
   // etichette, numero e data disposti su righe separate oppure numero in coda
   // alla riga delle etichette. Il riconoscimento resta legato allo stesso
@@ -146,6 +243,30 @@ function extractDocumentIdentity(text: string): {
   );
   if (separatedNumberDate) {
     return { documentNumber: separatedNumberDate[1].trim(), documentDate: toIsoDate(separatedNumberDate[2]) };
+  }
+  // Regressione Biagioni/Riviera (fornitore "Finestra Italia S.r.l."): la
+  // tabella anagrafica stampa TUTTE le etichette in un blocco (COD.CLI.,
+  // PARTITA IVA, ..., N° DOCUMENTO DATA DOCUMENTO, PAG., CONDIZIONI DI
+  // PAGAMENTO) e poi TUTTI i valori in un blocco separato molte righe dopo;
+  // colonne vuote (Partita IVA, Fax, Codice Fiscale) comprimono
+  // l'allineamento, e un valore segnaposto "BANCA D'APPOGGIO" si sposta di
+  // posizione da un documento all'altro (a volte subito prima del numero
+  // documento, a volte subito dopo). Nessun pattern sopra copre questo
+  // caso: senza questo controllo il numero documento restava sempre
+  // irrisolto, pur essendo scritto in chiaro, rompendo il riconoscimento
+  // delle fatture di acconto richiamate da un saldo (falso blocco "fattura
+  // di acconto non acquisita" anche quando la fattura richiamata era gia'
+  // presente e corretta). L'unico ancoraggio affidabile e' il formato data
+  // GG-MM-AA con trattini e anno a due cifre, esclusivo di questo
+  // fornitore, seguito subito dal valore pagina "N/N": il numero documento
+  // e' la riga immediatamente precedente quella data (l'unico scarto
+  // tollerato e' il segnaposto "BANCA D'APPOGGIO", mai un'altra riga, per
+  // non risalire per errore a un valore precedente come "TERRITORY").
+  const finestraItaliaSeparatedBlocks = text.match(
+    /\bN[°º.]?\s*DOCUMENTO\s+DATA\s+DOCUMENTO\b[\s\S]{0,400}?\n\s*([A-Z0-9][A-Z0-9./-]{0,15})\s*\n(?:\s*BANCA\s+D['’]?APPOGGIO\s*\n)?\s*(\d{2}-\d{2}-\d{2})\s*\n\s*\d{1,2}\/\d{1,2}\s*\n/i,
+  );
+  if (finestraItaliaSeparatedBlocks) {
+    return { documentNumber: finestraItaliaSeparatedBlocks[1].trim(), documentDate: toIsoDate(finestraItaliaSeparatedBlocks[2]) };
   }
   // Layout tabellare generico nel quale il titolo Fattura precede una riga
   // "Data <valore> Numero <valore>". Numero e data devono provenire dalla
@@ -192,6 +313,14 @@ function extractDocumentTotal(text: string): number | null {
     const value = amount(lines[index] ?? "");
     return value ? parseItalianNumber(value) : null;
   };
+  const currencyBefore = (index: number, lookbehind: number) => {
+    for (let offset = 1; offset <= lookbehind && index - offset >= 0; offset += 1) {
+      const line = lines[index - offset];
+      if (!/(?:€|\bEuro\b)/i.test(line)) continue;
+      const value = amount(line); if (value) return parseItalianNumber(value);
+    }
+    return null;
+  };
   const fromWindow = (index: number, lookahead: number) => {
     for (let offset = 0; offset <= lookahead && index + offset < lines.length; offset += 1) {
       const value = amount(lines[index + offset]); if (value) return parseItalianNumber(value);
@@ -207,6 +336,23 @@ function extractDocumentTotal(text: string): number | null {
     }
     return values.at(-1) ?? null;
   };
+  // Regola generale di Giuliano (2026-09-07): APR non deve mai calcolare,
+  // verificare o incrociare i dati economici interni della fattura (aliquote
+  // IVA, singole voci, coerenza imponibile+IVA=lordo). "Totale dovuto" e' la
+  // cifra finale che il fornitore stesso dichiara come importo da pagare:
+  // va usata cosi' com'e', con priorita' massima, senza mai ricostruirla o
+  // validarla sommando imponibile e IVA — quella somma puo' fallire su
+  // fatture con piu' aliquote IVA diverse (es. prodotto al 10% e una riga
+  // servizi/pratica ENEA al 22% sulla stessa fattura), pur essendo la
+  // fattura correttissima.
+  for (let index = 0; index < lines.length; index += 1) {
+    const label = /\btotale\s+dovuto\b/i.exec(lines[index]);
+    if (!label) continue;
+    const trailing = amount(lines[index].slice(label.index + label[0].length));
+    if (trailing) return parseItalianNumber(trailing);
+    const nextLine = amount(lines[index + 1] ?? "");
+    if (nextLine) return parseItalianNumber(nextLine);
+  }
   // Il campo fiscale puo essere l'ultima colonna di una riga di intestazioni
   // (anche insieme a "Totale a pagare") e il valore puo comparire sulla riga
   // immediatamente successiva. Si considerano soltanto gli importi dopo
@@ -223,6 +369,11 @@ function extractDocumentTotal(text: string): number | null {
   // precedenza su totali fiscali o massimali detraibili presenti prima nel PDF.
   for (let index = 0; index < lines.length; index += 1) {
     if (/^netto\s+a\s+pagare\b/i.test(lines[index])) {
+      const preceding = currencyBefore(index, 8); if (preceding !== null) return preceding;
+      for (let offset = 1; offset <= 6 && index + offset < lines.length; offset += 1) {
+        if (!/(?:€|\bEuro\b)/i.test(lines[index + offset])) continue;
+        const currencyTotal = amount(lines[index + offset]); if (currencyTotal) return parseItalianNumber(currencyTotal);
+      }
       const value = fromWindow(index, 2); if (value !== null) return value;
     }
   }
@@ -233,9 +384,10 @@ function extractDocumentTotal(text: string): number | null {
       // sulla riga dell'etichetta resta sempre la prima scelta; altrimenti si
       // usa l'ultimo valore della finestra, non l'IVA incontrata per prima.
       const sameLine = moneyAt(index); if (sameLine !== null) return sameLine;
-      const totalToPayIndex = lines.slice(index + 1, index + 6).findIndex((line) => /^totale\s+a\s+pagare\b/i.test(line));
+      const preceding = currencyBefore(index, 8); if (preceding !== null) return preceding;
+      const totalToPayIndex = lines.slice(index + 1, index + 8).findIndex((line) => /^totale\s+a\s+pagare\b/i.test(line));
       if (totalToPayIndex >= 0) {
-        for (let offset = 0; offset <= 4 && index + 1 + totalToPayIndex + offset < lines.length; offset += 1) {
+        for (let offset = 0; offset <= 8 && index + 1 + totalToPayIndex + offset < lines.length; offset += 1) {
           const candidateLine = lines[index + 1 + totalToPayIndex + offset];
           if (!/(?:\bEuro\b|€)/i.test(candidateLine)) continue;
           const currencyTotal = amount(candidateLine);
@@ -243,6 +395,11 @@ function extractDocumentTotal(text: string): number | null {
         }
         const totalToPay = fromWindow(index + 1 + totalToPayIndex, 2);
         if (totalToPay !== null) return totalToPay;
+      }
+      for (let offset = 1; offset <= 6 && index + offset < lines.length; offset += 1) {
+        if (!/(?:€|\bEuro\b)/i.test(lines[index + offset])) continue;
+        const currencyTotal = amount(lines[index + offset]);
+        if (currencyTotal) return parseItalianNumber(currencyTotal);
       }
       const value = lastFromWindow(index + 1, 5); if (value !== null) return value;
     }
@@ -258,9 +415,31 @@ function extractDocumentTotal(text: string): number | null {
       const value = fromWindow(index, 3); if (value !== null) return value;
     }
   }
+  // Regola generale di Giuliano (Laurelli): senza un'etichetta piu'
+  // specifica ("Totale fattura" riconciliato, "Netto a pagare"), quando lo
+  // stesso documento espone piu' righe che iniziano semplicemente con
+  // "Totale" vince sempre l'ULTIMA occorrenza, non la prima. E' quasi
+  // sempre quella dopo un eventuale storno/acconto interno al documento
+  // (es. un saldo che riporta prima il lordo della sola fornitura e poi,
+  // piu' avanti, il vero totale netto dopo l'acconto accreditato), quindi
+  // la piu' vicina all'importo finale realmente da pagare.
+  let lastBareTotale: number | null = null;
   for (let index = 0; index < lines.length; index += 1) {
-    if (!/^(?:totale\s+fattura|netto\s+a\s+pagare|totale)(?:\s|$)/i.test(lines[index])
-      || /^totale\s+(?:imponibile|iva|imposta|compreso|merce|fornitura|sconto|spese\s+congrue)\b/i.test(lines[index])) continue;
+    const line = lines[index];
+    const isTotaleFattura = /^totale\s+fattura(?:\s|$)/i.test(line);
+    const isNettoAPagare = /^netto\s+a\s+pagare(?:\s|$)/i.test(line);
+    const isBareTotale = !isTotaleFattura && !isNettoAPagare && /^totale(?:\s|$)/i.test(line);
+    if (!isTotaleFattura && !isNettoAPagare && !isBareTotale) continue;
+    // Regressione Lavezzi: "Totale contratto"/"Totale commessa" indicano il
+    // valore complessivo dell'intera commessa (spesso su piu' fatture di
+    // acconto/saldo), mai il totale di QUESTO documento. Senza
+    // quest'esclusione, quando il documento non ha un'etichetta piu'
+    // specifica ("Totale fattura"/"Netto a pagare") piu' avanti a fare da
+    // override, la scansione in avanti da "Totale contratto" trovava il
+    // primo importo con simbolo di valuta incontrato per caso (l'imponibile
+    // dell'acconto/saldo descritto narrativamente subito dopo), non il vero
+    // totale del documento.
+    if (/^totale\s+(?:imponibile|iva|imposta|compreso|merce|fornitura|ordine|sconto|spese\s+congrue|contratto|commessa)\b/i.test(line)) continue;
     // Alcuni gestionali di serramenti stampano il riepilogo in colonna:
     //   Totale fattura
     //   <imponibile>
@@ -268,19 +447,50 @@ function extractDocumentTotal(text: string): number | null {
     //   <lordo>
     // La prima cifra dopo l'etichetta non e' quindi il totale fattura. Il
     // lordo e' accettato solo quando la terna si riconcilia al centesimo.
-    if (/^totale\s+fattura\s*$/i.test(lines[index])) {
+    if (/^totale\s+fattura\s*$/i.test(line)) {
       const taxable = moneyAt(index + 1);
       const vat = moneyAt(index + 2);
       const gross = moneyAt(index + 3);
       if (taxable !== null && vat !== null && gross !== null
         && Math.abs(Math.round((taxable + vat + Number.EPSILON) * 100) / 100 - gross) <= 0.011) return gross;
+      // Regressione Biagioni/Riviera (fornitore Finestra Italia S.r.l.): una
+      // variante dello stesso riepilogo verticale intromette l'etichetta
+      // "SCADENZE" (talvolta corrotta dall'OCR con una parentesi iniziale,
+      // "(SCADENZE") subito dopo "Totale fattura", prima di imponibile e
+      // IVA; il vero lordo e' poi accostato alla sigla valuta "EUR" (mai
+      // "€"/"Euro"), non e' la prima cifra incontrata. Senza questa
+      // variante il fallback generico piu' sotto prendeva l'imponibile del
+      // riepilogo (es. 1.274,00) invece del vero totale (es. 1.401,40).
+      if (/^\(?\s*scadenze\b/i.test(lines[index + 1] ?? "")) {
+        const taxableAfterSchedule = moneyAt(index + 2);
+        const vatAfterSchedule = moneyAt(index + 3);
+        for (let offset = 4; offset <= 6 && index + offset < lines.length; offset += 1) {
+          if (!/\bEUR\b/i.test(lines[index + offset])) continue;
+          const grossAfterSchedule = moneyAt(index + offset) ?? moneyAt(index + offset + 1);
+          if (taxableAfterSchedule !== null && vatAfterSchedule !== null && grossAfterSchedule !== null
+            && Math.abs(Math.round((taxableAfterSchedule + vatAfterSchedule + Number.EPSILON) * 100) / 100 - grossAfterSchedule) <= 0.011) return grossAfterSchedule;
+          break;
+        }
+      }
     }
-    const value = fromWindow(index, 2); if (value !== null) return value;
+    let candidate: number | null = null;
+    for (let offset = 1; offset <= 6 && index + offset < lines.length; offset += 1) {
+      if (!/(?:€|\bEuro\b)/i.test(lines[index + offset])) continue;
+      const currencyTotal = amount(lines[index + offset]);
+      if (currencyTotal) { candidate = parseItalianNumber(currencyTotal); break; }
+    }
+    if (candidate === null) candidate = fromWindow(index, 2);
+    if (candidate === null) continue;
+    if (!isBareTotale) return candidate;
+    lastBareTotale = candidate;
   }
+  if (lastBareTotale !== null) return lastBareTotale;
+  let lastBareTotaleFallback: number | null = null;
   for (let index = 0; index < lines.length; index += 1) {
-    if (!/^totale\b/i.test(lines[index]) || /^totale\s+(?:imponibile|iva|imposta|compreso|merce|fornitura|sconto|spese\s+congrue)\b/i.test(lines[index])) continue;
-    const value = fromWindow(index, 2); if (value !== null) return value;
+    if (!/^totale\b/i.test(lines[index]) || /^totale\s+(?:imponibile|iva|imposta|compreso|merce|fornitura|ordine|sconto|spese\s+congrue|contratto|commessa)\b/i.test(lines[index])) continue;
+    const value = fromWindow(index, 2); if (value !== null) lastBareTotaleFallback = value;
   }
+  if (lastBareTotaleFallback !== null) return lastBareTotaleFallback;
   // Alcune fatture multipagina espongono il totale lordo senza etichetta,
   // subito dopo "Imponibile" e "Totale IVA". Accettiamo la riga isolata
   // soltanto quando coincide, al centesimo, con imponibile + IVA.
@@ -364,8 +574,12 @@ function extractNarrativeScreeningItems(text: string) {
   // Le fatture descrittive di un solo prodotto possono omettere "N.1" e
   // riportare Larghezza/Sporgenza in centimetri. Il singolare esplicito e
   // l'unico gTot locale producono una sola riga; i plurali restano fail-closed.
+  // Il trigger include anche "Schermatura solare" (regressione Pescatori,
+  // SCHERMATURA_SOLARE_NARRATIVE_SINGLE_PRODUCT_TRIGGER_RULE_ID): stesso
+  // formato Larghezza/Sporgenza gia' autorizzato per pergotenda/tenda da
+  // sole, solo con una parola-innesco diversa.
   if (!groups.length) {
-    const single = compact.match(/\b((?:pergo\s*tenda|pergotenda|tenda\s+da\s+sole)[\s\S]{0,160}?)\bLarghezza\s+([0-9]+(?:[,.][0-9]+)?)\s*cm[\s\S]{0,100}?\b(?:Sporgenza|Altezza)\s+([0-9]+(?:[,.][0-9]+)?)\s*cm/i);
+    const single = compact.match(/\b((?:pergo\s*tenda|pergotenda|tenda\s+da\s+sole|schermatura\s+solare)[\s\S]{0,160}?)\bLarghezza\s+([0-9]+(?:[,.][0-9]+)?)\s*cm[\s\S]{0,100}?\b(?:Sporgenza|Altezza)\s+([0-9]+(?:[,.][0-9]+)?)\s*cm/i);
     if (single && !/\b(?:n\.?|quantit[aà]|pezzi)\s*[2-9]\d*\b/i.test(single[0])) {
       const widthCm = parseItalianNumber(single[2]);
       const heightCm = parseItalianNumber(single[3]);
@@ -377,6 +591,62 @@ function extractNarrativeScreeningItems(text: string) {
         description: /pergo/i.test(single[1]) ? `Pergotenda - ${single[1].trim()}` : `Tenda da sole - ${single[1].trim()}`,
       });
     }
+  }
+  return groups;
+}
+
+const GENERIC_LABELLED_MEASUREMENT_UNIT: Record<string, ScreeningMeasureUnit> = { MT: "m", M: "m", CM: "cm", MM: "mm" };
+const GENERIC_SCREENING_PRODUCT_KEYWORD = /\b(?:tend[ae]|pergotend[ae]|pergol[ae]|zanzarier[ae]|persian[ae]|avvolgibil[ei]|tapparell[ae]|schermatur[ae])\b/gi;
+
+/**
+ * Fallback estremo e generico, senza etichette note: alcune fatture
+ * dichiarano le due misure di un prodotto di schermatura con sigle mai viste
+ * altrove nel file (es. "L. MT. 3,50 X P. MT. 2,50", dove "P." non e' ne' H
+ * ne' SP). Il significato della seconda etichetta non serve per calcolare
+ * l'area: bastano due misure numeriche, ciascuna con la propria unita' di
+ * misura esplicita, connesse dalla stessa "X"/"×" che ogni altro formato di
+ * questo file usa gia' per separare le due dimensioni di un prodotto. La
+ * sigla della singola etichetta (L., P., B., SP., ...) non viene mai
+ * interpretata: non esiste un elenco da aggiornare quando arriva una sigla
+ * mai vista.
+ *
+ * Si attiva solo quando NESSUN parser piu' specifico (ne' i formati dedicati
+ * ne' il fallback narrativo) ha gia' trovato righe, cosi' non duplica mai una
+ * riga tecnica gia' riconosciuta. L'unita' di misura resta obbligatoria su
+ * entrambi i lati: senza di essa la conversione andrebbe inventata, e questo
+ * file non lo fa mai (vedi "senza inventare conversioni" altrove) - una
+ * coppia di misure senza unita' esplicita resta fail-closed e richiede
+ * intervento operatore, non una supposizione silenziosa.
+ */
+function extractGenericTwoMeasurementScreeningItems(text: string) {
+  const compact = text.replace(/\s+/g, " ");
+  const pairPattern = /\b[A-ZÀ-Ö]{1,4}\.?\s*(MT|CM|MM|M)\.?\s*([0-9]+(?:[,.][0-9]+)?)\s*[X×]\s*[A-ZÀ-Ö]{1,4}\.?\s*(MT|CM|MM|M)\.?\s*([0-9]+(?:[,.][0-9]+)?)\b/gi;
+  const groups: Array<{ quantity: number; widthMm: number; heightMm: number; description: string; widthOriginal: number; heightOriginal: number; widthUnit: ScreeningMeasureUnit; heightUnit: ScreeningMeasureUnit }> = [];
+  for (const match of compact.matchAll(pairPattern)) {
+    const start = match.index ?? 0;
+    const before = compact.slice(Math.max(0, start - 900), start);
+    const productMatches = [...before.matchAll(GENERIC_SCREENING_PRODUCT_KEYWORD)];
+    const nearestProduct = productMatches.at(-1);
+    if (!nearestProduct) continue;
+    const widthUnit = GENERIC_LABELLED_MEASUREMENT_UNIT[match[1].toUpperCase()];
+    const heightUnit = GENERIC_LABELLED_MEASUREMENT_UNIT[match[3].toUpperCase()];
+    const widthOriginal = parseItalianNumber(match[2]);
+    const heightOriginal = parseItalianNumber(match[4]);
+    if (widthOriginal === null || heightOriginal === null || widthOriginal <= 0 || heightOriginal <= 0) continue;
+    const widthMm = Math.round(widthOriginal * screeningUnitMultiplier(widthUnit));
+    const heightMm = Math.round(heightOriginal * screeningUnitMultiplier(heightUnit));
+    if (widthMm <= 0 || heightMm <= 0) continue;
+    const quantityMatch = before.match(/\bN[.°º]?\s*(\d{1,2})\s*(?:MIS\.?)?\s*$/i);
+    const quantity = quantityMatch ? Number(quantityMatch[1]) : 1;
+    if (!Number.isInteger(quantity) || quantity < 1 || quantity > MAX_SCREENING_QUANTITY) continue;
+    const productWord = nearestProduct[0].toLowerCase();
+    const description = /pergotend|pergol/.test(productWord) ? "Pergotenda"
+      : /zanzarier/.test(productWord) ? "Zanzariera"
+      : /persian/.test(productWord) ? "Persiana"
+      : /avvolgibil|tapparell/.test(productWord) ? "Tapparella"
+      : /tend[ae]/.test(productWord) ? "Tenda da sole"
+      : "Schermatura solare";
+    groups.push({ quantity, widthMm, heightMm, description, widthOriginal, heightOriginal, widthUnit, heightUnit });
   }
   return groups;
 }
@@ -455,6 +725,101 @@ export function parseScreeningInvoiceText(
     for (const match of compact.matchAll(/TENDA\s+DA\s+SOLE[\s\S]{0,180}?DIM\.?\s*CM\s+L\s*(\d{2,4})\s*[X×]\s*(\d{2,4})[\s\S]{0,260}?G\s*TOT\s*([0-9]+(?:[,.][0-9]+)?)/gi)) {
       appendItems(1, Number(match[1]) * 10, Number(match[2]) * 10, parseItalianNumber(match[3]), "Tenda da sole cassonetto");
     }
+    // Alcuni saldi Parolo espongono una riga prodotto completa con modello,
+    // dimensioni L×SP e superficie, ma senza gTot. L'assenza del solo gTot
+    // non cancella la prova del prodotto fisico: il classificatore condiviso
+    // lo manterra' fail-closed per quel dato tecnico. Una fattura di solo
+    // acconto o una riga "ACCONTO RIF. FATTURA" non possiede questa firma e
+    // non puo' generare prodotti.
+    for (const match of compact.matchAll(/TENDA\s+DA\s+SOLE(?:(?!\b(?:TENDA\s+DA\s+SOLE|ACCONTO\s+RIF\.?\s*FATTURA)\b)[\s\S]){0,220}?DIM\.?\s*CM\.?\s*L\.?\s*([0-9]+(?:[,.][0-9]+)?)\s*[X×]\s*([0-9]+(?:[,.][0-9]+)?)\s*SP\b[\s\S]{0,80}?\(\s*=?\s*MQ\.?\s*([0-9]+(?:[,.][0-9]+)?)\s*\)/gi)) {
+      const widthCm = parseItalianNumber(match[1]);
+      const heightCm = parseItalianNumber(match[2]);
+      const explicitSurface = parseSurfaceNumber(match[3]);
+      if (widthCm === null || heightCm === null || explicitSurface === null) continue;
+      const widthMm = Math.round(widthCm * 10);
+      const heightMm = Math.round(heightCm * 10);
+      if (items.some((item) => item.widthMm === widthMm && item.heightMm === heightMm && /tenda.*sole/i.test(item.description))) continue;
+      const calculatedSurface = screeningSurfaceM2(widthCm, heightCm, "cm");
+      if (!screeningSurfacesAreCoherent(calculatedSurface, explicitSurface)) {
+        surfaceCoherenceFailures.push(`Riga tenda dimensionata: superficie esplicita ${explicitSurface} m2 non coerente con ${calculatedSurface} m2 calcolati dalle misure oltre la tolleranza del 5%.`);
+        continue;
+      }
+      const before = items.length;
+      appendItems(1, widthMm, heightMm, null, "Tenda da sole cassonetto", explicitSurface);
+      for (const item of items.slice(before)) item.measurementAudit = {
+        widthOriginal: widthCm,
+        heightOriginal: heightCm,
+        explicitUnit: "cm",
+        widthResolution: "explicit_cm",
+        heightResolution: "explicit_cm",
+        ruleId: DIMENSIONED_AWNING_ROW_PRESERVATION_RULE_ID,
+      };
+    }
+    // Regressione Padoani (MULTISERVICE_HOME_MULTI_MEASURE_NARRATIVE_RULE_ID):
+    // una fattura elettronica MULTISERVICE HOME descrive in un'unica riga
+    // narrativa 2 tende da sole fisicamente distinte con la notazione
+    // "misure 396x241 ed 182x241" (una sola coppia per riga in ogni altro
+    // formato gia' riconosciuto). Le misure sono centimetri, coerenti con
+    // ogni altro formato narrativo L/H senza etichetta di unita' esplicita
+    // di questo file. Il gTot non viene mai dedotto qui: resta
+    // responsabilita' del solo classificatore condiviso e delle sue fallback
+    // autorizzate (famiglia "tenda" -> 0,13).
+    for (const match of compact.matchAll(/\bTEND[AE]\s+DA\s+SOLE(?:(?!\bTEND[AE]\s+DA\s+SOLE\b)[\s\S]){0,220}?\bMISURE\s+([0-9]{2,4})\s*[X×]\s*([0-9]{2,4})\s+ED\s+([0-9]{2,4})\s*[X×]\s*([0-9]{2,4})\b/gi)) {
+      const width1Cm = parseItalianNumber(match[1]);
+      const height1Cm = parseItalianNumber(match[2]);
+      const width2Cm = parseItalianNumber(match[3]);
+      const height2Cm = parseItalianNumber(match[4]);
+      if (width1Cm === null || height1Cm === null || width2Cm === null || height2Cm === null) continue;
+      const pairs = [{ widthCm: width1Cm, heightCm: height1Cm }, { widthCm: width2Cm, heightCm: height2Cm }];
+      for (const pair of pairs) {
+        const before = items.length;
+        appendItems(1, Math.round(pair.widthCm * 10), Math.round(pair.heightCm * 10), null, "Tenda da sole a caduta");
+        for (const item of items.slice(before)) item.measurementAudit = {
+          widthOriginal: pair.widthCm,
+          heightOriginal: pair.heightCm,
+          explicitUnit: "cm",
+          widthResolution: "inferred_cm",
+          heightResolution: "inferred_cm",
+          ruleId: MULTISERVICE_HOME_MULTI_MEASURE_NARRATIVE_RULE_ID,
+        };
+      }
+    }
+    // Alcune fatture descrittive etichettano la profondita/sporgenza con la
+    // sola lettera `S` (es. `Pergotenda ... L 500 x S 290`). La coppia viene
+    // accettata soltanto quando e' adiacente a una famiglia di schermatura
+    // riconosciuta e entrambe le assi hanno etichette esplicite. Una coppia
+    // numerica non etichettata, incompleta o con quantita non valida resta
+    // fail-closed. Il gTot non viene dedotto qui: resta responsabilita del
+    // classificatore condiviso e delle sue sole fallback autorizzate.
+    for (const match of compact.matchAll(/\b((?:PERGO\s*TENDA|PERGOTENDA|TENDA\s+DA\s+SOLE)(?:(?!\b(?:PERGO\s*TENDA|PERGOTENDA|TENDA\s+DA\s+SOLE)\b)[\s\S]){0,180}?)\bL\.?\s*([0-9]+(?:[,.][0-9]+)?)\s*[X×]\s*S\.?\s*([0-9]+(?:[,.][0-9]+)?)\b/gi)) {
+      const width = parseItalianNumber(match[2]);
+      const depth = parseItalianNumber(match[3]);
+      if (width === null || depth === null) continue;
+      const localTail = compact.slice((match.index ?? 0) + match[0].length, (match.index ?? 0) + match[0].length + 120);
+      // I formati che espongono gia gTot o superficie esplicita sono gestiti
+      // dai parser piu autorevoli, che devono restare gli unici a produrre la
+      // riga e il relativo audit di coerenza.
+      if (/\b(?:G\s*TOT|GHOT|TOT\s*MQ|SUPERFICIE)\b/i.test(localTail)) continue;
+      const explicitQuantityMatch = localTail.match(/\b([0-9]+(?:[,.][0-9]+)?)\s*(?:PZ\.?|PEZZI?)\b/i);
+      const quantity = explicitQuantityMatch ? parseItalianNumber(explicitQuantityMatch[1]) : 1;
+      if (quantity === null || !Number.isInteger(quantity) || quantity < 1 || quantity > MAX_SCREENING_QUANTITY) {
+        invalidExplicitQuantity = true;
+        continue;
+      }
+      const resolved = resolveScreeningMeasurePair(width, depth, null, null);
+      if (items.some((item) => item.widthMm === resolved.widthMm && item.heightMm === resolved.heightMm && /pergotend|tenda.*sole/i.test(item.description))) continue;
+      const before = items.length;
+      const description = /pergo/i.test(match[1]) ? "Pergotenda" : "Tenda da sole";
+      appendItems(quantity, resolved.widthMm, resolved.heightMm, null, description);
+      for (const item of items.slice(before)) item.measurementAudit = {
+        widthOriginal: width,
+        heightOriginal: depth,
+        explicitUnit: null,
+        widthResolution: resolved.resolution,
+        heightResolution: resolved.resolution,
+        ruleId: LABELLED_SCREENING_DEPTH_ABBREVIATION_RULE_ID,
+      };
+    }
     // Le vetrate scorrevoli/VEPA vengono riconosciute e conservate 1:1 nel
     // ledger, ma la loro classificazione ENEA resta disabilitata finche' non
     // sara' attivato e verificato il modulo dedicato.
@@ -510,10 +875,59 @@ export function parseScreeningInvoiceText(
       const widthCm = parseItalianNumber(match[2]); const heightCm = parseItalianNumber(match[3]);
       if (widthCm !== null && heightCm !== null) appendItems(Number(match[1]), Math.round(widthCm * 10), Math.round(heightCm * 10), parseItalianNumber(match[4]), "Tenda verticale");
     }
+    // Regola generale di Giuliano (Laurelli): quando il formato e' gia'
+    // inequivocabile ("N. <n> TEND[AE] DA <numero> X <numero>", due numeri
+    // separati da X subito dopo "DA"), la misura e' riconosciuta anche senza
+    // le etichette esplicite "L."/"H.": non servono sempre, quando il
+    // pattern numerico non lascia dubbi su quali siano le due dimensioni.
+    for (const match of compact.matchAll(/N\.?\s*(\d+)\s+TEND[AE]\s+DA\s+([0-9]+(?:[,.][0-9]+)?)\s*[Xx×]\s*([0-9]+(?:[,.][0-9]+)?)\b[\s\S]{0,320}?G\s*TOT\s*([0-9]+(?:[,.][0-9]+)?)/gi)) {
+      const widthCm = parseItalianNumber(match[2]); const heightCm = parseItalianNumber(match[3]);
+      if (widthCm === null || heightCm === null) continue;
+      const widthMm = Math.round(widthCm * 10); const heightMm = Math.round(heightCm * 10);
+      if (items.some((item) => item.widthMm === widthMm && item.heightMm === heightMm && /tenda/i.test(item.description))) continue;
+      const before = items.length;
+      appendItems(Number(match[1]), widthMm, heightMm, parseItalianNumber(match[4]), "Tenda da sole");
+      for (const item of items.slice(before)) item.measurementAudit = {
+        widthOriginal: widthMm,
+        heightOriginal: heightMm,
+        explicitUnit: "mm",
+        widthResolution: "explicit_mm",
+        heightResolution: "explicit_mm",
+        ruleId: UNLABELLED_UNAMBIGUOUS_MEASUREMENT_PAIR_RULE_ID,
+      };
+    }
     // Formato S.A. Montaggi: il gTot precede la misura espressa in cm.
     for (const match of compact.matchAll(/TENDA\s+DA\s+SOLE(?:(?!\b(?:ZANZARIERA|TENDA\s+DA\s+SOLE)\b)[\s\S]){0,520}?G\s*TOT\s*(?:TESSUTO\s*)?([0-9]+(?:[,.][0-9]+)?)(?:(?!\b(?:ZANZARIERA|TENDA\s+DA\s+SOLE)\b)[\s\S]){0,300}?MISURA\s*([0-9]+(?:[,.][0-9]+)?)\s*[X×]\s*([0-9]+(?:[,.][0-9]+)?)/gi)) {
       const widthCm = parseItalianNumber(match[2]); const heightCm = parseItalianNumber(match[3]);
       if (widthCm !== null && heightCm !== null) appendItems(1, Math.round(widthCm * 10), Math.round(heightCm * 10), parseItalianNumber(match[1]), "Tenda da sole");
+    }
+    // Regola generale di Giuliano (Ferletic): quando la stessa descrizione
+    // tenda elenca due o piu' coppie "N) L. ... X H ..." prima del gTot
+    // condiviso, sono sempre altrettanti prodotti fisici distinti: non
+    // esiste il caso di un'unica tenda descritta con misure parziali o
+    // alternative. Non collassare mai due coppie di misure in una riga sola.
+    for (const match of compact.matchAll(/\bTENDA\s+DA\s+SOLE\b(?:(?!\bTENDA\s+DA\s+SOLE\b)[\s\S]){0,600}?G\s*TOT\s*([0-9]+(?:[,.][0-9]+)?)/gi)) {
+      const gTot = parseItalianNumber(match[1]);
+      const pairs = [...match[0].matchAll(/(\d+)\)\s*L\.?\s*([0-9]+(?:[,.][0-9]+)?)\s*[Xx×]\s*H\.?\s*([0-9]+(?:[,.][0-9]+)?)/gi)];
+      if (pairs.length < 2) continue;
+      const groupKey = `${match.index}|tenda-a-caduta-multi-coppia`;
+      if (seenEmbeddedProductGroups.has(groupKey)) continue;
+      seenEmbeddedProductGroups.add(groupKey);
+      for (const pair of pairs) {
+        const widthCm = parseItalianNumber(pair[2]); const heightCm = parseItalianNumber(pair[3]);
+        const quantity = Number.parseInt(pair[1], 10) || 1;
+        if (widthCm === null || heightCm === null) continue;
+        const before = items.length;
+        appendItems(quantity, Math.round(widthCm * 10), Math.round(heightCm * 10), gTot, "Tenda da sole a caduta");
+        for (const item of items.slice(before)) item.measurementAudit = {
+          widthOriginal: Math.round(widthCm * 10),
+          heightOriginal: Math.round(heightCm * 10),
+          explicitUnit: "mm",
+          widthResolution: "explicit_mm",
+          heightResolution: "explicit_mm",
+          ruleId: MULTIPLE_MEASUREMENT_PAIRS_ALWAYS_DISTINCT_PRODUCTS_RULE_ID,
+        };
+      }
     }
     // Formato saldo LM Tende con piu prodotti nella stessa descrizione:
     // ogni riga economica puo elencare piu occorrenze `N°1 da L x H` e un
@@ -531,7 +945,13 @@ export function parseScreeningInvoiceText(
           .filter((value): value is number => value !== null && value > 0 && value <= 0.35);
         const uniqueGTot = [...new Set(gTotValues.map((value) => value.toFixed(4)))].map(Number);
         if (uniqueGTot.length !== 1) continue;
-        const isZanzariera = /\bzanzariere?\b/i.test(group);
+        // Regressione Pezzani: "zanzariere?" non riconosce mai il singolare
+        // "Zanzariera" (finale in "a", non "e") come parola intera: dopo
+        // "zanzarier" non c'e' alcun confine di parola prima della "a" che
+        // segue nello stesso vocabolo, quindi "\b" alla fine del pattern
+        // falliva sempre su questa forma - mai notato prima perche' tutte le
+        // fatture di prova usavano soltanto il plurale "Zanzariere".
+        const isZanzariera = /\bzanzarier[ae]?\b/i.test(group);
         const isMotorized = /\bmotorizzat[aeio]?\b|\bmotori?\b/i.test(group);
         const description = isZanzariera
           ? `Altra schermatura solare - zanzariera${isMotorized ? " motorizzata" : ""}`
@@ -539,11 +959,19 @@ export function parseScreeningInvoiceText(
             ? `Tenda da sole a caduta${isMotorized ? " motorizzata" : ""}`
             : `Tenda da sole${isMotorized ? " motorizzata" : ""}`;
         const explicitSurfaces = extractExplicitSurfaceValues(group);
-        const dimensions = [...group.matchAll(/\bN[°º.]?\s*(\d{1,2})\s+da\s+([0-9]+(?:[,.][0-9]+)?)\s*[X×]\s*([0-9]+(?:[,.][0-9]+)?)/gi)];
+        // Regressione Pezzani: la riga tenda di questo fornitore puo' usare
+        // la preposizione "a" invece di "da" fra il quantitativo e la misura
+        // (es. "N° 1 a 500 x 185 cm" contro "N° 1 da 344 x 174 cm" della
+        // zanzariera nella stessa fattura) - stesso significato, sinonimo
+        // sintattico. Le righe "piantane" (es. "N° 4 piantane 6 x 3 cm")
+        // restano escluse perche' dopo "N° <n>" non compare ne' "da" ne' "a".
+        const dimensions = [...group.matchAll(/\bN[°º.]?\s*(\d{1,2})\s+(?:da|a)\s+([0-9]+(?:[,.][0-9]+)?)\s*[X×]\s*([0-9]+(?:[,.][0-9]+)?)/gi)];
         for (let dimensionIndex = 0; dimensionIndex < dimensions.length; dimensionIndex += 1) {
           const dimension = dimensions[dimensionIndex];
           const widthCm = parseItalianNumber(dimension[2]); const heightCm = parseItalianNumber(dimension[3]);
-          if (widthCm !== null && heightCm !== null) appendItems(
+          if (widthCm === null || heightCm === null) continue;
+          const before = lmItems.length;
+          appendItems(
             Number(dimension[1]),
             Math.round(widthCm * 10),
             Math.round(heightCm * 10),
@@ -552,6 +980,14 @@ export function parseScreeningInvoiceText(
             explicitSurfaces[dimensionIndex],
             lmItems,
           );
+          for (const item of lmItems.slice(before)) item.measurementAudit = {
+            widthOriginal: Math.round(widthCm * 10),
+            heightOriginal: Math.round(heightCm * 10),
+            explicitUnit: "mm",
+            widthResolution: "explicit_mm",
+            heightResolution: "explicit_mm",
+            ruleId: LM_TENDE_SALDO_DIMENSION_CONNECTOR_PREPOSITION_RULE_ID,
+          };
         }
       }
       // Questo parser e' specifico per il saldo LM e conserva anche gruppi
@@ -642,23 +1078,48 @@ export function parseScreeningInvoiceText(
     // anche senza indicare l'unita. Gli intervalli autorizzati dall'utente
     // rendono la conversione deterministica; fuori intervallo il valore viene
     // conservato come ambiguo e il preflight lo instrada all'operatore.
-    const persianaStarts = [...compact.matchAll(/(?:\bN[.°º]?\s*(\d{1,2})\s+)?\bPERSIAN[AE]\b/gi)];
+    // Il trigger include anche "VENEZIAN..." (regressione Monti, decisione
+    // generale di Giuliano 2026-09-08, VENEZIANA_PERSIANA_EQUIVALENT_
+    // TREATMENT_RULE_ID): il prodotto "veneziana" segue esattamente lo
+    // stesso riconoscimento dimensionale e lo stesso trattamento (gTot,
+    // materiale, resistenza termica) gia' autorizzato per le persiane,
+    // incluse letture OCR degradate come "Venezianita"/"Venezianina".
+    // "VENEZIAN(?!E\b)" esclude deliberatamente il plurale "Veneziane", gia'
+    // gestito come famiglia "tenda" da un formato narrativo distinto e
+    // testato altrove ("Veneziane da 50mm N0x Da l WxH"): la nuova
+    // equivalenza con le persiane riguarda solo le forme singolari reali
+    // della parola (incluse le letture OCR degradate "Venezianita"/
+    // "Venezianina"), mai il formato plurale gia' autorizzato.
+    const persianaStarts = [...compact.matchAll(/(?:\bN[.°º]?\s*(\d{1,2})\s+)?\b(?:PERSIAN[AE]|VENEZIAN(?!E\b)\w*)\b/gi)];
     for (let index = 0; index < persianaStarts.length; index += 1) {
       const start = persianaStarts[index];
+      const isVeneziana = /VENEZIAN/i.test(start[0]);
       const block = compact.slice(start.index!, Math.min(persianaStarts[index + 1]?.index ?? compact.length, start.index! + 520));
-      const dimensions = block.match(/(?:MISUR[AE]?\s*(?:IN\s*)?(CM|MM)?\s*[:=-]?\s*)?(?:L(?:ARGHEZZA)?\.?\s*)?([0-9]{2,5}(?:[,.][0-9]+)?)\s*[X×]\s*(?:H(?:ALTEZZA)?\.?\s*)?([0-9]{2,5}(?:[,.][0-9]+)?)(?:\s*(CM|MM)\b)?/i);
+      // Regressione Garbato: un modulo tecnico di posa puo' citare, prima
+      // della misura reale, una coppia di numeri estranea al prodotto (es.
+      // "Guida inferiore esistente incassata 17x18", la sede della guida di
+      // scorrimento, non l'apertura della persiana). Quando compare
+      // l'etichetta esplicita "Misure Luce Architettonica: LxH", quella e'
+      // sempre la misura autorevole del prodotto e ha precedenza sulla prima
+      // coppia di numeri trovata nel blocco.
+      const architecturalOpening = block.match(/\bMisure\s+Luce\s+Architettonica\s*:?\s*([0-9]{2,5}(?:[,.][0-9]+)?)\s*[X×]\s*([0-9]{2,5}(?:[,.][0-9]+)?)\s*(CM|MM)?\b/i);
+      const dimensions = architecturalOpening
+        ?? block.match(/(?:MISUR[AE]?\s*(?:IN\s*)?(CM|MM)?\s*[:=-]?\s*)?(?:L(?:ARGHEZZA)?\.?\s*)?([0-9]{2,5}(?:[,.][0-9]+)?)\s*[X×]\s*(?:H(?:ALTEZZA)?\.?\s*)?([0-9]{2,5}(?:[,.][0-9]+)?)(?:\s*(CM|MM)\b)?/i);
       if (!dimensions) continue;
-      const rawWidth = parseItalianNumber(dimensions[2]);
-      const rawHeight = parseItalianNumber(dimensions[3]);
+      const rawWidth = parseItalianNumber(architecturalOpening ? dimensions[1] : dimensions[2]);
+      const rawHeight = parseItalianNumber(architecturalOpening ? dimensions[2] : dimensions[3]);
       if (rawWidth === null || rawHeight === null) continue;
-      const explicitUnit = (dimensions[1] || dimensions[4] || "").toLowerCase() as "cm" | "mm" | "";
+      const explicitUnit = (architecturalOpening ? (dimensions[3] ?? "") : (dimensions[1] || dimensions[4] || "")).toLowerCase() as "cm" | "mm" | "";
       const unit = explicitUnit || null;
       const width = normalizePersianaMeasure(rawWidth, "width", unit);
       const height = normalizePersianaMeasure(rawHeight, "height", unit);
       const widthMm = width?.millimeters ?? Math.round(unit === "cm" ? rawWidth * 10 : rawWidth);
       const heightMm = height?.millimeters ?? Math.round(unit === "cm" ? rawHeight * 10 : rawHeight);
       const documentedGTot = block.match(/\bG\s*TOT\s*([0-9]+(?:[,.][0-9]+)?)/i)?.[1];
-      const description = /\bmotore\b|motorizzat|automatic/i.test(block) ? "Persiana in alluminio motorizzata" : "Persiana in alluminio";
+      const motorized = /\bmotore\b|motorizzat|automatic/i.test(block);
+      const description = isVeneziana
+        ? (motorized ? "Persiana veneziana in alluminio motorizzata" : "Persiana veneziana in alluminio")
+        : (motorized ? "Persiana in alluminio motorizzata" : "Persiana in alluminio");
       const quantity = Number(start[1] ?? block.match(/\b(?:Q(?:TA|TY)|QUANTIT[AÀ])\.?\s*[:=]?\s*(\d{1,2})\b/i)?.[1] ?? 1);
       const before = items.length;
       appendItems(quantity, widthMm, heightMm, documentedGTot ? parseItalianNumber(documentedGTot) : null, description);
@@ -668,18 +1129,121 @@ export function parseScreeningInvoiceText(
         explicitUnit: unit,
         widthResolution: width?.resolution ?? "ambiguous",
         heightResolution: height?.resolution ?? "ambiguous",
-        ruleId: PERSIANA_RULE_ID,
+        ruleId: architecturalOpening
+          ? ARCHITECTURAL_OPENING_LABEL_OVER_INCIDENTAL_NUMBER_PAIR_RULE_ID
+          : isVeneziana ? VENEZIANA_PERSIANA_EQUIVALENT_TREATMENT_RULE_ID : PERSIANA_RULE_ID,
       };
+    }
+    // Formato Finestra Italia (DDT posizionale): ogni posizione riporta le
+    // misure tra parentesi come "(L=2.235;A=1.435;)", con il punto usato come
+    // separatore delle migliaia (2.235 = 2235 mm), non come decimale. La
+    // stessa notazione compare identica sia per gli infissi sia per le
+    // persiane dello stesso fornitore (regressione Codognato: infissi e
+    // persiane della stessa fattura, combinazione normale, restavano
+    // entrambi senza misure riconosciute perche' nessun parser esistente
+    // accettava "(L=...;A=...;)").
+    for (const match of compact.matchAll(/\bPERSIAN[AE]\b[^()\n]{0,80}?\(\s*L\s*=\s*([0-9]{1,2}\.[0-9]{3}|[0-9]{3,4})\s*;\s*A\s*=\s*([0-9]{1,2}\.[0-9]{3}|[0-9]{3,4})\s*;?\s*\)/gi)) {
+      const widthMm = Number(match[1].replace(".", ""));
+      const heightMm = Number(match[2].replace(".", ""));
+      if (!(widthMm > 0 && heightMm > 0)) continue;
+      const before = items.length;
+      appendItems(1, widthMm, heightMm, null, "Persiana in alluminio");
+      for (const item of items.slice(before)) item.measurementAudit = {
+        widthOriginal: widthMm,
+        heightOriginal: heightMm,
+        explicitUnit: "mm",
+        widthResolution: "explicit_mm",
+        heightResolution: "explicit_mm",
+        ruleId: FINESTRA_ITALIA_POSITIONAL_DIMENSION_NOTATION_RULE_ID,
+      };
+    }
+    // Schede ordine tecniche a posizioni: il nome famiglia puo comparire
+    // soltanto nell'intestazione, mentre ogni posizione Pxx contiene quantità,
+    // misure L/H e gTot. Una posizione incompleta resta esclusa fail-closed.
+    if (/\bPERSIAN[AE]\b/i.test(compact)) {
+      const positionStarts = [...compact.matchAll(/\bPOS\.?\s+P\d{1,3}\b/gi)];
+      for (let index = 0; index < positionStarts.length; index += 1) {
+        const start = positionStarts[index];
+        const block = compact.slice(start.index!, positionStarts[index + 1]?.index ?? compact.length);
+        const quantityMatch = block.match(/\bQuantit[aà]\s+(\d{1,2})\s*PZ\b/i);
+        const widthMatch = block.match(/\bmisure\s+L\s+([0-9]{2,5}(?:[,.][0-9]+)?)/i);
+        const heightMatch = block.match(/\bmisure\s+H\s+([0-9]{2,5}(?:[,.][0-9]+)?)/i);
+        const gTotMatch = block.match(/\bG\s*[- ]?TOT\s+([0-9]+(?:[,.][0-9]+)?)/i);
+        if (!quantityMatch || !widthMatch || !heightMatch || !gTotMatch) continue;
+        const quantity = Number(quantityMatch[1]);
+        const rawWidth = parseItalianNumber(widthMatch[1]);
+        const rawHeight = parseItalianNumber(heightMatch[1]);
+        const gTot = parseItalianNumber(gTotMatch[1]);
+        if (rawWidth === null || rawHeight === null || gTot === null) continue;
+        const width = normalizePersianaMeasure(rawWidth, "width", null);
+        const height = normalizePersianaMeasure(rawHeight, "height", null);
+        if (!width || !height) continue;
+        const before = items.length;
+        appendItems(quantity, width.millimeters, height.millimeters, gTot, "Persiana in alluminio");
+        for (const item of items.slice(before)) item.measurementAudit = {
+          widthOriginal: rawWidth,
+          heightOriginal: rawHeight,
+          explicitUnit: null,
+          widthResolution: width.resolution,
+          heightResolution: height.resolution,
+          ruleId: POSITIONED_TECHNICAL_ORDER_PRODUCTS_RULE_ID,
+        };
+      }
     }
     // Formato Zanzasol: la riga economica può precedere la descrizione
     // tecnica, mentre modello, `misura: LxH` e gTot sono riportati nelle
     // righe successive. La quantità fisica documentata è una tenda; motore,
     // posa e pratica ENEA sono servizi/accessori e non prodotti aggiuntivi.
-    for (const match of compact.matchAll(/FORNITURA\s+(?:DI\s+)?TENDA\s+DA\s+SOLE(?:(?!\b(?:FORNITURA\s+(?:DI\s+)?TENDA\s+DA\s+SOLE|ZANZARIERA|VETRAT[AE]\s+SCORREVOL[EI])\b)[\s\S]){0,700}?\bMISUR[AE]?\s*:?\s*([0-9]+(?:[,.][0-9]+)?)\s*[X×]\s*([0-9]+(?:[,.][0-9]+)?)(?:(?!\b(?:FORNITURA\s+(?:DI\s+)?TENDA\s+DA\s+SOLE|ZANZARIERA|VETRAT[AE]\s+SCORREVOL[EI])\b)[\s\S]){0,220}?\bG\s*TOT\s*([0-9]+(?:[,.][0-9]+)?)/gi)) {
+    // Correzione di Giuliano (2026-09-07): l'intestazione compare anche come
+    // "FORNITURA E POSA TENDE DA SOLE" (plurale, con "E POSA") e il gTot come
+    // "Gtot." con un punto prima del valore, non solo "G TOT" con spazio;
+    // entrambe le varianti reali erano ignorate senza generare alcuna riga.
+    for (const match of compact.matchAll(/FORNITURA\s+(?:E\s+POSA\s+|DI\s+)?TEND[EA]\s+DA\s+SOLE(?:(?!\b(?:FORNITURA\s+(?:E\s+POSA\s+|DI\s+)?TEND[EA]\s+DA\s+SOLE|ZANZARIERA|VETRAT[AE]\s+SCORREVOL[EI])\b)[\s\S]){0,700}?\bMISUR[AE]?\s*:?\s*([0-9]+(?:[,.][0-9]+)?)\s*[X×]\s*([0-9]+(?:[,.][0-9]+)?)(?:(?!\b(?:FORNITURA\s+(?:E\s+POSA\s+|DI\s+)?TEND[EA]\s+DA\s+SOLE|ZANZARIERA|VETRAT[AE]\s+SCORREVOL[EI])\b)[\s\S]){0,220}?\bG\s*TOT\.?\s*([0-9]+(?:[,.][0-9]+)?)/gi)) {
       const widthCm = parseItalianNumber(match[1]); const heightCm = parseItalianNumber(match[2]);
-      const following = compact.slice(match.index! + match[0].length, match.index! + match[0].length + 420).split(/(?=FORNITURA\s+(?:DI\s+)?TENDA\s+DA\s+SOLE|ZANZARIERA|VETRAT[AE]\s+SCORREVOL[EI])/i)[0];
+      const following = compact.slice(match.index! + match[0].length, match.index! + match[0].length + 420).split(/(?=FORNITURA\s+(?:E\s+POSA\s+|DI\s+)?TEND[EA]\s+DA\s+SOLE|ZANZARIERA|VETRAT[AE]\s+SCORREVOL[EI])/i)[0];
       const motorized = /\bFORNITURA\s+MOTORE\b[\s\S]{0,180}?\bPER\s+TENDA\s+DA\s+SOLE\b/i.test(following);
-      if (widthCm !== null && heightCm !== null) appendItems(1, Math.round(widthCm * 10), Math.round(heightCm * 10), parseItalianNumber(match[3]), motorized ? "Tenda da sole motorizzata" : "Tenda da sole");
+      // Regressione Falconi: la riga economica del prezzo unitario riporta la
+      // quantita' fisica reale come "N <prezzo> <iva%> <quantita>,00
+      // <totale>" subito dopo il gTot. Il default 1 restava corretto finche'
+      // la quantita' era sempre 1,00; con "2,00" il parser produceva una
+      // sola riga fisica invece di due, pur avendo la fattura la quantita'
+      // esplicita in chiaro.
+      const quantityMatch = following.match(/^\s*Classe\s+\d\s*\bN\s+[0-9.]+,[0-9]{2}\s+[0-9]{1,2}\s+([0-9]{1,2}),[0-9]{2}\s+[0-9.]+,[0-9]{2}\b/i)
+        ?? following.match(/^\s*\bN\s+[0-9.]+,[0-9]{2}\s+[0-9]{1,2}\s+([0-9]{1,2}),[0-9]{2}\s+[0-9.]+,[0-9]{2}\b/i);
+      const quantity = quantityMatch ? Number(quantityMatch[1]) : 1;
+      if (widthCm !== null && heightCm !== null && Number.isInteger(quantity) && quantity >= 1 && quantity <= MAX_SCREENING_QUANTITY) {
+        const before = items.length;
+        appendItems(quantity, Math.round(widthCm * 10), Math.round(heightCm * 10), parseItalianNumber(match[3]), motorized ? "Tenda da sole motorizzata" : "Tenda da sole");
+        for (const item of items.slice(before)) item.measurementAudit = {
+          widthOriginal: widthCm, heightOriginal: heightCm, explicitUnit: "cm",
+          widthResolution: "explicit_cm", heightResolution: "explicit_cm",
+          ruleId: quantityMatch ? ZANZASOL_NARRATIVE_QUANTITY_FROM_PRICE_ROW_RULE_ID : ZANZASOL_PLURAL_HEADER_AND_GTOT_PERIOD_TOLERANCE_RULE_ID,
+        };
+      }
+    }
+    // Regressione Lavezzi: alcune fatture (formato "Vostro dare...")
+    // descrivono il saldo come una frase narrativa di pagamento con la
+    // misura incorporata subito dopo "tenda da sole", senza etichette L/H
+    // ne' un gTot locale ("Vostro dare per fornitura e posa di tenda da
+    // sole 300x250, presso vostra abitazione..."). Fallback di ultima
+    // istanza, attivo solo se nessun altro parser ha gia' trovato righe: il
+    // gTot resta responsabilita' del solo classificatore condiviso (famiglia
+    // "tenda" -> fallback 0,13 autorizzato).
+    if (items.length === 0) {
+      const narrativePaymentMatch = compact.match(/\btend[ae]\s+da\s+sole\s+([0-9]{2,4})\s*[xX×]\s*([0-9]{2,4})\s*,/i);
+      if (narrativePaymentMatch) {
+        const widthCm = parseItalianNumber(narrativePaymentMatch[1]);
+        const heightCm = parseItalianNumber(narrativePaymentMatch[2]);
+        if (widthCm !== null && heightCm !== null) {
+          const before = items.length;
+          appendItems(1, Math.round(widthCm * 10), Math.round(heightCm * 10), null, "Tenda da sole");
+          for (const item of items.slice(before)) item.measurementAudit = {
+            widthOriginal: widthCm, heightOriginal: heightCm, explicitUnit: "cm",
+            widthResolution: "explicit_cm", heightResolution: "explicit_cm",
+            ruleId: NARRATIVE_PAYMENT_SENTENCE_AWNING_DIMENSION_RULE_ID,
+          };
+        }
+      }
     }
     // Le zanzariere sono "Altra schermatura solare" e ogni occorrenza fisica
     // resta una riga. Il gTot rimane nullo se non documentato: il registro
@@ -701,6 +1265,23 @@ export function parseScreeningInvoiceText(
         ? "Altra schermatura solare - zanzariera motorizzata"
         : "Altra schermatura solare - zanzariera";
       appendItems(Number(match[1]), Math.round(widthCm * 10), Math.round(heightCm * 10), parseItalianNumber(match[4]), description);
+    }
+    // Correzione di Giuliano (2026-09-07): lo stesso formato narrativo LM
+    // Tende (`N° <qta> da <L> x <H> cm`) e' usato anche per la tenda da sole
+    // cassonata, non solo per la zanzariera, e spesso senza gTot esplicito
+    // (il fallback autorizzato per tende generiche si applica a valle).
+    for (const match of compact.matchAll(/\bTENDA\s+DA\s+SOLE\s+CASSONATA(?:(?!\bTENDA\s+DA\s+SOLE\b)[\s\S]){0,260}?\bN[°º.]?\s*(\d{1,2})\s+DA\s+([0-9]+(?:[,.][0-9]+)?)\s*[X×]\s*([0-9]+(?:[,.][0-9]+)?)\s*CM\b(?:(?!\bTENDA\s+DA\s+SOLE\b)[\s\S]){0,180}/gi)) {
+      const widthCm = parseItalianNumber(match[2]); const heightCm = parseItalianNumber(match[3]);
+      if (widthCm === null || heightCm === null) continue;
+      const explicitGTot = match[0].match(/G\s*TOT\.?\s*([0-9]+(?:[,.][0-9]+)?)/i)?.[1];
+      const motorized = /\bMOTOR(?:E|IZZAT[AOEI])\b/i.test(match[0]);
+      const before = items.length;
+      appendItems(Number(match[1]), Math.round(widthCm * 10), Math.round(heightCm * 10), explicitGTot ? parseItalianNumber(explicitGTot) : null, motorized ? "Tenda da sole motorizzata" : "Tenda da sole");
+      for (const item of items.slice(before)) item.measurementAudit = {
+        widthOriginal: widthCm, heightOriginal: heightCm, explicitUnit: "cm",
+        widthResolution: "explicit_cm", heightResolution: "explicit_cm",
+        ruleId: LM_TENDE_NARRATIVE_AWNING_MEASUREMENT_RULE_ID,
+      };
     }
     // Formato Rinaldi con profondita' indicata come SP.CM anziche' H.CM.
     for (const match of compact.matchAll(/DIM\.?\s*L\.?\s*CM\.?\s*([0-9]+(?:[,.][0-9]+)?)\s*[X×]\s*SP\.?\s*CM\.?\s*([0-9]+(?:[,.][0-9]+)?)[\s\S]{0,900}?G\s*TOT\s*([0-9]+(?:[,.][0-9]+)?)/gi)) {
@@ -782,18 +1363,175 @@ export function parseScreeningInvoiceText(
       seenEmbeddedProductGroups.add(groupKey);
       appendItems(Number(match[3]), Number(match[1]), Number(match[2]), parseItalianNumber(match[4]), "Tenda da sole a bracci");
     }
+    // Variante della stessa fattura in cui LxH resta sulla riga descrittiva e
+    // la quantità è una riga numerica autonoma dopo al massimo tre righe di
+    // attributi. La presenza congiunta di famiglia prodotto, quantità isolata
+    // e gTot locale impedisce di promuovere generiche misure di vano.
+    for (const match of sourceText.matchAll(/Tenda\s+da\s+Sole[^\n\r]{0,180}?\bL\s*(\d{3,5})\s*[x×]\s*(\d{3,5})[^\n\r]*[\r\n]+(?:[^\n\r]*[\r\n]+){0,3}\s*(\d{1,2})\s*[\r\n]+\s*(?=\d{1,3}(?:[.,]\d{2,4})?)[\s\S]{0,1200}?(?:G\s*HOT|G\s*TOT)(?:\s+TENDA)?\s*([0-9]+(?:[,.][0-9]+)?)/gi)) {
+      const groupKey = `${Number(match[3])}|${Number(match[1])}|${Number(match[2])}|${match[4]}|tenda-linea-sole-inline`;
+      if (seenEmbeddedProductGroups.has(groupKey)) continue;
+      seenEmbeddedProductGroups.add(groupKey);
+      const duplicate = items.some((item) => item.widthMm === Number(match[1])
+        && item.heightMm === Number(match[2]) && /tenda.*sole/i.test(item.description));
+      if (!duplicate) {
+        const before = items.length;
+        appendItems(Number(match[3]), Number(match[1]), Number(match[2]), parseItalianNumber(match[4]), "Tenda da sole a bracci");
+        for (const item of items.slice(before)) item.measurementAudit = {
+          widthOriginal: Number(match[1]),
+          heightOriginal: Number(match[2]),
+          explicitUnit: "mm",
+          widthResolution: "explicit_mm",
+          heightResolution: "explicit_mm",
+          ruleId: INLINE_DESCRIPTION_PRODUCT_MEASUREMENTS_RULE_ID,
+        };
+      }
+    }
+    // Nelle rappresentazioni SdI OCR la colonna quantità può sparire pur
+    // lasciando prezzo unitario e importo su due righe consecutive. Una sola
+    // unità è dimostrata soltanto se le intestazioni tabellari sono presenti,
+    // i due importi coincidono al centesimo e misura e gTot restano espliciti.
+    if (/\bPRODOTTI\s+E\s+SERVIZI\b[\s\S]{0,500}?\bQUANTITA'?\b[\s\S]{0,120}?\bPREZZO\b[\s\S]{0,120}?\bIMPORTO\b/i.test(sourceText)) {
+      for (const match of sourceText.matchAll(/Tenda\s+da\s+Sole[^\n\r]{0,180}?\bL\s*(\d{3,5})\s*[x×]\s*(\d{3,5})[^\n\r]*/gi)) {
+        const tail = sourceText.slice((match.index ?? 0) + match[0].length, (match.index ?? 0) + match[0].length + 1400);
+        const leadingLines = tail.split(/\r?\n/).slice(0, 7);
+        const monetaryValues = leadingLines.flatMap((line) => {
+          const amount = line.match(/^\s*([0-9.]+,[0-9]{2})\s*€?/);
+          return amount ? [amount[1]] : [];
+        });
+        const explicitGtot = tail.match(/(?:G\s*HOT|G\s*TOT)(?:\s+TENDA)?\s*([0-9]+(?:[,.][0-9]+)?)/i);
+        if (monetaryValues.length < 2 || !explicitGtot) continue;
+        const unitPrice = parseItalianNumber(monetaryValues[0]);
+        const rowAmount = parseItalianNumber(monetaryValues[1]);
+        if (unitPrice === null || rowAmount === null || Math.abs(unitPrice - rowAmount) > 0.01) continue;
+        const duplicate = items.some((item) => item.widthMm === Number(match[1])
+          && item.heightMm === Number(match[2]) && /tenda.*sole/i.test(item.description));
+        if (duplicate) continue;
+        const before = items.length;
+        appendItems(1, Number(match[1]), Number(match[2]), parseItalianNumber(explicitGtot[1]), "Tenda da sole a bracci");
+        for (const item of items.slice(before)) item.measurementAudit = {
+          widthOriginal: Number(match[1]),
+          heightOriginal: Number(match[2]),
+          explicitUnit: "mm",
+          widthResolution: "explicit_mm",
+          heightResolution: "explicit_mm",
+          ruleId: TABULAR_EQUAL_PRICE_AMOUNT_SINGLE_QUANTITY_RULE_ID,
+        };
+      }
+    }
     // Linea Sole Potito, modello "scomparsa totale": descrizione e misura
     // possono precedere di alcune righe la dicitura tenda da sole, mentre il
     // gTot e' riportato come GHOT nella fattura di saldo. La coppia di misure
     // identifica un singolo prodotto fisico; acconto e saldo vengono poi
     // riconciliati dal segmentatore senza aggregare righe tecniche diverse.
+    // Il codice modello del fornitore puo' comparire anche TRA "totale" e
+    // "L" (es. "scomparsa totale S/2022 L 5000x2000"), non solo prima di
+    // "scomparsa" (regressione Mocenighi: il codice modello rompeva
+    // l'adiacenza richiesta e azzerava il riconoscimento della misura).
+    // Regola generale di Giuliano: la ricerca della misura non deve mai
+    // leggere o verificare le righe di importo/IVA che l'estrazione OCR
+    // tabellare intercala fra la descrizione e la misura stessa (vengono
+    // saltate come rumore da stripInvoicePricingNoiseLines, non usate). Una
+    // "scomparsa totale" cassonata e' gia' di per se' una tenda da sole: non
+    // serve piu' richiedere che la dicitura compaia di nuovo vicino alla
+    // misura, dato che nella fattura reale puo' comparire solo altrove, in
+    // una riga di servizio scollegata (es. "impianto elettrico x 2 tende da
+    // sole"), mai adiacente alla misura del prodotto stesso.
     if (/\bLINEA\s+SOLE\s+POTITO\b/i.test(sourceText)) {
       const explicitGtot = sourceText.match(/\bG\s*HOT(?:\s+TENDA)?\s*([0-9]+(?:[,.][0-9]+)?)/i);
-      for (const match of sourceText.matchAll(/\bscomparsa\s+totale\s+L\s*(\d{3,5})\s*[x×]\s*(\d{3,5})\b[\s\S]{0,320}?\btenda\s+da\s+sole\b/gi)) {
+      const noiseFreeSourceText = stripInvoicePricingNoiseLines(sourceText);
+      for (const match of noiseFreeSourceText.matchAll(/\bscomparsa\s+totale(?:\s+[A-Z0-9/]{1,12})?\s+L\s*(\d{3,5})\s*[x×]\s*(\d{3,5})\b/gi)) {
         const groupKey = `1|${Number(match[1])}|${Number(match[2])}|scomparsa-totale`;
         if (seenEmbeddedProductGroups.has(groupKey)) continue;
         seenEmbeddedProductGroups.add(groupKey);
+        const before = items.length;
         appendItems(1, Number(match[1]), Number(match[2]), explicitGtot ? parseItalianNumber(explicitGtot[1]) : null, "Tenda da sole scomparsa totale");
+        for (const item of items.slice(before)) item.measurementAudit = {
+          widthOriginal: Number(match[1]),
+          heightOriginal: Number(match[2]),
+          explicitUnit: "mm",
+          widthResolution: "explicit_mm",
+          heightResolution: "explicit_mm",
+          ruleId: LINEA_SOLE_POTITO_SCOMPARSA_TOTALE_MODEL_CODE_TOLERANCE_RULE_ID,
+        };
+      }
+      // Regressione Bellotti/Madia: alcune fatture di questo fornitore
+      // descrivono il prodotto come "Tenda modello <codice> [qualificatore]
+      // L <largh>x<alt>" senza mai citare "scomparsa" (es. "Tenda modello
+      // S/2022 L 310 x1600 Acconto", "Tenda modello T/v cassonata
+      // L700x1600 Saldo"). Il codice modello e un eventuale qualificatore
+      // (es. "cassonata") possono comparire fra il modello e la misura;
+      // "scomparsa" non e' un requisito - "modello ... L <misura>" e' gia'
+      // di per se' una riga prodotto reale su questo fornitore.
+      for (const match of noiseFreeSourceText.matchAll(/\bmodello\s+([A-Z0-9/]{1,12})(?:\s+[A-Za-zàèéìòù]{1,20})?\s+L\s*(\d{3,5})\s*[x×]\s*(\d{3,5})\b/gi)) {
+        const groupKey = `1|${Number(match[2])}|${Number(match[3])}|modello-label`;
+        if (seenEmbeddedProductGroups.has(groupKey)) continue;
+        seenEmbeddedProductGroups.add(groupKey);
+        const before = items.length;
+        appendItems(1, Number(match[2]), Number(match[3]), explicitGtot ? parseItalianNumber(explicitGtot[1]) : null, `Tenda da sole modello ${match[1]}`);
+        for (const item of items.slice(before)) item.measurementAudit = {
+          widthOriginal: Number(match[2]),
+          heightOriginal: Number(match[3]),
+          explicitUnit: "mm",
+          widthResolution: "explicit_mm",
+          heightResolution: "explicit_mm",
+          ruleId: LINEA_SOLE_POTITO_MODELLO_LABEL_DIMENSION_RULE_ID,
+        };
+      }
+      // Regressione Di Bello: la tabella OCR di alcune fatture di questo
+      // fornitore intercala la misura PRIMA della frase descrittiva, cosi'
+      // "scomparsa totale ... L" resta senza una vera coppia largh.x/alt.
+      // subito dopo la "L" (es. "...Struttura bianco\n2\n3000×1800\nN01
+      // Acconto Tenda modello S/2022 scomparsa totale L\n3\n<importo>",
+      // dove il "3" residuo dopo "L" e' soltanto il numero della riga
+      // successiva sopravvissuto alla rimozione del rumore economico, non
+      // l'inizio di una misura). Si esclude un falso orfano soltanto quando
+      // dopo "L" segue davvero un'altra coppia "<cifre> x/×" (la misura e'
+      // gia' al suo posto, gestita dal pattern precedente): una singola
+      // cifra residua isolata non basta a escludere la ricerca all'indietro.
+      for (const match of noiseFreeSourceText.matchAll(/\b(\d{3,4})\s*[x×]\s*(\d{3,4})\b(?=[\s\S]{0,120}?\bscomparsa\s+totale(?:\s+[A-Z0-9/]{1,12})?\s+L\b(?!\s*\d+\s*[x×]))/gi)) {
+        const groupKey = `1|${Number(match[1])}|${Number(match[2])}|scomparsa-orphaned-dimension`;
+        if (seenEmbeddedProductGroups.has(groupKey)) continue;
+        seenEmbeddedProductGroups.add(groupKey);
+        const before = items.length;
+        appendItems(1, Number(match[1]), Number(match[2]), explicitGtot ? parseItalianNumber(explicitGtot[1]) : null, "Tenda da sole scomparsa totale");
+        for (const item of items.slice(before)) item.measurementAudit = {
+          widthOriginal: Number(match[1]),
+          heightOriginal: Number(match[2]),
+          explicitUnit: "mm",
+          widthResolution: "explicit_mm",
+          heightResolution: "explicit_mm",
+          ruleId: LINEA_SOLE_POTITO_DIMENSION_BEFORE_SCOMPARSA_LABEL_RULE_ID,
+        };
+      }
+    }
+    // Regressione Pasinato: la fattura di una pergotenda spesso non riporta
+    // alcuna misura (solo "FORNITURA N. 1 PERGOTENDA..."): la misura reale
+    // e' soltanto nel modulo d'ordine tecnico del produttore VA.ILA.
+    // ("MODULO ORDINE OPEN HOUSE"), che intercala scelte di colore/motore
+    // scollegate fra ogni etichetta e il proprio valore ("Larghezza
+    // totale\nL\ncm 500", "Profondita\n[motore]\nSP\n[colore]\nCm 300").
+    // Verificato su un solo documento reale finora: se un futuro cliente
+    // con lo stesso modulo usa una formulazione diversa, questo pattern
+    // specifico potrebbe non generalizzare e andra' esteso, non l'unico
+    // riferimento resta comunque fail-closed (nessuna misura inventata).
+    if (items.length === 0 && /\bPERGOTENDA\b/i.test(sourceText) && /MODULO\s+ORDINE\s+OPEN\s+HOUSE/i.test(sourceText)) {
+      const widthMatch = compact.match(/Larghezza\s+totale[\s\S]{0,40}?\bcm\s*(\d{2,4})\b/i);
+      const depthMatch = compact.match(/Profondit[aà][\s\S]{0,120}?\bSP\b[\s\S]{0,60}?\bcm\s*(\d{2,4})\b/i);
+      if (widthMatch && depthMatch) {
+        const widthCm = parseItalianNumber(widthMatch[1]);
+        const depthCm = parseItalianNumber(depthMatch[1]);
+        if (widthCm !== null && depthCm !== null) {
+          const before = items.length;
+          appendItems(1, Math.round(widthCm * 10), Math.round(depthCm * 10), null, "Pergotenda");
+          for (const item of items.slice(before)) item.measurementAudit = {
+            widthOriginal: Math.round(widthCm * 10),
+            heightOriginal: Math.round(depthCm * 10),
+            explicitUnit: "mm",
+            widthResolution: "explicit_mm",
+            heightResolution: "explicit_mm",
+            ruleId: VAILA_OPEN_HOUSE_PERGOTENDA_ORDER_FORM_DIMENSION_RULE_ID,
+          };
+        }
       }
     }
     if (authoritativeVendorItems) items.splice(0, items.length, ...authoritativeVendorItems);
@@ -806,6 +1544,24 @@ export function parseScreeningInvoiceText(
       items.splice(0, items.length);
       for (const group of narrativeGroups) {
         appendItems(group.quantity, group.widthMm, group.heightMm, group.gTot, group.description);
+      }
+    }
+
+    // Ultimo fallback, generico e senza etichette note: si attiva solo se
+    // nessun parser dedicato ne' il fallback narrativo hanno trovato righe.
+    if (items.length === 0) {
+      const genericGroups = extractGenericTwoMeasurementScreeningItems(sourceText);
+      for (const group of genericGroups) {
+        const before = items.length;
+        appendItems(group.quantity, group.widthMm, group.heightMm, null, group.description);
+        for (const item of items.slice(before)) item.measurementAudit = {
+          widthOriginal: group.widthOriginal,
+          heightOriginal: group.heightOriginal,
+          explicitUnit: null,
+          widthResolution: `explicit_${group.widthUnit}`,
+          heightResolution: `explicit_${group.heightUnit}`,
+          ruleId: GENERIC_LABELLED_MEASUREMENT_PAIR_AREA_RULE_ID,
+        };
       }
     }
 

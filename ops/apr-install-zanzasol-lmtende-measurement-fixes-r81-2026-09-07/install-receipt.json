@@ -1,0 +1,23 @@
+{
+  "version": "apr-install-bundle-cli-receipt-v1",
+  "installedAt": "2026-09-07T14:39:28.632Z",
+  "label": "zanzasol-lmtende-measurement-fixes-r81",
+  "versionId": "ba261acf-zanzasol-lmtende-measurement-fixes-r81-20260907",
+  "previousTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/c456cb46-smaj-hhhhh-exclusion-r80-20260907",
+  "currentTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/ba261acf-zanzasol-lmtende-measurement-fixes-r81-20260907",
+  "installedBundle": {
+    "apr-supervisor.mjs": "508bfeb825a5f1b81826586f3923a2cdd15efbb8a707f8a6f03d32fa8ab6ff7b",
+    "apr-enea-worker.mjs": "2c22b96db58efc8cbfccfa6495d007a68967004efcc9910abff71460401ddd38",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0"
+  },
+  "gateResultArtifactId": "cf0fd5716a47e12ea77b94982d9e17a6c683946eb1b2574223b10235d9abaa74",
+  "gateStatus": "PASS",
+  "legacyGovernanceDebtNoticed": [
+    "user-2026-08-06-existing-plant-authoritative-mapping-v1",
+    "user-2026-08-06-intervention-authoritative-sources-and-defaults-v1",
+    "user-2026-08-06-portal-intermediary-physical-beneficiary-v1",
+    "user-2026-08-06-portal-municipality-controlled-selection-v1",
+    "user-2026-09-05-co-beneficiary-trusted-enter-delivery-v2",
+    "user-2026-09-05-terminal-cohort-browser-quiescence-v1"
+  ]
+}

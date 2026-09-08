@@ -1,0 +1,51 @@
+{
+  "version": "apr-fenced-nested-confirmation-freeze-v1",
+  "frozenAt": "2026-08-30T21:32:00.000Z",
+  "authorizationId": "user-2026-08-30-definitive-ten-point-mandate-same-canary30x3",
+  "portalMode": "real_enea_draft_only",
+  "roundCount": 3,
+  "caseCount": 30,
+  "manifestPath": "/private/tmp/apr-promote-4e166ce/ops/apr-global-controller-test10-2026-08-29/manifest-autonomy30.json",
+  "manifestSha256": "6c684df774a48899a6ff4e2a6e52dfe83c2b9c357a81a6c6c52034abe687a953",
+  "requiredCustomerKeys": ["cristina-ricchi", "zeno-righetti"],
+  "sourceSnapshot": {
+    "path": "/private/tmp/apr-promote-fenced-nested-20260830",
+    "gitCommit": "7b0fefd10812970c061e3db3456e14d4bf4e7af2",
+    "treeHash": "82dc22a3c72187b7d173b1f6614bcaf09c8b3a57"
+  },
+  "sequencer": {
+    "path": "/private/tmp/apr-promote-4e166ce/ops/apr-global-controller-test10-2026-08-29/sequencer.mjs",
+    "sha256": "528a9e6964e9067ffa5ac9a809260bd3b91a0a2fd433d7c0c843b0efb6f55286"
+  },
+  "monotonicGate": {
+    "runtimeRevision": "apr-rule-runtime-f99d071a08a405272b666c80",
+    "certificateId": "baea810429e55bbfca67bfca4c52956a2e85407914293bf74b493b7ade35da4c",
+    "certificateStatus": "PASS",
+    "verificationStatus": "VERIFIED_PASS",
+    "testCount": 146,
+    "historicalRegressionGate": "PASS"
+  },
+  "canonicalBundle": {
+    "versionId": "baea810429e55bbfca67bfca4c52956a2e85407914293bf74b493b7ade35da4c-fenced-nested-20260830",
+    "supervisorSha256": "29354b37c027207f1c4a5f67ddfb7592fa0cac275a26fbf448cd19d1f4d6f738",
+    "workerSha256": "7d4d9b5106d82aa4195d88a64be70ab55d0ec4ca63427c475517af6d5eabab26",
+    "watchdogSha256": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0"
+  },
+  "rounds": [
+    {"round": 1, "cohortOffset": 472, "cohortRange": "690-719", "runRoot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-fenced-nested-confirmation-round1"},
+    {"round": 2, "cohortOffset": 502, "cohortRange": "720-749", "runRoot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-fenced-nested-confirmation-round2"},
+    {"round": 3, "cohortOffset": 532, "cohortRange": "750-779", "runRoot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-fenced-nested-confirmation-round3"}
+  ],
+  "constraints": {
+    "noCodeChangesBetweenRounds": true,
+    "sameBundleHashesRequired": true,
+    "sameManifestRequired": true,
+    "sameExpectedPagesRequired": true,
+    "roundsMayOverlap": false,
+    "terminalSnapshotAtomicAndVersioned": true,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false,
+    "correctionsDuringTestAllowed": false
+  }
+}

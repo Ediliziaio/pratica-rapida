@@ -1,0 +1,17 @@
+{
+  "version": "apr-product-evidence-r38-bundle-install-receipt-v1",
+  "installedAt": "2026-09-03T18:29:54.710Z",
+  "status": "bundle_promoted_local_gate_verified",
+  "preinstallGateSha256": "a3afdf43451f73b9a8ed46eb7e169d8c7b28e71dfb8f8d7cfa7c806833893976",
+  "versionId": "a7f4c2d1-product-evidence-r38-20260903",
+  "previousTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/de26daa2-producer-position-r36-20260903",
+  "currentTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/a7f4c2d1-product-evidence-r38-20260903",
+  "installedBundle": {
+    "apr-supervisor.mjs": "282039a9523bc5dc685e1fb0e0e84a7a5143aa4cb2c0a95f754769914b0f7da2",
+    "apr-enea-worker.mjs": "16521498a8ce76c26422553d5db54ee3d601f36322f8d2dfef74ebf1e36d5ca5",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "apr-pdf-ocr": "4c41c9a6832b11b9d19eace538100270a533dddc05e475e5842711968393327f"
+  },
+  "keepaliveRestartRequested": false,
+  "chromeRestartRequested": false
+}

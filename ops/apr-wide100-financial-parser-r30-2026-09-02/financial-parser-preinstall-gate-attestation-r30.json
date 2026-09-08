@@ -1,0 +1,64 @@
+{
+  "version": "apr-financial-parser-r30-preinstall-gate-attestation-v1",
+  "attestedAt": "2026-09-02T20:32:38.460Z",
+  "status": "tested_not_deployed",
+  "diagnosis": {
+    "r29Applied": true,
+    "originalMultiInvoiceSegmentationFixed": true,
+    "additionalDefects": [
+      "macos_vision_ocr_180_semantic_reading_order_reversed",
+      "staggered_vat_row_explicit_separator_rejected",
+      "multipage_heterogeneous_bank_receipts_fused"
+    ]
+  },
+  "monotonicGate": {
+    "baseline": {
+      "suites": 442,
+      "tests": 1652,
+      "reportSha256": "c296c8a47edc489aad7151dbf79373cc7f55785c7014137bb31dbcc021823a8a"
+    },
+    "candidate": {
+      "suites": 442,
+      "tests": 1660,
+      "reportSha256": "a546461230da82c58bf54121d415f9c6aadaa6c19f06536b31e141a7ae67a276"
+    },
+    "registryVersion": "enea-operational-registry-v104",
+    "matrixVersion": "apr-enea-rule-test-matrix-v82",
+    "rulesProved": 97,
+    "ruleEvidenceSha256": "b1c42fc246cf25bdedc976fc4e7dc175bb3d92f1ca127ed37a14146e6778effd"
+  },
+  "operationalReadOnlyReplay": {
+    "status": "passed",
+    "artifactSha256": "08ece02025ecde6a89f245644759be775d2758d2b1d8a61f4d6512f50f7b062f",
+    "cases": [
+      {
+        "customerKey": "giovanna-atzeni",
+        "outcome": "RESOLVED",
+        "eligibleExpense": 7900,
+        "invoiceTotal": 7900,
+        "bankPrincipalTotal": 7900,
+        "difference": 0
+      },
+      {
+        "customerKey": "elena-marcella-berti",
+        "outcome": "RESOLVED",
+        "eligibleExpense": 1320,
+        "invoiceTotal": 1320,
+        "bankPrincipalTotal": 1320,
+        "difference": 0
+      }
+    ]
+  },
+  "stagedBundle": {
+    "apr-supervisor.mjs": "89546ad554154d73dea8f760ab51c0508f61389fe68bdc517c8817d114a8c0cf",
+    "apr-enea-worker.mjs": "68e367e2ace2c99f9cdbcb37ac1ea5e64f25e9ace82602962054bd2528a9701e",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "apr-pdf-ocr": "4c41c9a6832b11b9d19eace538100270a533dddc05e475e5842711968393327f"
+  },
+  "safety": {
+    "draftOnly": true,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false
+  }
+}

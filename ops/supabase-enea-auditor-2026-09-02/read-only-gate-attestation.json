@@ -1,0 +1,65 @@
+{
+  "attested_at_utc": "2026-09-02T16:49:49Z",
+  "project_ref": "xmkjrhwmmuzaqjqlvzxm",
+  "account_email": "claude-auditor@praticarapida.it",
+  "account_user_id": "b6396c8b-404b-4e20-9f8a-8e72a073b753",
+  "account_auth_role": "authenticated",
+  "account_app_roles": [
+    "rivenditore"
+  ],
+  "company_assignments": 0,
+  "allowlist_label": "Claude auditor read-only",
+  "policies": [
+    {
+      "schema": "public",
+      "table": "enea_practices",
+      "name": "ENEA auditors read all practices",
+      "command": "SELECT",
+      "with_check": null
+    },
+    {
+      "schema": "storage",
+      "table": "objects",
+      "name": "ENEA auditors read documents",
+      "command": "SELECT",
+      "with_check": null
+    }
+  ],
+  "auditor_mutative_policies": 0,
+  "verification": {
+    "real_login": "PASS",
+    "crm_archive_read": {
+      "status": "PASS",
+      "visible_year": 2026,
+      "visible_practices": 51
+    },
+    "storage_document_read": "PASS",
+    "transactional_fail_closed_gate": "PASS_READ_ONLY_FAIL_CLOSED",
+    "practice_insert": "DENIED",
+    "practice_update": "DENIED_ZERO_ROWS",
+    "practice_delete": "DENIED_ZERO_ROWS",
+    "storage_insert": "DENIED_42501",
+    "storage_update": "DENIED_ZERO_ROWS",
+    "storage_delete": "DENIED_42501_STORAGE_PROTECT_DELETE",
+    "transaction_rolled_back": true,
+    "auditor_is_internal": false,
+    "auditor_company_scope": null,
+    "membership_table_client_privileges": {
+      "select": false,
+      "insert": false,
+      "update": false,
+      "delete": false
+    }
+  },
+  "artifacts": {
+    "migration": {
+      "path": "supabase/migrations/20260902170000_enea_auditor_read_only.sql",
+      "sha256": "0adbe09d7d152381c5de22fd63d084e20dcf830e7705508eb3bd361dd666a3cb"
+    },
+    "fail_closed_sql": {
+      "path": "ops/supabase-enea-auditor-2026-09-02/fail-closed-verification.sql",
+      "sha256": "56cca0afe7d68d2a511189d6f8fb6373eed4d7bdfe940ef11e500142bd96c10e"
+    }
+  },
+  "credentials_embedded": false
+}

@@ -1,0 +1,50 @@
+{
+  "version": "apr-natural-autonomy12-r52-preflight-v1",
+  "verifiedAt": "2026-09-04T21:21:16Z",
+  "status": "authorized_ready_to_launch",
+  "authorizationId": "user-2026-09-04-natural-autonomy-10-15-draft-only",
+  "manifest": {
+    "path": "ops/apr-natural-autonomy12-r52-2026-09-04/manifest.json",
+    "sha256": "5ce2586c66cc733e79bec9e35e3edd70f2d39cee779fd7849b0ac29c9f8c6d96",
+    "sourceManifestSha256": "51842252f71cabb6714f78923fe59ec9789ad06739393f61a553bb4bdb9154e0",
+    "cases": 12,
+    "cohorts": "3074-3085",
+    "distribution": {
+      "module": { "infissi": 6, "screening": 6 },
+      "stage": { "archiviate": 10, "recensione": 2 },
+      "complexity": { "complex": 3, "medium": 5, "simple": 4 },
+      "priorOperationalOutcome": { "neverReachedDraftInOriginalWide100": 8, "savedControl": 3, "technicalControl": 1 }
+    },
+    "permanentExclusionsPresent": 0,
+    "freshGenerationCases": 12
+  },
+  "launchAgent": {
+    "label": "com.praticarapida.apr-natural-autonomy12-r52",
+    "plist": "ops/apr-natural-autonomy12-r52-2026-09-04/autonomy12.plist",
+    "sha256": "edf875d35afdacda9dd16b29daef3f6d31f514811991a3fe1cd12bf9d9507cfa",
+    "lint": "pass",
+    "preexistingRunRoot": false,
+    "cohortCollisions": 0
+  },
+  "canonicalBundle": {
+    "versionId": "67afeee3-fresh-generation-seed-r51-20260904",
+    "installReceipt": "ops/apr-fresh-generation-seed-r51-2026-09-04/bundle-install-receipt-r51.json",
+    "tests": "1753/1753 green",
+    "workerSha256": "67afeee3edc69e0b2abb2bd07971c7873cfd4b9876e6dd86cd1433ff99304d07",
+    "supervisorSha256": "127cdf403982854d65e70afa1a1ee8a5128cb7990694aad7c31227fa6d933a04"
+  },
+  "runtimeSafety": {
+    "keepaliveLabel": "com.praticarapida.apr-enea-immortal-keepalive",
+    "keepaliveRunningPid": 42593,
+    "chromeRunningPid": 3785,
+    "globalControllerActiveOwner": null,
+    "otherCohortWorkersRunning": 0,
+    "quiescedResidualCohort": 3067,
+    "draftOnly": true,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false,
+    "intermediateDiagnosisAllowed": false,
+    "intermediateCorrectionAllowed": false
+  }
+}

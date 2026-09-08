@@ -1,0 +1,17 @@
+{
+  "version": "apr-producer-position-table-r36-bundle-install-receipt-v1",
+  "installedAt": "2026-09-03T17:58:29.980Z",
+  "status": "bundle_promoted_local_gate_verified",
+  "preinstallGateSha256": "1271ba53b8774ef7b178009a1fd3ef2385655ced69e749ed2669716e8894a206",
+  "versionId": "de26daa2-producer-position-r36-20260903",
+  "previousTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/f68568da-fiscal-copy-reliability-r35-20260903",
+  "currentTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/de26daa2-producer-position-r36-20260903",
+  "installedBundle": {
+    "apr-supervisor.mjs": "cf6c3b8242ba2ea9f2b049e17f7cb8c1408b470c004a3f2009777ff34830195f",
+    "apr-enea-worker.mjs": "de26daa26f92d1ca9786c026557dfe4a8c9e10f1667c9be436dce49550a3d529",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "apr-pdf-ocr": "4c41c9a6832b11b9d19eace538100270a533dddc05e475e5842711968393327f"
+  },
+  "keepaliveRestartRequested": false,
+  "chromeRestartRequested": false
+}

@@ -1,0 +1,474 @@
+APR_OCR_ORIENTATION:180
+aruba it
+ruba PEC
+Pag.1/1
+Fattura generata con:
+Fattura Nr. FATTURA179/2026 del 08/06/2026
+Copia analogica della fattura elettronica inviata a Sdl | Il documento xml originale è disponibile online sul portale "Fatture e Corrispettivi dell'Agenzia delle Entrate"
+1.740,20 €
+Netto a pagare
+1.740,20 €
+Totale documento
+158,20 €
+Totale IVA
+158,20 €
+1.582,00 €
+Immediata
+10%
+1.582,00 €
+Totale imponibile
+1.582,00 €
+Importo prodotti o servizi
+IVA NATURA NORMATIVA ESIGIBILITA' IMPONIBILE IMPOSTA
+CALCOLO FATTURA
+RIEPILOGO IVA
+Descrizione causale DETRAZIONE DEL 50%in anni 10/BONIFICO
+RISPARMIO ENERGETICO L296
+CAUSALE DOCUMENTO
+•
+DATI AGGIUNTIVI
+RF01 - Ordinario
+REGIME FISCALE
+REGIME FISCALE
+Beneficiario: LINEA SOLE POTITO SRL
+1.740,20 €
+UNICREDITBA IT25R0200801615000040530215
+NCA
+unica soluzione
+Pagamento in
+Bonifico
+IMPORTO
+BIC/SWIFT DATA SCADENZA
+IBAN
+BANCA
+PAGAMENTO
+NR RATA MODALITÀ
+METODO DI PAGAMENTO
+10 %
+0,00 €
+0,00 €
+1
+Trasporto compreso
+8
+10 %
+0,00 €
+0,00 €
+1
+Posa in opera compreso
+7
+10 %
+0,00 €
+0,00 €
+Pratica ENEA compreso
+6
+10 %
+90,00 €
+90,00 €
+1
+impianto elettrico x 2 tende da sole (acconto 50%)
+5
+10 %
+45,00 €
+45,00 €
+1
+telecomando era P/6 (acconto 50%)
+4
+10%
+75,00 €
+75,00 €
+1
+Anemometro sole vento (acconto 50%)
+3
+10 %
+500,00 €
+500.00 €
+1
+Cappottina S/83 motorizzata L 1800x600 con motore
+radiocomando (acconto 50%)
+2
+50%)
+872,00 € 10 %
+872,00 €
+1
+Tenda modello cassonata a scomparsa totale S/2022 L
+5000x2000 con motore radio comando RTS (acconto
+IMPORTO IVA NATURA IVA
+PREZZO
+QUANTITA'
+DESCRIZIONE
+NR
+PRODOTTI E SERVIZI
+lineapotitosole3@libero.it
+20835 - Muggiò (MB) - IT
+20146 - Milano (MI) - IT
+Via francesco baracca /MUGGIO n4
+Via F. Brunelleschi 2
+C.F.: MCNDMR63A011690A
+C.F.: 03397500962
+P.IVA: IT03397500962
+GAIATO DIEGO MARIO
+MOCENIGHI
+LINEA SOLE POTITO SRL
+CLIENTE
+FORNITORE
+Data invio: 08/06/2026
+nr. FATTURA179/2026 del 08/06/2026
+FATTURA
+
+APR_OCR_ORIENTATION:180
+arubait
+uba PEC
+Pag.1/1
+Fattura generata con:
+Fattura Nr. FATTURA209/2026 del 23/06/2026
+Copia analogica della fattura elettronica inviata a Sdi | Il documento xml originale è disponibile online sul portale "Fatture e Corrispettivi dell'Agenzia delle Entrate"
+1.740,20 €
+Netto a pagare
+1.740,20 €
+Totale documento
+158,20 €
+1.582,00 €
+Immediata
+10%
+158,20 €
+Totale IVA
+0,00 €
+0,00 €
+22%
+1.582,00 €
+Totale imponibile
+1.582,00 €
+Importo prodotti o servizi
+IVA NATURA NORMATIVA ESIGIBILITA' IMPONIBILE IMPOSTA
+CALCOLO FATTURA
+RIEPILOGO IVA
+Descrizione causale DETRAZIONE DEL 50%in anni 10/BONIFICO
+RISPARMIO ENERGETICO L296
+CAUSALE DOCUMENTO
+•
+DATI AGGIUNTIVI
+RF01 - Ordinario
+• REGIME FISCALE
+REGIME FISCALE
+Beneficiario: LINEA SOLE POTITO SRL
+unica soluzione
+1.740,20 €
+UNICREDITBA IT25R0200801615000040530215
+NCA
+Pagamento in
+Bonifico
+IMPORTO
+BIC/SWIFT DATA SCADENZA
+IBAN
+BANCA
+PAGAMENTO
+VR RATA MODALITÀ
+METODO DI PAGAMENTO
+22%
+0,00 €
+0,00 €
+1
+GHOT TENDA 0,13
+10 %
+0,00 €
+0,00 €
+1
+Trasporto compreso
+8
+10%
+0,00 €
+0,00 €
+1
+Posa in opera compreso
+10 %
+0,00 €
+0,00 €
+1
+Pratica ENEA compreso
+10 %
+90,00 €
+90.00 €
+1
+impianto elettrico x 2 tende da sole saldo
+5
+10 %
+45,00 €
+45,00 €
+1
+telecomando era P/6 saldo
+4
+10 %
+75,00 €
+75,00 €
+1
+Anemometro sole vento saldo
+3
+10 %
+500,00 €
+500,00 €
+1
+Cappottina S/83 motorizzata L 1800x600 con motore
+radiocomando saldo
+2
+872,00 € 10 %
+872,00 €
+1
+Tenda modello cassonata a scomparsa totale S/2022 L
+5000x2000 con motore radio comando RTS saldo
+IMPORTO IVA NATURA IVA
+PREZZO
+QUANTITA'
+DESCRIZIONE
+NR
+PRODOTTI E SERVIZI
+lineapotitosole3@libero.it
+20835 - Muggiò (MB) - IT
+20146 - Milano (MI) - IT
+Via francesco baracca /MUGGIO n4
+Via F. Brunelleschi 2
+C.F.: MCNDMR63A011690A
+C.F.: 03397500962
+P.IVA: IT03397500962
+GAIATO DIEGO MARIO
+MOCENIGHI
+LINEA SOLE POTITO SRL
+CLIENTE
+FORNITORE
+Data invio: 23/06/2026
+nr. FATTURA209/2026 del 23/06/2026
+FATTURA
+
+APR_OCR_ORIENTATION:180
+per operazione' secondo le modalità previste dal contratto di conto corrente o carta.
+L'operazione potrebbe essere conteggiata e assoggettata al pagamento del 'Costo unitario
+1.740,20 Euro
+Totale operazione
+0,00 Euro
+1.740,20 Euro
+Commissioni
+Importo
+10.06.2026
+10.06.2026
+Data addebito ordinante
+Data regolamento beneficiario
+0306924588101503482934199999IT
+SALDO FT 179-2026 DEL 08-06-2026
+TRN
+Causale
+RISPARMIO ENERGETICO - L. 296/06
+Spese su beni di proprietà
+Tipologia di agevolazione
+Tipologia di spese
+MCNDMR63A011690A
+03397500962
+C.F/P.IVA del fruitore della detrazione
+C.F/P.IVA del beneficiario del bonifico
+UNICREDIT SPA
+-
+Banca
+Beneficiario effettivo
+UNCRITM1215
+[T25R0200801615000040530215
+Codice BIC/SWIFT
+BAN
+IT
+Sede legale o residenza beneficiario
+Paese
+-
+-
+Località
+Indirizzo
+LINEA SOLE POTITO SRL
+CINISELLO B. VIA LIBERTA' 89
+Beneficiario
+Filiale
+MARIO BALSAMO DANIELA
+MOCENIGHI GAIATO DIEGO
+1000/00000891
+Intestato a
+N. C/C
+DIEGO MARIO MOCENIGHI GAIATO
+INTER20260610BOSBE362016483
+Operazione effettuata da
+Numero operazione
+Di seguito il riepilogo dell'operazione:
+autorizzato in data 10.06.2026 10:03
+Eseguito - Bonifico per Agevolazioni Fiscali Istantaneo
+SANPAOLO
+INTESA
+
+APR_OCR_ORIENTATION:90
+Importo
+IBAN
+Paese
+Indirizzo
+Filiale
+N. C/C
+26.06.2026
+Causale
+1.740,20 Euro
+1.740,20 Euro
+03397500962
+1000/00000891
+Totale operazione
+Tipologia di spese
+Beneficiario effettivo
+Numero operazione
+Data regolamento beneficiario
+Spese su beni di proprietà
+IT25R0200801615000040530215
+CINISELLO B. VIA LIBERTA' 89
+INTER20260625BOSBE448959645
+Di seguito il riepilogo dell'operazione:
+autorizzato in data 25.06.2026 12:28
+saldo fattura n. 209-2026 del 23-06-2026
+C.F/P.IVA del beneficiario del bonifico
+Presa in carico - Bonifico per Agevolazioni Fiscali
+INTESA
+Sarà possibile revocare la disposizione fino alle ore 17:29 del 25.06.2026.
+Le operazioni disposte nelle giornate festive si considerano ricevute il primo giorno
+per operazione' secondo le modalità previste dal contratto di conto corrente o carta.
+L'operazione potrebbe essere conteggiata e assoggettata al pagamento del 'Costo unitario
+TRN
+IT
+Banca
+0,00 Euro
+Località
+Commissioni
+25.06.2026
+Beneficiario
+Intestato a
+UNICREDIT SPA
+UNCRITM1215
+Codice BIC/SWIFT
+SANPAOLO
+Data addebito ordinante
+Tipologia di agevolazione
+MCNDMR63A011690A
+Operazione effettuata da
+LINEA SOLE POTITO SRL
+0306913657757504S932934329341T
+Sede legale o residenza beneficiario
+MARIO, BALSAMO DANIELA
+MOCENIGHI GALATO DIEGO
+C.F/P.IVA del fruitore della detrazione
+RISPARMIO ENERGETICO - L. 296/06
+DIEGO MARIO MOCENIGHI GAIATO
+
+APR_OCR_ORIENTATION:0
+Compilazione a cura del richiedente la detrazione
+TITOLO
+Pratica
+Propnetario o comproprietario
+Detentore
+Familiare convivente
+cointestata
+no
+PERSONA FISICA
+Nome -
+DIE
+PiARIOCognome -
+MOCENIGHI GAlATO
+Codice Fiscale_
+MCNDMR63A01I 690A
+Lucgo di nascita _
+SESTO S. GIOVANNI Prov.-
+MI
+_Data di nascita 01 01 1963
+LUOGO DI RESIDENZA
+Ina nzzo
+VIA F. BARACCA
+_n. 4 ne scala
+Comune
+MU GELÒ
+Prov.
+MB
+_cap 20835
+N. ielefono icell. —
+3457482559
+_e-mail_
+mogadima639 gmail. Com
+DATI GENERALI EDIFICIO/ABITAZIONE OGGETTO D'INTERVENTO
+inanzzo VIA F-BARACCA
+n.
+_ int. 4
+scala.
+Comune
+MUGGIO
+Prov.
+MB
+_Cap.
+20835
+SETTE
+DATI CATASTALI
+Fogiio.
+Mappale o particella _
+335
+Subalterno
+37
+ANNO DI COSTRUZIONE (anche presunto)
+2000
+_ superficie utile in ma -
+80
+DESTINAZIONE D'USO Residenziale
+Commerciale L
+Industrale
+Altro
+TIPOLOGIA EDILIZIA
+Edificio in linea e condominio fino a 3 p. fuori terra
+Edificio in linea e condominio oltre i 3 piani
+Costruzione isolata (es.mono o pluntam lare)
+Ec.ficio indusinale, arugianale, commerciale
+SEI
+NUMERO DI UNITA' IMMOBILIARI PRESENTI NELL'INTERO EDIFICIO
+E via alassido farei fale
+E uria adulazione secondaria
+E presente un impianto di condizionarento
+Lurg a o dala
+Muggib
+25062026 Fuma.
+25/06/8026
+Nikto fi
+Luujo o cola
+Mypo
+Lafiesorte sitoiao dol
+alle era ..
+" 14 tato
+raiario dor di.
+PraticaRapida
+Pag 2.5
+
+APR_OCR_ORIENTATION:270
+Pay 3.5
+Teleriscaldamento
+Altro.
+Bocchette aria calda
+Compilazione a cura del richiedente la detrazione
+DATI IDENTIFICATIVI IMPIANTO TERMICO ESISTENTE
+Biomassa
+Doppio
+Ferra
+Split
+DATI I DENTIFICATIVI DEGLI INFISSI PRIMA DELLA SOSTITUZIONE (solo in caso di sostituzione infissi)
+Metallo no taglio termico
+Pratica Rapida
+25/06/2026
+adese to belanda delle e...
+Gasolio
+DATI IDENTIFICATIVI IMPIANTO TERMICO - TIPO COMBUSTIBILE
+Energia elettrica
+Muzpio 25/06/2026
+Singolo
+Riscaldamento a pavimento
+TIPO DI IMPIANTO TERMICO
+TERMINALI DI EROGAZIONE
+Caloriferi
+Gas metano
+Tipo telalo sostituito
+Tipo vetro sostituito
+Cia combustibie
+Lungo e Cala
+Large coa
+Autonomo
+Centralizzato
+La presenta

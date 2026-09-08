@@ -1,0 +1,321 @@
+{
+  "version": "apr-crm-local-preflight-v1",
+  "revision": 1,
+  "status": "completed",
+  "sourceFingerprint": "d7dc33d057b8ede9ba3cec91411105fafde044f4255889609ddfe84924a8667d",
+  "currentCustomerKey": null,
+  "items": [
+    {
+      "customerKey": "marco-tocchetti",
+      "displayName": "Marco Tocchetti",
+      "practiceId": "1b6d780a-2e81-415f-9a27-c67e2f19e846",
+      "dossierPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2986-global-controller-marco-tocchetti/crm-acquisition/dossiers/marco-tocchetti.json",
+      "state": "blocked_case",
+      "attemptCount": 1,
+      "startedAt": null,
+      "endedAt": null,
+      "report": {
+        "outcome": "blocked_case",
+        "formAvailable": true,
+        "startDate": "2026-05-14",
+        "startDateSource": "ae99eeb4a1dd13c63695c2573639e3927d10ba034de677fbba847be4113aa829:invoice:264f0ccd0374",
+        "completionDate": "2026-06-15",
+        "completionDateSource": "3a269f4c52a527c782de29ce2538839cc968fbaae9d27b97e4638ce0b35a5eda:invoice:264f0ccd0374",
+        "buildingQualification": "multi_unit",
+        "buildingUnitCount": 3,
+        "deductionRate": null,
+        "taxCodeStatus": "verified_form",
+        "resolvedTaxCode": "TCCMRC78B02E507D",
+        "taxCodeSourceIds": [
+          "marco-tocchetti"
+        ],
+        "primaryBeneficiaryResolution": {
+          "status": "not_found",
+          "identity": null,
+          "sourceIds": [],
+          "authority": null
+        },
+        "coBeneficiaryResolution": {
+          "status": "not_declared",
+          "present": false,
+          "identity": null,
+          "sourceIds": []
+        },
+        "products": [
+          {
+            "rowId": "3a269f4c52a527c782de29ce2538839cc968fbaae9d27b97e4638ce0b35a5eda:invoice:264f0ccd0374:piece-1",
+            "sourceDocumentKey": "3a269f4c52a527c782de29ce2538839cc968fbaae9d27b97e4638ce0b35a5eda:invoice:264f0ccd0374",
+            "description": "Tenda da sole cassonetto",
+            "pieceNumber": 1,
+            "widthMm": 4000,
+            "heightMm": 3000,
+            "surfaceM2": 12,
+            "exposure": "ovest",
+            "exposureSource": null,
+            "protectedWindowSurfaceM2": null,
+            "protectedWindowSurfaceSource": null,
+            "supplementaryThermalResistance": null,
+            "declaredType": "tende_da_sole",
+            "formMappingSource": "group_inheritance",
+            "gTot": 0.18,
+            "gTotSource": "invoice_explicit",
+            "material": "Misto",
+            "materialSource": "invoice_explicit",
+            "movement": "Automatico",
+            "movementSource": "invoice_explicit",
+            "appliedRuleIds": [
+              "user-2026-08-31-documented-gtot-precedence-v1",
+              "user-2026-08-18-explicit-composite-screening-material",
+              "user-2026-08-18-explicit-motorized-screening-movement",
+              "authorized-22-schermature-materiale",
+              "authorized-16-schermature-meccanismo",
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+              "user-2026-08-18-explicit-technical-surface-precision",
+              "user-2026-08-15-form-group-to-physical-products"
+            ]
+          },
+          {
+            "rowId": "3a269f4c52a527c782de29ce2538839cc968fbaae9d27b97e4638ce0b35a5eda:invoice:264f0ccd0374:piece-2",
+            "sourceDocumentKey": "3a269f4c52a527c782de29ce2538839cc968fbaae9d27b97e4638ce0b35a5eda:invoice:264f0ccd0374",
+            "description": "Tenda da sole cassonetto",
+            "pieceNumber": 2,
+            "widthMm": 4000,
+            "heightMm": 3000,
+            "surfaceM2": 12,
+            "exposure": "ovest",
+            "exposureSource": null,
+            "protectedWindowSurfaceM2": null,
+            "protectedWindowSurfaceSource": null,
+            "supplementaryThermalResistance": null,
+            "declaredType": "tende_da_sole",
+            "formMappingSource": "group_inheritance",
+            "gTot": 0.18,
+            "gTotSource": "invoice_explicit",
+            "material": "Misto",
+            "materialSource": "invoice_explicit",
+            "movement": "Automatico",
+            "movementSource": "invoice_explicit",
+            "appliedRuleIds": [
+              "user-2026-08-31-documented-gtot-precedence-v1",
+              "user-2026-08-18-explicit-composite-screening-material",
+              "user-2026-08-18-explicit-motorized-screening-movement",
+              "authorized-22-schermature-materiale",
+              "authorized-16-schermature-meccanismo",
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+              "user-2026-08-18-explicit-technical-surface-precision",
+              "user-2026-08-15-form-group-to-physical-products"
+            ]
+          }
+        ],
+        "financial": {
+          "invoiceTotal": 4100,
+          "eligibleExpense": 4100,
+          "tripleReconciliationVerified": true,
+          "reconciledTotal": 4100,
+          "evidence": [
+            {
+              "sourceId": "ae99eeb4a1dd13c63695c2573639e3927d10ba034de677fbba847be4113aa829:invoice:264f0ccd0374",
+              "kind": "invoice",
+              "taxableAmount": 1008.2,
+              "vatAmount": 221.8,
+              "grossTotal": 1230,
+              "interventionGrossAmount": 1230,
+              "extractionConfidence": "certain",
+              "extractionIssues": []
+            },
+            {
+              "sourceId": "3a269f4c52a527c782de29ce2538839cc968fbaae9d27b97e4638ce0b35a5eda:invoice:264f0ccd0374",
+              "kind": "invoice",
+              "taxableAmount": 2352.46,
+              "vatAmount": 517.54,
+              "grossTotal": 2870,
+              "interventionGrossAmount": 2870,
+              "extractionConfidence": "certain",
+              "extractionIssues": []
+            }
+          ],
+          "bankTransfers": [],
+          "bankTransferReconciliation": {
+            "status": "not_provided",
+            "principalTotal": null,
+            "feesTotal": null,
+            "debitedTotal": null,
+            "difference": null,
+            "referenceStatus": "not_provided",
+            "missingInvoiceReferences": [],
+            "taxReliefTypes": []
+          },
+          "methods": [
+            {
+              "method": "structured_extraction",
+              "ok": true,
+              "total": 4100,
+              "sources": [
+                "ae99eeb4a1dd13c63695c2573639e3927d10ba034de677fbba847be4113aa829:invoice:264f0ccd0374",
+                "3a269f4c52a527c782de29ce2538839cc968fbaae9d27b97e4638ce0b35a5eda:invoice:264f0ccd0374"
+              ],
+              "reason": "Ogni documento ha imponibile, IVA e totale verificati."
+            },
+            {
+              "method": "accounting_reconciliation",
+              "ok": true,
+              "total": 4100,
+              "sources": [
+                "ae99eeb4a1dd13c63695c2573639e3927d10ba034de677fbba847be4113aa829:invoice:264f0ccd0374",
+                "3a269f4c52a527c782de29ce2538839cc968fbaae9d27b97e4638ce0b35a5eda:invoice:264f0ccd0374"
+              ],
+              "reason": "Somma dei totali lordi IVA inclusa delle fatture uniche deduplicate; gli storni interni sono solo note auditabili."
+            },
+            {
+              "method": "intervention_cross_check",
+              "ok": true,
+              "total": 4100,
+              "sources": [
+                "ae99eeb4a1dd13c63695c2573639e3927d10ba034de677fbba847be4113aa829:invoice:264f0ccd0374",
+                "3a269f4c52a527c782de29ce2538839cc968fbaae9d27b97e4638ce0b35a5eda:invoice:264f0ccd0374"
+              ],
+              "reason": "Totale ricostruito esclusivamente dalle righe pertinenti all'intervento."
+            }
+          ],
+          "discardedDuplicateSourceIds": [
+            "a4a77f71a0de1f88d9dc62562ff22493c01380b8157a6c7df90fc1ee7604b61f:invoice:264f0ccd0374"
+          ],
+          "supersededTechnicalSourceIds": [],
+          "appliedRuleIds": [
+            "user-2026-08-16-invoice-gross-total-vat-included",
+            "user-2026-08-18-bundled-professional-expense-separation",
+            "user-2026-08-18-mandatory-bank-transfer-invoice-expense-cross-check",
+            "core-gross-triple-reconciliation",
+            "user-2026-08-14-preserve-technical-product-cardinality",
+            "system-explicit-advance-invoice-reference-marker-v1",
+            "user-2026-08-26-unique-invoice-base-reference-match-v1",
+            "system-invoice-header-identity-over-body-reference",
+            "user-2026-08-16-distinct-invoice-numbers-same-customer-sum"
+          ]
+        },
+        "warnings": [
+          {
+            "code": "invoice_reference_unique_base_matched",
+            "reason": "Riferimenti fattura risolti tramite numero base univoco: 162/26 -> 162. Riferimento e numero documento completi restano separati nell'audit.",
+            "appliedRuleIds": [
+              "user-2026-08-26-unique-invoice-base-reference-match-v1",
+              "user-2026-08-16-missing-invoice-operator-requeue"
+            ]
+          },
+          {
+            "code": "product_cardinality_form_invoice_difference_resolved",
+            "reason": "Controllo incrociato ripetuto: form 1 righe/gruppi, fatture 2 prodotti fisici. La differenza e risolta in modo univoco dalla quantita esplicita di fattura e dall'eredita del solo gruppo form compatibile; piano APR richiesto: 2 righe distinte.",
+            "appliedRuleIds": [
+              "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "user-2026-08-15-form-group-to-physical-products"
+            ]
+          },
+          {
+            "code": "enea_2026_june_25_ninety_day_window_applied",
+            "reason": "Avviso ENEA 25/06/2026 applicato: inizio lavori 2026-05-14, fine lavori 2026-06-15; i 90 giorni decorrono dal 25/06/2026 e terminano il 23/09/2026.",
+            "appliedRuleIds": [
+              "user-2026-08-23-enea-2026-june-25-ninety-day-window"
+            ]
+          }
+        ],
+        "blockers": [
+          {
+            "code": "original_invoice_missing_or_unavailable",
+            "field": "economic_sources",
+            "reason": "La fattura presente detrae o richiama una fattura di acconto non acquisita (162/26); APR non puo ricostruire il totale documentale completo senza la fonte fiscale originaria.",
+            "sourceIds": [
+              "a4a77f71a0de1f88d9dc62562ff22493c01380b8157a6c7df90fc1ee7604b61f:invoice:264f0ccd0374"
+            ],
+            "appliedRuleIds": [
+              "user-2026-08-16-missing-invoice-operator-requeue",
+              "user-2026-08-16-distinct-invoice-numbers-same-customer-sum",
+              "core-economic-classification",
+              "system-apr-operator-intervention-routing"
+            ]
+          }
+        ],
+        "sourceIds": [
+          "ae99eeb4a1dd13c63695c2573639e3927d10ba034de677fbba847be4113aa829",
+          "3a269f4c52a527c782de29ce2538839cc968fbaae9d27b97e4638ce0b35a5eda",
+          "a4a77f71a0de1f88d9dc62562ff22493c01380b8157a6c7df90fc1ee7604b61f"
+        ],
+        "eneaPayloadAudit": {
+          "status": "payload_complete",
+          "mappingFingerprint": "lxp4uh",
+          "fieldSummary": {
+            "ready": 69,
+            "review": 0,
+            "missing": 0
+          },
+          "requiredPortalFieldCount": 61,
+          "blockerCount": 0,
+          "blockers": [],
+          "excludedUnverifiedFields": [
+            "beneficiario.provincia_nascita",
+            "immobile.provincia",
+            "immobile.codice_comune",
+            "immobile.zona_climatica",
+            "immobile.gradi_giorno",
+            "schermature.0.rsupp",
+            "schermature.1.rsupp",
+            "documenti.fatture",
+            "documenti.bonifico",
+            "documenti.tecnici"
+          ],
+          "draftReady": true,
+          "officialSubmissionAllowed": false,
+          "portalGate": {
+            "status": "ready",
+            "reason": null,
+            "workflowFingerprint": "lxp4uh:61:2",
+            "supportedPages": [
+              "Generatore dell'impianto termico",
+              "Anagrafica Beneficiario",
+              "Immobile",
+              "Intervento",
+              "Impianto termico esistente",
+              "Schermature solari",
+              "Calcolo costi e detrazioni"
+            ],
+            "screeningItemCount": 2,
+            "saveAllowedOnlyBySeparateCapability": true,
+            "previewAllowed": false,
+            "submitAllowed": false
+          },
+          "externalActionAllowed": false,
+          "reason": "Payload TEST completo per la sola bozza salvata; anteprima e submit restano vietati."
+        },
+        "draftPlan": {
+          "status": "blocked",
+          "externalActionAllowed": false,
+          "previewAllowed": false,
+          "submitAllowed": false,
+          "communicationsAllowed": false,
+          "nextAction": "Richiesto intervento operatore: acquisire la fattura; al ritorno in Pronte da fare APR riprende dal nuovo fingerprint."
+        }
+      },
+      "reason": "Fresh replay dai documenti originali"
+    }
+  ],
+  "externalActionAllowed": false,
+  "reason": "Fresh replay locale",
+  "nextAction": "Nessuna azione esterna.",
+  "validationRevisionsApplied": [],
+  "sourceRevisionsApplied": [],
+  "operatorMeasurementResolutions": [],
+  "audit": [
+    {
+      "revision": 1,
+      "at": "2026-09-03T10:00:00.000Z",
+      "type": "completed",
+      "customerKey": null,
+      "reason": "Fresh replay locale",
+      "appliedRuleIds": [
+        "system-single-active-practice"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "version": "apr-ronconi-clean-r54-manifest-v1",
+  "experimentId": "apr-ronconi-clean-r54-2026-09-05",
+  "authorizationId": "user-2026-09-05-ronconi-new-clean-draft-r54",
+  "authorizedAt": "2026-09-05T00:40:00Z",
+  "mode": "real_enea_draft_only",
+  "selection": {
+    "total": 1,
+    "allowedStages": [
+      "archiviate"
+    ],
+    "excludedCustomerKeys": [
+      "beatrice-ciotta",
+      "samuele-beretta",
+      "prova-rivenditore-1-30-04",
+      "lucia-droghetti",
+      "angelina-stricelli"
+    ],
+    "excludedResellers": [
+      "Vans",
+      "Erre Emme",
+      "RM Legno"
+    ],
+    "method": "Replay operativo autorizzato su una nuova generazione pulita. La bozza storica 464262 è superseded e non può essere adottata, letta come checkpoint attivo o mutata."
+  },
+  "cases": [
+    {
+      "cohort": 3097,
+      "practiceId": "98d44d99-86af-4fec-ba55-ffe24d208e83",
+      "customerKey": "luca-ronconi",
+      "displayName": "Luca Ronconi",
+      "stage": "archiviate",
+      "stageName": "Archiviate",
+      "module": "screening",
+      "productEvidence": "Schermature Solari",
+      "reseller": "Rinaldi Lab",
+      "invoiceCount": 1,
+      "complexity": "simple",
+      "historicalRetest": true,
+      "generationMode": "fresh_generation"
+    }
+  ],
+  "safety": {
+    "draftOnly": true,
+    "freshGenerationRequired": true,
+    "forbiddenPriorDraftIds": [
+      "464262"
+    ],
+    "previewForbidden": true,
+    "submitForbidden": true,
+    "protocolForbidden": true,
+    "receiptsForbidden": true,
+    "communicationsForbidden": true
+  }
+}

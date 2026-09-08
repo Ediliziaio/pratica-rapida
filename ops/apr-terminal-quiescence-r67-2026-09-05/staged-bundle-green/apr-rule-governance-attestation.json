@@ -1,0 +1,22 @@
+{
+  "version": "apr-rule-governance-attestation-v1",
+  "status": "certified_deployed",
+  "attestedAt": "2026-09-05T23:18:41.663Z",
+  "registryVersion": "enea-operational-registry-v151",
+  "matrixVersion": "apr-enea-rule-test-matrix-v129",
+  "ruleSourceFingerprint": "b220000c8856e58f55d8fe50d1230afd27e9511e11e9aaa464c6df68d49ec3c0",
+  "decisionLedgerVersion": "apr-business-decision-ledger-v1",
+  "decisionLedgerFingerprint": "594ae450d410415a0031b53ee5cf60bb6241fbc7a4af44f6da6271a2d11cf3e4",
+  "activeDecisionCount": 97,
+  "matrixRuleCount": 148,
+  "historicalAudit": {
+    "status": "completed",
+    "unresolvedDocumentedDecisionCount": 0,
+    "reportSha256": "12b7363bf3755570c40339d45c0f7072382c63edfb5afa0438785262e6431274"
+  },
+  "bundleSha256": {
+    "apr-supervisor.mjs": "29465fb99ceff067b4094fee8af53393960f2d2681a3f69a2280646aecf57d4f",
+    "apr-enea-worker.mjs": "b52ec569d32ccc340f315697f294e2e43622dfd9029cc3f8d36f880b9dd6239e",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0"
+  }
+}

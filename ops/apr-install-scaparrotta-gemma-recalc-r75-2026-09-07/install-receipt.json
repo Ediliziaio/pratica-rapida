@@ -1,0 +1,23 @@
+{
+  "version": "apr-install-bundle-cli-receipt-v1",
+  "installedAt": "2026-09-07T11:40:21.002Z",
+  "label": "scaparrotta-gemma-recalc-r75",
+  "versionId": "1a36e81e-scaparrotta-gemma-recalc-r75-20260907",
+  "previousTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/2118de60-mixed-infissi-persiane-r73-20260907",
+  "currentTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/1a36e81e-scaparrotta-gemma-recalc-r75-20260907",
+  "installedBundle": {
+    "apr-supervisor.mjs": "af2ea12b58e3dbe9b87049d786ab9cf1c5ed9c42eafdda9416dcef1c6148a28f",
+    "apr-enea-worker.mjs": "7e3f4a147a02920c8564252b8cf07315ef8f4d629790e33b0d720dbb259f0837",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0"
+  },
+  "gateResultArtifactId": "03464ef3e6f331350bc9eb64b4625a785fbf51a97821cdb549643e035a728e0b",
+  "gateStatus": "PASS",
+  "legacyGovernanceDebtNoticed": [
+    "user-2026-08-06-existing-plant-authoritative-mapping-v1",
+    "user-2026-08-06-intervention-authoritative-sources-and-defaults-v1",
+    "user-2026-08-06-portal-intermediary-physical-beneficiary-v1",
+    "user-2026-08-06-portal-municipality-controlled-selection-v1",
+    "user-2026-09-05-co-beneficiary-trusted-enter-delivery-v2",
+    "user-2026-09-05-terminal-cohort-browser-quiescence-v1"
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "version": "apr-recovery-prepared-window-preinstall-gate-r49-v1",
+  "verifiedAt": "2026-09-04T18:46:12.935Z",
+  "status": "tested_not_deployed",
+  "correction": {
+    "ruleId": "system-sequencer-recovery-prepared-window-lifecycle-v1",
+    "cause": "Il worker, dopo il claim recovery_queued, persiste legittimamente item=filling e pagina=prepared prima di registrare l'intento dell'unico Salva di recupero. Il sequencer accettava soltanto pagina=pending e classificava quella finestra transitoria come recovery_filling_checkpoint_invalid.",
+    "scope": "Regola generale per qualunque pagina singola, bozza e pratica; nessuna logica per nome o coorte.",
+    "positive": "Accetta solo filling/recovery_authorized sulla stessa bozza con unica GET canonica not_saved persistita, unica pagina autorizzata, stato prepared con preparedEvidenceId e budget recovery ancora zero.",
+    "negative": "Rifiuta assenza della prova prepared, evidence discordante, pagina diversa, più pagine autorizzate o recoverySaveAttemptCount diverso da zero.",
+    "operationalMutation": "Nessuna azione ENEA eseguita durante diagnosi e gate."
+  },
+  "monotonicGate": {
+    "testSuites": 444,
+    "tests": 1750,
+    "failedSuites": 0,
+    "failedTests": 0,
+    "rulesProved": 131,
+    "sourceFingerprint": "f7bc237c49569c2a0ad07399f7abeeaed29fbb34cf2203ebbb6dff23c6797a24",
+    "deploymentMatches": false
+  },
+  "stagedBundle": {
+    "apr-supervisor.mjs": "9dd3097cd8d3fea6f2e0ff55a42ec9aed5e57b9f1959faf32afa0919f0166156",
+    "apr-enea-worker.mjs": "9a77fc9ff0b56819e30cadbc6e6e6aa43648ed2873077d1dced66b05d2dd20ca",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "apr-pdf-ocr": "4c41c9a6832b11b9d19eace538100270a533dddc05e475e5842711968393327f"
+  },
+  "previousCanonicalVersion": "ad840540-recovery-filling-lifecycle-r46-20260904",
+  "candidateVersion": "9a77fc9f-recovery-prepared-window-r49-20260904"
+}

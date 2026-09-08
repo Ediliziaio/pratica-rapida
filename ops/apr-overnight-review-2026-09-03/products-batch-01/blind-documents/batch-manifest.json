@@ -1,0 +1,316 @@
+{
+  "schemaVersion": "apr-blind-document-review-batch-v1",
+  "generatedAt": "2026-09-02T22:50:34.028Z",
+  "selection": {
+    "method": "sha256_rank",
+    "seed": "manual-products-batch-01-2026-09-03",
+    "candidateCount": 9,
+    "selectedCount": 9
+  },
+  "reviewScope": "products_measurements",
+  "safety": {
+    "sourceReadOnly": true,
+    "crmWrite": false,
+    "portalAccess": false,
+    "communications": false
+  },
+  "cases": [
+    {
+      "caseId": "case-01",
+      "directory": "01-mimosa-freni",
+      "displayName": "Mimosa Freni",
+      "cohort": 3018,
+      "module": "screening",
+      "complexity": "medium",
+      "rank": "07902087f31312af8b8e6eeb05625956c8a08c32549c94893fe11b0f1bad840a",
+      "documentCount": 3,
+      "documents": [
+        {
+          "filename": "01-source.pdf",
+          "sha256": "5734c478df3c58a0f57e6ba0036ade4752d9496e7c9408b3aa8bda85f129038d",
+          "byteLength": 54732,
+          "renderedPages": [
+            "01-1.png"
+          ]
+        },
+        {
+          "filename": "02-source.pdf",
+          "sha256": "a0c69999f74f4b291859cc16f4081846071f31c1cc5d9764c40bc513bf7040b7",
+          "byteLength": 767503,
+          "renderedPages": [
+            "02-1.png",
+            "02-2.png",
+            "02-3.png",
+            "02-4.png",
+            "02-5.png",
+            "02-6.png",
+            "02-7.png",
+            "02-8.png"
+          ]
+        },
+        {
+          "filename": "03-source.pdf",
+          "sha256": "5734c478df3c58a0f57e6ba0036ade4752d9496e7c9408b3aa8bda85f129038d",
+          "byteLength": 54732,
+          "renderedPages": [
+            "03-1.png"
+          ]
+        }
+      ]
+    },
+    {
+      "caseId": "case-02",
+      "directory": "02-elena-marcella-berti",
+      "displayName": "Elena Marcella Berti",
+      "cohort": 2992,
+      "module": "screening",
+      "complexity": "simple",
+      "rank": "1085c5017a05427b6c6da83adf1ce369581cac9789b12769db97ca711100645c",
+      "documentCount": 2,
+      "documents": [
+        {
+          "filename": "01-source.pdf",
+          "sha256": "fc7154c81c1b09f4226b61db57e1db638d6472f746fe1609609c7a8fc12f04bb",
+          "byteLength": 4529671,
+          "renderedPages": [
+            "01-1.png",
+            "01-2.png",
+            "01-3.png",
+            "01-4.png"
+          ]
+        },
+        {
+          "filename": "02-source.pdf",
+          "sha256": "82836a18442337890a8965c994972be143f417b5c2249cd1efe665506e269fff",
+          "byteLength": 3061371,
+          "renderedPages": [
+            "02-1.png",
+            "02-2.png"
+          ]
+        }
+      ]
+    },
+    {
+      "caseId": "case-03",
+      "directory": "03-nadia-ragni",
+      "displayName": "Nadia Ragni",
+      "cohort": 2982,
+      "module": "screening",
+      "complexity": "medium",
+      "rank": "141694981fa13b08cbf3d0201d109a8725d790df1f5160e0b48dc18ee9aa0372",
+      "documentCount": 3,
+      "documents": [
+        {
+          "filename": "01-source.pdf",
+          "sha256": "98ed9ca66fbb8a7d12a48aa4479cb2b196bb31c5021a90d5f5f837d5a185710b",
+          "byteLength": 366332,
+          "renderedPages": [
+            "01-1.png",
+            "01-2.png"
+          ]
+        },
+        {
+          "filename": "02-source.pdf",
+          "sha256": "9e4b518eadc097b644797d9e191618729f9ca7f57f5c62fbc2465a13b229ae08",
+          "byteLength": 366319,
+          "renderedPages": [
+            "02-1.png",
+            "02-2.png"
+          ]
+        },
+        {
+          "filename": "03-source.pdf",
+          "sha256": "4a9ece29b9c8f5a41963ec055072aeaf5f1b6dad1421ad1116b151df32dc24f4",
+          "byteLength": 18640,
+          "renderedPages": [
+            "03-1.png"
+          ]
+        }
+      ]
+    },
+    {
+      "caseId": "case-04",
+      "directory": "04-riccardo-coda",
+      "displayName": "Riccardo Coda",
+      "cohort": 2969,
+      "module": "screening",
+      "complexity": "simple",
+      "rank": "5cd3c029f90857c1702fa63d2808487646028d8a68d8bada828eddffcddc5f7a",
+      "documentCount": 1,
+      "documents": [
+        {
+          "filename": "01-source.pdf",
+          "sha256": "8de2a061e255c9fdcda086e66ac624c3bdc14cca3f94688c194b8bde457bedfd",
+          "byteLength": 7002160,
+          "renderedPages": [
+            "01-1.png",
+            "01-2.png",
+            "01-3.png",
+            "01-4.png",
+            "01-5.png",
+            "01-6.png"
+          ]
+        }
+      ]
+    },
+    {
+      "caseId": "case-05",
+      "directory": "05-maria-sofia-tosatti",
+      "displayName": "Maria Sofia Tosatti",
+      "cohort": 2928,
+      "module": "screening",
+      "complexity": "simple",
+      "rank": "86bce51a41e57c34118554f3eff19babfc4ef4074f418e1afd12c17e7127a676",
+      "documentCount": 2,
+      "documents": [
+        {
+          "filename": "01-source.pdf",
+          "sha256": "6d937ac1a78acdd1b18b69400cba49d8eb8d39029a43ff6453b128b00a19b090",
+          "byteLength": 4128109,
+          "renderedPages": [
+            "01-1.png",
+            "01-2.png",
+            "01-3.png",
+            "01-4.png"
+          ]
+        },
+        {
+          "filename": "02-source.pdf",
+          "sha256": "2761ec5e74b82788761aef7bdbbb2e9e9504cf742e203bdae154c314e210c7ff",
+          "byteLength": 4876088,
+          "renderedPages": [
+            "02-1.png",
+            "02-2.png",
+            "02-3.png",
+            "02-4.png"
+          ]
+        }
+      ]
+    },
+    {
+      "caseId": "case-06",
+      "directory": "06-antonella-ferletic",
+      "displayName": "Antonella Ferletic",
+      "cohort": 2946,
+      "module": "screening",
+      "complexity": "simple",
+      "rank": "97472ac8c8394642b4d2a63eb67197fe45f720e6e8627847d0e460da8bcdefe3",
+      "documentCount": 1,
+      "documents": [
+        {
+          "filename": "01-source.pdf",
+          "sha256": "ac1c69f006aa01394a56143dc5ede84b19cf4be90475aded59a689efd90660e9",
+          "byteLength": 64076,
+          "renderedPages": [
+            "01-1.png"
+          ]
+        }
+      ]
+    },
+    {
+      "caseId": "case-07",
+      "directory": "07-giulia-kasermann",
+      "displayName": "Giulia Kasermann",
+      "cohort": 2937,
+      "module": "screening",
+      "complexity": "simple",
+      "rank": "c9f9e2f30cafeeff0c00e17b513438f7b19e8dbff98fea68e80f68a429d172cb",
+      "documentCount": 1,
+      "documents": [
+        {
+          "filename": "01-source.pdf",
+          "sha256": "ef9ae5f217ce3117bb35d8966371f37123828e9965c198118cff91c1bcbf9c9a",
+          "byteLength": 64106,
+          "renderedPages": [
+            "01-1.png"
+          ]
+        }
+      ]
+    },
+    {
+      "caseId": "case-08",
+      "directory": "08-sarah-mondini",
+      "displayName": "Sarah Mondini",
+      "cohort": 2922,
+      "module": "screening",
+      "complexity": "medium",
+      "rank": "d074d19d4caacb1cf7970e4d6fbc0fc25c08b9b09b64dd13d7eb9fc54681de2a",
+      "documentCount": 5,
+      "documents": [
+        {
+          "filename": "01-source.pdf",
+          "sha256": "59f7d28f74abae03a496f1f209019c7f5060e837be9b77e19d36d4e62e4c8f08",
+          "byteLength": 74122,
+          "renderedPages": [
+            "01-1.png"
+          ]
+        },
+        {
+          "filename": "02-source.pdf",
+          "sha256": "ba149539215ac6bc821cb4b7a99aacacd0f0992a9c40cee67813a19085456b17",
+          "byteLength": 74119,
+          "renderedPages": [
+            "02-1.png"
+          ]
+        },
+        {
+          "filename": "03-source.pdf",
+          "sha256": "10a2de52bffd9959d51a7c838f0bd9b049ed9fd3e1a150c42d0a5e45836ecad5",
+          "byteLength": 74122,
+          "renderedPages": [
+            "03-1.png"
+          ]
+        },
+        {
+          "filename": "04-source.pdf",
+          "sha256": "a7c5e98facce58fcd06a33992d1c81db21a38b088cb9062e5df901325fafc8e8",
+          "byteLength": 74119,
+          "renderedPages": [
+            "04-1.png"
+          ]
+        },
+        {
+          "filename": "05-source.pdf",
+          "sha256": "59f7d28f74abae03a496f1f209019c7f5060e837be9b77e19d36d4e62e4c8f08",
+          "byteLength": 74122,
+          "renderedPages": [
+            "05-1.png"
+          ]
+        }
+      ]
+    },
+    {
+      "caseId": "case-09",
+      "directory": "09-roberta-di-cesare",
+      "displayName": "Roberta Di Cesare",
+      "cohort": 2931,
+      "module": "screening",
+      "complexity": "simple",
+      "rank": "d20d5880004187e7891402271d82cf97588d8252d91da091f6df527705d9f294",
+      "documentCount": 2,
+      "documents": [
+        {
+          "filename": "01-source.pdf",
+          "sha256": "b2ef42acdfc43b07a3d2e9f78d56b921839b0e273338ee08aea36d1939dbeca1",
+          "byteLength": 4548048,
+          "renderedPages": [
+            "01-1.png",
+            "01-2.png",
+            "01-3.png",
+            "01-4.png"
+          ]
+        },
+        {
+          "filename": "02-source.pdf",
+          "sha256": "396ae61b776bd0dadc5db9e536a8c1235a4a6ed8182fb0a30f9ef2f0a15a2378",
+          "byteLength": 3484886,
+          "renderedPages": [
+            "02-1.png",
+            "02-2.png",
+            "02-3.png"
+          ]
+        }
+      ]
+    }
+  ]
+}

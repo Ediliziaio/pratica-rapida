@@ -1,0 +1,23 @@
+{
+  "version": "apr-install-bundle-cli-receipt-v1",
+  "installedAt": "2026-09-07T14:26:03.568Z",
+  "label": "smaj-hhhhh-exclusion-r80",
+  "versionId": "c456cb46-smaj-hhhhh-exclusion-r80-20260907",
+  "previousTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/c231fa03-enea-2026-completion-date-fix-r79-20260907",
+  "currentTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/c456cb46-smaj-hhhhh-exclusion-r80-20260907",
+  "installedBundle": {
+    "apr-supervisor.mjs": "c17f8f6a8603182705404c3d226d40edefc3670396812129a272ede9626e8cc2",
+    "apr-enea-worker.mjs": "0ece750170fd0cdd6edafd55f6f36011016bbb4962d0c1c38e5ee9492240869f",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0"
+  },
+  "gateResultArtifactId": "4e0a046b4608b888d50d4fb5c18f7f719761fdbbc6434cdc2040a8201717c341",
+  "gateStatus": "PASS",
+  "legacyGovernanceDebtNoticed": [
+    "user-2026-08-06-existing-plant-authoritative-mapping-v1",
+    "user-2026-08-06-intervention-authoritative-sources-and-defaults-v1",
+    "user-2026-08-06-portal-intermediary-physical-beneficiary-v1",
+    "user-2026-08-06-portal-municipality-controlled-selection-v1",
+    "user-2026-09-05-co-beneficiary-trusted-enter-delivery-v2",
+    "user-2026-09-05-terminal-cohort-browser-quiescence-v1"
+  ]
+}

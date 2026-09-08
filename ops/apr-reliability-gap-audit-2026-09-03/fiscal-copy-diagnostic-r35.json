@@ -1,0 +1,188 @@
+{
+  "schemaVersion": "apr-r35-fiscal-copy-diagnostic-v1",
+  "generatedAt": "2026-09-03T17:07:24.822Z",
+  "safety": {
+    "localOnly": true,
+    "eneaAccessed": false,
+    "crmMutated": false
+  },
+  "cases": [
+    {
+      "customerKey": "monica-molteni",
+      "segments": [
+        {
+          "sourceId": "6787fce04b5b4540432551512794fb706deee3ee0823a81aacf2194539fe6a54:invoice:264f0ccd0374",
+          "parentDocumentKey": "6787fce04b5b4540432551512794fb706deee3ee0823a81aacf2194539fe6a54",
+          "extractionMode": "native_text",
+          "documentNumber": "161",
+          "documentDate": "2026-05-14",
+          "total": 750,
+          "itemCount": 0,
+          "technicalSignature": "",
+          "items": [],
+          "referencedInvoiceNumbers": []
+        },
+        {
+          "sourceId": "d2f8114cd1ae68d0810aa19e555a535c25db7ed589b778767df6f61cb1301ea0:invoice:264f0ccd0374",
+          "parentDocumentKey": "d2f8114cd1ae68d0810aa19e555a535c25db7ed589b778767df6f61cb1301ea0",
+          "extractionMode": "native_text",
+          "documentNumber": "229",
+          "documentDate": "2026-06-18",
+          "total": 1750,
+          "itemCount": 2,
+          "technicalSignature": "tenda da sole cassonetto|3000|2400|0.13||tenda da sole cassonetto|4000|2400|0.13",
+          "items": [
+            {
+              "description": "Tenda da sole cassonetto",
+              "widthMm": 4000,
+              "heightMm": 2400,
+              "gTot": 0.13
+            },
+            {
+              "description": "Tenda da sole cassonetto",
+              "widthMm": 3000,
+              "heightMm": 2400,
+              "gTot": 0.13
+            }
+          ],
+          "referencedInvoiceNumbers": [
+            "161/26"
+          ]
+        },
+        {
+          "sourceId": "be07497435c17e80ebf923c784620aff1cb8f232abafab7176f39ebbb6da3f7b:invoice:264f0ccd0374",
+          "parentDocumentKey": "be07497435c17e80ebf923c784620aff1cb8f232abafab7176f39ebbb6da3f7b",
+          "extractionMode": "macos_vision_ocr",
+          "documentNumber": "229",
+          "documentDate": "2026-06-18",
+          "total": 1750,
+          "itemCount": 2,
+          "technicalSignature": "tenda da sole cassonetto|3000|2400|0.13||tenda da sole cassonetto|4000|2400|0.13",
+          "items": [
+            {
+              "description": "Tenda da sole cassonetto",
+              "widthMm": 4000,
+              "heightMm": 2400,
+              "gTot": 0.13
+            },
+            {
+              "description": "Tenda da sole cassonetto",
+              "widthMm": 3000,
+              "heightMm": 2400,
+              "gTot": 0.13
+            }
+          ],
+          "referencedInvoiceNumbers": [
+            "161/26"
+          ]
+        },
+        {
+          "sourceId": "b7d1abb949717fb147ab1e3e9a2187bb7cc842046dd4c062ae4732879b940596:invoice:264f0ccd0374",
+          "parentDocumentKey": "b7d1abb949717fb147ab1e3e9a2187bb7cc842046dd4c062ae4732879b940596",
+          "extractionMode": "macos_vision_ocr",
+          "documentNumber": "161",
+          "documentDate": "2026-05-14",
+          "total": 750,
+          "itemCount": 0,
+          "technicalSignature": "",
+          "items": [],
+          "referencedInvoiceNumbers": []
+        }
+      ],
+      "discardedDuplicateSourceIds": [
+        "b7d1abb949717fb147ab1e3e9a2187bb7cc842046dd4c062ae4732879b940596:invoice:264f0ccd0374",
+        "be07497435c17e80ebf923c784620aff1cb8f232abafab7176f39ebbb6da3f7b:invoice:264f0ccd0374"
+      ],
+      "uniqueFinancialSegments": [
+        {
+          "sourceId": "6787fce04b5b4540432551512794fb706deee3ee0823a81aacf2194539fe6a54:invoice:264f0ccd0374",
+          "extractionMode": "native_text",
+          "documentNumber": "161",
+          "documentDate": "2026-05-14",
+          "total": 750
+        },
+        {
+          "sourceId": "d2f8114cd1ae68d0810aa19e555a535c25db7ed589b778767df6f61cb1301ea0:invoice:264f0ccd0374",
+          "extractionMode": "native_text",
+          "documentNumber": "229",
+          "documentDate": "2026-06-18",
+          "total": 1750
+        }
+      ]
+    },
+    {
+      "customerKey": "claudia-campagna",
+      "segments": [
+        {
+          "sourceId": "966f79a5566963ad763d98be9c7e5ffe6c3a1186cedb9998d6b03ddfca0bb5e7:invoice:a9bc07bdcd98",
+          "parentDocumentKey": "966f79a5566963ad763d98be9c7e5ffe6c3a1186cedb9998d6b03ddfca0bb5e7",
+          "extractionMode": "native_text",
+          "documentNumber": "729/26",
+          "documentDate": "2026-07-07",
+          "total": 858,
+          "itemCount": 0,
+          "technicalSignature": "",
+          "items": [],
+          "referencedInvoiceNumbers": []
+        },
+        {
+          "sourceId": "bc1c47d94bba13b01b0576c9d4edea5b892cb570726f2528e5d66c813b751cbe:invoice:954feed02bfb",
+          "parentDocumentKey": "bc1c47d94bba13b01b0576c9d4edea5b892cb570726f2528e5d66c813b751cbe",
+          "extractionMode": "native_text",
+          "documentNumber": "869/26",
+          "documentDate": "2026-08-05",
+          "total": 2102,
+          "itemCount": 1,
+          "technicalSignature": "tenda a bracci estensibili|2600|2250|0.13",
+          "items": [
+            {
+              "description": "Tenda a bracci estensibili",
+              "widthMm": 2600,
+              "heightMm": 2250,
+              "gTot": 0.13
+            }
+          ],
+          "referencedInvoiceNumbers": []
+        },
+        {
+          "sourceId": "6419a89b4319bd04be855ee6bc706fe77219496b8a0268c544bcc88923fd5e74:invoice:264f0ccd0374",
+          "parentDocumentKey": "6419a89b4319bd04be855ee6bc706fe77219496b8a0268c544bcc88923fd5e74",
+          "extractionMode": "macos_vision_ocr",
+          "documentNumber": "869/26",
+          "documentDate": "2026-08-05",
+          "total": 2236.36,
+          "itemCount": 1,
+          "technicalSignature": "tenda a bracci estensibili|2600|2250|0.13",
+          "items": [
+            {
+              "description": "Tenda a bracci estensibili",
+              "widthMm": 2600,
+              "heightMm": 2250,
+              "gTot": 0.13
+            }
+          ],
+          "referencedInvoiceNumbers": []
+        }
+      ],
+      "discardedDuplicateSourceIds": [
+        "6419a89b4319bd04be855ee6bc706fe77219496b8a0268c544bcc88923fd5e74:invoice:264f0ccd0374"
+      ],
+      "uniqueFinancialSegments": [
+        {
+          "sourceId": "966f79a5566963ad763d98be9c7e5ffe6c3a1186cedb9998d6b03ddfca0bb5e7:invoice:a9bc07bdcd98",
+          "extractionMode": "native_text",
+          "documentNumber": "729/26",
+          "documentDate": "2026-07-07",
+          "total": 858
+        },
+        {
+          "sourceId": "bc1c47d94bba13b01b0576c9d4edea5b892cb570726f2528e5d66c813b751cbe:invoice:954feed02bfb",
+          "extractionMode": "native_text",
+          "documentNumber": "869/26",
+          "documentDate": "2026-08-05",
+          "total": 2102
+        }
+      ]
+    }
+  ]
+}

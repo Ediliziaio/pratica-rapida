@@ -1,11 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
+import { AUTO_CURRENT_VALIDATION_REVISION } from "../../src/features/enea-shadow-crm/operationalRegistry";
 import { APR_REQUIRED_INFISSI_VALIDATION_REVISIONS } from "./infissiExecutionGate";
 import { INFISSI_COMMON_APPLICABILITY_REVISION, reconcileInfissiCommonApplicability } from "./infissiCommonApplicabilityBridge";
 
 const readySnapshot = {
   status: "completed",
   sourceFingerprint: "a".repeat(64),
-  validationRevisionsApplied: [...APR_REQUIRED_INFISSI_VALIDATION_REVISIONS],
+  validationRevisionsApplied: [...APR_REQUIRED_INFISSI_VALIDATION_REVISIONS, AUTO_CURRENT_VALIDATION_REVISION],
   items: [{ customerKey: "fixture-infissi", state: "ready_local_plan", report: { blockers: [] } }],
 };
 

@@ -30,6 +30,49 @@ describe("seed persistente di una nuova coorte APR", () => {
     expect(first.audit[0].appliedRuleIds).toContain("user-2026-08-16-ten-case-monday-restart");
   });
 
+  it("ammette la fase gestionale soltanto con identita pratica valida e conserva il controllo fail-closed", () => {
+    const history = mkdtempSync(path.join(tmpdir(), "apr-cohort-gestionale-history-"));
+    const scoped = candidates.map((candidate, index) => index === 0 ? {
+      ...candidate,
+      practiceId: "00000000-0000-4000-8000-000000000001",
+      expectedStageType: "gestionale" as const,
+      productModule: "screening" as const,
+    } : candidate);
+    expect(validateAprCohortSeed({ ...manifest(), candidates: scoped }, history)).toHaveLength(10);
+    expect(() => validateAprCohortSeed({
+      ...manifest(),
+      candidates: scoped.map((candidate, index) => index === 0 ? { ...candidate, practiceId: undefined } : candidate),
+    }, history)).toThrow("apr_cohort_seed_practice_scope_invalid");
+    expect(() => validateAprCohortSeed({
+      ...manifest(),
+      candidates: scoped.map((candidate, index) => index === 0 ? { ...candidate, expectedStageType: "fase_non_ammessa" as never } : candidate),
+    }, history)).toThrow("apr_cohort_seed_practice_scope_invalid");
+  });
+
+  it("congela la generazione pulita, la audita e rifiuta mutazioni o identificativi non validi", () => {
+    const root = mkdtempSync(path.join(tmpdir(), "apr-cohort-fresh-generation-seed-"));
+    const history = mkdtempSync(path.join(tmpdir(), "apr-cohort-fresh-generation-history-"));
+    const store = new PersistentAprCohortSeed(root);
+    const freshManifest: AprCohortSeedManifest = {
+      ...manifest(),
+      draftGenerationPolicy: {
+        mode: "fresh_generation",
+        experimentId: "apr-generation-ab-r47-2026-09-04",
+      },
+    };
+    const seeded = store.seed(freshManifest, history, new Date("2026-09-04T08:00:00Z"));
+    expect(seeded).toMatchObject({
+      draftGenerationPolicy: { mode: "fresh_generation", experimentId: "apr-generation-ab-r47-2026-09-04" },
+      reason: expect.stringContaining("non puo adottare mapping di generazioni precedenti"),
+    });
+    expect(seeded.audit[0].appliedRuleIds).toContain("system-generation-scoped-canonical-draft-v1");
+    expect(() => store.seed({ ...freshManifest, draftGenerationPolicy: undefined }, history)).toThrow("apr_cohort_seed_immutable");
+    expect(() => validateAprCohortSeed({
+      ...manifest(),
+      draftGenerationPolicy: { mode: "fresh_generation", experimentId: "bad" },
+    }, history)).toThrow("apr_cohort_draft_generation_policy_invalid");
+  });
+
   it("rifiuta coorti ordinarie diverse da dieci", () => {
     const history = mkdtempSync(path.join(tmpdir(), "apr-cohort-size-history-"));
     expect(() => validateAprCohortSeed({ ...manifest(), candidates: candidates.slice(0, 9) }, history)).toThrow("apr_cohort_seed_size_invalid:9");

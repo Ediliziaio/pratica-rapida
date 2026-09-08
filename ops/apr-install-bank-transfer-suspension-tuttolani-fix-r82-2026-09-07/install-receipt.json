@@ -1,0 +1,23 @@
+{
+  "version": "apr-install-bundle-cli-receipt-v1",
+  "installedAt": "2026-09-07T15:40:36.411Z",
+  "label": "bank-transfer-suspension-tuttolani-fix-r82",
+  "versionId": "c53ceda9-bank-transfer-suspension-tuttolani-fix-r82-20260907",
+  "previousTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/ba261acf-zanzasol-lmtende-measurement-fixes-r81-20260907",
+  "currentTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/c53ceda9-bank-transfer-suspension-tuttolani-fix-r82-20260907",
+  "installedBundle": {
+    "apr-supervisor.mjs": "64e66e6983bd7fc13265978d3943065580b2da4ec9753ce5f07f20447cc6b442",
+    "apr-enea-worker.mjs": "7ee1d71192babdfdaa12ec8f9849fdc65fdc9c14ac0e1edbc24ad3a0995a0215",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0"
+  },
+  "gateResultArtifactId": "6d5adca493f3aad10ec7135f60576dd8406ddee34d2d1c78f8e1f0a4b6e4c865",
+  "gateStatus": "PASS",
+  "legacyGovernanceDebtNoticed": [
+    "user-2026-08-06-existing-plant-authoritative-mapping-v1",
+    "user-2026-08-06-intervention-authoritative-sources-and-defaults-v1",
+    "user-2026-08-06-portal-intermediary-physical-beneficiary-v1",
+    "user-2026-08-06-portal-municipality-controlled-selection-v1",
+    "user-2026-09-05-co-beneficiary-trusted-enter-delivery-v2",
+    "user-2026-09-05-terminal-cohort-browser-quiescence-v1"
+  ]
+}

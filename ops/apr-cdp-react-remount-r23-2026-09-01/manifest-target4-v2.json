@@ -1,0 +1,72 @@
+{
+  "version": "apr-cdp-react-remount-r23-target4-manifest-v2",
+  "authorizationId": "user-2026-08-29-apr-autonomy-random30-v1",
+  "authorizedAt": "2026-08-29T00:00:00.000Z",
+  "mode": "real_enea_draft_only",
+  "safety": {
+    "draftOnly": true,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false,
+    "priorDraftPolicy": "preserve_and_ignore_for_new_test_draft"
+  },
+  "selection": {
+    "total": 4,
+    "selectionMethod": "targeted regression subset of the previously authorized autonomy30 corpus",
+    "sourceManifest": "ops/apr-global-controller-test10-2026-08-29/manifest-autonomy30.json",
+    "customerKeys": [
+      "lucia-lagrasta",
+      "luca-cigognetti",
+      "emanuela-parolo",
+      "amelia-lerose"
+    ],
+    "allowedStages": ["archiviate"],
+    "excludedCustomerKeys": ["beatrice-ciotta"]
+  },
+  "cases": [
+    {
+      "cohort": 231,
+      "customerKey": "lucia-lagrasta",
+      "displayName": "Lucia Lagrasta",
+      "practiceId": "0f468582-9698-4589-b2d8-a103acced455",
+      "stage": "archiviate",
+      "module": "screening",
+      "invoiceCount": 1,
+      "complexity": "simple",
+      "historicalRetest": true
+    },
+    {
+      "cohort": 235,
+      "customerKey": "luca-cigognetti",
+      "displayName": "Luca Cigognetti",
+      "practiceId": "77c5e8b6-34f8-4f1b-830a-526addefdd7d",
+      "stage": "archiviate",
+      "module": "infissi",
+      "invoiceCount": 1,
+      "complexity": "simple",
+      "historicalRetest": true
+    },
+    {
+      "cohort": 237,
+      "customerKey": "emanuela-parolo",
+      "displayName": "Emanuela Parolo",
+      "practiceId": "ac9a842a-fe6c-48a6-bed7-4a43f85b8c6c",
+      "stage": "archiviate",
+      "module": "screening",
+      "invoiceCount": 1,
+      "complexity": "simple",
+      "historicalRetest": true
+    },
+    {
+      "cohort": 243,
+      "customerKey": "amelia-lerose",
+      "displayName": "Amelia Lerose",
+      "practiceId": "342d7232-023c-41c2-a293-b6f8a250055c",
+      "stage": "archiviate",
+      "module": "screening",
+      "invoiceCount": 2,
+      "complexity": "medium",
+      "historicalRetest": true
+    }
+  ]
+}

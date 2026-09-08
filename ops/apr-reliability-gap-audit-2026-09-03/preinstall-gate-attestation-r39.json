@@ -1,0 +1,63 @@
+{
+  "version": "apr-technical-source-binding-r39-preinstall-gate-v1",
+  "attestedAt": "2026-09-03T21:42:44.582Z",
+  "status": "tested_not_deployed",
+  "monotonicGate": {
+    "baseline": {
+      "suites": 444,
+      "tests": 1704,
+      "reportSha256": "a2146f93ae1fdf78ee719143387ec73ede81ac869ffa101c7905581129835f97"
+    },
+    "candidate": {
+      "suites": 444,
+      "tests": 1708,
+      "reportSha256": "9fe36bf9f2037e54136352384aa35b324723759b4f269cf7f5ef2d1d09dc88ce"
+    },
+    "registryVersion": "enea-operational-registry-v115",
+    "matrixVersion": "apr-enea-rule-test-matrix-v93",
+    "rulesProved": 114,
+    "ruleEvidenceSha256": "8d909dbea5f32953b611b1b7e0947b505b274e60513fd658fc9457bd9976b0f7"
+  },
+  "verifiedOriginalReplay": {
+    "status": "passed_local_replay_of_hash_verified_original_extractions",
+    "beforeSha256": "faa01023d8631d2cf40c2de8788baa441a367528c529c6891aa3c45cbb33297c",
+    "afterSha256": "360ecf32a2b970b181fe6efa4704964badd6a3a575ee6cebc9f60441bcc33b9e",
+    "diagnosticSha256": "0bec83fb6e7a04bacb71f1297e7223271b8f8119bc9874b207cd62f9609c31c6",
+    "residualReviewSha256": "008d0ce2286ca1296cb6e9444274cda65e7623eb1f909e12e154072caf7c387c",
+    "documents": 359,
+    "bytes": 293624565,
+    "changedCases": [
+      "antonino-formisabo",
+      "antonio-scaparrotta",
+      "claudia-sellati",
+      "flavia-cipriani",
+      "gemma-minore",
+      "ivana-mastrangelo",
+      "marco-de-marinis",
+      "santo-giuga"
+    ],
+    "readyCases": 29,
+    "operatorRequiredCases": 71,
+    "externalActionAllowed": false
+  },
+  "safetyClosure": {
+    "customerKey": "flavia-cipriani",
+    "classification": "documentary_link_ambiguous_fail_closed",
+    "exactCause": "Le tre fatture sono intestate a Flavia Cipriani ma riportano COMM. 1394/2026 senza la firma completa dei prodotti; il documento tecnico anagrafico riporta invece fornitura 1613/2026. Nessun documento originale collega univocamente i due riferimenti e i sei prodotti alle fatture.",
+    "operatorQuestion": "La fornitura tecnica 1613/2026 appartiene davvero alla commessa fatturata 1394/2026 di Flavia Cipriani? Se sì, inserisci il documento che collega esplicitamente i due riferimenti e i sei infissi."
+  },
+  "stagedBundle": {
+    "apr-supervisor.mjs": "6481c58dbfc210090149987572d8a7ad957c11c65501d91e191e817346458d35",
+    "apr-enea-worker.mjs": "4186aa30fde7f9f344cfdca4bb464a4811ed40c6b18ab05eb62747ddcf318b24",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "apr-pdf-ocr": "4c41c9a6832b11b9d19eace538100270a533dddc05e475e5842711968393327f"
+  },
+  "safety": {
+    "localOnly": true,
+    "externalActionAllowed": false,
+    "previewAllowed": false,
+    "saveAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false
+  }
+}

@@ -1,0 +1,46 @@
+APR_OCR_ORIENTATION:0
+REPUBBLICA ITALIANA
+1S
+TESSERA SANITARIA
+ACe 2021
+CARTA REGIONALE DEI SERVIZI
+CARTA NAZIONALE DEI SERVIZI
+Codice SLLCLD02P67H501H
+Sesso F
+Fiscale
+)))
+SELLATI
+Cognome
+Nome
+CLAUDIA
+Data di
+Luogo
+ROMA
+scadenza
+di nascita
+Dati sanitari regionali
+27/12/2027 Provincia
+RM
+REGIONE
+Data
+27/09/2002
+LAZIO
+di nascita
+
+APR_OCR_ORIENTATION:180
+27/12/2027
+80380001200343155994
+9 Scadenza
+8 Numero di identificazione della tessera
+SLLCLD02P67H501H • SSN-MIN SALUTE - 500001
+7 Numero identificazione dell'istituzione
+6 Numero identificazione personal
+27/09/2002
+CLAUDIA
+5 Data di nascita
+4 Nome
+SELLATI
+3 Cognome
+*
+IT
+TESSERA EUROPEA DI ASSICURAZIONE MALATTIA

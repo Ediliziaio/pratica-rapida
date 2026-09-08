@@ -1,4 +1,6 @@
-export const APR_COHORT_SERVICE_LABEL = /^com\.praticarapida\.apr-enea-cohort\d+-(?:supervisor|worker|watchdog)$/;
+import { APR_COHORT_SERVICE_LABEL, protectedCohortBootout, protectedCohortTerminate } from "../../scripts/enea-shadow-runner/aprChromeKeepaliveProtection.mjs";
+
+export { APR_COHORT_SERVICE_LABEL };
 
 export function loadedAprCohortServiceLabels(launchctlDomainOutput) {
   const labels = new Set();
@@ -29,12 +31,12 @@ export async function quiescePreviousAprCohorts(input) {
   });
 
   let observed = remaining();
-  for (const label of observed.labels) input.bootout(label);
+  for (const label of observed.labels) protectedCohortBootout(label, input.bootout);
   if (observed.labels.length || observed.processes.length) await input.wait(500);
 
   observed = remaining();
-  for (const label of observed.labels) input.bootout(label);
-  for (const process of observed.processes) input.terminate(process.pid);
+  for (const label of observed.labels) protectedCohortBootout(label, input.bootout);
+  for (const process of observed.processes) protectedCohortTerminate(process, input.terminate);
   if (observed.labels.length || observed.processes.length) await input.wait(1_000);
 
   observed = remaining();

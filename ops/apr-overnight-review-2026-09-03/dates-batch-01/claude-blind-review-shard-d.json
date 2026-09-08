@@ -1,0 +1,374 @@
+{
+  "schemaVersion": "claude-blind-date-review-v1",
+  "reviewMethod": "real-documents-blind",
+  "shard": "d",
+  "cases": [
+    {
+      "caseId": "01-mattia-vatieri",
+      "displayName": "Mattia Vatieri",
+      "explicitStartDate": null,
+      "explicitCompletionDate": null,
+      "explicitInstallationDate": null,
+      "explicitCommissioningDate": null,
+      "otherDates": [
+        {
+          "type": "invoice",
+          "date": "2025-12-23",
+          "source": "01-source.pdf pagina 1 (rendered-pages/01-1.png) e 02-source.pdf pagina 1 (rendered-pages/02-1.png): 'nr. FPR 1068/25 del 23/12/2025'"
+        },
+        {
+          "type": "print",
+          "date": "2025-12-23",
+          "source": "01-source.pdf pagina 1 (rendered-pages/01-1.png): 'Data invio: 23/12/2025'"
+        },
+        {
+          "type": "payment",
+          "date": "2025-12-23",
+          "source": "01-source.pdf pagina 1 (rendered-pages/01-1.png): tabella METODO DI PAGAMENTO, 'DATA SCADENZA 23/12/2025' - '12.000,00 €' (bonifico, pagamento in unica soluzione)"
+        },
+        {
+          "type": "other",
+          "date": "2026-01-26",
+          "source": "03-source.pdf pagina 2 (rendered-pages/03-2.png): 'Data: 26/01/2026' in intestazione della DICHIARAZIONE DI PRESTAZIONE (ordine C260168)"
+        },
+        {
+          "type": "other",
+          "date": "2026-07-01",
+          "source": "03-source.pdf pagina 1 (rendered-pages/03-1.png): 'Borgosatollo, 01/07/26' seguito da '(luogo e data)' nella dichiarazione sulle sostanze pericolose"
+        }
+      ],
+      "evidence": [
+        {
+          "field": "explicitStartDate/explicitCompletionDate/explicitInstallationDate",
+          "literalText": "RIF.CONFERMA D'ORDINE 2012FP - IMMOBILE SITO IN LIMBIATE (MI) - VIA LEONE TOLSTOJ, 41C - FORNITURA E POSA N. 5 PERSIANE IN ALLUMINIO , 5 ZANZARIERE CON TELO DETRAIBILE E N.1 BLINDATO - INTERVENTO IN ECOBONUS L.296 - AGOS ONE",
+          "filename": "01-source.pdf",
+          "pageOrImage": "pagina 1 (rendered-pages/01-1.png)",
+          "confidence": "alta che il testo non contenga alcuna data di lavori: la riga descrive 'fornitura e posa' ma senza indicare date di inizio, fine, posa o collaudo"
+        },
+        {
+          "field": "otherDates.invoice",
+          "literalText": "ACCONTO/ANTICIPO SU FATTURA nr. FPR 1068/25 del 23/12/2025",
+          "filename": "01-source.pdf",
+          "pageOrImage": "pagina 1 (rendered-pages/01-1.png)",
+          "confidence": "alta"
+        },
+        {
+          "field": "otherDates.other",
+          "literalText": "Che i manufatti, comprensivi di accessori, relativi alla fornitura C260168 ... Borgosatollo, 01/07/26 (luogo e data)",
+          "filename": "03-source.pdf",
+          "pageOrImage": "pagina 1 (rendered-pages/03-1.png)",
+          "confidence": "alta come data del documento, nessun riferimento a lavori"
+        }
+      ],
+      "missingEvidence": "Nessuna dichiarazione esplicita di inizio lavori, fine lavori, completamento posa/installazione o collaudo. La fattura di acconto e la dichiarazione di prestazione non riportano date di esecuzione dei lavori.",
+      "documentCondition": "Leggibile. 3 PDF: 01-source.pdf e 02-source.pdf sono due copie identiche della stessa fattura di acconto (1 pagina); 03-source.pdf è una dichiarazione sulle sostanze pericolose + dichiarazione di prestazione di 5 pagine.",
+      "reviewConclusion": "dates_not_explicitly_proven",
+      "notes": "Le uniche date presenti sono data fattura/invio (23/12/2025), scadenza di pagamento (23/12/2025), data della dichiarazione di prestazione (26/01/2026) e data della dichiarazione sostanze pericolose (01/07/2026). Presenti riferimenti d'ordine non datati ('CONFERMA D'ORDINE 2012FP', 'Ordine n. C260168'). Nessuna di queste prova una data di esecuzione dei lavori."
+    },
+    {
+      "caseId": "02-leo-manini",
+      "displayName": "Leo Manini",
+      "explicitStartDate": null,
+      "explicitCompletionDate": null,
+      "explicitInstallationDate": null,
+      "explicitCommissioningDate": null,
+      "otherDates": [
+        {
+          "type": "invoice",
+          "date": "2025-05-19",
+          "source": "01-source.pdf pagine 1-3 (rendered-pages/01-1.png, 01-2.png, 01-3.png): 'FATTURA nr. 149/2025 del 19/05/2025' ripetuta in intestazione e piè di pagina"
+        }
+      ],
+      "evidence": [
+        {
+          "field": "otherDates.invoice",
+          "literalText": "FATTURA nr. 149/2025 del 19/05/2025",
+          "filename": "01-source.pdf",
+          "pageOrImage": "pagina 1 (rendered-pages/01-1.png)",
+          "confidence": "alta"
+        },
+        {
+          "field": "explicitCompletionDate/otherDates.delivery",
+          "literalText": "Consegna 40 giorni lavorativi INFISSI 60 giorni lavorativi PERSIANA",
+          "filename": "01-source.pdf",
+          "pageOrImage": "pagina 2 (rendered-pages/01-2.png)",
+          "confidence": "alta che si tratti di un termine di consegna espresso in giorni lavorativi e non di una data effettiva"
+        },
+        {
+          "field": "explicitStartDate/explicitInstallationDate",
+          "literalText": "Montaggio e trasporto nuovo prodotto - Smontaggio e trasporto vecchio prodotto ... Acconto del 50% all'ordine, saldo alla consegna.",
+          "filename": "01-source.pdf",
+          "pageOrImage": "pagina 2 (rendered-pages/01-2.png)",
+          "confidence": "alta che non vi sia alcuna data associata al montaggio o alla consegna"
+        }
+      ],
+      "missingEvidence": "Nessuna dichiarazione esplicita di inizio lavori, fine lavori, completamento posa/installazione o collaudo. Nessuna data effettiva di consegna o montaggio; è indicato solo un termine in 'giorni lavorativi'.",
+      "documentCondition": "Leggibile. 1 PDF di 3 pagine (fattura/preventivo S.A. Montaggi SRLS con dettaglio prodotti, manodopera, condizioni e riepilogo IVA).",
+      "reviewConclusion": "dates_not_explicitly_proven",
+      "notes": "L'unica data del documento è quella della fattura (19/05/2025). La voce 'Consegna 40/60 giorni lavorativi' è un tempo di consegna previsto, non una data. Il pagamento è descritto come 'Acconto del 50% all'ordine, saldo alla consegna' senza date."
+    },
+    {
+      "caseId": "05-gianfranco-lavezzi",
+      "displayName": "Gianfranco Lavezzi",
+      "explicitStartDate": null,
+      "explicitCompletionDate": null,
+      "explicitInstallationDate": null,
+      "explicitCommissioningDate": null,
+      "otherDates": [
+        {
+          "type": "invoice",
+          "date": "2026-01-13",
+          "source": "01-source.pdf pagina 1 (rendered-pages/01-1.png): 'FATTURA nr. 5/2026 del 13/01/2026' (voce 'ACCONTO 50%')"
+        },
+        {
+          "type": "payment",
+          "date": "2026-01-13",
+          "source": "01-source.pdf pagina 1 (rendered-pages/01-1.png): 'SCADENZE 13/01/2026: € 1.100,00'"
+        },
+        {
+          "type": "invoice",
+          "date": "2026-04-27",
+          "source": "02-source.pdf pagina 1 (rendered-pages/02-1.png): 'FATTURA nr. 66/2026 del 27/04/2026' (voce 'SALDO 50%')"
+        },
+        {
+          "type": "payment",
+          "date": "2026-04-27",
+          "source": "02-source.pdf pagina 1 (rendered-pages/02-1.png): 'SCADENZE 27/04/2026: € 1.100,00'"
+        },
+        {
+          "type": "order",
+          "date": "2026-01-15",
+          "source": "03-source.pdf pagina 1 (rendered-pages/03-1.png): riquadro etichetta CE, 'Data Ordine:15/01/2026'"
+        }
+      ],
+      "evidence": [
+        {
+          "field": "explicitStartDate/explicitCompletionDate/explicitInstallationDate",
+          "literalText": "Vostro dare per fornitura e posa di tenda da sole, presso vostra abitazione in Saint-Vincent in Via Prof. A. Ferrè n.25 censita al catasto fabbricati al fg 50 mappale 80 subalterno 18. Totale contratto 2'200,00 € ivati Acconto 50% Saldo 50%",
+          "filename": "01-source.pdf",
+          "pageOrImage": "pagina 1 (rendered-pages/01-1.png)",
+          "confidence": "alta che il testo non riporti date di esecuzione della posa"
+        },
+        {
+          "field": "otherDates.order",
+          "literalText": "Data Ordine:15/01/2026",
+          "filename": "03-source.pdf",
+          "pageOrImage": "pagina 1 (rendered-pages/03-1.png)",
+          "confidence": "media (testo in etichetta CE, leggibile ma parzialmente troncato: 'Data Ordine:15/01/2026 C...')"
+        }
+      ],
+      "missingEvidence": "Nessuna dichiarazione esplicita di inizio lavori, fine lavori, completamento posa/installazione o collaudo. Le due fatture (acconto e saldo) e la dichiarazione di prestazione non riportano date di esecuzione lavori.",
+      "documentCondition": "Leggibile. 3 PDF di 1 pagina ciascuno: fattura di acconto (01), fattura a saldo (02) e dichiarazione di prestazione DoP Seraplastic per tenda da sole (03).",
+      "reviewConclusion": "dates_not_explicitly_proven",
+      "notes": "Presenti solo date di fattura/scadenza pagamento (13/01/2026 e 27/04/2026) e una data ordine (15/01/2026) nell'etichetta CE. La descrizione parla di 'fornitura e posa di tenda da sole' senza indicare quando la posa sia stata eseguita o completata."
+    },
+    {
+      "caseId": "06-andreea-ioana-olteanu",
+      "displayName": "Andreea Ioana Olteanu",
+      "explicitStartDate": null,
+      "explicitCompletionDate": null,
+      "explicitInstallationDate": null,
+      "explicitCommissioningDate": null,
+      "otherDates": [
+        {
+          "type": "invoice",
+          "date": "2025-04-18",
+          "source": "02-source.pdf pagina 1 (rendered-pages/02-1.png): 'FATTURA nr. 43/2025 del 18/04/2025' (HOMNIUM S.R.L.)"
+        },
+        {
+          "type": "payment",
+          "date": "2025-04-18",
+          "source": "02-source.pdf pagina 1 (rendered-pages/02-1.png): 'SCADENZE 18/04/2025: € 4.905,00'"
+        },
+        {
+          "type": "other",
+          "date": "2026-06-15",
+          "source": "01-source.pdf pagine 1-5 (rendered-pages/01-1.png … 01-5.png): 'Firmato a nome e per conto del fabbricante da: Olga Szmidt-Bednarska' - 'Kornice 15.06.2026' (data della Dichiarazione di Prestazione EKO-OKNA)"
+        }
+      ],
+      "evidence": [
+        {
+          "field": "explicitCompletionDate/explicitInstallationDate",
+          "literalText": "Saldo fattura per l'esecuzione dei lavori di sostituzione (fornitura e posa) dei serramenti dell'immobile sito in Via Verdi nr. 3 a Santa Maria di Sala. ... NOTE Saldo fattura per lavori in Via Verdi nr. 3 a Santa Maria di Sala.",
+          "filename": "02-source.pdf",
+          "pageOrImage": "pagina 1 (rendered-pages/02-1.png)",
+          "confidence": "bassa: il testo cita 'esecuzione dei lavori' ma non indica alcuna data di inizio, fine o completamento della posa/installazione"
+        },
+        {
+          "field": "otherDates.other",
+          "literalText": "Firmato a nome e per conto del fabbricante da: Olga Szmidt-Bednarska    Kornice 15.06.2026",
+          "filename": "01-source.pdf",
+          "pageOrImage": "pagina 1 (rendered-pages/01-1.png)",
+          "confidence": "alta come data della dichiarazione, nessun riferimento a lavori in cantiere"
+        }
+      ],
+      "missingEvidence": "Nessuna dichiarazione esplicita di inizio lavori, fine lavori, completamento posa/installazione o collaudo. La fattura a saldo cita 'esecuzione dei lavori di sostituzione' ma senza data.",
+      "documentCondition": "Leggibile. 2 PDF: 01-source.pdf è una Dichiarazione di Prestazione EKO-OKNA di 6 pagine (WEB/25/0866561, codici GE76_3D_W_IN_TH e GE76_3D_W_IN_BP); 02-source.pdf è la fattura a saldo di 1 pagina.",
+      "reviewConclusion": "dates_not_explicitly_proven",
+      "notes": "Date presenti: data fattura/scadenza pagamento (18/04/2025) e data di firma della Dichiarazione di Prestazione (15/06/2026). Nessun documento indica quando i lavori di sostituzione siano iniziati o terminati."
+    },
+    {
+      "caseId": "10-giuseppe-d-adduzio",
+      "displayName": "Giuseppe D'Adduzio",
+      "explicitStartDate": null,
+      "explicitCompletionDate": "2026-07-17",
+      "explicitInstallationDate": "2026-07-17",
+      "explicitCommissioningDate": null,
+      "otherDates": [
+        {
+          "type": "invoice",
+          "date": "2025-02-25",
+          "source": "05-source.pdf pagina 1 (rendered-pages/05-1.png): 'Fattura nr. 48F del 25/02/2025' (Acconto su Conferma d'ordine 122 del 25/02/2025)"
+        },
+        {
+          "type": "invoice",
+          "date": "2025-07-04",
+          "source": "06-source.pdf pagina 1 (rendered-pages/06-1.png): 'Fattura nr. 191F del 04/07/2025' (2^Acconto)"
+        },
+        {
+          "type": "invoice",
+          "date": "2025-07-08",
+          "source": "07-source.pdf pagina 1 (rendered-pages/07-1.png): 'Fattura accomp. nr. 196F del 08/07/2025'"
+        },
+        {
+          "type": "payment",
+          "date": "2025-02-28",
+          "source": "02-source.pdf pagina 1 (rendered-pages/02-1.png): 'Operazione disposta il 28/02/2025', timbro 'PAGATO 28 FEB. 2025', bonifico € 8.714,99, 'SALDO FATTURA D'ACCONTO F ATT.N.48 F DEL 25/2/2025'"
+        },
+        {
+          "type": "payment",
+          "date": "2025-07-08",
+          "source": "03-source.pdf pagina 1 (rendered-pages/03-1.png): 'Operazione disposta il 08/07/2025', bonifico € 12.450,00, 'SALDO FATTURA 2 ACCONTO ... FATTURA N. 191F DEL 4/7/2025'"
+        },
+        {
+          "type": "payment",
+          "date": "2026-07-17",
+          "source": "04-source.pdf pagina 1 (rendered-pages/04-1.png): 'Operazione disposta il 17/07/2026', bonifico € 3.735,01, 'SALDO FATTURA N.196/F DEL 08.07.2025 RIF. CONF.D'ORDINE N.122 DEL 25.02.2025'"
+        },
+        {
+          "type": "order",
+          "date": "2025-02-25",
+          "source": "07-source.pdf pagina 1 (rendered-pages/07-1.png) e 05-source.pdf pagina 1: 'Rif. Conferma d'ordine 122 del 25/02/2025'"
+        },
+        {
+          "type": "delivery",
+          "date": "2025-07-09",
+          "source": "07-source.pdf pagina 3 (rendered-pages/07-3.png): 'Data e ora inizio trasporto 09/07/2025 07:00'; 10-source.pdf intestazione (rendered-pages/10-1.png): 'Data Consegna: 09/07/2025'"
+        },
+        {
+          "type": "print",
+          "date": "2025-07-28",
+          "source": "09-source.pdf pagina 6 (rendered-pages/09-06.png): 'DICHIARAZIONE DI PRESTAZIONE N. 00005-CPR-2025-07-28'; 10-source.pdf piè di pagina (rendered-pages/10-1.png … 10-7.png): 'Data/Ora stampa: 28/07/2025 09:57'"
+        },
+        {
+          "type": "other",
+          "date": "2025-02-24",
+          "source": "08-source.pdf pagine 2/5-4/5 (rendered-pages/08-1.png, 08-2.png, 08-3.png): 'Luogo e data FOGGIA 24/02/2025' (scheda 'compilazione a cura del richiedente la detrazione', firme)"
+        },
+        {
+          "type": "other",
+          "date": "2026-07-18",
+          "source": "01-source.pdf pagina 1 (rendered-pages/01-1.png): 'Foggia, 18 Luglio 2026.' (data della dichiarazione del produttore Erre Emme S.r.l.)"
+        }
+      ],
+      "evidence": [
+        {
+          "field": "explicitCompletionDate",
+          "literalText": "I lavori di installazione sono terminati in data 17.07.2026.",
+          "filename": "01-source.pdf",
+          "pageOrImage": "pagina 1 (rendered-pages/01-1.png)",
+          "confidence": "alta"
+        },
+        {
+          "field": "explicitInstallationDate",
+          "literalText": "I lavori di installazione sono terminati in data 17.07.2026.",
+          "filename": "01-source.pdf",
+          "pageOrImage": "pagina 1 (rendered-pages/01-1.png)",
+          "confidence": "alta (dichiarazione esplicita di completamento della posa/installazione)"
+        },
+        {
+          "field": "context",
+          "literalText": "Che i nuovi serramenti (Rif. Ns. fatt. 196 F del 08.07.2025), destinati all'unità immobiliare proprietà del Sig. D'Adduzio Giuseppe, ubicata in Foggia (FG), all'indirizzo Via Monsignor Armando Fares n. 8/A ... SERIE: WS75THI",
+          "filename": "01-source.pdf",
+          "pageOrImage": "pagina 1 (rendered-pages/01-1.png)",
+          "confidence": "alta (contesto: la stessa dichiarazione che riporta la data di fine installazione)"
+        },
+        {
+          "field": "otherDates.other",
+          "literalText": "Foggia, 18 Luglio 2026.",
+          "filename": "01-source.pdf",
+          "pageOrImage": "pagina 1 (rendered-pages/01-1.png)",
+          "confidence": "alta (data di emissione della dichiarazione, successiva alla data di fine installazione dichiarata)"
+        },
+        {
+          "field": "otherDates.delivery",
+          "literalText": "Data e ora inizio trasporto 09/07/2025 07:00",
+          "filename": "07-source.pdf",
+          "pageOrImage": "pagina 3 (rendered-pages/07-3.png)",
+          "confidence": "alta"
+        }
+      ],
+      "missingEvidence": "Nessuna data esplicita di inizio lavori. Nessun verbale o dichiarazione di collaudo.",
+      "documentCondition": "Leggibile. 10 PDF: dichiarazione del produttore sulle prestazioni termiche dei serramenti (01, 1 pagina); 3 contabili di bonifico Intesa Sanpaolo (02-04); 3 fatture Erre Emme (48F, 191F, 196F: 05-07); scheda detrazione 'Pratica Rapida' (08, pagine 2/5-4/5); Dichiarazione di Prestazione + etichette/dichiarazione CE (09, 10 pagine); report di calcolo della trasmittanza termica UNI EN ISO 10077-1 (10, 7 pagine). Le contabili bancarie (02-04) sono scansioni ma leggibili.",
+      "reviewConclusion": "explicit_dates_found",
+      "notes": "La dichiarazione del produttore Erre Emme S.r.l. (01-source.pdf), redatta 'Foggia, 18 Luglio 2026', afferma testualmente: 'I lavori di installazione sono terminati in data 17.07.2026.' Questa è l'unica data di fine posa/installazione dichiarata in modo esplicito. Non è dichiarata alcuna data di inizio lavori né di collaudo. Tutte le altre date sono di fattura (25/02/2025, 04/07/2025, 08/07/2025), pagamento (28/02/2025, 08/07/2025, 17/07/2026), ordine (Conferma d'ordine 122 del 25/02/2025), consegna/trasporto (09/07/2025) o stampa/riferimento documento (28/07/2025) e scheda detrazione firmata il 24/02/2025."
+    },
+    {
+      "caseId": "14-mauro-leonardi",
+      "displayName": "Mauro Leonardi",
+      "explicitStartDate": null,
+      "explicitCompletionDate": null,
+      "explicitInstallationDate": null,
+      "explicitCommissioningDate": null,
+      "otherDates": [
+        {
+          "type": "invoice",
+          "date": "2025-11-04",
+          "source": "01-source.pdf pagina 1 (rendered-pages/01-1.png): 'nr. FPR 934/25 del 04/11/2025'"
+        },
+        {
+          "type": "print",
+          "date": "2025-11-04",
+          "source": "01-source.pdf pagina 1 (rendered-pages/01-1.png): 'Data invio: 04/11/2025'"
+        },
+        {
+          "type": "payment",
+          "date": "2025-11-04",
+          "source": "01-source.pdf pagina 1 (rendered-pages/01-1.png): tabella METODO DI PAGAMENTO, 'DATA SCADENZA 04/11/2025' - '14.500,00 €' (bonifico, pagamento in unica soluzione)"
+        },
+        {
+          "type": "order",
+          "date": "2026-01-09",
+          "source": "02-source.pdf pagina 1 (rendered-pages/02-1.png): 'ORDINE del 09/01/2026' e 'Data ordine: 9-gen-2026'; ripetuto in pagina 4 (rendered-pages/02-4.png) 'Del: 9-gen-2026'"
+        }
+      ],
+      "evidence": [
+        {
+          "field": "explicitStartDate/explicitCompletionDate/explicitInstallationDate",
+          "literalText": "RIF.CONFERMA D'ORDINE 0410LG- IMMOBILE RESIDENZIALE SITO IN VALGANNA (VA) - VIA RONCACCIO, 16 - FORNITURA E POSA DI N. 4 SERRAMENTI IN PVC E N. 4 PERSIANE IN ALLUMINIO - INTERVENTO IN ECOBONUS L. 296 - AGOS ONE",
+          "filename": "01-source.pdf",
+          "pageOrImage": "pagina 1 (rendered-pages/01-1.png)",
+          "confidence": "alta che il testo non contenga date di esecuzione lavori: descrive 'fornitura e posa' senza indicare inizio, fine, posa o collaudo"
+        },
+        {
+          "field": "otherDates.order",
+          "literalText": "ORDINE del 09/01/2026 ... Numero Ordine: 260062615000004 ... Data ordine: 9-gen-2026",
+          "filename": "02-source.pdf",
+          "pageOrImage": "pagina 1 (rendered-pages/02-1.png)",
+          "confidence": "alta"
+        },
+        {
+          "field": "otherDates.other",
+          "literalText": "TERMINE DI CONSEGNA: Il termine di consegna previsto viene indicato nell'APP Gestione Ordini dell'Antenore Web Portal quando l'ordine raggiunge lo Stato \"In produzione\".",
+          "filename": "02-source.pdf",
+          "pageOrImage": "pagina 4 (rendered-pages/02-4.png)",
+          "confidence": "alta che non venga indicata alcuna data di consegna nel documento"
+        }
+      ],
+      "missingEvidence": "Nessuna dichiarazione esplicita di inizio lavori, fine lavori, completamento posa/installazione o collaudo. Nessuna data effettiva di consegna o montaggio.",
+      "documentCondition": "Leggibile. 2 PDF: 01-source.pdf è la fattura Brianza Serramenti S.R.L. (1 pagina); 02-source.pdf è la conferma d'ordine WnD n. 260062615000004 (4 pagine, con dettaglio posizioni e condizioni di vendita).",
+      "reviewConclusion": "dates_not_explicitly_proven",
+      "notes": "Date presenti: data fattura/invio e scadenza di pagamento (tutte 04/11/2025) e data dell'ordine WnD (09/01/2026). La descrizione parla di 'fornitura e posa di N. 4 serramenti e N. 4 persiane' ma nessun documento indica quando i lavori siano stati eseguiti o completati. Presente riferimento d'ordine non datato 'CONFERMA D'ORDINE 0410LG'."
+    }
+  ]
+}

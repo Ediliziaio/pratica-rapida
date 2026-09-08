@@ -1,0 +1,312 @@
+{
+  "version": "apr-infissi-batch-preflight-v1",
+  "revision": 4,
+  "status": "completed",
+  "sourceFingerprint": "c4c170acb949b6b4402573c75b442da13593048adff599463aa1c75e0b3eb1e2",
+  "currentCustomerKey": null,
+  "items": [
+    {
+      "customerKey": "flavia-cipriani",
+      "displayName": "Flavia Cipriani",
+      "practiceId": "9f785f33-491a-4954-8423-4316d6842dbb",
+      "dossierPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2998-global-controller-flavia-cipriani/crm-acquisition/dossiers/flavia-cipriani.json",
+      "productModule": "infissi",
+      "state": "blocked_case",
+      "startedAt": "2026-09-03T10:00:00.000Z",
+      "endedAt": "2026-09-03T10:00:00.000Z",
+      "reason": "Flavia Cipriani: 2 blocker Infissi coerenti registrati; la coda prosegue.",
+      "report": {
+        "outcome": "blocked_case",
+        "blockers": [
+          {
+            "code": "infissi_technical_document_practice_binding_unverified",
+            "field": "technical_dimensions",
+            "sourceIds": [
+              "e927cf64b2fa5fb99e6d6b3a60fb4a03ec51abe1ed1bea0ab88751f4ab50503b",
+              "70489e2984c5336a4ec373f961d1925bab2ca6943150c6e9db9f3b78b1c1f71c",
+              "3f46b9fc337ae8b883e96a8722cbecb73582b9b3013498a234b9558b6728dcd9",
+              "d9e69508fae591207af9d0b55f820a5ce8017e857ab163c0b87e10f7b6a14eb1",
+              "8858c79812294251b4f165565bbd73956b6a8067e0277043f50e5c9612eaf66b",
+              "2efeab4c7756af80196a5024200a37332676b208c92ebaba259132ef5d46b13e",
+              "e7d19862b9a1849e5a064bb7d0713e0d3f93cbc6d2d41a5b602b48e486521cb7",
+              "771c4a6802a7c38108803440e42a8e471d9c24c6decc1cc208aef249dd04cb8b",
+              "fba4ea695f6a0d57a6f82db3871569e96e6d60916569847f57acabd6ff8cbd29",
+              "55e3f7bb54664c4f92a66085a54121adbf8e301d884a8cf6831969e215c08824",
+              "9b7f17645eb60204640e60a3cfa57cfa399e58a41362eeabe2601412758075ba"
+            ],
+            "classification": "operator_required",
+            "exactCause": "Il documento tecnico non possiede un collegamento univoco e concordante di cliente/cantiere, ordine/commessa e firma prodotti con le fatture della pratica.",
+            "missingDocumentType": null,
+            "operatorQuestion": "Confermi che il documento tecnico con riferimento non leggibile appartiene agli ordini fatturati 1394/2026 della pratica di Flavia Cipriani e descrive esattamente gli stessi infissi?",
+            "onboardingGap": "Richiedere nel caricamento iniziale un riferimento esplicito che colleghi commessa tecnica, ordine fatturato e cliente/cantiere."
+          },
+          {
+            "code": "infissi_dimensions_and_cardinality_missing",
+            "field": "technical_rows",
+            "sourceIds": []
+          }
+        ],
+        "physicalProductCount": 0,
+        "invoiceGrossTotal": 6497.91,
+        "technical": {
+          "version": "apr-infissi-technical-sources-v1",
+          "status": "operator_required",
+          "rows": [],
+          "blockers": [
+            "infissi_dimensions_and_cardinality_missing"
+          ],
+          "audit": {
+            "invoiceSourceIds": [],
+            "technicalDocumentSourceIds": [],
+            "selectedDimensionSource": null,
+            "physicalProductCount": 0,
+            "exactAreaTotalM2": 0,
+            "eneaRoundedAreaTotalM2": 0,
+            "appliedRuleIds": [
+              "user-2026-08-19-infissi-invoice-or-technical-source-resolution-v1",
+              "user-2026-08-19-infissi-enea-square-meter-rounding-v1",
+              "user-2026-08-19-infissi-transmittance-1-3-fallback-v1",
+              "user-2026-08-14-preserve-technical-product-cardinality"
+            ]
+          }
+        },
+        "productRules": {
+          "version": "apr-infissi-product-rules-v2",
+          "status": "ready",
+          "newFrameMaterial": "pvc",
+          "glassType": "doppio",
+          "oldWindowThermalTransmittanceWm2K": 5,
+          "eneaShadingClosuresChecked": true,
+          "blockers": [],
+          "audit": {
+            "physicalRowId": null,
+            "newFrameMaterialSource": "explicit_original_source",
+            "glassTypeSource": "explicit_original_source",
+            "oldWindowThermalTransmittance": {
+              "version": "apr-infissi-old-window-transmittance-v1",
+              "thermalTransmittanceWm2K": 5,
+              "source": "form_matrix_combination",
+              "material": "legno",
+              "glazing": "vetro_singolo",
+              "fallbackReason": null,
+              "audit": {
+                "formSourceId": "9f785f33-491a-4954-8423-4316d6842dbb:crm-form",
+                "sourceIds": [
+                  "9f785f33-491a-4954-8423-4316d6842dbb:crm-form"
+                ],
+                "sourceKind": "customer_form",
+                "rawMaterial": "legno",
+                "rawGlazing": "singolo",
+                "appliedRuleIds": [
+                  "user-2026-08-19-infissi-old-window-transmittance-matrix-v1"
+                ]
+              }
+            },
+            "formSourceId": "9f785f33-491a-4954-8423-4316d6842dbb:crm-form",
+            "formAlsoInstalledClosures": true,
+            "appliedRuleIds": [
+              "user-2026-08-19-infissi-pvc-low-e-fallbacks-v1",
+              "user-2026-08-19-infissi-shading-closures-form-flag-v1",
+              "user-2026-08-19-infissi-old-window-transmittance-matrix-v1"
+            ]
+          }
+        },
+        "shadingClosureAllocation": null,
+        "oldWindowSourceResolution": {
+          "version": "apr-infissi-old-window-source-resolution-v1",
+          "material": "legno",
+          "glazing": "singolo",
+          "hasDoubt": false,
+          "sourceKind": "customer_form",
+          "sourceIds": [
+            "9f785f33-491a-4954-8423-4316d6842dbb:crm-form"
+          ],
+          "audit": {
+            "formMaterial": "legno",
+            "formGlazing": "singolo",
+            "invoiceMaterials": [],
+            "invoiceGlazings": [],
+            "appliedRuleIds": [
+              "user-2026-08-19-infissi-old-window-transmittance-matrix-v1"
+            ]
+          }
+        },
+        "invoiceCertificateCardinality": {
+          "version": "apr-infissi-invoice-certificate-cardinality-v1",
+          "status": "not_applicable",
+          "invoiceCount": null,
+          "certificateCount": null,
+          "invoiceSourceIds": [],
+          "certificateSourceIds": [],
+          "blocker": null,
+          "audit": {
+            "appliedRuleIds": [
+              "user-2026-08-22-infissi-invoice-certificate-cardinality-match-v1"
+            ]
+          }
+        },
+        "eneaDraftPayload": null,
+        "sourceIds": [
+          "9f785f33-491a-4954-8423-4316d6842dbb:crm-form",
+          "e927cf64b2fa5fb99e6d6b3a60fb4a03ec51abe1ed1bea0ab88751f4ab50503b",
+          "70489e2984c5336a4ec373f961d1925bab2ca6943150c6e9db9f3b78b1c1f71c",
+          "3f46b9fc337ae8b883e96a8722cbecb73582b9b3013498a234b9558b6728dcd9",
+          "d9e69508fae591207af9d0b55f820a5ce8017e857ab163c0b87e10f7b6a14eb1",
+          "8858c79812294251b4f165565bbd73956b6a8067e0277043f50e5c9612eaf66b",
+          "2efeab4c7756af80196a5024200a37332676b208c92ebaba259132ef5d46b13e",
+          "e7d19862b9a1849e5a064bb7d0713e0d3f93cbc6d2d41a5b602b48e486521cb7",
+          "771c4a6802a7c38108803440e42a8e471d9c24c6decc1cc208aef249dd04cb8b",
+          "fba4ea695f6a0d57a6f82db3871569e96e6d60916569847f57acabd6ff8cbd29",
+          "55e3f7bb54664c4f92a66085a54121adbf8e301d884a8cf6831969e215c08824",
+          "9b7f17645eb60204640e60a3cfa57cfa399e58a41362eeabe2601412758075ba"
+        ],
+        "sourceFingerprints": [
+          {
+            "sourceId": "e927cf64b2fa5fb99e6d6b3a60fb4a03ec51abe1ed1bea0ab88751f4ab50503b",
+            "sha256": "7cf4523788e367ac7ab25d43183e05023d2af3822be336389e305278618ac8ff"
+          },
+          {
+            "sourceId": "70489e2984c5336a4ec373f961d1925bab2ca6943150c6e9db9f3b78b1c1f71c",
+            "sha256": "838cc149d1b0dcf6c7ca706dbd8dd45561881b53343b01efe30db1a5e0ad323d"
+          },
+          {
+            "sourceId": "3f46b9fc337ae8b883e96a8722cbecb73582b9b3013498a234b9558b6728dcd9",
+            "sha256": "c7a70edec5ae57a4b846fd7bfc009907473c42df96d1d0e2b9454646d2bc46b0"
+          },
+          {
+            "sourceId": "d9e69508fae591207af9d0b55f820a5ce8017e857ab163c0b87e10f7b6a14eb1",
+            "sha256": "c146bdbbe566f5211dd58f6fdfed9a0701388671cd362234365a3247a4c75d57"
+          },
+          {
+            "sourceId": "8858c79812294251b4f165565bbd73956b6a8067e0277043f50e5c9612eaf66b",
+            "sha256": "21fe5d1f3e8f8b9ca98a27aa351bd89ba99b34235a6298d3c61919f64cea2a13"
+          },
+          {
+            "sourceId": "2efeab4c7756af80196a5024200a37332676b208c92ebaba259132ef5d46b13e",
+            "sha256": "cfbc5d034bb2f2c0df3f944af2303d55fd77d4d71b1b0dfe68fc7782b2ffb1c3"
+          },
+          {
+            "sourceId": "e7d19862b9a1849e5a064bb7d0713e0d3f93cbc6d2d41a5b602b48e486521cb7",
+            "sha256": "bc796c1d5b850fbb59b990393e4a043f39f99d27cafe7c0c72e0f841575a0a52"
+          },
+          {
+            "sourceId": "771c4a6802a7c38108803440e42a8e471d9c24c6decc1cc208aef249dd04cb8b",
+            "sha256": "53c20d09a213986d5d86b06749c1c3819d004dd946e1cb17ceab588ec6d1b655"
+          },
+          {
+            "sourceId": "fba4ea695f6a0d57a6f82db3871569e96e6d60916569847f57acabd6ff8cbd29",
+            "sha256": "6eb05d424cd6f8368e4450b67e0aff3753d1a27b243f54f4d70cb5df2ca9c616"
+          },
+          {
+            "sourceId": "55e3f7bb54664c4f92a66085a54121adbf8e301d884a8cf6831969e215c08824",
+            "sha256": "18256c409d53303ae4bead721f9cb4b381115a9d271a3e3ba56e83d768c184c1"
+          },
+          {
+            "sourceId": "9b7f17645eb60204640e60a3cfa57cfa399e58a41362eeabe2601412758075ba",
+            "sha256": "2b659a88ed1f277904290a95b1c2a65af3aaad1c5e502b4e11f4ce451c10dd43"
+          }
+        ],
+        "appliedRuleIds": [
+          "system-single-active-practice",
+          "system-atomic-checkpoint-resume",
+          "user-2026-08-19-infissi-invoice-or-technical-source-resolution-v1",
+          "user-2026-08-19-infissi-transmittance-1-3-fallback-v1",
+          "user-2026-08-14-preserve-technical-product-cardinality",
+          "user-2026-08-25-crm-internal-technical-document-untrusted-v1",
+          "user-2026-08-25-test-ex-novo-original-sources-only-v1",
+          "user-2026-09-03-technical-document-practice-binding-v1",
+          "user-2026-08-19-infissi-enea-square-meter-rounding-v1",
+          "user-2026-08-19-infissi-pvc-low-e-fallbacks-v1",
+          "user-2026-08-19-infissi-shading-closures-form-flag-v1",
+          "user-2026-08-19-infissi-old-window-transmittance-matrix-v1",
+          "user-2026-08-22-infissi-invoice-certificate-cardinality-match-v1",
+          "user-2026-08-16-invoice-gross-total-vat-included",
+          "user-2026-08-16-distinct-invoice-numbers-same-customer-sum"
+        ]
+      }
+    }
+  ],
+  "progress": {
+    "total": 1,
+    "processed": 1,
+    "ready": 0,
+    "blocked": 1
+  },
+  "externalActionAllowed": false,
+  "previewAllowed": false,
+  "submitAllowed": false,
+  "communicationsAllowed": false,
+  "reason": "0 piani locali Infissi pronti; 1 casi isolati con blocker.",
+  "nextAction": "Risolvere i blocker documentati senza inventare valori.",
+  "validationRevisionsApplied": [],
+  "audit": [
+    {
+      "revision": 0,
+      "at": "2026-09-03T10:00:00.000Z",
+      "type": "initialized",
+      "customerKey": null,
+      "reason": "Preflight batch Infissi non ancora preparato; azioni esterne chiuse.",
+      "appliedRuleIds": [
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume"
+      ]
+    },
+    {
+      "revision": 1,
+      "at": "2026-09-03T10:00:00.000Z",
+      "type": "batch_prepared",
+      "customerKey": null,
+      "reason": "1 pratiche Infissi acquisite; elaborazione sequenziale persistente avviata.",
+      "appliedRuleIds": [
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume"
+      ]
+    },
+    {
+      "revision": 2,
+      "at": "2026-09-03T10:00:00.000Z",
+      "type": "case_claimed",
+      "customerKey": "flavia-cipriani",
+      "reason": "Flavia Cipriani: lock preflight Infissi acquisito; nessuna azione esterna.",
+      "appliedRuleIds": [
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume"
+      ]
+    },
+    {
+      "revision": 3,
+      "at": "2026-09-03T10:00:00.000Z",
+      "type": "case_blocked",
+      "customerKey": "flavia-cipriani",
+      "reason": "Flavia Cipriani: 2 blocker Infissi coerenti registrati; la coda prosegue.",
+      "appliedRuleIds": [
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume",
+        "user-2026-08-19-infissi-invoice-or-technical-source-resolution-v1",
+        "user-2026-08-19-infissi-transmittance-1-3-fallback-v1",
+        "user-2026-08-14-preserve-technical-product-cardinality",
+        "user-2026-08-25-crm-internal-technical-document-untrusted-v1",
+        "user-2026-08-25-test-ex-novo-original-sources-only-v1",
+        "user-2026-09-03-technical-document-practice-binding-v1",
+        "user-2026-08-19-infissi-enea-square-meter-rounding-v1",
+        "user-2026-08-19-infissi-pvc-low-e-fallbacks-v1",
+        "user-2026-08-19-infissi-shading-closures-form-flag-v1",
+        "user-2026-08-19-infissi-old-window-transmittance-matrix-v1",
+        "user-2026-08-22-infissi-invoice-certificate-cardinality-match-v1",
+        "user-2026-08-16-invoice-gross-total-vat-included",
+        "user-2026-08-16-distinct-invoice-numbers-same-customer-sum"
+      ]
+    },
+    {
+      "revision": 4,
+      "at": "2026-09-03T10:00:00.000Z",
+      "type": "batch_completed",
+      "customerKey": null,
+      "reason": "0 piani locali Infissi pronti; 1 casi isolati con blocker.",
+      "appliedRuleIds": [
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume"
+      ]
+    }
+  ]
+}

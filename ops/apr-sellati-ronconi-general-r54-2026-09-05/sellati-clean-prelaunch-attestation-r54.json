@@ -1,0 +1,27 @@
+{
+  "version": "apr-sellati-clean-prelaunch-attestation-r54-v1",
+  "createdAt": "2026-09-05T00:49:29Z",
+  "authorizationId": "user-2026-09-05-sellati-new-clean-draft-r54",
+  "cohort": 3098,
+  "customerKey": "claudia-sellati",
+  "practiceId": "58f03680-c716-42e7-ad7d-e3ceaee5573d",
+  "generationMode": "fresh_generation",
+  "priorDraft": {
+    "draftId": "460570",
+    "disposition": "superseded_forbidden",
+    "resumeAuthorized": false,
+    "mutationAuthorized": false
+  },
+  "installedBundle": {
+    "versionId": "be4fdbe8-sellati-ronconi-general-r54-20260905",
+    "status": "active_tested_deployed"
+  },
+  "preconditions": {
+    "cohortDirectoryAbsent": true,
+    "concurrentMutativeSequencerProcessAbsent": true,
+    "keepaliveRequired": true,
+    "chromeRequired": true
+  },
+  "allowedActions": ["create_new_test_draft", "fill_new_test_draft", "save_new_test_draft"],
+  "forbiddenActions": ["resume_draft_460570", "mutate_draft_460570", "preview", "submit", "protocol", "receipt", "communication"]
+}

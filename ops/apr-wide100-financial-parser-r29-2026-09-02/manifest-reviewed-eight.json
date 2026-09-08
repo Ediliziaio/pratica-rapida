@@ -1,0 +1,157 @@
+{
+  "version": "apr-financial-parser-r29-targeted-retest-manifest-v1",
+  "authorizationId": "user-2026-09-02-financial-parser-r29-retest",
+  "authorizedAt": "2026-09-02T15:25:11.982Z",
+  "mode": "real_enea_draft_only",
+  "safety": {
+    "draftOnly": true,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false,
+    "priorDraftPolicy": "preserve_and_ignore_for_new_test_draft"
+  },
+  "sourceManifest": {
+    "path": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-wide100-province-lineage-2026-09-02/manifest.json",
+    "sha256": "51842252f71cabb6714f78923fe59ec9789ad06739393f61a553bb4bdb9154e0",
+    "authorizationId": "user-2026-09-02-wide-infissi-screening-single-run-v2"
+  },
+  "selection": {
+    "version": "apr-financial-parser-r29-targeted-retest-selection-v1",
+    "purpose": "reviewed-eight",
+    "total": 8,
+    "selectedCount": 8,
+    "allowedStages": [
+      "archiviate",
+      "recensione"
+    ],
+    "excludedCustomerKeys": [
+      "beatrice-ciotta",
+      "nicoletta-garbarino",
+      "vittorio-paolinelli",
+      "samuele-beretta"
+    ],
+    "identityPolicy": "exact_subset_of_frozen_authorized_manifest"
+  },
+  "cases": [
+    {
+      "cohort": 1,
+      "practiceId": "dc4484cd-c462-49c0-a734-3064dd6469a8",
+      "customerKey": "giovanna-atzeni",
+      "displayName": "GIOVANNA ATZENI",
+      "stage": "archiviate",
+      "stageName": "Archiviate",
+      "module": "infissi",
+      "productEvidence": "Infissi / Serramenti",
+      "reseller": "Ideal sistem",
+      "invoiceCount": 1,
+      "complexity": "simple",
+      "historicalRetest": true,
+      "sourceCohort": 23
+    },
+    {
+      "cohort": 2,
+      "practiceId": "4e251174-6b43-4c76-98ff-6f00c1caede9",
+      "customerKey": "elena-marcella-berti",
+      "displayName": "ELENA MARCELLA BERTI",
+      "stage": "archiviate",
+      "stageName": "Archiviate",
+      "module": "screening",
+      "productEvidence": "Schermature Solari",
+      "reseller": "Linea sole potito",
+      "invoiceCount": 1,
+      "complexity": "simple",
+      "historicalRetest": true,
+      "sourceCohort": 72
+    },
+    {
+      "cohort": 3,
+      "practiceId": "2329836b-3d7c-4e55-b5ba-f232515a2299",
+      "customerKey": "francesca-pisanu",
+      "displayName": "FRANCESCA PISANU",
+      "stage": "archiviate",
+      "stageName": "Archiviate",
+      "module": "infissi",
+      "productEvidence": "Infissi / Serramenti",
+      "reseller": "Ideal sistem",
+      "invoiceCount": 1,
+      "complexity": "simple",
+      "historicalRetest": true,
+      "sourceCohort": 75
+    },
+    {
+      "cohort": 4,
+      "practiceId": "58f03680-c716-42e7-ad7d-e3ceaee5573d",
+      "customerKey": "claudia-sellati",
+      "displayName": "CLAUDIA SELLATI",
+      "stage": "archiviate",
+      "stageName": "Archiviate",
+      "module": "infissi",
+      "productEvidence": "Infissi / Serramenti",
+      "reseller": "Stellino Design SRL SOCIO UNICO",
+      "invoiceCount": 6,
+      "complexity": "complex",
+      "historicalRetest": true,
+      "sourceCohort": 68
+    },
+    {
+      "cohort": 5,
+      "practiceId": "e94df373-f8f5-44b9-bd31-3e6c36025c13",
+      "customerKey": "giovanni-amadu",
+      "displayName": "GIOVANNI AMADU",
+      "stage": "archiviate",
+      "stageName": "Archiviate",
+      "module": "infissi",
+      "productEvidence": "Infissi / Serramenti",
+      "reseller": "Ideal sistem",
+      "invoiceCount": 1,
+      "complexity": "simple",
+      "historicalRetest": true,
+      "sourceCohort": 79
+    },
+    {
+      "cohort": 6,
+      "practiceId": "0a92f92c-22ed-4a43-b47e-6abe1d74282a",
+      "customerKey": "massimo-cappello",
+      "displayName": "massimo cappello",
+      "stage": "archiviate",
+      "stageName": "Archiviate",
+      "module": "infissi",
+      "productEvidence": "Infissi / Serramenti",
+      "reseller": "Rotondi infissi",
+      "invoiceCount": 3,
+      "complexity": "medium",
+      "historicalRetest": true,
+      "sourceCohort": 50
+    },
+    {
+      "cohort": 7,
+      "practiceId": "81b4934a-3d6a-49ff-8f08-8d1400d55dff",
+      "customerKey": "maurizia-coreggioli",
+      "displayName": "MAURIZIA COREGGIOLI",
+      "stage": "archiviate",
+      "stageName": "Archiviate",
+      "module": "infissi",
+      "productEvidence": "Infissi / Serramenti",
+      "reseller": "TECNOESTENSE SRL",
+      "invoiceCount": 2,
+      "complexity": "medium",
+      "historicalRetest": true,
+      "sourceCohort": 70
+    },
+    {
+      "cohort": 8,
+      "practiceId": "b35fc3d3-d441-48d0-99f0-1d1e967ab6e7",
+      "customerKey": "gabriele-girelli",
+      "displayName": "Gabriele Girelli",
+      "stage": "archiviate",
+      "stageName": "Archiviate",
+      "module": "infissi",
+      "productEvidence": "Infissi / Serramenti",
+      "reseller": "Innova Serramenti",
+      "invoiceCount": 1,
+      "complexity": "simple",
+      "historicalRetest": true,
+      "sourceCohort": 18
+    }
+  ]
+}

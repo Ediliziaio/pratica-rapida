@@ -1,0 +1,38 @@
+{
+  "version": "apr-l5-canary-structural-freeze-v2",
+  "frozenAt": "2026-08-30T12:47:04.153Z",
+  "authorizationId": "user-2026-08-30-l5-canary30-three-identical-rounds",
+  "portalMode": "real_enea_draft_only",
+  "roundCount": 3,
+  "caseCount": 30,
+  "manifestPath": "/private/tmp/apr-promote-4e166ce/ops/apr-global-controller-test10-2026-08-29/manifest-autonomy30.json",
+  "manifestSha256": "6c684df774a48899a6ff4e2a6e52dfe83c2b9c357a81a6c6c52034abe687a953",
+  "requiredCustomerKeys": ["cristina-ricchi", "zeno-righetti"],
+  "sourceSnapshot": { "path": "/private/tmp/apr-promote-4e166ce", "gitCommit": "e200ebd4a8979f15c8ea3c5fc31eaea5d4f1c088" },
+  "sequencer": { "path": "/private/tmp/apr-promote-4e166ce/ops/apr-global-controller-test10-2026-08-29/sequencer.mjs", "sha256": "528a9e6964e9067ffa5ac9a809260bd3b91a0a2fd433d7c0c843b0efb6f55286" },
+  "operationalModuleHashes": {
+    "sequencerCohortIsolation.mjs": "70353c3ec0a803a8f4782bb9fc253dd6c36cf63b1ca9ee17609923452f226a3a",
+    "sequencerCaseFinalizer.mjs": "654c26b3e5a1074e0d2fb762aebf8e2d44d8f1dba706ebbf9a28ecffe22052db",
+    "sequencerFailurePolicy.mjs": "30102d054e37ece2579f73fbea998a6f8f726c9e36c9454756d8ab3ce0bc5911",
+    "sequencerPreflightGuard.mjs": "cf87f4ed7ea3fa6aa6dc04ae61d174d9663328670404d0d502b65caa9e6f7efc",
+    "sequencerSessionGuard.mjs": "30590f1f610052042f755c3460a39b9685afae50ee9efd1d4e793dcf0dce5a04",
+    "aprSequencerCaseBulkhead.mjs": "48fdd8fae0f2c0f59bd1e86e9d82b9aebd62a002568d0a14e1175ab0c80b476a",
+    "apr-ts-loader.mjs": "a54b0e34a094b5d9bc55390d306facb65b44d1d9a6da9b651a127ebfda30be1a"
+  },
+  "canonicalBundle": {
+    "versionId": "c66cc0f6f25bea5270b6a619aed50aa7b6aa2e705e29a624d4c997b710b4fa69-l5-structural-4e166ce",
+    "certificateId": "c66cc0f6f25bea5270b6a619aed50aa7b6aa2e705e29a624d4c997b710b4fa69",
+    "receiptStatus": "PASS",
+    "hashes": {
+      "apr-supervisor.mjs": "3b57f2c181da9abbbae6be1abf0456ca86b1feda3b1c57e2bbd6cc22d3baa557",
+      "apr-enea-worker.mjs": "af284f341ac7ec506e4c52e02e3f3b4b24bbececac74da780c1232b57b412b10",
+      "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0"
+    }
+  },
+  "rounds": [
+    { "round": 1, "cohortOffset": 182, "cohortRange": "400-429", "runRoot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-l5-canary30-structural-4e166ce-round1-v3" },
+    { "round": 2, "cohortOffset": 212, "cohortRange": "430-459", "runRoot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-l5-canary30-structural-4e166ce-round2" },
+    { "round": 3, "cohortOffset": 242, "cohortRange": "460-489", "runRoot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-l5-canary30-structural-4e166ce-round3" }
+  ],
+  "constraints": { "noCodeChangesBetweenRounds": true, "sameBundleHashesRequired": true, "sameManifestRequired": true, "sameExpectedPagesRequired": true, "previewAllowed": false, "submitAllowed": false, "communicationsAllowed": false, "correctionsDuringTestAllowed": false }
+}

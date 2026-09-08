@@ -1,0 +1,20 @@
+{
+  "schemaVersion": "apr-blind-case-documents-v1",
+  "caseId": "case-04",
+  "displayName": "Sabrina Eustomi",
+  "documentCount": 1,
+  "documents": [
+    {
+      "filename": "01-fiscal-or-payment.pdf",
+      "sha256": "2e15d8d3d1096a5d1b021f05e421134554eb3dbd516b1bff4714e079a8dc1645",
+      "byteLength": 381364,
+      "mediaType": "application/pdf",
+      "neutralKind": "fiscal-or-payment",
+      "renderedPages": [
+        "01-1.png",
+        "01-2.png"
+      ]
+    }
+  ],
+  "instructions": "Verificare esclusivamente dai documenti se identità e codice fiscale del beneficiario sono espliciti, leggibili e coerenti."
+}

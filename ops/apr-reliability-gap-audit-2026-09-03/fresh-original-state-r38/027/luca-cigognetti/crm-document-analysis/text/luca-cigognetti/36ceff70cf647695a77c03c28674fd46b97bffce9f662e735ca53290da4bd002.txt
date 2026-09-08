@@ -1,0 +1,1035 @@
+Cliente:
+Luca Cigognetti
+tel.: 3400584510
+e-mail: luca.cigognetti@gmail.com
+Dati dell'azienda:
+GRK Serramenti Srl
+P.Iva: 13408870965
+Indirizzo:
+via Jacopo dal Verme, 7
+20159 Milano
+e-mail: info@grkserramenti.it Conto bancario:
+Intesa Sanpaolo
+IT08C0306909457100000012447
+Preventivo WEB/26/0384834
+06/07/2026
+La tua referenza: Definitivo / Luca Cigognetti - Rivalta sul mincio (Mantova), Settefrati, 40
+Finestra 001 Quantità: 1 1560
+1560
+35
+35 1490
+35
+1490 35
+1.01
+1.01
+STULP
+ER 2
+565 x 1339
+565 x 1339
+.
+720
+720
+1.02
+1.02
+ER 2
+565 x 1339
+565 x 1339
+35
+35 1550
+35
+1550 35
+1620
+1620
+Vista interna
+Sistema: Salamander GreenEvo 76 3D Colore: Bianco con guarnizione grigia / pureWhite RAL
+simile a 9003
+Messaggio
+Dimensione di riempimento nr[1]: 603x1377
+Dimensione di riempimento nr[2]: 603x1377
+Per una maggiore sicurezza, si raccomanda una maniglia con una chiave/pulsante.
+Prodotto non certificato. Ferramenta certificata.
+Passaggio, 180° (L x H) 663.0 x 1435.0 / Anta 1
+Luce di passaggio della zanzariera per anta attiva (W x H) 663.0 x 1435.0 / Alloggio 1
+Passaggio, 90° (L x H) 638.0 x 1435.0 / Anta 1
+Luce di passaggio ( la larghezza x l'altezza): 1375.0 x 1435.0 Alloggio: 1
+Anta apribile verso interno - aletta del telaio lato interno
+Rw (C;Ctr) = 35 (-1;-4) dB
+Coefficiente termico Uw = 1,2 W/m²·K
+Peso 101,6 Kg
+Perimetro 6.4 m
+Accessori Qt.
+Misura luce anta 1, 1 (P/ tapparelle int.) (largh x alt: 613 x 1387 ) ) 1
+Misura luce anta 1, 2 (P/ tapparelle int.) (largh x alt: 613 x 1387 ) ) 1
+colore di maniglia interna - Bianco 1
+Colore delle coperture: BIANCO 6
+Luce di alloggio (la luce di passaggio aprendo le ante a 180° larghezza
+x altezza: 663 x 1435 2
+Luce di alloggio (la luce di passaggio aprendo l'anta primaria a 90°
+larghezza x altezza: 638 x 1435 1
+1.01: Dimensione complessiva della luce del telaio (per la zanzariera)
+(L x H): 1375 x 1435 Quarti: 1 1
+1.02: Dimensione complessiva della luce del telaio (per la zanzariera)
+(L x H): 1375 x 1435 Quarti: 1 1
+Pagina: 1 / 23 Creato da: Aleksandrina Petrova WEB/26/0384834 2026-07-06 15:16:31
+
+35
+35
+1.02
+1.02
+ER 2 565 x 1339
+565 x 1339
+Pagina: 2 / 23 1560
+1560
+1490
+1490
+35
+35
+35
+35
+1.01
+1.01
+1550
+1550
+STULP
+ER 2
+565 x 1339
+565 x 1339
+35
+35
+Vista esterna
+Riempimenti Dimensioni
+33.1/16Ar/33.1one [Ug=1.0] Rw=35dB (29mm) 9016
+1.01
+ULTIMATE BIALA Warm edge: SWISSPACER
+ULTIMATE bianco ( 9016 ) Solar gain = 49 % Light
+transmission = 70 %
+33.1/16Ar/33.1one [Ug=1.0] Rw=35dB (29mm) 9016
+1.02
+ULTIMATE BIALA Warm edge: SWISSPACER
+ULTIMATE bianco ( 9016 ) Solar gain = 49 % Light
+transmission = 70 %
+1620
+1620
+Creato da: Aleksandrina Petrova WEB/26/0384834 2026-07-06 15:16:31
+
+Finestra 002 Quantità: 1 Sistema: Cassonetto Salamander Colore: Bianco / pureWhite RAL simile a 9003
+2050
+2050
+Cassonetto
+430
+430
+_
+SL Plate 24 mm MOD : 1 ; ext. depth : 150 mm
+Coefficiente termico Uw = 1,1 W/m²·K
+Sw = 0,02
+Peso 10,7 Kg
+Perimetro 5.0 m
+Accessori Qt.
+Dimensioni interno cassonetto: L x H: 1986 x 366, profondità: 115 1
+Vista interna
+2050
+2050
+Cassonetto
+430
+430
+SL Plate 24 mm MOD : 1 ; ext. depth : 150 mm
+_
+Vista esterna
+Pagina: 3 / 23 Creato da: Aleksandrina Petrova WEB/26/0384834 2026-07-06 15:16:31
+
+Finestra 003 Quantità: 1 Sistema: Glass / Panel Colore: Bianco con guarnizione nera
+1700
+1700
+Plate 10 mm
+100
+100
+Coefficiente termico Peso 1,3 Kg
+Perimetro 3.6 m
+Thermal transmittance coefficient could not be computed
+Vista interna
+1700
+1700
+Plate 10 mm
+100
+100
+Vista esterna
+Pagina: 4 / 23 Creato da: Aleksandrina Petrova WEB/26/0384834 2026-07-06 15:16:31
+
+1.01
+1.01
+STULP
+ER 2
+565 x 1339
+565 x 1339
+.
+720
+720
+1.02
+1.02
+ER 2
+565 x 1339
+565 x 1339
+35
+35 1550
+35
+1550 35
+1620
+1620
+35
+35
+Finestra 004 Quantità: 1 Sistema: Salamander GreenEvo 76 3D Colore: Bianco con guarnizione grigia / pureWhite RAL
+simile a 9003
+1560
+1560
+35
+35 1490
+1490 35
+35
+Messaggio
+Dimensione di riempimento nr[1]: 603x1377
+Dimensione di riempimento nr[2]: 603x1377
+Per una maggiore sicurezza, si raccomanda una maniglia con una chiave/pulsante.
+Prodotto non certificato. Ferramenta certificata.
+Passaggio, 180° (L x H) 663.0 x 1435.0 / Anta 1
+Luce di passaggio della zanzariera per anta attiva (W x H) 663.0 x 1435.0 / Alloggio 1
+Passaggio, 90° (L x H) 638.0 x 1435.0 / Anta 1
+Luce di passaggio ( la larghezza x l'altezza): 1375.0 x 1435.0 Alloggio: 1
+Anta apribile verso interno - aletta del telaio lato interno
+Rw (C;Ctr) = 35 (-1;-4) dB
+Coefficiente termico Uw = 1,2 W/m²·K
+Peso 101,6 Kg
+Perimetro 6.4 m
+Accessori Qt.
+Misura luce anta 1, 1 (P/ tapparelle int.) (largh x alt: 613 x 1387 ) ) 1
+Misura luce anta 1, 2 (P/ tapparelle int.) (largh x alt: 613 x 1387 ) ) 1
+colore di maniglia interna - Bianco 1
+Colore delle coperture: BIANCO 6
+Luce di alloggio (la luce di passaggio aprendo le ante a 180° larghezza
+x altezza: 663 x 1435 2
+Luce di alloggio (la luce di passaggio aprendo l'anta primaria a 90°
+larghezza x altezza: 638 x 1435 1
+1.01: Dimensione complessiva della luce del telaio (per la zanzariera)
+(L x H): 1375 x 1435 Quarti: 1 1
+1.02: Dimensione complessiva della luce del telaio (per la zanzariera)
+(L x H): 1375 x 1435 Quarti: 1 1
+Riempimenti Dimensioni
+33.1/16Ar/33.1one [Ug=1.0] Rw=35dB (29mm) 9016
+1.01
+ULTIMATE BIALA Warm edge: SWISSPACER
+ULTIMATE bianco ( 9016 ) Solar gain = 49 % Light
+transmission = 70 %
+33.1/16Ar/33.1one [Ug=1.0] Rw=35dB (29mm) 9016
+1.02
+ULTIMATE BIALA Warm edge: SWISSPACER
+ULTIMATE bianco ( 9016 ) Solar gain = 49 % Light
+transmission = 70 %
+Vista interna
+1560
+1560
+1490
+1490
+35
+35
+35
+35
+1.02
+1.02
+ER 2 565 x 1339
+565 x 1339
+1.01
+1.01
+STULP
+ER 2
+565 x 1339
+565 x 1339
+1550
+1550
+1620
+1620
+35
+35
+Vista esterna
+Pagina: 5 / 23 Creato da: Aleksandrina Petrova WEB/26/0384834 2026-07-06 15:16:31
+
+Finestra 005 Quantità: 1 Sistema: Cassonetto Salamander Colore: Bianco / pureWhite RAL simile a 9003
+2050
+2050
+Cassonetto
+440
+440
+_
+SL Plate 24 mm MOD : 1 ; ext. depth : 150 mm
+Coefficiente termico Uw = 1,1 W/m²·K
+Sw = 0,02
+Peso 10,9 Kg
+Perimetro 5.0 m
+Accessori Qt.
+Dimensioni interno cassonetto: L x H: 1986 x 376, profondità: 115 1
+Vista interna
+2050
+2050
+Cassonetto
+440
+440
+_
+SL Plate 24 mm MOD : 1 ; ext. depth : 150 mm
+Vista esterna
+Pagina: 6 / 23 Creato da: Aleksandrina Petrova WEB/26/0384834 2026-07-06 15:16:31
+
+Finestra 006 Quantità: 1 Sistema: Glass / Panel Colore: Bianco con guarnizione nera
+1700
+1700
+Plate 10 mm
+100
+100
+Coefficiente termico Peso 1,3 Kg
+Perimetro 3.6 m
+Thermal transmittance coefficient could not be computed
+Vista interna
+1700
+1700
+Plate 10 mm
+100
+100
+Vista esterna
+Pagina: 7 / 23 Creato da: Aleksandrina Petrova WEB/26/0384834 2026-07-06 15:16:31
+
+Finestra 007 Quantità: 1 930
+930
+35
+35 860
+35
+860 35
+1.01
+1.01
+STULP
+250 x 1339
+250 x 1339
+1.02
+1.02
+720
+720
+.
+<5xA>
+250 x 1339
+250 x 1339
+35
+35 1550
+35
+1550 35
+1620
+1620
+35
+35
+Vista interna
+930
+930
+860
+860
+35
+35
+Sistema: Salamander GreenEvo 76 3D Colore: Bianco con guarnizione grigia / pureWhite RAL
+simile a 9003
+Messaggio
+Dimensione di riempimento nr[1]: 288x1377
+Dimensione di riempimento nr[2]: 288x1377
+Nota, anta stretta selezionata. Distanza di inclinazione 75 mm. Questa distanza può
+differire dalla distanza di inclinazione.
+Passaggio, 180° (L x H) 348.0 x 1435.0 / Anta 1
+Luce di passaggio della zanzariera per anta attiva (W x H) 348.0 x 1435.0 / Alloggio 1
+Passaggio, 90° (L x H) 323.0 x 1435.0 / Anta 1
+Luce di passaggio ( la larghezza x l'altezza): 745.0 x 1435.0 Alloggio: 1
+Anta apribile verso interno - aletta del telaio lato interno
+Rw (C;Ctr) = 35 (-1;-4) dB
+Coefficiente termico Uw = 1,3 W/m²·K
+Peso 64,9 Kg
+Perimetro 5.1 m
+Accessori Qt.
+Misura luce anta 1, 1 (P/ tapparelle int.) (largh x alt: 298 x 1387 ) ) 1
+Misura luce anta 1, 2 (P/ tapparelle int.) (largh x alt: 298 x 1387 ) ) 1
+colore di maniglia interna - Bianco 1
+Colore delle coperture: BIANCO 6
+Luce di alloggio (la luce di passaggio aprendo le ante a 180° larghezza
+x altezza: 348 x 1435 2
+Luce di alloggio (la luce di passaggio aprendo l'anta primaria a 90°
+larghezza x altezza: 323 x 1435 1
+1.01: Dimensione complessiva della luce del telaio (per la zanzariera)
+(L x H): 745 x 1435 Quarti: 1 1
+1.02: Dimensione complessiva della luce del telaio (per la zanzariera)
+(L x H): 745 x 1435 Quarti: 1 1
+Riempimenti Dimensioni
+33.1/16Ar/33.1one [Ug=1.0] Rw=35dB (29mm) 9016
+1.01
+ULTIMATE BIALA Warm edge: SWISSPACER
+ULTIMATE bianco ( 9016 ) Solar gain = 49 % Light
+transmission = 70 %
+33.1/16Ar/33.1one [Ug=1.0] Rw=35dB (29mm) 9016
+1.02
+ULTIMATE BIALA Warm edge: SWISSPACER
+ULTIMATE bianco ( 9016 ) Solar gain = 49 % Light
+transmission = 70 %
+35
+35
+1.02
+1.02
+250 x 1339
+250 x 1339
+1.01
+1.01
+STULP
+250 x 1339
+250 x 1339
+1550
+1550
+1620
+1620
+35
+35
+Vista esterna
+Pagina: 8 / 23 Creato da: Aleksandrina Petrova WEB/26/0384834 2026-07-06 15:16:31
+
+Finestra 008 Quantità: 1 Sistema: Cassonetto Salamander Colore: Bianco / pureWhite RAL simile a 9003
+1300
+1300
+Cassonetto
+450
+450
+_
+SL Plate 24 mm MOD : 1 ; ext. depth : 150 mm
+Coefficiente termico Uw = 1,1 W/m²·K
+Sw = 0,02
+Peso 7,3 Kg
+Perimetro 3.5 m
+Accessori Qt.
+Dimensioni interno cassonetto: L x H: 1236 x 386, profondità: 115 1
+Vista interna
+1300
+1300
+Cassonetto
+450
+450
+SL Plate 24 mm MOD : 1 ; ext. depth : 150 mm
+_
+Vista esterna
+Pagina: 9 / 23 Creato da: Aleksandrina Petrova WEB/26/0384834 2026-07-06 15:16:31
+
+Finestra 009 Quantità: 1 Sistema: Glass / Panel Colore: Bianco con guarnizione nera
+1050
+1050
+Plate 10 mm
+Vista interna
+1050
+1050
+Plate 10 mm
+Vista esterna
+Pagina: 10 / 23 180
+180
+Coefficiente termico Peso 1,3 Kg
+Perimetro 2.5 m
+Thermal transmittance coefficient could not be computed
+180
+180
+Creato da: Aleksandrina Petrova WEB/26/0384834 2026-07-06 15:16:31
+
+1.01
+1.01
+STULP
+ER 2
+565 x 1339
+565 x 1339
+.
+720
+720
+1.02
+1.02
+ER 2
+565 x 1339
+565 x 1339
+35
+35 1550
+35
+1550 35
+1620
+1620
+35
+35
+Finestra 010 Quantità: 1 Sistema: Salamander GreenEvo 76 3D Colore: Bianco con guarnizione grigia / pureWhite RAL
+simile a 9003
+1560
+1560
+35
+35 1490
+1490 35
+35
+Messaggio
+Dimensione di riempimento nr[1]: 603x1377
+Dimensione di riempimento nr[2]: 603x1377
+Per una maggiore sicurezza, si raccomanda una maniglia con una chiave/pulsante.
+Prodotto non certificato. Ferramenta certificata.
+Passaggio, 180° (L x H) 663.0 x 1435.0 / Anta 1
+Luce di passaggio della zanzariera per anta attiva (W x H) 663.0 x 1435.0 / Alloggio 1
+Passaggio, 90° (L x H) 638.0 x 1435.0 / Anta 1
+Luce di passaggio ( la larghezza x l'altezza): 1375.0 x 1435.0 Alloggio: 1
+Anta apribile verso interno - aletta del telaio lato interno
+Rw (C;Ctr) = 35 (-1;-4) dB
+Coefficiente termico Uw = 1,2 W/m²·K
+Peso 101,6 Kg
+Perimetro 6.4 m
+Accessori Qt.
+Misura luce anta 1, 1 (P/ tapparelle int.) (largh x alt: 613 x 1387 ) ) 1
+Misura luce anta 1, 2 (P/ tapparelle int.) (largh x alt: 613 x 1387 ) ) 1
+colore di maniglia interna - Bianco 1
+Colore delle coperture: BIANCO 6
+Luce di alloggio (la luce di passaggio aprendo le ante a 180° larghezza
+x altezza: 663 x 1435 2
+Luce di alloggio (la luce di passaggio aprendo l'anta primaria a 90°
+larghezza x altezza: 638 x 1435 1
+1.01: Dimensione complessiva della luce del telaio (per la zanzariera)
+(L x H): 1375 x 1435 Quarti: 1 1
+1.02: Dimensione complessiva della luce del telaio (per la zanzariera)
+(L x H): 1375 x 1435 Quarti: 1 1
+Riempimenti Dimensioni
+33.1/16Ar/33.1one [Ug=1.0] Rw=35dB (29mm) 9016
+1.01
+ULTIMATE BIALA Warm edge: SWISSPACER
+ULTIMATE bianco ( 9016 ) Solar gain = 49 % Light
+transmission = 70 %
+33.1/16Ar/33.1one [Ug=1.0] Rw=35dB (29mm) 9016
+1.02
+ULTIMATE BIALA Warm edge: SWISSPACER
+ULTIMATE bianco ( 9016 ) Solar gain = 49 % Light
+transmission = 70 %
+Vista interna
+1560
+1560
+1490
+1490
+35
+35
+35
+35
+1.02
+1.02
+ER 2 565 x 1339
+565 x 1339
+1.01
+1.01
+STULP
+ER 2
+565 x 1339
+565 x 1339
+1550
+1550
+1620
+1620
+35
+35
+Vista esterna
+Pagina: 11 / 23 Creato da: Aleksandrina Petrova WEB/26/0384834 2026-07-06 15:16:31
+
+Finestra 011 Quantità: 1 Sistema: Cassonetto Salamander Colore: Bianco / pureWhite RAL simile a 9003
+2050
+2050
+Cassonetto
+430
+430
+_
+SL Plate 24 mm MOD : 1 ; ext. depth : 150 mm
+Coefficiente termico Uw = 1,1 W/m²·K
+Sw = 0,02
+Peso 10,7 Kg
+Perimetro 5.0 m
+Accessori Qt.
+Dimensioni interno cassonetto: L x H: 1986 x 366, profondità: 115 1
+Vista interna
+2050
+2050
+Cassonetto
+430
+430
+SL Plate 24 mm MOD : 1 ; ext. depth : 150 mm
+_
+Vista esterna
+Pagina: 12 / 23 Creato da: Aleksandrina Petrova WEB/26/0384834 2026-07-06 15:16:31
+
+Finestra 012 Quantità: 1 Sistema: Glass / Panel Colore: Bianco con guarnizione nera
+1700
+1700
+Plate 10 mm
+100
+100
+Coefficiente termico Peso 1,3 Kg
+Perimetro 3.6 m
+Thermal transmittance coefficient could not be computed
+Vista interna
+1700
+1700
+Plate 10 mm
+100
+100
+Vista esterna
+Pagina: 13 / 23 Creato da: Aleksandrina Petrova WEB/26/0384834 2026-07-06 15:16:31
+
+1.01
+1.01
+STULP
+ER 2
+565 x 1339
+565 x 1339
+.
+720
+720
+1.02
+1.02
+ER 2
+565 x 1339
+565 x 1339
+35
+35 1550
+35
+1550 35
+1620
+1620
+35
+35
+Finestra 013 Quantità: 1 Sistema: Salamander GreenEvo 76 3D Colore: Bianco con guarnizione grigia / pureWhite RAL
+simile a 9003
+1560
+1560
+35
+35 1490
+1490 35
+35
+Messaggio
+Dimensione di riempimento nr[1]: 603x1377
+Dimensione di riempimento nr[2]: 603x1377
+Per una maggiore sicurezza, si raccomanda una maniglia con una chiave/pulsante.
+Prodotto non certificato. Ferramenta certificata.
+Passaggio, 180° (L x H) 663.0 x 1435.0 / Anta 1
+Luce di passaggio della zanzariera per anta attiva (W x H) 663.0 x 1435.0 / Alloggio 1
+Passaggio, 90° (L x H) 638.0 x 1435.0 / Anta 1
+Luce di passaggio ( la larghezza x l'altezza): 1375.0 x 1435.0 Alloggio: 1
+Anta apribile verso interno - aletta del telaio lato interno
+Rw (C;Ctr) = 35 (-1;-4) dB
+Coefficiente termico Uw = 1,2 W/m²·K
+Peso 101,6 Kg
+Perimetro 6.4 m
+Accessori Qt.
+Misura luce anta 1, 1 (P/ tapparelle int.) (largh x alt: 613 x 1387 ) ) 1
+Misura luce anta 1, 2 (P/ tapparelle int.) (largh x alt: 613 x 1387 ) ) 1
+colore di maniglia interna - Bianco 1
+Colore delle coperture: BIANCO 6
+Luce di alloggio (la luce di passaggio aprendo le ante a 180° larghezza
+x altezza: 663 x 1435 2
+Luce di alloggio (la luce di passaggio aprendo l'anta primaria a 90°
+larghezza x altezza: 638 x 1435 1
+1.01: Dimensione complessiva della luce del telaio (per la zanzariera)
+(L x H): 1375 x 1435 Quarti: 1 1
+1.02: Dimensione complessiva della luce del telaio (per la zanzariera)
+(L x H): 1375 x 1435 Quarti: 1 1
+Riempimenti Dimensioni
+33.1/16Ar/33.1one [Ug=1.0] Rw=35dB (29mm) 9016
+1.01
+ULTIMATE BIALA Warm edge: SWISSPACER
+ULTIMATE bianco ( 9016 ) Solar gain = 49 % Light
+transmission = 70 %
+33.1/16Ar/33.1one [Ug=1.0] Rw=35dB (29mm) 9016
+1.02
+ULTIMATE BIALA Warm edge: SWISSPACER
+ULTIMATE bianco ( 9016 ) Solar gain = 49 % Light
+transmission = 70 %
+Vista interna
+1560
+1560
+1490
+1490
+35
+35
+35
+35
+1.02
+1.02
+ER 2 565 x 1339
+565 x 1339
+1.01
+1.01
+STULP
+ER 2
+565 x 1339
+565 x 1339
+1550
+1550
+1620
+1620
+35
+35
+Vista esterna
+Pagina: 14 / 23 Creato da: Aleksandrina Petrova WEB/26/0384834 2026-07-06 15:16:31
+
+Finestra 014 Quantità: 1 Sistema: Cassonetto Salamander Colore: Bianco / pureWhite RAL simile a 9003
+2050
+2050
+Cassonetto
+440
+440
+_
+SL Plate 24 mm MOD : 1 ; ext. depth : 150 mm
+Coefficiente termico Uw = 1,1 W/m²·K
+Sw = 0,02
+Peso 10,9 Kg
+Perimetro 5.0 m
+Accessori Qt.
+Dimensioni interno cassonetto: L x H: 1986 x 376, profondità: 115 1
+Vista interna
+2050
+2050
+Cassonetto
+440
+440
+_
+SL Plate 24 mm MOD : 1 ; ext. depth : 150 mm
+Vista esterna
+Pagina: 15 / 23 Creato da: Aleksandrina Petrova WEB/26/0384834 2026-07-06 15:16:31
+
+Finestra 015 Quantità: 1 Sistema: Glass / Panel Colore: Bianco con guarnizione nera
+1700
+1700
+Plate 10 mm
+100
+100
+Coefficiente termico Peso 1,3 Kg
+Perimetro 3.6 m
+Thermal transmittance coefficient could not be computed
+Vista interna
+1700
+1700
+Plate 10 mm
+100
+100
+Vista esterna
+Pagina: 16 / 23 Creato da: Aleksandrina Petrova WEB/26/0384834 2026-07-06 15:16:31
+
+1.01
+1.01
+STULP
+ER 2
+565 x 1339
+565 x 1339
+.
+720
+720
+1.02
+1.02
+ER 2
+565 x 1339
+565 x 1339
+35
+35 1550
+35
+1550 35
+1620
+1620
+35
+35
+Finestra 016 Quantità: 1 Sistema: Salamander GreenEvo 76 3D Colore: Bianco con guarnizione grigia / pureWhite RAL
+simile a 9003
+1560
+1560
+35
+35 1490
+1490 35
+35
+Messaggio
+Dimensione di riempimento nr[1]: 603x1377
+Dimensione di riempimento nr[2]: 603x1377
+Per una maggiore sicurezza, si raccomanda una maniglia con una chiave/pulsante.
+Prodotto non certificato. Ferramenta certificata.
+Passaggio, 180° (L x H) 663.0 x 1435.0 / Anta 1
+Luce di passaggio della zanzariera per anta attiva (W x H) 663.0 x 1435.0 / Alloggio 1
+Passaggio, 90° (L x H) 638.0 x 1435.0 / Anta 1
+Luce di passaggio ( la larghezza x l'altezza): 1375.0 x 1435.0 Alloggio: 1
+Anta apribile verso interno - aletta del telaio lato interno
+Rw (C;Ctr) = 35 (-1;-4) dB
+Coefficiente termico Uw = 1,2 W/m²·K
+Peso 101,6 Kg
+Perimetro 6.4 m
+Accessori Qt.
+Misura luce anta 1, 1 (P/ tapparelle int.) (largh x alt: 613 x 1387 ) ) 1
+Misura luce anta 1, 2 (P/ tapparelle int.) (largh x alt: 613 x 1387 ) ) 1
+colore di maniglia interna - Bianco 1
+Colore delle coperture: BIANCO 6
+Luce di alloggio (la luce di passaggio aprendo le ante a 180° larghezza
+x altezza: 663 x 1435 2
+Luce di alloggio (la luce di passaggio aprendo l'anta primaria a 90°
+larghezza x altezza: 638 x 1435 1
+1.01: Dimensione complessiva della luce del telaio (per la zanzariera)
+(L x H): 1375 x 1435 Quarti: 1 1
+1.02: Dimensione complessiva della luce del telaio (per la zanzariera)
+(L x H): 1375 x 1435 Quarti: 1 1
+Riempimenti Dimensioni
+33.1/16Ar/33.1one [Ug=1.0] Rw=35dB (29mm) 9016
+1.01
+ULTIMATE BIALA Warm edge: SWISSPACER
+ULTIMATE bianco ( 9016 ) Solar gain = 49 % Light
+transmission = 70 %
+33.1/16Ar/33.1one [Ug=1.0] Rw=35dB (29mm) 9016
+1.02
+ULTIMATE BIALA Warm edge: SWISSPACER
+ULTIMATE bianco ( 9016 ) Solar gain = 49 % Light
+transmission = 70 %
+Vista interna
+1560
+1560
+1490
+1490
+35
+35
+35
+35
+1.02
+1.02
+ER 2 565 x 1339
+565 x 1339
+1.01
+1.01
+STULP
+ER 2
+565 x 1339
+565 x 1339
+1550
+1550
+1620
+1620
+35
+35
+Vista esterna
+Pagina: 17 / 23 Creato da: Aleksandrina Petrova WEB/26/0384834 2026-07-06 15:16:31
+
+Finestra 017 Quantità: 1 Sistema: Cassonetto Salamander Colore: Bianco / pureWhite RAL simile a 9003
+2050
+2050
+Cassonetto
+430
+430
+_
+SL Plate 24 mm MOD : 1 ; ext. depth : 150 mm
+Coefficiente termico Uw = 1,1 W/m²·K
+Sw = 0,02
+Peso 10,7 Kg
+Perimetro 5.0 m
+Accessori Qt.
+Dimensioni interno cassonetto: L x H: 1986 x 366, profondità: 115 1
+Vista interna
+2050
+2050
+Cassonetto
+430
+430
+SL Plate 24 mm MOD : 1 ; ext. depth : 150 mm
+_
+Vista esterna
+Pagina: 18 / 23 Creato da: Aleksandrina Petrova WEB/26/0384834 2026-07-06 15:16:31
+
+Finestra 018 Quantità: 1 Sistema: Glass / Panel Colore: Bianco con guarnizione nera
+1700
+1700
+Plate 10 mm
+100
+100
+Coefficiente termico Peso 1,3 Kg
+Perimetro 3.6 m
+Thermal transmittance coefficient could not be computed
+Vista interna
+1700
+1700
+Plate 10 mm
+100
+100
+Vista esterna
+Pagina: 19 / 23 Creato da: Aleksandrina Petrova WEB/26/0384834 2026-07-06 15:16:31
+
+Finestra 019 Quantità: 1 Sistema: Salamander GreenEvo 76 3D Colore: Bianco con guarnizione grigia / pureWhite RAL
+simile a 9003
+930
+930
+35
+35 860
+35
+860 35
+1.01
+1.01
+35
+35 1550
+35
+1550 35
+1620
+1620
+720
+720
+.
+ER 2
+649 x 1339
+649 x 1339
+Messaggio
+Dimensione di riempimento nr[1]: 687x1377
+Per una maggiore sicurezza, si raccomanda una maniglia con una chiave/pulsante.
+Prodotto non certificato. Ferramenta certificata.
+Passaggio, 180° (L x H) 745.0 x 1435.0 / Anta 1
+Passaggio, 90° (L x H) 720.0 x 1435.0 / Anta 1
+Luce di passaggio ( la larghezza x l'altezza): 745.0 x 1435.0 Alloggio: 1
+Anta apribile verso interno - aletta del telaio lato interno
+Rw (C;Ctr) = 35 (-1;-4) dB
+Coefficiente termico Uw = 1,2 W/m²·K
+Peso 59 Kg
+Perimetro 5.1 m
+Accessori Qt.
+Misura luce anta 1, 1 (P/ tapparelle int.) (largh x alt: 697 x 1387 ) ) 1
+colore di maniglia interna - Bianco 1
+Colore delle coperture: BIANCO 3
+Luce di alloggio (la luce di passaggio aprendo le ante a 180° larghezza
+x altezza: 745 x 1435 1
+Luce di alloggio (la luce di passaggio aprendo l'anta primaria a 90°
+larghezza x altezza: 720 x 1435 1
+1.01: Dimensione complessiva della luce del telaio (per la zanzariera)
+(L x H): 745 x 1435 Quarti: 1 1
+Riempimenti Dimensioni
+33.1 PVB mat/16Ar/33.1one [Ug=1.0] Rw=35dB
+1.01
+(29mm) 9016 ULTIMATE BIALA Warm edge:
+SWISSPACER ULTIMATE bianco ( 9016 )
+35
+35
+Vista interna
+930
+930
+860
+860
+35
+35
+35
+35
+1.01
+1.01
+1550
+1550
+1620
+1620
+ER 2
+649 x 1339
+649 x 1339
+35
+35
+Vista esterna
+Pagina: 20 / 23 Creato da: Aleksandrina Petrova WEB/26/0384834 2026-07-06 15:16:31
+
+Finestra 020 Quantità: 1 Sistema: Cassonetto Salamander Colore: Bianco / pureWhite RAL simile a 9003
+1280
+1280
+Cassonetto
+_
+SL Plate 24 mm MOD : 1 ; ext. depth : 150 430
+430
+mm
+Coefficiente termico Uw = 1,1 W/m²·K
+Sw = 0,02
+Peso 7 Kg
+Perimetro 3.4 m
+Accessori Qt.
+Dimensioni interno cassonetto: L x H: 1216 x 366, profondità: 115 1
+Vista interna
+1280
+1280
+Cassonetto
+_
+SL Plate 24 mm MOD : 1 ; ext. depth : 150 430
+430
+mm
+Vista esterna
+Pagina: 21 / 23 Creato da: Aleksandrina Petrova WEB/26/0384834 2026-07-06 15:16:31
+
+Finestra 021 Quantità: 1 Sistema: Glass / Panel Colore: Bianco con guarnizione nera
+1050
+1050
+Plate 10 mm
+100
+100
+Coefficiente termico Peso 0,8 Kg
+Perimetro 2.3 m
+Thermal transmittance coefficient could not be computed
+Vista interna
+1050
+1050
+Plate 10 mm
+100
+100
+Vista esterna
+Servizi
+Descrizione Quantità Unità
+Installazione finestra con coprifili 7 pzz
+Installazione zanzariera 7 pzz
+Installazione cassonetto 7 pzz
+Intalazzione cellino cassoneto 7 pzz
+Installazione tapparella (solo telo avvolgibile) 7 pzz
+Installazione kit avvolgibile completo (manuale o elettrico, guide comprese) 7 pzz
+Rimozione serramenti (a foro finestra) 7 pzz
+Rilievo misure (a foro finestra, min 5 pz) 7 pzz
+Ritiro e smaltimento a foro finestra/porta (escluse persiane) 7 pzz
+Pratica ENEA per "Ecobonus" in omaggio! 1 pzz
+Trasporto e gestione cantiere 7 %
+PROFILI
+Codice Descrizione Lunghezza
+Quantità
+[mm]
+EX
+640756
+_
+EX
+_
+_
+640736-5 5 640756
+_
+5 Coprifilo 50x 7 adesivo- BIANCO / SALAMANDER lang_
+equivalente a 120288 6.000 16
+640736-5 Coprifilo 30 x 7 adesivo BIANCO IN MASSA lang_
+equivalente a 120285 / SALAMANDER 6.000 4
+ARTICOLI
+Codice Descrizione Quantità
+AMBRA - zanzariera in alluminio MOD. AMBRA / VERTICAL ad avvolgimento verticale con molla di richiamo / L875mm x
+H1500mm - 2 pz; L1505mm x H1500mm - 5 pz / colore ral 9003 14,1
+KIT Acessori Avvolgibile Manuale 7
+Superficie Avvolgibili in alluminio media densità / L1545mm x h 1700 mm - 5 pz; L910mm x h 1700 mm - 1 pz; L915mm x h
+1700 mm - 1 pz / colore ral 9003 16,9
+Pagina: 22 / 23 Creato da: Aleksandrina Petrova WEB/26/0384834 2026-07-06 15:16:31
+
+Sommario Coefficiente Termico
+Finestra Qtà Uw Superficie
+Superficie
+totale
+Qtà x Uw x
+Superficie Commento
+001 1 1,2 W/m²·K 2,527 m² 2,527 m² 3,033 W·K
+002 1 1,1 W/m²·K 0,882 m² 0,882 m² 0,970 W·K
+003 1 0,170 m² 0,170 m² Thermal transmittance coefficient could not be computed
+004 1 1,2 W/m²·K 2,527 m² 2,527 m² 3,033 W·K
+005 1 1,1 W/m²·K 0,902 m² 0,902 m² 0,992 W·K
+006 1 0,170 m² 0,170 m² Thermal transmittance coefficient could not be computed
+007 1 1,3 W/m²·K 1,507 m² 1,507 m² 1,959 W·K
+008 1 1,1 W/m²·K 0,585 m² 0,585 m² 0,644 W·K
+009 1 0,189 m² 0,189 m² Thermal transmittance coefficient could not be computed
+010 1 1,2 W/m²·K 2,527 m² 2,527 m² 3,033 W·K
+011 1 1,1 W/m²·K 0,882 m² 0,882 m² 0,970 W·K
+012 1 0,170 m² 0,170 m² Thermal transmittance coefficient could not be computed
+013 1 1,2 W/m²·K 2,527 m² 2,527 m² 3,033 W·K
+014 1 1,1 W/m²·K 0,902 m² 0,902 m² 0,992 W·K
+015 1 0,170 m² 0,170 m² Thermal transmittance coefficient could not be computed
+016 1 1,2 W/m²·K 2,527 m² 2,527 m² 3,033 W·K
+017 1 1,1 W/m²·K 0,882 m² 0,882 m² 0,970 W·K
+018 1 0,170 m² 0,170 m² Thermal transmittance coefficient could not be computed
+019 1 1,2 W/m²·K 1,507 m² 1,507 m² 1,808 W·K
+020 1 1,1 W/m²·K 0,550 m² 0,550 m² 0,605 W·K
+021 1 0,105 m² 0,105 m² Thermal transmittance coefficient could not be computed
+21 22,377 m² 25,072 W·K
+Coefficiente termico medio: 1,2 W/m²·K
+Peso totale: 708,7 kg
+Perimetro totale: 96,9 m
+Pagina: 23 / 23 Creato da: Aleksandrina Petrova WEB/26/0384834 2026-07-06 15:16:31

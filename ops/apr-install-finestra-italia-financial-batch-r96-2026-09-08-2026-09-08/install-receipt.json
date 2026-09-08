@@ -1,0 +1,23 @@
+{
+  "version": "apr-install-bundle-cli-receipt-v1",
+  "installedAt": "2026-09-08T17:36:12.075Z",
+  "label": "finestra-italia-financial-batch-r96-2026-09-08",
+  "versionId": "165b4bd7-finestra-italia-financial-batch-r96-2026-09-08-20260908",
+  "previousTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/90dfb410-document-identity-batch-r95-2026-09-08-20260908",
+  "currentTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/165b4bd7-finestra-italia-financial-batch-r96-2026-09-08-20260908",
+  "installedBundle": {
+    "apr-supervisor.mjs": "5ea5c92dbe00fbfcbc9ff9ed85bccf29a2878ae704350ef0612e094383171c2d",
+    "apr-enea-worker.mjs": "6f0a2d9c245edf946c52a70906bbe85d6a12e6ae2489240da5ecd47941ca1e47",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0"
+  },
+  "gateResultArtifactId": "06cc737cbac7757950e0519923ce6cc80dadc179b1a9390fe9530497013a2404",
+  "gateStatus": "PASS",
+  "legacyGovernanceDebtNoticed": [
+    "user-2026-08-06-existing-plant-authoritative-mapping-v1",
+    "user-2026-08-06-intervention-authoritative-sources-and-defaults-v1",
+    "user-2026-08-06-portal-intermediary-physical-beneficiary-v1",
+    "user-2026-08-06-portal-municipality-controlled-selection-v1",
+    "user-2026-09-05-co-beneficiary-trusted-enter-delivery-v2",
+    "user-2026-09-05-terminal-cohort-browser-quiescence-v1"
+  ]
+}

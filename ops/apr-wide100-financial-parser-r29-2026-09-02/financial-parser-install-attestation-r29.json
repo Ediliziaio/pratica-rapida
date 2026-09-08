@@ -1,0 +1,35 @@
+{
+  "version": "apr-financial-parser-r29-install-attestation-v1",
+  "attestedAt": "2026-09-02T19:06:32.964Z",
+  "status": "active_tested_deployed",
+  "preinstallGateSha256": "660acfbcb746c6765f7390329f3784efffece4907d8d9f3d825fd9c5b297e539",
+  "ruleActivationCheckpointSha256": "85fb65ba30b11305c98935258acba5402f768ad8e500c56824e823d01d22dcc4",
+  "bundleVersion": "a93a1d16-financial-parser-r29-20260902",
+  "installedBundle": {
+    "aprSupervisorSha256": "3f2c957f35a71bdff565cece722679752905651cefaea959a51fd1d8c8aea0fc",
+    "aprEneaWorkerSha256": "a93a1d16bebd35d77ae7d8f0e700b4990216b18ba1dd991e492a6f63f0f01d85",
+    "aprWatchdogSha256": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "aprPdfOcrSha256": "4c41c9a6832b11b9d19eace538100270a533dddc05e475e5842711968393327f",
+    "sharedAprPdfOcrSha256": "4c41c9a6832b11b9d19eace538100270a533dddc05e475e5842711968393327f"
+  },
+  "ruleGate": {
+    "registryVersion": "enea-operational-registry-v103",
+    "matrixVersion": "apr-enea-rule-test-matrix-v81",
+    "matrixRules": 95,
+    "registryLinksVerified": true,
+    "deploymentMatches": true
+  },
+  "continuityAfterInstall": {
+    "keepaliveLabel": "com.praticarapida.apr-enea-immortal-keepalive",
+    "keepalivePid": 35873,
+    "chromePid": 3785,
+    "chromeTargetId": "1C3153562376BE798125C283D8021102",
+    "operationalUrl": "https://bonusfiscali.enea.it/dashboard",
+    "serverReadonlyProofObservedAt": "2026-09-02T19:06:32.964Z",
+    "serverReadonlyProofFingerprint": "1f45c3fa54d8c8e7fe1ffcc38e343d2089f068c601b75417819e09aa7b946393",
+    "forbiddenActionCount": 0,
+    "previewAttemptCount": 0,
+    "submitAttemptCount": 0,
+    "communicationAttemptCount": 0
+  }
+}

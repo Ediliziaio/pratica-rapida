@@ -1,0 +1,64 @@
+{
+  "version": "apr-current-cohort-bridge-gate-attestation-v1",
+  "recordedAt": "2026-09-02T08:33:19Z",
+  "status": "PASS",
+  "ruleId": "user-2026-09-02-current-cohort-economic-bridge-v1",
+  "sourceGit": {
+    "head": "e200ebd4a8979f15c8ea3c5fc31eaea5d4f1c088",
+    "headTree": "be9884db989534bbcfc82fc8426f160bef8fe79f",
+    "workingTreeMode": "tested_working_tree_with_existing_uncommitted_changes"
+  },
+  "sourceHashes": {
+    "aprEconomicCorpusReplay.ts": "3ea11ef9ca470b9bef8a4f2d0dd7edcdccc279896ca7c1844d5d82f8e488607d",
+    "apr-enea-operational-bridge-prepare-cli.ts": "d76c9fa4c7f85f4363667ba455009d0dbc2f78084e8202af052ae6cb7c2aa3dd",
+    "aprEconomicCurrentCohort.test.ts": "5bdd0e29ef41afbed6b74a1368c92fd093e822941a98ee57411265a784adb928",
+    "operationalRegistry.ts": "b18aa5b2d2fa2f5a91819e3ddb3c950f1942fbfb123f5bf0a36e0243ce45404d",
+    "ruleTestMatrix.ts": "3289147ff60268a5d8aa874afaf19a4ee9b093e622eab7fc3af8b9c1b02d7b41"
+  },
+  "verification": {
+    "targetedTests": "60/60 PASS",
+    "integratedTestFiles": 206,
+    "integratedTests": 1587,
+    "integratedFailed": 0,
+    "integratedDurationSeconds": 533.08,
+    "typecheck": "npx tsc --noEmit PASS",
+    "productionBuild": "npm run build PASS",
+    "failClosedCases": [
+      "practiceId dossier mismatch",
+      "analysis path outside current cohort",
+      "missing current analysis"
+    ]
+  },
+  "realCurrentCohortProof": {
+    "customerKey": "lucia-droghetti",
+    "practiceId": "652f820b-9d49-4706-a8bc-87931bec5148",
+    "cohort": 2823,
+    "economicTotal": 2000,
+    "mappingStatus": "mapped",
+    "blockers": [],
+    "decisionsArtifactId": "c694857629a5d55ac97306dd429e3ad70cb5e7e9a9670436a3766e81838aedc7",
+    "mappingArtifactId": "47104e96c340c4c84f606d14b63c2bdba82fc5803f911749543170ed55179963",
+    "sourceFingerprint": "f3f4d7c908200bfe807bfba6d56b8e91c2609603d7dbfabe97bd8d20d1b4e370",
+    "mappingSha256": "9074f721a365716d96b78e461da43e7d036a7e4ba907afb6c6507a619bb55ec4",
+    "sourceAuditSha256": "52711a847093fefc734b373a60f6d2eeab2beb7d3e70e288b3a9a97a8b99f35b"
+  },
+  "frozenWideTest": {
+    "manifestSha256": "51842252f71cabb6714f78923fe59ec9789ad06739393f61a553bb4bdb9154e0",
+    "freezeSha256": "123899be794f49b763ccbe429ee922318fae5970198e4b6dfb0239d734e2afde"
+  },
+  "stagedBundleHashes": {
+    "apr-enea-worker.mjs": "938f0626b4fbcbac2d9409ac6c2c81d1d60608da8ca693d63e520557faec6c84",
+    "apr-supervisor.mjs": "37c9372161433b49a435a33aa15180e158ef054406f5d0f05060d43f880bd51f",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0"
+  },
+  "safety": {
+    "preview": false,
+    "submit": false,
+    "protocol": false,
+    "receipts": false,
+    "email": false,
+    "communications": false,
+    "keepaliveMustRemainRunning": true,
+    "chromeMustRemainRunning": true
+  }
+}

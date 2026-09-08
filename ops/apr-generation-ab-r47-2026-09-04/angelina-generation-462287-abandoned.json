@@ -1,0 +1,14 @@
+{
+  "version": "apr-generation-abandonment-attestation-v1",
+  "recordedAt": "2026-09-04T15:42:13Z",
+  "customerKey": "angelina-stricelli",
+  "generationId": "generation-8f2843ab5ddf4fee25c1ec65",
+  "canonicalDraftId": "462287",
+  "status": "abandoned_quarantined",
+  "mayResume": false,
+  "reason": "Tre letture server fresche e concordanti hanno dimostrato che la bozza contiene soltanto ver:0 e nessuna sezione beneficiario; la generazione non ha valore recuperabile.",
+  "evidence": "angelina-draft-462287-readonly-attestation.json",
+  "supersededByRun": "apr-angelina-clean-r48",
+  "oldDraftDeleted": false,
+  "mutationPerformed": false
+}

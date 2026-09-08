@@ -19,6 +19,18 @@ describe("validazione correzioni operatore", () => {
     expect(validateOperatorOverride("impianto.potenza", "0 kW").valid).toBe(false);
   });
 
+  it("regressione Manso: corregge un CAP con la lettera O al posto della cifra 0, ma resta fail-closed se non basta a renderlo valido", () => {
+    expect(validateOperatorOverride("beneficiario.cap_residenza", "209OO")).toEqual({ valid: true, value: "20900" });
+    expect(validateOperatorOverride("immobile.cap", "2O9OO")).toEqual({ valid: true, value: "20900" });
+    expect(validateOperatorOverride("immobile.cap", "2012").valid).toBe(false);
+    expect(validateOperatorOverride("immobile.cap", "2O12").valid).toBe(false);
+  });
+
+  it("regressione Manso: non accetta un CAP ancora invalido dopo la sola sostituzione O/0", () => {
+    expect(validateOperatorOverride("beneficiario.cap_residenza", "2O12").valid).toBe(false);
+    expect(validateOperatorOverride("immobile.cap", "2O9O").valid).toBe(false);
+  });
+
   it("accetta e normalizza valori verificabili", () => {
     expect(validateOperatorOverride("beneficiario.cf", "rssmra80a01h501u")).toEqual({
       valid: true,

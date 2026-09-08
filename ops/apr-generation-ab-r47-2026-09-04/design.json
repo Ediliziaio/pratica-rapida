@@ -1,0 +1,40 @@
+{
+  "version": "apr-generation-ab-design-v1",
+  "experimentId": "apr-generation-ab-r47-2026-09-04",
+  "authorizationId": "user-2026-09-04-generation-ab-real-10",
+  "objective": "Confrontare una nuova generazione pulita, con checkpoint interno, con la ripresa tecnica tradizionale della stessa generazione senza rendere il nuovo comportamento predefinito.",
+  "executionOrder": ["B_resume_generation", "A_fresh_generation"],
+  "selection": {
+    "method": "abbinamento deterministico per modulo e numerosita pagine tra pratiche gia trasmesse a ENEA TEST, con precedente arresto tecnico e successivo esito saved; tie-break SHA-256",
+    "seed": "apr-generation-ab-r47-2026-09-04",
+    "sampleSize": 10,
+    "freshArmSize": 5,
+    "resumeArmSize": 5,
+    "flaviaExcludedFromExperiment": true,
+    "knownLimitation": "Zeno Righetti porta nel braccio B il solo caso da 19 pagine disponibile fra i checkpoint non terminali; il braccio A non possiede un abbinamento Schermature di pari numerosita. I tempi sono quindi riportati anche per pagina residua."
+  },
+  "arms": {
+    "B_resume_generation": [
+      { "cohort": 3059, "customerKey": "claudia-sellati", "draftId": "460570", "savedPagesAtFreeze": 0, "expectedPagesAtFreeze": 13, "stateAtFreeze": "recovery_queued" },
+      { "cohort": 917, "customerKey": "luca-cigognetti", "draftId": "444154", "savedPagesAtFreeze": 2, "expectedPagesAtFreeze": 14, "stateAtFreeze": "filling" },
+      { "cohort": 370, "customerKey": "gabriella-bruno", "draftId": "443445", "savedPagesAtFreeze": 1, "expectedPagesAtFreeze": 8, "stateAtFreeze": "filling" },
+      { "cohort": 346, "customerKey": "zeno-righetti", "draftId": "443381", "savedPagesAtFreeze": 5, "expectedPagesAtFreeze": 19, "stateAtFreeze": "save_intent_recorded" },
+      { "cohort": 266, "customerKey": "cristina-ricchi", "draftId": "442968", "savedPagesAtFreeze": 5, "expectedPagesAtFreeze": 10, "stateAtFreeze": "save_intent_recorded" }
+    ],
+    "A_fresh_generation": [
+      { "cohort": 3062, "customerKey": "orietta-artuso", "matchedTo": "claudia-sellati", "expectedPagesFromLatestSavedRun": 13 },
+      { "cohort": 3063, "customerKey": "angelina-stricelli", "matchedTo": "luca-cigognetti", "expectedPagesFromLatestSavedRun": 14 },
+      { "cohort": 3064, "customerKey": "romeo-ropa", "matchedTo": "gabriella-bruno", "expectedPagesFromLatestSavedRun": 8 },
+      { "cohort": 3065, "customerKey": "amelia-lerose", "matchedTo": "cristina-ricchi", "expectedPagesFromLatestSavedRun": 10 },
+      { "cohort": 3066, "customerKey": "luca-callegari", "matchedTo": "zeno-righetti", "expectedPagesFromLatestSavedRun": 11 }
+    ]
+  },
+  "acceptance": {
+    "freshNeverAdoptsPriorDraftId": true,
+    "freshCrashRecoveryOnlyFromOwnPendingCreate": true,
+    "resumeNeverChangesCanonicalDraftId": true,
+    "noDuplicateSaveIntent": true,
+    "caseTruthTripleAgreementRequired": true,
+    "safety": { "draftOnly": true, "previewAllowed": false, "submitAllowed": false, "communicationsAllowed": false }
+  }
+}

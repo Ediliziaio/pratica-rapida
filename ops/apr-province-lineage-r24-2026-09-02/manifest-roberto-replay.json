@@ -1,0 +1,34 @@
+{
+  "version": "apr-province-lineage-r24-roberto-replay-v1",
+  "authorizationId": "user-2026-09-02-province-lineage-roberto-replay-v1",
+  "authorizedAt": "2026-09-02T00:00:00.000Z",
+  "mode": "real_enea_draft_only",
+  "safety": {
+    "draftOnly": true,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false,
+    "priorDraftPolicy": "preserve_and_ignore_for_new_test_draft"
+  },
+  "selection": {
+    "total": 1,
+    "selectionMethod": "targeted replay of the previously authorized Roberto Marcello practice after the general official-province-lineage correction",
+    "sourceManifest": "ops/apr-global-controller-test10-2026-08-29/manifest-autonomy30.json",
+    "customerKeys": ["roberto-marcello"],
+    "allowedStages": ["archiviate"],
+    "excludedCustomerKeys": ["beatrice-ciotta"]
+  },
+  "cases": [
+    {
+      "cohort": 238,
+      "customerKey": "roberto-marcello",
+      "displayName": "Roberto Marcello",
+      "practiceId": "e170a382-7145-4c52-ba6f-1726daed50bf",
+      "stage": "archiviate",
+      "module": "infissi",
+      "invoiceCount": 5,
+      "complexity": "complex",
+      "historicalRetest": true
+    }
+  ]
+}

@@ -1,0 +1,84 @@
+Emil Banca Credito Cooperativo
+FILIALE DI SAN GIORGIO DI PIANO PIAZZA INDIPENDENZA N 5 SAN GIORGIO DI PIANO 40016 - BO
+Bonifico
+Dati della disposizione
+Data spedizione
+09/07/2026
+Data ricezione banca
+Importo 950,00
+Data esecuzione
+Richiesta urgente
+No
+Descrizione Saldo fattura n. 724/26 del 07/07/2026
+Tipo pagamento Bonifico detrazione fiscale
+Dati del beneficiario
+IBAN
+IT61O0888336740032000321281
+Codice BIC
+Banca
+Denominazione
+RINALDI SRL - Riconosciuto
+Cod. Fisc./P.IVA
+03030671204
+Località
+Castel Maggiore BO
+CAP
+40013
+Indirizzo
+via S.Quasimodo n.38
+Codice paese
+IT
+Numero Carta Tasca
+Esito VOP 09/07/2026 08.34.26 - Riconosciuto
+Dati relativi all'ordinante
+Conto n.
+07072 37050 000000735937
+Cod. Fisc./P.IVA
+BLLPLN51P24F156W
+Denominazione
+BELLINI PAOLINO, BELTRAMI MARI
+Indirizzo
+VIA PIETRO MENNEA 3 A
+Località
+SAN GIORGIO DI PIANO BO
+Codice paese IT
+Autorizzata da
+Spedita da
+BELLINI PAOLINO
+Stato della disposizione
+Esito
+Eseguita
+Data esecuzione
+09/07/2026
+Data contabile
+Data esecuzione banca 09/07/2026
+Data addebito
+09/07/2026
+Importo commissioni 0,75
+Num. operazione 000027383596906
+CRO 0707200058632769ZX3705037050IT
+Dati relativi all'invio esito al beneficiario
+Tipo comunicazione
+E-Mail
+E-Mail
+info@rinaldilab.com
+Identificativo benef.
+Bonifico eseguito
+Stampa da Relax Banking per il contratto: BELLINI PAOLINO, BELTRAMI MARIAGRAZIA in data 09/07/2026 08.38.02 2Pagina 1 di
+
+Emil Banca Credito Cooperativo
+FILIALE DI SAN GIORGIO DI PIANO PIAZZA INDIPENDENZA N 5 SAN GIORGIO DI PIANO 40016 - BO
+Bonifico
+Dati per detrazione fiscale
+Tipo detrazione Riqualificazione Energetica (LG. 296/06)
+Cod.Fisc./P.Iva Ord. BLLPLN51P24F156W
+Cod.Fisc./P.Iva Benef. 03030671204
+Cod.Fisc./P.Iva Amm.
+Cod.Fisc./P.Iva Coint.1
+Cod.Fisc./P.Iva Coint.2
+Cod.Fisc./P.Iva Coint.3
+Parti comuni
+NO
+Paese residenza
+IT - ITALIA
+Stampa da Relax Banking per il contratto: BELLINI PAOLINO, BELTRAMI MARIAGRAZIA in data 09/07/2026 08.38.03 2Pagina 2 di

@@ -1,0 +1,23 @@
+{
+  "version": "apr-install-bundle-cli-receipt-v1",
+  "installedAt": "2026-09-07T16:38:28.127Z",
+  "label": "manso-cap-typo-fix-r85",
+  "versionId": "d1681076-manso-cap-typo-fix-r85-20260907",
+  "previousTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/356e122f-linea-sole-potito-cadastral-fix-r84-20260907",
+  "currentTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/d1681076-manso-cap-typo-fix-r85-20260907",
+  "installedBundle": {
+    "apr-supervisor.mjs": "050d1ffe3f0b4cde66a61b83b1a24f994cfe339d6d6c3fdc16905eb372dbb5bf",
+    "apr-enea-worker.mjs": "25c2037e98876c6b49e97908fd1aad6b04c94c991e16a1eaaefa5657975c142d",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0"
+  },
+  "gateResultArtifactId": "8ddbff55fb1e0ca185cfa5f598ed9df2bde9af3706601f4fd515efd3547f7c7a",
+  "gateStatus": "PASS",
+  "legacyGovernanceDebtNoticed": [
+    "user-2026-08-06-existing-plant-authoritative-mapping-v1",
+    "user-2026-08-06-intervention-authoritative-sources-and-defaults-v1",
+    "user-2026-08-06-portal-intermediary-physical-beneficiary-v1",
+    "user-2026-08-06-portal-municipality-controlled-selection-v1",
+    "user-2026-09-05-co-beneficiary-trusted-enter-delivery-v2",
+    "user-2026-09-05-terminal-cohort-browser-quiescence-v1"
+  ]
+}

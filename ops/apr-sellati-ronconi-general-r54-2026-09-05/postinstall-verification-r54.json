@@ -1,0 +1,69 @@
+{
+  "version": "apr-sellati-ronconi-general-postinstall-verification-r54-v1",
+  "verifiedAt": "2026-09-05T00:33:36.482Z",
+  "status": "active_tested_deployed",
+  "versionId": "be4fdbe8-sellati-ronconi-general-r54-20260905",
+  "bundlePointer": {
+    "target": "versions/be4fdbe8-sellati-ronconi-general-r54-20260905",
+    "verified": true
+  },
+  "bundleHashes": {
+    "apr-enea-worker.mjs": "be4fdbe81bbbf9487533ffde13715f227edb94b1fa82dec8abf8505778a27177",
+    "apr-supervisor.mjs": "6a60b79ff962e66cbf71c0498609f458ad4ad5344d463a62fd9364710a2fcff9",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "apr-pdf-ocr": "4c41c9a6832b11b9d19eace538100270a533dddc05e475e5842711968393327f"
+  },
+  "ruleActivation": {
+    "status": "active_tested_deployed",
+    "matrixRules": 134,
+    "sourceFingerprint": "c4aa4cd589e2142991eccf1a56cbdfc83bf61da88e4578b68a4449382e523455",
+    "deploymentMatches": true,
+    "checkpoint": "rule-gate-r54/rule-activation/checkpoint.json"
+  },
+  "automaticGate": {
+    "suitesPassed": 444,
+    "testsPassed": 1755,
+    "failed": 0,
+    "typecheck": "passed",
+    "rawReportSha256": "36ebbd23040e049bb134b504354b550d154f64d37cfb5e3fbaaa3516fa057c85"
+  },
+  "continuityTripleVerification": {
+    "launchctlAndProcess": {
+      "label": "com.praticarapida.apr-enea-immortal-keepalive",
+      "state": "running",
+      "pid": 42593,
+      "lastExitCode": "never_exited"
+    },
+    "persistentHeartbeat": {
+      "status": "setup_ready",
+      "heartbeatAt": "2026-09-05T00:33:36.482Z"
+    },
+    "chromeAndTerminalSnapshot": {
+      "chromePid": 3785,
+      "remoteDebuggingPort": 9331,
+      "lastReadonlyEventRevision": 7671,
+      "lastReadonlyEventAt": "2026-09-05T00:33:29.910Z",
+      "lastReadonlyAction": "inspect_portal_contract_readonly",
+      "mutationTraceCount": 0
+    },
+    "sourcesConcordant": true
+  },
+  "operationalScope": {
+    "sellati": {
+      "localReplay": "passed",
+      "realEneaReplayAfterFix": "not_performed"
+    },
+    "ronconi": {
+      "diagnosis": "read_only",
+      "realEneaReplayAfterFix": "authorization_required",
+      "mutationsDuringDiagnosis": 0
+    }
+  },
+  "safety": {
+    "keepaliveRestarted": false,
+    "chromeRestarted": false,
+    "preview": false,
+    "submit": false,
+    "communications": false
+  }
+}

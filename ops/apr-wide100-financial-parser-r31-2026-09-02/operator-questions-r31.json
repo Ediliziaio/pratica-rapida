@@ -1,0 +1,672 @@
+{
+  "version": "apr-operator-questions-v1",
+  "generatedAt": "2026-09-02T21:55:09.689Z",
+  "cases": [
+    {
+      "customerKey": "giovanna-atzeni",
+      "displayName": "GIOVANNA ATZENI",
+      "questions": [
+        {
+          "blockerCode": "customer_form_missing",
+          "field": "customer_form",
+          "sourceIds": [
+            "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8"
+          ],
+          "reason": "Il dossier CRM non contiene un form cliente originario utilizzabile; documenti ENEA storici esclusi.",
+          "operatorQuestion": "Per GIOVANNA ATZENI, può inviare il modulo cliente ENEA originale compilato e firmato, con tutti i dati anagrafici e dell'immobile? Dettaglio rilevato: Il dossier CRM non contiene un form cliente originario utilizzabile; documenti ENEA storici esclusi."
+        },
+        {
+          "blockerCode": "tax_code_missing_or_invalid",
+          "field": "beneficiary.taxCode",
+          "sourceIds": [
+            "giovanna-atzeni"
+          ],
+          "reason": "CF valido e coerente non disponibile nel form o nelle fatture originarie.",
+          "operatorQuestion": "Per GIOVANNA ATZENI, può confermare il codice fiscale corretto e inviare un documento leggibile o il modulo cliente che lo attesti? Dettaglio rilevato: CF valido e coerente non disponibile nel form o nelle fatture originarie."
+        },
+        {
+          "blockerCode": "completion_date_portal_year_mismatch",
+          "field": "dates.completion",
+          "sourceIds": [
+            "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:invoice:a0807c8f37ed",
+            "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:invoice:a9de80b81628"
+          ],
+          "reason": "Fine lavori 2025-12-31: anno 2025 incompatibile con il portale ENEA 2026. Selezionare il portale annuale corretto senza modificare la data.",
+          "operatorQuestion": "Per GIOVANNA ATZENI, può confermare la data effettiva di fine lavori e inviare il documento che la prova (fattura di saldo, collaudo o dichiarazione di fine lavori)? Dettaglio rilevato: Fine lavori 2025-12-31: anno 2025 incompatibile con il portale ENEA 2026. Selezionare il portale annuale corretto senza modificare la data."
+        },
+        {
+          "blockerCode": "completion_over_90_days_operator_required",
+          "field": "dates.completion",
+          "sourceIds": [
+            "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:invoice:a0807c8f37ed",
+            "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:invoice:a9de80b81628"
+          ],
+          "reason": "Fine lavori 2025-12-31: 245 giorni prima della lavorazione, oltre il limite di 90 giorni. Verificare la procedibilità e il portale annuale corretto.",
+          "operatorQuestion": "Per GIOVANNA ATZENI, può confermare la data effettiva di fine lavori e inviare il documento che la prova (fattura di saldo, collaudo o dichiarazione di fine lavori)? Dettaglio rilevato: Fine lavori 2025-12-31: 245 giorni prima della lavorazione, oltre il limite di 90 giorni. Verificare la procedibilità e il portale annuale corretto."
+        }
+      ]
+    },
+    {
+      "customerKey": "elena-marcella-berti",
+      "displayName": "ELENA MARCELLA BERTI",
+      "questions": [
+        {
+          "blockerCode": "tax_code_missing_or_invalid",
+          "field": "beneficiary.taxCode",
+          "sourceIds": [
+            "elena-marcella-berti"
+          ],
+          "reason": "CF valido e coerente non disponibile nel form o nelle fatture originarie.",
+          "operatorQuestion": "Per ELENA MARCELLA BERTI, può confermare il codice fiscale corretto e inviare un documento leggibile o il modulo cliente che lo attesti? Dettaglio rilevato: CF valido e coerente non disponibile nel form o nelle fatture originarie."
+        },
+        {
+          "blockerCode": "screenings_missing",
+          "field": "screenings",
+          "sourceIds": [
+            "37938446ac7888c640cb0ff2cec7401a064a0d191f91b39425691fbd7f50d83c",
+            "ab757f42f476bdcf268ba24d74d10518ba8b959cf6c10071e2c628810c1136d8"
+          ],
+          "reason": "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+          "operatorQuestion": "Per ELENA MARCELLA BERTI, può inviare la scheda tecnica o il riepilogo ordine completo con numero dei prodotti, tipologia e misure larghezza × altezza di ogni elemento? Dettaglio rilevato: Nessun prodotto fisico riconciliato dalle fatture originarie."
+        },
+        {
+          "blockerCode": "screening_primary_measurements_missing",
+          "field": "screenings.dimensions",
+          "sourceIds": [
+            "37938446ac7888c640cb0ff2cec7401a064a0d191f91b39425691fbd7f50d83c",
+            "ab757f42f476bdcf268ba24d74d10518ba8b959cf6c10071e2c628810c1136d8"
+          ],
+          "reason": "La fattura descrive la schermatura ma nessuna fonte primaria riporta le misure fisiche del prodotto. APR non usa le misure della finestra protetta come misure del prodotto: acquisire o confermare le misure e rimettere la pratica in Pronte da fare.",
+          "operatorQuestion": "Per ELENA MARCELLA BERTI, può inviare la scheda tecnica o il riepilogo ordine completo con numero dei prodotti, tipologia e misure larghezza × altezza di ogni elemento? Dettaglio rilevato: La fattura descrive la schermatura ma nessuna fonte primaria riporta le misure fisiche del prodotto. APR non usa le misure della finestra protetta come misure del prodotto: acquisire o confermare le misure e rimettere la pratica in Pronte da fare."
+        }
+      ]
+    },
+    {
+      "customerKey": "francesca-pisanu",
+      "displayName": "FRANCESCA PISANU",
+      "questions": [
+        {
+          "blockerCode": "customer_form_missing",
+          "field": "customer_form",
+          "sourceIds": [
+            "21525d042dc495bcf967405f27aebe2f1e89972cfea745f62e8e2fb8dbb08743"
+          ],
+          "reason": "Il dossier CRM non contiene un form cliente originario utilizzabile; documenti ENEA storici esclusi.",
+          "operatorQuestion": "Per FRANCESCA PISANU, può inviare il modulo cliente ENEA originale compilato e firmato, con tutti i dati anagrafici e dell'immobile? Dettaglio rilevato: Il dossier CRM non contiene un form cliente originario utilizzabile; documenti ENEA storici esclusi."
+        },
+        {
+          "blockerCode": "tax_code_missing_or_invalid",
+          "field": "beneficiary.taxCode",
+          "sourceIds": [
+            "francesca-pisanu"
+          ],
+          "reason": "CF valido e coerente non disponibile nel form o nelle fatture originarie.",
+          "operatorQuestion": "Per FRANCESCA PISANU, può confermare il codice fiscale corretto e inviare un documento leggibile o il modulo cliente che lo attesti? Dettaglio rilevato: CF valido e coerente non disponibile nel form o nelle fatture originarie."
+        }
+      ]
+    },
+    {
+      "customerKey": "claudia-sellati",
+      "displayName": "CLAUDIA SELLATI",
+      "questions": [
+        {
+          "blockerCode": "infissi_dimensions_and_cardinality_missing",
+          "field": "technical_dimensions",
+          "sourceIds": [
+            "45a101b53e6ffdc0935c7fc207d353a137a5e702fb94405dd003c94753e4fcff",
+            "4eea56c264dbfda8abc94d01e5a33a7932f49b1ff404e19243a33d09ade874f5",
+            "be45c070595df198511dd69dff4306cb41413dbf992eca0a0ea4365a883f3c41",
+            "6a8b1b426d04d679bb411d063ed75a9c3380a425abfbff11227844f868e1f9a7",
+            "96d804f33d34ee5dfcd0b3f9ffced49531c462bb9be5a1c53c7a636a17ebcc6d",
+            "6659e6f2a24b898f7aaf6f6ba93c01739c260e03e75ccb2a6a514ef1c05e3d17",
+            "ea3d03fbda18a5b6be6703661ee2cc286d6340f2dc3edd381327622bfe8d98f2",
+            "3934f46c98eeab841c3edf1bcb65e4c742d1b355b90fa4d989e73a0349dc7c4e",
+            "a075409e3ea949a8ef30713b5a9e9f49cbc44428ecf132c6e17c6cc680a5ecb4",
+            "e4a5c7def5b1031fa2105a51fd34c94e15693e23f123c966d796ccbc87587d2f"
+          ],
+          "reason": null,
+          "operatorQuestion": "Per CLAUDIA SELLATI, può inviare la scheda tecnica o il riepilogo ordine completo con numero dei prodotti, tipologia e misure larghezza × altezza di ogni elemento?"
+        },
+        {
+          "blockerCode": "infissi_dimensions_and_cardinality_missing",
+          "field": "technical_rows",
+          "sourceIds": [],
+          "reason": null,
+          "operatorQuestion": "Per CLAUDIA SELLATI, può inviare la scheda tecnica o il riepilogo ordine completo con numero dei prodotti, tipologia e misure larghezza × altezza di ogni elemento?"
+        }
+      ]
+    },
+    {
+      "customerKey": "giovanni-amadu",
+      "displayName": "GIOVANNI AMADU",
+      "questions": [
+        {
+          "blockerCode": "customer_form_missing",
+          "field": "customer_form",
+          "sourceIds": [
+            "a7c6441f69bf6a1fb4624466d5e9dc979caf0802b1e0d5e6ad69a7ef4dc3953c"
+          ],
+          "reason": "Il dossier CRM non contiene un form cliente originario utilizzabile; documenti ENEA storici esclusi.",
+          "operatorQuestion": "Per GIOVANNI AMADU, può inviare il modulo cliente ENEA originale compilato e firmato, con tutti i dati anagrafici e dell'immobile? Dettaglio rilevato: Il dossier CRM non contiene un form cliente originario utilizzabile; documenti ENEA storici esclusi."
+        },
+        {
+          "blockerCode": "tax_code_missing_or_invalid",
+          "field": "beneficiary.taxCode",
+          "sourceIds": [
+            "giovanni-amadu"
+          ],
+          "reason": "CF valido e coerente non disponibile nel form o nelle fatture originarie.",
+          "operatorQuestion": "Per GIOVANNI AMADU, può confermare il codice fiscale corretto e inviare un documento leggibile o il modulo cliente che lo attesti? Dettaglio rilevato: CF valido e coerente non disponibile nel form o nelle fatture originarie."
+        },
+        {
+          "blockerCode": "completion_date_portal_year_mismatch",
+          "field": "dates.completion",
+          "sourceIds": [
+            "a7c6441f69bf6a1fb4624466d5e9dc979caf0802b1e0d5e6ad69a7ef4dc3953c:invoice:fb053b4784d4"
+          ],
+          "reason": "Fine lavori 2025-12-19: anno 2025 incompatibile con il portale ENEA 2026. Selezionare il portale annuale corretto senza modificare la data.",
+          "operatorQuestion": "Per GIOVANNI AMADU, può confermare la data effettiva di fine lavori e inviare il documento che la prova (fattura di saldo, collaudo o dichiarazione di fine lavori)? Dettaglio rilevato: Fine lavori 2025-12-19: anno 2025 incompatibile con il portale ENEA 2026. Selezionare il portale annuale corretto senza modificare la data."
+        },
+        {
+          "blockerCode": "completion_over_90_days_operator_required",
+          "field": "dates.completion",
+          "sourceIds": [
+            "a7c6441f69bf6a1fb4624466d5e9dc979caf0802b1e0d5e6ad69a7ef4dc3953c:invoice:fb053b4784d4"
+          ],
+          "reason": "Fine lavori 2025-12-19: 257 giorni prima della lavorazione, oltre il limite di 90 giorni. Verificare la procedibilità e il portale annuale corretto.",
+          "operatorQuestion": "Per GIOVANNI AMADU, può confermare la data effettiva di fine lavori e inviare il documento che la prova (fattura di saldo, collaudo o dichiarazione di fine lavori)? Dettaglio rilevato: Fine lavori 2025-12-19: 257 giorni prima della lavorazione, oltre il limite di 90 giorni. Verificare la procedibilità e il portale annuale corretto."
+        }
+      ]
+    },
+    {
+      "customerKey": "massimo-cappello",
+      "displayName": "massimo cappello",
+      "questions": [
+        {
+          "blockerCode": "infissi_dimensions_and_cardinality_missing",
+          "field": "technical_dimensions",
+          "sourceIds": [
+            "13da996b375059d53acb67c37c67cb4ebe482ddfdade5cf24543f293aea93de4",
+            "b206146779d65426158c923fcf42dec058da5278e8e86bfbd6f1d182974c0c5e",
+            "05812629d9c4493110804cdb26c5fb0e2c45b7308cdbce02dd287501fca7994d"
+          ],
+          "reason": null,
+          "operatorQuestion": "Per massimo cappello, può inviare la scheda tecnica o il riepilogo ordine completo con numero dei prodotti, tipologia e misure larghezza × altezza di ogni elemento?"
+        },
+        {
+          "blockerCode": "infissi_dimensions_and_cardinality_missing",
+          "field": "technical_rows",
+          "sourceIds": [],
+          "reason": null,
+          "operatorQuestion": "Per massimo cappello, può inviare la scheda tecnica o il riepilogo ordine completo con numero dei prodotti, tipologia e misure larghezza × altezza di ogni elemento?"
+        }
+      ]
+    },
+    {
+      "customerKey": "maurizia-coreggioli",
+      "displayName": "MAURIZIA COREGGIOLI",
+      "questions": [
+        {
+          "blockerCode": "customer_form_missing",
+          "field": "customer_form",
+          "sourceIds": [
+            "0b0ce7d0412430cdf34411da17ac17ae32bbe753b19be1e7236cc1a8087b26e1",
+            "294aa1d62552ea24ed7039682947e956b3e55bed0000a2b38e1c1a04e8dfbc69"
+          ],
+          "reason": "Il dossier CRM non contiene un form cliente originario utilizzabile; documenti ENEA storici esclusi.",
+          "operatorQuestion": "Per MAURIZIA COREGGIOLI, può inviare il modulo cliente ENEA originale compilato e firmato, con tutti i dati anagrafici e dell'immobile? Dettaglio rilevato: Il dossier CRM non contiene un form cliente originario utilizzabile; documenti ENEA storici esclusi."
+        },
+        {
+          "blockerCode": "tax_code_missing_or_invalid",
+          "field": "beneficiary.taxCode",
+          "sourceIds": [
+            "maurizia-coreggioli"
+          ],
+          "reason": "CF valido e coerente non disponibile nel form o nelle fatture originarie.",
+          "operatorQuestion": "Per MAURIZIA COREGGIOLI, può confermare il codice fiscale corretto e inviare un documento leggibile o il modulo cliente che lo attesti? Dettaglio rilevato: CF valido e coerente non disponibile nel form o nelle fatture originarie."
+        },
+        {
+          "blockerCode": "completion_over_90_days_operator_required",
+          "field": "dates.completion",
+          "sourceIds": [
+            "0b0ce7d0412430cdf34411da17ac17ae32bbe753b19be1e7236cc1a8087b26e1:invoice:264f0ccd0374",
+            "294aa1d62552ea24ed7039682947e956b3e55bed0000a2b38e1c1a04e8dfbc69:invoice:264f0ccd0374"
+          ],
+          "reason": "Fine lavori 2026-04-07: 148 giorni prima della lavorazione, oltre il limite di 90 giorni. Verificare la procedibilità e il portale annuale corretto.",
+          "operatorQuestion": "Per MAURIZIA COREGGIOLI, può confermare la data effettiva di fine lavori e inviare il documento che la prova (fattura di saldo, collaudo o dichiarazione di fine lavori)? Dettaglio rilevato: Fine lavori 2026-04-07: 148 giorni prima della lavorazione, oltre il limite di 90 giorni. Verificare la procedibilità e il portale annuale corretto."
+        }
+      ]
+    },
+    {
+      "customerKey": "gabriele-girelli",
+      "displayName": "Gabriele Girelli",
+      "questions": [
+        {
+          "blockerCode": "original_invoice_missing_or_unavailable",
+          "field": "economic_sources.invoice",
+          "sourceIds": [
+            "b35fc3d3-d441-48d0-99f0-1d1e967ab6e7/fattura/820494f5-e8df-47a1-8b09-4f550e2a6cbd.png"
+          ],
+          "reason": "La fattura originaria dichiarata non e' acquisibile come documento valido: Richiesto intervento operatore. Dopo il nuovo allegato e il ritorno in Pronte da fare APR rieseguira' la pratica.",
+          "operatorQuestion": "Per Gabriele Girelli, può inviare la fattura originale completa indicata come mancante, comprensiva di tutte le pagine e dei totali fiscali? Dettaglio rilevato: La fattura originaria dichiarata non e' acquisibile come documento valido: Richiesto intervento operatore. Dopo il nuovo allegato e il ritorno in Pronte da fare APR rieseguira' la pratica."
+        },
+        {
+          "blockerCode": "completion_date_missing",
+          "field": "dates.completion",
+          "sourceIds": [],
+          "reason": "Fine lavori assente e data fattura non ricavabile.",
+          "operatorQuestion": "Per Gabriele Girelli, può confermare la data effettiva di fine lavori e inviare il documento che la prova (fattura di saldo, collaudo o dichiarazione di fine lavori)? Dettaglio rilevato: Fine lavori assente e data fattura non ricavabile."
+        },
+        {
+          "blockerCode": "gross_triple_reconciliation_failed",
+          "field": "economic_sources.total",
+          "sourceIds": [],
+          "reason": "Tripla riconciliazione non dimostrata: fonti-assenti, nessuna-fattura-economica-valida.",
+          "operatorQuestion": "Per Gabriele Girelli, può inviare le fatture complete e le relative ricevute di bonifico necessarie a riconciliare esattamente imponibile, IVA e totale pagato? Dettaglio rilevato: Tripla riconciliazione non dimostrata: fonti-assenti, nessuna-fattura-economica-valida."
+        }
+      ]
+    },
+    {
+      "customerKey": "guido-calvacchi",
+      "displayName": "GUIDO CALVACCHI",
+      "questions": [
+        {
+          "blockerCode": "bundled_professional_expense_unitemized",
+          "field": "economic_sources.eligibleTechnicalExpense",
+          "sourceIds": [
+            "6a55169f8d6d760faca9dd1380d29069b9d54c4067ae81f41e95bbde3741eef7:invoice:352f42239cf6"
+          ],
+          "reason": "Le fatture includono «Pratica Enea Compresa che allegheremo con quella» ma non quantificano separatamente il servizio. Lordo € 6135.03: indicare la sola spesa tecnica; APR non usera il lordo alla cieca.",
+          "operatorQuestion": "Per GUIDO CALVACCHI, può fornire il documento o il dato necessario a risolvere “bundled_professional_expense_unitemized”? Dettaglio rilevato: Le fatture includono «Pratica Enea Compresa che allegheremo con quella» ma non quantificano separatamente il servizio. Lordo € 6135.03: indicare la sola spesa tecnica; APR non usera il lordo alla cieca."
+        },
+        {
+          "blockerCode": "completion_over_90_days_operator_required",
+          "field": "dates.completion",
+          "sourceIds": [
+            "6a55169f8d6d760faca9dd1380d29069b9d54c4067ae81f41e95bbde3741eef7:invoice:352f42239cf6",
+            "6a55169f8d6d760faca9dd1380d29069b9d54c4067ae81f41e95bbde3741eef7:invoice:2663d5837ee4"
+          ],
+          "reason": "Fine lavori 2026-04-14: 141 giorni prima della lavorazione, oltre il limite di 90 giorni. Verificare la procedibilità e il portale annuale corretto.",
+          "operatorQuestion": "Per GUIDO CALVACCHI, può confermare la data effettiva di fine lavori e inviare il documento che la prova (fattura di saldo, collaudo o dichiarazione di fine lavori)? Dettaglio rilevato: Fine lavori 2026-04-14: 141 giorni prima della lavorazione, oltre il limite di 90 giorni. Verificare la procedibilità e il portale annuale corretto."
+        },
+        {
+          "blockerCode": "gross_triple_reconciliation_failed",
+          "field": "economic_sources.total",
+          "sourceIds": [
+            "c1b45a7e7b5a1f2d8e4065eae8df42d450919d3b424258923922552778efdab7",
+            "6a55169f8d6d760faca9dd1380d29069b9d54c4067ae81f41e95bbde3741eef7"
+          ],
+          "reason": "Tripla riconciliazione non dimostrata: imponibile-iva-mismatch:6a55169f8d6d760faca9dd1380d29069b9d54c4067ae81f41e95bbde3741eef7:invoice:5a16ae68a177, imponibile-iva-mismatch:6a55169f8d6d760faca9dd1380d29069b9d54c4067ae81f41e95bbde3741eef7:invoice:352f42239cf6.",
+          "operatorQuestion": "Per GUIDO CALVACCHI, può inviare le fatture complete e le relative ricevute di bonifico necessarie a riconciliare esattamente imponibile, IVA e totale pagato? Dettaglio rilevato: Tripla riconciliazione non dimostrata: imponibile-iva-mismatch:6a55169f8d6d760faca9dd1380d29069b9d54c4067ae81f41e95bbde3741eef7:invoice:5a16ae68a177, imponibile-iva-mismatch:6a55169f8d6d760faca9dd1380d29069b9d54c4067ae81f41e95bbde3741eef7:invoice:352f42239cf6."
+        }
+      ]
+    },
+    {
+      "customerKey": "marco-de-marinis",
+      "displayName": "MARCO DE MARINIS",
+      "questions": [
+        {
+          "blockerCode": "original_invoice_missing_or_unavailable",
+          "field": "economic_sources",
+          "sourceIds": [
+            "c7b5c680352992bd4445e01aa8b1bd6db26bd5963437f52985283b0b49a40d00:invoice:264f0ccd0374"
+          ],
+          "reason": "La fattura presente detrae o richiama una fattura di acconto non acquisita (4.090); APR non puo ricostruire il totale documentale completo senza la fonte fiscale originaria.",
+          "operatorQuestion": "Per MARCO DE MARINIS, può inviare la fattura originale completa indicata come mancante, comprensiva di tutte le pagine e dei totali fiscali? Dettaglio rilevato: La fattura presente detrae o richiama una fattura di acconto non acquisita (4.090); APR non puo ricostruire il totale documentale completo senza la fonte fiscale originaria."
+        },
+        {
+          "blockerCode": "completion_date_portal_year_mismatch",
+          "field": "dates.completion",
+          "sourceIds": [
+            "f0b4c9756e028104238a96e555a2731d0dcf9a4b23072570f1ae86dfdd09a5f1:invoice:264f0ccd0374",
+            "c7b5c680352992bd4445e01aa8b1bd6db26bd5963437f52985283b0b49a40d00:invoice:264f0ccd0374"
+          ],
+          "reason": "Fine lavori 2025-12-17: anno 2025 incompatibile con il portale ENEA 2026. Selezionare il portale annuale corretto senza modificare la data.",
+          "operatorQuestion": "Per MARCO DE MARINIS, può confermare la data effettiva di fine lavori e inviare il documento che la prova (fattura di saldo, collaudo o dichiarazione di fine lavori)? Dettaglio rilevato: Fine lavori 2025-12-17: anno 2025 incompatibile con il portale ENEA 2026. Selezionare il portale annuale corretto senza modificare la data."
+        },
+        {
+          "blockerCode": "completion_over_90_days_operator_required",
+          "field": "dates.completion",
+          "sourceIds": [
+            "f0b4c9756e028104238a96e555a2731d0dcf9a4b23072570f1ae86dfdd09a5f1:invoice:264f0ccd0374",
+            "c7b5c680352992bd4445e01aa8b1bd6db26bd5963437f52985283b0b49a40d00:invoice:264f0ccd0374"
+          ],
+          "reason": "Fine lavori 2025-12-17: 259 giorni prima della lavorazione, oltre il limite di 90 giorni. Verificare la procedibilità e il portale annuale corretto.",
+          "operatorQuestion": "Per MARCO DE MARINIS, può confermare la data effettiva di fine lavori e inviare il documento che la prova (fattura di saldo, collaudo o dichiarazione di fine lavori)? Dettaglio rilevato: Fine lavori 2025-12-17: 259 giorni prima della lavorazione, oltre il limite di 90 giorni. Verificare la procedibilità e il portale annuale corretto."
+        },
+        {
+          "blockerCode": "invoice_929a8665",
+          "field": "economic_sources",
+          "sourceIds": [
+            "c3be64dacc2188f0a1bab5dc7104b71a009d39de53b574501ae89a9b4adafa45",
+            "e64ea20eb3b42243834f01f8e955654163c0e64f99250784d6da29afcf021a7e",
+            "14c4e20627c9baf7ab2358d60c2a78d4b71879e9afef943df4a588636ae9f67e",
+            "36679bff7b5c664a5122de9a24ffb029ff509f5aba781ef775214703ec99ab9e",
+            "c7b5c680352992bd4445e01aa8b1bd6db26bd5963437f52985283b0b49a40d00",
+            "f0b4c9756e028104238a96e555a2731d0dcf9a4b23072570f1ae86dfdd09a5f1"
+          ],
+          "reason": "Il totale di almeno un documento fiscale non è stato riconosciuto.",
+          "operatorQuestion": "Per MARCO DE MARINIS, può inviare le fatture complete e le relative ricevute di bonifico necessarie a riconciliare esattamente imponibile, IVA e totale pagato? Dettaglio rilevato: Il totale di almeno un documento fiscale non è stato riconosciuto."
+        },
+        {
+          "blockerCode": "gross_triple_reconciliation_failed",
+          "field": "economic_sources.total",
+          "sourceIds": [
+            "c3be64dacc2188f0a1bab5dc7104b71a009d39de53b574501ae89a9b4adafa45",
+            "e64ea20eb3b42243834f01f8e955654163c0e64f99250784d6da29afcf021a7e",
+            "14c4e20627c9baf7ab2358d60c2a78d4b71879e9afef943df4a588636ae9f67e",
+            "36679bff7b5c664a5122de9a24ffb029ff509f5aba781ef775214703ec99ab9e",
+            "c7b5c680352992bd4445e01aa8b1bd6db26bd5963437f52985283b0b49a40d00",
+            "f0b4c9756e028104238a96e555a2731d0dcf9a4b23072570f1ae86dfdd09a5f1"
+          ],
+          "reason": "Tripla riconciliazione non dimostrata: terna-fattura-incerta:14c4e20627c9baf7ab2358d60c2a78d4b71879e9afef943df4a588636ae9f67e:invoice:264f0ccd0374.",
+          "operatorQuestion": "Per MARCO DE MARINIS, può inviare le fatture complete e le relative ricevute di bonifico necessarie a riconciliare esattamente imponibile, IVA e totale pagato? Dettaglio rilevato: Tripla riconciliazione non dimostrata: terna-fattura-incerta:14c4e20627c9baf7ab2358d60c2a78d4b71879e9afef943df4a588636ae9f67e:invoice:264f0ccd0374."
+        }
+      ]
+    },
+    {
+      "customerKey": "nicla-biagioni",
+      "displayName": "Nicla Biagioni",
+      "questions": [
+        {
+          "blockerCode": "completion_date_missing",
+          "field": "dates.completion",
+          "sourceIds": [
+            "b908c99a486b131f5870cdfc8b2c2f203b0cdc7c56d360ddc3d57c4bb322e790",
+            "88e672c7ee4dd20d035135fa04b0b0bb4953f6915b4743d18cc0f6780d619d25",
+            "063d9e0d85b9e3fdd336c34957024f4ffb8fd57258af358f483b7fce40b053ac"
+          ],
+          "reason": "Fine lavori assente e data fattura non ricavabile.",
+          "operatorQuestion": "Per Nicla Biagioni, può confermare la data effettiva di fine lavori e inviare il documento che la prova (fattura di saldo, collaudo o dichiarazione di fine lavori)? Dettaglio rilevato: Fine lavori assente e data fattura non ricavabile."
+        },
+        {
+          "blockerCode": "gross_triple_reconciliation_failed",
+          "field": "economic_sources.total",
+          "sourceIds": [
+            "b908c99a486b131f5870cdfc8b2c2f203b0cdc7c56d360ddc3d57c4bb322e790",
+            "88e672c7ee4dd20d035135fa04b0b0bb4953f6915b4743d18cc0f6780d619d25",
+            "063d9e0d85b9e3fdd336c34957024f4ffb8fd57258af358f483b7fce40b053ac"
+          ],
+          "reason": "Tripla riconciliazione non dimostrata: terna-fattura-incerta:b908c99a486b131f5870cdfc8b2c2f203b0cdc7c56d360ddc3d57c4bb322e790:invoice:264f0ccd0374, terna-fattura-incerta:88e672c7ee4dd20d035135fa04b0b0bb4953f6915b4743d18cc0f6780d619d25:invoice:264f0ccd0374, terna-fattura-incerta:063d9e0d85b9e3fdd336c34957024f4ffb8fd57258af358f483b7fce40b053ac:invoice:264f0ccd0374, nessuna-fattura-economica-valida.",
+          "operatorQuestion": "Per Nicla Biagioni, può inviare le fatture complete e le relative ricevute di bonifico necessarie a riconciliare esattamente imponibile, IVA e totale pagato? Dettaglio rilevato: Tripla riconciliazione non dimostrata: terna-fattura-incerta:b908c99a486b131f5870cdfc8b2c2f203b0cdc7c56d360ddc3d57c4bb322e790:invoice:264f0ccd0374, terna-fattura-incerta:88e672c7ee4dd20d035135fa04b0b0bb4953f6915b4743d18cc0f6780d619d25:invoice:264f0ccd0374, terna-fattura-incerta:063d9e0d85b9e3fdd336c34957024f4ffb8fd57258af358f483b7fce40b053ac:invoice:264f0ccd0374, nessuna-fattura-economica-valida."
+        }
+      ]
+    },
+    {
+      "customerKey": "giuseppe-d-adduzio",
+      "displayName": "GIUSEPPE D'ADDUZIO",
+      "questions": [
+        {
+          "blockerCode": "customer_form_missing",
+          "field": "customer_form",
+          "sourceIds": [
+            "4fb061a8ff02de074449f9138738135632e41d50b2615509082a863ecedd396f",
+            "6336f93652dffed6ed53494e4c5ec27fdaa808bf95df6ed3ec059bb2157c3032",
+            "6d573b23cae48a0da29a72d90818905ef34880addb7ed57041b3ab6892b3815a",
+            "8720c27d6ff3274da6d21cb8805bf9af2c56478b39d92010bd47a3d8dcac9111",
+            "af6404257fe7d9df1f6b5022a7eef91e35b63523805867298a20b95e6030f947",
+            "a1bb68234b271652288aaceb81bf2154d115bc4f9bdb1b3a422da4a521fd0664",
+            "d141e3c55587354cbea1b0ee7512fb9f0972d5a9d95bbb3585463d2ee00f592a",
+            "5cc1afad9f8924dd9cd0a8916298efa6feee8a8a4d6411ea0bf518c59935ae24"
+          ],
+          "reason": "Il dossier CRM non contiene un form cliente originario utilizzabile; documenti ENEA storici esclusi.",
+          "operatorQuestion": "Per GIUSEPPE D'ADDUZIO, può inviare il modulo cliente ENEA originale compilato e firmato, con tutti i dati anagrafici e dell'immobile? Dettaglio rilevato: Il dossier CRM non contiene un form cliente originario utilizzabile; documenti ENEA storici esclusi."
+        },
+        {
+          "blockerCode": "tax_code_missing_or_invalid",
+          "field": "beneficiary.taxCode",
+          "sourceIds": [
+            "giuseppe-d-adduzio"
+          ],
+          "reason": "CF valido e coerente non disponibile nel form o nelle fatture originarie.",
+          "operatorQuestion": "Per GIUSEPPE D'ADDUZIO, può confermare il codice fiscale corretto e inviare un documento leggibile o il modulo cliente che lo attesti? Dettaglio rilevato: CF valido e coerente non disponibile nel form o nelle fatture originarie."
+        },
+        {
+          "blockerCode": "completion_date_portal_year_mismatch",
+          "field": "dates.completion",
+          "sourceIds": [
+            "a1bb68234b271652288aaceb81bf2154d115bc4f9bdb1b3a422da4a521fd0664:invoice:264f0ccd0374",
+            "af6404257fe7d9df1f6b5022a7eef91e35b63523805867298a20b95e6030f947:invoice:264f0ccd0374"
+          ],
+          "reason": "Fine lavori 2025-07-04: anno 2025 incompatibile con il portale ENEA 2026. Selezionare il portale annuale corretto senza modificare la data.",
+          "operatorQuestion": "Per GIUSEPPE D'ADDUZIO, può confermare la data effettiva di fine lavori e inviare il documento che la prova (fattura di saldo, collaudo o dichiarazione di fine lavori)? Dettaglio rilevato: Fine lavori 2025-07-04: anno 2025 incompatibile con il portale ENEA 2026. Selezionare il portale annuale corretto senza modificare la data."
+        },
+        {
+          "blockerCode": "completion_over_90_days_operator_required",
+          "field": "dates.completion",
+          "sourceIds": [
+            "a1bb68234b271652288aaceb81bf2154d115bc4f9bdb1b3a422da4a521fd0664:invoice:264f0ccd0374",
+            "af6404257fe7d9df1f6b5022a7eef91e35b63523805867298a20b95e6030f947:invoice:264f0ccd0374"
+          ],
+          "reason": "Fine lavori 2025-07-04: 425 giorni prima della lavorazione, oltre il limite di 90 giorni. Verificare la procedibilità e il portale annuale corretto.",
+          "operatorQuestion": "Per GIUSEPPE D'ADDUZIO, può confermare la data effettiva di fine lavori e inviare il documento che la prova (fattura di saldo, collaudo o dichiarazione di fine lavori)? Dettaglio rilevato: Fine lavori 2025-07-04: 425 giorni prima della lavorazione, oltre il limite di 90 giorni. Verificare la procedibilità e il portale annuale corretto."
+        },
+        {
+          "blockerCode": "invoice_929a8665",
+          "field": "economic_sources",
+          "sourceIds": [
+            "4fb061a8ff02de074449f9138738135632e41d50b2615509082a863ecedd396f",
+            "6336f93652dffed6ed53494e4c5ec27fdaa808bf95df6ed3ec059bb2157c3032",
+            "6d573b23cae48a0da29a72d90818905ef34880addb7ed57041b3ab6892b3815a",
+            "8720c27d6ff3274da6d21cb8805bf9af2c56478b39d92010bd47a3d8dcac9111",
+            "af6404257fe7d9df1f6b5022a7eef91e35b63523805867298a20b95e6030f947",
+            "a1bb68234b271652288aaceb81bf2154d115bc4f9bdb1b3a422da4a521fd0664",
+            "d141e3c55587354cbea1b0ee7512fb9f0972d5a9d95bbb3585463d2ee00f592a",
+            "5cc1afad9f8924dd9cd0a8916298efa6feee8a8a4d6411ea0bf518c59935ae24"
+          ],
+          "reason": "Il totale di almeno un documento fiscale non è stato riconosciuto.",
+          "operatorQuestion": "Per GIUSEPPE D'ADDUZIO, può inviare le fatture complete e le relative ricevute di bonifico necessarie a riconciliare esattamente imponibile, IVA e totale pagato? Dettaglio rilevato: Il totale di almeno un documento fiscale non è stato riconosciuto."
+        },
+        {
+          "blockerCode": "gross_triple_reconciliation_failed",
+          "field": "economic_sources.total",
+          "sourceIds": [
+            "4fb061a8ff02de074449f9138738135632e41d50b2615509082a863ecedd396f",
+            "6336f93652dffed6ed53494e4c5ec27fdaa808bf95df6ed3ec059bb2157c3032",
+            "6d573b23cae48a0da29a72d90818905ef34880addb7ed57041b3ab6892b3815a",
+            "8720c27d6ff3274da6d21cb8805bf9af2c56478b39d92010bd47a3d8dcac9111",
+            "af6404257fe7d9df1f6b5022a7eef91e35b63523805867298a20b95e6030f947",
+            "a1bb68234b271652288aaceb81bf2154d115bc4f9bdb1b3a422da4a521fd0664",
+            "d141e3c55587354cbea1b0ee7512fb9f0972d5a9d95bbb3585463d2ee00f592a",
+            "5cc1afad9f8924dd9cd0a8916298efa6feee8a8a4d6411ea0bf518c59935ae24"
+          ],
+          "reason": "Tripla riconciliazione non dimostrata: terna-fattura-incerta:6336f93652dffed6ed53494e4c5ec27fdaa808bf95df6ed3ec059bb2157c3032:invoice:264f0ccd0374, terna-fattura-incerta:6d573b23cae48a0da29a72d90818905ef34880addb7ed57041b3ab6892b3815a:invoice:264f0ccd0374, terna-fattura-incerta:8720c27d6ff3274da6d21cb8805bf9af2c56478b39d92010bd47a3d8dcac9111:invoice:264f0ccd0374.",
+          "operatorQuestion": "Per GIUSEPPE D'ADDUZIO, può inviare le fatture complete e le relative ricevute di bonifico necessarie a riconciliare esattamente imponibile, IVA e totale pagato? Dettaglio rilevato: Tripla riconciliazione non dimostrata: terna-fattura-incerta:6336f93652dffed6ed53494e4c5ec27fdaa808bf95df6ed3ec059bb2157c3032:invoice:264f0ccd0374, terna-fattura-incerta:6d573b23cae48a0da29a72d90818905ef34880addb7ed57041b3ab6892b3815a:invoice:264f0ccd0374, terna-fattura-incerta:8720c27d6ff3274da6d21cb8805bf9af2c56478b39d92010bd47a3d8dcac9111:invoice:264f0ccd0374."
+        }
+      ]
+    },
+    {
+      "customerKey": "santo-giuga",
+      "displayName": "Santo Giuga",
+      "questions": [
+        {
+          "blockerCode": "bank_transfer_invoice_cross_check_failed",
+          "field": "economic_sources.bankTransfers",
+          "sourceIds": [
+            "e147d445cad0eaa1f95fed5148fc0a8c42ec700777094fb0111c19f4b43b7d2e",
+            "f76bf468e0b2d7e7b40c4769e26564fb64fe990ead9093a74edef8c81883b74c"
+          ],
+          "reason": "Controllo incrociato bonifici/fatture non conclusivo: capitale non leggibile, lordo fatture € non verificato, riferimenti mancanti , 124/FE, 184/FE, 297/FE. Richiesto intervento operatore; nessun totale viene inventato.",
+          "operatorQuestion": "Per Santo Giuga, può inviare la ricevuta completa e leggibile del bonifico parlante, con importo, CRO/TRN, beneficiario e riferimenti delle fatture pagate? Dettaglio rilevato: Controllo incrociato bonifici/fatture non conclusivo: capitale non leggibile, lordo fatture € non verificato, riferimenti mancanti , 124/FE, 184/FE, 297/FE. Richiesto intervento operatore; nessun totale viene inventato."
+        },
+        {
+          "blockerCode": "invoice_929a8665",
+          "field": "economic_sources",
+          "sourceIds": [
+            "fd46824210fc97469f69ae00f9d8eb364de2bef4064d03470cab896b11d5134b",
+            "aac93e924179125e7c68dc78653dd210367f0653e736092a2fcc8ca8b4d3a525",
+            "e147d445cad0eaa1f95fed5148fc0a8c42ec700777094fb0111c19f4b43b7d2e",
+            "f76bf468e0b2d7e7b40c4769e26564fb64fe990ead9093a74edef8c81883b74c",
+            "47d188bf44f3318c70280ca25ec97394afa7279fc5f6b9c65edf67f8713714c9",
+            "eaff658249d2339f696bf4f663cbfaa51fb92f86ed06763fc2c2d4ca40763366",
+            "96fcd60f948a5568128a10bdcffc37e05ef907450b89a83842120c06ea99c83c",
+            "ea77e8db90d50df7931ec53dc527aeca93921ce102d843af7fe937db5c37895f"
+          ],
+          "reason": "Il totale di almeno un documento fiscale non è stato riconosciuto.",
+          "operatorQuestion": "Per Santo Giuga, può inviare le fatture complete e le relative ricevute di bonifico necessarie a riconciliare esattamente imponibile, IVA e totale pagato? Dettaglio rilevato: Il totale di almeno un documento fiscale non è stato riconosciuto."
+        },
+        {
+          "blockerCode": "gross_triple_reconciliation_failed",
+          "field": "economic_sources.total",
+          "sourceIds": [
+            "fd46824210fc97469f69ae00f9d8eb364de2bef4064d03470cab896b11d5134b",
+            "aac93e924179125e7c68dc78653dd210367f0653e736092a2fcc8ca8b4d3a525",
+            "e147d445cad0eaa1f95fed5148fc0a8c42ec700777094fb0111c19f4b43b7d2e",
+            "f76bf468e0b2d7e7b40c4769e26564fb64fe990ead9093a74edef8c81883b74c",
+            "47d188bf44f3318c70280ca25ec97394afa7279fc5f6b9c65edf67f8713714c9",
+            "eaff658249d2339f696bf4f663cbfaa51fb92f86ed06763fc2c2d4ca40763366",
+            "96fcd60f948a5568128a10bdcffc37e05ef907450b89a83842120c06ea99c83c",
+            "ea77e8db90d50df7931ec53dc527aeca93921ce102d843af7fe937db5c37895f"
+          ],
+          "reason": "Tripla riconciliazione non dimostrata: terna-fattura-incerta:aac93e924179125e7c68dc78653dd210367f0653e736092a2fcc8ca8b4d3a525:invoice:264f0ccd0374.",
+          "operatorQuestion": "Per Santo Giuga, può inviare le fatture complete e le relative ricevute di bonifico necessarie a riconciliare esattamente imponibile, IVA e totale pagato? Dettaglio rilevato: Tripla riconciliazione non dimostrata: terna-fattura-incerta:aac93e924179125e7c68dc78653dd210367f0653e736092a2fcc8ca8b4d3a525:invoice:264f0ccd0374."
+        }
+      ]
+    },
+    {
+      "customerKey": "loretta-riviera",
+      "displayName": "Loretta Riviera",
+      "questions": [
+        {
+          "blockerCode": "completion_date_missing",
+          "field": "dates.completion",
+          "sourceIds": [
+            "74375fcf67f81943d9708d3bf70c3a51c734b21e299cc675e532a5d2975f9a4d",
+            "266bf562ceed38cc5dcba4e2023c0040e0f6e074970953d3115df09bffd78dc6",
+            "c90b8d75ea368b0bf14705655f9df0bb963485d4369e42947ed9da7ae0186236"
+          ],
+          "reason": "Fine lavori assente e data fattura non ricavabile.",
+          "operatorQuestion": "Per Loretta Riviera, può confermare la data effettiva di fine lavori e inviare il documento che la prova (fattura di saldo, collaudo o dichiarazione di fine lavori)? Dettaglio rilevato: Fine lavori assente e data fattura non ricavabile."
+        },
+        {
+          "blockerCode": "invoice_schedule_amount_missing",
+          "field": "economic_sources.schedule.amount",
+          "sourceIds": [
+            "74375fcf67f81943d9708d3bf70c3a51c734b21e299cc675e532a5d2975f9a4d:invoice:264f0ccd0374"
+          ],
+          "reason": "Scadenza non leggibile, importo mancante: verificare l'importo dello scadenziario nella fattura originaria.",
+          "operatorQuestion": "Per Loretta Riviera, può fornire il documento o il dato necessario a risolvere “invoice_schedule_amount_missing”? Dettaglio rilevato: Scadenza non leggibile, importo mancante: verificare l'importo dello scadenziario nella fattura originaria."
+        },
+        {
+          "blockerCode": "gross_triple_reconciliation_failed",
+          "field": "economic_sources.total",
+          "sourceIds": [
+            "74375fcf67f81943d9708d3bf70c3a51c734b21e299cc675e532a5d2975f9a4d",
+            "266bf562ceed38cc5dcba4e2023c0040e0f6e074970953d3115df09bffd78dc6",
+            "c90b8d75ea368b0bf14705655f9df0bb963485d4369e42947ed9da7ae0186236"
+          ],
+          "reason": "Tripla riconciliazione non dimostrata: terna-fattura-incerta:74375fcf67f81943d9708d3bf70c3a51c734b21e299cc675e532a5d2975f9a4d:invoice:264f0ccd0374, terna-fattura-incerta:266bf562ceed38cc5dcba4e2023c0040e0f6e074970953d3115df09bffd78dc6:invoice:264f0ccd0374, terna-fattura-incerta:c90b8d75ea368b0bf14705655f9df0bb963485d4369e42947ed9da7ae0186236:invoice:264f0ccd0374, nessuna-fattura-economica-valida.",
+          "operatorQuestion": "Per Loretta Riviera, può inviare le fatture complete e le relative ricevute di bonifico necessarie a riconciliare esattamente imponibile, IVA e totale pagato? Dettaglio rilevato: Tripla riconciliazione non dimostrata: terna-fattura-incerta:74375fcf67f81943d9708d3bf70c3a51c734b21e299cc675e532a5d2975f9a4d:invoice:264f0ccd0374, terna-fattura-incerta:266bf562ceed38cc5dcba4e2023c0040e0f6e074970953d3115df09bffd78dc6:invoice:264f0ccd0374, terna-fattura-incerta:c90b8d75ea368b0bf14705655f9df0bb963485d4369e42947ed9da7ae0186236:invoice:264f0ccd0374, nessuna-fattura-economica-valida."
+        }
+      ]
+    },
+    {
+      "customerKey": "prova-rivenditore-1-30-04",
+      "displayName": "prova rivenditore 1 30/04",
+      "questions": [
+        {
+          "blockerCode": "customer_form_missing",
+          "field": "customer_form",
+          "sourceIds": [
+            "90bf6bbd1de688dd72af4fc26936ad93a9c8cc363239c8b43dbc54012460635c"
+          ],
+          "reason": "Il dossier CRM non contiene un form cliente originario utilizzabile; documenti ENEA storici esclusi.",
+          "operatorQuestion": "Per prova rivenditore 1 30/04, può inviare il modulo cliente ENEA originale compilato e firmato, con tutti i dati anagrafici e dell'immobile? Dettaglio rilevato: Il dossier CRM non contiene un form cliente originario utilizzabile; documenti ENEA storici esclusi."
+        },
+        {
+          "blockerCode": "tax_code_missing_or_invalid",
+          "field": "beneficiary.taxCode",
+          "sourceIds": [
+            "prova-rivenditore-1-30-04"
+          ],
+          "reason": "CF valido e coerente non disponibile nel form o nelle fatture originarie.",
+          "operatorQuestion": "Per prova rivenditore 1 30/04, può confermare il codice fiscale corretto e inviare un documento leggibile o il modulo cliente che lo attesti? Dettaglio rilevato: CF valido e coerente non disponibile nel form o nelle fatture originarie."
+        },
+        {
+          "blockerCode": "completion_date_missing",
+          "field": "dates.completion",
+          "sourceIds": [
+            "90bf6bbd1de688dd72af4fc26936ad93a9c8cc363239c8b43dbc54012460635c"
+          ],
+          "reason": "Fine lavori assente e data fattura non ricavabile.",
+          "operatorQuestion": "Per prova rivenditore 1 30/04, può confermare la data effettiva di fine lavori e inviare il documento che la prova (fattura di saldo, collaudo o dichiarazione di fine lavori)? Dettaglio rilevato: Fine lavori assente e data fattura non ricavabile."
+        },
+        {
+          "blockerCode": "gross_triple_reconciliation_failed",
+          "field": "economic_sources.total",
+          "sourceIds": [
+            "90bf6bbd1de688dd72af4fc26936ad93a9c8cc363239c8b43dbc54012460635c"
+          ],
+          "reason": "Tripla riconciliazione non dimostrata: fonti-assenti, nessuna-fattura-economica-valida.",
+          "operatorQuestion": "Per prova rivenditore 1 30/04, può inviare le fatture complete e le relative ricevute di bonifico necessarie a riconciliare esattamente imponibile, IVA e totale pagato? Dettaglio rilevato: Tripla riconciliazione non dimostrata: fonti-assenti, nessuna-fattura-economica-valida."
+        }
+      ]
+    },
+    {
+      "customerKey": "ivana-mastrangelo",
+      "displayName": "Ivana Mastrangelo",
+      "questions": [
+        {
+          "blockerCode": "invoice_929a8665",
+          "field": "economic_sources",
+          "sourceIds": [
+            "20f8ac2cef0446fd292e844e36dca29a3c9c51c595a988be6f139f35218f9358",
+            "1ec68b4c6afbcb6c2efb184c2b36138bd51adb7a18c058198eda0a2925a7cd93",
+            "a306fba8bc7de79380b0b6c625c9d7e4ac836088c1266416b125c1522ee65425",
+            "4f1fd6938e27a80d51a7a54a5dec54d17078bef16b57cc8aa2f545b9e7b2c755",
+            "3499ce6668accb5492a62189e1c6a76bf152d9a707a224faaccee8fe013f4c6a",
+            "bc5f74160fc6f82ecf5839d5549cb8eb03c425f631a1b6fe9f663250bb6b30e7"
+          ],
+          "reason": "Il totale di almeno un documento fiscale non è stato riconosciuto.",
+          "operatorQuestion": "Per Ivana Mastrangelo, può inviare le fatture complete e le relative ricevute di bonifico necessarie a riconciliare esattamente imponibile, IVA e totale pagato? Dettaglio rilevato: Il totale di almeno un documento fiscale non è stato riconosciuto."
+        },
+        {
+          "blockerCode": "gross_triple_reconciliation_failed",
+          "field": "economic_sources.total",
+          "sourceIds": [
+            "20f8ac2cef0446fd292e844e36dca29a3c9c51c595a988be6f139f35218f9358",
+            "1ec68b4c6afbcb6c2efb184c2b36138bd51adb7a18c058198eda0a2925a7cd93",
+            "a306fba8bc7de79380b0b6c625c9d7e4ac836088c1266416b125c1522ee65425",
+            "4f1fd6938e27a80d51a7a54a5dec54d17078bef16b57cc8aa2f545b9e7b2c755",
+            "3499ce6668accb5492a62189e1c6a76bf152d9a707a224faaccee8fe013f4c6a",
+            "bc5f74160fc6f82ecf5839d5549cb8eb03c425f631a1b6fe9f663250bb6b30e7"
+          ],
+          "reason": "Tripla riconciliazione non dimostrata: terna-fattura-incerta:20f8ac2cef0446fd292e844e36dca29a3c9c51c595a988be6f139f35218f9358:invoice:264f0ccd0374, terna-fattura-incerta:1ec68b4c6afbcb6c2efb184c2b36138bd51adb7a18c058198eda0a2925a7cd93:invoice:264f0ccd0374, terna-fattura-incerta:a306fba8bc7de79380b0b6c625c9d7e4ac836088c1266416b125c1522ee65425:invoice:264f0ccd0374.",
+          "operatorQuestion": "Per Ivana Mastrangelo, può inviare le fatture complete e le relative ricevute di bonifico necessarie a riconciliare esattamente imponibile, IVA e totale pagato? Dettaglio rilevato: Tripla riconciliazione non dimostrata: terna-fattura-incerta:20f8ac2cef0446fd292e844e36dca29a3c9c51c595a988be6f139f35218f9358:invoice:264f0ccd0374, terna-fattura-incerta:1ec68b4c6afbcb6c2efb184c2b36138bd51adb7a18c058198eda0a2925a7cd93:invoice:264f0ccd0374, terna-fattura-incerta:a306fba8bc7de79380b0b6c625c9d7e4ac836088c1266416b125c1522ee65425:invoice:264f0ccd0374."
+        }
+      ]
+    },
+    {
+      "customerKey": "antonio-scaparrotta",
+      "displayName": "Antonio Scaparrotta",
+      "questions": [
+        {
+          "blockerCode": "bank_transfer_principal_exceeds_invoices",
+          "field": "economic_sources.bankTransfers",
+          "sourceIds": [
+            "281a858bd41d34172cc06ff2e9e0f8227b22c772edc4cd632dc92f83e5046353",
+            "cfe6685e721b6de5ad75e71e8d55c71973c6d3cc7710c5b69aa28f2666377d43",
+            "a94bd4582e5e70530da8f6f011049bc25d0fea0126983e3bc49f352644ef3c90"
+          ],
+          "reason": "Il capitale bonificato supera le fatture di € 191.59: intervento operatore richiesto.",
+          "operatorQuestion": "Per Antonio Scaparrotta, può inviare la ricevuta completa e leggibile del bonifico parlante, con importo, CRO/TRN, beneficiario e riferimenti delle fatture pagate? Dettaglio rilevato: Il capitale bonificato supera le fatture di € 191.59: intervento operatore richiesto."
+        },
+        {
+          "blockerCode": "gross_triple_reconciliation_failed",
+          "field": "economic_sources.total",
+          "sourceIds": [
+            "366c9300342c41e6b69f700a5dad5658e3c3a1ca2a40d1b633a5d241599b76cc",
+            "281a858bd41d34172cc06ff2e9e0f8227b22c772edc4cd632dc92f83e5046353",
+            "cfe6685e721b6de5ad75e71e8d55c71973c6d3cc7710c5b69aa28f2666377d43",
+            "a94bd4582e5e70530da8f6f011049bc25d0fea0126983e3bc49f352644ef3c90",
+            "0b92ed0ff7dccf12c33a97424d55918e776788215073ae3e71e896f5ac9f8143",
+            "703311081d1e3d557ca8c9397d8000575dd7e3e24261b9930c289aafebf8bc72",
+            "41655d970c710618eb9f35ccfd9d1282d6b8dcd1fd23331e9d0f191614b0cf28"
+          ],
+          "reason": "Tripla riconciliazione non dimostrata: imponibile-iva-mismatch:41655d970c710618eb9f35ccfd9d1282d6b8dcd1fd23331e9d0f191614b0cf28:invoice:264f0ccd0374.",
+          "operatorQuestion": "Per Antonio Scaparrotta, può inviare le fatture complete e le relative ricevute di bonifico necessarie a riconciliare esattamente imponibile, IVA e totale pagato? Dettaglio rilevato: Tripla riconciliazione non dimostrata: imponibile-iva-mismatch:41655d970c710618eb9f35ccfd9d1282d6b8dcd1fd23331e9d0f191614b0cf28:invoice:264f0ccd0374."
+        }
+      ]
+    }
+  ]
+}

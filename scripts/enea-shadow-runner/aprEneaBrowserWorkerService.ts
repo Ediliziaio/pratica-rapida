@@ -1,5 +1,7 @@
 import { closeSync, existsSync, fsyncSync, mkdirSync, openSync, readFileSync, renameSync, writeFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 import path from "node:path";
+import { classifyStoppableAprCohortProcess } from "./aprChromeKeepaliveProtection.mjs";
 import { validateAprEneaServerReadOnlyProbe } from "./aprEneaServerReadOnlyProbe";
 import { PersistentAprEneaOperationalBridge } from "./aprEneaOperationalBridge";
 import { reconcileStoppedAprEneaBrowserWorkerCheckpoint } from "./aprEneaBrowserWorker";
@@ -86,6 +88,16 @@ export function shouldHoldAprEneaKeepaliveState(input: {
   lastAuditType: string | null;
 }) {
   return !input.keepaliveDue && (input.serviceStatus === "login_required" || (input.serviceStatus === "technical_block" && input.lastAuditType === "keepalive_inconclusive"));
+}
+
+export function shouldQuiesceTerminalAprEneaWorker(input: {
+  executionStatus: string;
+  currentCustomerKey: string | null | undefined;
+  serviceStatus: AprEneaWorkerServiceState["status"];
+}) {
+  return input.executionStatus === "completed"
+    && !input.currentCustomerKey
+    && input.serviceStatus === "completed";
 }
 
 export function aprEneaWorkerLoopFailureDisposition(error: unknown) {
@@ -423,6 +435,7 @@ export class PersistentAprEneaWorkerService {
     commandId: string,
     now = new Date(),
     signalProcess: (pid: number, signal: NodeJS.Signals) => void = (pid, signal) => process.kill(pid, signal),
+    processCommand: (pid: number) => string = (pid) => execFileSync("/bin/ps", ["-p", String(pid), "-o", "command="], { encoding: "utf8", timeout: 2_000 }).trim(),
   ): AprEneaEmergencyStopReceipt {
     if (!commandId.trim() || commandId.length > 300) throw new Error("apr_enea_emergency_stop_command_id_invalid");
     // The persistent re-arm controls are disabled before any signal is sent, so a
@@ -439,7 +452,10 @@ export class PersistentAprEneaWorkerService {
       && heartbeatAgeMs <= 30_000;
     let signalOutcome: AprEneaEmergencyStopReceipt["signalOutcome"] = freshPid ? "sigterm_sent" : "stale_process_not_signalled";
     if (freshPid) {
-      try { signalProcess(service.processPid, "SIGTERM"); }
+      try {
+        classifyStoppableAprCohortProcess(service.processPid, processCommand(service.processPid));
+        signalProcess(service.processPid, "SIGTERM");
+      }
       catch (error) {
         const code = typeof error === "object" && error !== null && "code" in error ? String(error.code) : "";
         if (code !== "ESRCH") throw error;

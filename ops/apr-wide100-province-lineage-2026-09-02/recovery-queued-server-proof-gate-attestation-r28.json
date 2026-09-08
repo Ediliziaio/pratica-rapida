@@ -1,0 +1,54 @@
+{
+  "version": "apr-rule-gate-attestation-v1",
+  "attestedAt": "2026-09-02T12:17:00.000Z",
+  "incidentCode": "apr_sequencer_recovery_queued_preflight_gap",
+  "rootCause": "sequencer_prepare_gate_omitted_valid_recovery_queued_state",
+  "ruleId": "system-sequencer-recovery-queued-server-proof-v1",
+  "registryVersion": "enea-operational-registry-v102",
+  "matrixVersion": "apr-enea-rule-test-matrix-v80",
+  "sourceFingerprint": "3adc31a7a3a016adbd749e3b8f62c60313054f50f1ff1f43534bd3ae0908f369",
+  "liaCheckpointProof": {
+    "checkpointSha256": "523ed6e456b5402aff05de056f0558d010923745288efe3d46e681e540d9726b",
+    "draftId": "453823",
+    "pageId": "page:Anagrafica Beneficiario",
+    "serverOutcome": "not_saved",
+    "serverEvidenceId": "cdp-server-11-361135f1f9a8235e5764",
+    "saveAttemptCount": 1,
+    "recoverySaveAttemptCount": 0,
+    "remainingRecoveryBudget": 1,
+    "gateVerdict": "ready"
+  },
+  "sourceHashes": {
+    "sequencerPreflightGuardSha256": "470c7cfea87ec63bcec94ef07379842eedba8adeeb161c51f40dc7fad7e06cc6",
+    "sequencerSha256": "634af325d6704106151d833896a5ab564888bead5c8880f184ee2fb5f34730c5",
+    "regressionTestSha256": "4a76c4779f7df5a7b5c0a4f708b5ecf8431309c734ee25afdd64c761ee7fa837"
+  },
+  "integratedGate": {
+    "statusBeforeInstall": "tested_not_deployed",
+    "statusAfterInstall": "active_tested_deployed",
+    "testSuitesPassed": 416,
+    "testSuitesTotal": 416,
+    "testsPassed": 1593,
+    "testsTotal": 1593,
+    "rulesProved": 90,
+    "vitestReportSha256": "8ca5d63440573aeb7dac902eb431000d37acf69341ef0bcb60a45bcc3a14153d",
+    "ruleEvidenceSha256": "280c40ea2f4ebff3bdf5020e01b761b677518ed5e9b055c38e8bacb8a3374ce0",
+    "activationCheckpointSha256": "440e62743ff0a0b95ce5e71d788a9203d3a3e4951d7da9f10be5011e4f0947b0"
+  },
+  "installedBundle": {
+    "version": "064100d8-recovery-queued-gate-r28-20260902",
+    "aprSupervisorSha256": "c8c0134b8e60d54c47a46d884c4109f88f9986e7b42a9fdcc357739c43011cb6",
+    "aprEneaWorkerSha256": "064100d87f5694f44182c0ebe8427838c38d90e898dc13237f0677697a37ab7a",
+    "aprWatchdogSha256": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0"
+  },
+  "continuity": {
+    "keepaliveLabel": "com.praticarapida.apr-enea-immortal-keepalive",
+    "keepalivePid": 35873,
+    "chromePid": 3785,
+    "chromeStartedAt": "2026-09-01T16:00:32+02:00",
+    "forbiddenActionCount": 0,
+    "previewAttemptCount": 0,
+    "submitAttemptCount": 0,
+    "communicationAttemptCount": 0
+  }
+}

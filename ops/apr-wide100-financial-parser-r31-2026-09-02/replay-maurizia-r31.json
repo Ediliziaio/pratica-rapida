@@ -1,0 +1,87 @@
+{
+  "version": "apr-r31-maurizia-local-readonly-replay-v1",
+  "generatedAt": "2026-09-02T21:08:28.892Z",
+  "source": {
+    "customerKey": "maurizia-coreggioli",
+    "practiceId": "81b4934a-3d6a-49ff-8f08-8d1400d55dff",
+    "dossierPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3044-global-controller-maurizia-coreggioli/crm-acquisition/dossiers/maurizia-coreggioli.json",
+    "analysisCheckpoint": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3044-global-controller-maurizia-coreggioli/crm-document-analysis/checkpoint.json",
+    "sourceFingerprint": "14bc7b1a544fef6ddaa25e23b22f88da7d3d4bdb9f305dce85fde7c68b6929b0"
+  },
+  "before": {
+    "invoiceTotal": 5000,
+    "reconciledTotal": 5000,
+    "tripleReconciliationVerified": true,
+    "blockerCodes": [
+      "customer_form_missing",
+      "tax_code_missing_or_invalid",
+      "completion_over_90_days_operator_required",
+      "invoice_929a8665"
+    ]
+  },
+  "after": {
+    "invoiceTotal": 5000,
+    "reconciledTotal": 5000,
+    "tripleReconciliationVerified": true,
+    "methods": [
+      {
+        "method": "structured_extraction",
+        "ok": true,
+        "total": 5000,
+        "sources": [
+          "294aa1d62552ea24ed7039682947e956b3e55bed0000a2b38e1c1a04e8dfbc69:invoice:264f0ccd0374"
+        ],
+        "reason": "Ogni documento ha imponibile, IVA e totale verificati."
+      },
+      {
+        "method": "accounting_reconciliation",
+        "ok": true,
+        "total": 5000,
+        "sources": [
+          "294aa1d62552ea24ed7039682947e956b3e55bed0000a2b38e1c1a04e8dfbc69:invoice:264f0ccd0374"
+        ],
+        "reason": "Somma dei totali lordi IVA inclusa delle fatture uniche deduplicate; gli storni interni sono solo note auditabili."
+      },
+      {
+        "method": "intervention_cross_check",
+        "ok": true,
+        "total": 5000,
+        "sources": [
+          "294aa1d62552ea24ed7039682947e956b3e55bed0000a2b38e1c1a04e8dfbc69:invoice:264f0ccd0374"
+        ],
+        "reason": "Totale ricostruito esclusivamente dalle righe pertinenti all'intervento."
+      }
+    ],
+    "nonEconomicEvidence": [
+      {
+        "sourceId": "0b0ce7d0412430cdf34411da17ac17ae32bbe753b19be1e7236cc1a8087b26e1:invoice:264f0ccd0374",
+        "kind": "non_economic",
+        "taxableAmount": 0,
+        "vatAmount": 0,
+        "grossTotal": 0,
+        "interventionGrossAmount": 0,
+        "extractionConfidence": "certain",
+        "extractionIssues": []
+      }
+    ],
+    "blockerCodes": [
+      "customer_form_missing",
+      "tax_code_missing_or_invalid",
+      "completion_over_90_days_operator_required"
+    ],
+    "warning": {
+      "code": "resolved_non_economic_total_blocker_retired",
+      "reason": "Rimosso il falso blocker di totale non riconosciuto: tutti i segmenti senza totale del parser documentale coincidono con storni non_economic verificati (0b0ce7d0412430cdf34411da17ac17ae32bbe753b19be1e7236cc1a8087b26e1:invoice:264f0ccd0374) e la tripla riconciliazione economica e verde.",
+      "appliedRuleIds": [
+        "system-resolved-non-economic-total-blocker-retirement-v1",
+        "system-zero-total-full-reversal-non-economic-v1",
+        "core-gross-triple-reconciliation"
+      ]
+    }
+  },
+  "result": "PASS",
+  "safety": {
+    "localReadOnlyReplay": true,
+    "externalActionAllowed": false
+  }
+}

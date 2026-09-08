@@ -1,0 +1,292 @@
+{
+  "version": "apr-crm-local-preflight-v1",
+  "revision": 1,
+  "status": "completed",
+  "sourceFingerprint": "18de687792d08ee32327db11e0de1969d08b9e19142cb217bfd054f6784b8a80",
+  "currentCustomerKey": null,
+  "items": [
+    {
+      "customerKey": "gloria-padoani",
+      "displayName": "Gloria Padoani",
+      "practiceId": "1778bb92-4090-499f-92e6-85599118399f",
+      "dossierPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2983-global-controller-gloria-padoani/crm-acquisition/dossiers/gloria-padoani.json",
+      "state": "blocked_case",
+      "attemptCount": 1,
+      "startedAt": null,
+      "endedAt": null,
+      "report": {
+        "outcome": "blocked_case",
+        "formAvailable": true,
+        "startDate": "2026-08-03",
+        "startDateSource": "d8aa1dae93b2ef01a2fbf5c7c73d646cf40da662265a80d9b8c01d3e5ea03e4f:invoice:264f0ccd0374",
+        "completionDate": "2026-08-03",
+        "completionDateSource": "d8aa1dae93b2ef01a2fbf5c7c73d646cf40da662265a80d9b8c01d3e5ea03e4f:invoice:264f0ccd0374",
+        "buildingQualification": "multi_unit",
+        "buildingUnitCount": 1,
+        "deductionRate": null,
+        "taxCodeStatus": "verified_original_document",
+        "resolvedTaxCode": "PDNGLR62C70A952K",
+        "taxCodeSourceIds": [
+          "789dd04aba8b9d8770bacd509cc79522c081bfdd41576ebb24f311e0e7c9a582",
+          "d8aa1dae93b2ef01a2fbf5c7c73d646cf40da662265a80d9b8c01d3e5ea03e4f"
+        ],
+        "primaryBeneficiaryResolution": {
+          "status": "not_found",
+          "identity": null,
+          "sourceIds": [],
+          "authority": null
+        },
+        "coBeneficiaryResolution": {
+          "status": "not_declared",
+          "present": false,
+          "identity": null,
+          "sourceIds": []
+        },
+        "products": [],
+        "financial": {
+          "invoiceTotal": 2783,
+          "eligibleExpense": 2783,
+          "tripleReconciliationVerified": false,
+          "reconciledTotal": 2783,
+          "evidence": [
+            {
+              "sourceId": "d8aa1dae93b2ef01a2fbf5c7c73d646cf40da662265a80d9b8c01d3e5ea03e4f:invoice:264f0ccd0374",
+              "kind": "invoice",
+              "taxableAmount": null,
+              "vatAmount": 2783,
+              "grossTotal": 2783,
+              "interventionGrossAmount": 2783,
+              "extractionConfidence": "certain",
+              "extractionIssues": []
+            }
+          ],
+          "bankTransfers": [],
+          "bankTransferReconciliation": {
+            "status": "not_provided",
+            "principalTotal": null,
+            "feesTotal": null,
+            "debitedTotal": null,
+            "difference": null,
+            "referenceStatus": "not_provided",
+            "missingInvoiceReferences": [],
+            "taxReliefTypes": []
+          },
+          "methods": [
+            {
+              "method": "structured_extraction",
+              "ok": false,
+              "total": null,
+              "sources": [
+                "d8aa1dae93b2ef01a2fbf5c7c73d646cf40da662265a80d9b8c01d3e5ea03e4f:invoice:264f0ccd0374"
+              ],
+              "reason": "totali-incompleti:d8aa1dae93b2ef01a2fbf5c7c73d646cf40da662265a80d9b8c01d3e5ea03e4f:invoice:264f0ccd0374"
+            },
+            {
+              "method": "accounting_reconciliation",
+              "ok": false,
+              "total": null,
+              "sources": [
+                "d8aa1dae93b2ef01a2fbf5c7c73d646cf40da662265a80d9b8c01d3e5ea03e4f:invoice:264f0ccd0374"
+              ],
+              "reason": "totali-incompleti:d8aa1dae93b2ef01a2fbf5c7c73d646cf40da662265a80d9b8c01d3e5ea03e4f:invoice:264f0ccd0374"
+            },
+            {
+              "method": "intervention_cross_check",
+              "ok": false,
+              "total": null,
+              "sources": [
+                "d8aa1dae93b2ef01a2fbf5c7c73d646cf40da662265a80d9b8c01d3e5ea03e4f:invoice:264f0ccd0374"
+              ],
+              "reason": "righe-intervento-non-dimostrate:"
+            }
+          ],
+          "discardedDuplicateSourceIds": [],
+          "supersededTechnicalSourceIds": [],
+          "appliedRuleIds": [
+            "user-2026-08-16-invoice-gross-total-vat-included",
+            "user-2026-08-18-bundled-professional-expense-separation",
+            "user-2026-08-18-mandatory-bank-transfer-invoice-expense-cross-check",
+            "core-gross-triple-reconciliation",
+            "user-2026-08-14-preserve-technical-product-cardinality",
+            "system-explicit-advance-invoice-reference-marker-v1"
+          ]
+        },
+        "warnings": [
+          {
+            "code": "explicit_building_type_over_apartment_count",
+            "reason": "La tipologia esplicita fino/oltre tre piani prevale sul numero appartamenti della singola pratica: edificio qualificato come plurimo.",
+            "appliedRuleIds": [
+              "user-2026-08-27-explicit-building-type-over-apartment-count-v2"
+            ]
+          }
+        ],
+        "blockers": [
+          {
+            "code": "product_cardinality_form_invoice_mismatch",
+            "field": "screenings.quantity",
+            "reason": "Controllo incrociato ripetuto: il form descrive 2 righe e le fatture 0 prodotti fisici non riconciliabili in modo univoco per famiglia. Richiesto intervento operatore: confermare la cardinalita fisica e l'assegnazione degli attributi form.",
+            "sourceIds": [
+              "d8aa1dae93b2ef01a2fbf5c7c73d646cf40da662265a80d9b8c01d3e5ea03e4f",
+              "789dd04aba8b9d8770bacd509cc79522c081bfdd41576ebb24f311e0e7c9a582"
+            ],
+            "appliedRuleIds": [
+              "user-2026-08-18-form-invoice-portal-cardinality-cross-check",
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "user-2026-08-15-form-group-to-physical-products",
+              "system-apr-operator-intervention-routing"
+            ]
+          },
+          {
+            "code": "screenings_missing",
+            "field": "screenings",
+            "reason": "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+            "sourceIds": [
+              "d8aa1dae93b2ef01a2fbf5c7c73d646cf40da662265a80d9b8c01d3e5ea03e4f",
+              "789dd04aba8b9d8770bacd509cc79522c081bfdd41576ebb24f311e0e7c9a582"
+            ],
+            "appliedRuleIds": [
+              "user-2026-08-14-preserve-technical-product-cardinality"
+            ]
+          },
+          {
+            "code": "invoice_332a5af9",
+            "field": "economic_sources",
+            "reason": "Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture.",
+            "sourceIds": [
+              "d8aa1dae93b2ef01a2fbf5c7c73d646cf40da662265a80d9b8c01d3e5ea03e4f",
+              "789dd04aba8b9d8770bacd509cc79522c081bfdd41576ebb24f311e0e7c9a582"
+            ],
+            "appliedRuleIds": [
+              "core-economic-classification"
+            ]
+          },
+          {
+            "code": "gross_triple_reconciliation_failed",
+            "field": "economic_sources.total",
+            "reason": "Tripla riconciliazione non dimostrata: totali-incompleti:d8aa1dae93b2ef01a2fbf5c7c73d646cf40da662265a80d9b8c01d3e5ea03e4f:invoice:264f0ccd0374.",
+            "sourceIds": [
+              "d8aa1dae93b2ef01a2fbf5c7c73d646cf40da662265a80d9b8c01d3e5ea03e4f",
+              "789dd04aba8b9d8770bacd509cc79522c081bfdd41576ebb24f311e0e7c9a582"
+            ],
+            "appliedRuleIds": [
+              "user-2026-08-16-invoice-gross-total-vat-included",
+              "core-gross-triple-reconciliation"
+            ]
+          }
+        ],
+        "sourceIds": [
+          "d8aa1dae93b2ef01a2fbf5c7c73d646cf40da662265a80d9b8c01d3e5ea03e4f",
+          "789dd04aba8b9d8770bacd509cc79522c081bfdd41576ebb24f311e0e7c9a582"
+        ],
+        "eneaPayloadAudit": {
+          "status": "payload_incomplete",
+          "mappingFingerprint": "1l8si48",
+          "fieldSummary": {
+            "ready": 45,
+            "review": 0,
+            "missing": 4
+          },
+          "requiredPortalFieldCount": 43,
+          "blockerCount": 8,
+          "blockers": [
+            {
+              "code": "screening-list-empty",
+              "fieldId": "schermature.numero",
+              "message": "Il modulo cliente non contiene l'elenco delle schermature."
+            },
+            {
+              "code": "document-blocker-0",
+              "fieldId": "schermature.0.dimensioni",
+              "message": "Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture."
+            },
+            {
+              "code": "missing-schermature.numero",
+              "fieldId": "schermature.numero",
+              "message": "Numero totale schermature: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-schermature.superficie_totale",
+              "fieldId": "schermature.superficie_totale",
+              "message": "Superficie totale schermature: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-schermature.spesa",
+              "fieldId": "schermature.spesa",
+              "message": "Spese congrue sostenute: Intervento umano richiesto."
+            },
+            {
+              "code": "missing-schermature.risparmio_energia",
+              "fieldId": "schermature.risparmio_energia",
+              "message": "Risparmio energia primaria non rinnovabile: Intervento umano richiesto."
+            },
+            {
+              "code": "product_cardinality_form_invoice_mismatch",
+              "fieldId": "screenings.quantity",
+              "message": "Controllo incrociato ripetuto: il form descrive 2 righe e le fatture 0 prodotti fisici non riconciliabili in modo univoco per famiglia. Richiesto intervento operatore: confermare la cardinalita fisica e l'assegnazione degli attributi form."
+            },
+            {
+              "code": "screenings_missing",
+              "fieldId": "screenings",
+              "message": "Nessun prodotto fisico riconciliato dalle fatture originarie."
+            }
+          ],
+          "excludedUnverifiedFields": [
+            "beneficiario.provincia_nascita",
+            "immobile.provincia",
+            "immobile.codice_comune",
+            "immobile.zona_climatica",
+            "immobile.gradi_giorno",
+            "schermature.numero",
+            "schermature.superficie_totale",
+            "schermature.spesa",
+            "schermature.risparmio_energia",
+            "documenti.fatture",
+            "documenti.bonifico",
+            "documenti.tecnici"
+          ],
+          "draftReady": false,
+          "officialSubmissionAllowed": false,
+          "portalGate": {
+            "status": "blocked",
+            "reason": "screening-component-blocked",
+            "workflowFingerprint": null,
+            "supportedPages": [],
+            "screeningItemCount": 0,
+            "saveAllowedOnlyBySeparateCapability": true,
+            "previewAllowed": false,
+            "submitAllowed": false
+          },
+          "externalActionAllowed": false,
+          "reason": "2 blocker della componente Schermature invalidano il payload della bozza TEST."
+        },
+        "draftPlan": {
+          "status": "blocked",
+          "externalActionAllowed": false,
+          "previewAllowed": false,
+          "submitAllowed": false,
+          "communicationsAllowed": false,
+          "nextAction": "Risolvere i blocker con sole fonti originarie; la coda prosegue sugli altri casi."
+        }
+      },
+      "reason": "Fresh replay dai documenti originali"
+    }
+  ],
+  "externalActionAllowed": false,
+  "reason": "Fresh replay locale",
+  "nextAction": "Nessuna azione esterna.",
+  "validationRevisionsApplied": [],
+  "sourceRevisionsApplied": [],
+  "operatorMeasurementResolutions": [],
+  "audit": [
+    {
+      "revision": 1,
+      "at": "2026-09-03T10:00:00.000Z",
+      "type": "completed",
+      "customerKey": null,
+      "reason": "Fresh replay locale",
+      "appliedRuleIds": [
+        "system-single-active-practice"
+      ]
+    }
+  ]
+}

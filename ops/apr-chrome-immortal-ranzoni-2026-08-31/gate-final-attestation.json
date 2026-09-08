@@ -1,0 +1,27 @@
+{
+  "version": "apr-final-gate-attestation-v1",
+  "recordedAt": "2026-08-31T14:20:00Z",
+  "sourceCommit": "e1da667b50c12b6b4d59350f86d211bd6b4cdfb1",
+  "sourceTree": "1f56cc1bc55c41c56a8609160421097e8240743d",
+  "integratedRun": {
+    "status": "PASS",
+    "testFiles": 216,
+    "tests": 1603,
+    "failed": 0,
+    "durationSeconds": 555.18,
+    "typecheck": "PASS",
+    "productionBuild": "PASS"
+  },
+  "focusedPersistedEvidence": {
+    "status": "PASS",
+    "path": "/private/tmp/apr-focused-gate-20260831-r14.json",
+    "sha256": "7dae6875f0e15fb54a69b6edb16c562641e64610a1c92ee716472fc190de1b79",
+    "selectedTests": 5,
+    "failed": 0
+  },
+  "repeatDiagnostics": {
+    "fullRepeat": "INTERRUPTED_NO_REPORT_AFTER_EXCEEDING_HISTORICAL_DURATION",
+    "serialFocusedRepeat": "NON_EQUIVALENT_CONFIGURATION_TIMED_OUT_IN_EXISTING_LONG_CDP_FIXTURE",
+    "gateDecision": "Neither diagnostic repeat replaces or invalidates the completed integrated PASS; both are explicitly excluded from PASS evidence."
+  }
+}

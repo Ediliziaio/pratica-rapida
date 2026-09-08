@@ -1,0 +1,18 @@
+{
+  "version": "apr-final-canonical-proof-bundle-install-receipt-r66-v1",
+  "installedAt": "2026-09-05T21:13:10.997Z",
+  "status": "bundle_promoted_local_gate_verified",
+  "governanceAttestationSha256": "40ca454739f00454acf72c15637dc7c509d88dd880b23899becdf134b958f182",
+  "versionId": "e4afbcb6-final-canonical-proof-r66-20260905",
+  "previousTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/27d27bc3-allocation-canonical-proof-r65-20260905",
+  "currentTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/e4afbcb6-final-canonical-proof-r66-20260905",
+  "installedBundle": {
+    "apr-supervisor.mjs": "bbb1907da03ed5b224323f3bc05fb3c8b01befa4f4860cd88ca97175ea23de41",
+    "apr-enea-worker.mjs": "e4afbcb63adbf9b0583f8a5e86cb9a60fb0133bb93740c1275a49f36f516d784",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "apr-rule-governance-attestation.json": "40ca454739f00454acf72c15637dc7c509d88dd880b23899becdf134b958f182"
+  },
+  "keepaliveRestartRequested": false,
+  "chromeRestartRequested": false,
+  "operationalReplayPerformed": false
+}

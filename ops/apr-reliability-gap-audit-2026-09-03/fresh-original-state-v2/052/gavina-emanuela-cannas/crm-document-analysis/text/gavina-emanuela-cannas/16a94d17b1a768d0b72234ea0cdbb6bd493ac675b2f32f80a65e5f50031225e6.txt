@@ -1,0 +1,1040 @@
+APR_OCR_ORIENTATION:0
+Mleal20
+FATTURA IMMEDIATA - COPIA DI CORTESIA
+2001-2021
+Spett.le
+CANNAS GAVINA EMANUELA
+Sistem
+IDEAL SISTEM S.R.L.
+STABILIMENTO ED ESPOSIZIONE
+VIA RIZZEDDU 15/A
+DA VENT'ANNI INFISSI IN PVC DI QUALITÀ
+07100 SASSARI
+Z.I. PREDDA NIEDDA NORD, STR. 33
+PIVA 01959880905
+07100 SASSARI (SS)
+Serramenti in PVC
+TEL./FAX 079 268047 - 079 269656
+Luogo di Destinazione
+VIA FERRUCCI, 20
+SASSARI (SS)
+Cod. Cli.
+IVA
+Valuta
+Codice fiscale
+Partita IVA
+1.161
+EURO
+Tipo documento-
+Num. Doc.
+CNNGNM73C631452L
+Data Docum.
+Pag.
+Codice e descrizione pagamento
+Banca
+FATTURA
+172/00
+13/04/2026
+1/ 1
+101 NR.01 BBa A VISTA
+C/C 000047463714 - IBAN: IT44L0344017210000047463714
+Bonificare c/o BANCO DI DESIO E DELLA BRIANZA - ABI 3440 -
+Ns. Rif
+Telefono
+Agente
+SPC/ SPANU CARLO
+Codice SDI
+CIG
+Codice
+CUP
+Commessa:
+ACCONTO
+Descrizione
+ACCONTO PER FORNITURA E POSA DI FINESTRE IN PVC
+U.M.
+Quantità
+Prezzo Un.
+NR
+1,00
+2.136,36
+Imp. Netto
+FORNITURA E POSA IN UN IMMOBILE A PREVALENTE
+2.136,36
+IVA
+10
+DESTINAZIONE ABITATIVA PRIVATA OGGETTO DI
+INTERVENTO IDONEO A USUFRUIRE DI DETRAZIONE FISCALE
+MANUTENZIONE ORDINARIA art.3 c. 1 lett.a del DPR 380/2001
+PER ECOBONUS L.296/06 E S.M.I.
+Imponibile
+ALIVA
+2.136,36
+Importo IVA
+10,00
+Totale merce
+213,64
+% Sconto
+Importo sconto
+Netto merce
+2.136,36
+0,00
+2.136,36
+Spese Bolli
+Spese incasso
+Varie
+Acconto
+TOTALE DOCUMENTO
+Sconto in fattura
+TOTALE A PAGARE
+Euro 2.350,00
+Scadenze
+2.136,36
+Tot.
+213.64
+Euro 2.350,00
+BBa 2.350,00
+13/04/2026
+Firma per Accettazione
+Copia della fattura elettronica disponibile nella tua area riservata dell'Agenzia delle Entrate
+Soltware fomito da: Dala Symposium sel - Sassari -
+
+APR_OCR_ORIENTATION:0
+FATTURA IMMEDIATA DDT (D.P.R. 472 del 14/8r96)
+deal.
+20
+2001-2021
+Spett.le
+CANNAS GAVINA EMANUELA
+Sistern
+IDEAL SISTEM S.R.L.
+STABILIMENTO ED ESPOSIZIONE
+Z.I. PREDDA NIEDDA NORD, STR. 33
+VIA RIZZEDDU 15/A
+DA VENT'ANNI INFISSI IN PVC DI QUALITÀ
+07100 SASSARI
+PIVA 01959880905
+07100 SASSARI (SS)
+Serramenti in PVC
+TEL/FAX 079 268047 - 079 269656
+Luogo di Destinazione
+VIA FERRUCCI, 20
+SASSARI (SS)
+Cod. Cli.
+IVA
+Valuta
+Codice fiscale
+Partita IVA
+1.161
+EURO
+Tipo documento
+Num. Doc.
+Data Docum.
+Pag.
+Codice e descrizione pagamento
+CNNGNM73C631452L
+Banca
+FATTURA
+252/00
+22/05/2026
+1 1 1
+Bonificare c/o BANCO DI DESIO E DELLA BRIANZA - ABI 3440 -
+Telefono
+101 NR.01 BBa A VISTA
+C/C 000047463714 - IBAN: IT44L0341017210000047463714
+Ns. Rif
+Agente
+SPC/ SPANU CARLO
+Codice SDI
+Codice
+CUP
+CIG
+Commessa:
+FIRES1A
+Descrizione
+U.M.
+Quantità
+Prezzo Un.
+FIRES1A
+FINESTRA TELAIO RESTAURO 1 ANTA 89,8X149,7
+1,00
+0,00
+Imp. Netto
+0,00
+IVA
+PFRES2A
+FINESTRA TELAIO RESTAURO 1 ANTA 89,8X149,5
+0,00
+22
+PFRES2A
+PORTAFINESTRA TELAIO RESTAURO 2 ANTE 109,7X232,6
+N.
+1,00
+1,00
+PORTAFINESTRA TELAIO RESTAURO 2 ANTE 109,9X233,4
+0,00
+0,00
+N.
+0,00
+22
+1,00
+0,00
+22
+MAPOS
+COIBENTAZIONI CASSONETTI AVVOLGIBILI
+N.
+2,00
+230,42
+0,00
+22
+MAFAC
+MANODOPERA PER POSA IN OPERA
+N.
+1,00
+10
+MASMT
+MANODOPERA PER FACCHINAGGIO AI PIANI
+N.
+1,00
+600,00
+460,84
+600,00
+160,00
+10
+MACA
+MANODOPERA PER SMALTIMENTO INFISSI RIMOSSI
+N.
+1,00
+90,00
+160,00
+10
+SEVEN
+MANODOPERA PER CARICO SCARICO
+N.
+1.00
+250,00
+90,00
+A CORPO
+SERVIZI DI VENDITA
+N.
+1,00
+250,00
+10
+747,02
+10
+A CORPO
+A CORPO INFISSI BENI SIGNIFICATIVI AI SENSI EX DM 29/12/1999
+N.
+1,00
+1.743,05
+1.743,05
+747,02
+10
+ACCONTO
+A CORPO INFISSI BENI SIGNIFICATIVI AI SENSI EX DM 29/12/1999
+N.
+1,00
+0,00
+10
+13/04/2026
+ACCONTO PER FORNITURA E POSA FATTURA Nº172 DEL
+NR
+1,00
+-2.136,36
+0,00
+22
+-2.136,36
+10
+ENEA
+SPESE PROFESSIONALI PER ELABORAZIONE ED INVIO PRATICA
+N.
+1,00
+200,00
+200,00
+22
+FORNITURA E POSA IN UN IMMOBILE A PREVALENTE
+DESTINAZIONE ABITATIVA PRIVATA OGGETTO DI
+MANUTENZIONE ORDINARIA art.3 c.1 lett.a del DPR 380/2001
+INTERVENTO IDONEO A USUFRUIRE DI DETRAZIONE FISCALE
+PER ECOBONUS L.296/06 E S.M.I.
+Imponibile
+1.914,55
+AL.IVA
+Importo IVA
+Totale merce
+% Sconto
+Importo sconto
+Netto merce
+200,00
+10,00
+22,00
+191,46
+44,00
+2.114,55
+0,00
+2.114,55
+Spese Bolli
+Spese incasso
+Varie
+Acconto
+TOTALE DOCUMENTO
+Sconto in fattura
+TOTALE A PAGARE
+2.114,55)
+Euro 2.350,01
+Scadenze
+Tot.
+235,46
+Euro 2.350,01
+BBa 2.350,01
+22/05/2026
+Firma per Accettazione
+Causale del trasporto
+N. Colli
+Aspetto dei beni
+VEN CNendita
+Data del trasporto
+A VISTA
+25/05/2026
+Trasporto a cura
+Incaricato al trasporto
+A MEZZO MITTENTE
+Copia della fattura elettronica disponibile nella tua area riservata dell'Agenzia delle Entrate
+Soltware fomito da: Data Symposium srl - Sassari -
+
+APR_OCR_ORIENTATION:90
+Saluti
+Totale:
+BancoPosta
+Importo:
+Località:
+Commissioni:
+Indirizzo:
+IBAN:
+Intestazione:
+Data valuta addebito:
+Codice Riferimento:
+DATI OPERAZIONE
+Tipologia detrazione:
+BENEFICIARIO
+Eseguito da:
+Intestazione:
+ORDINANTE
+Verifica beneficiario:
+Comunicazioni al Beneficiario:
+Titolare detrazione fiscale:
+Riferimento beneficiario:
+Riferimento ordinante:
+Denominazione della banca:
+Conto BancoPosta di addebito:
+25/05/2026 alle ore 23:19:19
+BancoPosta
+Poste Italiane S.p.A. - Patrimonio BancoPosta
+Posteitaliane
+Codice Fiscale 1: CNNGNM73C631452L
+Grazie per aver utilizzato i nostri servizi online
+Codice Fiscale o Partita IVA beneficiario:
+DATI RELATIVI ALLE DETRAZIONI FISCALI
+€ 1,00
+CONFERMA ORDINE DI BONIFICO SEPA PER DETRAZIONI FISCALI
+€ 2351,01
+€ 2350,01
+26/05/2026
+Persona fisica
+01959880905
+i ripuliamo gli estremi del BONIFICO SEPA per detrazioni iscali (Risparmio Energetico - Legge 296/2006) da te efftuato il giorno
+SEZ. 5
+Risparmio Energetico
+dell'IBAN indicato.
+IDEAL SISTEM SRL
+0000000272058318
+IT44L0344017210000047463714
+CANNAS GAVINA EMANUELA
+CANNAS GAVINA EMANUELA
+€ 2350,01
+EA26052600938954ZX0513899999IT
+BANCO DI DESIO E DELLA BRIANZA
+PGR BON-bd3a1 af3-6d71-4aa1-9736-1eae4f89fa5a
+COD. RIF.EA2605260093895405138999991T
+idoneo a usufruire di detraz.ne fiscale per risp.energetico L.296/06
+S.Do Fl 252/00 del 22/05/26 per sostituzione infissi (fornitura e posa)-
+I dati coincidono. Il beneficiario inserito coincide con il titolare
+€ 1,00
+55111
+26/05/2026
+
+APR_OCR_ORIENTATION:180
+Posteitaliane
+009y-4382-44e-204221abb646603
+PSR FUN
+.C7:7.
+€ 1,00
+, :35:.00
+EA26041355511562ZX0513899999IT
+CDD. RIF.
+55111
+LIPV
+13/04/2026
+SEZ 5
+BancoPosta
+Saluti
+Grazie per aver utilizzato i nostri servizi online
+INFISSI (fornitura e posa) per risparmio energetico- Legge 296/06
+S.DO FT ACCONTO 172/00 DEL 13/04/2026_BER SOSTITUZIONE
+Comunicazioni al Beneficiario:
+€ 2351,00
+Totale:
+€ 1,00
+mission
+€ 2350,00
+Importo:
+13/04/2026
+Data valuta addebito:
+EA26043555115270513899999(T
+Codice Riferimento:
+DATI OPERAZIONE
+Codice Fiscale 1: CNNGNM73C631452L
+Persona fisica
+Titolare detrazione fiscale:
+Risparmio Energetico
+Tipologia detrazione:
+DATI RELATIVI ALLE DETRAZIONI FISCALI
+Riferimento beneficiario:
+Località:
+Indirizzo:
+01959880905
+Codice Fiscale o Partita IVA beneficiario:
+dell'IBAN indicato.
+Il beneficiario inserito coincide con il titolare
+I dati coincidono.
+Verifica beneficiario:
+IDEAL SISTEM SRL
+Intestazione:
+BANCO DI DESIO E DELLA BRIANZA • •
+Denominazione della banca:
+IT44L0344017210000047463714
+IBAN:
+BENEFICIARIO
+Riferimento ordinante:
+CANNAS GAVINA EMANUELA
+Eseguito da:
+CANNAS GAVINA EMANUELA .
+Intestazione:
+0000000272058318
+Conto BancoPosta di addebito:
+ORDINANTE
+13/04/2026 alle ore 17:48:30
+ti riportiamo gli estremi del BONIFICO SEPA per detrazioni fiscali (Risparmio Energetico - Legge 296/2006) da te effettuato il giorno
+Gentile Cliente.
+CONFERMA ORDINE DI BONIFICO SEPA PER DETRAZIONI FISCALI
+BancoPosta
+
+APR_OCR_ORIENTATION:270
+coperte**
+3 m
+superficie.
+arce
+Variazione del 09/11/2015 - Inserimento in visura dei dati di
+Euro 355,06
+Totale: esluse
+Totale: 95 ma
+5,5 vani
+1
+A/3
+2
+12
+721
+126
+1
+Rendita
+uperficio
+atastalc
+Categoria Classe Consistenza
+Micro Zona
+Zona Cens.
+Sub
+Particella
+Foglio
+Urbana
+Sezione
+DATI DERIVANTI DA
+DATI DI CLASSAMENTO
+DATI IDENTIFICATIVI
+N.
+Situazione dell'unità immobiliare dal 09/11/2015
+odice Comune 1452 - Sezione A - Foglio 126 - Particella 72
+lappali Terreni Correlati
+-classamento e rendita proposti (d.m. 701/94)
+Mod.58
+Partita
+Annotazioni
+Notifica
+95314.1/2024)
+[VIA GIOVANNI FERRUCCI n. 20 Piano 3
+[VERSA DISTRIBUZIONE DEGLI SPAZI INTERNI (I
+scope mi*:
+Indirizzo
+1/07/2024 Pratica n. SS0095314 in atti dal 01/08/202
+aree
+DIVERSA DISTRIBUZIONE DEGLI SPAZI INTERNI del
+Totale sfuse Euro 355,06
+5,5 vani
+2
+12
+721
+126
+Rendita
+1
+Categoria Classe Consistenza Scalastate
+Micro Zona
+Zona Cens.
+Sub
+Particella
+Foglio
+rban
+DATI DERIVANTI DA
+ezion
+DATI DI CLASSAMENTO
+DATI IDENTIFICATIVI
+N.
+Unità immobiliare dal 01/08/2024
+(1) Propricta 1/1 in regime di comunione dei beni
+CNNGNM73C631452L*
+CANNAS Gavina Emanucla nata a SASSARI (SS) il 23/03/1973
+T
+INTESTATO
+Foglio: 126 Particella: 721 Sub.: 12
+Catasto Fabbricati
+Provincia di SASSARI
+Comune di SASSARI (Codice:1452)
+Dati della richiesta
+Situazione degli atti informatizzati al 11/12/2025
+Servizi Catastali
+Ufficio Provinciale - Territorio
+Pag: 1
+Visura n.: T74393
+Visura storica per immobile
+Direzione Provinciale di Sassari
+Segue
+Data: 11/12/2025 Ora: 10.13.50
+e erate
+UDREA SECHI
+
+APR_OCR_ORIENTATION:0
+DOCUMENTO DI SUPPORTO ALLA COMPILAZIONE DELLA SCHED RACCOLTA DATI
+permette di velocizzare la procedura di relazione della prima e di conseguenza l'invio della comunicazione ad ENEA.
+ATTENZIONE: Questo documento di supporto NON va a sostituire la scheda raccolta dati prodotta per la singola fornitura. Si tratta di un supporto alla compilazione che
+DATI GENERALI
+1. Anno di costruzione (anche stimato)
+Anno:
+1975
+2. Superficie utile dell'immobile oggetto dell'intervento (m)
+Superfice m?:
+i lavori se specifcata e possibie wiare la superficie coperta riportata nella visura
+NOTA: va insenta la superficia coperta dell'immobile nel quale vengono eseguiti
+90
+catastale per Quel subaiterno
+3. Titolo di possesso
+X Proprietario o comproprietario,
+Detentore o co-detentore,
+Familiare convivente con il proprietario o il detentore,
+Promissario acquirente (con preliminare di compravendita registrato)
+4. Destinazione d'uso generale
+NOTA: a ceinnazione d'uso generale riguarda l'immobie nel suo camgierio.
+Residenziale,
+Non residenziale,
+scelta corretta farebbe "edifico VISTO"
+quindi, ia si dovesse statare di un condominio con al piano terra de negasi la
+Misto
+5. Destinazione d'uso particolare
+*
+assimilabili (con carattere continuativo o saltuario tipo gli alberghi)
+Edifici adibiti a residenza (tipo abitazioni singole o appartamenti) o
+Edifici adibiti a uffici e assimilabili
+Edifici adibiti a ospedali, cliniche o case di cura e assimilabili
+(cinema, teatri, sale riunioni, musei, chiese e similari)
+Edifici adibiti ad attività ricreative, associative o di culto e assimilabili
+Edifici adibiti ad attività commerciali e assimilabili
+Edifici adibiti ad attività sportive (piscine, palestre...)
+•
+Edifici adibiti ad attività scolastiche a tutti i livelli e assimilabili
+Edifici adibiti ad attività industriali ed artigianali e assimilabili
+6. Tipologia edilizia
+Edificio oltre i tre piani fuori terra,
+C
+Edificio fino a tre piani fuori terra,
+C
+Costruzione isolata (villette mono, bi, o tri familiari).
+7.Intervento su
+C
+Edificio industriale artigianale o commerciale,
+Altro
+Singola unità immobiliare in un edificio costituito da più unità
+immobiliari come un condominio, una bifamiliare o una trifamiliare;
+8.Numero totale delle unità immobiliari dell'edificio alla fine dei lavori
+Edificio costituito da una singola unità immobiliare
+NOTA: ;: l'intervento viene eieguito io di un appartamento all'interro di an
+condominio a su di una casa plurifamiliare, qui va inserito il numero di suite la
+unita cha compongono l'edifico
+9.Si sono verificati degli accorpamenti di unità immobiliari?
+NOTA: di si rience al caso in cui i lavori prevedono la fusione di due 2 310
+Si / No
+subalterni di termine der lavor
+No
+Doc. 01 - Rev. 18 marzo 2025
+
+APR_OCR_ORIENTATION:270
+14 KW
+Potenza utile
+nominale kw
+14 9o00 btu
+CLiVET Serie ILAN-Y
+impianto centralizzato con contabilizzazione di calore per
+Rendimento al
+100% della
+potenza/P.E.A.
+95%
+impianto centralizzato con più generatori di calore,
+impiante cione dico re per iene eredi calore con
+pannelli radianti (riscaldamento a pavimento)
+2
+04
+impianto autonomo,
+impianto centralizzato,
+biomassa, legno e pellet
+singolo utente,
+termoconvettori
+ventilconvettori
+bocchette aria calda
+radiatori / termosifoni
+altro (descrivere):
+teleriscaldamento
+Si/ no
+olio combustibile
+Si
+gas metano
+gasolio
+* energia elettrica
+Tipo di generatore
+Caldaia ad acqua calda
+Caldaia ad acqua calda
+a basse temperature
+GPL
+* split
+Caldaia a gas a
+condensazione
+Caldaia a gasolio a
+condensazione
+Pompa di calore/
+Generatore ad aria
+nn m
+standard
+geotermico
+Scambiatore per
+teleriscaldamento
+Caldaia a biomassa
+calda
+altro
+Marca:
+Modello:
+IMPIANTO TERMICO ESISTENTE (DA COMPILARE SOLO PER ECOBONUS)
+NOTA: DA COMPILARE SEMPRE SE C'E UN IMPIANTO DI RISCALDAMENTO, ANCHE SE SI SONO FORNITE SOLO CHIUSURE OSCURANTI O SCHERMATURE SOLARI.
+Inserire: dati retativi al tipo di generatore presente all'inizio dei lavori anche se nel corso degli stessi viene sostituito
+e a sono due generatori de diversa tipologia e ambedue vengono utilizzati
+se di sono due generatori della stessa tipologia ed entrambi vengono
+urliggati per il riscaldamento inserire la potenda termica totale (ovvero la
+somma delle varie potenze) e il valore pesato de rendimento ichiedere
+di ntarvento. è presente un generatore di calore (caldaia) che riscalda solo quell'unità
+Per IMPIANTO CENTRALIZZATO si intende il caso in cui una caidaia riscalda più
+inimooiare e che il cliente può autonomamente accendere/spegnere/regolare
+Per CONTABILIZZAZIONE PER SINGOLO UTENTE ovvero se esiste un sistema di
+contabilitatore di calore ovvero un piccaio dispositivo con uno schermo che puo
+NOTA: potete trovare tutte le informazioni relative al generatore di calore neila sezione
+Nel caso si grattasse di un condominio le informazioni vanno : chieste all'amministratore
+generatore potete consultare la scheda tecnica sui sito del produttore. In questo
+ricordiamo ina va inserita la potenda utile nominale e non quella ai focolare e il
+Nel caio non lapeste come recuperare / Jan del generatore. potere richiedere al
+Se e sono van tipi di generatori calore che ucilizzano diversi mp: de vetton energetici
+monitoraggio dei consumi reali per esempio attraverso un contacalore/
+essere in failato sul singolo termosifone o sul tubo principale di mandata.
+Der il riscaldamento inseriri entrambi nelle apposte ¡etioni
+Nel caso per Qualsiasi motiva non riusciste a reperire il libretto di impianto dei vostro
+NOTA: barzare si incha in caso sia presente un singoio ioli ne raffresca un solo
+eventusimente al tecnico i cui è affidata la pratical
+rendimento deve essere calcolato l10 della te
+NOTA: il vettore energetico e il moo di combusie utilizzato.
+2.Tipologia prevalente terminali di erogazione
+3.Generatori esistenti prima dell'inizio dei lavori
+NOTA: per: termosifoni utlizzare radiatori
+4 der libretto d'impianto nominata generatori"
+Se si sono pru generatori distinguiamo 3 casistiche
+va inserito solo quest ultimo
+5.Marca e modello impianto di riscaldamento
+o al manutentore dell'impianto.
+.Impianto di condizionamento estivo
+1.Tipo d'impianto
+fornitore a guida specinca!
+appartamenti.
+indica e quello prevalente
+Doc. O1 - Rev. 18 marzo 2025
+4.Vettore energetico
+ambiente
+
+APR_OCR_ORIENTATION:0
+COTHER ANE MOERS TOS ELA MADRE ODECHI NE FALE VEC
+CNNGNM73C631452L
+ESTREMI ATTO DI NASCI
+106 p1. SA-1973 0900€
+VDIRIZZO DI RESIDENZA / RESIDENC
+IA RIZZEDDU, N. 15 A SASSARI (SS)
+C<ITACA51120RT1<<<<<<<<<<<<<x<
+7303238F3303230ITA<<<<<<<<<<<8
+CANNAS<<GAVINA<EMANUELA<<<<<<<
+
+APR_OCR_ORIENTATION:180
+644031
+Circo Go a Enarale
+IT
+23.03.2033
+EMISSIONE / ISSUINC
+13.03.2024
+CITTADINANZA
+SASSARI (SS) 23.03.1973
+STATURA
+156
+GAVINA EMANUELA
+UNGO COATA DI NASCITA
+7H9F
+NOME / NAME
+COGNOME / SURNAME
+CANNAS
+COMUNE OI / MUNICIAALITY
+SASSARI
+CA51120RT
+REPUBBLICA ITALIANA
+
+APR_OCR_ORIENTATION:0
+IDEAL SISTEM SR.
+Predda Niedda Nord, str. 33
+SiSter
+07100 Sassari
+Tell Fax 079268047; 079269656
+info@idealsistem.it
+Serramenti in PVC
+Indirizzo di Fatturazione
+CANNAS GAVINA EMANUELA
+Indirizzo di Destinazione
+CANNAS GAVINA EMANUELA
+VIA RIZZEDDU, 15/A
+VIA FERRUCCI, 20
+7100 SASSARI (**)
+tel
+7100 SASSARI (**)
+fax
+Prestazioni Energetiche CO 181 Rif:
+27.04.26
+Il sottoscritto, Salvatore Muzzu, in qualità di Amministratore della ditta Ideal Sistem. Sita in Sassari Predda
+Niedda Nord Str.33, Partita Iva 01959880905
+assevera e dichiara
+che, ai sensi della legge 10/91 art. 32, dal DM 2 Aprile 1998 ed all'art. 1 comma 345 della Legge del 27
+dicembre 2006 n. 296, corretta ed integrata dal Decreto ministeriale del 19 Febbraio 2007:
+- la trasmittanza termica complessiva (U) è stata determinata numericamente considerando una finestra tipo
+rappresentativa, utilizzando la metodologia di calcolo semplificato prevista dalla norma UNI EN 10077-1 sulla
+base dei singoli valori di trasmittanza termica dei componenti costituenti la finestra tipo considerata cosi come
+rilevabile dai certificati di prova in nostro possesso e dai dati dichiarti dalla società produttrice del vetro camera
+(il tipo di vetro utilizzato ed il relativo valore di trasmittanza termica è riportato a margine di ogni posizione). La
+trasmittanza termica delle finestre, di cui alla fornitura menzionata rispetta i limiti previsti dall'Allegato D del
+Decreto ministeriale del 19 Febbraio 2007 prevista per la zona climatica sopra riportata.
+- la trasmissione luminosa (TL) dei serramenti è rilevata dalle schede tecniche del fornitore di vetro camera
+- la permeabilità all'aria dei serramenti corrisponde alle classi indicate nella tabella in calce cosi come definite
+dalla norma UNI 12207.
+Certificazione energetica secondo le norme UNI EN 10077-1
+Comune: SASSARI
+Zona climatica: C
+U max richiesto dal comune : 1.7 W/m2K
+Trasmissione luminosa: TL = 73.3 %
+Alt. sul livello del mare: 225 metri
+
+APR_OCR_ORIENTATION:0
+real
+S.Г.
+Em
+Serramenti in PVC
+Prestazioni Energetiche CO 181 / /
+pag. 2/ 27.04.26
+Pos.1
+Pezzi 1
+Tipologia Fin Sx DK
+Mis. 888 x 1489 mq: 1.32
+U Tot. Serramento :
+1.37 W/m'K
+Telaio/anta
+Vetro / Pann.
+MD F.I. Z Tel Fin / PF 4 lati
+Uf Nodo:
+27 - 4 - 16 - 3+3 BASSO EMISSIVO
+Schermatura
+Senza schermo
+Ug Vetro/Pann:
+1.10 W/m?K
+1.30 W/m'K
+Serramento
+Valore stimato vecchi serramenti
+Uw
+giot
+0.54 W/m2K
+0 W/m'K
+¡Pos.2
+Pezzi 1
+Tipologia Fin Dx DK
+Mis. 888 x 1487 mq: 1.32
+U Tot. Serramento:
+1.37 W/m'K
+Telaio/anta
+MD F.I. Z Tel Fin / PF 4 lati
+Uf Nodo :
+Vetro / Pann.
+27 - 4 - 16 - 3+3 BASSO EMISSIVO
+1.10 W/m?K
+Schermatura
+Ug Vetro/Pann:
+Senza schermo
+1.30 W/m?K
+Serramento
+Valore stimato vecchi serramenti
+Uw
+giot
+0.54 W/m?K
+0 W/m°K
+Pos.3
+Pezzi 1 Tipologia PF sxDX DK
+Mis. 1087 x 2321 mq: 2.52
+U Tot. Serramento :
+1.40 W/m'K
+Telaio/anta
+MD F.I. Z Tel Fin / PF 4 lati
+Vetro / Pann.
+Uf Nodo :
+29 3+3 - 16 - 3+3 BASSO EMISSIVO
+Schermatura
+Ug Vetro/Pann:
+1.10 W/mK
+1.30 W/m?K
+Serramento
+Senza schermo
+Valore stimato vecchi serramenti
+giot
+Uw
+0.51 W/mK
+0 W/m'K
+Pos.4
+Pezzi 1
+Tipologia PF sxDX DK
+Mis. 1089 x 2329 mq: 2.54
+U Tot. Serramento :
+1.40 W/m'K
+Telaio/anta
+MD F.I. Z Tel Fin / PF 4 lati
+Vetro / Pann.
+Uf Nodo:
+29 3+3 - 16 - 3+3 BASSO EMISSIVO
+1.10 W/m?K
+Schermatura
+Senza schermo
+Ug Vetro/Pann:
+1.30 W/m?K
+Serramento
+Valore stimato vecchi serramenti
+giot
+Uw
+0.51 W/m?K
+0 WimaK
+Trasmittanza termica totale
+Uw effettivo = 1.39 W/m2K
+Uw richiesto = 1.7 W/m2K
+Totale metri quadri infissi: 8.53
+
+APR_OCR_ORIENTATION:180
+sik Mog
+Muzzu Salvatore
+Amministratore
+IDEAL SISTEM SRL
+-Copia del certificato di prova relativo al valore di trasmittanza termica del profilo utilizzato.
+Allegati alla presente dichiarazione:
+pag. 3 / 27.04.26
+Prestazioni Energetiche CO 181/ 1
+Serramenti in PVC
+STEM
+
+APR_OCR_ORIENTATION:0
+e Calumen
+4 (26 AIR) 33.1
+PLANIHERM CLEAR 1.0 /3
+VETRORIA FOIS SRL
+22/01/2025
+: 0: 13i)
+EM410 (2012-04)
+Tipo di vetrata
+Dati simulati sulle prestazioni
+Trassassieno luminosa (n)
+Fariori Luminosi
+CIE (15-2004)
+Rificasione estoma IRLe:
+Rittessione intema (RLi)
+13%5
+143
+20%
+Trasmissione onerectico (TE)
+Pettori energetici
+Vetrosa :
+Rilessione e percelicat sterna (Rel
+43%
+EN:10 (2011•04)
+Pillessione energetica interno (Rei!
+33:-
+"'LANICLEAR (imme) • Ricorto
+Assoro monto inorgatico 42 (AE2)
+descria mania energetico A3 (AEL)
+12%
+Intercapedine :
+AIR 10 mm
+Fattore solare int
+Fattere solare
+Coci ciente el orabreggiomento (SC)
+0.5%
+EX4:0 (2012-04)
+0.62
+Vetratu 2
+Trasmittenza termica
+angolo relativo alla verticale
+1.3 Wim2K)
+SN673-2022
+PLANICLFAR (3mra) Ricotto
+PLANITMERM CLEAR 1.0
+¡custien
+EN 12758
+PLANICLEAR (3mam) - Ricotio
+PVS STANDARD (0.33mm)
+34 (-i, -5) 0B
+STCAS.ME:3
+29 18
+35 dg
+CITC (ASIM E:332)
+N/A
+N/A
+Reso colore
+C/E (25-2004)
+Riflessione inal
+93.8
+57.5
+Ross sua é perato
+Classe di sicurezza
+EN 12500
+NPD282
+Reseta Mlerrazione
+And-uMrazione
+EN 355
+NºD
+Spessore nominale
+Dimensioni di protuziene
+26.c 75)
+2E kgin
+impronta di Carponio
+Sostenibilia
+20220 21:500:-42120293
+Il %are catato sullo sose cella contigurazione in reissione alo
+Riscaldatmento Globale Potenziote
+EN 15504+A2 (20101
+(kg. C0: covvin" sedi curapes
+43
+Panica in.
+
+APR_OCR_ORIENTATION:90
+Tipo di vetrata
+B Calumen
+E sborn de: VETRERIA FOIS SAL
+Vetrata 2
+Beronte. PLANTTHERM CLEAR 1.0 #5
+33.2 (26 AIR) 33.1
+AIR 16 mm
+Vetrato 2.
+Interenpedine 2
+PLANICLEAR (Smi) - Ricolto
+PVS STANDARD (0.39mm)
+PLANICLEAR (2mnz) - Ricotto
+PLANITHERM CLEAR 1.D
+PANICLEAR (3mm) - Ricollo
+PVB SPANDARD (0.30MT.)
+341022
+Elaborato i: 22/02/2025
+23aLa2
+Peso
+Ritr
+Ra
+(SVP) -41.43
+impicena di Carbonis
+2 SostenibTità
+Snessore noirinale
+Riflessione (Ra)
+Rey (C:Co")
+Trasmissionc (fo)
+: Resa coloro
+4 Acustica
+Resistonze aileitrazione
+E Aati-effrazione
+Rusistenza 2 perdolo
+CITC (AST E1332)
+STC (ASTH E-23)
+: Classo di sicurezzo
+* fattere solare
+(kg. CO: aquivin'| Media eurupea
+20132 eN 1550% A2 (2019)
+Riscaldamento Globale Potenziate
+_. Dimensioni di prochiziene
+Angata ralativo alla verticale
+; Trasmitranza termica
+; Fattori changetici
+Trosmissione enargetica (TE)
+Riffessione interne (RU)
+Rifersione esterna (RLe)
+Traseissione luminosa To
+Fattori Lurainosi
+Colorge procati: iraly
+reter entre amo restarmento (sc)
+¡esortimento enargetico 02 (AE2)
+Assorbimento energedeo 41 (AL)
+Rilesson: enoçetca intema (Rci)
+Riflessione energetica esterna (Rue)
+Dati simulati sulle prestazioni
+li valore & cecalato sulla base atela contigorezione in relazione afte
+Vaioni acustici in accordo alla EN 12758 e de ente notificato
+3: kn/m'
+28.8 mm
+NPS
+IN 358
+282222
+93.6
+97.2
+N/A
+EN 12660
+30 dR
+34 dB
+0.56
+0.51
+9%
+27%
+33%
+32%
+42%
+20%
+18%
+73%
+CIE (15-2004)
+35 (-2: -5) d0
+IN 12758
+1.3 W/(rn2.K)
+ENG73-2011
+Nore: ENC20 (2011-04)
+EN 1580¿+A2 (2019)
+EN$10 (2012-04)
+ERL20 (2011-04)
+CIE: (15-2004)

@@ -1,0 +1,20 @@
+{
+  "version": "apr-financial-parser-r29-reviewed-eight-preinstall-replay-v1",
+  "generatedAt": "2026-09-02T18:52:01.333Z",
+  "source": "persisted current-cohort dossier and document analyses",
+  "results": [
+    { "customerKey": "giovanna-atzeni", "outcome": "RESOLVED", "eligibleExpense": 7900, "invoiceCount": 2 },
+    { "customerKey": "elena-marcella-berti", "outcome": "RESOLVED", "eligibleExpense": 1320, "invoiceCount": 2 },
+    { "customerKey": "gabriele-girelli", "outcome": "BLOCKED", "eligibleExpense": null, "invoiceCount": 0, "blockers": ["fonti-assenti", "nessuna-fattura-economica-valida"] },
+    { "customerKey": "giovanni-amadu", "outcome": "RESOLVED", "eligibleExpense": 7800, "invoiceCount": 1 },
+    { "customerKey": "francesca-pisanu", "outcome": "BLOCKED_STALE_OCR", "eligibleExpense": null, "invoiceCount": 2, "nextEvidence": "francesca-pisanu-ocr-operational-gate.json" },
+    { "customerKey": "maurizia-coreggioli", "outcome": "RESOLVED", "eligibleExpense": 5000, "invoiceCount": 2, "nonEconomicInvoiceCount": 1 },
+    { "customerKey": "massimo-cappello", "outcome": "RESOLVED", "eligibleExpense": 16505, "invoiceCount": 2 },
+    { "customerKey": "claudia-sellati", "outcome": "RESOLVED", "eligibleExpense": 6230, "invoiceCount": 2 }
+  ],
+  "summary": {
+    "resolvedFromPersistedAnalysis": 6,
+    "trueMissingInvoiceBlock": 1,
+    "requiresFreshOcrRerun": 1
+  }
+}

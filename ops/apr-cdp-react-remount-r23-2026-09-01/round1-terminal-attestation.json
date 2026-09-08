@@ -1,0 +1,54 @@
+{
+  "version": "apr-cdp-react-remount-r23-round1-terminal-attestation-v1",
+  "verifiedAt": "2026-09-01T17:49:46Z",
+  "freezeSha256": "d7d0a8c42260a0bfd773a2350524658929de84a57c2e7867bbfb7f9f60c39652",
+  "reportSha256": "7ef92ccfef9c868ba0d64ff8381d0fda31690f2bdd7e9c8c89d2182b8b7986ee",
+  "checkpointSha256": "c5b3b9c16a711f301a3820c9d01e51a912b4f6ec9060072d65688c265734de01",
+  "journalSha256": "f724909bba9feaf1ac4fe7f312f2dd20633b6b949b5cc6d623e3fef4c7fbdfd3",
+  "processEvidence": {
+    "sequencerRuns": 1,
+    "sequencerState": "not running",
+    "chromePid": 3785,
+    "keepalivePid": 3784,
+    "keepaliveRuns": 1
+  },
+  "summary": {
+    "total": 30,
+    "saved": 17,
+    "operatorRequired": 11,
+    "technicalBlock": 2,
+    "inconsistent": 0
+  },
+  "tripleVerification": {
+    "reportVsJournalMismatchCount": 0,
+    "reportVsTerminalSnapshotMismatchCount": 0,
+    "terminalSnapshotsPresent": 30,
+    "terminalSnapshotsConsistent": 30,
+    "status": "PASS"
+  },
+  "observabilityNote": "Per le coorti quiescenti la terza fonte e' lo snapshot terminale atomico; il dashboard worker di Danila Serpa conserva una proiezione non terminale OPERATOR_REQUIRED, mentre report, checkpoint e snapshot terminale concordano su TECHNICAL_BLOCK.",
+  "savedNames": [
+    "Barbara Melis",
+    "Mara Elena Maddiotto",
+    "Claudio Beghini",
+    "Kitenge Ebambi",
+    "Gabriella Bruno",
+    "Milena Albertoni",
+    "Lucia Lagrasta",
+    "Daniela Guidotti",
+    "Zeno Righetti",
+    "Luca Cigognetti",
+    "Cristina Ricchi",
+    "Emanuela Parolo",
+    "Roberto Marcello",
+    "Flavia Cipriani",
+    "Amelia Lerose",
+    "Eleonora Meggiarin",
+    "Armando Ranzoni"
+  ],
+  "safety": {
+    "previewAttempted": false,
+    "submitAttempted": false,
+    "communicationsAttempted": false
+  }
+}

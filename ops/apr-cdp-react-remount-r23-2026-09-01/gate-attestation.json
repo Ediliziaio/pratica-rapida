@@ -1,0 +1,29 @@
+{
+  "version": "apr-cdp-react-remount-r23-gate-attestation-v1",
+  "recordedAt": "2026-09-01T14:14:15Z",
+  "sourceRoot": "/private/tmp/apr-promote-r23.XeVzz4/source",
+  "sourceCommit": "e2066cb4f0969633838424d5efb76d604a938617",
+  "sourceTree": "721b140e9d308706499dca869e790ffd6af18930",
+  "workingTree": "clean",
+  "runtimeGate": {
+    "status": "PASS",
+    "testFiles": 216,
+    "tests": 1616,
+    "failed": 0,
+    "typecheck": "PASS",
+    "productionBuild": "PASS",
+    "executionEnvironment": "host-with-loopback-for-local-test-servers"
+  },
+  "ruleEvidence": {
+    "ruleId": "system-cdp-react-remount-readonly-poll-v1",
+    "status": "PASS",
+    "machineReadableResult": "/private/tmp/apr-r23-cdp-rule-tests.json",
+    "positiveTest": "polling read-only resiliente ai remount React termina alla prima lettura positiva senza lasciare Promise nel renderer",
+    "negativeTest": "polling read-only resiliente ai remount React fallisce chiuso dopo il numero dichiarato di probe"
+  },
+  "bundleHashes": {
+    "supervisorSha256": "62b80bf8acab5e8e5a1a0bb8b1d15685771d03708442fbb7c6f4967776b78973",
+    "workerSha256": "aae9775a07fff90039c1db761f373e1a4f75968e6df1a9fbedf642f7bea24871",
+    "watchdogSha256": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0"
+  }
+}

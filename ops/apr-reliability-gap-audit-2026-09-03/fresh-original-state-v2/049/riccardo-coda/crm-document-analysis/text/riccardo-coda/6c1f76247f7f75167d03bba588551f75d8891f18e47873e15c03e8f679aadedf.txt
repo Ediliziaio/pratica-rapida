@@ -1,0 +1,443 @@
+APR_OCR_ORIENTATION:180
+Pratica Rapida
+peda 21, S6 2.2 €
+2003 a. 135,
+21,06,2026
+e data
+Siccad es
+E presente un impianto di condizionamer
+E' una abitazione secondaria
+una abitazione principale
+NUMERO DI UNITA' IMMOBILIARI PRESENTI NELL'INTERO EDIFICIO
+Ec ficio industriale, artigianale commerciale
+are
+Costruzione isolata (es.mono e pluntam
+Edificio in linea e condominio oitre : 3 pian-
+Edificio in linea e condominio fino a 3 p. fuori terra
+TIPOLOGIA EDILIZIA
+Altro
+Industriale
+DESTINAZIONE D'USO Residenziale & Commerciale
+superficie utile in ma 13g
+ANNO DI COSTRUZIONE (anche presunto) 19†5.
+Subaltemo 7o €
+Mappale o particella 2 gP
+Foglio 46 4
+DATI CATASTALI
+Cap 20147
+Prov. fe 1
+"E in sa
+ComunE HILANO
+DATI GENERALI EDIFICIO/ABITAZIONE OGGETTO D'INTERVENTO
+Indirizzo Via DEL PETTiRosE
+Cap 20147
+Prov. HI
+N telegiono icei. 335 5265830
+Comune MILANO
+Indirizzo 1, A DEL PETTIROSSO
+Data di nascita 30 01/ 1950
+Bi
+Prov.
+LUOGO DI RESIDENZA
+Luogo di nascita BiELLa
+Codice Fiscale CPa RaR 50A30 08532
+Cognome Cope
+Nome Ricop2 00
+PERSONA FISICA
+cointestata
+Pratica
+Familiare convivente
+Detentore
+Proprietario o comproprietario
+TITOLO
+Compilazione a cura del richiedente la detrazione
+
+APR_OCR_ORIENTATION:90
+Centralizzato
+Autonomo
+Clo combustibile
+Tipo vetro sostituito
+Tipo telaio sostituito
+Gas metano
+Caloriferi
+TERMINALI DI EROGAZIONE
+TIPO DI IMPIANTO TERMICO
+Luogo e il 21, 06. 2026
+Luogo dan 21.06. 2026
+Riscaldamento a pavimento
+Smgolo
+Legno
+Energia elettrica
+DATI I DENTIFICATIVI IMPIANTO TERMICO - TIPO COMBUSTIBILE
+Gasolio
+La tesente scheda e da thenets
+PraticaRapida
+Metallo no taglio termico
+Split
+te ca parte nost.
+DATI I DENTIFICATIVI DEGLI INFISSI PRIVA DELLA SOSTITUZIONE (solo in caso di sostituzione infissi)
+Doppio
+Biomassa
+DATI IDENTIFICATIVI IMPIANTO TERMICO ESISTENTE
+Compilazione a cura del richiedente la detrazione
+Firme
+Bocchette aria calda
+Altro
+Metallo taglio termico
+Teleriscaldamento
+PVC
+Misto
+Pag 3/5
+
+APR_OCR_ORIENTATION:0
+ServiziYou
+BANCO BPM
+Dettaglio disposizione: Bonifico per detrazioni instantaneo
+Ordinante
+Beneficiario
+Conto di addebito
+00015830
+IBAN
+IT25R0200801615000040530215
+Intestato a
+CODA RICCARDO
+Intestato a
+Linea Sole Potito SRL
+Filiale
+MILANO - STAZIONE NORD -
+0370 - 0370
+P.IVA/Codice fiscale
+03397500962
+Banca beneficiario
+UNICREDIT SPA - MILANO
+FRATTINI
+Dati disposizione
+Dati esecuzione
+Importo
+1.050,50
+Stato e descrizione
+Eseguita
+Commissioni e spese
+0,63
+Data esecuzione
+21/06/2026
+Importo totale
+1.051,13
+Ora esecuzione
+Entro 10 secondi
+Codice CRO/TRN
+5034001504096173ZX01600117
+OOIT
+beneficiario
+Data accredito al
+21/06/2026
+Data e ora inserimento
+21/06/2026 17.56.54
+Causale del bonifico parlante
+Bonifico relativo a lavori edilizi che danno diritto alla detrazione prevista per
+RISPARMIO ENERGETICO - N.296/2006 ART.1/344 E SEGG.
+Pagamento fattura o ordine n°
+FATTURA N 204/2026
+del
+19/06/2026
+A favore di (P.iva o CF)
+03397500962
+Tipologia fruitore della detrazione
+PERSONA FISICA
+CF
+CDORCR50A30A859R
+Dati Aggiuntivi
+SALDO 50 TENDA DA SOLE S 81 E PANTOGRAF BRACCI MOTORE RADIOCOM NICE TELECOM TRASPO CON
+POSA IN OPERA
+Bisogno di aiuto?
+?
+800.024.024
+assistenza.clienti@bancobpm.it
+Le informazioni contenute in questa pagina non sostituiscono nè integrano le rendicontazioni periodiche che la Banca fornisce al sensi di legge.
+21.05.2026
+Pagina 1 di 1
+
+APR_OCR_ORIENTATION:0
+ServiziYou
+BANCO BPM
+Dettaglio disposizione: Bonifico per detrazioni instantaneo
+Ordinante
+Beneficiario
+Conto di addebito
+00015830
+IBAN
+IT25R0200801615000040530215
+Intestato a
+CODA RICCARDO
+Intestato a
+Linea Sole Potito SRL
+Filiale
+MILANO - STAZIONE NORD -
+0370 - 0370
+P.IVA/Codice Fiscale
+03397500962
+Banca beneficiario
+UNICREDIT SPA - MILANO
+FRATTINI
+Dati disposizione
+Dati esecuzione
+Importo
+1.050,50
+Stato e descrizione
+Eseguita
+Commissioni e spese
+0,63
+Data esecuzione
+24/04/2026
+Importo totale
+1.051,13
+Ora esecuzione
+Entro 10 secondi
+24/04/2026
+beneficiario
+Data accredito al
+Data e ora inserimento
+24/04/2026 12.30.17
+Causale del bonifico parlante
+Bonifico relativo a lavori edilizi che danno diritto alla detrazione prevista per RISPARMIO ENERGETICO - N.296/2006 ART.1/344 E SEGG.
+Pagamento fattura o ordine n°
+FATTURA N 130/2026
+del
+24/04/2026
+A favore di (P.iva o CF)
+03397500962
+Tipologia fruitore della detrazione
+PERSONA FISICA
+CF
+CDORCR50A30A859R
+POSA IN OPERA
+ACCONTO 50 PC TENDA SOLE CON MOTORE TELEC IMPIANTO ELETTRICO COLLEG AD ANEMOMETRO
+Dati Aggiuntivi
+Bisogno di aiuto?
+800.024.024
+assistenza.clienti@bancobpm.it
+Le informazioni contenute in questa pagina non sostituiscono nè integrano le rendicontazioni periodiche ch
+sce ai sensi di legge.
+24.04.2026
+Pagina 1 di 1
+
+APR_OCR_ORIENTATION:180
+arubatt
+Truba PEC
+Pag. 1/1
+Fattura generata con:
+Fattura Nr. FATTURA204/2026 del 19/06/2026
+Copia analogica della fattura elettronica inviata a Sdl | Il documento xml originale è disponibile online sul portale "Fatture e Corrispettivi dell'Agenzia delle Entrate"
+1.050,50 €
+Netto a pagare
+1.050,50 €
+Totale documento
+95,50 €
+955,00 €
+Immediata
+10%
+95,50 €
+Totale IVA
+0,00 €
+0,00 €
+22%
+955,00 €
+Totale imponibile
+955,00 €
+Importo prodotti o servizi
+IVA NATURA NORMATIVA ESIGIBILITA' IMPONIBILE IMPOSTA
+CALCOLO FATTURA
+RIEPILOGO IVA
+Descrizione causale DETRAZIONE DEL 50%in anni 10/BONIFICO
+RISPARMIO ENERGETICO L296
+CAUSALE DOCUMENTO
+DATI AGGIUNTIVI
+• REGIME FISCALE
+RF01 - Ordinario
+REGIME FISCALE
+Beneficiario: LINEA SOLE POTITO SRL
+1.050,50 €
+UNICREDITBA IT25R0200801615000040530215
+NCA
+unica soluzione
+Pagamento in
+Bonifico
+1
+IMPORTO
+BIC/SWIFT DATA SCADENZA
+IBAN
+BANCA
+PAGAMENTO
+NR RATA MODALITÀ
+METODO DI PAGAMENTO
+22 %
+0,00 €
+0,00 €
+1
+GHOT 0,13
+vigente. OMAGGIO
+10 %
+0,00 €
+0,00 €
+1
+Pratica ENEACompilazione della pratica per accedere
+alle detrazioni fiscali previste dalla normativa
+10 %
+25,00 €
+25,00 €
+1
+Trasporto
+75,00 € 10 %
+75,00 €
+1
+Posa in opera Acconto Saldo
+10 %
+50,00 €
+50,00 €
+1
+IMPIANTO ELETTRICO + COLLEGAMENTO AD
+ANEMOMETRO ESISTENTE Saldo
+4
+10 %
+40,00 €
+40,00 €
+1
+telecomando era P1/S SALDO
+3
+10 %
+140,00 €
+140,00 €
+1
+Motore radiocomando nice Saldo
+2
+marrone motivo diritta bordino beige Saldo
+625,00 € 10 %
+625,00 €
+1
+Tenda da Sole S/81E Pantografo a bracci L4600 x 2200
+COLORE TESSUTO TEMPOTEST 1/15 mantovana
+IMPORTO IVA NATURA IVA
+PREZZO
+QUANTITA'
+DESCRIZIONE
+NR
+PRODOTTI E SERVIZI
+lineapotitosole3@libero.it
+20146 - Milano (MI) - IT
+20147 - milano (MI) - IT
+Via F. Brunelleschi 2
+Via del Pettirosso n04
+C.F.: 03397500962
+C.F.: CDORCR50A30A859R
+P.IVA: IT03397500962
+RICCARDO CODA
+LINEA SOLE POTITO SRL
+CLIENTE
+FORNITORE
+Data invio: 19/06/2026
+nr. FATTURA204/2026 del 19/06/2026
+FATTURA
+
+APR_OCR_ORIENTATION:180
+ruber PEC
+Pag 1/1
+Fattura generata con:
+Fattura Nr. FATTURA130/2026 del 24/04/2026
+Copia analogica della fattura elettronica inviata a Sdi | Il documento xmi originale è disponibile online sul portale "Fatture e Corrispettivi dell'Agenzia delle Entrate"
+1.050,50 €
+Netto a pagare
+1.050,50 €
+Totale documento
+95,50 €
+Totale IVA
+95,50 €
+955,00 €
+Immediata
+10%
+955,00 €
+Totale imponibile
+955,00 €
+Importo prodotti o servizi
+IVA NATURA NORMATIVA ESIGIBILITA' IMPONIBILE IMPOSTA
+CALCOLO FATTURA
+RIEPILOGO IVA
+Descrizione causale Acconto 50% Tenda da sole
+CAUSALE DOCUMENTO
+DATI AGGIUNTIVI
+RF01 - Ordinario
+REGIME FISCALE
+REGIME FISCALE
+Beneficiario: LINEA SOLE POTITO SRL
+1.050,50 €
+UNICREDITBA IT25R0200801615000040530215
+NCA
+unica soluzione
+Pagamento in
+Bonifico
+IMPORTO
+BIC/SWIFT DATA SCADENZA
+IBAN
+BANCA
+PAGAMENTO
+NR RATA MODALITÀ
+METODO DI PAGAMENTO
+10 %
+0,00 €
+0,00 €
+1
+Pratica ENEACompilazione della pratica per accedere
+alle detrazioni fiscali previste dalla normativa
+vigente. OMAGGIO
+7
+10 %
+25,00 €
+25,00 €
+1
+Trasporto
+10%
+75,00 €
+75,00 €
+1
+Posa in opera Acconto 50%
+5
+10 %
+50,00 €
+50,00 €
+IMPIANTO ELETTRICO + COLLEGAMENTO AD
+ANEMOMETRO ESISTENTE Acconto 50%
+4
+10 %
+40.00 €
+40,00 €
+telecomando era P1/S Acconto 50%
+3
+140,00 € 10 %
+140,00 €
+Motore radiocomando nice Acconto 50%
+2
+625,00 € 10 %
+625,00 €
+Tenda da Sole S/81E Pantografo a bracci L4600 x 2200
+COLORE TESSUTO TEMPOTEST 1/15 mantovana
+marrone motivo diritta bordino beige Acconto 50%
+IMPORTO IVA NATURA IVA
+PREZZO
+QUANTITA'
+DESCRIZIONE
+NR
+PRODOTTI E SERVIZI
+lineapotitosole3@libero.it
+20146 - Milano (MI) - IT
+20147 - milano (MI) - IT
+Via F. Brunelleschi 2
+Via del Pettirosso n04
+C.F.: 03397500962
+C.F.: CDORCR50A30A859R
+P.IVA: IT03397500962
+RICCARDO CODA
+LINEA SOLE POTITO SRL
+CLIENTE
+FORNITORE
+Data invio: 24/04/2026
+nr. FATTURA130/2026 del 24/04/2026
+FATTURA

@@ -1,0 +1,157 @@
+APR_OCR_ORIENTATION:0
+RINALDI SRL
+RINALDI
+Via S.Quasimodo n.38
+40013 Castel Maggiore (BO)
+OUTDOOR SPACE ®
+Tel. 051713888 / Fax 05119980014
+www.rinaldilab.com/rinaldilab@pec.it/ info@rinaldilab.
+P.IVA 03030671204 - Cod. Fiscale 03030671204
+Destinazione Merce
+Cliente
+DROGHETTI LUCIA
+VIA CRISTOFORO COLOMBO, 60
+40131 BOLOGNA (BO)
+Tel. 3480129069 Email droghettilucia@gmail.com
+FATTURA ACCOMPAGNATORIA 734/26
+DATA
+08/07/2026
+Cod. Fisc. DRGLCU69E54A944A
+Pagamento BONIFICO BANCARIO CONSEGNA MERCE
+Banca di appoggio IT6100888336740032000321281
+Vostro Riferimento TENDA SOLE - FC
+Causale del trasporto VENDITA
+Note
+Codice
+Descrizione
+u.m.
+Quantità
+Prezzo
+Importo IVA
+STORBOX-250
+STORBOX S-250 TENDA A BRACCI ESTENSIBILI C/CASSONETTO,
+NR
+1 |1.363,63636
+1.363,64, 10
+MANUALE
+ARMATURA COLORE AVORIO, TESSUTO TEMPOTEST 102, COMANDO
+DIM.L CM 256 X SP.CM 225
+Fomitura ed installazione di schermature solari in unità immobiliare in via
+Cristoforo Colombo 60 Bologna rif. L. 296/06, L. 244/07, D.L. 63/2013, D.L
+4/2020 e succ. mod. - Schermature solari mobili ai sensi del D.L. 311/200(
+PRODOTTO MARCATO CE SECONDO LA NORMATIVA UNI EN 13561
+SUPERFICIE SCHERMATURA 5,76 ma
+CLASSE DI SCHERMATURA gtot 0,13 - classe 3
+INST
+INSTALLAZIONE E ALTRI ONERI
+NR
+1
+318,18182
+318,18 10
+DICHENEA
+DICHIARAZIONE ENEA
+NR
+1
+136,36364
+ACCONTO GIA' VERSATO RIF.NS FT 520/2026
+136,36 10
+GIA VERSATO
+ACCONTO
+NR
+1
+-500,00
+-500,00| 10
+I dati forniti verranno utilizzati esclusivamente per scopi contabili, su supporto cartaceo ed elettronico, nel rispetto del principi di protezione dei dati personali
+Regolamento GDPR 2016/679.
+Aspetto estenore A VISTA
+Numero Colli 2
+Data e Ora
+06107268,00
+Consegna a poio MITTENTE
+Porto PORTO FRANCO
+Destinatario
+Firma
+Conducente
+Firma
+Dettaglio Iva
+TALE IMPONIBILE
+€ 1.318,18
+Codice Na tizione
+Imponibile
+% IVA
+Iva 10%
+1.318,18
+10
+Imposta
+131,82
+Totale Iva
+€ 131,82
+Totale
+€ 1.450,00
+Scadenze Pagamenti
+08/07/2026
+€ 1.450,00
+1
+Contributo CONAI assolto ove dovuto
+
+APR_OCR_ORIENTATION:0
+RINALDI SRL
+# RINALDI
+Via S.Quasimodo n.38
+40013 Castel Maggiore (BO)
+OUTDOOR SPACE ®
+Tel. 051713888 / Fax 05119980014
+www.rinaldilab.com/rinaldllab@pec.lt/Info@rinaldilab.com
+P.IVA 03030671204 - Cod. Fiscale 03030671204
+Destinazione Merce
+Cliente
+DROGHETTI LUCIA
+VIA CRISTOFORO COLOMBO, 60
+40131 BOLOGNA (BO)
+Tel. 3480129069 Email droghettilucia@gmail.com
+FATTURA 520/26
+DATA 29/05/2026
+Cod. Fisc. DRGLCU69E54A944A
+Pagamento BONIFICO BANCARIO VISTA FATTURA
+Banca di appoggio |IT6100888336740032000321281
+Vostro Riferimento
+Note
+Codice
+Descrizione
+u.m.
+Quantità
+Prezzo
+Importo Iva
+ACCENEA
+ACCONTO PER FORNITURA RIF. NS ORDINE 733/2026
+Fornitura ed installazione di schermature solari in unità immobiliare in via
+NR
+1
+500,00
+500,00| 10
+Cristoforo Colombo 60 Bologna - rif. L. 296/06, L. 244/07, D.L. 63/2013, D.L.
+PRODOTTO MARCATO CE SECONDO LA NORMATIVA UNI EN 13561
+34/2020 - Schermature solari mobili ai sensi del D.L. 311/2006 allegato M
+I dati forniti verranno utilizzati esclusivamente per scopi contabili, su supporto cartaceo ed elettronico, nel rispetto dei principi di prolezione dei dati personali
+Regolamento GDPR 2016/679.
+Dettaglio Iva
+TOTALE IMPONIBILE
+€ 500,00
+Codice Descrizione
+Imponibile
+10
+% IVA
+Iva 10%
+Imposta
+Totale Iva
+500,00
+€ 50,00
+10
+50,00
+Totale
+€ 550,00
+Scadenze Pagamenti
+29/05/2026
+€ 550,00
+Pag. 1/1
+Contributo CONAl assolto ove dovuto

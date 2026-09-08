@@ -1,0 +1,51 @@
+{
+  "version": "apr-dimensioned-awning-corpus-verification-v1",
+  "verifiedAt": "2026-09-05T14:20:00.000Z",
+  "scope": {
+    "roots": [
+      "ops",
+      "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts"
+    ],
+    "selection": "Testi originari unici per SHA-256 contenenti TENDA DA SOLE, DIM. CM, LxSP e superficie MQ",
+    "uniqueDocuments": 17
+  },
+  "result": {
+    "documentsWithExplicitGTotStillRecognized": 14,
+    "documentsWithoutGTotPreservedByGeneralRule": 3,
+    "falseProductsFromAdvanceOrDeductionOnlyRows": 0
+  },
+  "withoutGTot": [
+    {
+      "customerKey": "annalisa-lanzo",
+      "sourceSha256": "228eb3a697f35e74b26534acaa70064285c74ef22ff385b03a4bda4009d46be2",
+      "widthMm": 2650,
+      "heightMm": 2200,
+      "surfaceM2": 5.83,
+      "gTot": null,
+      "ruleId": "system-dimensioned-awning-row-preservation-v1"
+    },
+    {
+      "customerKey": "monica-molteni",
+      "sourceSha256": "12a058febfdae42047ba95f6a862f2c46e3632a85a13e9ed67e1a808c5c7d23a",
+      "widthMm": 4000,
+      "heightMm": 2400,
+      "surfaceM2": 9.6,
+      "gTot": null,
+      "ruleId": "system-dimensioned-awning-row-preservation-v1"
+    },
+    {
+      "customerKey": "marco-tocchetti",
+      "sourceSha256": "dfca395de67702d246623b7de02628a313809c0c36078a6b5ec895bac5011ed1",
+      "widthMm": 4000,
+      "heightMm": 3000,
+      "surfaceM2": 12,
+      "gTot": null,
+      "ruleId": "system-dimensioned-awning-row-preservation-v1"
+    }
+  ],
+  "failClosed": {
+    "missingGTot": "Il prodotto resta riconosciuto, ma non diventa compilabile: viene emesso il blocker specifico gTot.",
+    "incoherentSurface": "La riga non viene promossa se la superficie esplicita diverge oltre il 5% dalle dimensioni.",
+    "advanceOrDeductionOnly": "Una riga di solo acconto, riferimento o detrazione non genera un prodotto fisico."
+  }
+}

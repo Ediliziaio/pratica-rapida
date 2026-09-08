@@ -1,0 +1,94 @@
+APR_OCR_ORIENTATION:90
+10
+INST
+€ 2.102,00
+05/08/2026
+DICHENEA
+Codice
+Scadenze Pagamenti
+GIA VERSATO
+ACCONTO
+Codice Descrizione
+STORBOX-250
+Destinatario
+Iva 10%
+Firma
+Destinazione Merce
+Consegna oSpizio MITTENTE
+Aspetto esterore A VISTA
+Causale del trasporto
+Vostro Riferimento
+allegato M
+Descrizione
+DICHIARAZIONE ENEA
+Note
+DIM.L.CM 260 X SP.CM 225
+FATTURA ACCOMPAGNATORIA 869/26
+INSTALLAZIONE E ALTRI ONERI
+SUPERFICIE SCHERMATURA 5,85 mq
+::RINALDI
+TOTALE SPESE CONGRUE SOSTENUTE IN BASE AI MASSIMALI AMMESSI €2276,06
+ACCONTO GIA' VERSATO RIF.NS FT 729/2026
+CLASSE DI SCHERMATURA gtot 0,13 - classe 3
+CON RADIOCOMANDO, SENSORE VENTO
+VENDITA
+Banca di appoggio IT6100888336740032000321281
+Dettaglio Iva
+STORBOX S 250 -GP
+PRODOTTO MARCATO CE SECONDO LA NORMATIVA UNI EN 13561
+34/2020 e succ. mod. - Schermature solari mobili ai sensi del D.L. 311/2006
+Aprile 1945 n.29 Castenaso (BO) rif. L. 296/06, L. 244/07, D.L. 63/2013, D.L.
+OUTDOOR SPACE ®
+Fornitura ed installazione di schermature solari in unità immobiliare in via XXV
+AVORIO, TESSUTO TEMPOTEST PARA' 15/1, COMANDO MOTORIZZATO
+STORBOX S-250 TENDA A BRACCI ESTENSIBILI, ARMATURA COLORE
+1.910,91
+Pagamento 30% ACCONTO ALL'ORDINE E SALDO ALLA CONSEGNA
+Imponibile % IVA
+DATA
+10
+Regolamento GDPR 2016/679.
+I dati forniti verranno utilizzati esclusivamente per scopi contabili, su supporto cartaceo ed elettronico, nel rispetto dei principi di protezione dei dati personali
+05/08/2026
+Cliente
+191,09
+Imposta
+RINALDI SRL
+Conducente
+Numero Colli 2
+Via S.Quasimodo n.38
+Firma
+NR
+NR
+NR
+NR
+u.m.
+40055 CASTENASO (BO)
+VIA XXV APRILE 1945 29
+CAMPAGNA CLAUDIA
+40013 Castel Maggiore (BO)
+Tel. 051713888 / Fax 05119980014
+Tel. 3357244935 Email c62claudia@gmail.com
+Porto PORTO FRANCO
+Quantità
+P.IVA 03030671204 - Cod. Fiscale 03030671204
+TOTALE IMPONIBILE
+Cod. Fisc. CMPCLD62T52A944A
+www.rinaldilab.com/rinaldilab@pec.it/info@rinaldilab.
+Totale
+Totale Iva
+1 2.236,36364
+-780,00
+90,90909
+363,63636
+Prezzo
+Data e Ora
+€ 2.102,00
+-780,00 10
+€ 191,09
+€ 1.910,91
+05/08/268,00
+90,91 10
+363,64 10
+2.236,36 10
+Importo IVA

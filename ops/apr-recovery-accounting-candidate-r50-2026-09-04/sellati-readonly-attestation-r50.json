@@ -1,0 +1,35 @@
+{
+  "version": "apr-sellati-readonly-attestation-r50-v1",
+  "verifiedAt": "2026-09-04T20:10:00.000Z",
+  "customerKey": "claudia-sellati",
+  "draftId": "460570",
+  "authorization": "GET/HEAD soltanto, con lock esclusivo del controller APR; POST/PUT/PATCH/DELETE vietati",
+  "observations": {
+    "independentGets": 3,
+    "httpStatuses": [200, 200, 200],
+    "payloadFingerprints": [
+      "6d6f1f5a40f685bd3b84c372ca151bf63ad2f1f10f90c95b922d850e85aa62fa",
+      "6d6f1f5a40f685bd3b84c372ca151bf63ad2f1f10f90c95b922d850e85aa62fa",
+      "6d6f1f5a40f685bd3b84c372ca151bf63ad2f1f10f90c95b922d850e85aa62fa"
+    ],
+    "practiceKeys": ["ver"],
+    "beneficiaryPresent": false,
+    "insertedAt": "2026-09-03 23:13:38",
+    "modifiedAt": "2026-09-03 23:13:38",
+    "networkMethods": ["GET", "GET", "GET"],
+    "blockedMutationRequests": 0,
+    "navigationEvents": 0,
+    "formEvents": 0,
+    "uiEvents": 0
+  },
+  "integrity": {
+    "executionCheckpointSha256Before": "e7350e40bb1645374aa7becebe5aa52f8182bac3b1add243740ab96d3883dc50",
+    "executionCheckpointSha256After": "e7350e40bb1645374aa7becebe5aa52f8182bac3b1add243740ab96d3883dc50",
+    "workerCheckpointSha256Before": "4c62e1deed1c038f3caa322e6372891349da1e4fa53723c5b63775087acfee7a",
+    "workerCheckpointSha256After": "4c62e1deed1c038f3caa322e6372891349da1e4fa53723c5b63775087acfee7a",
+    "driverLedgerSha256Before": "91c9aa6a1d8ca40d5a1d2c3626c181d5c4c329e91b7ab705b62cf085cd5a1957",
+    "driverLedgerSha256After": "91c9aa6a1d8ca40d5a1d2c3626c181d5c4c329e91b7ab705b62cf085cd5a1957"
+  },
+  "verdict": "not_saved",
+  "exactCause": "La bozza canonica contiene soltanto la struttura iniziale ver e non contiene l'Anagrafica Beneficiario; i tre GET concordano e i checkpoint locali sono rimasti byte-identici."
+}

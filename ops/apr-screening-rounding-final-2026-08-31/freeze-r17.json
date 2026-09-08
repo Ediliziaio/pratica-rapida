@@ -1,0 +1,67 @@
+{
+  "version": "apr-screening-rounding-final-freeze-r17-v1",
+  "frozenAt": "2026-08-31T17:35:59Z",
+  "supersedes": {
+    "freezeSha256": "1c7299df6a557d5e6504bfb64777d11781bba1987de362d18757f289342399a6",
+    "reason": "terminal snapshot omitted case identity after worker quiescence; R17 persists and validates explicit manifest identity"
+  },
+  "authorizationId": "user-2026-08-31-definitive-mandate-same-authorized-corpus",
+  "portalMode": "real_enea_draft_only",
+  "sourceSnapshot": {
+    "path": "/private/tmp/apr-promote-screening-rounding-final-20260831-R15.D7L4VU",
+    "gitCommit": "abae74ad0f86829c4759684b637081a080ad394c",
+    "treeHash": "4e8b34249ef7367da3be893f47ffd06ea55ab64e"
+  },
+  "sequencer": {
+    "path": "/private/tmp/apr-promote-screening-rounding-final-20260831-R15.D7L4VU/ops/apr-global-controller-test10-2026-08-29/sequencer.mjs",
+    "sha256": "4de062120b323bc0957fc1e6a2b983be8a35f0118c3b59ab2a7f28f912cf88a7"
+  },
+  "manifest": {
+    "path": "/private/tmp/apr-promote-screening-rounding-final-20260831-R15.D7L4VU/ops/apr-global-controller-test10-2026-08-29/manifest-autonomy30.json",
+    "sha256": "6c684df774a48899a6ff4e2a6e52dfe83c2b9c357a81a6c6c52034abe687a953",
+    "caseCount": 30,
+    "requiredCustomerKeys": ["cristina-ricchi", "zeno-righetti"],
+    "excludedCustomerKeys": ["beatrice-ciotta"]
+  },
+  "monotonicGate": {
+    "status": "PASS",
+    "testFiles": 216,
+    "tests": 1608,
+    "failed": 0,
+    "typecheck": "PASS",
+    "productionBuild": "PASS",
+    "attestationPath": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-screening-rounding-final-2026-08-31/gate-attestation-r17.json",
+    "matrixVersion": "apr-enea-rule-test-matrix-v74",
+    "registryVersion": "enea-operational-registry-v97"
+  },
+  "canonicalBundle": {
+    "versionId": "4b7bce9-screening-rounding-terminal-truth-r17-20260831",
+    "supervisorSha256": "ee257c75ad1be4ab60a3e07f36d153615cc0e7763dbda34eb8d3b455a28b0ba7",
+    "workerSha256": "4b7bce90fd31382a9944270ee8732a6d42ef0a2642bc4d3954008abb32be8d19",
+    "watchdogSha256": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "activationStatus": "ACTIVE"
+  },
+  "targeted": {
+    "customerKey": "zeno-righetti",
+    "cohort": 2136,
+    "manifestPath": "/private/tmp/apr-promote-screening-rounding-final-20260831-R15.D7L4VU/ops/apr-screening-rounding-final-2026-08-31/manifest-targeted-zeno.json",
+    "manifestSha256": "691faf1cde49b1d05700ffc75077750dbd624c08560e5d81341922cad8982741",
+    "runRoot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-screening-rounding-targeted-zeno-r17"
+  },
+  "rounds": [
+    {"round": 1, "cohortOffset": 2000, "cohortRange": "2218-2247", "runRoot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-screening-rounding-final-r17-round1"},
+    {"round": 2, "cohortOffset": 2030, "cohortRange": "2248-2277", "runRoot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-screening-rounding-final-r17-round2"},
+    {"round": 3, "cohortOffset": 2060, "cohortRange": "2278-2307", "runRoot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-screening-rounding-final-r17-round3"}
+  ],
+  "constraints": {
+    "chromeKeepaliveMayTerminate": false,
+    "chromePidAtFreeze": 42177,
+    "roundsMayOverlap": false,
+    "noCodeChangesBetweenRounds": true,
+    "sameBundleHashesRequired": true,
+    "sameManifestRequired": true,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false
+  }
+}

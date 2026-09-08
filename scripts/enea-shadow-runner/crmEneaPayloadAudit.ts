@@ -45,8 +45,10 @@ export interface CrmEneaPayloadAuditInput {
   customerKey: string;
   dossierValue: unknown;
   resolvedTaxCode?: string | null;
-  resolvedPrimaryBeneficiary?: { name: string; surname: string; taxCode: string } | null;
+  resolvedPrimaryBeneficiary?: { name: string; surname: string; taxCode: string; birthDate?: string | null; sex?: "M" | "F" } | null;
   resolvedPrimaryBeneficiarySourceIds?: string[];
+  resolvedWorksMunicipality?: { comune: string; provincia: string } | null;
+  resolvedWorksMunicipalitySourceIds?: string[];
   startDate?: string | null;
   startDateSource?: string | null;
   completionDate: string | null;
@@ -140,6 +142,21 @@ export function buildCrmEneaDraftPackage(input: CrmEneaPayloadAuditInput): CrmEn
     source.form.richiedente.nome = input.resolvedPrimaryBeneficiary.name;
     source.form.richiedente.cognome = input.resolvedPrimaryBeneficiary.surname;
     source.form.richiedente.cf = input.resolvedPrimaryBeneficiary.taxCode;
+    if (input.resolvedPrimaryBeneficiary.birthDate) source.form.richiedente.data_nascita = input.resolvedPrimaryBeneficiary.birthDate;
+  }
+  // Il mapper deriva l'indirizzo lavori dalla residenza quando
+  // stesso_indirizzo_lavori e' vero: in quel caso il Comune lavori
+  // documentale deve correggere la residenza, non il campo inerte
+  // appartamento_lavori che il mapper ignorerebbe.
+  const worksMunicipalityAppliesToResidence = Boolean(input.resolvedWorksMunicipality && source.form.residenza.stesso_indirizzo_lavori);
+  if (input.resolvedWorksMunicipality) {
+    if (worksMunicipalityAppliesToResidence) {
+      source.form.residenza.comune = input.resolvedWorksMunicipality.comune;
+      source.form.residenza.provincia = input.resolvedWorksMunicipality.provincia;
+    } else {
+      source.form.appartamento_lavori.comune = input.resolvedWorksMunicipality.comune;
+      source.form.appartamento_lavori.provincia = input.resolvedWorksMunicipality.provincia;
+    }
   }
   if (input.resolvedCoBeneficiaryPresent === false) {
     source.form.cointestazione = { presente: false, nome: "", cognome: "", cf: "" };
@@ -227,12 +244,22 @@ export function buildCrmEneaDraftPackage(input: CrmEneaPayloadAuditInput): CrmEn
   }
   if (input.resolvedPrimaryBeneficiary) {
     const beneficiaryFields = new Map(mapped.sections.flatMap((section) => section.fields).map((field) => [field.id, field]));
-    for (const fieldId of ["beneficiario.nome", "beneficiario.cognome", "beneficiario.cf"]) {
+    for (const fieldId of ["beneficiario.nome", "beneficiario.cognome", "beneficiario.cf", "beneficiario.data_nascita", "beneficiario.sesso"]) {
       const field = beneficiaryFields.get(fieldId);
       if (!field) continue;
       field.source = "Fattura";
-      field.appliedRuleIds = [USER_AUTHORIZED_RULE_IDS.invoiceIdentityOverCustomerForm, USER_AUTHORIZED_RULE_IDS.fiscalCodeIdentityCrossCheck];
-      field.note = `Identita principale verificata nella fattura originaria per lo stesso CF; fonti ${input.resolvedPrimaryBeneficiarySourceIds?.join(", ") || "originarie"}.`;
+      field.appliedRuleIds = [USER_AUTHORIZED_RULE_IDS.officialIdentityOverManualCrm, USER_AUTHORIZED_RULE_IDS.fiscalCodeIdentityCrossCheck];
+      field.note = `Identita principale verificata in documenti fiscali/ufficiali originari per lo stesso CF; fonti ${input.resolvedPrimaryBeneficiarySourceIds?.join(", ") || "originarie"}.`;
+    }
+  }
+  if (input.resolvedWorksMunicipality) {
+    const affectedFieldIds = worksMunicipalityAppliesToResidence ? ["immobile.comune", "beneficiario.comune_residenza"] : ["immobile.comune"];
+    for (const fieldId of affectedFieldIds) {
+      const field = mapped.sections.flatMap((section) => section.fields).find((candidate) => candidate.id === fieldId);
+      if (!field) continue;
+      field.source = "Fattura";
+      field.appliedRuleIds = [USER_AUTHORIZED_RULE_IDS.officialWorksMunicipalityOverManualCrm];
+      field.note = `Comune lavori verificato nel blocco intestatario/destinatario di una fattura originaria: ${input.resolvedWorksMunicipality.comune} (${input.resolvedWorksMunicipality.provincia}); prevale sul dato inserito nel CRM/form. Fonti ${input.resolvedWorksMunicipalitySourceIds?.join(", ") || "originarie"}.`;
     }
   }
   if (input.startDate) {

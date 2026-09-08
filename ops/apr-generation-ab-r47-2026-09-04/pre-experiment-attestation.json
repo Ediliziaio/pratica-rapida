@@ -1,0 +1,80 @@
+{
+  "version": "apr-generation-ab-r47-pre-experiment-attestation-v10",
+  "attestedAt": "2026-09-04T15:58:00+02:00",
+  "status": "angelina_generation_quarantined_full_recovery_audit_required",
+  "experiment": {
+    "id": "apr-generation-ab-r47-2026-09-04",
+    "authorizationId": "user-2026-09-04-generation-ab-real-10",
+    "sampleSize": 10,
+    "executionOrder": ["B_resume_generation", "A_fresh_generation"],
+    "flaviaExcluded": true
+  },
+  "frozenInputs": {
+    "designSha256": "58d6ae2eeeef430a04cdd0c89fcc670ac6239c0e90a567e0e682e34698df3522",
+    "armAManifestSha256": "f5ddafcda503fadd0bae1f31506c8c84ad8e82e668532ac9ee8edc957043ad37",
+    "armBManifestSha256": "4edee0bd38bcddcb80f882c517af6caa779abcc984c47799617709a6fc464727"
+  },
+  "localGate": {
+    "typecheckEneaRunner": "passed",
+    "lint": "scoped_changed_files_passed; global_baseline_has_114_pre-existing_errors",
+    "productionBuild": "passed",
+    "testExecution": "monotonic baseline 1739/1739 preserved; incremental gate executed as four impacted files plus two independent loopback files with local bind permission",
+    "baselineTestsPassed": 1739,
+    "testFilesPassed": 6,
+    "testsPassed": 192,
+    "testsFailed": 0,
+    "latestImpactedGate": "188/188 worker, execution, controller and registry tests passed; 31/31 independent loopback tests passed; runner TypeScript typecheck, scoped production lint and production build passed",
+    "registryVersion": "enea-operational-registry-v132",
+    "matrixVersion": "apr-enea-rule-test-matrix-v109",
+    "ruleIds": [
+      "system-generation-scoped-canonical-draft-v1",
+      "system-sequencer-single-page-recovery-filling-lifecycle-v1",
+      "system-sequencer-single-page-recovery-save-intent-lifecycle-v1",
+      "system-sequencer-recoverable-transient-pre-save-observation-v1",
+      "system-apr-continuity-no-orchestrator-stop-v1",
+      "system-infissi-recovery-candidate-transition-parity-v1",
+      "system-sequencer-nonterminal-continuous-observation-v1",
+      "system-verified-package-recovery-intent-accounting-v1",
+      "system-checkpoint-roundtrip-fail-closed-restore-v1"
+    ]
+  },
+  "experimentalBundle": {
+    "installedAsCanonical": false,
+    "apr-supervisor.mjs": "1c057f49a32df25ff671cc2cd178ce432b011731f6b91d8db819c53bfa638771",
+    "apr-enea-worker.mjs": "81e1215ec19ec9ed96b821579a30b3d0aedef5242b2d6f4ed783fba9fe9fa5bc",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0"
+  },
+  "targetedInstallation": {
+    "scope": "angelina_worker_and_supervisor_shared_checkpoint_consumers",
+    "installedWorkerSha256": "81e1215ec19ec9ed96b821579a30b3d0aedef5242b2d6f4ed783fba9fe9fa5bc",
+    "installedSupervisorSha256": "1c057f49a32df25ff671cc2cd178ce432b011731f6b91d8db819c53bfa638771",
+    "watchdogSha256": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "result": "roundtrip_correction_installed_checkpoint_462287_restored_worker_safety_stopped_on_new_resume_contract_incident",
+    "incident": "angelina-worker-replacement-incident.json",
+    "newIncident": "angelina-recovery-resume-contract-incident.json",
+    "recoveryLayerAudit": "angelina-checkpoint-recovery-layer-audit.json",
+    "checkpointRestoreAttestation": "angelina-canonical-checkpoint-restore.json",
+    "checkpointRestoreAttestationSha256": "0e25851e7facbfb4b76c92dbf30e60f4222545c1a8cd54bb537ae7284f00d384",
+    "restoredCheckpointSha256": "0b05ec3dfaf0c087c27397cbd31ca68a27beaef92c64f838d57cd9a8ad89f205",
+    "lastCdpRevision": 37,
+    "lastCdpAction": "verify_session_dom_server_get",
+    "workerLoaded": false,
+    "tripleVerificationVerdict": "INCONSISTENT",
+    "resumeRecommendation": "do_not_resume_current_generation"
+  },
+  "canonicalBaseline": {
+    "versionId": "ad840540-recovery-filling-lifecycle-r46-20260904",
+    "apr-supervisor.mjs": "035c069c7c053be9fc7e0ef79ab1de98f5f9d7d3d3c59ef2dce418f8da0562c8",
+    "apr-enea-worker.mjs": "ad8405401fb306e0343988d5f42ecdbd6e6877d9b51c2355cca2f17771de6a0d",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0"
+  },
+  "safety": {
+    "localGateOnly": true,
+    "eneaAccessedDuringGate": false,
+    "eneaReadOnlySessionProbeAfterRestore": true,
+    "eneaMutationPerformedDuringGate": false,
+    "previewPerformed": false,
+    "submitPerformed": false,
+    "communicationPerformed": false
+  }
+}

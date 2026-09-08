@@ -1,0 +1,29 @@
+{
+  "version": "apr-wide100-current-cohort-bridge-r25-resume-freeze-v1",
+  "recordedAt": "2026-09-02T08:38:00Z",
+  "authorizationId": "user-2026-09-02-wide-infissi-screening-single-run-v2",
+  "sameAuthorizedSet": true,
+  "manifestPath": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-wide100-province-lineage-2026-09-02/manifest.json",
+  "manifestSha256": "51842252f71cabb6714f78923fe59ec9789ad06739393f61a553bb4bdb9154e0",
+  "caseCount": 100,
+  "cohorts": {
+    "first": 2921,
+    "last": 3020,
+    "offset": 2920
+  },
+  "runRoot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-current-cohort-bridge-r25",
+  "sequencerLabel": "com.praticarapida.apr-wide100-current-cohort-bridge-r25",
+  "canonicalBundle": "versions/938f0626-current-cohort-bridge-r25-20260902",
+  "gateAttestation": "current-cohort-bridge-gate-attestation.json",
+  "safety": {
+    "draftOnly": true,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "protocolAllowed": false,
+    "receiptsAllowed": false,
+    "emailAllowed": false,
+    "communicationsAllowed": false,
+    "keepaliveMustRemainRunning": true,
+    "chromeMustRemainRunning": true
+  }
+}

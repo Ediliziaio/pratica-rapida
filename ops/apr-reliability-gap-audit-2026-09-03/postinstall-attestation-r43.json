@@ -1,0 +1,57 @@
+{
+  "version": "apr-uncertain-save-stale-result-retirement-r43-postinstall-attestation-v1",
+  "verifiedAt": "2026-09-04T08:02:34.457Z",
+  "status": "installed_selected_session_preserved_operational_replay_pending",
+  "versionId": "1af2d3b0-stale-probe-resume-r43-20260904",
+  "tripleVerification": {
+    "launchctlAndProcesses": {
+      "keepaliveLabel": "com.praticarapida.apr-enea-immortal-keepalive",
+      "state": "running",
+      "pid": 98419,
+      "chromeAprPid": 3785,
+      "chromeRestarted": false,
+      "keepaliveRestarted": false
+    },
+    "persistentCheckpointAndJournal": {
+      "serviceVersion": "apr-enea-worker-service-v1",
+      "revision": 14971,
+      "status": "setup_ready",
+      "heartbeatAt": "2026-09-04T08:02:33.366Z",
+      "reason": "Contratto DOM verde; auto-arm in attesa: apr_enea_worker_no_resumable_case.",
+      "contractObservedAt": "2026-09-04T08:01:48.336Z",
+      "contractEvidenceId": "cdp-server-6895-33756d8f8600bbeca4a6",
+      "forbiddenActionCount": 0,
+      "previewAttemptCount": 0,
+      "submitAttemptCount": 0,
+      "communicationAttemptCount": 0
+    },
+    "dashboardOrApi": {
+      "endpoint": "http://127.0.0.1:9331/json/list",
+      "targetId": "1C3153562376BE798125C283D8021102",
+      "pageTitle": "Bonus Fiscali - ENEA",
+      "pageUrl": "https://bonusfiscali.enea.it/dashboard",
+      "pageType": "page"
+    }
+  },
+  "activeBundleSha256": {
+    "apr-supervisor.mjs": "c2c909cfc01b94e82f2a87a3d9324c953eea7b48a46d7ae81334e545d8990faa",
+    "apr-enea-worker.mjs": "1af2d3b00de3b0943c7422c4c7e4657de1bd985bc57e9bfa6f1971b239e6a364",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "apr-pdf-ocr": "4c41c9a6832b11b9d19eace538100270a533dddc05e475e5842711968393327f"
+  },
+  "activationBoundary": {
+    "canonicalPointerSelected": true,
+    "existingKeepaliveProcessWasNotRestarted": true,
+    "residentKeepaliveCodePredatesR43": true,
+    "nextFreshAprProcessWillLoadR43": true,
+    "operationalR43ReplayPerformed": false
+  },
+  "safety": {
+    "eneaMutationPerformed": false,
+    "crmMutationPerformed": false,
+    "previewPerformed": false,
+    "savePerformed": false,
+    "submitPerformed": false,
+    "communicationPerformed": false
+  }
+}

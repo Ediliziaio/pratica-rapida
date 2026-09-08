@@ -1,0 +1,175 @@
+Data: 02/06/2026 Ora: 10.50.50
+pag: 1 Segue
+Visura n.: T36100/2026
+Ufficio Provinciale di Roma - Territorio
+Servizi Catastali
+Visura attuale sintetica per soggetto
+Situazione degli atti informatizzati al 02/06/2026
+Dati della richiesta Soggetto individuato Terreni e Fabbricati siti in tutta la provincia di ROMA
+SELLATI Giulia (CF: SLLGLI98L49H501T) nata a ROMA (RM) il 09/07/1998
+1. Immobili siti nel Comune di MONTE COMPATRI (Codice F477) Catasto dei Fabbricati
+DATI IDENTIFICATIVI DATI DI CLASSAMENTO ALTRE INFORMAZIONI
+N.
+Sez
+Urbana Foglio Numero Sub Zona
+Cens.
+Micro
+Zona Categoria Classe Consistenza Superficie
+Catastale Rendita Dati derivanti da Indirizzo
+Dati Ulteriori
+1 29 421 1 C/2 6 13m² Totale: 16 m² Euro 50,35
+VIA DI VALLE MAZZOCCHIO n. 145 Interno
+1 Piano T
+Variazione del 09/11/2015 - Inserimento in
+visura dei dati di superficie.
+2 29 421 2 C/2 6 5m² Totale: 6 m² Euro 19,37
+VIA DI VALLE MAZZOCCHIO n. 145 Interno
+2 Piano T
+Variazione del 09/11/2015 - Inserimento in
+visura dei dati di superficie.
+3 29 230 2 C/6 2 50m² Totale: 58 m² Euro 142,03
+VIA DI VALLE MAZZOCCHIO n. 145 Piano T
+Variazione del 09/11/2015 - Inserimento in
+visura dei dati di superficie.
+Annotazione
+4 29 230 502 A/7 4 12,5 vani
+Totale: 397 m²
+Totale escluse aree
+scoperte**: 374 m²
+Euro 1.775,32
+VIA DI VALLE MAZZOCCHIO n. 145 Piano
+T-1 - 2-3
+Variazione del 09/11/2015 - Inserimento in
+visura dei dati di superficie.
+Annotazione
+Immobile 3: Annotazione: -classamento e rendita validati
+Immobile 4: Annotazione: -classamento e rendita validati
+Totale: vani 12,50 m² 68 Rendita: Euro 1.987,07
+Intestazione degli immobili indicati al n.1
+N. DATI ANAGRAFICI CODICE FISCALE DIRITTI E ONERI REALI
+1 SELLATI Claudia nata a ROMA il 27/09/2002 SLLCLD02P67H501H* (1) Proprieta' 1/2
+2 SELLATI Giulia nata a ROMA il 09/07/1998 SLLGLI98L49H501T* (1) Proprieta' 1/2
+
+Data: 02/06/2026 Ora: 10.50.50
+pag: 2 Segue
+Visura n.: T36100/2026
+Ufficio Provinciale di Roma - Territorio
+Servizi Catastali
+Visura attuale sintetica per soggetto
+Situazione degli atti informatizzati al 02/06/2026
+DATI DERIVANTI DA Atto del 03/11/2023 Pubblico ufficiale ANELLINO MARCO Sede ROMA (RM) Repertorio n. 14658 - COMPRAVENDITA Nota presentata con Modello Unico n. 43908.1/2023 Reparto PI di
+ROMA 2 in atti dal 10/11/2023
+2. Immobili siti nel Comune di MONTE COMPATRI (Codice F477) Catasto dei Terreni
+DATI IDENTIFICATIVI DATI DI CLASSAMENTO ALTRE INFORMAZIONI
+N.
+Foglio Particella Sub Porz Qualità Classe Superficie(m²) Deduz. Reddito Dati derivanti da Dati Ulteriori
+ha are ca Dominicale Agrario
+1 29 38 - CANNETO 02 06 80 Euro 2,99
+Lire 5.780
+Euro 1,40
+Lire 2.720 Impianto meccanografico del 02/03/1985
+2 29 210 - SEMINATIVO 03 17 70 Euro 10,97
+Lire 21.240
+Euro 7,31
+Lire 14.160 Impianto meccanografico del 02/03/1985
+3 29 211 - SEMINATIVO 03 23 00 Euro 14,25
+Lire 27.600
+Euro 9,50
+Lire 18.400 Impianto meccanografico del 02/03/1985
+4 29 212 - SEMINATIVO 03 06 10 Euro 3,78
+Lire 7.320
+Euro 2,52
+Lire 4.880 Impianto meccanografico del 02/03/1985
+5 29 213 - SEMINATIVO 03 07 60 Euro 4,71
+Lire 9.120
+Euro 3,14
+Lire 6.080 Impianto meccanografico del 02/03/1985
+6 29 232 - SEMIN ARBOR 03 02 05 Euro 1,16
+Lire 2.255
+Euro 1,27
+Lire 2.460 Impianto meccanografico del 02/03/1985
+7 29 233 - SEMIN ARBOR 03 05 70 Euro 3,24
+Lire 6.270
+Euro 3,53
+Lire 6.840 Impianto meccanografico del 02/03/1985
+8 29 252 - BOSCO CEDUO 04 00 60 Euro 0,03
+Lire 66
+Euro 0,01
+Lire 24 Impianto meccanografico del 02/03/1985
+9 29 253 - BOSCO CEDUO 04 00 50 Euro 0,03
+Lire 55
+Euro 0,01
+Lire 20 Impianto meccanografico del 02/03/1985
+10 29 254 - BOSCO CEDUO 04 00 15 Euro 0,01
+Lire 17
+Euro 0,01
+Lire 6 Impianto meccanografico del 02/03/1985
+11 29 255 - BOSCO CEDUO 04 00 20 Euro 0,01
+Lire 22
+Euro 0,01
+Lire 8 Impianto meccanografico del 02/03/1985
+12 29 301 - SEMIN ARBOR 03 07 12 Euro 4,04
+Lire 7.832
+Euro 4,41
+Lire 8.544 Impianto meccanografico del 02/03/1985
+13 29 302 - SEMIN ARBOR 03 08 20 Euro 4,66
+Lire 9.020
+Euro 5,08
+Lire 9.840 Impianto meccanografico del 02/03/1985
+14 29 338 - SEMINATIVO 03 00 03 Euro 0,02
+Lire 36
+Euro 0,01
+Lire 24 Impianto meccanografico del 02/03/1985
+15 29 339 - SEMINATIVO 03 01 85 Euro 1,15
+Lire 2.220
+Euro 0,76
+Lire 1.480 Impianto meccanografico del 02/03/1985
+
+Data: 02/06/2026 Ora: 10.50.50
+pag: 3 Segue
+Visura n.: T36100/2026
+Ufficio Provinciale di Roma - Territorio
+Servizi Catastali
+Visura attuale sintetica per soggetto
+Situazione degli atti informatizzati al 02/06/2026
+DATI IDENTIFICATIVI DATI DI CLASSAMENTO ALTRE INFORMAZIONI
+N.
+Foglio Particella Sub Porz Qualità Classe Superficie(m²) Deduz. Reddito Dati derivanti da Dati Ulteriori
+16 29 340 - SEMIN ARBOR 03 03 90 Euro 2,22
+Lire 4.290
+Euro 2,42
+Lire 4.680 Impianto meccanografico del 02/03/1985
+17 29 341 - SEMIN ARBOR 03 02 70 Euro 1,53
+Lire 2.970
+Euro 1,67
+Lire 3.240 Impianto meccanografico del 02/03/1985
+18 29 342 - SEMIN ARBOR 03 00 85 Euro 0,48
+Lire 935
+Euro 0,53
+Lire 1.020 Impianto meccanografico del 02/03/1985
+19 29 343 - SEMINATIVO 03 01 30 Euro 0,81
+Lire 1.560
+Euro 0,54
+Lire 1.040 Impianto meccanografico del 02/03/1985
+Totale: Superficie .96.35 Redditi: Dominicale Euro 56,09 Agrario Euro 44,13
+Intestazione degli immobili indicati al n.2
+N. DATI ANAGRAFICI CODICE FISCALE DIRITTI E ONERI REALI
+1 SELLATI Claudia nata a ROMA il 27/09/2002 SLLCLD02P67H501H* (1) Proprieta' 1/2
+2 SELLATI Giulia nata a ROMA il 09/07/1998 SLLGLI98L49H501T* (1) Proprieta' 1/2
+DATI DERIVANTI DA Atto del 03/11/2023 Pubblico ufficiale ANELLINO MARCO Sede ROMA (RM) Repertorio n. 14658 - COMPRAVENDITA Nota presentata con Modello Unico n. 43908.1/2023 Reparto PI di
+ROMA 2 in atti dal 10/11/2023
+Totale Generale: vani 12,50 m² 68 Rendita: Euro 1.987,07
+Totale Generale: Superficie .96.35 Redditi: Dominicale Euro 56,09 Agrario Euro 44,13
+Unità immobiliari n. 23
+* Codice Fiscale Validato in Anagrafe Tributaria
+** Si intendono escluse le "superfici di balconi, terrazzi e aree scoperte pertinenziali e accessorie, comunicanti o non comunicanti"
+(cfr. Provvedimento del Direttore dell'Agenzia delle Entrate 29 marzo 2013).
+
+Ufficio Provinciale di Roma - Territorio
+Servizi Catastali
+Visura telematica
+Visura attuale sintetica per soggetto
+Situazione degli atti informatizzati al 02/06/2026
+Data: 02/06/2026 Ora: 10.50.50
+pag: 4 Fine
+Visura n.: T36100/2026

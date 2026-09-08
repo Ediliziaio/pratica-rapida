@@ -11,6 +11,7 @@ import { PersistentLocalDossierBatch } from "./localDossierBatch";
 import { PersistentAprEneaDraftExecution } from "./eneaDraftExecution";
 import { PersistentAprCrmDocumentAnalysis } from "./crmDocumentAnalysis";
 import { PersistentAprCrmLocalPreflight } from "./crmLocalPreflight";
+import { assertAprRuleGovernanceAdmission } from "./aprRuleGovernanceAdmission";
 
 function option(name: string) {
   const index = process.argv.indexOf(name);
@@ -92,6 +93,7 @@ try {
     const state = store.load();
     process.stdout.write(`${JSON.stringify({ supervisor: runtimeStore.load(), runner: supervise(state), readiness: readinessStore.snapshot(), adapter: adapterStore.snapshot() }, null, 2)}\n`);
   } else if (mode === "serve" || mode === "watch") {
+    assertAprRuleGovernanceAdmission({ executablePath: process.argv[1] });
     const port = Number(option("--port") ?? "4317");
     const intervalMs = Number(option("--interval-ms") ?? "5000");
     const supervisor = new LocalDashboardSupervisor(rootDirectory, { port, heartbeatIntervalMs: intervalMs, checkpointMode: option("--checkpoint-mode") as "resume" | "migrate" | undefined });

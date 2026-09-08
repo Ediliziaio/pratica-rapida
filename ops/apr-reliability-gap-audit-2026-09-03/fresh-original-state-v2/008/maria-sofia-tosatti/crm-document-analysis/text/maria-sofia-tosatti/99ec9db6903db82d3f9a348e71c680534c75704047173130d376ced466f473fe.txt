@@ -1,0 +1,331 @@
+APR_OCR_ORIENTATION:180
+arubatt
+ruba PEC
+Pag.1/1
+Fattura generata con:
+Pansas Ne PAT1URS61760026 sel 06/06/2026
+Capie analogica della fattura elettronica inviata a Sdi | li documento xml originale é disponibile online sul portale "Fatture e Corrispettivi dell'Agenzia delle Entrate"
+1.254,00 €
+Netto a pagare
+1.254,00 €
+Totale documento
+114,00 €
+Totale IVA
+1.140,00 € 114,00 €
+Immediata
+1.140,00 €
+Totale imponibile
+1.140,00 €
+Importo prodotti o servizi
+IVA NATURA NORMATIVA ESIGIBILITA' IMPONIBILE IMPOSTA
+CALCOLO FATTURA
+RIEPILOGO IVA
+sorzione causale 2: DETRAZIONE DEL 50%IN ANNI 10/BONBIFIC
+SPARMIO ENERGETICO L29
+Descrizione causale 1: Acconto 50% come da preventivo N. PREV-2026-
+122
+CAUSALE DOCUMENTO
+•
+DATI AGGIUNTIVI
+RF01 - Ondinanio
+• REGIME FISCALE
+REGIME FISCALE
+Beneficiario: LINEA SOLE POTITO SRL
+1.254,00 €
+UNICREDITBA IT25R0200801615000040530215
+NCA
+unica soluzione
+Pagamento in
+Bonifico
+IMPORTO
+BIC/SWIFT DATA SCADENZA
+IBAN
+BANCA
+PAGAMENTO
+NR RATA MODALITÀ
+METODO DI PAGAMENTO
+10 %
+75,00 €
+75,00 €
+1
+Pratica ENEA (acconto 50%)
+10 %
+0,00 €
+0,00 €
+1
+(acconto 50%)
+7
+10 %
+0,00 €
+0,00 €
+1
+Trasporto compreso (acconto 50%)
+10 %
+90,00 €
+90,00 €
+1
+Eletricista impianto elettrico a pulsante (acconto 50%)
+5
+10 %
+75,00 €
+75,00 €
+anemometro (acconto 50%)
+4
+10 %
+150,00 €
+150,00 €
+1
+Motore pulsante (acconto 50%)
+3
+10 %
+75,00 €
+75,00 €
+1
+Posa (acconto 50%)
+2
+10%
+675,00 €
+675,00 €
+Tenda cassonata a scomparsa tessuto tempotest
+(acconto 50%)
+IMPORTO IVA NATURA IVA
+PREZZO
+QUANTITA'
+NR DESCRIZIONE
+PRODOTTI E SERVIZI
+lineapotilesole3@lbero.it
+20146 - Milano (MI) - IT
+20146 - Nilano (MI) - IT
+via giambellino 19
+Via F. Brunelleschi 2
+C.F.: TSTMSF34M58C207W
+C.F.: 03397500962
+TOSATTI MARIA SOFIA
+P.IVA: (T03397500962
+LINEA SOLE POTITO SRL
+CLIENTE
+FORNITORE
+Data invio: 05/06/2026
+nr. FATTURA178/2026 del 05/06/2026
+FATTURA
+
+APR_OCR_ORIENTATION:180
+ruba PEC
+Pag.1/1
+aroba.ft
+Fattura generata con:
+Fattura Nr. FATTURA233/2026 del 01/07/2026
+Copia analogica della fattura clettronica inviata a Sdi | Il documento xmi originale é disponibile online sul portale "Fatture e Corrispettivi dell'Agenzia delle Entrate"
+1.254,00 €
+Netto a pagare
+1.254,00 €
+Totale documento
+114,00 €
+1.140,00 €
+Immediata
+10%
+114,00 €
+Totale IVA
+0,00 €
+0,00 €
+22%
+1.140,00 €
+Totale imponibile
+1.140,00 €
+Importo prodotti o servizi
+IVA NATURA NORMATIVA ESIGIBILITA' IMPONIBILE IMPOSTA
+CALCOLO FATTURA
+RIEPILOGO IVA
+Descrizione causale DETRAZIONE DEL 50%IN ANNI 10/BONBIFICO
+RISPARMIO ENERGETICO L296
+• CAUSALE DOCUMENTO
+DATI AGGIUNTIVI
+RF01 - Ordinario
+REGIME FISCALE
+••
+REGIME FISCALE
+Beneficiario: LINEA SOLE POTITO SRL
+1.254,00 €
+UNICREDITBA IT25R0200801615000040530215
+NCA
+unica soluzione
+Pagamento in
+Bonifico
+1
+IMPORTO
+BIC/SWIFT DATA SCADENZA
+IBAN
+BANCA
+PAGAMENTO
+NR RATA MODALITÀ
+METODO DI PAGAMENTO
+22 %
+0,00 €
+0,00 €
+1
+GHOT TENDA 0,12
+10 %
+75,00 €
+75,00 €
+1
+Pratica ENEA saldo
+7
+10 %
+0,00 €
+0,00 €
+1
+Trasporto compreso saldo
+6
+10 %
+90,00 €
+90,00 €
+1
+Elettricista impianto elettrico a pulsante saldo
+5
+10 %
+75,00 €
+75,00 €
+1
+anemometro saldo
+4
+10 %
+150,00 €
+150,00 €
+1
+Motore pulsante saldo
+3
+10 %
+75,00 €
+75,00 €
+1
+Posa Saldo
+2
+10%
+675,00 €
+675,00 €
+1
+Tenda cassonata a scomparsa tessuto tempotest Saldo
+1
+IVA NATURA IVA
+IMPORTO
+PREZZO
+QUANTITA'
+DESCRIZIONE
+NR
+PRODOTTI E SERVIZI
+lineapotitosole3@libero.it
+20146 - Milano (MI) - IT
+20146 - Milano (MI) - IT
+Via F. Brunelleschi 2
+via giambellino 79
+C.F.: 03397500962
+C.F.: TSTMSF34M58C207W
+P.IVA: IT03397500962
+TOSATTI MARIA SOFIA
+LINEA SOLE POTITO SRL
+CLIENTE
+FORNITORE
+Data invio: 01/07/2026
+nr. FATTURA233/2026 del 01/07/2026
+FATTURA
+
+APR_OCR_ORIENTATION:90
+296/06
+COMMISSIONI
+PER IL CLIENTE
+TSTMSF34M58C207W
+CAUSALE ABI: CASH
+DATA REGOLAMENTO
+BIC: UNCRITM1215
+SPESE SU BENI DI PROPRIETA'
+DI: LINEA SOLE POTITO S.R.L.
+INTESA
+CF/P. IVA BENEFICIARIO: 03397500962
+CRO: 0306973996832101800160001600IT
+DATA ESECUZIONE ORDINE: 18/06/2026
+Sociale Euro 10.368.870,930,08
+CHIAVE OP. 7K0222026061880SBE084940789
+DESCRIZIONE BANCA: SOLE MAZZALI MARIA PAOLA
+DEBITORE: MAZZALI CRISTINA. MAZZALI MARIA PAO
+DATA ORA REVOCABILITA': 18/06/2026 11:15:00
+BONIFICO ORDINARIO ART. 16-BIS TUIR A FAVORE
+CF/P. IVA CONTRIBUENTE CHE USUFRUISCE DETRAZIONE:
+CON PAGAMENTO DISPOSTO DA: TOSATTI MARIA SOFIA
+IBAN BENEFICIARIO:IT25R0200801615000040530215
+presso Filiale (01033) INTESA SANPAOLO S.P.A.
+DESCRIZIONE BENEFICIARIO: RISPARMIO ENERGETICO - brois
+: 22/06/2026
+Tutela dei Depositi e ai Fondo Nazionale di Garanzia Capogruppo del
+Contitolare del rapporto: IBAN IT38Y0306909496100000016391
+Operazione disposta 1l 18/06/2026 da TOSATTI MARIA SOFIA
+intestato MALLALI CRISTINA. MAZZALI MARIA PAOLA. TOSATTI MARIA SOFIA.M
+SANPAOLO
+Sanpaolo" Partita IVA 11991500015 (IT1 1991500015) N. Iscr. Albo Banche 5361 Codice ABI 3069 2
+Registro delle Imprese di Torino
+Firma..
+Intesa Sanpaolo S.p.A. Sede Legale: Piazza S. Carlo, 156 10121 Torino Sede Secondaria: Via Monte di Pi
+Documento sottoscritto anche con firma digitale di un raporesentante della Banca
+3 5
+Codice Fiscale 00799960158
+enenetnod onovec sonse sis 1nsgm
+1.254.00
+Rappresentan
+3.50
+EURO
+Aderente
+20121 Milano
+18/06/26
+VALUTA
+Fondo Interbancano d
+Gruppo IVA
+9 3131c
+91000U12.1800 00251020 120030281
+• carta ecolooica certificat:
++S0* C1003bt
+
+APR_OCR_ORIENTATION:0
+INTESA
+SANPAOLO
+CHIAVE OP. 1837320260710B0S8E102839133
+Operazione disposta il 10/07/2026 da MAZZALI MARIA PAOLA
+presso Filiale (00432) INTESA SANPAOLO S.P.A.
+Contitolare del rapporto: IBAN IT38Y0306909496100000016391
+intestato MAZZALI CRISTINA, MAZZALI MARIA PAOLA, TOSATTI MARIA SOFIA, M
+EURO
+VALUTA
+BONIFICO ORDINARIO ART. 16-BIS TUIR A FAVORE
+1.254,00
+10/07/26
+DI: LINEA SOLE POTITO SRL
+IBAN BENEFICIARIO:IT25R0200801615000040530215
+CON PAGAMENTO DISPOSTO DA: MAZZALI MARIA PAOLA
+BIC: UNCRITM1215
+DATA REGOLAMENTO
+: 14/07/2026
+DATA ESECUZIONE ORDINE: 10/07/2026
+DATA ORA REVOCABILITA': 10/07/2026 13:15:00
+DEBITORE: MAZZALI CRISTINA, MAZZALI MARIA PAO
+CRO: 030697401914070700160001600IT
+CAUSALE ABI: CASH
+DESCRIZIONE BENEFICIARIO: RISPARMIO ENERGETICO - L.
+296/06
+3,50
+COMMISSIONI
+SPESE SU BENI DI PROPRIETA'
+CF/P.IVA CONTRIBUENTE CHE USUFRUISCE DETRAZIONE:
+TSTMSF 34M58C207W
+CF/P.IVA BENEFICIARIO: 03397500962
+DESCRIZIONE BANCA: 0/C TOSATTI MARIA SOFIA -
+SALDO TENDE SOLE FATTURA N 233/2026
+Documento sottoscritto anche con firma digitale di un rappresentante della Banca
+NI - Ed. 07/22
+INTERA SANPADAG
+"Pista di Rapeto-
+Firma
+nasa Sanpacio cer l'ambiente - carta ecologica certificata
+M10MOCC000002ECO (ex IM10)
+PER IL CLIENTE
+Sociale Euro 10 368.870 930,08 Registro delle Imprese di Torino e Codice Fiscale 00799960158 Rappresentante del Gruppo IVA "intesa
+Intesa Sanpaolo S.p.A. Sede Legale: Piazza S. Carlo, 156 10121 Torino Sede Secondaria: Via Monte di Pietà, 8 20121 Milano Capitale
+Sanpaolo" Partita IVA 11991500015 (IT11991500015) N. Iscr. Albo Banche 5361 Codice ABI 3069.2 Aderente al Fondo Interbancario di
+Tutela dei Depositi e al Fondo Nazionale di Garanzia Capogruppo del gruppo bancario "intesa Sanpaolo" iscritto all'Albo dei Gruppi Bancar

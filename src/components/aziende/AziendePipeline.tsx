@@ -118,6 +118,7 @@ export default function AziendePipeline() {
   const [confirmDeleteLead, setConfirmDeleteLead] = useState<CrmLead | null>(null);
   const [notesCard, setNotesCard]               = useState<{ id: string; label: string } | null>(null);
   const [newNote, setNewNote]                   = useState("");
+  const [confirmDeleteCompany, setConfirmDeleteCompany] = useState<Company | null>(null);
 
   // ── Queries ──────────────────────────────────────────────────────────────
 
@@ -236,6 +237,29 @@ export default function AziendePipeline() {
       if (error) throw error;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["crm_leads"] }),
+    onError: (e: Error) => toast({ title: "Errore", description: e.message, variant: "destructive" }),
+  });
+
+  /** Elimina un'azienda tramite la edge function (conserva le pratiche,
+   *  riassegnandole a "Rivenditore eliminato"). Stesso flusso della vista Lista. */
+  const deleteCompanyMut = useMutation({
+    mutationFn: async (companyId: string) => {
+      const { data, error } = await supabase.functions.invoke("delete-company", { body: { company_id: companyId } });
+      if (error) throw error;
+      const r = data as { success?: boolean; error?: string; reassigned_practices?: number };
+      if (!r?.success) throw new Error(r?.error ?? "Eliminazione fallita");
+      return r;
+    },
+    onSuccess: (r) => {
+      queryClient.invalidateQueries({ queryKey: ["admin-companies"] });
+      setConfirmDeleteCompany(null);
+      toast({
+        title: "Azienda eliminata",
+        description: r.reassigned_practices
+          ? `${r.reassigned_practices} pratiche conservate (riassegnate a "Rivenditore eliminato").`
+          : "Account e accessi rimossi.",
+      });
+    },
     onError: (e: Error) => toast({ title: "Errore", description: e.message, variant: "destructive" }),
   });
 
@@ -597,19 +621,29 @@ export default function AziendePipeline() {
                         </p>
                       )}
 
-                      <Button
-                        variant="ghost" size="sm"
-                        className="w-full h-7 justify-start text-xs text-muted-foreground hover:text-foreground gap-1.5 border-t rounded-none -mx-3 -mb-3 px-3 pt-2"
-                        onClick={() => { setNotesCard({ id: lead.id, label: `${lead.nome} ${lead.cognome ?? ""}`.trim() }); setNewNote(""); }}
-                      >
-                        <StickyNote className="h-3.5 w-3.5" />
-                        Aggiungi nota
-                        {(cardNotes[lead.id]?.length ?? 0) > 0 && (
-                          <Badge variant="secondary" className="ml-auto text-[10px] tabular-nums">
-                            {cardNotes[lead.id].length}
-                          </Badge>
-                        )}
-                      </Button>
+                      <div className="flex items-center border-t -mx-3 -mb-3">
+                        <Button
+                          variant="ghost" size="sm"
+                          className="flex-1 h-7 justify-start text-xs text-muted-foreground hover:text-foreground gap-1.5 rounded-none px-3 pt-2"
+                          onClick={() => { setNotesCard({ id: lead.id, label: `${lead.nome} ${lead.cognome ?? ""}`.trim() }); setNewNote(""); }}
+                        >
+                          <StickyNote className="h-3.5 w-3.5" />
+                          Aggiungi nota
+                          {(cardNotes[lead.id]?.length ?? 0) > 0 && (
+                            <Badge variant="secondary" className="ml-1 text-[10px] tabular-nums">
+                              {cardNotes[lead.id].length}
+                            </Badge>
+                          )}
+                        </Button>
+                        <Button
+                          variant="ghost" size="sm"
+                          className="h-7 text-xs text-muted-foreground hover:text-destructive gap-1.5 rounded-none border-l px-3 pt-2"
+                          onClick={() => setConfirmDeleteLead(lead)}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                          Elimina
+                        </Button>
+                      </div>
                     </CardContent>
                   </Card>
                 );
@@ -699,19 +733,29 @@ export default function AziendePipeline() {
                       </span>
                     </div>
 
-                    <Button
-                      variant="ghost" size="sm"
-                      className="w-full h-7 justify-start text-xs text-muted-foreground hover:text-foreground gap-1.5 border-t rounded-none -mx-3 -mb-3 px-3 pt-2"
-                      onClick={() => { setNotesCard({ id: company.id, label: company.ragione_sociale }); setNewNote(""); }}
-                    >
-                      <StickyNote className="h-3.5 w-3.5" />
-                      Aggiungi nota
-                      {(cardNotes[company.id]?.length ?? 0) > 0 && (
-                        <Badge variant="secondary" className="ml-auto text-[10px] tabular-nums">
-                          {cardNotes[company.id].length}
-                        </Badge>
-                      )}
-                    </Button>
+                    <div className="flex items-center border-t -mx-3 -mb-3">
+                      <Button
+                        variant="ghost" size="sm"
+                        className="flex-1 h-7 justify-start text-xs text-muted-foreground hover:text-foreground gap-1.5 rounded-none px-3 pt-2"
+                        onClick={() => { setNotesCard({ id: company.id, label: company.ragione_sociale }); setNewNote(""); }}
+                      >
+                        <StickyNote className="h-3.5 w-3.5" />
+                        Aggiungi nota
+                        {(cardNotes[company.id]?.length ?? 0) > 0 && (
+                          <Badge variant="secondary" className="ml-1 text-[10px] tabular-nums">
+                            {cardNotes[company.id].length}
+                          </Badge>
+                        )}
+                      </Button>
+                      <Button
+                        variant="ghost" size="sm"
+                        className="h-7 text-xs text-muted-foreground hover:text-destructive gap-1.5 rounded-none border-l px-3 pt-2"
+                        onClick={() => setConfirmDeleteCompany(company)}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                        Elimina
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               ))}
@@ -951,6 +995,34 @@ export default function AziendePipeline() {
               }}
             >
               Elimina definitivamente
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete confirmation — azienda */}
+      <AlertDialog open={!!confirmDeleteCompany} onOpenChange={(o) => !o && setConfirmDeleteCompany(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Eliminare l'azienda?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Stai per eliminare <strong>{confirmDeleteCompany?.ragione_sociale}</strong>.
+              L'account e gli accessi vengono rimossi. Le eventuali pratiche vengono
+              <strong> conservate</strong> e riassegnate a "Rivenditore eliminato".
+              L'azione non è reversibile.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteCompanyMut.isPending}>Annulla</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={deleteCompanyMut.isPending}
+              onClick={(e) => {
+                e.preventDefault(); // gestiamo noi la chiusura in onSuccess
+                if (confirmDeleteCompany) deleteCompanyMut.mutate(confirmDeleteCompany.id);
+              }}
+            >
+              {deleteCompanyMut.isPending ? "Eliminazione…" : "Elimina definitivamente"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

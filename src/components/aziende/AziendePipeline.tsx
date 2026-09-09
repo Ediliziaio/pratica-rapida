@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type MouseEvent as ReactMouseEvent, type ReactNode } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Json } from "@/integrations/supabase/types";
@@ -119,6 +119,11 @@ export default function AziendePipeline() {
   const [notesCard, setNotesCard]               = useState<{ id: string; label: string } | null>(null);
   const [newNote, setNewNote]                   = useState("");
   const [confirmDeleteCompany, setConfirmDeleteCompany] = useState<Company | null>(null);
+  const [detail, setDetail] = useState<
+    | { kind: "lead"; lead: CrmLead }
+    | { kind: "company"; company: Company }
+    | null
+  >(null);
 
   // ── Queries ──────────────────────────────────────────────────────────────
 
@@ -413,6 +418,19 @@ export default function AziendePipeline() {
   const getLeadsForStage = (stageId: string) =>
     leads.filter(l => l.stage_id === stageId);
 
+  const stageName = (stageId: string) =>
+    sortedStages.find(s => s.id === stageId)?.name ?? stageId;
+
+  /** Fase corrente di un'azienda (assegnata o, se non assegnata, la prima). */
+  const companyStageId = (companyId: string) =>
+    assignments[companyId] ?? sortedStages[0]?.id ?? "lead";
+
+  /** Apre il dettaglio se il click non proviene da un bottone/link interno. */
+  const openDetailGuard = (e: ReactMouseEvent, open: () => void) => {
+    if ((e.target as HTMLElement).closest("button, a")) return;
+    open();
+  };
+
   // ── Render ────────────────────────────────────────────────────────────────
 
   return (
@@ -480,10 +498,11 @@ export default function AziendePipeline() {
                 return (
                   <Card
                     key={lead.id}
-                    className={`border-l-[3px] hover:shadow-sm transition-shadow ${
+                    className={`border-l-[3px] hover:shadow-sm transition-shadow cursor-pointer ${
                       isNew ? "ring-1 ring-emerald-500/40 shadow-emerald-100" : ""
                     }`}
                     style={{ borderLeftColor: stage.color }}
+                    onClick={(e) => openDetailGuard(e, () => setDetail({ kind: "lead", lead }))}
                   >
                     <CardContent className="p-3 space-y-2">
                       <div className="flex items-start justify-between gap-1">
@@ -653,8 +672,9 @@ export default function AziendePipeline() {
               {stageCompanies.map(company => (
                 <Card
                   key={company.id}
-                  className="border-l-[3px] hover:shadow-sm transition-shadow"
+                  className="border-l-[3px] hover:shadow-sm transition-shadow cursor-pointer"
                   style={{ borderLeftColor: stage.color }}
+                  onClick={(e) => openDetailGuard(e, () => setDetail({ kind: "company", company }))}
                 >
                   <CardContent className="p-3 space-y-2">
                     <div className="flex items-start justify-between gap-1">
@@ -1027,6 +1047,121 @@ export default function AziendePipeline() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Dettaglio cliente — tutte le info al click sulla card */}
+      <Dialog open={!!detail} onOpenChange={(o) => !o && setDetail(null)}>
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+          {detail && (() => {
+            const isLead = detail.kind === "lead";
+            const id = isLead ? detail.lead.id : detail.company.id;
+            const title = isLead
+              ? `${detail.lead.nome} ${detail.lead.cognome ?? ""}`.trim()
+              : detail.company.ragione_sociale;
+            const sid = isLead ? detail.lead.stage_id : companyStageId(detail.company.id);
+            const stageColor = sortedStages.find(s => s.id === sid)?.color ?? "#64748b";
+            const email = isLead ? detail.lead.email : detail.company.email;
+            const telefono = isLead ? detail.lead.telefono : detail.company.telefono;
+            const notesList = cardNotes[id] ?? [];
+            const sb = isLead ? (SOURCE_BADGE[detail.lead.source] ?? SOURCE_BADGE.manual) : null;
+
+            const Row = ({ label, children }: { label: string; children: ReactNode }) => (
+              <div className="flex items-start gap-3 py-1.5">
+                <span className="text-xs text-muted-foreground w-24 shrink-0 pt-0.5">{label}</span>
+                <div className="text-sm flex-1 min-w-0">{children}</div>
+              </div>
+            );
+
+            return (
+              <>
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    {isLead ? <User className="h-4 w-4" /> : <Building2 className="h-4 w-4 text-primary" />}
+                    {title}
+                  </DialogTitle>
+                </DialogHeader>
+
+                <div className="divide-y">
+                  <Row label="Fase">
+                    <span className="inline-flex items-center gap-1.5">
+                      <span className="w-2.5 h-2.5 rounded-full" style={{ background: stageColor }} />
+                      {stageName(sid)}
+                    </span>
+                  </Row>
+                  <Row label="Email">
+                    {email
+                      ? <a href={`mailto:${email}`} className="text-primary hover:underline break-all">{email}</a>
+                      : <span className="text-muted-foreground">—</span>}
+                  </Row>
+                  <Row label="Telefono">
+                    {telefono
+                      ? <a href={`tel:${telefono}`} className="text-primary hover:underline">{telefono}</a>
+                      : <span className="text-muted-foreground">—</span>}
+                  </Row>
+                  {isLead && (
+                    <Row label="Città">
+                      {detail.lead.citta || <span className="text-muted-foreground">—</span>}
+                    </Row>
+                  )}
+                  {!isLead && (
+                    <>
+                      <Row label="Settore">{detail.company.settore || <span className="text-muted-foreground">—</span>}</Row>
+                      <Row label="P. IVA">{detail.company.piva || <span className="text-muted-foreground">—</span>}</Row>
+                    </>
+                  )}
+                  <Row label="Provenienza">
+                    {isLead
+                      ? <span className="inline-flex items-center gap-2">
+                          {sb && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide"
+                            style={{ backgroundColor: sb.bg, color: sb.color }}>{sb.label}</span>}
+                          {detail.lead.page_url && <span className="text-xs text-muted-foreground truncate">{detail.lead.page_url}</span>}
+                        </span>
+                      : <span className="text-muted-foreground">Azienda registrata</span>}
+                  </Row>
+                  <Row label="Creato il">
+                    {format(new Date(isLead ? detail.lead.created_at : detail.company.created_at), "d MMM yyyy 'alle' HH:mm", { locale: it })}
+                  </Row>
+                  {isLead && detail.lead.note && (
+                    <Row label="Messaggio">
+                      <p className="whitespace-pre-wrap text-sm">{detail.lead.note}</p>
+                    </Row>
+                  )}
+                </div>
+
+                {/* Note datate */}
+                <div className="pt-2">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-sm font-medium flex items-center gap-1.5">
+                      <StickyNote className="h-4 w-4" /> Note
+                      {notesList.length > 0 && <Badge variant="secondary" className="text-[10px]">{notesList.length}</Badge>}
+                    </p>
+                    <Button
+                      size="sm" variant="outline" className="h-7 text-xs"
+                      onClick={() => { setNotesCard({ id, label: title }); setNewNote(""); setDetail(null); }}
+                    >
+                      <Plus className="h-3.5 w-3.5 mr-1" /> Aggiungi nota
+                    </Button>
+                  </div>
+                  {notesList.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">Nessuna nota.</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {notesList.map(n => (
+                        <div key={n.at} className="rounded-lg border bg-muted/30 p-2.5">
+                          <p className="text-sm whitespace-pre-wrap">{n.text}</p>
+                          <p className="text-[11px] text-muted-foreground mt-1.5">
+                            {format(new Date(n.at), "d MMM yyyy 'alle' HH:mm", { locale: it })}
+                            {n.by && ` · ${n.by}`}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
 
       {/* Notes dialog — storico note con data + aggiunta nuova nota */}
       <Dialog open={!!notesCard} onOpenChange={(o) => { if (!o) { setNotesCard(null); setNewNote(""); } }}>

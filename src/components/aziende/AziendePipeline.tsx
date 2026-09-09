@@ -89,6 +89,7 @@ const SOURCE_BADGE: Record<string, { label: string; bg: string; color: string }>
   whatsapp:    { label: "WhatsApp",   bg: "hsla(122,80%,40%,0.12)", color: "hsl(122 80% 30%)" },
   import:      { label: "Import",     bg: "hsla(220,80%,55%,0.12)", color: "hsl(220 80% 35%)" },
   manual:      { label: "Aggiunto",   bg: "hsla(0,0%,50%,0.12)",    color: "hsl(0 0% 35%)" },
+  meta_ads:    { label: "Meta Ads",   bg: "hsla(214,89%,52%,0.12)", color: "hsl(214 89% 42%)" },
 };
 
 // ── Helper ───────────────────────────────────────────────────────────────────

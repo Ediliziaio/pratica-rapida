@@ -19,7 +19,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   Plus, Settings, Building2, User, Phone, Mail, MapPin, Globe, PhoneCall,
-  ChevronRight, Pencil, Trash2, X, MoreHorizontal, Sparkles, CheckCircle2,
+  ChevronRight, ChevronLeft, Pencil, Trash2, X, MoreHorizontal, Sparkles, CheckCircle2,
+  StickyNote,
 } from "lucide-react";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
@@ -74,6 +75,14 @@ const DEFAULT_STAGES: CrmStage[] = [
 
 const KEY_STAGES      = "crm_pipeline_stages";
 const KEY_ASSIGNMENTS = "crm_company_stages";
+const KEY_CARD_NOTES  = "crm_card_notes";
+
+interface CardNote {
+  text: string;
+  at: string;         // ISO timestamp
+  by?: string | null; // email autore
+}
+type CardNotesMap = Record<string, CardNote[]>;
 
 const SOURCE_BADGE: Record<string, { label: string; bg: string; color: string }> = {
   public_form: { label: "Modulo web", bg: "hsla(152,80%,40%,0.12)", color: "hsl(152 80% 30%)" },
@@ -106,6 +115,8 @@ export default function AziendePipeline() {
   });
   const [editingLead, setEditingLead]           = useState<CrmLead | null>(null);
   const [confirmDeleteLead, setConfirmDeleteLead] = useState<CrmLead | null>(null);
+  const [notesCard, setNotesCard]               = useState<{ id: string; label: string } | null>(null);
+  const [newNote, setNewNote]                   = useState("");
 
   // ── Queries ──────────────────────────────────────────────────────────────
 
@@ -135,6 +146,16 @@ export default function AziendePipeline() {
       return (data?.value as Record<string, string>) ?? {};
     },
     staleTime: 5 * 60 * 1000, // 5min — invalidato esplicitamente da moveCompany
+  });
+
+  const { data: cardNotes = {} } = useQuery<CardNotesMap>({
+    queryKey: ["crm_card_notes"],
+    queryFn: async () => {
+      const { data } = await supabase.from("platform_settings")
+        .select("value").eq("key", KEY_CARD_NOTES).single();
+      return (data?.value as unknown as CardNotesMap) ?? {};
+    },
+    staleTime: 60 * 1000, // 1min — invalidato esplicitamente da addNote
   });
 
   const { data: leads = [] } = useQuery<CrmLead[]>({
@@ -275,6 +296,34 @@ export default function AziendePipeline() {
     onError: (e: Error) => toast({ title: "Errore", description: e.message, variant: "destructive" }),
   });
 
+  const addNote = useMutation({
+    mutationFn: async ({ cardId, text }: { cardId: string; text: string }) => {
+      if (!text.trim()) throw new Error("La nota è vuota");
+      const { data: { user } } = await supabase.auth.getUser();
+      const entry: CardNote = { text: text.trim(), at: new Date().toISOString(), by: user?.email ?? null };
+      const existing = cardNotes[cardId] ?? [];
+      await upsertSetting(KEY_CARD_NOTES, { ...cardNotes, [cardId]: [entry, ...existing] });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["crm_card_notes"] });
+      setNewNote("");
+      toast({ title: "Nota aggiunta" });
+    },
+    onError: (e: Error) => toast({ title: "Errore", description: e.message, variant: "destructive" }),
+  });
+
+  const deleteNote = useMutation({
+    mutationFn: async ({ cardId, at }: { cardId: string; at: string }) => {
+      const existing = cardNotes[cardId] ?? [];
+      await upsertSetting(KEY_CARD_NOTES, { ...cardNotes, [cardId]: existing.filter(n => n.at !== at) });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["crm_card_notes"] });
+      toast({ title: "Nota eliminata" });
+    },
+    onError: (e: Error) => toast({ title: "Errore", description: e.message, variant: "destructive" }),
+  });
+
   const saveStages = useMutation({
     mutationFn: async (newStages: CrmStage[]) => {
       await upsertSetting(KEY_STAGES, newStages);
@@ -309,6 +358,21 @@ export default function AziendePipeline() {
 
   const deleteStage = (stageId: string) => {
     saveStages.mutate(stages.filter(s => s.id !== stageId));
+  };
+
+  /**
+   * Sposta una fase a sinistra (-1) o a destra (+1) nell'ordine della pipeline.
+   * Scambia il campo `order` con la fase adiacente e ricalcola gli order in
+   * modo contiguo (0..n-1). Le schede restano dentro la fase di riferimento
+   * perché sono legate a stage.id, non alla posizione.
+   */
+  const moveStage = (stageId: string, direction: -1 | 1) => {
+    const ordered = [...stages].sort((a, b) => a.order - b.order);
+    const idx = ordered.findIndex(s => s.id === stageId);
+    const target = idx + direction;
+    if (idx === -1 || target < 0 || target >= ordered.length) return;
+    [ordered[idx], ordered[target]] = [ordered[target], ordered[idx]];
+    saveStages.mutate(ordered.map((s, i) => ({ ...s, order: i })));
   };
 
   // ── Per-column data ───────────────────────────────────────────────────────
@@ -347,18 +411,41 @@ export default function AziendePipeline() {
 
       {/* Board */}
       <div className="flex gap-4 overflow-x-auto pb-6" style={{ minHeight: "65vh" }}>
-        {sortedStages.map(stage => {
+        {sortedStages.map((stage, stageIdx) => {
           const stageCompanies = getCompaniesForStage(stage.id);
           const stageLeads     = getLeadsForStage(stage.id);
           const total          = stageCompanies.length + stageLeads.length;
+          const prevStage      = sortedStages[stageIdx - 1];
+          const nextStage      = sortedStages[stageIdx + 1];
 
           return (
             <div key={stage.id} className="flex-shrink-0 w-72 flex flex-col gap-2">
               {/* Column header */}
-              <div className="flex items-center gap-2 px-1 mb-1">
-                <div className="w-2.5 h-2.5 rounded-full" style={{ background: stage.color }} />
+              <div className="flex items-center gap-1.5 px-1 mb-1">
+                <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: stage.color }} />
                 <span className="font-semibold text-sm flex-1 truncate">{stage.name}</span>
                 <Badge variant="secondary" className="text-xs tabular-nums">{total}</Badge>
+                {/* Riordina fase */}
+                <div className="flex items-center">
+                  <Button
+                    size="icon" variant="ghost"
+                    className="h-6 w-6 text-muted-foreground disabled:opacity-30"
+                    disabled={stageIdx === 0 || saveStages.isPending}
+                    onClick={() => moveStage(stage.id, -1)}
+                    title="Sposta a sinistra"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    size="icon" variant="ghost"
+                    className="h-6 w-6 text-muted-foreground disabled:opacity-30"
+                    disabled={stageIdx === sortedStages.length - 1 || saveStages.isPending}
+                    onClick={() => moveStage(stage.id, 1)}
+                    title="Sposta a destra"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
 
               {/* Lead cards */}
@@ -394,9 +481,28 @@ export default function AziendePipeline() {
                             )}
                           </div>
                         </div>
+                        <div className="flex items-center flex-shrink-0">
+                          <Button
+                            variant="ghost" size="icon"
+                            className="h-6 w-6 text-muted-foreground disabled:opacity-30"
+                            disabled={!prevStage || moveLead.isPending}
+                            onClick={() => prevStage && moveLead.mutate({ leadId: lead.id, stageId: prevStage.id })}
+                            title={prevStage ? `Sposta in: ${prevStage.name}` : undefined}
+                          >
+                            <ChevronLeft className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button
+                            variant="ghost" size="icon"
+                            className="h-6 w-6 text-muted-foreground disabled:opacity-30"
+                            disabled={!nextStage || moveLead.isPending}
+                            onClick={() => nextStage && moveLead.mutate({ leadId: lead.id, stageId: nextStage.id })}
+                            title={nextStage ? `Sposta in: ${nextStage.name}` : undefined}
+                          >
+                            <ChevronRight className="h-3.5 w-3.5" />
+                          </Button>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-6 w-6 flex-shrink-0 -mr-1">
+                            <Button variant="ghost" size="icon" className="h-6 w-6 -mr-1">
                               <MoreHorizontal className="h-3.5 w-3.5" />
                             </Button>
                           </DropdownMenuTrigger>
@@ -430,6 +536,7 @@ export default function AziendePipeline() {
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
+                        </div>
                       </div>
 
                       {/* Quick actions for calling — prominent so staff can call/email in 1 click */}
@@ -488,6 +595,20 @@ export default function AziendePipeline() {
                           <Globe className="h-2.5 w-2.5 shrink-0" />Da: {lead.page_url.replace(/^https?:\/\//, "")}
                         </p>
                       )}
+
+                      <Button
+                        variant="ghost" size="sm"
+                        className="w-full h-7 justify-start text-xs text-muted-foreground hover:text-foreground gap-1.5 border-t rounded-none -mx-3 -mb-3 px-3 pt-2"
+                        onClick={() => { setNotesCard({ id: lead.id, label: `${lead.nome} ${lead.cognome ?? ""}`.trim() }); setNewNote(""); }}
+                      >
+                        <StickyNote className="h-3.5 w-3.5" />
+                        Aggiungi nota
+                        {(cardNotes[lead.id]?.length ?? 0) > 0 && (
+                          <Badge variant="secondary" className="ml-auto text-[10px] tabular-nums">
+                            {cardNotes[lead.id].length}
+                          </Badge>
+                        )}
+                      </Button>
                     </CardContent>
                   </Card>
                 );
@@ -508,9 +629,28 @@ export default function AziendePipeline() {
                         </div>
                         <p className="font-medium text-sm truncate">{company.ragione_sociale}</p>
                       </div>
+                      <div className="flex items-center flex-shrink-0">
+                        <Button
+                          variant="ghost" size="icon"
+                          className="h-6 w-6 text-muted-foreground disabled:opacity-30"
+                          disabled={!prevStage || moveCompany.isPending}
+                          onClick={() => prevStage && moveCompany.mutate({ companyId: company.id, stageId: prevStage.id })}
+                          title={prevStage ? `Sposta in: ${prevStage.name}` : undefined}
+                        >
+                          <ChevronLeft className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          variant="ghost" size="icon"
+                          className="h-6 w-6 text-muted-foreground disabled:opacity-30"
+                          disabled={!nextStage || moveCompany.isPending}
+                          onClick={() => nextStage && moveCompany.mutate({ companyId: company.id, stageId: nextStage.id })}
+                          title={nextStage ? `Sposta in: ${nextStage.name}` : undefined}
+                        >
+                          <ChevronRight className="h-3.5 w-3.5" />
+                        </Button>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-6 w-6 flex-shrink-0 -mr-1">
+                          <Button variant="ghost" size="icon" className="h-6 w-6 -mr-1">
                             <MoreHorizontal className="h-3.5 w-3.5" />
                           </Button>
                         </DropdownMenuTrigger>
@@ -526,6 +666,7 @@ export default function AziendePipeline() {
                           ))}
                         </DropdownMenuContent>
                       </DropdownMenu>
+                      </div>
                     </div>
 
                     {company.email && (
@@ -556,6 +697,20 @@ export default function AziendePipeline() {
                         {format(new Date(company.created_at), "d MMM yyyy", { locale: it })}
                       </span>
                     </div>
+
+                    <Button
+                      variant="ghost" size="sm"
+                      className="w-full h-7 justify-start text-xs text-muted-foreground hover:text-foreground gap-1.5 border-t rounded-none -mx-3 -mb-3 px-3 pt-2"
+                      onClick={() => { setNotesCard({ id: company.id, label: company.ragione_sociale }); setNewNote(""); }}
+                    >
+                      <StickyNote className="h-3.5 w-3.5" />
+                      Aggiungi nota
+                      {(cardNotes[company.id]?.length ?? 0) > 0 && (
+                        <Badge variant="secondary" className="ml-auto text-[10px] tabular-nums">
+                          {cardNotes[company.id].length}
+                        </Badge>
+                      )}
+                    </Button>
                   </CardContent>
                 </Card>
               ))}
@@ -799,6 +954,69 @@ export default function AziendePipeline() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Notes dialog — storico note con data + aggiunta nuova nota */}
+      <Dialog open={!!notesCard} onOpenChange={(o) => { if (!o) { setNotesCard(null); setNewNote(""); } }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <StickyNote className="h-4 w-4" />
+              Note — {notesCard?.label}
+            </DialogTitle>
+          </DialogHeader>
+
+          {notesCard && (
+            <div className="space-y-3">
+              {/* Nuova nota */}
+              <div className="space-y-2">
+                <Textarea
+                  value={newNote}
+                  onChange={e => setNewNote(e.target.value)}
+                  rows={3}
+                  placeholder="Scrivi una nota (es. esito chiamata, richiami, dettagli)..."
+                />
+                <Button
+                  className="w-full"
+                  disabled={!newNote.trim() || addNote.isPending}
+                  onClick={() => notesCard && addNote.mutate({ cardId: notesCard.id, text: newNote })}
+                >
+                  <Plus className="h-4 w-4 mr-1.5" />
+                  {addNote.isPending ? "Salvataggio..." : "Aggiungi nota"}
+                </Button>
+              </div>
+
+              {/* Storico note */}
+              <div className="space-y-2 max-h-72 overflow-y-auto pt-1 border-t">
+                {(cardNotes[notesCard.id]?.length ?? 0) === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    Nessuna nota. Aggiungi la prima qui sopra.
+                  </p>
+                ) : (
+                  cardNotes[notesCard.id].map(n => (
+                    <div key={n.at} className="rounded-lg border bg-muted/30 p-2.5 group">
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="text-sm whitespace-pre-wrap flex-1">{n.text}</p>
+                        <Button
+                          size="icon" variant="ghost"
+                          className="h-6 w-6 flex-shrink-0 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={() => deleteNote.mutate({ cardId: notesCard.id, at: n.at })}
+                          title="Elimina nota"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                      <p className="text-[11px] text-muted-foreground mt-1.5">
+                        {format(new Date(n.at), "d MMM yyyy 'alle' HH:mm", { locale: it })}
+                        {n.by && ` · ${n.by}`}
+                      </p>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

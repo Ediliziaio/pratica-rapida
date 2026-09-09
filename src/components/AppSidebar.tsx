@@ -24,6 +24,7 @@ import {
   BookOpen,
   PhoneCall,
   Gauge,
+  Send,
 } from "lucide-react";
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
@@ -411,6 +412,7 @@ export function AppSidebar() {
           { title: "Aziende", url: "/aziende", icon: Building2, badge: uncontactedLeads },
           { title: "Clienti", url: "/admin/clienti", icon: UserSearch },
           { title: "Promo", url: "/admin/promo", icon: Gift },
+          { title: "Newsletter", url: "/admin/newsletter", icon: Send },
           { title: "Notizie Sito", url: "/admin/news", icon: Newspaper },
         ],
       },

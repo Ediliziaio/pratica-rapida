@@ -50,7 +50,7 @@ export default function Aziende() {
   const [openPanels, setOpenPanels] = useState<Record<string, boolean>>({});
   const [sortBy, setSortBy] = useState<SortOption>("nome");
   const [filterStatus, setFilterStatus] = useState<"all" | "active" | "suspended">("all");
-  const [viewMode, setViewMode] = useState<"lista" | "pipeline">("lista");
+  const [viewMode, setViewMode] = useState<"lista" | "pipeline">("pipeline");
 
   const [form, setForm] = useState({
     ragione_sociale: "", piva: "", codice_fiscale: "", email: "",

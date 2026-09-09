@@ -3,7 +3,7 @@
   "configurations": [
     {
       "name": "pratica-rapida",
-      "runtimeExecutable": "bun",
+      "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
       "autoPort": true
     }

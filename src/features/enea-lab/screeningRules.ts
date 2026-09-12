@@ -1,4 +1,5 @@
 import type { SchermaturaTipo } from "@/types/form-cliente";
+import { resolveScreeningMechanism } from "@/features/enea-shadow-crm/operationalRules";
 
 export const ENEA_SCREENING_TYPE = {
   awning: "Tenda o veneziana",
@@ -33,6 +34,7 @@ export interface EneaScreeningRuleResult {
   calculation: string;
   material: string;
   regulation: string;
+  regulationConflict: boolean;
 }
 
 function normalize(value: string): string {
@@ -75,9 +77,12 @@ export function screeningRules(
   else if (/allumini|metall/.test(normalized)) material = ENEA_SCREENING_MATERIAL.metal;
   else if (awning) material = ENEA_SCREENING_MATERIAL.fabric;
 
-  const explicitlyMotorized = /motoriz|motore|automatic/.test(normalized);
+  const describedMechanism = resolveScreeningMechanism(description);
+  const explicitlyMotorized = describedMechanism.value === "automatico";
   const regulation = zanzariera
     ? ENEA_SCREENING_REGULATION.manual
+    : describedMechanism.value === "manuale"
+      ? ENEA_SCREENING_REGULATION.manual
     : pergotenda || pergola || explicitlyMotorized
       ? ENEA_SCREENING_REGULATION.automatic
       : awning || shutter
@@ -100,5 +105,6 @@ export function screeningRules(
       : "",
     material,
     regulation,
+    regulationConflict: describedMechanism.conflict,
   };
 }

@@ -25,9 +25,9 @@ describe("compilazione riepilogo schermature ENEA", () => {
 
     const result = await dom.window.eval(script) as { compiled: string[] };
 
-    expect(readyFieldIds).toEqual(["schermature.spesa"]);
-    expect((dom.window.document.getElementById("id-costo") as HTMLInputElement).value).not.toBe("");
-    expect(result.compiled).toEqual(["id-costo"]);
+    expect(readyFieldIds).toEqual([]);
+    expect((dom.window.document.getElementById("id-costo") as HTMLInputElement).value).toBe("");
+    expect(result.compiled).toEqual([]);
     expect(submitCount).toBe(0);
   });
 

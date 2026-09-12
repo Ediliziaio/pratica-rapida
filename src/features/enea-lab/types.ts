@@ -109,6 +109,10 @@ export interface EneaLabMapOptions {
   overrides?: EneaLabOverrides;
   confirmedFieldIds?: ReadonlySet<string>;
   includeTestConventions?: boolean;
+  documentFiscalCode?: string;
+  documentFiscalCodeCoherentWithIdentity?: boolean;
+  reconciledEligibleExpense?: number;
+  financialReconciliationVerified?: boolean;
 }
 
 export interface EneaLabPreparedSnapshot {

@@ -27,7 +27,7 @@ describe("mapSchermaturaPractice", () => {
     const result = mapSchermaturaPractice(ENEA_LAB_MOCK_PRACTICES[0]);
     const fields = result.sections.flatMap((section) => section.fields);
 
-    expect(fields.find((field) => field.id === "beneficiario.cf")?.value).toBe("CF-DEMO-001-NON-VALIDO");
+    expect(fields.find((field) => field.id === "beneficiario.cf")?.value).toBe("Intervento umano richiesto");
     expect(fields.find((field) => field.id === "beneficiario.cf")?.status).toBe("missing");
     expect(fields.find((field) => field.id === "immobile.comune")?.value).toBe("Comune Demo Nord");
     expect(fields.find((field) => field.id === "schermature.numero")?.status).toBe("review");
@@ -108,7 +108,7 @@ describe("mapSchermaturaPractice", () => {
       source: "Regola controllata",
     });
 
-    source.form.richiedente.cf = "RSSMRA80A41H501U";
+    source.form.richiedente.cf = "RSSMRA80A41H501Y";
     fields = mapSchermaturaPractice(source).sections.flatMap((currentSection) => currentSection.fields);
     expect(fields.find((field) => field.id === "beneficiario.sesso")?.value).toBe("F");
   });
@@ -213,6 +213,27 @@ describe("mapSchermaturaPractice", () => {
     });
   });
 
+  it("usa il CF documentale solo se valido e dichiarato coerente con l'anagrafica", () => {
+    const result = mapSchermaturaPractice(ENEA_LAB_MOCK_PRACTICES[0], analysis, {
+      documentFiscalCode: "RSSMRA80A01H501U",
+      documentFiscalCodeCoherentWithIdentity: true,
+    });
+    const field = result.sections.flatMap((section) => section.fields)
+      .find((candidate) => candidate.id === "beneficiario.cf");
+    expect(field).toMatchObject({
+      value: "RSSMRA80A01H501U",
+      source: "Fattura",
+      status: "ready",
+    });
+
+    const unresolved = mapSchermaturaPractice(ENEA_LAB_MOCK_PRACTICES[0], analysis, {
+      documentFiscalCode: "RSSMRA80A01H501U",
+      documentFiscalCodeCoherentWithIdentity: false,
+    }).sections.flatMap((section) => section.fields)
+      .find((candidate) => candidate.id === "beneficiario.cf");
+    expect(unresolved).toMatchObject({ value: "Intervento umano richiesto", status: "missing" });
+  });
+
   it("ricalcola il totale quando l'operatore corregge una superficie", () => {
     const result = mapSchermaturaPractice(ENEA_LAB_MOCK_PRACTICES[0], analysis, {
       overrides: {
@@ -227,6 +248,13 @@ describe("mapSchermaturaPractice", () => {
       value: "5,7 m²",
       source: "Calcolo ENEA",
       status: "ready",
+    });
+    expect(result.sections.flatMap((currentSection) => currentSection.fields)
+      .find((field) => field.id === "schermature.risparmio_energia")).toMatchObject({
+      value: "95,76 kWh/anno",
+      source: "Regola controllata",
+      status: "ready",
+      note: expect.stringContaining("screening-energy-savings-v1"),
     });
   });
 

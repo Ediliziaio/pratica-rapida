@@ -27,6 +27,11 @@ describe("regole operative schermature solari", () => {
     });
   });
 
+  it("interpreta arganello o molla come movimentazione manuale", () => {
+    expect(screeningRules("tende_da_sole", "Tenda motorizzata con arganello", null).regulation).toBe(ENEA_SCREENING_REGULATION.manual);
+    expect(screeningRules("tende_da_sole", "Comando a molla", null).regulation).toBe(ENEA_SCREENING_REGULATION.manual);
+  });
+
   it("usa altra schermatura, misto, manuale e gTot 0,33 per la zanzariera", () => {
     expect(screeningRules("altro", "Zanzariera", null)).toMatchObject({
       type: ENEA_SCREENING_TYPE.otherSolarScreening,
@@ -37,20 +42,20 @@ describe("regole operative schermature solari", () => {
     });
   });
 
-  it("usa altra schermatura e metallo automatico per la pergola bioclimatica", () => {
+  it("usa altra schermatura e metallo manuale per la pergola bioclimatica senza movimentazione specificata", () => {
     expect(screeningRules("pergola", "Pergola bioclimatica", null)).toMatchObject({
       type: ENEA_SCREENING_TYPE.otherSolarScreening,
       gTot: 0.06,
       material: ENEA_SCREENING_MATERIAL.metal,
-      regulation: ENEA_SCREENING_REGULATION.automatic,
+      regulation: ENEA_SCREENING_REGULATION.manual,
     });
   });
 
-  it("usa altra schermatura e PVC automatico per la pergotenda", () => {
+  it("usa altra schermatura e PVC manuale per la pergotenda senza movimentazione specificata", () => {
     expect(screeningRules("pergotenda", "Pergotenda", null)).toMatchObject({
       type: ENEA_SCREENING_TYPE.otherSolarScreening,
       material: ENEA_SCREENING_MATERIAL.pvc,
-      regulation: ENEA_SCREENING_REGULATION.automatic,
+      regulation: ENEA_SCREENING_REGULATION.manual,
     });
   });
 

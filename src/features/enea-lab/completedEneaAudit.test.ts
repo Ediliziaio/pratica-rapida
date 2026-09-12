@@ -117,7 +117,7 @@ describe("audit storico PDF ENEA conclusivo", () => {
     expect(snapshot.screeningCount).toBe(-1);
   });
 
-  it("segnala come differenza un valore presente nel PDF ma non pronto nel mapper", () => {
+  it("segnala come differenza un valore benchmark diverso dalla policy operativa del mapper", () => {
     const source = ENEA_LAB_MOCK_PRACTICES[0];
     const mapped = mapSchermaturaPractice(source, ENEA_LAB_MOCK_ANALYSIS[source.id]);
     const completed = {
@@ -137,7 +137,7 @@ describe("audit storico PDF ENEA conclusivo", () => {
     expect(audit.differences[0]).toMatchObject({
       fieldId: "schermature.0.superficie_finestrata",
       completedValue: "2.9",
-      mappedValue: "Intervento umano richiesto",
+      mappedValue: "2,6 m²",
     });
   });
 

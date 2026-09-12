@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
-import { clearImportedPractice, ENEA_SHADOW_IMPORT_STORAGE_KEY, IMPORT_CONFIRMATION_PHRASE, loadImportedPractice, prepareSinglePracticeImport, saveImportedPractice, toShadowQueuePractice, type CrmReadOnlySnapshot } from "./importBridge";
+import { clearImportedPractice, ENEA_SHADOW_IMPORT_STORAGE_KEY, IMPORT_CONFIRMATION_PHRASE, loadImportedPractice, prepareSinglePracticeImport, saveImportedPractice, toShadowQueuePractice, withVerifiedReseller, withVerifiedTechnicalSnapshot, type CrmReadOnlySnapshot } from "./importBridge";
 
 const syntheticSnapshot: CrmReadOnlySnapshot = {
   id: "11111111-2222-4333-8444-555555555555",
@@ -20,6 +20,24 @@ const syntheticSnapshot: CrmReadOnlySnapshot = {
 const consent = { confirmationPhrase: IMPORT_CONFIRMATION_PHRASE, singlePracticeConfirmed: true, localOnlyConfirmed: true, communicationsBlockedConfirmed: true };
 
 describe("ponte importazione CRM ombra", () => {
+  it("aggiunge soltanto un identificatore rivenditore minimizzato", () => {
+    const result = prepareSinglePracticeImport([syntheticSnapshot], consent);
+    if (result.ok === false) throw new Error(result.reason);
+    expect(withVerifiedReseller(result.practice, "sima-home")?.resellerIdentifier).toBe("sima-home");
+    expect(withVerifiedReseller(result.practice, "Nome con spazi")).toBeNull();
+  });
+
+  it("conserva solo uno snapshot tecnico minimizzato con impronta opaca", () => {
+    const result = prepareSinglePracticeImport([syntheticSnapshot], consent);
+    if (result.ok === false) throw new Error(result.reason);
+    const updated = withVerifiedTechnicalSnapshot(result.practice, {
+      buildingFingerprint: "building-deadbeef",
+      plant: { type: "centralizzato", terminals: "caloriferi", fuel: "gas_metano", boiler: "gas_a_condensazione", airConditioning: true },
+      screenings: [{ type: "tenda_da_sole", exposure: "sud_est", widthCm: 380, heightCm: 200, motorized: true }],
+    });
+    expect(updated?.technicalSnapshot?.buildingFingerprint).toBe("building-deadbeef");
+    expect(JSON.stringify(updated)).not.toMatch(/via|foglio|mappale|subalterno/i);
+  });
   it("richiede opt-in completo e una sola pratica", () => {
     expect(prepareSinglePracticeImport([], consent).ok).toBe(false);
     expect(prepareSinglePracticeImport([syntheticSnapshot, syntheticSnapshot], consent).ok).toBe(false);
@@ -48,6 +66,15 @@ describe("ponte importazione CRM ombra", () => {
     expect(saveImportedPractice(storage, { ...result.practice, communicationPolicy: { ...result.practice.communicationPolicy, email: "allowed" as "blocked" } })).toBe(false);
     storage.getItem.mockReturnValue(JSON.stringify({ ...result.practice, communicationPolicy: {} }));
     expect(loadImportedPractice(storage)).toBeNull();
+  });
+
+  it("conserva come sconosciuta la ricezione non esposta senza inventarla", () => {
+    const result = prepareSinglePracticeImport([{ ...syntheticSnapshot, ricevuta_at: null }], consent, new Date("2026-08-13T10:00:00Z"));
+    if (result.ok === false) throw new Error(result.reason);
+    expect(result.practice.receivedAt).toBeNull();
+    expect(result.practice.importedAt).toBe("2026-08-13T10:00:00.000Z");
+    expect(toShadowQueuePractice(result.practice).ricevutaAt).toBe(result.practice.importedAt);
+    expect(result.practice).not.toHaveProperty("operatorStatus");
   });
 
   it("non importa client CRM, rete, mutation, RPC o upload", () => {

@@ -19,6 +19,8 @@ import {
 } from "./plantRules";
 import { screeningRules } from "./screeningRules";
 import { validateOperatorOverride } from "./operatorValidation";
+import { deterministicProtectedWindowSurface, resolveBeneficiaryFiscalCode } from "@/features/enea-shadow-crm/operationalRules";
+import { calculateScreeningEnergySavings } from "@/features/enea-shadow-crm/energySavingsPolicy";
 import type {
   EneaLabDocumentAnalysis,
   EneaLabField,
@@ -208,18 +210,37 @@ function recalculateScreeningSummary(sections: EneaLabSection[]): EneaLabSection
     if (!surfaceFields.length || totalField?.source === "Inserimento operatore") return currentSection;
     const surfaces = surfaceFields.map((field) => field.status === "ready" ? parseMappedNumber(field.value) : null);
     if (surfaces.some((value) => value === null)) return currentSection;
-    const total = surfaces.reduce<number>((sum, value) => sum + (value ?? 0), 0);
+    const rows = surfaceFields.map((field, index) => ({
+      rowId: field.id,
+      surfaceM2: surfaces[index] ?? 0,
+      reconciled: field.status === "ready",
+      provenance: {
+        sourceId: `${field.source}:${field.id}`,
+        kind: field.source === "Inserimento operatore" ? "operator_verified" as const : "verified_source" as const,
+      },
+    }));
+    const savings = calculateScreeningEnergySavings(rows);
+    if (savings.status !== "ready") return currentSection;
+    const total = savings.audit.totalSurfaceM2;
     return {
       ...currentSection,
-      fields: currentSection.fields.map((field) => field.id === "schermature.superficie_totale"
-        ? {
+      fields: currentSection.fields.map((field) => {
+        if (field.id === "schermature.superficie_totale") return {
             ...field,
             value: `${formatNumber(total)} m²`,
             source: "Calcolo ENEA",
             status: "ready",
             note: "Ricalcolata dalle superfici dei singoli elementi verificati.",
-          }
-        : field),
+          };
+        if (field.id === "schermature.risparmio_energia") return {
+          ...field,
+          value: `${formatNumber(savings.audit.resultKwhYear, 2)} kWh/anno`,
+          source: "Regola controllata" as const,
+          status: "ready" as const,
+          note: `${savings.audit.policyVersion}: ${savings.audit.formula}; righe ${savings.audit.rows.map((row) => `${row.rowId}=${formatNumber(row.surfaceM2)} m² [${row.sourceId}]`).join(", ")}; totale ${formatNumber(total)} m²; risultato ${formatNumber(savings.audit.resultKwhYear, 2)} kWh/anno; arrotondamento ${savings.audit.rounding.mode}.`,
+        };
+        return field;
+      }),
     };
   });
 }
@@ -230,10 +251,17 @@ export function mapSchermaturaPractice(
   options?: EneaLabMapOptions,
 ): EneaLabMappedPractice {
   const form = source.form;
+  const fiscalCodeResolution = resolveBeneficiaryFiscalCode({
+    formFiscalCode: form.richiedente.cf,
+    originalDocumentFiscalCode: options?.documentFiscalCode,
+    documentCoherentWithIdentity: options?.documentFiscalCodeCoherentWithIdentity,
+  });
+  const fiscalCodeFromDocument = fiscalCodeResolution.source === "original_document";
+  const resolvedFiscalCode = fiscalCodeResolution.value ?? "";
   const prodotto = form.prodotto.tipo === "schermature" ? form.prodotto : null;
   const convention = getGeneratorTestConvention(source.id);
   const includeTestConventions = options?.includeTestConventions ?? true;
-  const inferredSex = sexFromItalianFiscalCode(form.richiedente.cf);
+  const inferredSex = sexFromItalianFiscalCode(resolvedFiscalCode);
   const inferredBirthNation = /^[A-Z]{2}$/i.test(form.richiedente.provincia_nascita.trim())
     ? "Italia"
     : "";
@@ -313,10 +341,11 @@ export function mapSchermaturaPractice(
       mappedField(
         `schermature.${index}.superficie_finestrata`,
         `Elemento ${index + 1} · superficie finestrata protetta`,
-        "",
+        `${deterministicProtectedWindowSurface(source.id, `screening-${index + 1}`)?.value.toFixed(1).replace(".", ",")} m²`,
         {
-          source: "Calcolo ENEA",
-          note: "Non si può dedurre dalla misura della tenda: inserire la superficie vetrata verificata.",
+          source: "Regola controllata",
+          status: "review",
+          note: "Assunzione operativa deterministica protected-window-v1 da pratica+riga; una superficie verificata da fonte originaria prevale.",
         },
       ),
       mappedField(
@@ -332,7 +361,11 @@ export function mapSchermaturaPractice(
       mappedField(
         `schermature.${index}.esposizione`,
         `Elemento ${index + 1} · esposizione`,
-        declared?.direzione ? SCHERMATURA_DIREZIONE_LABELS[declared.direzione] : "",
+        declared?.direzione ? SCHERMATURA_DIREZIONE_LABELS[declared.direzione] : "Sud",
+        declared?.direzione ? undefined : {
+          source: "Regola controllata",
+          note: "Esposizione assente nelle fonti originarie: fallback operativo SUD; una fonte esplicita per riga prevale.",
+        },
       ),
       mappedField(
         `schermature.${index}.modalita_calcolo`,
@@ -373,7 +406,10 @@ export function mapSchermaturaPractice(
         rules.regulation,
         {
           source: "Regola controllata",
-          note: "Pergole e pergotende automatiche; zanzariere manuali; negli altri casi conta la presenza del motore.",
+          status: rules.regulationConflict ? "missing" : rules.regulation ? "ready" : "missing",
+          note: rules.regulationConflict
+            ? "Conflitto tra descrizione manuale e fonte specifica: richiesto intervento operatore."
+            : "Arganello o molla indicano manuale; una fonte specifica verificata contraria prevale con segnalazione del conflitto.",
         },
       ),
     ];
@@ -383,7 +419,10 @@ export function mapSchermaturaPractice(
     section("beneficiario", "1. Beneficiario", "Anagrafica e titolo del richiedente", [
       mappedField("beneficiario.nome", "Nome", form.richiedente.nome),
       mappedField("beneficiario.cognome", "Cognome", form.richiedente.cognome),
-      mappedField("beneficiario.cf", "Codice fiscale", form.richiedente.cf),
+      mappedField("beneficiario.cf", "Codice fiscale", resolvedFiscalCode, fiscalCodeFromDocument ? {
+        source: "Fattura",
+        note: "Il CF del modulo è formalmente invalido; prevale il CF valido del documento originario, con audit.",
+      } : undefined),
       mappedField("beneficiario.data_nascita", "Data di nascita", formatDate(form.richiedente.data_nascita)),
       mappedField("beneficiario.sesso", "Sesso", inferredSex, {
         source: "Regola controllata",
@@ -438,7 +477,10 @@ export function mapSchermaturaPractice(
       mappedField("immobile.scala", "Scala", "", { required: false }),
       mappedField("immobile.interno", "Interno", "", { required: false }),
       mappedField("immobile.codice_comune", "Codice nazionale del Comune", "", {
-        note: "Recuperare il codice catastale del Comune da una fonte ufficiale.",
+        source: "Portale ENEA",
+        required: false,
+        editable: false,
+        note: "Auto-compilato da ENEA: il CRM ombra non lo ricava, memorizza o richiede.",
       }),
       mappedField("immobile.foglio", "Foglio", form.catastali.foglio),
       mappedField("immobile.mappale", "Particella / mappale", form.catastali.mappale),
@@ -475,7 +517,10 @@ export function mapSchermaturaPractice(
         form.edificio.tipologia ? TIPOLOGIA_LABELS[form.edificio.tipologia] : "",
       ),
       mappedField("immobile.zona_climatica", "Zona climatica", "", {
-        note: "Recuperare dal Comune dell'intervento.",
+        source: "Portale ENEA",
+        required: false,
+        editable: false,
+        note: "Derivata dal Comune nel portale ENEA; il CRM ombra non la richiede.",
       }),
       mappedField("immobile.gradi_giorno", "Gradi giorno", "Automatici dal Comune ENEA", {
         source: "Regola controllata",
@@ -484,7 +529,10 @@ export function mapSchermaturaPractice(
         note: "Il portale li carica automaticamente dopo la selezione del Comune dall'elenco ENEA.",
       }),
       mappedField("immobile.fascia_solare", "Fascia solare", "", {
-        note: "Verificare il valore proposto dal portale ENEA.",
+        source: "Portale ENEA",
+        required: false,
+        editable: false,
+        note: "Determinata dal portale ENEA; il CRM ombra non la richiede.",
       }),
     ]),
     section("intervento", "3. Intervento", "Unità interessate e date dei lavori", [
@@ -649,24 +697,25 @@ export function mapSchermaturaPractice(
       mappedField(
         "schermature.spesa",
         "Spese congrue sostenute",
-        analysis?.eligibleExpense === null || analysis?.eligibleExpense === undefined
+        !options?.financialReconciliationVerified || options.reconciledEligibleExpense === undefined
           ? ""
-          : formatCurrency(analysis.eligibleExpense),
+          : formatCurrency(options.reconciledEligibleExpense),
         {
           source: "Calcolo ENEA",
-          note: analysis?.creditTotal ? `Sottratte note di credito per ${formatCurrency(analysis.creditTotal)}.` : undefined,
+          status: options?.financialReconciliationVerified ? "ready" : "missing",
+          note: options?.financialReconciliationVerified
+            ? "Totale ammesso solo dopo riconciliazione finanziaria tripla documentata."
+            : "Bloccato: estrazione, riconciliazione contabile e verifica righe intervento devono coincidere.",
         },
       ),
       mappedField(
         "schermature.risparmio_energia",
         "Risparmio energia primaria non rinnovabile",
-        form.impianto.aria_condizionata === false ? "0 kWh/anno" : "",
+        "",
         {
           source: "Calcolo ENEA",
-          status: form.impianto.aria_condizionata === false ? "ready" : "missing",
-          note: form.impianto.aria_condizionata === false
-            ? "ENEA consente 0 in assenza di climatizzazione estiva."
-            : "Con climatizzazione estiva presente deve essere calcolato con ShadoWindow o metodo equivalente.",
+          status: "missing",
+          note: "Calcolato localmente solo dopo la riconciliazione completa delle righe: superficie totale × 16,8 kWh/anno per m² (policy screening-energy-savings-v1).",
         },
       ),
       mappedField("schermature.spese_professionali", "Spese professionali", "", {

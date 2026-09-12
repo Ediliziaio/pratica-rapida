@@ -3,6 +3,8 @@ import type { AprCrmLocalPreflightState } from "./crmLocalPreflight";
 import type { AprInfissiBatchPreflightState } from "./infissiBatchPreflight";
 import type { AprInfissiLocalMappingState } from "./infissiLocalMappingPreflight";
 import type { AprEneaDraftExecutionState } from "./eneaDraftExecution";
+import type { DeepReviewState } from "./deepCaseReview";
+import type { AprOuterWatchdogStallState } from "./outerWatchdogStall";
 import { canonicalSha256 } from "./aprMonotonicArtifacts";
 import { computeAprInputCorpusFingerprint } from "./aprCorpusFingerprint";
 import { collectAprCaseObservations, type AprCaseObservationCheckpointBundle, type AprReplayRunManifest } from "./aprCaseObservationCollector";
@@ -22,6 +24,12 @@ const screeningCommon = (withPortalGate = true) => ({ runId: manifest.runId, cor
     ...(withPortalGate ? { eneaPayloadAudit: { draftReady: true, blockers: [], portalGate: { status: "ready", screeningItemCount: 1, supportedPages: ["Schermature solari"] } } } : {}),
   },
 }] } as unknown as AprCrmLocalPreflightState });
+
+const stallTrace = (customerKey = "fixture-1"): AprOuterWatchdogStallState => ({
+  version: "apr-outer-watchdog-stall-state-v1", customerKey, cohort: 4242, batchRunId: "apr-batch-fixture",
+  detectedAt: "2026-09-12T10:07:00.000Z", reason: "no_material_progress_for_7_minutes",
+  startedAt: "2026-09-12T10:00:00.000Z", lastProgressAt: "2026-09-12T10:00:00.000Z", lastObservedFingerprint: "fixture-fingerprint",
+});
 
 describe("APR local case observation collector", () => {
   it("raccoglie un caso READY e genera le fonti non applicabili", () => {
@@ -93,6 +101,56 @@ describe("APR local case observation collector", () => {
   it("genera blocker strutturati coerenti", () => {
     const result = collectAprCaseObservations(bundle({ common: common("blocked_case"), infissiBatch: undefined }), "fixture-1");
     expect(result.observations).toEqual(expect.arrayContaining([expect.objectContaining({ source: "report_blockers", blockerCodes: ["blocked"] })]));
+  });
+
+  it("classifica come blocco tecnico una pratica stallata e uccisa dal watchdog esterno, senza richiedere il preflight comune", () => {
+    const neverReachedCommon = common();
+    neverReachedCommon.state.items = [];
+    const result = collectAprCaseObservations(bundle({ common: neverReachedCommon, infissiBatch: undefined, outerWatchdogStall: stallTrace() }), "fixture-1");
+    expect(result).toMatchObject({ status: "COLLECTED", errors: [] });
+    expect(resolveAprCaseStatusTruth(result.observations)).toMatchObject({ status: "TECHNICAL_BLOCK", matchedTransitionId: "common_block_technical" });
+  });
+
+  it("una pratica gia' bloccata e poi uccisa dal watchdog diventa intervento operatore, non disaccordo fra fonti", () => {
+    const result = collectAprCaseObservations(bundle({ common: common("blocked_case"), infissiBatch: undefined, outerWatchdogStall: stallTrace() }), "fixture-1");
+    expect(result).toMatchObject({ status: "COLLECTED", errors: [] });
+    expect(result.observations.some((item) => item.blockerCodes.includes("outer_watchdog_stall_detected"))).toBe(false);
+    expect(result.observations).toEqual(expect.arrayContaining([
+      expect.objectContaining({ source: "preflight_common", status: "BLOCKED", blockerCodes: ["blocked"] }),
+      expect.objectContaining({ source: "deep_review", status: "BLOCKED", classification: "OPERATOR", blockerCodes: ["blocked"] }),
+      expect.objectContaining({ source: "execution", status: "NOT_APPLICABLE" }),
+    ]));
+    expect(resolveAprCaseStatusTruth(result.observations)).toMatchObject({ status: "OPERATOR_REQUIRED", matchedTransitionId: "common_block_operator" });
+  });
+
+  it("non sostituisce la deep review quando ha gia' classificato il blocco, anche se esiste una traccia di stallo", () => {
+    const deepReview = { runId: manifest.runId, corpusFingerprint: corpus, state: { sourceFingerprint: sha("g"), items: [
+      { customerKey: "fixture-1", state: "technical_repair", blockerCodes: ["blocked"], productModule: "infissi" },
+    ] } as unknown as DeepReviewState };
+    const result = collectAprCaseObservations(bundle({
+      common: common("blocked_case"), infissiBatch: undefined, deepReview, outerWatchdogStall: stallTrace(),
+      manifest: { ...manifest, sourceFingerprints: { ...manifest.sourceFingerprints, deepReview: sha("g") } },
+    }), "fixture-1");
+    expect(result.observations).toEqual(expect.arrayContaining([
+      expect.objectContaining({ source: "deep_review", status: "BLOCKED", classification: "TECHNICAL" }),
+    ]));
+  });
+
+  it("non usa la traccia di stallo se l'esecuzione ha comunque raggiunto un esito terminale", () => {
+    const saved = { runId: manifest.runId, corpusFingerprint: corpus, state: { sourceFingerprint: sha("e"), items: [
+      { customerKey: "fixture-1", state: "saved", operatorGateBlockers: [], uncertainPageSave: null, reason: "saved" },
+    ] } as unknown as AprEneaDraftExecutionState };
+    const result = collectAprCaseObservations(bundle({ common: common("blocked_case"), infissiBatch: undefined, execution: saved, outerWatchdogStall: stallTrace() }), "fixture-1");
+    expect(result.observations).toEqual(expect.arrayContaining([
+      expect.objectContaining({ source: "execution", status: "COMPLETED" }),
+    ]));
+  });
+
+  it("ignora una traccia di stallo che appartiene a un altro cliente", () => {
+    const neverReachedCommon = common();
+    neverReachedCommon.state.items = [];
+    const result = collectAprCaseObservations(bundle({ common: neverReachedCommon, infissiBatch: undefined, outerWatchdogStall: stallTrace("altro-cliente") }), "fixture-1");
+    expect(result).toMatchObject({ status: "REJECTED", errors: ["case_missing_from_common_preflight"] });
   });
 
   it("produce soltanto una osservazione MISSING per un caso bloccato privo dei blocker strutturati", () => {

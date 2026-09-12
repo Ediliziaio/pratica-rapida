@@ -7,6 +7,7 @@ import type { AprInfissiBatchPreflightState } from "./infissiBatchPreflight";
 import type { AprInfissiLocalMappingState } from "./infissiLocalMappingPreflight";
 import type { DeepReviewState } from "./deepCaseReview";
 import type { AprEneaDraftExecutionState } from "./eneaDraftExecution";
+import type { AprOuterWatchdogStallState } from "./outerWatchdogStall";
 import {
   observeAprCommonPreflight,
   observeAprDeepReview,
@@ -14,6 +15,8 @@ import {
   observeAprInfissiBatchProductGate,
   observeAprInfissiMappingProductGate,
   observeAprMixedProductGate,
+  observeAprOuterWatchdogStallCommonPreflight,
+  observeAprOuterWatchdogStallDeepReview,
   observeAprScreeningProductGate,
 } from "./caseStatusObservationAdapters";
 import { createAprNotApplicableObservation, deriveAprCaseSourcePolicy, observeAprStructuredBlockers } from "./aprCaseSourcePolicy";
@@ -47,6 +50,7 @@ export interface AprCaseObservationCheckpointBundle {
   infissiMapping?: AprBoundCheckpoint<AprInfissiLocalMappingState>;
   deepReview?: AprBoundCheckpoint<DeepReviewState>;
   execution?: AprBoundCheckpoint<AprEneaDraftExecutionState>;
+  outerWatchdogStall?: AprOuterWatchdogStallState;
 }
 
 export interface AprCollectedCaseObservations {
@@ -83,6 +87,7 @@ export function loadAprCaseObservationCheckpointBundle(rootDirectory: string, ma
     infissiMapping: bind<AprInfissiLocalMappingState>("infissi-local-mapping/checkpoint.json"),
     deepReview: bind<DeepReviewState>("deep-case-review/checkpoint.json"),
     execution: bind<AprEneaDraftExecutionState>("enea-draft-execution/checkpoint.json"),
+    outerWatchdogStall: readJson<AprOuterWatchdogStallState>(path.join(root, "outer-watchdog-stall/checkpoint.json")),
   };
 }
 
@@ -97,6 +102,7 @@ export function collectAprCurrentCaseObservations(input: {
   customerKey: string;
   runId: string;
   observedAt: string;
+  outerWatchdogStall?: AprOuterWatchdogStallState;
 }): AprCollectedCaseObservations {
   const sourceEntries = (Object.entries(input.sources) as Array<[SourceName, AprCurrentCaseObservationSources[SourceName]]>);
   const sourceFingerprints = Object.fromEntries(sourceEntries.flatMap(([source, state]) => {
@@ -124,6 +130,7 @@ export function collectAprCurrentCaseObservations(input: {
     infissiMapping: { runId: input.runId, corpusFingerprint: corpus, state: input.sources.infissiMapping },
     deepReview: { runId: input.runId, corpusFingerprint: corpus, state: input.sources.deepReview },
     execution: { runId: input.runId, corpusFingerprint: corpus, state: input.sources.execution },
+    outerWatchdogStall: input.outerWatchdogStall,
   }, input.customerKey);
 }
 
@@ -151,8 +158,50 @@ export function collectAprCaseObservations(
   if (errors.length > 0) return { status: "REJECTED", customerKey, runId: bundle.manifest.runId, corpusFingerprint: expectedCorpusFingerprint, sourceAggregateFingerprint, observations: [], errors: [...new Set(errors)].sort() };
 
   const at = { runId: bundle.manifest.runId, observedAt: bundle.manifest.createdAt };
-  const observations: AprCaseStatusObservation[] = [];
   const commonItem = bundle.common?.state.items.find((item) => item.customerKey === customerKey);
+  const commonReachedTerminalOutcome = commonItem?.state === "ready_local_plan"
+    || commonItem?.state === "blocked_case"
+    || commonItem?.state === "deferred_operator";
+  const stall = bundle.outerWatchdogStall?.customerKey === customerKey ? bundle.outerWatchdogStall : undefined;
+  if (stall && !commonReachedTerminalOutcome) {
+    const stallCommonPreflight = observeAprOuterWatchdogStallCommonPreflight(stall, at);
+    const observations: AprCaseStatusObservation[] = [
+      stallCommonPreflight,
+      createAprNotApplicableObservation({ source: "product_gate", customerKey, ...at }),
+      observeAprOuterWatchdogStallDeepReview(stall, at),
+      createAprNotApplicableObservation({ source: "execution", customerKey, ...at }),
+      createAprNotApplicableObservation({ source: "checkpoint", customerKey, ...at }),
+      observeAprStructuredBlockers({ customerKey, ...at, blockerCodes: stallCommonPreflight.blockerCodes }),
+    ];
+    return { status: "COLLECTED", customerKey, runId: bundle.manifest.runId, corpusFingerprint: expectedCorpusFingerprint,
+      sourceAggregateFingerprint, observations, errors: [] };
+  }
+
+  // Il preflight ha concluso e ha trovato blocker, poi il watchdog ha ucciso il
+  // processo mentre l'esecuzione era ancora in attesa della sessione ENEA. Lo
+  // stato "in coda" e' definitivamente superato dalla traccia dello stallo: il
+  // caso non e' incerto, e' un blocco gia' riconosciuto che nessuno ha ancora
+  // classificato. Con il preflight comune bloccato il gate prodotto e' per
+  // contratto non applicabile, quindi la combinazione resta quella prevista.
+  const deepReviewItem = bundle.deepReview?.state.items.find((item) => item.customerKey === customerKey);
+  const executionItem = bundle.execution?.state.items.find((item) => item.customerKey === customerKey);
+  const executionReachedTerminalState = executionItem !== undefined
+    && ["saved", "operator_intervention", "deferred_operator"].includes(executionItem.state);
+  if (stall && commonItem && commonItem.state === "blocked_case" && !deepReviewItem && !executionReachedTerminalState) {
+    const commonPreflight = observeAprCommonPreflight(commonItem, at);
+    const observations: AprCaseStatusObservation[] = [
+      commonPreflight,
+      createAprNotApplicableObservation({ source: "product_gate", customerKey, ...at }),
+      observeAprOuterWatchdogStallDeepReview(stall, at, commonPreflight.blockerCodes),
+      createAprNotApplicableObservation({ source: "execution", customerKey, ...at }),
+      createAprNotApplicableObservation({ source: "checkpoint", customerKey, ...at }),
+      observeAprStructuredBlockers({ customerKey, ...at, blockerCodes: commonPreflight.blockerCodes }),
+    ];
+    return { status: "COLLECTED", customerKey, runId: bundle.manifest.runId, corpusFingerprint: expectedCorpusFingerprint,
+      sourceAggregateFingerprint, observations, errors: [] };
+  }
+
+  const observations: AprCaseStatusObservation[] = [];
   if (commonItem) observations.push(observeAprCommonPreflight(commonItem, at));
   else errors.push("case_missing_from_common_preflight");
   const batchItem = bundle.infissiBatch?.state.items.find((item) => item.customerKey === customerKey);
@@ -172,9 +221,8 @@ export function collectAprCaseObservations(
     const screening = observeAprScreeningProductGate(commonItem, at);
     if (screening) observations.push(screening);
   }
-  const deepItem = bundle.deepReview?.state.items.find((item) => item.customerKey === customerKey);
+  const deepItem = deepReviewItem;
   if (deepItem) observations.push(observeAprDeepReview(deepItem, at));
-  const executionItem = bundle.execution?.state.items.find((item) => item.customerKey === customerKey);
   if (executionItem) observations.push(observeAprDraftExecution(executionItem, at));
 
   const productObservations = observations.filter((item) => item.source === "product_gate");

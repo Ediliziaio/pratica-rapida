@@ -3,7 +3,8 @@ import type { AprCrmLocalPreflightItem } from "./crmLocalPreflight";
 import type { AprInfissiBatchItem } from "./infissiBatchPreflight";
 import type { DeepReviewItem } from "./deepCaseReview";
 import type { AprEneaDraftExecutionItem } from "./eneaDraftExecution";
-import { observeAprCommonPreflight, observeAprDeepReview, observeAprDraftExecution, observeAprInfissiBatchProductGate, observeAprMixedProductGate, observeAprScreeningProductGate } from "./caseStatusObservationAdapters";
+import type { AprOuterWatchdogStallState } from "./outerWatchdogStall";
+import { observeAprCommonPreflight, observeAprDeepReview, observeAprDraftExecution, observeAprInfissiBatchProductGate, observeAprMixedProductGate, observeAprOuterWatchdogStallCommonPreflight, observeAprOuterWatchdogStallDeepReview, observeAprScreeningProductGate } from "./caseStatusObservationAdapters";
 
 const at = { runId: "run-fixed-40-v1", observedAt: "2026-08-23T20:00:00.000Z" };
 
@@ -114,6 +115,27 @@ describe("APR case status observation adapters", () => {
   it("non trasforma un intervento business esplicito in arresto tecnico", () => {
     const item = { customerKey: "fixture-operator", state: "operator_intervention", operatorGateBlockers: [{ code: "invoice_total_conflict" }], uncertainPageSave: null, reason: "L'operatore deve verificare il totale della fattura." } as unknown as AprEneaDraftExecutionItem;
     expect(observeAprDraftExecution(item, at)).toMatchObject({ source: "execution", stage: "EXECUTION", status: "BLOCKED", classification: "OPERATOR", blockerCodes: ["invoice_total_conflict"] });
+  });
+
+  it("classifica lo stallo del watchdog esterno come blocco tecnico su preflight comune e deep review", () => {
+    const stall = {
+      version: "apr-outer-watchdog-stall-state-v1", customerKey: "fixture-stall", cohort: 4242, batchRunId: "apr-batch-fixture",
+      detectedAt: "2026-09-12T10:07:00.000Z", reason: "no_material_progress_for_7_minutes",
+      startedAt: "2026-09-12T10:00:00.000Z", lastProgressAt: "2026-09-12T10:00:00.000Z", lastObservedFingerprint: "fixture-fingerprint",
+    } as unknown as AprOuterWatchdogStallState;
+    expect(observeAprOuterWatchdogStallCommonPreflight(stall, at)).toMatchObject({ source: "preflight_common", stage: "COMMON_PREFLIGHT", status: "BLOCKED", classification: "UNCLASSIFIED", blockerCodes: ["outer_watchdog_stall_detected"] });
+    expect(observeAprOuterWatchdogStallDeepReview(stall, at)).toMatchObject({ source: "deep_review", stage: "DEEP_REVIEW", status: "BLOCKED", classification: "TECHNICAL", blockerCodes: ["outer_watchdog_stall_detected"] });
+  });
+
+  it("attribuisce all'operatore, non alla tecnica, uno stallo su blocker gia' riconosciuti", () => {
+    const stall = {
+      version: "apr-outer-watchdog-stall-state-v1", customerKey: "fixture-stall", cohort: 4242, batchRunId: "apr-batch-fixture",
+      detectedAt: "2026-09-12T20:12:19.422Z", reason: "no_material_progress_for_7_minutes",
+      startedAt: "2026-09-12T20:05:00.000Z", lastProgressAt: "2026-09-12T20:05:18.582Z", lastObservedFingerprint: "fixture-fingerprint",
+    } as unknown as AprOuterWatchdogStallState;
+    expect(observeAprOuterWatchdogStallDeepReview(stall, at, ["customer_form_missing"])).toMatchObject({
+      source: "deep_review", status: "BLOCKED", classification: "OPERATOR", blockerCodes: ["customer_form_missing"],
+    });
   });
 
   it("rifiuta osservazioni senza runId", () => {

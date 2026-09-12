@@ -6,6 +6,8 @@ import type { AprEneaDraftExecutionItem } from "./eneaDraftExecution";
 import type { AprCaseBlockerApplicability, AprCaseStatusObservation } from "./aprMonotonicArtifacts";
 import { canonicalSha256 } from "./aprMonotonicArtifacts";
 import { commonBlockerProductModules } from "./commonBlockerApplicability";
+import type { AprOuterWatchdogStallState } from "./outerWatchdogStall";
+import { APR_OUTER_WATCHDOG_STALL_BLOCKER_CODE } from "./outerWatchdogStall";
 
 export const APR_CASE_STATUS_OBSERVATION_ADAPTERS_VERSION = "apr-case-status-observation-adapters-v1" as const;
 
@@ -126,6 +128,36 @@ export function observeAprDeepReview(item: DeepReviewItem, input: ObservationCon
       : item.state === "business_rule_required" ? "BUSINESS" : "NONE";
   return observation({ source: "deep_review", stage: "DEEP_REVIEW", customerKey: item.customerKey, ...input, status,
     blockerCodes: [...new Set(item.blockerCodes)].sort(), classification, productModule: item.productModule, fingerprintSource: item });
+}
+
+export function observeAprOuterWatchdogStallCommonPreflight(state: AprOuterWatchdogStallState, input: ObservationContext): AprCaseStatusObservation {
+  context(input);
+  return observation({
+    source: "preflight_common", stage: "COMMON_PREFLIGHT", customerKey: state.customerKey, ...input,
+    status: "BLOCKED", blockerCodes: [APR_OUTER_WATCHDOG_STALL_BLOCKER_CODE], classification: "UNCLASSIFIED",
+    fingerprintSource: { role: "outer_watchdog_stall_common_preflight", stall: state },
+  });
+}
+
+/**
+ * Il watchdog ha ucciso il processo prima che la deep review potesse
+ * classificare il blocco. Un blocco gia' riconosciuto resta di competenza
+ * dell'operatore: e' tecnico soltanto uno stallo senza alcun blocker noto.
+ */
+export function observeAprOuterWatchdogStallDeepReview(
+  state: AprOuterWatchdogStallState,
+  input: ObservationContext,
+  knownBlockerCodes: readonly string[] = [],
+): AprCaseStatusObservation {
+  context(input);
+  const businessCodes = [...new Set(knownBlockerCodes)].filter((code) => code !== APR_OUTER_WATCHDOG_STALL_BLOCKER_CODE).sort();
+  const blockerCodes = businessCodes.length > 0 ? businessCodes : [APR_OUTER_WATCHDOG_STALL_BLOCKER_CODE];
+  return observation({
+    source: "deep_review", stage: "DEEP_REVIEW", customerKey: state.customerKey, ...input,
+    status: "BLOCKED", blockerCodes,
+    classification: businessCodes.length > 0 ? "OPERATOR" : "TECHNICAL",
+    fingerprintSource: { role: "outer_watchdog_stall_deep_review", stall: state, blockerCodes },
+  });
 }
 
 export function observeAprDraftExecution(item: AprEneaDraftExecutionItem, input: ObservationContext): AprCaseStatusObservation {

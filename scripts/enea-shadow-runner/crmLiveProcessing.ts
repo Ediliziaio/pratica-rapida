@@ -1,7 +1,8 @@
 import { createHash, randomUUID } from "node:crypto";
 import { closeSync, existsSync, fsyncSync, mkdirSync, openSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { AUTO_CURRENT_VALIDATION_REVISION, registryRule } from "../../src/features/enea-shadow-crm/operationalRegistry";
+import { registryRule } from "../../src/features/enea-shadow-crm/operationalRegistry";
+import { governingValidationRevision } from "./infissiExecutionGate";
 import { aprDocumentProcessingDossiers, PersistentAprCrmAuthenticatedReadOnly } from "./crmAuthenticatedReadOnly";
 import type { PersistentAprCrmAuth } from "./crmAuth";
 import { PersistentAprCrmDocumentAnalysis, type LocalPdfAnalyzer } from "./crmDocumentAnalysis";
@@ -281,7 +282,7 @@ export class PersistentAprCrmLiveProcessing {
     // in altri file arrivavano molto piu' avanti - una divergenza reale, non
     // ipotetica. Questa riga sostituisce la necessita' di estendere l'elenco a
     // mano: l'identificatore cambia da solo a ogni modifica del registro.
-    if (this.analysis.snapshot(now).status === "completed") this.analysis.applyParserRevision(AUTO_CURRENT_VALIDATION_REVISION, now);
+    if (this.analysis.snapshot(now).status === "completed") this.analysis.applyParserRevision(governingValidationRevision(), now);
     const analysis = this.analysis.snapshot(now);
     if (acquisition.status === "completed" && analysis.status === "completed") {
       const acquired = acquisition.items.filter((item) => item.state === "acquired");
@@ -299,7 +300,7 @@ export class PersistentAprCrmLiveProcessing {
     if (this.preflight.snapshot(now).status === "completed") for (const revision of VALIDATION_REVISIONS) this.preflight.applyValidationRevision(revision, now);
     // Vedi la nota su PARSER_REVISIONS sopra: stessa correzione, stessa
     // ragione. Nessuna riga da aggiungere qui per le correzioni future.
-    if (this.preflight.snapshot(now).status === "completed") this.preflight.applyValidationRevision(AUTO_CURRENT_VALIDATION_REVISION, now);
+    if (this.preflight.snapshot(now).status === "completed") this.preflight.applyValidationRevision(governingValidationRevision(), now);
     if (this.preflight.snapshot(now).status === "completed") this.draftPackages.synchronize(now);
     if (this.draftPackages.snapshot(now).status === "completed") this.draftHandoff.synchronize(now);
     if (this.draftHandoff.snapshot(now).status === "staged_fail_closed") this.executorIntake.tick(now);

@@ -1,4 +1,17 @@
 import { AUTO_CURRENT_VALIDATION_REVISION } from "../../src/features/enea-shadow-crm/operationalRegistry";
+import { resolveAprGoverningValidationRevision } from "./bundleRuleSourceAlignment";
+
+/**
+ * Comanda il bundle installato (decisione del titolare, 2026-09-13): il
+ * marcatore di convergenza si legge dall'attestazione del bundle che governa
+ * l'esecuzione, cosi' supervisore e sequencer timbrano lo stesso valore e
+ * nessuno dei due considera mancante quello dell'altro. Senza bundle
+ * governante si ricade sul registro del sorgente: e' il caso dei test e degli
+ * usi locali, dove un secondo scrittore non esiste.
+ */
+export function governingValidationRevision(bundlePath = process.env.APR_CANONICAL_BUNDLES): string {
+  return bundlePath?.trim() ? resolveAprGoverningValidationRevision(bundlePath) : AUTO_CURRENT_VALIDATION_REVISION;
+}
 
 export const APR_REQUIRED_INFISSI_VALIDATION_REVISIONS = [
   "infissi-transmittance-131-to-13-v1",
@@ -29,24 +42,19 @@ export function applyRequiredInfissiValidationRevisions(
   for (const revision of APR_REQUIRED_INFISSI_VALIDATION_REVISIONS) {
     applyAndSettle(revision);
   }
-  // Difetto strutturale (2026-09-08): l'elenco sopra e' scritto a mano ed e'
-  // gia' rimasto indietro rispetto a elenchi paralleli in altri file (stessa
-  // stringa duplicata su piu' file, mai tenuta sincronizzata). Un
-  // identificatore derivato dal contenuto del registro chiude il ricalcolo
-  // senza richiedere una nuova riga per ogni correzione futura.
-  applyAndSettle(AUTO_CURRENT_VALIDATION_REVISION);
+  // L'elenco sopra e' scritto a mano e resta indietro; il marcatore governato
+  // chiude il ricalcolo senza una riga nuova per ogni correzione futura.
+  applyAndSettle(governingValidationRevision());
 }
 
 export function missingRequiredInfissiValidationRevisions(snapshot: {
   validationRevisionsApplied?: readonly string[];
 }) {
   const applied = new Set(snapshot.validationRevisionsApplied ?? []);
-  // AUTO_CURRENT_VALIDATION_REVISION e' incluso qui (non solo applicato da chi
-  // scrive) cosi' che questa funzione stessa - usata per decidere se un
-  // checkpoint e' davvero aggiornato - non possa mai dichiararlo pronto sulla
-  // base di un elenco scritto a mano rimasto indietro rispetto al registro
-  // corrente (difetto strutturale 2026-09-08).
-  return [...APR_REQUIRED_INFISSI_VALIDATION_REVISIONS, AUTO_CURRENT_VALIDATION_REVISION].filter((revision) => !applied.has(revision));
+  // Il marcatore governato e' incluso qui, non solo applicato da chi scrive:
+  // questa funzione decide se un checkpoint e' aggiornato, e non deve poterlo
+  // dichiarare pronto sulla base del solo elenco scritto a mano.
+  return [...APR_REQUIRED_INFISSI_VALIDATION_REVISIONS, governingValidationRevision()].filter((revision) => !applied.has(revision));
 }
 
 /**
@@ -80,7 +88,7 @@ export function infissiExecutionGateReady(snapshot: {
   return snapshot.status === "completed"
     && Boolean(snapshot.sourceFingerprint)
     && APR_REQUIRED_INFISSI_VALIDATION_REVISIONS.every((revision) => applied.has(revision))
-    && applied.has(AUTO_CURRENT_VALIDATION_REVISION);
+    && applied.has(governingValidationRevision());
 }
 
 export function dateGateReleaseReadyCustomerKeys(

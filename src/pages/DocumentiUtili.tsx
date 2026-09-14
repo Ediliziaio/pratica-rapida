@@ -33,6 +33,13 @@ const STATIC_DOCUMENTS: StaticDoc[] = [
     use_case: "Le stesse condizioni che accetti a ogni invio di una pratica dal portale. Qui puoi rileggerle e scaricarle quando vuoi.",
     file: "/contratto-di-servizio.pdf",
   },
+  {
+    id: "documento-iva-22-10",
+    title: "Documento IVA 22% e 10%",
+    description: "Nota informativa sull’IVA applicabile alla vendita e posa di schermature solari.",
+    use_case: "Da consegnare al cliente per chiarire quando si applica l’IVA ordinaria al 22% e in quali interventi edilizi può essere applicata l’IVA al 10%.",
+    file: "/documento-iva-22-10.pdf",
+  },
 ];
 
 interface DocumentTemplate {

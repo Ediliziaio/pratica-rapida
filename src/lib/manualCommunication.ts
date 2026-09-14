@@ -57,3 +57,7 @@ export function isManualCommunicationFormComplete(
   if (!form.recipient.trim() || !form.body.trim()) return false;
   return form.channel !== "email" || Boolean(form.subject.trim());
 }
+
+export function normalizeManualWhatsappRecipient(recipient: string): string {
+  return recipient.replace(/\D/g, "");
+}

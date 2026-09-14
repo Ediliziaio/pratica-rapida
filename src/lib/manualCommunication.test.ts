@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildManualCommunicationRequest,
   isManualCommunicationFormComplete,
+  normalizeManualWhatsappRecipient,
   type ManualCommunicationForm,
 } from "./manualCommunication";
 
@@ -60,5 +61,9 @@ describe("manual communications", () => {
         subject: "Oggetto",
       }),
     ).toBe(true);
+  });
+
+  it("normalizes a WhatsApp recipient for provider-log reconciliation", () => {
+    expect(normalizeManualWhatsappRecipient("+39 333 000 0000")).toBe("393330000000");
   });
 });

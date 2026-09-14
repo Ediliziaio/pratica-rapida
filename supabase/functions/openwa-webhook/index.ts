@@ -21,6 +21,36 @@ import { reportError } from "../_shared/error.ts";
 
 const WEBHOOK_SECRET = Deno.env.get("OPENWA_WEBHOOK_SECRET") ?? "";
 
+/**
+ * Verifica la firma HMAC-SHA256 del webhook OpenWA.
+ * Header atteso: "X-OpenWA-Signature: sha256=<hex>" (accetta anche il solo
+ * <hex>). Confronto a tempo costante per evitare timing attack.
+ */
+async function verifyHmac(secret: string, rawBody: string, sigHeader: string): Promise<boolean> {
+  try {
+    const expectedHex = sigHeader.trim().replace(/^sha256=/i, "").toLowerCase();
+    if (!/^[0-9a-f]{64}$/.test(expectedHex)) return false;
+    const key = await crypto.subtle.importKey(
+      "raw",
+      new TextEncoder().encode(secret),
+      { name: "HMAC", hash: "SHA-256" },
+      false,
+      ["sign"],
+    );
+    const mac = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(rawBody));
+    const actualHex = Array.from(new Uint8Array(mac))
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
+    // Confronto a tempo costante
+    if (actualHex.length !== expectedHex.length) return false;
+    let diff = 0;
+    for (let i = 0; i < actualHex.length; i++) diff |= actualHex.charCodeAt(i) ^ expectedHex.charCodeAt(i);
+    return diff === 0;
+  } catch {
+    return false;
+  }
+}
+
 interface OpenWAInboundData {
   id?: string;
   from?: string; // "393331234567@c.us" oppure "272764799856779@lid"
@@ -93,8 +123,19 @@ serve(async (req) => {
     return new Response("Method not allowed", { status: 405 });
   }
 
-  // Auth: header condiviso configurato sul webhook OpenWA
-  if (!WEBHOOK_SECRET || req.headers.get("x-webhook-token") !== WEBHOOK_SECRET) {
+  // Auth: accetta DUE meccanismi, così regge qualunque versione del gateway.
+  //  1) header custom "x-webhook-token" == OPENWA_WEBHOOK_SECRET
+  //     (registrazione webhook con campo `headers`);
+  //  2) firma HMAC-SHA256 in "X-OpenWA-Signature: sha256=<hex>" calcolata sul
+  //     body RAW col `secret` (gateway >= 0.20). Confronto a tempo costante.
+  // Leggiamo il body RAW UNA volta: serve sia all'HMAC sia al JSON.parse.
+  const rawBody = await req.text();
+  const tokenOk = !!WEBHOOK_SECRET && req.headers.get("x-webhook-token") === WEBHOOK_SECRET;
+  const sigHeader = req.headers.get("x-openwa-signature") ?? req.headers.get("x-webhook-signature") ?? "";
+  const hmacOk = !!WEBHOOK_SECRET && sigHeader
+    ? await verifyHmac(WEBHOOK_SECRET, rawBody, sigHeader)
+    : false;
+  if (!tokenOk && !hmacOk) {
     return new Response("Unauthorized", { status: 401 });
   }
 
@@ -105,7 +146,7 @@ serve(async (req) => {
 
   let evt: OpenWAEvent;
   try {
-    evt = await req.json();
+    evt = JSON.parse(rawBody) as OpenWAEvent;
   } catch {
     return new Response(JSON.stringify({ ok: false, error: "Bad JSON" }), { status: 400 });
   }

@@ -191,6 +191,18 @@ export default function Newsletter() {
     staleTime: 10 * 60 * 1000,
   });
 
+  const { data: leads = [] } = useQuery<Array<{ id: string; nome: string | null; cognome: string | null; email: string | null; stage_id: string | null }>>({
+    queryKey: ["admin-leads-newsletter"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("leads")
+        .select("id, nome, cognome, email, stage_id")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+    staleTime: 10 * 60 * 1000,
+  });
+
   const { data: history = [] } = useQuery<NewsletterRecord[]>({
     queryKey: ["crm_newsletters"],
     queryFn: async () => {
@@ -223,26 +235,58 @@ export default function Newsletter() {
   // Modalità prova attiva: quadratino spuntato E email valida inserita.
   const customActive = customMode && customEmailValid;
 
-  // Aziende senza email valida: non ricevibili, quindi escluse dal conteggio.
-  const companiesNoEmail = companies.filter(c => !c.email || !c.email.includes("@")).length;
+  // Pool = AZIENDE (fase = assegnazione) + LEAD (fase = stage_id), uniti.
+  // La board pipeline mescola le due tabelle nelle stesse colonne, quindi la
+  // newsletter deve fare lo stesso: selezionando le pipeline si scelgono
+  // insieme clienti e lead (i clienti stanno in "Cliente Attivo", i lead
+  // negli altri stage). Prima invece si leggevano SOLO le companies → i 745
+  // lead non ricevevano mai nulla.
+  const pool = useMemo(() => {
+    const firstStageId = sortedStages[0]?.id;
+    const fromCompanies = companies.map(c => ({
+      id: c.id,
+      ragione_sociale: c.ragione_sociale,
+      email: c.email,
+      stage: assignments[c.id] ?? firstStageId,
+    }));
+    const fromLeads = leads.map(l => ({
+      id: l.id,
+      ragione_sociale: `${l.nome ?? ""} ${l.cognome ?? ""}`.trim() || "Lead",
+      email: l.email,
+      stage: l.stage_id ?? firstStageId,
+    }));
+    return [...fromCompanies, ...fromLeads];
+  }, [companies, leads, assignments, sortedStages]);
+
+  // Destinatari senza email valida: non ricevibili, esclusi dal conteggio.
+  const noEmailCount = pool.filter(p => !p.email || !p.email.includes("@")).length;
 
   // ── Destinatari ──────────────────────────────────────────────────────────────
   // Se è impostata un'email di prova valida, si invia SOLO a quella (modalità
-  // test). Altrimenti = unione delle pipeline selezionate (aziende con email).
+  // test). Altrimenti = pool (aziende + lead) filtrato per pipeline, con email,
+  // deduplicato per indirizzo (un'azienda e un lead potrebbero condividere l'email).
   const recipients = useMemo(() => {
     if (customActive) {
       return [{ id: "custom", ragione_sociale: customEmail.trim(), email: customEmail.trim() }];
     }
-    const firstStageId = sortedStages[0]?.id;
-    const withEmail = companies.filter(c => c.email && c.email.includes("@"));
     if (selectedStages.length === 0) return [];
-    return withEmail.filter(c => selectedStages.includes(assignments[c.id] ?? firstStageId));
-  }, [companies, assignments, selectedStages, sortedStages, customActive, customEmail]);
+    const seen = new Set<string>();
+    const out: { id: string; ragione_sociale: string; email: string }[] = [];
+    for (const p of pool) {
+      if (!p.email || !p.email.includes("@")) continue;
+      if (!selectedStages.includes(p.stage as string)) continue;
+      const key = p.email.trim().toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push({ id: p.id, ragione_sociale: p.ragione_sociale, email: p.email! });
+    }
+    return out;
+  }, [pool, selectedStages, customActive, customEmail]);
 
   const targetLabel = customActive
     ? `Prova: ${customEmail.trim()}`
     : allSelected
-      ? "Tutte le aziende"
+      ? "Tutti i contatti"
       : sortedStages.filter(s => selectedStages.includes(s.id)).map(s => s.name).join(", ") || "Nessuna pipeline";
 
   // ── Invio ────────────────────────────────────────────────────────────────────
@@ -341,16 +385,16 @@ export default function Newsletter() {
                     <span className="line-clamp-1 text-left">
                       {customActive
                         ? `Prova: ${customEmail.trim()}`
-                        : allSelected ? "Tutte le aziende" : selectedStages.length === 0 ? "Nessuna pipeline selezionata" : `${selectedStages.length} pipeline selezionate`}
+                        : allSelected ? "Tutti i contatti" : selectedStages.length === 0 ? "Nessuna pipeline selezionata" : `${selectedStages.length} pipeline selezionate`}
                     </span>
                     <ChevronDown className="h-4 w-4 opacity-50 shrink-0" />
                   </button>
                 </PopoverTrigger>
                 <PopoverContent className="w-[--radix-popover-trigger-width] p-1" align="start">
-                  {/* Tutte le aziende */}
+                  {/* Tutti i contatti (aziende + lead di tutte le pipeline) */}
                   <label className={`flex items-center gap-2.5 rounded-md px-2 py-2 hover:bg-accent cursor-pointer ${customMode ? "opacity-40" : ""}`}>
                     <Checkbox checked={allSelected} onCheckedChange={toggleAll} style={{ borderRadius: 3 }} disabled={customMode} />
-                    <span className="text-sm font-medium">Tutte le aziende</span>
+                    <span className="text-sm font-medium">Tutti i contatti</span>
                   </label>
                   <div className="h-px bg-border my-1" />
                   {/* Pipeline con quadratino */}
@@ -413,12 +457,12 @@ export default function Newsletter() {
                 ) : (
                   <>
                     <strong className="text-foreground tabular-nums">{recipients.length}</strong>
-                    aziende con email riceveranno questa newsletter
+                    contatti con email riceveranno questa newsletter
                     {selectedStages.length === 0 && (
                       <span className="text-destructive">· seleziona almeno una pipeline</span>
                     )}
-                    {allSelected && companiesNoEmail > 0 && (
-                      <span>· {companiesNoEmail} senza email escluse</span>
+                    {allSelected && noEmailCount > 0 && (
+                      <span>· {noEmailCount} senza email escluse</span>
                     )}
                   </>
                 )}

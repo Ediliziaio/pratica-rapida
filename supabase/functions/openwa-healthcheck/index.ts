@@ -23,6 +23,77 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 const HEALTHY = ["CONNECTED", "READY", "AUTHENTICATED", "WORKING"];
 const TOKEN = Deno.env.get("OPENWA_WEBHOOK_SECRET") ?? "";
 
+/**
+ * Assicura (idempotente) che il webhook inbound sia registrato sul gateway
+ * OpenWA per la sessione `sid`. Eventi ricevuti da openwa-webhook:
+ * message.received, message.ack, session.status.
+ *
+ * Auth verso il ricevitore: passiamo SIA il `secret` (firma HMAC
+ * X-OpenWA-Signature) SIA un header custom `x-webhook-token` — openwa-webhook
+ * accetta entrambi, così funziona a prescindere dalla versione del gateway.
+ *
+ * Best-effort: qualunque errore viene solo loggato/ritornato, senza mai far
+ * fallire l'healthcheck. Prima prova a leggere i webhook esistenti per non
+ * duplicare; se l'endpoint di lettura non c'è, procede col POST.
+ */
+async function ensureWebhook(
+  baseUrl: string,
+  apiKey: string,
+  sid: string,
+): Promise<{ ok: boolean; action: string; status?: number; detail?: unknown }> {
+  const secret = Deno.env.get("OPENWA_WEBHOOK_SECRET") ?? "";
+  const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+  if (!secret || !supabaseUrl) return { ok: false, action: "skip_no_env" };
+  const webhookUrl = `${supabaseUrl}/functions/v1/openwa-webhook`;
+  const endpoint = `${baseUrl}/api/sessions/${sid}/webhooks`;
+  const headers = { "X-API-Key": apiKey, "Content-Type": "application/json" };
+
+  const fetchJson = async (method: string, url: string, body?: unknown) => {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 8000);
+    try {
+      const res = await fetch(url, {
+        method,
+        headers,
+        ...(body ? { body: JSON.stringify(body) } : {}),
+        signal: ctrl.signal,
+      });
+      const json = await res.json().catch(() => ({}));
+      return { res, json };
+    } finally {
+      clearTimeout(t);
+    }
+  };
+
+  try {
+    // 1) Già registrato? (evita duplicati a ogni run del cron)
+    try {
+      const { res, json } = await fetchJson("GET", endpoint);
+      if (res.ok) {
+        const arr = Array.isArray(json) ? json : ((json as { data?: unknown[] }).data ?? []);
+        const exists = Array.isArray(arr) && arr.some((w) =>
+          typeof w === "object" && w !== null && (w as { url?: string }).url === webhookUrl
+        );
+        if (exists) return { ok: true, action: "already_registered" };
+      }
+    } catch { /* endpoint di lettura assente → procedi col POST */ }
+
+    // 2) Registra
+    const { res, json } = await fetchJson("POST", endpoint, {
+      url: webhookUrl,
+      events: ["message.received", "message.ack", "session.status"],
+      secret,
+      headers: { "x-webhook-token": secret },
+    });
+    // Log esplicito così vediamo nei function logs cosa risponde il gateway.
+    console.log(`[openwa-healthcheck] webhook register → ${res.status}`, JSON.stringify(json).slice(0, 500));
+    return { ok: res.ok, action: "registered", status: res.status, detail: json };
+  } catch (e) {
+    console.error("[openwa-healthcheck] ensureWebhook threw:", e);
+    return { ok: false, action: "error", detail: e instanceof Error ? e.message : String(e) };
+  }
+}
+
 serve(async (req) => {
   // Auth: cron passa l'header condiviso. Accetta anche il service-role bearer.
   const tokenOk = TOKEN && req.headers.get("x-healthcheck-token") === TOKEN;
@@ -45,6 +116,7 @@ serve(async (req) => {
   const sessionName = Deno.env.get("OPENWA_SESSION_NAME") ?? "praticarapida";
   let status = "UNREACHABLE";
   let reason = "";
+  let resolvedSid = sessionId;
   try {
     const ctrl = new AbortController();
     const t = setTimeout(() => ctrl.abort(), 8000);
@@ -60,6 +132,7 @@ serve(async (req) => {
           ?? list.find((s) => ["connected", "ready", "authenticated", "working"].includes(String(s.status ?? "").toLowerCase()))
           ?? list[0];
         status = (sess.status ?? "UNKNOWN").toUpperCase();
+        if (sess.id) resolvedSid = sess.id;
       } else {
         // Nessuna sessione registrata = WhatsApp non collegato (record perso al restart)
         status = "NO_SESSION";
@@ -76,7 +149,13 @@ serve(async (req) => {
 
   const isHealthy = HEALTHY.includes(status);
   if (isHealthy) {
-    return Response.json({ ok: true, status, healthy: true });
+    // Sessione connessa → assicura che il webhook inbound sia registrato sul
+    // gateway. Alla ricreazione della sessione (restart/logout/riconnessione)
+    // OpenWA perde la config webhook e i messaggi in ENTRATA smettono di
+    // arrivare al CRM pur restando l'invio funzionante. Ri-registrandolo a
+    // ogni healthcheck (ogni 5 min, idempotente) l'inbound si auto-ripristina.
+    const webhook = await ensureWebhook(baseUrl, apiKey, resolvedSid);
+    return Response.json({ ok: true, status, healthy: true, webhook });
   }
 
   // 2) NON sano → alert con throttle 6h (stessa campanella del webhook)

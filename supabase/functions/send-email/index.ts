@@ -626,7 +626,7 @@ serve(async (req) => {
     // e rotto quando il subject cambiava). Vedi process-automations dedup.
     const meta: Record<string, unknown> = { template };
     if (data?.trigger_event) meta.trigger_event = data.trigger_event;
-    await supabase.from("communication_log").insert({
+    const { error: commErr } = await supabase.from("communication_log").insert({
       practice_id: data.practice_id,
       channel: "email",
       direction: "outbound",
@@ -638,10 +638,21 @@ serve(async (req) => {
       error_message: !success ? JSON.stringify(emailData) : null,
       metadata: meta,
     });
+    // NON far fallire la risposta se il log non va a buon fine (l'email è già
+    // partita) ma NON ingoiare l'errore in silenzio: va segnalato, così non
+    // ricapita la classe di bug "email inviata ma non loggata".
+    if (commErr) {
+      await reportError(new Error(`communication_log insert failed: ${commErr.message}`), {
+        fn: "send-email", template, practice_id: data.practice_id, code: commErr.code,
+      });
+    }
   }
 
-  // Log su email_logs (pannello admin)
-  await supabase.from("email_logs").insert({
+  // Log su email_logs (pannello admin). L'errore va controllato e segnalato:
+  // in passato la FK email_logs.pratica_id → pratiche(id) faceva fallire l'insert
+  // per ogni pratica reale (che vive in enea_practices), e l'errore veniva
+  // ingoiato → email_logs "fermo" e area riservata che sembrava non inviare più.
+  const { error: logErr } = await supabase.from("email_logs").insert({
     client_id: data?.client_id ?? null,
     pratica_id: data?.practice_id ?? null,
     template_id: data?.template_id ?? null,
@@ -650,6 +661,11 @@ serve(async (req) => {
     status: success ? "sent" : "failed",
     resend_id: emailData?.id ?? null,
   });
+  if (logErr) {
+    await reportError(new Error(`email_logs insert failed: ${logErr.message}`), {
+      fn: "send-email", template, practice_id: data?.practice_id ?? null, code: logErr.code,
+    });
+  }
 
   return new Response(JSON.stringify({ success, id: emailData?.id }), {
     status: 200,

@@ -419,7 +419,7 @@ serve(async (req) => {
   }
 
   if (practice_id) {
-    await supabase.from("communication_log").insert({
+    const { error: commErr } = await supabase.from("communication_log").insert({
       practice_id,
       channel: "whatsapp",
       direction: "outbound",
@@ -429,13 +429,22 @@ serve(async (req) => {
       wa_message_id: wa_message_id ?? null,
       error_message: error_message ?? null,
     });
+    if (commErr) {
+      await reportError(new Error(`communication_log insert failed: ${commErr.message}`), {
+        fn: "send-whatsapp", template_name, practice_id, code: commErr.code,
+      });
+    }
   }
 
   // Log su whatsapp_logs (pannello admin legacy) — popoliamo `body` con la
   // preview ricostruita dai parameters così l'audit ha visibilità sul content
   // reale, non solo sul nome del template.
   const resolvedMsgType = isMediaMode ? (media_type as string) : isTextMode ? "text" : "template";
-  await supabase.from("whatsapp_logs").insert({
+  // L'errore va controllato e segnalato: in passato la FK
+  // whatsapp_logs.pratica_id → pratiche(id) faceva fallire l'insert per ogni
+  // pratica reale (che vive in enea_practices) e l'errore veniva ingoiato →
+  // whatsapp_logs "fermo" e pannello WhatsApp che sembrava non inviare più.
+  const { error: waLogErr } = await supabase.from("whatsapp_logs").insert({
     client_id: null,
     pratica_id: practice_id ?? null,
     direction: "outbound",
@@ -446,6 +455,11 @@ serve(async (req) => {
     status: success ? "sent" : "failed",
     wa_message_id: wa_message_id ?? null,
   });
+  if (waLogErr) {
+    await reportError(new Error(`whatsapp_logs insert failed: ${waLogErr.message}`), {
+      fn: "send-whatsapp", template_name, practice_id: practice_id ?? null, code: waLogErr.code,
+    });
+  }
 
   // Chat thread (nuovo, Fase 2): popola whatsapp_conversations +
   // whatsapp_messages per la UI chat in-app. Upsert idempotente.

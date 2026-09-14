@@ -167,7 +167,38 @@ Deno.serve(async (req) => {
           stage_id: stageId,
           page_url: "Meta Ads",
         });
-        if (error) console.error("[meta-leads-webhook] insert error:", error.message);
+        if (error) {
+          console.error("[meta-leads-webhook] insert error:", error.message);
+        } else {
+          // Notifica interna: nuovo lead → email a modulistica@ (override via
+          // env LEADS_ALERT_EMAIL). "Di cosa si occupa" = risposte custom del
+          // modulo Meta (m.extra), che è la parte più informativa del lead.
+          try {
+            const occupazione = m.extra.length > 0 ? m.extra.join(" · ") : "non specificato";
+            await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/send-email`, {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                to: Deno.env.get("LEADS_ALERT_EMAIL") ?? "modulistica@praticarapida.it",
+                template: "nuovo_lead",
+                data: {
+                  nome: m.nome,
+                  cognome: m.cognome ?? "",
+                  occupazione,
+                  email: m.email ?? "—",
+                  telefono: m.telefono ?? "—",
+                  citta: m.citta ?? "—",
+                  fonte: "Meta Ads",
+                },
+              }),
+            });
+          } catch (mailErr) {
+            console.error("[meta-leads-webhook] alert email failed:", mailErr);
+          }
+        }
       } catch (e) {
         console.error("[meta-leads-webhook] error:", e);
       }

@@ -42,6 +42,7 @@ import { useToast } from "@/hooks/use-toast";
 import {
   buildManualCommunicationRequest,
   isManualCommunicationFormComplete,
+  normalizeManualWhatsappRecipient,
   type ManualCommunicationForm,
 } from "@/lib/manualCommunication";
 
@@ -77,6 +78,43 @@ const DEFAULT_SEND_FORM: ManualCommunicationForm = {
   body: "",
 };
 
+async function wasManualSendRecorded(
+  form: ManualCommunicationForm,
+  attemptStartedAt: Date,
+): Promise<boolean> {
+  // A provider can accept the message while the browser loses the HTTP response.
+  // Reconcile against the authoritative provider log before showing an error or
+  // allowing an operator to retry and accidentally send a duplicate.
+  const sentAfter = new Date(attemptStartedAt.getTime() - 5_000).toISOString();
+
+  if (form.channel === "email") {
+    const { data, error } = await supabase
+      .from("email_logs")
+      .select("id")
+      .eq("to_email", form.recipient.trim())
+      .eq("subject", form.subject.trim())
+      .eq("status", "sent")
+      .gte("sent_at", sentAfter)
+      .order("sent_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    return !error && Boolean(data);
+  }
+
+  const { data, error } = await supabase
+    .from("whatsapp_logs")
+    .select("id")
+    .eq("phone", normalizeManualWhatsappRecipient(form.recipient))
+    .eq("body", form.body.trim())
+    .eq("direction", "outbound")
+    .eq("status", "sent")
+    .gte("sent_at", sentAfter)
+    .order("sent_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  return !error && Boolean(data);
+}
+
 export default function ComunicazioniLog() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -102,25 +140,37 @@ export default function ComunicazioniLog() {
   const sendManualMutation = useMutation({
     mutationFn: async (form: ManualCommunicationForm) => {
       const request = buildManualCommunicationRequest(form);
-      const { data, error } = await supabase.functions.invoke(request.functionName, {
-        body: request.payload,
-      });
-      if (error) throw error;
-      const result = data as { success?: boolean; error?: string } | null;
+      const attemptStartedAt = new Date();
+      let result: { success?: boolean; error?: string } | null = null;
+
+      try {
+        const { data, error } = await supabase.functions.invoke(request.functionName, {
+          body: request.payload,
+        });
+        if (error) throw error;
+        result = data as { success?: boolean; error?: string } | null;
+      } catch (invokeError) {
+        if (!(await wasManualSendRecorded(form, attemptStartedAt))) throw invokeError;
+        result = { success: true };
+      }
+
       if (!result?.success) {
         throw new Error(result?.error || `Invio ${form.channel} non riuscito`);
       }
 
-      // Log it locally too
-      await supabase.from("communication_log").insert({
-        channel: form.channel,
-        direction: "outbound",
-        recipient: form.recipient.trim(),
-        subject: form.subject.trim() || null,
-        body_preview: form.body.trim().substring(0, 200),
-        status: "sent",
-        sent_at: new Date().toISOString(),
-      } as unknown as TablesInsert<"communication_log">);
+      // send-whatsapp already writes communication_log server-side. Manual email
+      // has no practice_id, so it still needs the client-side audit entry.
+      if (form.channel === "email") {
+        await supabase.from("communication_log").insert({
+          channel: form.channel,
+          direction: "outbound",
+          recipient: form.recipient.trim(),
+          subject: form.subject.trim() || null,
+          body_preview: form.body.trim().substring(0, 200),
+          status: "sent",
+          sent_at: new Date().toISOString(),
+        } as unknown as TablesInsert<"communication_log">);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["communication_log_full"] });

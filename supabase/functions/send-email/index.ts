@@ -504,6 +504,8 @@ serve(async (req) => {
     to?: string | string[];
     template?: string;
     data?: Record<string, string>;
+    /** Chiave stabile per impedire doppi invii dello stesso messaggio per 24 ore. */
+    idempotency_key?: string;
     /** Optional attachments — passed straight to Resend `attachments[]`.
      *  content: base64 (string) or remote URL (string). */
     attachments?: Array<{ filename: string; content?: string; path?: string; content_type?: string }>;
@@ -517,7 +519,7 @@ serve(async (req) => {
     });
   }
 
-  const { to, template, data, attachments } = payload;
+  const { to, template, data, attachments, idempotency_key } = payload;
 
   // Validate 'to' — allow string or array, each must be a well-formed email
   const toList = Array.isArray(to) ? to : [to];
@@ -590,7 +592,36 @@ serve(async (req) => {
   //      modulistica@. Idempotente: skip se già presente nel template DB.
   html = injectFooter(html, template);
 
-  const resendBody: Record<string, unknown> = { from: FROM_EMAIL, to, subject, html };
+  // Le impostazioni esistono già nel pannello admin. Prima di questa lettura
+  // venivano salvate nel DB ma ignorate dalla funzione di invio.
+  let from = FROM_EMAIL;
+  let replyTo: string | null = null;
+  try {
+    const { data: configRow } = await supabase
+      .from("platform_settings")
+      .select("value")
+      .eq("key", "email_config")
+      .maybeSingle();
+    const config = (configRow?.value ?? {}) as Record<string, unknown>;
+    const configuredAddress = typeof config.email_from_address === "string"
+      ? config.email_from_address.trim()
+      : "";
+    const configuredName = typeof config.email_from_name === "string"
+      ? config.email_from_name.replace(/[<>\r\n]/g, "").trim()
+      : "";
+    const configuredReplyTo = typeof config.email_reply_to === "string"
+      ? config.email_reply_to.trim()
+      : "";
+    if (EMAIL_RE.test(configuredAddress)) {
+      from = configuredName ? `${configuredName} <${configuredAddress}>` : configuredAddress;
+    }
+    if (EMAIL_RE.test(configuredReplyTo)) replyTo = configuredReplyTo;
+  } catch {
+    // Configurazione opzionale: il mittente ambientale resta il fallback.
+  }
+
+  const resendBody: Record<string, unknown> = { from, to, subject, html };
+  if (replyTo) resendBody.reply_to = replyTo;
   if (attachments && attachments.length > 0) {
     resendBody.attachments = attachments.map((a) => ({
       filename: a.filename,
@@ -600,9 +631,17 @@ serve(async (req) => {
     }));
   }
 
+  const resendHeaders: Record<string, string> = {
+    Authorization: `Bearer ${RESEND_API_KEY}`,
+    "Content-Type": "application/json",
+  };
+  if (typeof idempotency_key === "string" && /^[\x21-\x7E]{1,256}$/.test(idempotency_key)) {
+    resendHeaders["Idempotency-Key"] = idempotency_key;
+  }
+
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
-    headers: { Authorization: `Bearer ${RESEND_API_KEY}`, "Content-Type": "application/json" },
+    headers: resendHeaders,
     body: JSON.stringify(resendBody),
   });
 

@@ -18,12 +18,16 @@ import {
 import { Send, Users, Eye, Mail, CheckCircle2, XCircle, Clock, Loader2, ChevronDown, Bold, Italic, Underline } from "lucide-react";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
+import {
+  buildNewsletterAudience,
+  wrapNewsletterHtml,
+  type NewsletterCompany,
+  type NewsletterLead,
+} from "@/lib/newsletterAudience";
 
 // ── Tipi e costanti ───────────────────────────────────────────────────────────
 
 interface CrmStage { id: string; name: string; color: string; order: number; }
-interface Company { id: string; ragione_sociale: string; email: string | null; }
-
 interface NewsletterRecord {
   id: string;
   subject: string;
@@ -56,19 +60,6 @@ async function upsertSetting(key: string, value: unknown) {
     .from("platform_settings")
     .upsert({ key, value: value as Json }, { onConflict: "key" });
   if (error) throw error;
-}
-
-/** Stesso wrapper del template DB (email_templates.newsletter_custom) per un'anteprima fedele. */
-function wrapPreview(bodyHtml: string): string {
-  return `
-    <div style="max-width:600px;margin:0 auto;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a;">
-      <div style="background:#00843D;padding:20px 24px;border-radius:12px 12px 0 0;">
-        <span style="color:#fff;font-size:20px;font-weight:700;letter-spacing:-0.5px;">Pratica Rapida</span>
-      </div>
-      <div style="background:#ffffff;padding:24px;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 12px 12px;font-size:15px;line-height:1.6;">
-        ${bodyHtml}
-      </div>
-    </div>`;
 }
 
 const sleep = (ms: number) => new Promise(res => setTimeout(res, ms));
@@ -150,7 +141,6 @@ export default function Newsletter() {
   const [subject, setSubject] = useState("");
   const [body, setBody]       = useState("");
   const [selectedStages, setSelectedStages] = useState<string[]>([]);
-  const [stagesInit, setStagesInit] = useState(false);
   const [customMode, setCustomMode] = useState(false);
   const [customEmail, setCustomEmail] = useState("");
   const [editorKey, setEditorKey] = useState(0);
@@ -159,7 +149,7 @@ export default function Newsletter() {
   const [sending, setSending] = useState(false);
 
   // ── Queries ────────────────────────────────────────────────────────────────
-  const { data: stages = DEFAULT_STAGES, isSuccess: stagesLoaded } = useQuery<CrmStage[]>({
+  const { data: stages = DEFAULT_STAGES } = useQuery<CrmStage[]>({
     queryKey: ["crm_stages"],
     queryFn: async () => {
       const { data } = await supabase.from("platform_settings")
@@ -179,28 +169,29 @@ export default function Newsletter() {
     staleTime: 5 * 60 * 1000,
   });
 
-  const { data: companies = [] } = useQuery<Company[]>({
+  const { data: companies = [] } = useQuery<NewsletterCompany[]>({
     queryKey: ["admin-companies-newsletter"],
     queryFn: async () => {
       const { data, error } = await supabase.from("companies")
-        .select("id, ragione_sociale, email")
+        .select("id, ragione_sociale, email, is_active, blocked_at")
         .order("ragione_sociale");
       if (error) throw error;
-      return data as Company[];
+      return data as NewsletterCompany[];
     },
     staleTime: 10 * 60 * 1000,
   });
 
-  const { data: leads = [] } = useQuery<Array<{ id: string; nome: string | null; cognome: string | null; email: string | null; stage_id: string | null }>>({
+  const { data: leads = [] } = useQuery<NewsletterLead[]>({
     queryKey: ["admin-leads-newsletter"],
     queryFn: async () => {
       const { data, error } = await supabase.from("leads")
-        .select("id, nome, cognome, email, stage_id")
+        .select("id, nome, cognome, email, stage_id, archived_at")
+        .is("archived_at", null)
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data ?? [];
+      return (data ?? []) as NewsletterLead[];
     },
-    staleTime: 10 * 60 * 1000,
+    staleTime: 2 * 60 * 1000,
   });
 
   const { data: history = [] } = useQuery<NewsletterRecord[]>({
@@ -215,15 +206,6 @@ export default function Newsletter() {
 
   const sortedStages = useMemo(() => [...stages].sort((a, b) => a.order - b.order), [stages]);
 
-  // Default: tutte le pipeline selezionate — solo dopo il caricamento REALE
-  // delle fasi (non sui placeholder DEFAULT_STAGES).
-  useEffect(() => {
-    if (!stagesInit && stagesLoaded && sortedStages.length > 0) {
-      setSelectedStages(sortedStages.map(s => s.id));
-      setStagesInit(true);
-    }
-  }, [stagesLoaded, sortedStages, stagesInit]);
-
   const allSelected = sortedStages.length > 0 && selectedStages.length === sortedStages.length;
 
   const toggleStage = (id: string) =>
@@ -235,58 +217,32 @@ export default function Newsletter() {
   // Modalità prova attiva: quadratino spuntato E email valida inserita.
   const customActive = customMode && customEmailValid;
 
-  // Pool = AZIENDE (fase = assegnazione) + LEAD (fase = stage_id), uniti.
-  // La board pipeline mescola le due tabelle nelle stesse colonne, quindi la
-  // newsletter deve fare lo stesso: selezionando le pipeline si scelgono
-  // insieme clienti e lead (i clienti stanno in "Cliente Attivo", i lead
-  // negli altri stage). Prima invece si leggevano SOLO le companies → i 745
-  // lead non ricevevano mai nulla.
-  const pool = useMemo(() => {
-    const firstStageId = sortedStages[0]?.id;
-    const fromCompanies = companies.map(c => ({
-      id: c.id,
-      ragione_sociale: c.ragione_sociale,
-      email: c.email,
-      stage: assignments[c.id] ?? firstStageId,
-    }));
-    const fromLeads = leads.map(l => ({
-      id: l.id,
-      ragione_sociale: `${l.nome ?? ""} ${l.cognome ?? ""}`.trim() || "Lead",
-      email: l.email,
-      stage: l.stage_id ?? firstStageId,
-    }));
-    return [...fromCompanies, ...fromLeads];
-  }, [companies, leads, assignments, sortedStages]);
-
-  // Destinatari senza email valida: non ricevibili, esclusi dal conteggio.
-  const noEmailCount = pool.filter(p => !p.email || !p.email.includes("@")).length;
-
+  // Pubblico = le due liste della pipeline CRM: aziende + lead non archiviati.
+  // Restano esclusi clienti privati, record di prova/interni/eliminati,
+  // aziende bloccate o inattive e recapiti non utilizzabili.
   // ── Destinatari ──────────────────────────────────────────────────────────────
-  // Se è impostata un'email di prova valida, si invia SOLO a quella (modalità
-  // test). Altrimenti = pool (aziende + lead) filtrato per pipeline, con email,
-  // deduplicato per indirizzo (un'azienda e un lead potrebbero condividere l'email).
-  const recipients = useMemo(() => {
+  // Se è impostata un'email di prova valida, si invia SOLO a quella. Altrimenti
+  // il pool comprende esclusivamente rivenditori attivi, filtrati e deduplicati.
+  const { recipients, noEmailCount } = useMemo(() => {
     if (customActive) {
-      return [{ id: "custom", ragione_sociale: customEmail.trim(), email: customEmail.trim() }];
+      return {
+        recipients: [{ id: "custom", ragione_sociale: customEmail.trim(), email: customEmail.trim() }],
+        noEmailCount: 0,
+      };
     }
-    if (selectedStages.length === 0) return [];
-    const seen = new Set<string>();
-    const out: { id: string; ragione_sociale: string; email: string }[] = [];
-    for (const p of pool) {
-      if (!p.email || !p.email.includes("@")) continue;
-      if (!selectedStages.includes(p.stage as string)) continue;
-      const key = p.email.trim().toLowerCase();
-      if (seen.has(key)) continue;
-      seen.add(key);
-      out.push({ id: p.id, ragione_sociale: p.ragione_sociale, email: p.email! });
-    }
-    return out;
-  }, [pool, selectedStages, customActive, customEmail]);
+    return buildNewsletterAudience(
+      companies,
+      leads,
+      assignments,
+      sortedStages[0]?.id,
+      selectedStages,
+    );
+  }, [companies, leads, assignments, sortedStages, selectedStages, customActive, customEmail]);
 
   const targetLabel = customActive
     ? `Prova: ${customEmail.trim()}`
     : allSelected
-      ? "Tutti i contatti"
+      ? "Tutti i rivenditori attivi"
       : sortedStages.filter(s => selectedStages.includes(s.id)).map(s => s.name).join(", ") || "Nessuna pipeline";
 
   // ── Invio ────────────────────────────────────────────────────────────────────
@@ -294,6 +250,14 @@ export default function Newsletter() {
     setSending(true);
     let ok = 0;
     const failed: string[] = [];
+    const digest = await crypto.subtle.digest(
+      "SHA-256",
+      new TextEncoder().encode(`${subject.trim()}\n${body}`),
+    );
+    const campaignHash = Array.from(new Uint8Array(digest))
+      .slice(0, 12)
+      .map(byte => byte.toString(16).padStart(2, "0"))
+      .join("");
 
     for (const c of recipients) {
       try {
@@ -302,10 +266,11 @@ export default function Newsletter() {
             to: c.email,
             template: TEMPLATE_EVENT,
             data: { subject: subject.trim(), body_html: body },
+            idempotency_key: `newsletter.${campaignHash}.${c.id}`,
           },
         });
         const res = data as { success?: boolean; error?: string } | null;
-        if (error || (res && res.success === false)) {
+        if (error || res?.success !== true) {
           failed.push(c.ragione_sociale);
         } else {
           ok++;
@@ -385,16 +350,16 @@ export default function Newsletter() {
                     <span className="line-clamp-1 text-left">
                       {customActive
                         ? `Prova: ${customEmail.trim()}`
-                        : allSelected ? "Tutti i contatti" : selectedStages.length === 0 ? "Nessuna pipeline selezionata" : `${selectedStages.length} pipeline selezionate`}
+                        : allSelected ? "Tutti i rivenditori attivi" : selectedStages.length === 0 ? "Nessuna pipeline selezionata" : `${selectedStages.length} pipeline selezionate`}
                     </span>
                     <ChevronDown className="h-4 w-4 opacity-50 shrink-0" />
                   </button>
                 </PopoverTrigger>
                 <PopoverContent className="w-[--radix-popover-trigger-width] p-1" align="start">
-                  {/* Tutti i contatti (aziende + lead di tutte le pipeline) */}
+                  {/* Solo aziende/rivenditori attivi; lead e privati esclusi. */}
                   <label className={`flex items-center gap-2.5 rounded-md px-2 py-2 hover:bg-accent cursor-pointer ${customMode ? "opacity-40" : ""}`}>
                     <Checkbox checked={allSelected} onCheckedChange={toggleAll} style={{ borderRadius: 3 }} disabled={customMode} />
-                    <span className="text-sm font-medium">Tutti i contatti</span>
+                    <span className="text-sm font-medium">Tutti i rivenditori attivi</span>
                   </label>
                   <div className="h-px bg-border my-1" />
                   {/* Pipeline con quadratino */}
@@ -457,7 +422,7 @@ export default function Newsletter() {
                 ) : (
                   <>
                     <strong className="text-foreground tabular-nums">{recipients.length}</strong>
-                    contatti con email riceveranno questa newsletter
+                    rivenditori attivi con email riceveranno questa newsletter
                     {selectedStages.length === 0 && (
                       <span className="text-destructive">· seleziona almeno una pipeline</span>
                     )}
@@ -512,7 +477,7 @@ export default function Newsletter() {
                 </p>
               )}
               {htmlHasText(body) ? (
-                <div dangerouslySetInnerHTML={{ __html: wrapPreview(body) }} />
+                <div dangerouslySetInnerHTML={{ __html: wrapNewsletterHtml(body) }} />
               ) : (
                 <p className="text-sm text-muted-foreground text-center py-10">
                   L'anteprima della newsletter apparirà qui.
@@ -575,22 +540,32 @@ export default function Newsletter() {
             <DialogTitle>Anteprima — {subject || "(nessun oggetto)"}</DialogTitle>
           </DialogHeader>
           <div className="overflow-auto max-h-[70vh]">
-            <div dangerouslySetInnerHTML={{ __html: wrapPreview(body) }} />
+            <div dangerouslySetInnerHTML={{ __html: wrapNewsletterHtml(body) }} />
           </div>
         </DialogContent>
       </Dialog>
 
       {/* Conferma invio */}
       <Dialog open={confirmSend} onOpenChange={(o) => !sending && setConfirmSend(o)}>
-        <DialogContent>
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Confermi l'invio?</DialogTitle>
             <DialogDescription>
               Stai per inviare la newsletter <strong>"{subject}"</strong> a{" "}
-              <strong>{recipients.length} aziende</strong> ({targetLabel}).
+              <strong>{recipients.length} rivenditori attivi</strong> ({targetLabel}).
               L'operazione invia email reali e non è annullabile.
             </DialogDescription>
           </DialogHeader>
+          {!customActive && (
+            <div className="max-h-52 overflow-auto rounded-md border p-2 text-xs">
+              {recipients.map(recipient => (
+                <div key={recipient.id} className="flex justify-between gap-3 border-b py-1.5 last:border-0">
+                  <span className="font-medium">{recipient.ragione_sociale}</span>
+                  <span className="text-muted-foreground">{recipient.email}</span>
+                </div>
+              ))}
+            </div>
+          )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setConfirmSend(false)} disabled={sending}>
               Annulla

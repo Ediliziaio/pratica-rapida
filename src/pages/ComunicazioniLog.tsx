@@ -39,6 +39,11 @@ import {
 // handleExportCSV più sotto.
 import type { CommunicationLog, CommChannel, CommStatus, TablesInsert } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
+import {
+  buildManualCommunicationRequest,
+  isManualCommunicationFormComplete,
+  type ManualCommunicationForm,
+} from "@/lib/manualCommunication";
 
 const CHANNEL_CONFIG: Record<CommChannel, { label: string; color: string; icon: React.ReactNode }> = {
   email: { label: "Email", color: "bg-blue-100 text-blue-700", icon: <Mail className="h-3.5 w-3.5" /> },
@@ -65,14 +70,7 @@ function ChannelIcon({ channel }: { channel: CommChannel }) {
   );
 }
 
-interface SendFormData {
-  channel: "email" | "whatsapp";
-  recipient: string;
-  subject: string;
-  body: string;
-}
-
-const DEFAULT_SEND_FORM: SendFormData = {
+const DEFAULT_SEND_FORM: ManualCommunicationForm = {
   channel: "email",
   recipient: "",
   subject: "",
@@ -86,7 +84,7 @@ export default function ComunicazioniLog() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [searchRecipient, setSearchRecipient] = useState("");
   const [sendDialogOpen, setSendDialogOpen] = useState(false);
-  const [sendForm, setSendForm] = useState<SendFormData>(DEFAULT_SEND_FORM);
+  const [sendForm, setSendForm] = useState<ManualCommunicationForm>(DEFAULT_SEND_FORM);
 
   const { data: logs = [], isLoading, isFetching } = useQuery<CommunicationLog[]>({
     queryKey: ["communication_log_full"],
@@ -102,33 +100,24 @@ export default function ComunicazioniLog() {
   });
 
   const sendManualMutation = useMutation({
-    mutationFn: async (form: SendFormData) => {
-      const fnName = form.channel === "email" ? "send-email" : "send-whatsapp";
-      const payload = form.channel === "email"
-        ? {
-            to: form.recipient,
-            subject: form.subject,
-            html: `<p>${form.body.replace(/\n/g, "<br>")}</p>`,
-            template: "custom",
-            practice_id: null,
-          }
-        : {
-            phone: form.recipient,
-            template_name: "custom",
-            body: form.body,
-            practice_id: null,
-          };
-
-      const { error } = await supabase.functions.invoke(fnName, { body: payload });
+    mutationFn: async (form: ManualCommunicationForm) => {
+      const request = buildManualCommunicationRequest(form);
+      const { data, error } = await supabase.functions.invoke(request.functionName, {
+        body: request.payload,
+      });
       if (error) throw error;
+      const result = data as { success?: boolean; error?: string } | null;
+      if (!result?.success) {
+        throw new Error(result?.error || `Invio ${form.channel} non riuscito`);
+      }
 
       // Log it locally too
       await supabase.from("communication_log").insert({
         channel: form.channel,
         direction: "outbound",
-        recipient: form.recipient,
-        subject: form.subject || null,
-        body_preview: form.body.substring(0, 200),
+        recipient: form.recipient.trim(),
+        subject: form.subject.trim() || null,
+        body_preview: form.body.trim().substring(0, 200),
         status: "sent",
         sent_at: new Date().toISOString(),
       } as unknown as TablesInsert<"communication_log">);
@@ -429,7 +418,7 @@ export default function ComunicazioniLog() {
 
             {sendForm.channel === "email" && (
               <div className="space-y-1.5">
-                <Label>Oggetto</Label>
+                <Label>Oggetto <span className="text-destructive">*</span></Label>
                 <Input
                   placeholder="Oggetto email..."
                   value={sendForm.subject}
@@ -442,7 +431,7 @@ export default function ComunicazioniLog() {
               <Label>Messaggio <span className="text-destructive">*</span></Label>
               <Textarea
                 placeholder={sendForm.channel === "email"
-                  ? "Corpo del messaggio. Puoi usare {{nome}}, {{brand}} come variabili."
+                  ? "Corpo del messaggio email"
                   : "Testo del messaggio WhatsApp (max 1024 caratteri)"}
                 value={sendForm.body}
                 onChange={e => setSendForm(f => ({ ...f, body: e.target.value }))}
@@ -455,17 +444,14 @@ export default function ComunicazioniLog() {
             </div>
 
             <div className="rounded-lg bg-muted/50 border p-3 text-xs text-muted-foreground">
-              <p className="font-medium mb-1">💡 Variabili disponibili</p>
-              <p><code className="bg-muted px-1 rounded">{"{{nome}}"}</code> — Nome cliente</p>
-              <p><code className="bg-muted px-1 rounded">{"{{brand}}"}</code> — ENEA o Conto Termico</p>
-              <p><code className="bg-muted px-1 rounded">{"{{link}}"}</code> — Link pratica/form</p>
+              Il testo viene inviato esattamente come scritto.
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setSendDialogOpen(false)}>Annulla</Button>
             <Button
               onClick={() => sendManualMutation.mutate(sendForm)}
-              disabled={!sendForm.recipient || !sendForm.body || sendManualMutation.isPending}
+              disabled={!isManualCommunicationFormComplete(sendForm) || sendManualMutation.isPending}
             >
               {sendManualMutation.isPending ? (
                 <><RefreshCw className="h-4 w-4 mr-2 animate-spin" />Invio...</>

@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
+import { bloccaSeOmbra } from "../_shared/ombra.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const REQUIRED_ENV = ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"];
@@ -28,6 +29,11 @@ serve(async (req) => {
   );
 
   const now = new Date();
+
+  // CRM ombra: il giro dei solleciti non parte e non aggiorna i token; resta
+  // traccia in comunicazioni_bloccate che il giro sarebbe scattato.
+  const bloccata = await bloccaSeOmbra(supabase, "send-reminders", "reminder", { scheduled_at: now.toISOString() }, CORS);
+  if (bloccata) return bloccata;
 
   try {
     // Find tokens that need a reminder

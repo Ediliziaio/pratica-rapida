@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CRM ombra · domande operatore</title>
+<style>
+  :root { color-scheme: light; --ink: #1d1d1f; --muted: #6e6e73; --line: #e2e2e6; --ok: #1f7a3a; --err: #b3261e; --accent: #2456c7; }
+  body { margin: 0; font: 15px/1.45 -apple-system, system-ui, "Segoe UI", sans-serif; color: var(--ink); background: #fafafa; }
+  header { padding: 20px 28px 12px; border-bottom: 1px solid var(--line); background: #fff; }
+  h1 { margin: 0; font-size: 20px; font-weight: 600; }
+  header p { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+  main { padding: 16px 28px 48px; }
+  table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid var(--line); }
+  th, td { text-align: left; vertical-align: top; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+  th { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); background: #f5f5f7; }
+  td.cliente { width: 18%; font-weight: 600; white-space: nowrap; }
+  td.domanda { width: 42%; }
+  td.risposta { width: 40%; }
+  textarea { width: 100%; min-height: 58px; box-sizing: border-box; padding: 8px 10px; font: inherit; border: 1px solid #c8c8cd; border-radius: 6px; resize: vertical; }
+  textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: transparent; }
+  .azioni { display: flex; gap: 10px; align-items: center; margin-top: 6px; }
+  button { font: inherit; padding: 7px 14px; border-radius: 6px; border: 1px solid var(--accent); background: var(--accent); color: #fff; cursor: pointer; }
+  button:disabled { opacity: .5; cursor: default; }
+  .esito { font-size: 13px; }
+  .esito.ok { color: var(--ok); }
+  .esito.err { color: var(--err); }
+  .richiesta { display: block; margin-top: 8px; padding: 8px 10px; border-left: 4px solid var(--accent); background: #eef3fc; font-size: 13px; }
+  .richiesta small { display: block; color: var(--muted); margin-top: 4px; }
+  .avviso { display: block; margin-top: 8px; padding: 8px 10px; border-left: 4px solid #d9822b; background: #fff4e5; color: #7a4a00; font-size: 13px; }
+  tr.registrata td { background: #f2faf4; }
+  tr.registrata textarea { background: #f2faf4; color: var(--muted); }
+  .vuoto { padding: 32px; text-align: center; color: var(--muted); }
+</style>
+</head>
+<body>
+<header>
+  <h1>Domande operatore aperte</h1>
+  <p id="sommario">Lettura in corso…</p>
+</header>
+<main>
+  <table>
+    <thead><tr><th>Cliente</th><th>Domanda</th><th>Risposta</th></tr></thead>
+    <tbody id="righe"></tbody>
+  </table>
+</main>
+<script>
+  const righe = document.getElementById("righe");
+  const sommario = document.getElementById("sommario");
+
+  function riga(q) {
+    const tr = document.createElement("tr");
+    tr.dataset.id = q.id;
+    const cliente = document.createElement("td"); cliente.className = "cliente"; cliente.textContent = q.displayName;
+    const domanda = document.createElement("td"); domanda.className = "domanda"; domanda.textContent = q.prompt;
+    if (q.pendingRequest) {
+      const box = document.createElement("span"); box.className = "richiesta";
+      box.textContent = "Dato richiesto: " + q.pendingRequest.question;
+      const dettaglio = document.createElement("small");
+      dettaglio.textContent = (q.pendingRequest.missingDocumentType ? "Documento atteso: " + q.pendingRequest.missingDocumentType + ". " : "") + "Richiesto il " + new Date(q.pendingRequest.requestedAt).toLocaleDateString("it-IT") + ". Ultima risposta: " + q.pendingRequest.previousAnswer;
+      box.append(dettaglio); domanda.append(box);
+    } else if (q.field === "operator.pendingData") {
+      const box = document.createElement("span"); box.className = "richiesta";
+      box.textContent = "Nel ledger non risulta nessuna richiesta attiva per questo cliente: il dato mancante non è determinabile da qui.";
+      domanda.append(box);
+    }
+    const risposta = document.createElement("td"); risposta.className = "risposta";
+    const campo = document.createElement("textarea"); campo.placeholder = "Scrivi la risposta";
+    const azioni = document.createElement("div"); azioni.className = "azioni";
+    const bottone = document.createElement("button"); bottone.type = "button"; bottone.textContent = "Registra";
+    const esito = document.createElement("span"); esito.className = "esito";
+    azioni.append(bottone, esito);
+    risposta.append(campo, azioni);
+    tr.append(cliente, domanda, risposta);
+
+    bottone.addEventListener("click", async () => {
+      bottone.disabled = true; esito.className = "esito"; esito.textContent = "Scrittura…";
+      try {
+        const r = await fetch("/api/answers", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ questionId: q.id, answer: campo.value }) });
+        const body = await r.json();
+        if (!body.ok) { esito.className = "esito err"; esito.textContent = body.reason; bottone.disabled = false; return; }
+        tr.classList.add("registrata"); campo.readOnly = true;
+        esito.className = "esito ok";
+        esito.textContent = (body.note || "Registrata.") + (body.supersededResponseIds.length ? ` Sostituisce ${body.supersededResponseIds.length} risposta/e precedente/i.` : "");
+        if (body.supersededRuleConfirmations && body.supersededRuleConfirmations.length) {
+          const avviso = document.createElement("strong"); avviso.className = "avviso";
+          avviso.textContent = "Attenzione: questa risposta ha superato una conferma di regola generale su questa pratica (" + body.supersededRuleConfirmations.map((r) => r.responseId).join(", ") + "). La regola non è più attiva per " + q.displayName + ".";
+          risposta.append(avviso);
+        }
+      } catch (e) {
+        esito.className = "esito err"; esito.textContent = "Errore di scrittura: " + e.message; bottone.disabled = false;
+      }
+    });
+    return tr;
+  }
+
+  async function carica() {
+    const r = await fetch("/api/open-questions");
+    const body = await r.json();
+    righe.replaceChildren();
+    if (!body.count) {
+      const tr = document.createElement("tr"); const td = document.createElement("td"); td.colSpan = 3; td.className = "vuoto"; td.textContent = body.run ? "Nessuna domanda aperta nel giro corrente." : "Nessun giro trovato: impossibile stabilire quali coorti mostrare."; tr.append(td); righe.append(tr);
+    } else {
+      for (const q of body.questions) righe.append(riga(q));
+    }
+    const giro = body.run ? `giro ${body.run.runId} (${body.run.status || "stato ignoto"}, ${body.run.cohorts.length} pratiche lavorate)` : "nessun giro trovato in runs/";
+    sommario.textContent = `${body.count} domande aperte · ${giro} · lette alle ${new Date(body.readAt).toLocaleTimeString("it-IT")}`;
+  }
+
+  carica().catch((e) => { sommario.textContent = "Errore di lettura: " + e.message; });
+</script>
+</body>
+</html>

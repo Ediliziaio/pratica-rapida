@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { reportError } from "../_shared/error.ts";
+import { bloccaSeOmbra } from "../_shared/ombra.ts";
 // normalizePhone centralizzato in _shared/phone.ts — fixa il bug del prefisso
 // `+39` mancante che causava #200 di Meta su numeri italiani a 10 cifre.
 import { normalizePhone } from "../_shared/phone.ts";
@@ -123,6 +124,10 @@ serve(async (req) => {
       headers: { ...CORS, "Content-Type": "application/json" },
     });
   }
+
+  // CRM ombra: il messaggio viene registrato in comunicazioni_bloccate e non parte.
+  const bloccata = await bloccaSeOmbra(supabase, "send-whatsapp", "whatsapp", payload as Record<string, unknown>, CORS);
+  if (bloccata) return bloccata;
 
   const {
     to, template_name, language, components, practice_id,

@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { bloccaSeOmbra } from "../_shared/ombra.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const ELEVENLABS_API_KEY = Deno.env.get("ELEVENLABS_API_KEY")!;
@@ -40,6 +41,10 @@ serve(async (req) => {
   if (!practice_id) {
     return Response.json({ success: false, error: "practice_id is required" }, { status: 400 });
   }
+
+  // CRM ombra: la chiamata viene registrata in comunicazioni_bloccate e non parte.
+  const bloccata = await bloccaSeOmbra(supabase, "elevenlabs-call", "chiamata", { practice_id, agent_id, language }, { "Access-Control-Allow-Origin": "*" });
+  if (bloccata) return bloccata;
 
   // Fetch the practice
   const { data: practice, error: practiceError } = await supabase

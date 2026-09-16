@@ -9,6 +9,7 @@ import {
 } from "@hello-pangea/dnd";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
+import { EsportaPerOmbraButton } from "@/features/enea-shadow-crm/ombra-import/EsportaPerOmbraButton";
 import { useCompany } from "@/hooks/useCompany";
 import {
   usePipelineStages,
@@ -485,6 +486,10 @@ function PracticeDetailSheet({
 }) {
   const { toast } = useToast();
   const updatePractice = useUpdateEneaPractice();
+  // CRM ombra: risposta dell'operatore alla domanda di APR. Viene accodata a
+  // note_documenti_mancanti come riga «Risposta operatore: …», che e' il
+  // formato letto dall'adapter APR al giro successivo.
+  const [rispostaApr, setRispostaApr] = useState("");
   const [editMode, setEditMode] = useState(false);
   const [editNote, setEditNote] = useState("");
   const [editNoteInterne, setEditNoteInterne] = useState("");
@@ -1126,6 +1131,11 @@ function PracticeDetailSheet({
                   </Button>
                 )}
 
+                {/* Esporta per CRM ombra — solo super_admin, sola lettura, nessuna
+                    automazione. Unica modifica di produzione legata al CRM ombra
+                    (approvata dal titolare il 14/09/2026, vedi docs/CRM_OMBRA.md). */}
+                {isSuperAdmin && practice && <EsportaPerOmbraButton practiceId={practice.id} />}
+
                 {/* Archivia/Ripristina — solo staff. Azienda è read-only. */}
                 {isInternal && (
                   <Button
@@ -1483,11 +1493,16 @@ function PracticeDetailSheet({
                   </section>
                 )}
 
-                {/* 3. Documenti richiesti (amber box) — solo se stage === documenti_mancanti con nota */}
-                {practice.pipeline_stages?.stage_type === "documenti_mancanti" && practice.note_documenti_mancanti && (
+                {/* 3. Documenti richiesti (amber box) — stage documenti_mancanti con nota.
+                    Nel CRM ombra la stessa nota e' la domanda di APR nella colonna
+                    «Richiesto intervento operatore» (stage_type intervento_operatore,
+                    esiste solo nel database ombra): stessa resa, titolo diverso. */}
+                {(practice.pipeline_stages?.stage_type === "documenti_mancanti" ||
+                  (practice.pipeline_stages?.stage_type as string) === "intervento_operatore") &&
+                  practice.note_documenti_mancanti && (
                   <section>
                     <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                      Documenti richiesti
+                      {(practice.pipeline_stages?.stage_type as string) === "intervento_operatore" ? "Domanda di APR" : "Documenti richiesti"}
                     </h3>
                     <div className="rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-900/40 dark:bg-amber-950/20 p-3 flex items-start gap-2">
                       <FileWarning className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
@@ -1495,6 +1510,36 @@ function PracticeDetailSheet({
                         {practice.note_documenti_mancanti}
                       </p>
                     </div>
+                    {isInternal && (practice.pipeline_stages?.stage_type as string) === "intervento_operatore" && (
+                      <div className="mt-2 space-y-2">
+                        <Textarea
+                          id={`risposta-apr-${practice.id}`}
+                          value={rispostaApr}
+                          onChange={(e) => setRispostaApr(e.target.value)}
+                          placeholder={"Scrivi la risposta per APR. Esempi: «29/08/2026» · «non lavorabile: fornitore manoscritto» · «correzione generale: …»"}
+                          rows={3}
+                        />
+                        <Button
+                          size="sm"
+                          disabled={!rispostaApr.trim() || updatePractice.isPending}
+                          onClick={async () => {
+                            const base = (practice.note_documenti_mancanti ?? "").replace(/\n?Risposta operatore:[\s\S]*$/m, "").trimEnd();
+                            try {
+                              await updatePractice.mutateAsync({
+                                id: practice.id,
+                                updates: { note_documenti_mancanti: `${base}\nRisposta operatore: ${rispostaApr.trim()}` },
+                              });
+                              setRispostaApr("");
+                              toast({ title: "Risposta salvata", description: "APR la legge al prossimo giro." });
+                            } catch (err) {
+                              toast({ variant: "destructive", title: "Risposta non salvata", description: err instanceof Error ? err.message : String(err) });
+                            }
+                          }}
+                        >
+                          Invia risposta ad APR
+                        </Button>
+                      </div>
+                    )}
                   </section>
                 )}
 

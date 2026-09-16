@@ -211,6 +211,7 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify({
         from: `Pratica Rapida <noreply@${fromDomain}>`,
+        reply_to: "modulistica@praticarapida.it",
         to: email.trim(),
         subject,
         html: htmlBody,

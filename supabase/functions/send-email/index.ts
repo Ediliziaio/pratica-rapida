@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { reportError } from "../_shared/error.ts";
+import { bloccaSeOmbra } from "../_shared/ombra.ts";
 
 const REQUIRED_ENV = ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "RESEND_API_KEY"];
 for (const k of REQUIRED_ENV) {
@@ -119,8 +120,10 @@ function base(content: string, logoUrl = "") {
 <body style="margin:0;padding:0;background:#f4f4f4;font-family:Arial,sans-serif;">
 <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:20px 0">
 <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;overflow:hidden;">
-  <tr><td style="background:${COLORS.bg_header};padding:24px;text-align:center;">
-    <h1 style="color:#ffffff;margin:0;font-size:22px;">Pratica Rapida</h1>
+  <tr><td style="background:${logoUrl ? "#ffffff" : COLORS.bg_header};padding:24px;text-align:center;${logoUrl ? "border-bottom:1px solid #e5e7eb;" : ""}">
+    ${logoUrl
+      ? `<img src="${logoUrl}" alt="Pratica Rapida" width="220" style="display:block;width:220px;max-width:80%;height:auto;margin:0 auto;border:0;">`
+      : `<h1 style="color:#ffffff;margin:0;font-size:22px;">Pratica Rapida</h1>`}
   </td></tr>
   <tr><td style="padding:32px 40px;color:${COLORS.text};line-height:1.6;">${content}</td></tr>
   <tr><td style="background:#f4f4f4;padding:16px;text-align:center;font-size:12px;color:#888;">
@@ -255,10 +258,18 @@ function renderTemplate(template: string, data: Record<string, string>): { subje
         html: base(`
           ${r("{{nome}}") ? `<p>Ciao <strong>${r("{{nome}}")}</strong>,</p>` : ""}
           <div style="background:#fff;border:1px solid #e5e5e5;border-radius:6px;padding:16px;margin:16px 0;white-space:pre-wrap;">${r("{{messaggio}}")}</div>
-          <p style="color:#666;font-size:13px;margin-top:24px">
-            Puoi rispondere direttamente a questa email.
-          </p>
-        `),
+          <div style="background:#f7f8fa;border-radius:8px;padding:22px;margin:28px 0 8px;text-align:center;">
+            <p style="margin:0 0 8px;font-size:17px;"><strong>Vuoi maggiori informazioni o devi inserire una pratica?</strong></p>
+            <p style="margin:0 0 18px;color:#555;">Siamo a disposizione per rispondere alle tue domande e seguirti nel portale PraticaRapida.</p>
+            ${cta("Inserisci una pratica →", "https://app.praticarapida.it/enea/nuova")}
+            <p style="margin:14px 0 0;">
+              <a href="https://wa.me/390398682691?text=Vorrei%20ricevere%20maggiori%20informazioni" style="color:#00843D;font-weight:bold;">Chiedi informazioni</a>
+              &nbsp;·&nbsp;
+              <a href="https://www.praticarapida.it" style="color:#00843D;">Visita il sito</a>
+            </p>
+          </div>
+          <p style="color:#666;font-size:13px;margin-top:20px">Le risposte a questa email arrivano a modulistica@praticarapida.it. Puoi anche usare il link “Chiedi informazioni”.</p>
+        `, "https://www.praticarapida.it/pratica-rapida-logo.png"),
       };
 
     // ── Alert interno: sessione WhatsApp (OpenWA) caduta o bannata ────────────
@@ -468,6 +479,10 @@ serve(async (req) => {
 
   const { to, template, data, attachments } = payload;
 
+  // CRM ombra: la mail viene registrata in comunicazioni_bloccate e non parte.
+  const bloccata = await bloccaSeOmbra(supabase, "send-email", "email", payload as Record<string, unknown>, CORS);
+  if (bloccata) return bloccata;
+
   // Validate 'to' — allow string or array, each must be a well-formed email
   const toList = Array.isArray(to) ? to : [to];
   const invalid = toList.some((addr) => typeof addr !== "string" || !EMAIL_RE.test(addr.trim()));
@@ -539,7 +554,13 @@ serve(async (req) => {
   //      modulistica@. Idempotente: skip se già presente nel template DB.
   html = injectFooter(html, template);
 
-  const resendBody: Record<string, unknown> = { from: FROM_EMAIL, to, subject, html };
+  const resendBody: Record<string, unknown> = {
+    from: FROM_EMAIL,
+    reply_to: SUPPORT_EMAIL,
+    to,
+    subject,
+    html,
+  };
   if (attachments && attachments.length > 0) {
     resendBody.attachments = attachments.map((a) => ({
       filename: a.filename,

@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
+import { bloccaSeOmbra } from "../_shared/ombra.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 // WhatsApp passa dalla edge function send-whatsapp (router provider):
@@ -14,6 +15,7 @@ for (const k of REQUIRED_ENV) {
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY")!;
 const FROM_EMAIL = `Pratica Rapida <noreply@${Deno.env.get("EMAIL_FROM_DOMAIN") ?? "praticarapida.it"}>`;
+const REPLY_TO_EMAIL = "modulistica@praticarapida.it";
 const APP_URL = Deno.env.get("APP_URL") ?? "https://app.praticarapida.it";
 
 const CORS = {
@@ -73,7 +75,13 @@ async function sendEmail(
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { Authorization: `Bearer ${RESEND_API_KEY}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ from: FROM_EMAIL, to: [to], subject, html }),
+    body: JSON.stringify({
+      from: FROM_EMAIL,
+      reply_to: REPLY_TO_EMAIL,
+      to: [to],
+      subject,
+      html,
+    }),
   });
   if (!res.ok) {
     const err = await res.text();
@@ -139,6 +147,10 @@ serve(async (req) => {
         status: 400, headers: { ...CORS, "Content-Type": "application/json" },
       });
     }
+
+    // CRM ombra: la notifica viene registrata in comunicazioni_bloccate e non parte.
+    const bloccata = await bloccaSeOmbra(supabase, "notify-cliente", "notifica_cliente", { token_id, channel, is_reminder }, CORS);
+    if (bloccata) return bloccata;
 
     // Fetch token + pratica + cliente_finale
     const { data: token, error: tokenErr } = await supabase

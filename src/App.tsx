@@ -9,6 +9,8 @@ import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { CompanyProvider } from "@/hooks/useCompany";
 import { AppLayout } from "@/components/AppLayout";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { OmbraBanner } from "@/components/OmbraBanner";
+import { CRM_OMBRA } from "@/lib/crmOmbra";
 import { RoleGuard } from "@/components/RoleGuard";
 import { ThemeProvider } from "next-themes";
 
@@ -72,6 +74,9 @@ const Moduli = lazy(() => import("./pages/admin/Moduli"));
 const ArchivioEnea = lazy(() => import("./pages/rivenditore/ArchivioEnea"));
 const EneaLab = lazy(() => import("./pages/EneaLab"));
 const EneaLabPreviewHandoff = lazy(() => import("./EneaLabPreviewHandoff"));
+const DomandeApr = lazy(() => import("./pages/DomandeApr"));
+const ComunicazioniBloccate = lazy(() => import("./pages/ComunicazioniBloccate"));
+const ImportaPratica = lazy(() => import("./pages/ImportaPratica"));
 
 /**
  * QueryClient con default sensibili per ridurre carico backend e migliorare
@@ -251,6 +256,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <AuthProvider>
+            <OmbraBanner />
             <Suspense fallback={<PageLoader />}>
               <Routes>
                 {/* ── Sito pubblico (www.praticarapida.it) ───────────────── */}
@@ -311,6 +317,32 @@ const App = () => (
                   element={
                     import.meta.env.DEV
                       ? <EneaLabPreviewHandoff targetPath="/admin/enea-crm-ombra" />
+                      : <Navigate to="/" replace />
+                  }
+                />
+                {/* CRM ombra: le due pagine in più rispetto al CRM vero. Esistono solo
+                    con VITE_CRM_OMBRA=true; nel CRM vero rimandano alla home. */}
+                <Route
+                  path="/admin/domande-apr"
+                  element={
+                    CRM_OMBRA
+                      ? <ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><DomandeApr /></RoleGuard></ProtectedRoute>
+                      : <Navigate to="/" replace />
+                  }
+                />
+                <Route
+                  path="/admin/importa-pratica"
+                  element={
+                    CRM_OMBRA
+                      ? <ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><ImportaPratica /></RoleGuard></ProtectedRoute>
+                      : <Navigate to="/" replace />
+                  }
+                />
+                <Route
+                  path="/admin/comunicazioni-bloccate"
+                  element={
+                    CRM_OMBRA
+                      ? <ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><ComunicazioniBloccate /></RoleGuard></ProtectedRoute>
                       : <Navigate to="/" replace />
                   }
                 />

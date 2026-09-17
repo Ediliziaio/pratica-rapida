@@ -11,7 +11,6 @@ export interface FicConfig {
 
 const FIC_WEBHOOK_TYPES = [
   "it.fattureincloud.webhooks.issued_documents.proformas.update",
-  "it.fattureincloud.webhooks.issued_documents.e_invoices.status_update",
   "it.fattureincloud.webhooks.issued_documents.invoices.email_sent",
 ] as const;
 

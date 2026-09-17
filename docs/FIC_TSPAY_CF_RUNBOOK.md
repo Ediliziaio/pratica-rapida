@@ -75,8 +75,12 @@ Endpoint:
 Eventi da sottoscrivere:
 
 - `it.fattureincloud.webhooks.issued_documents.proformas.update`
-- `it.fattureincloud.webhooks.issued_documents.e_invoices.status_update`
 - `it.fattureincloud.webhooks.issued_documents.invoices.email_sent`
+
+L'evento `it.fattureincloud.webhooks.issued_documents.e_invoices.status_update`
+viene gestito dal ricevitore se sarà abilitato in futuro, ma non è richiesto
+dal token operativo corrente. L'accettazione della richiesta di invio SDI è
+registrata direttamente dopo la risposta positiva dell'API FIC.
 
 Le richieste vengono accettate soltanto dopo verifica del JWT ES256 FIC. Gli
 eventi sono registrati per `event_id` per impedire la doppia elaborazione.

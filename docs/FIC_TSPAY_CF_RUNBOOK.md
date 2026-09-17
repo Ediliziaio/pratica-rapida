@@ -13,6 +13,8 @@
   dati fiscali necessari.
 - Il CRM crea una proforma tecnica Fatture in Cloud non mostrata al cliente e
   apre direttamente il checkout Stripe.
+- Il checkout Stripe è forzato in EUR: la valuta adattiva è disattivata per
+  evitare conversioni e commissioni presentate al cliente.
 - Quando è acquistata la ricerca catastale, proforma e fattura espongono una
   riga separata dal servizio pratica e il CRM mostra il contrassegno `CATASTO`.
 - Anche il cliente non CF paga direttamente la ricerca catastale e riceve la

@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-import Stripe from "https://esm.sh/stripe@14.21.0?target=deno";
+import Stripe from "https://esm.sh/stripe@18.0.0?target=deno";
 import {
   createProforma,
   extractBillingIdentity,
@@ -169,11 +169,13 @@ serve(async (req) => {
       if (!stripeKey) throw new Error("Stripe non configurato: STRIPE_SECRET_KEY mancante");
       const siteUrl = (Deno.env.get("PUBLIC_SITE_URL") ?? "https://app.praticarapida.it").replace(/\/+$/, "");
       const stripe = new Stripe(stripeKey, {
-        apiVersion: "2024-06-20",
         httpClient: Stripe.createFetchHttpClient(),
       });
       const session = await stripe.checkout.sessions.create({
         mode: "payment",
+        // Prices and invoices are exclusively in EUR. Disabling Adaptive
+        // Pricing removes the confusing currency selector and conversion fee.
+        adaptive_pricing: { enabled: false },
         payment_method_types: ["card"],
         customer_email: customer.email,
         locale: "it",

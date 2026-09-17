@@ -9,8 +9,11 @@ import { reportError } from "../_shared/error.ts";
 
 Deno.serve(async (req) => {
   if (req.method !== "POST") return new Response("Method not allowed", { status: 405 });
-  const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
-  const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
+  // I segreti incollati dalla dashboard possono contenere accidentalmente un
+  // ritorno a capo finale. Stripe considera anche quel carattere nella firma,
+  // facendo fallire eventi autentici: normalizziamo soltanto il bordo.
+  const stripeKey = Deno.env.get("STRIPE_SECRET_KEY")?.trim();
+  const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET")?.trim();
   if (!stripeKey || !webhookSecret) return new Response("Stripe non configurato", { status: 500 });
 
   const stripe = new Stripe(stripeKey, { apiVersion: "2024-06-20", httpClient: Stripe.createFetchHttpClient() });

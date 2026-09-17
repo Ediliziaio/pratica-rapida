@@ -128,6 +128,25 @@ export function validateDynamicStep(
         break;
     }
   }
+
+  // Regola commerciale trasversale a tutti i moduli: il cliente deve fornire
+  // foglio e mappale oppure acquistare il servizio di ricerca catastale. Non
+  // dipendiamo dal flag `required` del singolo schema storico.
+  if (step.key === "catastali") {
+    const catastali = formData.catastali ?? {};
+    const rawRecovery = catastali.recupero_richiesto;
+    const recovery = rawRecovery === true || rawRecovery === 1 ||
+      (typeof rawRecovery === "string" && ["true", "1", "si", "sì", "yes"].includes(rawRecovery.trim().toLowerCase()));
+    const empty = (value: unknown) => String(value ?? "").trim() === "";
+    if (!recovery) {
+      if (empty(catastali.foglio)) errors["catastali.foglio"] = "Foglio è obbligatorio";
+      if (empty(catastali.mappale)) errors["catastali.mappale"] = "Mappale o particella è obbligatorio";
+    } else {
+      if (empty(catastali.proprietario_nome)) errors["catastali.proprietario_nome"] = "Nome proprietario è obbligatorio";
+      if (empty(catastali.proprietario_cognome)) errors["catastali.proprietario_cognome"] = "Cognome proprietario è obbligatorio";
+      if (empty(catastali.proprietario_cf)) errors["catastali.proprietario_cf"] = "Codice fiscale proprietario è obbligatorio";
+    }
+  }
   return errors;
 }
 

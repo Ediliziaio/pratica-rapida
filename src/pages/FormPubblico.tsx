@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useParams, useNavigate, useSearchParams, Link } from "react-router-dom";
-import { AlertCircle, ArrowLeft, ArrowRight, CheckCircle, Loader2, Send, Briefcase, LayoutDashboard, FileText } from "lucide-react";
+import { useParams, useNavigate, Link } from "react-router-dom";
+import { AlertCircle, ArrowLeft, ArrowRight, CheckCircle, CreditCard, Loader2, Send, Briefcase, LayoutDashboard, FileText } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -121,15 +121,17 @@ function initProdottoForVariant(data: FormClienteData, tipo: ProdottoTipo): Form
   return { ...data, prodotto: { tipo: "impianto_termico" } };
 }
 
+function dynamicCadastralServiceRequested(data: unknown): boolean {
+  if (!data || typeof data !== "object" || Array.isArray(data)) return false;
+  const section = (data as Record<string, unknown>).catastali;
+  if (!section || typeof section !== "object" || Array.isArray(section)) return false;
+  const value = (section as Record<string, unknown>).recupero_richiesto;
+  return value === true || value === 1 ||
+    (typeof value === "string" && ["true", "1", "si", "sì", "yes"].includes(value.trim().toLowerCase()));
+}
+
 export default function FormPubblico() {
   const { token } = useParams<{ token: string }>();
-  // ?pagamento=ok = arrivo dal success di Stripe. Il webhook che scrive
-  // "pagata" puo' essere piu' lento del redirect: senza questa eccezione il
-  // form rimbalzerebbe il cliente APPENA PAGATO di nuovo alla cassa, che gli
-  // rioffrirebbe il pagamento. Non e' una porta aperta: aggiungere il param a
-  // mano mostra solo il form, l'invio resta bloccato da submit_form_by_token.
-  const [searchParams] = useSearchParams();
-  const arrivoDaPagamento = searchParams.get("pagamento") === "ok";
   const { toast } = useToast();
   const navigate = useNavigate();
   const { session, isInternal, isReseller } = useAuth();
@@ -144,6 +146,9 @@ export default function FormPubblico() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [awaitingPayment, setAwaitingPayment] = useState(false);
+  const [paymentUrl, setPaymentUrl] = useState("");
+  const [paymentError, setPaymentError] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [resellerName, setResellerName] = useState("");
   const [prodottoTipo, setProdottoTipo] = useState<ProdottoTipo>("infissi");
@@ -175,45 +180,35 @@ export default function FormPubblico() {
       return;
     }
     let cancelled = false;
-    // Usa RPC SECURITY DEFINER (accesso anon controllato via form_token).
-    // La tabella enea_practices non ha policy anon → SELECT diretto restituisce [].
-    // In parallelo lo stato pagamento: se il servizio è a carico del cliente e
-    // non è ancora pagato, il posto giusto è /paga/:token, non il modulo.
-    // (Il vero blocco sta in submit_form_by_token; questo evita solo che il
-    // cliente compili tutto per poi vedersi rifiutare l'invio.)
-    Promise.all([
-      supabase.rpc("get_practice_by_form_token", { p_token: token }),
-      // Non-fatale: se questo check fallisce si apre comunque il form —
-      // il blocco vero e' server-side dentro submit_form_by_token.
-      supabase
-        .rpc("get_pagamento_by_form_token", { p_token: token })
-        .then((r) => r, () => ({ data: null })),
-    ])
-      .then(([{ data, error }, pagamentoRes]) => {
+    // Il nuovo percorso Fatture in Cloud/TS Pay raccoglie prima tutti i dati e
+    // genera il link di pagamento soltanto dopo l'invio completo del modulo.
+    supabase
+      .rpc("get_practice_by_form_token", { p_token: token })
+      .then(({ data, error }) => {
         if (cancelled) return;
-        const row = Array.isArray(data) ? data[0] : null;
-        const pagamento = Array.isArray(pagamentoRes.data) ? pagamentoRes.data[0] : null;
-        // Solo servizio completo: con "documenti forniti" chi compila questo
-        // form e' il RIVENDITORE (percorso form_online), non il cliente —
-        // rimbalzarlo sulla cassa del suo cliente bloccherebbe il suo lavoro.
-        // Il pagamento del cliente viaggia in parallelo via /paga.
-        if (
-          !arrivoDaPagamento &&
-          pagamento &&
-          pagamento.tipo_servizio !== "documenti_forniti" &&
-          pagamento.tipo_fatturazione === "cliente_finale" &&
-          pagamento.pagamento_stato !== "pagata" &&
-          !row?.form_compilato_at
-        ) {
-          navigate(`/paga/${token}`, { replace: true });
-          return;
-        }
+        const row = (Array.isArray(data) ? data[0] : null) as (EneaPractice & {
+          reseller_name?: string | null;
+          payment_required?: boolean | null;
+          payment_status?: string | null;
+          payment_url?: string | null;
+        }) | null;
         if (error || !row) {
           setError("Pratica non trovata o link non valido.");
         } else if (row.archived_at) {
           setError("Questa pratica è stata archiviata.");
         } else if (row.form_compilato_at) {
-          setSubmitted(true);
+          setPractice(row);
+          const nomeAzienda = row.reseller_name ?? "";
+          setResellerName(/Da abbinare|Clienti privati/i.test(nomeAzienda) ? "" : nomeAzienda);
+          if (row.payment_required && row.pagamento_stato !== "pagata") {
+            setAwaitingPayment(true);
+            setPaymentUrl(row.payment_url ?? "");
+            if (row.payment_status === "failed") {
+              setPaymentError("Il pagamento richiede una verifica dello staff. Non ricompilare il modulo.");
+            }
+          } else {
+            setSubmitted(true);
+          }
         } else {
           setPractice(row as unknown as EneaPractice);
           // I contenitori di sistema ("Da abbinare", "Clienti privati") non
@@ -253,6 +248,43 @@ export default function FormPubblico() {
     };
   }, [token]);
 
+  const startRequiredPayment = async (required: boolean): Promise<boolean> => {
+    if (!token || !required || practice?.pagamento_stato === "pagata") {
+      setSubmitted(true);
+      return true;
+    }
+
+    setAwaitingPayment(true);
+    setPaymentError("");
+    const { data, error: paymentInvokeError } = await supabase.functions.invoke("fic-create-payment", {
+      body: { token },
+    });
+
+    if (paymentInvokeError) {
+      let message = paymentInvokeError.message;
+      const context = (paymentInvokeError as { context?: Response }).context;
+      if (context && typeof context.json === "function") {
+        try {
+          message = (await context.json())?.error ?? message;
+        } catch {
+          // La risposta non contiene JSON: manteniamo il messaggio originale.
+        }
+      }
+      setPaymentError(message);
+      return false;
+    }
+
+    const result = data as { payment_url?: string; error?: string } | null;
+    if (!result?.payment_url) {
+      setPaymentError(result?.error ?? "Link di pagamento non disponibile. Contatta Pratica Rapida senza ricompilare il modulo.");
+      return false;
+    }
+
+    setPaymentUrl(result.payment_url);
+    window.location.assign(result.payment_url);
+    return true;
+  };
+
   // ── Patch helper per le sezioni del form ────────────────────────────────────
   const patchSection = useMemo(() => {
     return <S extends keyof FormClienteData>(
@@ -273,6 +305,19 @@ export default function FormPubblico() {
     if (!useDynamic || !dbModule) return [];
     return getVisibleSteps(dbModule.schema, dynamicData);
   }, [useDynamic, dbModule, dynamicData]);
+
+  const currentCadastralServiceRequested = useDynamic
+    ? dynamicCadastralServiceRequested(dynamicData)
+    : formData.catastali.recupero_richiesto;
+  const cadastralServiceRequested = practice?.form_compilato_at
+    ? dynamicCadastralServiceRequested(practice.dati_form)
+    : currentCadastralServiceRequested;
+  const paymentRequired = practice?.tipo_fatturazione === "cliente_finale" || cadastralServiceRequested;
+  const practiceNetPrice = practice?.tipo_fatturazione === "cliente_finale"
+    ? (practice.reseller_id === "26796836-cc0e-4bfe-b3a5-0200b2098ed8" ? 100 : 150)
+    : 0;
+  const paymentNetPrice = practiceNetPrice + (cadastralServiceRequested ? 10 : 0);
+  const paymentGrossPrice = paymentNetPrice * 1.22;
 
   // Richiedente persona giuridica (P.IVA): il form chiede ragione sociale +
   // partita IVA e "sede legale" al posto dei dati anagrafici e della residenza.
@@ -515,10 +560,8 @@ export default function FormPubblico() {
         return;
       }
 
-      // Messaggio 3 (email + WA conferma) parte dal TRIGGER DB on_form_compilato_trigger
-      // (scatta quando submit_form_by_token setta form_compilato_at). NON invocare
-      // on-stage-changed anche qui: causerebbe un DOPPIO invio al cliente.
-      setSubmitted(true);
+      await startRequiredPayment(paymentRequired);
+      if (!paymentRequired) setSubmitted(true);
       setSubmitting(false);
       return;
     }
@@ -567,10 +610,8 @@ export default function FormPubblico() {
       return;
     }
 
-    // Messaggio 3 (email + WA conferma) parte dal TRIGGER DB on_form_compilato_trigger
-    // (scatta quando submit_form_by_token setta form_compilato_at). NON invocare
-    // on-stage-changed anche qui: causerebbe un DOPPIO invio al cliente.
-    setSubmitted(true);
+    await startRequiredPayment(paymentRequired);
+    if (!paymentRequired) setSubmitted(true);
     setSubmitting(false);
   };
 
@@ -592,6 +633,64 @@ export default function FormPubblico() {
           <AlertCircle className="h-12 w-12 text-destructive mx-auto" />
           <h1 className="text-xl font-bold">Link non valido</h1>
           <p className="text-muted-foreground">{error}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (awaitingPayment) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="text-center space-y-5 max-w-md rounded-xl border bg-card p-6 shadow-sm">
+          <CreditCard className="h-14 w-14 text-primary mx-auto" />
+          <h1 className="text-2xl font-bold">Ultimo passo: pagamento</h1>
+          <p className="text-muted-foreground">
+            I dati sono stati salvati. La pratica entrerà in lavorazione soltanto dopo la conferma del pagamento.
+          </p>
+          <div className="rounded-lg border bg-muted/30 p-3 text-left text-sm space-y-1">
+            {practiceNetPrice > 0 && (
+              <div className="flex justify-between gap-3">
+                <span>Servizio gestione pratica</span>
+                <span>{practiceNetPrice.toFixed(2).replace(".", ",")} € + IVA</span>
+              </div>
+            )}
+            {cadastralServiceRequested && (
+              <div className="flex justify-between gap-3">
+                <span>Servizio ricerca dati catastali</span>
+                <span>10,00 € + IVA</span>
+              </div>
+            )}
+            <div className="flex justify-between gap-3 border-t pt-1 font-semibold">
+              <span>Totale IVA inclusa</span>
+              <span>{paymentGrossPrice.toFixed(2).replace(".", ",")} €</span>
+            </div>
+          </div>
+          {paymentError && (
+            <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
+              {paymentError}
+            </div>
+          )}
+          {paymentUrl ? (
+            <Button className="w-full" onClick={() => window.location.assign(paymentUrl)}>
+              <CreditCard className="h-4 w-4 mr-2" />Vai al pagamento sicuro
+            </Button>
+          ) : (
+            <Button
+              className="w-full"
+              disabled={submitting}
+              onClick={async () => {
+                setSubmitting(true);
+                await startRequiredPayment(paymentRequired);
+                setSubmitting(false);
+              }}
+            >
+              {submitting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CreditCard className="h-4 w-4 mr-2" />}
+              Prepara il pagamento
+            </Button>
+          )}
+          <p className="text-xs text-muted-foreground">
+            Riceverai anche il collegamento via email. Non compilare nuovamente il modulo.
+          </p>
         </div>
       </div>
     );
@@ -792,7 +891,7 @@ export default function FormPubblico() {
               ) : (
                 <Send className="h-4 w-4 mr-2" />
               )}
-              Invia pratica
+              {paymentRequired ? "Invia e vai al pagamento" : "Invia pratica"}
             </Button>
           ) : (
             <Button

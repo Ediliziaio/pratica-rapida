@@ -452,7 +452,9 @@ export function StepCatastali({ data, errors, patchSection }: StepProps) {
           <Label htmlFor="recupero_richiesto" className="text-sm">
             Non li ho, voglio che li recuperate voi
           </Label>
-          <p className="text-xs text-muted-foreground">+10 € sul totale della pratica</p>
+          <p className="text-xs text-muted-foreground">
+            Servizio aggiuntivo: 10,00 € + IVA 22% (12,20 € IVA inclusa)
+          </p>
         </div>
         <Switch
           id="recupero_richiesto"

@@ -222,7 +222,7 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
       const { data } = await supabase
         .from("platform_settings")
         .select("value")
-        .eq("key", "prezzo_privato_enea")
+        .eq("key", "prezzo_cf_standard")
         .maybeSingle();
       const v = (data?.value ?? {}) as {
         imponibile_cents?: number;
@@ -449,10 +449,9 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
           modulo: "pratica-enea",
           prodotto: prodottoLabel,
           richiedente_tipo: richiedenteTipo ?? "rivenditore",
-          // Il privato paga prima che la pratica entri in lavorazione: niente
-          // messaggio "completa i tuoi dati" adesso, lo mandiamo noi al
-          // /form/:token subito dopo il pagamento.
-          requires_payment: isPrivato,
+          // Il cliente privato completa prima tutti i dati fiscali e tecnici;
+          // il pagamento TS Pay viene proposto alla fine del modulo.
+          requires_payment: false,
           tipo_servizio: tipoServizio,
           // Sotto-modalità documenti_forniti: cartacei (tutto allegato → pronte
           // da fare) vs form online (il rivenditore compila lui il /form).
@@ -497,48 +496,16 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
         };
         if (!res.success) throw new Error(res.error ?? "Invio fallito");
 
-        // ── Cliente privato: si passa dalla cassa ──
-        // La pratica esiste già ma resta non pagata finché Stripe non conferma
-        // (stripe-webhook → pagamento_stato='pagata'). A pagamento riuscito
-        // Stripe riporta l'utente sul suo /form/:token per i dati tecnici.
+        // ── Cliente privato: prima completa il modulo, poi paga con TS Pay ──
+        // Il modulo raccoglie i dati fiscali necessari a emettere correttamente
+        // la fattura soltanto dopo il pagamento.
         if (isPrivato) {
-          if (!res.practice_id) {
+          if (!res.form_token) {
             throw new Error(
-              "Richiesta registrata ma senza riferimento per il pagamento. Scrivici su WhatsApp e la completiamo noi.",
+              "Richiesta registrata ma senza link al modulo. Scrivici su WhatsApp senza ricompilare la richiesta.",
             );
           }
-          const { data: checkout, error: checkoutErr } = await supabase.functions.invoke("stripe-checkout", {
-            body: {
-              practice_id: res.practice_id,
-              // L'importo NON lo passiamo da qui: lo legge la function dal DB.
-              pricing_key: "prezzo_privato_enea",
-              success: "form",
-              email: email.trim(),
-              descrizione: `Pratica ENEA — ${prodottoLabel}`,
-            },
-          });
-          // Attenzione ai messaggi da qui in giù: la pratica È GIÀ STATA
-          // CREATA. Dire "riprova" farebbe ricompilare tutto e creerebbe un
-          // doppione non pagato, quindi rimandiamo al supporto.
-          if (checkoutErr) {
-            // supabase-js sugli status non-2xx non espone il body: senza
-            // leggerlo dal Response allegato l'utente vedrebbe solo
-            // "Edge Function returned a non-2xx status code".
-            let msg = checkoutErr.message;
-            const ctx = (checkoutErr as { context?: Response }).context;
-            if (ctx && typeof ctx.json === "function") {
-              try { msg = (await ctx.json())?.error ?? msg; } catch { /* body non JSON */ }
-            }
-            throw new Error(`${msg} — la tua richiesta è stata registrata: scrivici e completiamo noi il pagamento, non ricompilare il modulo.`);
-          }
-          const co = checkout as { url?: string; error?: string };
-          if (!co?.url) {
-            throw new Error(
-              co?.error ??
-                "Non riusciamo ad aprire la pagina di pagamento. La tua richiesta è stata registrata: scrivici e la completiamo noi.",
-            );
-          }
-          window.location.href = co.url;
+          navigate(`/form/${res.form_token}`);
           return;
         }
 

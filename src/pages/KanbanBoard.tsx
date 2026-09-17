@@ -2073,7 +2073,9 @@ function FormDataDetails({ dati }: { dati: Record<string, unknown> }) {
             </div>
             {hasRecuperoCatastale && (
               <div className="mt-3 rounded bg-amber-50 dark:bg-amber-950/20 px-3 py-2 text-xs">
-                <p className="font-semibold text-amber-800 dark:text-amber-300 mb-1">⚠️ Cliente ha richiesto recupero catastale (+€10)</p>
+                <p className="font-semibold text-amber-800 dark:text-amber-300 mb-1">
+                  ⚠️ Servizio ricerca dati catastali acquistato (10,00 € + IVA · 12,20 €)
+                </p>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-1 mt-1">
                   <Field label="Proprietario nome" value={catastali.proprietario_nome} />
                   <Field label="Proprietario cognome" value={catastali.proprietario_cognome} />
@@ -2253,6 +2255,13 @@ function PracticeCard({
   const hasMissingDocs = practice.documenti_mancanti?.length > 0;
   const stageType = practice.pipeline_stages?.stage_type;
   const operatorName = practice.operatore_id ? operatorMap[practice.operatore_id] : null;
+  const cardDatiForm = practice.dati_form && typeof practice.dati_form === "object" && !Array.isArray(practice.dati_form)
+    ? practice.dati_form as Record<string, unknown>
+    : {};
+  const cardCatastali = cardDatiForm.catastali && typeof cardDatiForm.catastali === "object" && !Array.isArray(cardDatiForm.catastali)
+    ? cardDatiForm.catastali as Record<string, unknown>
+    : {};
+  const hasCadastralService = cardCatastali.recupero_richiesto === true || cardCatastali.recupero_richiesto === "true";
 
   const agingIntent =
     days > 7 ? "text-destructive" : days >= 4 ? "text-amber-500" : "text-muted-foreground";
@@ -2334,6 +2343,11 @@ function PracticeCard({
               {isInternal && practice.tipo_fatturazione === "cliente_finale" && (
                 <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300">
                   CF
+                </span>
+              )}
+              {isInternal && hasCadastralService && (
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-violet-100 text-violet-700 dark:bg-violet-950 dark:text-violet-300">
+                  CATASTO
                 </span>
               )}
               <span

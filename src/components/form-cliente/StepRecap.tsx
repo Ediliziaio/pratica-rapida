@@ -120,7 +120,7 @@ export function StepRecap({ data, prodottoTipo, isAzienda = false }: Props) {
       <Section title="Dati catastali">
         {cat.recupero_richiesto ? (
           <>
-            <Row label="Recupero dati catastali" value="Richiesto (+10€)" />
+            <Row label="Servizio ricerca dati catastali" value="Richiesto · 10,00 € + IVA (12,20 €)" />
             <Row
               label="Proprietario"
               value={`${cat.proprietario_nome} ${cat.proprietario_cognome}`.trim()}

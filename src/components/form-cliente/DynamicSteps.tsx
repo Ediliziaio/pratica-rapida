@@ -98,10 +98,28 @@ export function DynamicSteps({
         if (field.visible_if && !checkVisibleIf(field.visible_if, formData)) {
           return null;
         }
+        const isCadastralStep = step.key === "catastali";
+        const recoveryValue = formData.catastali?.recupero_richiesto;
+        const recoveryRequested = recoveryValue === true || recoveryValue === "true";
+        if (isCadastralStep && recoveryRequested && ["foglio", "mappale", "subalterno"].includes(field.key)) {
+          return null;
+        }
+        const effectiveField: FormField = isCadastralStep && field.key === "recupero_richiesto"
+          ? {
+              ...field,
+              label: "Non ho i dati catastali: richiedo il servizio di ricerca",
+              help_text: "Servizio aggiuntivo: 10,00 € + IVA 22% (12,20 € IVA inclusa). Riceverai la fattura via email.",
+            }
+          : isCadastralStep && (
+            (!recoveryRequested && ["foglio", "mappale"].includes(field.key)) ||
+            (recoveryRequested && ["proprietario_nome", "proprietario_cognome", "proprietario_cf"].includes(field.key))
+          )
+          ? { ...field, required: true }
+          : field;
         return (
           <DynamicField
             key={field.key}
-            field={field}
+            field={effectiveField}
             stepKey={step.key}
             value={formData[step.key]?.[field.key]}
             onChange={(v) => onChange(step.key, field.key, v)}

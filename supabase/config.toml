@@ -35,3 +35,12 @@ verify_jwt = false
 
 [functions.stripe-webhook]
 verify_jwt = false
+
+[functions.fic-create-payment]
+# Accesso pubblico controllato dal form_token della pratica; nessun importo o
+# dato fiscale viene accettato dal browser.
+verify_jwt = false
+
+[functions.fic-webhook]
+# Chiamato da Fatture in Cloud: autenticazione tramite JWT ES256 del provider.
+verify_jwt = false

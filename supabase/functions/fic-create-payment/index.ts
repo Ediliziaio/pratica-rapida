@@ -10,6 +10,7 @@ import {
   scheduleDocumentEmail,
   type JsonObject,
 } from "../_shared/fatture-in-cloud.ts";
+import { finalizePaidCfOrder } from "../_shared/finalize-cf-payment.ts";
 import { reportError } from "../_shared/error.ts";
 import {
   calculatePaymentPricing,
@@ -64,15 +65,19 @@ serve(async (req) => {
     return json({ error: "La pratica non richiede un pagamento al cliente finale" }, 409);
   }
   if (!practice.form_compilato_at) return json({ error: "Completa il modulo prima del pagamento" }, 409);
-  if (practice.pagamento_stato === "pagata") {
-    return json({ error: "Questa pratica risulta già pagata e non deve essere addebitata una seconda volta" }, 409);
-  }
-
   const { data: existing } = await admin
     .from("cf_payment_orders")
     .select("id,status,provider,stripe_checkout_session_id,stripe_checkout_url,fic_proforma_id,fic_document_url,is_test_payment,last_error_message")
     .eq("practice_id", practice.id)
     .maybeSingle();
+
+  if (practice.pagamento_stato === "pagata") {
+    if (existing?.id && ["paid", "invoicing", "invoice_created", "sdi_sending", "sdi_pending", "failed"].includes(String(existing.status))) {
+      const result = await finalizePaidCfOrder(admin, existing.id);
+      return json({ status: result.ready ? "ready" : result.reason, recovered: true });
+    }
+    return json({ error: "Questa pratica risulta già pagata e non deve essere addebitata una seconda volta" }, 409);
+  }
 
   try {
     const { data: settingRows } = await admin.from("platform_settings")
@@ -193,23 +198,16 @@ serve(async (req) => {
     }
     if (!reserved) throw new Error("Impossibile riservare l'ordine di pagamento");
 
-    // Il collaudo da 1 € verifica soltanto Stripe e il ritorno al CRM: non è
-    // un'operazione fiscale e non deve lasciare proforme tra i crediti FIC.
-    let config: ReturnType<typeof getFicConfig> | null = null;
-    let proformaId: number | null = null;
-    let documentUrl = "";
-    if (!isTestPayment) {
-      config = getFicConfig();
-      const created = await createProforma(
-        config,
-        proformaPayload(practice.id, practice.prodotto_installato ?? "ENEA", customer, price),
-      );
-      const document = created.data ?? {};
-      proformaId = Number(document.id);
-      documentUrl = String(document.url ?? "").trim();
-      if (!Number.isInteger(proformaId) || proformaId <= 0 || !documentUrl) {
-        throw new Error("Fatture in Cloud non ha restituito ID e URL della proforma");
-      }
+    const config = getFicConfig();
+    const created = await createProforma(
+      config,
+      proformaPayload(practice.id, practice.prodotto_installato ?? "ENEA", customer, price),
+    );
+    const document = created.data ?? {};
+    const proformaId = Number(document.id);
+    const documentUrl = String(document.url ?? "").trim();
+    if (!Number.isInteger(proformaId) || proformaId <= 0 || !documentUrl) {
+      throw new Error("Fatture in Cloud non ha restituito ID e URL della proforma");
     }
 
     let paymentUrl = documentUrl;
@@ -282,7 +280,7 @@ serve(async (req) => {
     // Nel vecchio percorso TS Pay l'e-mail contiene la proforma da aprire. Con
     // Stripe non va inviata: il cliente deve vedere direttamente il checkout.
     if (paymentProvider === "fatture_in_cloud_tspay") {
-      if (!config || !proformaId) throw new Error("Proforma Fatture in Cloud non disponibile");
+      if (!proformaId) throw new Error("Proforma Fatture in Cloud non disponibile");
       try {
         await scheduleDocumentEmail(config, proformaId, customer.email, customer.name, "proforma");
         await admin.from("cf_payment_orders").update({ proforma_emailed_at: new Date().toISOString() }).eq("practice_id", practice.id);

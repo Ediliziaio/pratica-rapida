@@ -1,10 +1,14 @@
 import {
+  createProforma,
+  extractBillingIdentity,
   getFicConfig,
+  proformaPayload,
   scheduleDocumentEmail,
   sendEInvoice,
   transformProformaToInvoice,
   type JsonObject,
 } from "./fatture-in-cloud.ts";
+import { createTestPaymentPricing } from "./fic-pricing.ts";
 
 type AdminClient = {
   from: (table: string) => any;
@@ -57,41 +61,6 @@ export async function finalizePaidCfOrder(
   const practiceId = String(order.practice_id);
   const paidAt = String(order.paid_at ?? new Date().toISOString());
 
-  if (order.is_test_payment === true) {
-    const { data: readyStage } = await admin.from("pipeline_stages")
-      .select("id")
-      .is("reseller_id", null)
-      .eq("stage_type", "pronte_da_fare")
-      .eq("brand", practice.brand ?? "enea")
-      .limit(1)
-      .maybeSingle();
-    if (!readyStage?.id) throw new Error("Colonna 'Pronte da fare' non trovata");
-
-    // Il collaudo non genera documenti fiscali, ma deve comunque verificare
-    // l'intero passaggio operativo pagamento → pratica pronta. In caso
-    // contrario il test risulterebbe positivo pur lasciando la pratica nella
-    // colonna precedente, che è esattamente il guasto che deve intercettare.
-    await admin.from("enea_practices").update({
-      pagamento_stato: "pagata",
-      data_incasso: paidAt,
-      current_stage_id: readyStage.id,
-    }).eq("id", practiceId);
-    await admin.from("cf_payment_orders").update({
-      status: "completed",
-      last_error_code: null,
-      last_error_message: null,
-      updated_at: new Date().toISOString(),
-    }).eq("id", orderId);
-
-    await notifyAdmins(
-      admin,
-      practiceId,
-      "Collaudo pagamento ricevuto — € 1,00",
-      "Pagamento Stripe di collaudo associato e pratica spostata in Pronte da fare. Nessuna fattura e nessun invio SDI sono stati eseguiti.",
-    );
-    return { ready: true, reason: "test" };
-  }
-
   if (Deno.env.get("FIC_LIVE_INVOICING_ENABLED") !== "true") {
     await admin.from("cf_payment_orders").update({
       last_error_code: "LIVE_INVOICING_DISABLED",
@@ -110,12 +79,36 @@ export async function finalizePaidCfOrder(
   const config = getFicConfig();
   let invoiceId = Number(order.fic_invoice_id ?? 0);
   let invoiceUrl = String(order.fic_invoice_url ?? "");
+  let proformaId = Number(order.fic_proforma_id ?? 0);
 
-  if (!invoiceId) {
-    const proformaId = Number(order.fic_proforma_id ?? 0);
-    if (!Number.isInteger(proformaId) || proformaId <= 0) {
+  // Un collaudo fiscale autorizzato deve attraversare lo stesso percorso di
+  // un cliente reale. Gli ordini di test creati prima dell'autorizzazione non
+  // avevano una proforma: la creiamo ora, senza generare un secondo addebito.
+  if (!invoiceId && (!Number.isInteger(proformaId) || proformaId <= 0)) {
+    if (order.is_test_payment !== true) {
       throw new Error("Proforma tecnica Fatture in Cloud mancante");
     }
+    const customer = extractBillingIdentity(practice);
+    const price = createTestPaymentPricing(Number(order.iva_percent), Number(order.imponibile_cents));
+    if (price.grossCents !== Number(order.totale_cents)) {
+      throw new Error("Importo del collaudo fiscale non coerente con il pagamento Stripe");
+    }
+    const created = await createProforma(
+      config,
+      proformaPayload(practiceId, String(practice.prodotto_installato ?? "ENEA"), customer, price),
+    );
+    proformaId = Number(created.data.id);
+    if (!Number.isInteger(proformaId) || proformaId <= 0) {
+      throw new Error("Fatture in Cloud non ha restituito l'ID della proforma di collaudo");
+    }
+    await admin.from("cf_payment_orders").update({
+      fic_proforma_id: proformaId,
+      fic_document_url: null,
+      updated_at: new Date().toISOString(),
+    }).eq("id", orderId);
+  }
+
+  if (!invoiceId) {
     const { data: claimed, error: claimError } = await admin.from("cf_payment_orders")
       .update({ status: "invoicing", updated_at: new Date().toISOString() })
       .eq("id", orderId)

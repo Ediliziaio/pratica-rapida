@@ -113,7 +113,8 @@ può essere autorizzata tramite una riga service-role in
 - utilizzo monouso.
 
 Il totale è 1,00 EUR IVA inclusa (0,82 EUR imponibile + 0,18 EUR IVA). Gli ordini
-di collaudo sono marcati `is_test_payment = true`: il webhook registra il
-pagamento, ma non crea mai una fattura, non invia allo SDI e non immette la
-pratica di collaudo nella coda operativa, indipendentemente dagli interruttori
-generali. La migrazione crea soltanto la struttura e non abilita alcuna pratica.
+di collaudo sono marcati `is_test_payment = true`, ma dopo l'autorizzazione
+fiscale esplicita del Titolare percorrono lo stesso flusso dei pagamenti
+ordinari: proforma tecnica, fattura reale, invio SDI, e-mail al cliente e
+passaggio in `pronte_da_fare`. La migrazione crea soltanto la struttura e non
+abilita alcuna pratica.

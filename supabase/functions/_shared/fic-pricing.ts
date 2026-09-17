@@ -1,4 +1,4 @@
-export type PaymentLineCode = "PR-CF" | "PR-CATASTO";
+export type PaymentLineCode = "PR-CF" | "PR-CATASTO" | "PR-TEST";
 
 export interface PaymentLine {
   code: PaymentLineCode;
@@ -8,12 +8,31 @@ export interface PaymentLine {
 }
 
 export interface PaymentPricing {
-  pricingKey: "prezzo_cf_standard" | "prezzo_cf_sima_home" | "prezzo_servizio_catastale";
+  pricingKey: "prezzo_cf_standard" | "prezzo_cf_sima_home" | "prezzo_servizio_catastale" | "prezzo_test_pagamento";
   cadastralService: boolean;
   lines: PaymentLine[];
   netCents: number;
   vatCents: number;
   grossCents: number;
+}
+
+export function createTestPaymentPricing(vatPercent = 22, netCents = 82): PaymentPricing {
+  if (!Number.isInteger(netCents) || netCents <= 0) throw new Error("Prezzo di collaudo non valido");
+  if (!Number.isFinite(vatPercent) || vatPercent < 0 || vatPercent > 100) throw new Error("IVA di collaudo non valida");
+  const vatCents = Math.round(netCents * vatPercent / 100);
+  return {
+    pricingKey: "prezzo_test_pagamento",
+    cadastralService: false,
+    lines: [{
+      code: "PR-TEST",
+      name: "Collaudo tecnico pagamento Pratica Rapida",
+      netCents,
+      vatPercent,
+    }],
+    netCents,
+    vatCents,
+    grossCents: netCents + vatCents,
+  };
 }
 
 function truthy(value: unknown): boolean {

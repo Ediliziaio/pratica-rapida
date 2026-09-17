@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   calculatePaymentPricing,
+  createTestPaymentPricing,
   isCadastralServiceRequested,
 } from "../../supabase/functions/_shared/fic-pricing";
 
@@ -15,6 +16,15 @@ const common = {
 };
 
 describe("prezzi Fatture in Cloud / TS Pay", () => {
+  it("limita il collaudo tecnico a 1 euro IVA inclusa", () => {
+    const result = createTestPaymentPricing();
+    expect(result.pricingKey).toBe("prezzo_test_pagamento");
+    expect(result.lines.map((line) => line.code)).toEqual(["PR-TEST"]);
+    expect(result.netCents).toBe(82);
+    expect(result.vatCents).toBe(18);
+    expect(result.grossCents).toBe(100);
+  });
+
   it("calcola il CF ordinario con due righe separate quando richiede il catasto", () => {
     const result = calculatePaymentPricing({
       ...common,

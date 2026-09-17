@@ -11,6 +11,7 @@ import {
 import { reportError } from "../_shared/error.ts";
 import {
   calculatePaymentPricing,
+  createTestPaymentPricing,
   isCadastralServiceRequested,
 } from "../_shared/fic-pricing.ts";
 
@@ -25,6 +26,13 @@ const json = (body: unknown, status = 200) => new Response(JSON.stringify(body),
   status,
   headers: { ...CORS, "Content-Type": "application/json" },
 });
+
+const normalizeName = (value: string) => value
+  .normalize("NFD")
+  .replace(/[\u0300-\u036f]/g, "")
+  .trim()
+  .replace(/\s+/g, " ")
+  .toLowerCase();
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
@@ -88,7 +96,28 @@ serve(async (req) => {
     if (standard.attivo === false || sima.attivo === false || (cadastralService && cadastral.attivo === false)) {
       return json({ error: "Prezzo CF non configurato" }, 503);
     }
-    const price = calculatePaymentPricing({
+    const customer = extractBillingIdentity(practice as JsonObject);
+    const now = new Date().toISOString();
+    const { data: testOverride, error: testOverrideError } = await admin
+      .from("cf_payment_test_overrides")
+      .select("practice_id,expected_customer_name,net_cents,vat_percent")
+      .eq("practice_id", practice.id)
+      .eq("enabled", true)
+      .is("consumed_at", null)
+      .gt("expires_at", now)
+      .maybeSingle();
+    if (testOverrideError) throw testOverrideError;
+    if (testOverride && practice.tipo_fatturazione !== "cliente_finale") {
+      return json({ error: "Il collaudo da 1 € è consentito soltanto su una pratica CF" }, 409);
+    }
+    if (testOverride && normalizeName(customer.name) !== normalizeName(String(testOverride.expected_customer_name))) {
+      return json({ error: "La pratica non corrisponde al nominativo autorizzato per il collaudo" }, 409);
+    }
+    const isTestPayment = Boolean(testOverride);
+    const price = testOverride ? createTestPaymentPricing(
+      Number(testOverride.vat_percent),
+      Number(testOverride.net_cents),
+    ) : calculatePaymentPricing({
       tipoFatturazione: practice.tipo_fatturazione,
       resellerId: practice.reseller_id,
       simaResellerId: simaId,
@@ -99,7 +128,6 @@ serve(async (req) => {
       cadastralService,
       product: practice.prodotto_installato ?? "ENEA",
     });
-    const customer = extractBillingIdentity(practice as JsonObject);
 
     const { error: reserveError } = await admin.from("cf_payment_orders").insert({
       practice_id: practice.id,
@@ -108,6 +136,7 @@ serve(async (req) => {
       imponibile_cents: price.netCents,
       iva_percent: vatPercent,
       totale_cents: price.grossCents,
+      is_test_payment: isTestPayment,
       status: "creating",
     });
     if (reserveError) {
@@ -133,6 +162,15 @@ serve(async (req) => {
       fic_document_url: documentUrl,
       updated_at: new Date().toISOString(),
     }).eq("practice_id", practice.id);
+    if (isTestPayment) {
+      const { error: consumeError } = await admin.from("cf_payment_test_overrides").update({
+        consumed_at: new Date().toISOString(),
+      }).eq("practice_id", practice.id).is("consumed_at", null);
+      if (consumeError) {
+        console.error("[fic-create-payment] proforma di collaudo creata, marcatura monouso fallita", consumeError);
+        await reportError(consumeError, { fn: "fic-create-payment", practice_id: practice.id, phase: "consume-test-override" });
+      }
+    }
     const practiceUpdate: Record<string, unknown> = { pagamento_stato: "non_pagata" };
     if (practice.tipo_fatturazione === "cliente_finale") practiceUpdate.prezzo = price.netCents / 100;
     await admin.from("enea_practices").update(practiceUpdate).eq("id", practice.id);

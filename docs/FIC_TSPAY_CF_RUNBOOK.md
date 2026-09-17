@@ -91,3 +91,19 @@ eventi sono registrati per `event_id` per impedire la doppia elaborazione.
 - Un evento fallito resta in `fic_webhook_events` e l'ordine conserva
   `last_error_code`/`last_error_message`; non viene generata una seconda pratica.
 - Le proforme e fatture non vengono mai cancellate automaticamente.
+## Collaudo controllato da 1 euro
+
+Il collaudo economico non modifica mai i prezzi globali. Una singola pratica CF
+può essere autorizzata tramite una riga service-role in
+`cf_payment_test_overrides`, vincolata contemporaneamente a:
+
+- UUID esatto della pratica;
+- nominativo atteso;
+- scadenza;
+- utilizzo monouso.
+
+Il totale è 1,00 EUR IVA inclusa (0,82 EUR imponibile + 0,18 EUR IVA). Gli ordini
+di collaudo sono marcati `is_test_payment = true`: il webhook registra il
+pagamento e sblocca la pratica, ma non crea mai una fattura e non invia mai allo
+SDI, indipendentemente dagli interruttori generali. La migrazione crea soltanto
+la struttura e non abilita alcuna pratica.

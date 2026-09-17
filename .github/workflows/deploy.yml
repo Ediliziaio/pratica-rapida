@@ -15,7 +15,7 @@ name: Deploy to Cloudflare Pages + Supabase Functions
 #   - typecheck: BLOCCANTE (tsc -p tsconfig.app.json: se TS errors, deploy stop)
 #   - lint:      NON bloccante (0 errori oggi, restano solo warning; promuovibile a bloccante)
 #   - test:      NON bloccante (solo test dummy oggi)
-#   - db-migrate: NON bloccante (se SUPABASE_DB_PASSWORD non settato, skip)
+#   - db-migrate: BLOCCANTE per le funzioni (se DB_PASSWORD non settato, skip)
 
 on:
   push:
@@ -61,10 +61,9 @@ jobs:
       - run: bun run test --run
 
   db-migrate:
-    name: Apply DB migrations (best-effort)
+    name: Apply DB migrations
     runs-on: ubuntu-latest
     needs: [typecheck]
-    continue-on-error: true
     env:
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
       SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
@@ -87,7 +86,9 @@ jobs:
   deploy-functions:
     name: Deploy Supabase Edge Functions
     runs-on: ubuntu-latest
-    needs: [typecheck]
+    # Le funzioni possono dipendere dalle nuove tabelle/colonne: non devono
+    # mai essere pubblicate prima che la migrazione sia terminata con successo.
+    needs: [typecheck, db-migrate]
     steps:
       - uses: actions/checkout@v4
       - uses: supabase/setup-cli@v1

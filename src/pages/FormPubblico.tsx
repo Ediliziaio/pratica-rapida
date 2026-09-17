@@ -138,6 +138,26 @@ type PublicEneaPractice = EneaPractice & {
   payment_is_test?: boolean | null;
 };
 
+function isPaymentConfirmed(practice: PublicEneaPractice): boolean {
+  return practice.pagamento_stato === "pagata" || [
+    "paid",
+    "invoicing",
+    "invoice_created",
+    "sdi_sending",
+    "sdi_pending",
+    "ready",
+    "completed",
+  ].includes(practice.payment_status ?? "");
+}
+
+function isPaymentFlowComplete(practice: PublicEneaPractice): boolean {
+  if (!practice.payment_required) return true;
+  if (practice.payment_is_test) {
+    return practice.pagamento_stato === "pagata" && isPaymentConfirmed(practice);
+  }
+  return practice.pagamento_stato === "pagata" && ["ready", "completed"].includes(practice.payment_status ?? "");
+}
+
 export default function FormPubblico() {
   const { token } = useParams<{ token: string }>();
   const { toast } = useToast();
@@ -205,9 +225,9 @@ export default function FormPubblico() {
           setPractice(row);
           const nomeAzienda = row.reseller_name ?? "";
           setResellerName(/Da abbinare|Clienti privati/i.test(nomeAzienda) ? "" : nomeAzienda);
-          if (row.payment_required && row.pagamento_stato !== "pagata") {
+          if (row.payment_required && !isPaymentFlowComplete(row)) {
             setAwaitingPayment(true);
-            setPaymentUrl(row.payment_url ?? "");
+            setPaymentUrl(isPaymentConfirmed(row) ? "" : row.payment_url ?? "");
             if (row.payment_status === "failed") {
               setPaymentError("Il pagamento richiede una verifica dello staff. Non ricompilare il modulo.");
             }
@@ -266,7 +286,8 @@ export default function FormPubblico() {
       const { data } = await supabase.rpc("get_practice_by_form_token", { p_token: token });
       if (cancelled) return;
       const row = (Array.isArray(data) ? data[0] : null) as PublicEneaPractice | null;
-      if (row && row.pagamento_stato === "pagata" && ["ready", "completed"].includes(row.payment_status ?? "")) {
+      if (row) setPractice(row);
+      if (row && isPaymentFlowComplete(row)) {
         setPractice(row);
         setAwaitingPayment(false);
         setSubmitted(true);
@@ -277,7 +298,7 @@ export default function FormPubblico() {
         return;
       }
       if (attempts >= 20) {
-        setPaymentError("Pagamento in verifica. Non ripagare: riceverai la fattura via e-mail appena completato il controllo.");
+        setPaymentError("Stiamo attendendo la conferma definitiva del pagamento. Non effettuare un secondo pagamento: puoi lasciare aperta questa pagina oppure riaprirla più tardi.");
         return;
       }
       window.setTimeout(poll, 2000);
@@ -680,6 +701,7 @@ export default function FormPubblico() {
   }
 
   if (awaitingPayment) {
+    const paymentConfirmed = practice ? isPaymentConfirmed(practice) : false;
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="text-center space-y-5 max-w-md rounded-xl border bg-card p-6 shadow-sm">
@@ -687,7 +709,9 @@ export default function FormPubblico() {
           <h1 className="text-2xl font-bold">Ultimo passo: pagamento</h1>
           <p className="text-muted-foreground">
             {returningFromPayment
-              ? "Pagamento ricevuto. Stiamo emettendo e inviando la fattura da Fatture in Cloud: attendi senza chiudere questa pagina."
+              ? "Operazione conclusa su Stripe. Stiamo verificando la conferma del pagamento: non effettuare un secondo pagamento."
+              : paymentConfirmed
+                ? "Pagamento confermato. Stiamo completando la fattura e l'invio della pratica."
               : "I dati sono stati salvati. La pratica entrerà in lavorazione soltanto dopo la conferma del pagamento e l'invio della fattura."}
           </p>
           <div className="rounded-lg border bg-muted/30 p-3 text-left text-sm space-y-1">
@@ -718,10 +742,12 @@ export default function FormPubblico() {
               {paymentError}
             </div>
           )}
-          {returningFromPayment && !paymentError ? (
-            <div className="flex items-center justify-center gap-2 rounded-lg border p-3 text-sm">
-              <Loader2 className="h-4 w-4 animate-spin" /> Conferma pagamento e fattura in corso…
-            </div>
+          {returningFromPayment || paymentConfirmed ? (
+            !paymentError && (
+              <div className="flex items-center justify-center gap-2 rounded-lg border p-3 text-sm">
+                <Loader2 className="h-4 w-4 animate-spin" /> Verifica automatica in corso…
+              </div>
+            )
           ) : paymentUrl && !returningFromPayment ? (
             <Button className="w-full" onClick={() => window.location.assign(paymentUrl)}>
               <CreditCard className="h-4 w-4 mr-2" />Vai al pagamento sicuro
@@ -780,10 +806,11 @@ export default function FormPubblico() {
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="text-center space-y-4 max-w-md">
           <CheckCircle className="h-16 w-16 text-green-500 mx-auto" />
-          <h1 className="text-2xl font-bold">Grazie!</h1>
+          <h1 className="text-2xl font-bold">Pagamento effettuato e pratica inviata ✓</h1>
           <p className="text-muted-foreground">
-            I tuoi dati sono stati ricevuti. La tua pratica è ora in lavorazione.
-            Riceverai aggiornamenti via email o WhatsApp.
+            Il pagamento è stato effettuato e la pratica è stata correttamente inviata.
+            Riceverai via e-mail la pratica ENEA completata, pronta per essere
+            conservata e utilizzata per la dichiarazione dei redditi.
           </p>
         </div>
       </div>

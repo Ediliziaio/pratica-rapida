@@ -1,0 +1,26 @@
+{
+  "version": "apr-install-bundle-cli-receipt-v1",
+  "installedAt": "2026-09-10T17:08:25.088Z",
+  "label": "ideal-sistem-manual-exclusion-r107",
+  "versionId": "4c1e381b-ideal-sistem-manual-exclusion-r107-20260910",
+  "previousTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/742f23d6-infissi-explicit-no-screen-r106-20260910",
+  "currentTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/4c1e381b-ideal-sistem-manual-exclusion-r107-20260910",
+  "installedBundle": {
+    "apr-supervisor.mjs": "212c27a12004f47439c131d53bc32a90d2d6fbc0556f8362d52459aea726c48d",
+    "apr-enea-worker.mjs": "6409586bbb5fca6a4772181ba8bb18aec12d56e1942d14728e2d2e1ea5e59746",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "apr-rule-governance-attestation.json": "5418ab2b45b5c57a9f1b635b16304a7f4124a041f6acd57320a77714b46175dd"
+  },
+  "gateResultArtifactId": "11a6670bae6ad2f7e945b84e692028ef4b50b554ca551315a50af1dac1e9edfc",
+  "gateStatus": "PASS",
+  "governanceAttestation": {
+    "path": "apr-rule-governance-attestation.json",
+    "sha256": "5418ab2b45b5c57a9f1b635b16304a7f4124a041f6acd57320a77714b46175dd",
+    "historicalAuditReport": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-ideal-sistem-exclusion-r107-gate-2026-09-10/historical-audit-report-r107.json",
+    "authorizedHistoricalGap": true
+  },
+  "legacyGovernanceDebtNoticed": [
+    "user-2026-09-05-co-beneficiary-trusted-enter-delivery-v2",
+    "user-2026-09-05-terminal-cohort-browser-quiescence-v1"
+  ]
+}

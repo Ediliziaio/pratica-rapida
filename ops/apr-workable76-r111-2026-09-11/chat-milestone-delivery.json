@@ -1,0 +1,8 @@
+{
+  "version": "apr-chat-milestone-delivery-v1",
+  "updatedAt": "2026-09-11T15:07:45.321Z",
+  "deliveredMilestones": [10, 20, 30, 40],
+  "lastReportedProcessed": 40,
+  "nextMilestone": 50,
+  "finalMilestone": 76
+}

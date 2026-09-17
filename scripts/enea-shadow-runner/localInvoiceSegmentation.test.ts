@@ -135,6 +135,29 @@ Totale 2.236,36` })[0];
     expect(reconciled.discardedConflictingOcrDuplicateSourceIds).toEqual([ocr.sourceId]);
   });
 
+  // Patrizia Muzzi, 13/09/2026: l'ordine n. 177 era allegato due volte. La
+  // copia nativa aveva il testo impaginato a colonne e il parser non vi
+  // trovava ne' numero ne' data; la copia OCR li leggeva entrambi. La regola
+  // "nativo batte OCR" ritirava la copia OCR, la pratica restava senza data
+  // fattura e si fermava per "data fattura non ricavabile", con la data
+  // stampata in chiaro sulla copia buttata via.
+  it("se la copia OCR ha letto piu' terna fiscale della nativa, resta lei e la nativa viene ritirata (Muzzi)", () => {
+    const nativeScrambled = splitLocalInvoiceText({ documentKey: "native-177", extractionMode: "native_text", text: `Fattura
+N° DOCUMENTO DATA DOCUMENTO
+P.IVA 02487960920
+TENDA A BRACCI ESTENSIBILI DIM.L.CM 260 X SP.CM 225 GTOT 0,13
+Totale documento 2.587,62` })[0];
+    const ocrComplete = splitLocalInvoiceText({ documentKey: "ocr-177", extractionMode: "macos_vision_ocr", text: `Fattura n. 177 del 15/07/2026
+P.IVA 02487960920
+TENDA A BRACCI ESTENSIBILI DIM.L.CM 260 X SP.CM 225 GTOT 0,13
+Totale documento 2.587,62` })[0];
+    expect(nativeScrambled).toMatchObject({ documentNumber: undefined, documentDate: undefined, total: 2587.62 });
+    expect(ocrComplete).toMatchObject({ documentNumber: "177", documentDate: "2026-07-15", total: 2587.62 });
+    const reconciled = reconcileLocalInvoiceSegments([nativeScrambled, ocrComplete]);
+    expect(reconciled.uniqueFinancialSegments).toEqual([ocrComplete]);
+    expect(reconciled.discardedConflictingOcrDuplicateSourceIds).toEqual([nativeScrambled.sourceId]);
+  });
+
   it("mantiene fail-closed copie native OCR se data, soggetti fiscali o prodotto non concordano", () => {
     const native = splitLocalInvoiceText({ documentKey: "native-safe", extractionMode: "native_text", text: `Fattura Accompagnatoria n. 869/26 del 05/08/2026
 P.IVA 03030671204 Cod. Fisc. CMPCLD62T52A944A

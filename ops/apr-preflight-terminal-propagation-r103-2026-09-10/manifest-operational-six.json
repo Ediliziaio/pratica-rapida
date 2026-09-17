@@ -1,0 +1,113 @@
+{
+  "version": "apr-preflight-terminal-propagation-r103-operational-six-v1",
+  "authorizationId": "user-2026-09-09-pronte-da-fare-after-wide100-draft-only",
+  "authorizedAt": "2026-09-09T00:27:59.447Z",
+  "experimentId": "apr-preflight-terminal-propagation-r103-operational-six-20260910",
+  "mode": "real_enea_draft_only",
+  "sourceManifest": "ops/apr-pronte-da-fare-r99-2026-09-09/manifest.json",
+  "selection": {
+    "total": 6,
+    "allowedStages": [
+      "pronte_da_fare"
+    ],
+    "excludedCustomerKeys": [],
+    "purpose": "verify_upstream_preflight_terminal_propagation",
+    "composition": {
+      "crm_exact_identity_not_found": 4,
+      "permanent_supplier_exclusion_without_download": 2
+    }
+  },
+  "safety": {
+    "draftOnly": true,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false,
+    "priorDraftPolicy": "fresh_generation_only"
+  },
+  "cases": [
+    {
+      "practiceId": "abe740b8-890f-4a2a-bc5d-12ef87b1f7ec",
+      "customerKey": "salvatore-di-bello",
+      "displayName": "SALVATORE DI BELLO",
+      "stage": "pronte_da_fare",
+      "stageName": "pronte_da_fare",
+      "module": "screening",
+      "productEvidence": "Schermature Solari",
+      "reseller": "linea sole potito",
+      "cohort": 5611,
+      "generationMode": "fresh_generation",
+      "historicalRetest": true,
+      "expectedUpstreamTerminal": "blocked_not_found"
+    },
+    {
+      "practiceId": "4db26f2b-33ec-4b73-97dc-38bad15e401b",
+      "customerKey": "virginia-madia",
+      "displayName": "VIRGINIA MADIA",
+      "stage": "pronte_da_fare",
+      "stageName": "pronte_da_fare",
+      "module": "screening",
+      "productEvidence": "Schermature Solari",
+      "reseller": "linea sole potito",
+      "cohort": 5612,
+      "generationMode": "fresh_generation",
+      "historicalRetest": true,
+      "expectedUpstreamTerminal": "blocked_not_found"
+    },
+    {
+      "practiceId": "d5edef9f-2b12-459f-a226-5d92fa069767",
+      "customerKey": "ernestina-avalli",
+      "displayName": "ERNESTINA AVALLI",
+      "stage": "pronte_da_fare",
+      "stageName": "pronte_da_fare",
+      "module": "screening",
+      "productEvidence": "Schermature Solari",
+      "reseller": "lm tende",
+      "cohort": 5613,
+      "generationMode": "fresh_generation",
+      "historicalRetest": true,
+      "expectedUpstreamTerminal": "blocked_not_found"
+    },
+    {
+      "practiceId": "8921b07b-b618-4fc8-ade0-11f06c5177fe",
+      "customerKey": "maddalena-giovanna-pezzani",
+      "displayName": "Maddalena Giovanna Pezzani",
+      "stage": "pronte_da_fare",
+      "stageName": "pronte_da_fare",
+      "module": "screening",
+      "productEvidence": "Schermature Solari",
+      "reseller": "lm tende",
+      "cohort": 5614,
+      "generationMode": "fresh_generation",
+      "historicalRetest": true,
+      "expectedUpstreamTerminal": "blocked_not_found"
+    },
+    {
+      "practiceId": "eabc194f-5206-4eea-a97a-8a3521a48280",
+      "customerKey": "mario-martegani",
+      "displayName": "Mario Martegani",
+      "stage": "pronte_da_fare",
+      "stageName": "pronte_da_fare",
+      "module": "screening",
+      "productEvidence": "Schermature Solari",
+      "reseller": "linea sole potito",
+      "cohort": 5615,
+      "generationMode": "fresh_generation",
+      "historicalRetest": true,
+      "expectedUpstreamTerminal": "permanent_supplier_exclusion"
+    },
+    {
+      "practiceId": "b99df64d-259b-4469-baff-f50bfa4a3184",
+      "customerKey": "marzia-bellotti",
+      "displayName": "Marzia Bellotti",
+      "stage": "pronte_da_fare",
+      "stageName": "pronte_da_fare",
+      "module": "screening",
+      "productEvidence": "Schermature Solari",
+      "reseller": "linea sole potito",
+      "cohort": 5616,
+      "generationMode": "fresh_generation",
+      "historicalRetest": true,
+      "expectedUpstreamTerminal": "permanent_supplier_exclusion"
+    }
+  ]
+}

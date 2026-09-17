@@ -1,0 +1,25 @@
+{
+  "version": "apr-contractual-reliability-r101-long-final-integrity-v1",
+  "generatedAt": "2026-09-09T23:20:00+02:00",
+  "report": {
+    "path": "ops/apr-contractual-reliability-2026-09-09/final-long-report-r101.json",
+    "sha256": "41a370b1ca65741b0f7992025141ffbdb4a3f20fc96d080c8d56f3c49b8f9037"
+  },
+  "humanReadableReport": {
+    "path": "ops/apr-contractual-reliability-2026-09-09/final-long-report-r101.md",
+    "sha256": "312a2cab65663938f6ebf83b6a6fd5de384faa5e465f22fa9a5dc4fa8185ac84"
+  },
+  "sourceEvidence": {
+    "runReportSha256": "25265924d21f7105c0616515bc9bc53c168ea037a1a61d7d61432b93f89da502",
+    "runCheckpointSha256": "1dea81e9078b1072e9f5a547763e9a6adad8b08d4f8cf5f793e98ea64b1c570e",
+    "runJournalSha256": "d71781f865d8b98b89679f0ad1dff9a487bbdf2dafce0c5c5925d9226953057a",
+    "manifestSha256": "431e895aa96b21ed9d702f5e959f740794b6569f2e0836189c3b6504422d0763",
+    "savedTotalComparisonSha256": "5ad627223d79d13e43ea5e532b38dce8274e129ad23093eaac5ccedaf7730b44"
+  },
+  "verification": {
+    "jsonParsed": true,
+    "classifiedCases": 63,
+    "exclusiveTaxonomyCategories": 7,
+    "classificationCardinalityMatchesManifest": true
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-09-09T15:59:42+02:00",
+  "classification": "NON_EXECUTABLE_IN_SANDBOX",
+  "scope": "local-loopback-fixture-tests",
+  "gateRun": "ops/apr-canonical-preflight-package-r101-2026-09-09/rule-evidence/rule-activation/vitest-1788959686925-7da3dfe7-0054-46df-aaf3-d8b8137ec240.json",
+  "evidence": {
+    "passedTests": 1904,
+    "failedTests": 47,
+    "failedFiles": [
+      {
+        "path": "scripts/enea-shadow-runner/cdpClientTimeout.test.ts",
+        "failedTests": 4,
+        "asserts": "CDP timeout/fencing, Runtime.terminateExecution acknowledgement and WebSocket closure"
+      },
+      {
+        "path": "scripts/enea-shadow-runner/cdpEneaBrowserDriver.test.ts",
+        "failedTests": 43,
+        "asserts": "persistent Chrome/CDP driver behavior against local HTTP fixture"
+      }
+    ],
+    "observedFailure": "Tests wait at http.listen(0, 127.0.0.1) and hit their Vitest timeout because the restricted environment does not deliver the loopback-listen callback.",
+    "control": "The canonical-package targeted suite passed 148/148 in the same source tree."
+  },
+  "disposition": "Do not waive or count these tests as passed. Re-run the complete formal gate in the unrestricted local execution environment and install only if that complete run is green."
+}

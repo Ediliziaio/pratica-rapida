@@ -1,0 +1,137 @@
+{
+  "schemaVersion": "apr-infissi-shading-closures-readonly-diagnosis-v1",
+  "generatedAt": "2026-09-10T17:05:00+02:00",
+  "scope": {
+    "mode": "read_only_local_original_documents",
+    "practiceCount": 5,
+    "correctionApplied": false,
+    "eneaAccessed": false,
+    "crmMutated": false
+  },
+  "commonFinding": {
+    "requiredAnswer": "Se insieme agli infissi sono state installate anche chiusure oscuranti nuove, cioe persiane, avvolgibili o tapparelle.",
+    "crmField": "dati_form.zanzariere_tapparelle_persiane",
+    "observedCrmValue": "assente in tutte e cinque le pratiche; dati_form e vuoto e form_compilato_at e null",
+    "pipelinePoint": "infissiBatchPreflight -> resolveInfissiProductRules(formAlsoInstalledClosures)",
+    "currentRule": "user-2026-08-19-infissi-shading-closures-form-flag-v1",
+    "subpatterns": [
+      "evidenza tecnica negativa presente ma non accettata dalla regola basata soltanto sul form",
+      "ambiguita documentale reale",
+      "evidenza positiva di fattura gia riconosciuta dall'allocatore ma bloccata nuovamente dal gate del form"
+    ],
+    "formalVerdict": "INCONSISTENT",
+    "formalVerdictReason": "Per tutti e cinque i casi il checkpoint preflight registra blocked_case e il deep review registra OPERATOR_REQUIRED, mentre il case-truth terminale registra INCONSISTENT con zero report.blockers. La diagnosi documentale seguente non attribuisce quindi un verdetto terminale di pratica."
+  },
+  "cases": [
+    {
+      "displayName": "GIOVANNA ATZENI",
+      "practiceId": "dc4484cd-c462-49c0-a734-3064dd6469a8",
+      "cohort": 5342,
+      "formalStatus": "INCONSISTENT",
+      "checkpointFinding": "blocked_case: infissi_shading_closures_form_answer_missing_or_ambiguous; allocatore unresolved, 0 chiusure documentate su 8 infissi",
+      "caseTruthFinding": "INCONSISTENT; blockerCount=0; reportBlockers=[]",
+      "documentFinding": "Il modulo cartaceo di supporto non contiene la domanda sulle chiusure oscuranti. Le schede tecniche riportano per tutti gli infissi 'Schermatura: Senza schermo'; le fatture non elencano persiane, avvolgibili o tapparelle.",
+      "diagnosis": "L'evidenza tecnica converge verso NO, ma la regola operativa corrente accetta soltanto il flag del form o un'allocazione positiva da fattura. Non riconosce 'Senza schermo' come risposta negativa autorevole.",
+      "classification": "rule_evidence_gap_not_customer_data_absence",
+      "missingDocumentType": null,
+      "operatorQuestion": "Confermi che, quando tutte le righe tecniche riportano 'Schermatura: Senza schermo' e nessuna fattura documenta persiane, avvolgibili o tapparelle, APR deve considerare NO alla domanda sulle chiusure oscuranti?",
+      "onboardingGap": "Inserire nel modulo iniziale un campo obbligatorio SI/NO: 'Sono state installate anche nuove chiusure oscuranti (persiane, avvolgibili o tapparelle)?'.",
+      "sourceDocuments": [
+        {
+          "path": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5342-global-controller-giovanna-atzeni/crm-original-documents/files/giovanna-atzeni/0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8.pdf",
+          "sha256": "f79d014ab2f69c6334788059658a4e483a19f0711a5e8bfcbab9a0088f064559",
+          "reviewedPages": [1, 2, 4, 18, 19]
+        }
+      ]
+    },
+    {
+      "displayName": "GAVINA EMANUELA CANNAS",
+      "practiceId": "c1c4c938-3b64-462f-b571-db98c26765ef",
+      "cohort": 5347,
+      "formalStatus": "INCONSISTENT",
+      "checkpointFinding": "blocked_case: infissi_shading_closures_form_answer_missing_or_ambiguous; allocatore unresolved, 0 chiusure documentate su 4 infissi",
+      "caseTruthFinding": "INCONSISTENT; blockerCount=0; reportBlockers=[]",
+      "documentFinding": "Il modulo cartaceo non contiene la domanda sulle chiusure oscuranti. La fattura 252/00 contiene la riga 'COIBENTAZIONI CASSONETTI AVVOLGIBILI', quantita 2, ma non contiene una fornitura o sostituzione esplicita di avvolgibili.",
+      "diagnosis": "Ambiguita documentale reale: la coibentazione dei cassonetti puo riguardare avvolgibili gia esistenti e non prova che siano state installate nuove chiusure oscuranti insieme agli infissi.",
+      "classification": "genuine_document_ambiguity",
+      "missingDocumentType": "conferma SI/NO sull'installazione o sostituzione di nuovi avvolgibili",
+      "operatorQuestion": "Per Gavina Cannas sono stati installati o sostituiti anche nuovi avvolgibili, oppure e stata eseguita soltanto la coibentazione dei due cassonetti esistenti?",
+      "onboardingGap": "Separare nel modulo 'nuove chiusure oscuranti installate' da 'sola coibentazione di cassonetti esistenti'.",
+      "sourceDocuments": [
+        {
+          "path": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5347-global-controller-gavina-emanuela-cannas/crm-original-documents/files/gavina-emanuela-cannas/10130cd63b331f1d9197c625fc80e49128753fdd82c3ee0bc9fe3ae2e36bdaeb.pdf",
+          "sha256": "5f13eed8cf67629985b0358223e7fac73ace29a7485d3ccd638e58571e4e10ac",
+          "reviewedPages": [1, 2, 6, 7, 11]
+        }
+      ]
+    },
+    {
+      "displayName": "MAURIZIA COREGGIOLI",
+      "practiceId": "81b4934a-3d6a-49ff-8f08-8d1400d55dff",
+      "cohort": 5351,
+      "formalStatus": "INCONSISTENT",
+      "checkpointFinding": "blocked_case: productRules richiede ancora il flag del form; in parallelo shadingClosureAllocation e invoice_order_partial, flags=[true,false,false], documentedClosureCount=1, blocker=null",
+      "caseTruthFinding": "INCONSISTENT; blockerCount=0; reportBlockers=[]",
+      "documentFinding": "Il campo oscuranti del modulo cartaceo e vuoto, ma la fattura 99/2026 riporta esplicitamente 'Avvolgibili ad alta densita ed accessori' insieme ai tre infissi. APR ha gia riconosciuto questa evidenza e allocato una chiusura al primo infisso.",
+      "diagnosis": "Non manca una risposta nei documenti: e un doppio gate contraddittorio. L'allocatore autorevole risolve la presenza e la posizione della chiusura, ma productRules conserva comunque il blocker per il flag del form assente.",
+      "classification": "duplicate_gate_false_block",
+      "missingDocumentType": null,
+      "operatorQuestion": "Confermi che la voce di fattura 'Avvolgibili ad alta densita ed accessori', gia allocata da APR a un infisso, deve valere come risposta SI senza richiedere anche il campo del modulo?",
+      "onboardingGap": "Il campo oscuranti deve comunque essere obbligatorio nel modulo, ma una fattura autoritativa gia risolta non deve essere neutralizzata da un secondo gate sul form.",
+      "sourceDocuments": [
+        {
+          "path": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5351-global-controller-maurizia-coreggioli/crm-original-documents/files/maurizia-coreggioli/ac5a106e471c4903bacbd0e64a0e331aea5bd2a3d55e5aea58b4b51eca04a25a.pdf",
+          "sha256": "726e63a32f4d3dff5ab6663eb587ae05bf8a59a5b8b226b55bb52795de3ed65d",
+          "reviewedPages": [1, 2, 3]
+        },
+        {
+          "path": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5351-global-controller-maurizia-coreggioli/crm-original-documents/files/maurizia-coreggioli/0b0ce7d0412430cdf34411da17ac17ae32bbe753b19be1e7236cc1a8087b26e1.pdf",
+          "sha256": "72b5842c0c7bda39eb617559c7ea2844f96455b072def5c56b81bb8b946b9ea4",
+          "reviewedPages": [1]
+        }
+      ]
+    },
+    {
+      "displayName": "FRANCESCA PISANU",
+      "practiceId": "2329836b-3d7c-4e55-b5ba-f232515a2299",
+      "cohort": 5352,
+      "formalStatus": "INCONSISTENT",
+      "checkpointFinding": "blocked_case: infissi_shading_closures_form_answer_missing_or_ambiguous; allocatore unresolved, 0 chiusure documentate su 6 infissi",
+      "caseTruthFinding": "INCONSISTENT; blockerCount=0; reportBlockers=[]",
+      "documentFinding": "Nel fascicolo non compare un modulo che risponda alla domanda sulle chiusure oscuranti. Le fatture elencano finestre, portafinestra e portoncino, senza persiane, avvolgibili o tapparelle; l'assenza della voce non equivale a una risposta NO esplicita.",
+      "diagnosis": "Risposta realmente assente dal fascicolo disponibile. APR si ferma sul dato corretto, ma lo stato pubblico rimane formalmente INCONSISTENT per la divergenza delle fonti di osservabilita.",
+      "classification": "genuine_missing_answer",
+      "missingDocumentType": "risposta SI/NO sulle chiusure oscuranti installate insieme agli infissi",
+      "operatorQuestion": "Con gli infissi di Francesca Pisanu sono state installate anche nuove chiusure oscuranti, cioe persiane, avvolgibili o tapparelle?",
+      "onboardingGap": "Rendere obbligatoria la risposta SI/NO sulle chiusure oscuranti nel modulo iniziale e conservarla come campo strutturato.",
+      "sourceDocuments": [
+        {
+          "path": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5352-global-controller-francesca-pisanu/crm-original-documents/files/francesca-pisanu/21525d042dc495bcf967405f27aebe2f1e89972cfea745f62e8e2fb8dbb08743.pdf",
+          "sha256": "e0e8cfc8a249ca6150b5c430c7205af82133941c2d12292f7efede6c5456e463",
+          "reviewedPages": [1, 2, 11, 12, 15, 16]
+        }
+      ]
+    },
+    {
+      "displayName": "GIOVANNI AMADU",
+      "practiceId": "e94df373-f8f5-44b9-bd31-3e6c36025c13",
+      "cohort": 5354,
+      "formalStatus": "INCONSISTENT",
+      "checkpointFinding": "blocked_case: infissi_shading_closures_form_answer_missing_or_ambiguous; allocatore unresolved, 0 chiusure documentate su 5 infissi; presenti anche due blocker economici separati",
+      "caseTruthFinding": "INCONSISTENT; blockerCount=0; reportBlockers=[]",
+      "documentFinding": "Il modulo cartaceo di supporto non contiene la domanda sulle chiusure oscuranti. La fattura elenca cinque infissi senza chiusure; le schede tecniche riportano per tutti 'Schermatura: Senza schermo'.",
+      "diagnosis": "Come Atzeni, l'evidenza tecnica converge verso NO ma non viene riconosciuta dalla regola basata sul flag del form. Anche risolvendo questo punto, la pratica conserva una famiglia economica separata da diagnosticare.",
+      "classification": "rule_evidence_gap_plus_separate_economic_issue",
+      "missingDocumentType": null,
+      "operatorQuestion": "Confermi che, quando tutte le righe tecniche riportano 'Schermatura: Senza schermo' e nessuna fattura documenta persiane, avvolgibili o tapparelle, APR deve considerare NO alla domanda sulle chiusure oscuranti?",
+      "onboardingGap": "Inserire nel modulo iniziale il campo obbligatorio SI/NO sulle chiusure oscuranti e separare questo dato dalla riconciliazione economica.",
+      "sourceDocuments": [
+        {
+          "path": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5354-global-controller-giovanni-amadu/crm-original-documents/files/giovanni-amadu/a7c6441f69bf6a1fb4624466d5e9dc979caf0802b1e0d5e6ad69a7ef4dc3953c.pdf",
+          "sha256": "089d9e324bfaebd24aeec9edd57a640d463986a4f4b3e4239d6502e50de87d10",
+          "reviewedPages": [1, 3, 4, 8, 9]
+        }
+      ]
+    }
+  ]
+}

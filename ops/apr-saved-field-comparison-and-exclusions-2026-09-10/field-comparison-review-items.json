@@ -1,0 +1,2781 @@
+{
+  "version": "apr-saved-field-comparison-review-items-v1",
+  "generatedAt": "2026-09-10T17:11:25.152Z",
+  "items": [
+    {
+      "practiceId": "81c6ec6a-ab2e-4214-a018-5f769c0cf61b",
+      "displayName": "Adelfio Pietro Spinelli",
+      "classification": "SAVED_FIELD_DIFFERENCE_REQUIRES_SOURCE_ADJUDICATION",
+      "exactCause": "2 campi non geometrici della bozza APR differiscono dal PDF ENEA chiuso dall'operatore umano; il confronto da solo non stabilisce quale fonte sia più accurata.",
+      "missingDocumentType": null,
+      "operatorQuestion": "Confermi che per Adelfio Pietro Spinelli debbano prevalere i valori della pratica umana nei campi impianto.potenza, impianto.rendimento?",
+      "onboardingGap": "Raccogliere in modo strutturato tipo, rendimento e potenza del generatore esistente, indicando la fonte documentale.",
+      "differences": [
+        {
+          "fieldId": "impianto.potenza",
+          "result": "difference",
+          "humanValue": "23.4",
+          "aprValue": "28,9",
+          "aprPortalId": "id-pn",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "impianto.rendimento",
+          "result": "difference",
+          "humanValue": "94.6",
+          "aprValue": "97,4",
+          "aprPortalId": "id-n",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        }
+      ]
+    },
+    {
+      "practiceId": "fe20bff9-ded6-4380-9452-e20c4410a0c7",
+      "displayName": "Andrea Trabucco",
+      "classification": "SAVED_FIELD_DIFFERENCE_REQUIRES_SOURCE_ADJUDICATION",
+      "exactCause": "2 campi non geometrici della bozza APR differiscono dal PDF ENEA chiuso dall'operatore umano; il confronto da solo non stabilisce quale fonte sia più accurata.",
+      "missingDocumentType": null,
+      "operatorQuestion": "Confermi che per Andrea Trabucco debbano prevalere i valori della pratica umana nei campi impianto.potenza, impianto.rendimento?",
+      "onboardingGap": "Raccogliere in modo strutturato tipo, rendimento e potenza del generatore esistente, indicando la fonte documentale.",
+      "differences": [
+        {
+          "fieldId": "impianto.potenza",
+          "result": "difference",
+          "humanValue": "24.6",
+          "aprValue": "27,0",
+          "aprPortalId": "id-pn",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "impianto.rendimento",
+          "result": "difference",
+          "humanValue": "92.8",
+          "aprValue": "98,4",
+          "aprPortalId": "id-n",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        }
+      ]
+    },
+    {
+      "practiceId": "8e011a14-60b7-43f4-8b35-04626b35bc91",
+      "displayName": "Angela Tuttolani",
+      "classification": "SAVED_FIELD_DIFFERENCE_REQUIRES_SOURCE_ADJUDICATION",
+      "exactCause": "5 campi non geometrici della bozza APR differiscono dal PDF ENEA chiuso dall'operatore umano; il confronto da solo non stabilisce quale fonte sia più accurata.",
+      "missingDocumentType": null,
+      "operatorQuestion": "Confermi che per Angela Tuttolani debbano prevalere i valori della pratica umana nei campi immobile.tipologia, impianto.generatore, impianto.potenza, impianto.rendimento, intervento.data_fine?",
+      "onboardingGap": "Raccogliere in modo strutturato tipo, rendimento e potenza del generatore esistente, indicando la fonte documentale.",
+      "differences": [
+        {
+          "fieldId": "immobile.tipologia",
+          "result": "difference",
+          "humanValue": "Edificio a schiera e condominio fino a tre piani",
+          "aprValue": "Edificio oltre 3 piani (4+)",
+          "aprPortalId": "id-tipologia",
+          "aprPageId": "building",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "impianto.generatore",
+          "result": "difference",
+          "humanValue": "Caldaia ad acqua calda standard",
+          "aprValue": "Altro",
+          "aprPortalId": "activationLabel",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "impianto.potenza",
+          "result": "difference",
+          "humanValue": "23.1",
+          "aprValue": "27,6",
+          "aprPortalId": "id-pn",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "impianto.rendimento",
+          "result": "difference",
+          "humanValue": "92.7",
+          "aprValue": "96,8",
+          "aprPortalId": "id-n",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "intervento.data_fine",
+          "result": "difference",
+          "humanValue": "28/07/2026",
+          "aprValue": "27/07/2026",
+          "aprPortalId": "id-data_fine",
+          "aprPageId": "intervention",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        }
+      ]
+    },
+    {
+      "practiceId": "ae88aed9-0b83-42c7-87fb-a03c76a46113",
+      "displayName": "Angelina Stricelli",
+      "classification": "SAVED_FIELD_DIFFERENCE_REQUIRES_SOURCE_ADJUDICATION",
+      "exactCause": "30 campi non geometrici della bozza APR differiscono dal PDF ENEA chiuso dall'operatore umano; il confronto da solo non stabilisce quale fonte sia più accurata.",
+      "missingDocumentType": null,
+      "operatorQuestion": "Confermi che per Angelina Stricelli debbano prevalere i valori della pratica umana nei campi impianto.potenza, impianto.rendimento, infissi.0.chiusura_oscurante, infissi.0.trasmittanza_vecchio, infissi.0.vetro_nuovo, infissi.0.vetro_vecchio, infissi.1.chiusura_oscurante, infissi.1.trasmittanza_vecchio, infissi.1.vetro_nuovo, infissi.1.vetro_vecchio, infissi.2.chiusura_oscurante, infissi.2.trasmittanza_vecchio, infissi.2.vetro_nuovo, infissi.2.vetro_vecchio, infissi.3.chiusura_oscurante, infissi.3.trasmittanza_vecchio, infissi.3.vetro_nuovo, infissi.3.vetro_vecchio, infissi.4.chiusura_oscurante, infissi.4.trasmittanza_vecchio, infissi.4.vetro_nuovo, infissi.4.vetro_vecchio, infissi.5.chiusura_oscurante, infissi.5.trasmittanza_vecchio, infissi.5.vetro_nuovo, infissi.5.vetro_vecchio, infissi.6.chiusura_oscurante, infissi.6.trasmittanza_vecchio, infissi.6.vetro_nuovo, infissi.6.vetro_vecchio?",
+      "onboardingGap": "Raccogliere in modo strutturato tipo, rendimento e potenza del generatore esistente, indicando la fonte documentale.",
+      "differences": [
+        {
+          "fieldId": "impianto.potenza",
+          "result": "difference",
+          "humanValue": "25",
+          "aprValue": "32,5",
+          "aprPortalId": "id-pn",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "impianto.rendimento",
+          "result": "difference",
+          "humanValue": "91.7",
+          "aprValue": "98,9",
+          "aprPortalId": "id-n",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.0.chiusura_oscurante",
+          "result": "difference",
+          "humanValue": "No",
+          "aprValue": "Sì",
+          "aprPortalId": "id-osc",
+          "aprPageId": "infisso-1",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.0.trasmittanza_vecchio",
+          "result": "difference",
+          "humanValue": "5",
+          "aprValue": "3",
+          "aprPortalId": "id-u_pre",
+          "aprPageId": "infisso-1",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.0.vetro_nuovo",
+          "result": "difference",
+          "humanValue": "A bassa emissione",
+          "aprValue": "Triplo",
+          "aprPortalId": "id-v_post",
+          "aprPageId": "infisso-1",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.0.vetro_vecchio",
+          "result": "difference",
+          "humanValue": "Singolo",
+          "aprValue": "Doppio",
+          "aprPortalId": "id-v_pre",
+          "aprPageId": "infisso-1",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.1.chiusura_oscurante",
+          "result": "difference",
+          "humanValue": "No",
+          "aprValue": "Sì",
+          "aprPortalId": "id-osc",
+          "aprPageId": "infisso-2",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.1.trasmittanza_vecchio",
+          "result": "difference",
+          "humanValue": "5",
+          "aprValue": "3",
+          "aprPortalId": "id-u_pre",
+          "aprPageId": "infisso-2",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.1.vetro_nuovo",
+          "result": "difference",
+          "humanValue": "A bassa emissione",
+          "aprValue": "Triplo",
+          "aprPortalId": "id-v_post",
+          "aprPageId": "infisso-2",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.1.vetro_vecchio",
+          "result": "difference",
+          "humanValue": "Singolo",
+          "aprValue": "Doppio",
+          "aprPortalId": "id-v_pre",
+          "aprPageId": "infisso-2",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.2.chiusura_oscurante",
+          "result": "difference",
+          "humanValue": "No",
+          "aprValue": "Sì",
+          "aprPortalId": "id-osc",
+          "aprPageId": "infisso-3",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.2.trasmittanza_vecchio",
+          "result": "difference",
+          "humanValue": "5",
+          "aprValue": "3",
+          "aprPortalId": "id-u_pre",
+          "aprPageId": "infisso-3",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.2.vetro_nuovo",
+          "result": "difference",
+          "humanValue": "A bassa emissione",
+          "aprValue": "Triplo",
+          "aprPortalId": "id-v_post",
+          "aprPageId": "infisso-3",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.2.vetro_vecchio",
+          "result": "difference",
+          "humanValue": "Singolo",
+          "aprValue": "Doppio",
+          "aprPortalId": "id-v_pre",
+          "aprPageId": "infisso-3",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.3.chiusura_oscurante",
+          "result": "difference",
+          "humanValue": "No",
+          "aprValue": "Sì",
+          "aprPortalId": "id-osc",
+          "aprPageId": "infisso-4",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.3.trasmittanza_vecchio",
+          "result": "difference",
+          "humanValue": "5",
+          "aprValue": "3",
+          "aprPortalId": "id-u_pre",
+          "aprPageId": "infisso-4",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.3.vetro_nuovo",
+          "result": "difference",
+          "humanValue": "A bassa emissione",
+          "aprValue": "Triplo",
+          "aprPortalId": "id-v_post",
+          "aprPageId": "infisso-4",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.3.vetro_vecchio",
+          "result": "difference",
+          "humanValue": "Singolo",
+          "aprValue": "Doppio",
+          "aprPortalId": "id-v_pre",
+          "aprPageId": "infisso-4",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.4.chiusura_oscurante",
+          "result": "difference",
+          "humanValue": "No",
+          "aprValue": "Sì",
+          "aprPortalId": "id-osc",
+          "aprPageId": "infisso-5",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.4.trasmittanza_vecchio",
+          "result": "difference",
+          "humanValue": "5",
+          "aprValue": "3",
+          "aprPortalId": "id-u_pre",
+          "aprPageId": "infisso-5",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.4.vetro_nuovo",
+          "result": "difference",
+          "humanValue": "A bassa emissione",
+          "aprValue": "Triplo",
+          "aprPortalId": "id-v_post",
+          "aprPageId": "infisso-5",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.4.vetro_vecchio",
+          "result": "difference",
+          "humanValue": "Singolo",
+          "aprValue": "Doppio",
+          "aprPortalId": "id-v_pre",
+          "aprPageId": "infisso-5",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.5.chiusura_oscurante",
+          "result": "difference",
+          "humanValue": "No",
+          "aprValue": "Sì",
+          "aprPortalId": "id-osc",
+          "aprPageId": "infisso-6",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.5.trasmittanza_vecchio",
+          "result": "difference",
+          "humanValue": "5",
+          "aprValue": "3",
+          "aprPortalId": "id-u_pre",
+          "aprPageId": "infisso-6",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.5.vetro_nuovo",
+          "result": "difference",
+          "humanValue": "A bassa emissione",
+          "aprValue": "Triplo",
+          "aprPortalId": "id-v_post",
+          "aprPageId": "infisso-6",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.5.vetro_vecchio",
+          "result": "difference",
+          "humanValue": "Singolo",
+          "aprValue": "Doppio",
+          "aprPortalId": "id-v_pre",
+          "aprPageId": "infisso-6",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.6.chiusura_oscurante",
+          "result": "difference",
+          "humanValue": "No",
+          "aprValue": "Sì",
+          "aprPortalId": "id-osc",
+          "aprPageId": "infisso-7",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.6.trasmittanza_vecchio",
+          "result": "difference",
+          "humanValue": "5",
+          "aprValue": "3",
+          "aprPortalId": "id-u_pre",
+          "aprPageId": "infisso-7",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.6.vetro_nuovo",
+          "result": "difference",
+          "humanValue": "A bassa emissione",
+          "aprValue": "Triplo",
+          "aprPortalId": "id-v_post",
+          "aprPageId": "infisso-7",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.6.vetro_vecchio",
+          "result": "difference",
+          "humanValue": "Singolo",
+          "aprValue": "Doppio",
+          "aprPortalId": "id-v_pre",
+          "aprPageId": "infisso-7",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        }
+      ]
+    },
+    {
+      "practiceId": "b51df57d-dae2-4ddc-bf99-904673ebe50d",
+      "displayName": "ANNALISA LANZO",
+      "classification": "SAVED_FIELD_DIFFERENCE_REQUIRES_SOURCE_ADJUDICATION",
+      "exactCause": "3 campi non geometrici della bozza APR differiscono dal PDF ENEA chiuso dall'operatore umano; il confronto da solo non stabilisce quale fonte sia più accurata.",
+      "missingDocumentType": null,
+      "operatorQuestion": "Confermi che per ANNALISA LANZO debbano prevalere i valori della pratica umana nei campi impianto.generatore, impianto.potenza, impianto.rendimento?",
+      "onboardingGap": "Raccogliere in modo strutturato tipo, rendimento e potenza del generatore esistente, indicando la fonte documentale.",
+      "differences": [
+        {
+          "fieldId": "impianto.generatore",
+          "result": "difference",
+          "humanValue": "Caldaia ad acqua calda standard",
+          "aprValue": "Altro",
+          "aprPortalId": "activationLabel",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "impianto.potenza",
+          "result": "difference",
+          "humanValue": "23.1",
+          "aprValue": "29,8",
+          "aprPortalId": "id-pn",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "impianto.rendimento",
+          "result": "difference",
+          "humanValue": "92.6",
+          "aprValue": "97,9",
+          "aprPortalId": "id-n",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        }
+      ]
+    },
+    {
+      "practiceId": "3e7d38d2-e40d-4304-850c-e128698be78e",
+      "displayName": "Antonella Ferletic",
+      "classification": "SAVED_FIELD_DIFFERENCE_REQUIRES_SOURCE_ADJUDICATION",
+      "exactCause": "4 campi non geometrici della bozza APR differiscono dal PDF ENEA chiuso dall'operatore umano; il confronto da solo non stabilisce quale fonte sia più accurata.",
+      "missingDocumentType": null,
+      "operatorQuestion": "Confermi che per Antonella Ferletic debbano prevalere i valori della pratica umana nei campi impianto.generatore, impianto.potenza, impianto.rendimento, intervento.data_inizio?",
+      "onboardingGap": "Raccogliere in modo strutturato tipo, rendimento e potenza del generatore esistente, indicando la fonte documentale.",
+      "differences": [
+        {
+          "fieldId": "impianto.generatore",
+          "result": "difference",
+          "humanValue": "Caldaia ad acqua calda standard",
+          "aprValue": "Altro",
+          "aprPortalId": "activationLabel",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "impianto.potenza",
+          "result": "difference",
+          "humanValue": "24",
+          "aprValue": "30,9",
+          "aprPortalId": "id-pn",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "impianto.rendimento",
+          "result": "difference",
+          "humanValue": "92.7",
+          "aprValue": "97,2",
+          "aprPortalId": "id-n",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "intervento.data_inizio",
+          "result": "difference",
+          "humanValue": "03/02/2026",
+          "aprValue": "16/06/2026",
+          "aprPortalId": "id-data_inizio",
+          "aprPageId": "intervention",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        }
+      ]
+    },
+    {
+      "practiceId": "46a577d1-53f3-438e-9a85-96ae4d246259",
+      "displayName": "Cataldo Cassone",
+      "classification": "SAVED_FIELD_DIFFERENCE_REQUIRES_SOURCE_ADJUDICATION",
+      "exactCause": "2 campi non geometrici della bozza APR differiscono dal PDF ENEA chiuso dall'operatore umano; il confronto da solo non stabilisce quale fonte sia più accurata.",
+      "missingDocumentType": null,
+      "operatorQuestion": "Confermi che per Cataldo Cassone debbano prevalere i valori della pratica umana nei campi impianto.potenza, impianto.rendimento?",
+      "onboardingGap": "Raccogliere in modo strutturato tipo, rendimento e potenza del generatore esistente, indicando la fonte documentale.",
+      "differences": [
+        {
+          "fieldId": "impianto.potenza",
+          "result": "difference",
+          "humanValue": "24.3",
+          "aprValue": "27,6",
+          "aprPortalId": "id-pn",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "impianto.rendimento",
+          "result": "difference",
+          "humanValue": "92.7",
+          "aprValue": "98,6",
+          "aprPortalId": "id-n",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        }
+      ]
+    },
+    {
+      "practiceId": "eed0922f-b5ec-4e8f-b860-d746ed93528e",
+      "displayName": "Claudia Campagna",
+      "classification": "SAVED_FIELD_DIFFERENCE_REQUIRES_SOURCE_ADJUDICATION",
+      "exactCause": "2 campi non geometrici della bozza APR differiscono dal PDF ENEA chiuso dall'operatore umano; il confronto da solo non stabilisce quale fonte sia più accurata.",
+      "missingDocumentType": null,
+      "operatorQuestion": "Confermi che per Claudia Campagna debbano prevalere i valori della pratica umana nei campi impianto.potenza, impianto.rendimento?",
+      "onboardingGap": "Raccogliere in modo strutturato tipo, rendimento e potenza del generatore esistente, indicando la fonte documentale.",
+      "differences": [
+        {
+          "fieldId": "impianto.potenza",
+          "result": "difference",
+          "humanValue": "22.4",
+          "aprValue": "27,2",
+          "aprPortalId": "id-pn",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "impianto.rendimento",
+          "result": "difference",
+          "humanValue": "92.7",
+          "aprValue": "98,5",
+          "aprPortalId": "id-n",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        }
+      ]
+    },
+    {
+      "practiceId": "58f03680-c716-42e7-ad7d-e3ceaee5573d",
+      "displayName": "CLAUDIA SELLATI",
+      "classification": "SAVED_FIELD_DIFFERENCE_REQUIRES_SOURCE_ADJUDICATION",
+      "exactCause": "15 campi non geometrici della bozza APR differiscono dal PDF ENEA chiuso dall'operatore umano; il confronto da solo non stabilisce quale fonte sia più accurata.",
+      "missingDocumentType": null,
+      "operatorQuestion": "Confermi che per CLAUDIA SELLATI debbano prevalere i valori della pratica umana nei campi impianto.potenza, impianto.rendimento, infissi.0.telaio_nuovo, infissi.0.vetro_nuovo, infissi.1.telaio_nuovo, infissi.1.vetro_nuovo, infissi.2.telaio_nuovo, infissi.2.vetro_nuovo, infissi.3.telaio_nuovo, infissi.3.vetro_nuovo, infissi.4.telaio_nuovo, infissi.4.vetro_nuovo, infissi.5.telaio_nuovo, infissi.5.vetro_nuovo, intervento.data_inizio?",
+      "onboardingGap": "Raccogliere in modo strutturato tipo, rendimento e potenza del generatore esistente, indicando la fonte documentale.",
+      "differences": [
+        {
+          "fieldId": "impianto.potenza",
+          "result": "difference",
+          "humanValue": "23.5",
+          "aprValue": "28,2",
+          "aprPortalId": "id-pn",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "impianto.rendimento",
+          "result": "difference",
+          "humanValue": "95.3",
+          "aprValue": "98,0",
+          "aprPortalId": "id-n",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.0.telaio_nuovo",
+          "result": "difference",
+          "humanValue": "PVC",
+          "aprValue": "Legno",
+          "aprPortalId": "id-f_post",
+          "aprPageId": "infisso-1",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.0.vetro_nuovo",
+          "result": "difference",
+          "humanValue": "A bassa emissione",
+          "aprValue": "Doppio",
+          "aprPortalId": "id-v_post",
+          "aprPageId": "infisso-1",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.1.telaio_nuovo",
+          "result": "difference",
+          "humanValue": "PVC",
+          "aprValue": "Legno",
+          "aprPortalId": "id-f_post",
+          "aprPageId": "infisso-2",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.1.vetro_nuovo",
+          "result": "difference",
+          "humanValue": "A bassa emissione",
+          "aprValue": "Doppio",
+          "aprPortalId": "id-v_post",
+          "aprPageId": "infisso-2",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.2.telaio_nuovo",
+          "result": "difference",
+          "humanValue": "PVC",
+          "aprValue": "Legno",
+          "aprPortalId": "id-f_post",
+          "aprPageId": "infisso-3",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.2.vetro_nuovo",
+          "result": "difference",
+          "humanValue": "A bassa emissione",
+          "aprValue": "Doppio",
+          "aprPortalId": "id-v_post",
+          "aprPageId": "infisso-3",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.3.telaio_nuovo",
+          "result": "difference",
+          "humanValue": "PVC",
+          "aprValue": "Legno",
+          "aprPortalId": "id-f_post",
+          "aprPageId": "infisso-4",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.3.vetro_nuovo",
+          "result": "difference",
+          "humanValue": "A bassa emissione",
+          "aprValue": "Doppio",
+          "aprPortalId": "id-v_post",
+          "aprPageId": "infisso-4",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.4.telaio_nuovo",
+          "result": "difference",
+          "humanValue": "PVC",
+          "aprValue": "Legno",
+          "aprPortalId": "id-f_post",
+          "aprPageId": "infisso-5",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.4.vetro_nuovo",
+          "result": "difference",
+          "humanValue": "A bassa emissione",
+          "aprValue": "Doppio",
+          "aprPortalId": "id-v_post",
+          "aprPageId": "infisso-5",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.5.telaio_nuovo",
+          "result": "difference",
+          "humanValue": "PVC",
+          "aprValue": "Legno",
+          "aprPortalId": "id-f_post",
+          "aprPageId": "infisso-6",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.5.vetro_nuovo",
+          "result": "difference",
+          "humanValue": "A bassa emissione",
+          "aprValue": "Doppio",
+          "aprPortalId": "id-v_post",
+          "aprPageId": "infisso-6",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "intervento.data_inizio",
+          "result": "difference",
+          "humanValue": "30/01/2026",
+          "aprValue": "07/02/2026",
+          "aprPortalId": "id-data_inizio",
+          "aprPageId": "intervention",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        }
+      ]
+    },
+    {
+      "practiceId": "d4f1480f-a224-415e-b4c0-121db8040ef8",
+      "displayName": "Claudio Beghini",
+      "classification": "SAVED_FIELD_DIFFERENCE_REQUIRES_SOURCE_ADJUDICATION",
+      "exactCause": "3 campi non geometrici della bozza APR differiscono dal PDF ENEA chiuso dall'operatore umano; il confronto da solo non stabilisce quale fonte sia più accurata.",
+      "missingDocumentType": null,
+      "operatorQuestion": "Confermi che per Claudio Beghini debbano prevalere i valori della pratica umana nei campi impianto.potenza, impianto.rendimento, intervento.data_fine?",
+      "onboardingGap": "Raccogliere in modo strutturato tipo, rendimento e potenza del generatore esistente, indicando la fonte documentale.",
+      "differences": [
+        {
+          "fieldId": "impianto.potenza",
+          "result": "difference",
+          "humanValue": "23.5",
+          "aprValue": "29,7",
+          "aprPortalId": "id-pn",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "impianto.rendimento",
+          "result": "difference",
+          "humanValue": "92.7",
+          "aprValue": "98,3",
+          "aprPortalId": "id-n",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "intervento.data_fine",
+          "result": "difference",
+          "humanValue": "31/07/2026",
+          "aprValue": "30/07/2026",
+          "aprPortalId": "id-data_fine",
+          "aprPageId": "intervention",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        }
+      ]
+    },
+    {
+      "practiceId": "802a1cc1-c046-4c4b-a245-25401217740f",
+      "displayName": "Della Mariacarla Vigetti",
+      "classification": "SAVED_FIELD_DIFFERENCE_REQUIRES_SOURCE_ADJUDICATION",
+      "exactCause": "3 campi non geometrici della bozza APR differiscono dal PDF ENEA chiuso dall'operatore umano; il confronto da solo non stabilisce quale fonte sia più accurata.",
+      "missingDocumentType": null,
+      "operatorQuestion": "Confermi che per Della Mariacarla Vigetti debbano prevalere i valori della pratica umana nei campi immobile.tipologia, impianto.potenza, impianto.rendimento?",
+      "onboardingGap": "Raccogliere in modo strutturato tipo, rendimento e potenza del generatore esistente, indicando la fonte documentale.",
+      "differences": [
+        {
+          "fieldId": "immobile.tipologia",
+          "result": "difference",
+          "humanValue": "Edificio a schiera e condominio fino a tre piani",
+          "aprValue": "Edificio oltre 3 piani (4+)",
+          "aprPortalId": "id-tipologia",
+          "aprPageId": "building",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "impianto.potenza",
+          "result": "difference",
+          "humanValue": "25.8",
+          "aprValue": "26,8",
+          "aprPortalId": "id-pn",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "impianto.rendimento",
+          "result": "difference",
+          "humanValue": "94.3",
+          "aprValue": "98,2",
+          "aprPortalId": "id-n",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        }
+      ]
+    },
+    {
+      "practiceId": "af39159b-62d9-4c0d-8056-d2462e4b7727",
+      "displayName": "ELENA DEPALMA",
+      "classification": "SAVED_FIELD_DIFFERENCE_REQUIRES_SOURCE_ADJUDICATION",
+      "exactCause": "7 campi non geometrici della bozza APR differiscono dal PDF ENEA chiuso dall'operatore umano; il confronto da solo non stabilisce quale fonte sia più accurata.",
+      "missingDocumentType": null,
+      "operatorQuestion": "Confermi che per ELENA DEPALMA debbano prevalere i valori della pratica umana nei campi impianto.potenza, impianto.rendimento, infissi.0.trasmittanza_vecchio, infissi.1.trasmittanza_vecchio, infissi.2.trasmittanza_vecchio, infissi.3.trasmittanza_vecchio, infissi.4.trasmittanza_vecchio?",
+      "onboardingGap": "Raccogliere in modo strutturato tipo, rendimento e potenza del generatore esistente, indicando la fonte documentale.",
+      "differences": [
+        {
+          "fieldId": "impianto.potenza",
+          "result": "difference",
+          "humanValue": "25.3",
+          "aprValue": "29,7",
+          "aprPortalId": "id-pn",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "impianto.rendimento",
+          "result": "difference",
+          "humanValue": "93.8",
+          "aprValue": "98,1",
+          "aprPortalId": "id-n",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.0.trasmittanza_vecchio",
+          "result": "difference",
+          "humanValue": "4.1",
+          "aprValue": "6",
+          "aprPortalId": "id-u_pre",
+          "aprPageId": "infisso-1",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.1.trasmittanza_vecchio",
+          "result": "difference",
+          "humanValue": "4.1",
+          "aprValue": "6",
+          "aprPortalId": "id-u_pre",
+          "aprPageId": "infisso-2",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.2.trasmittanza_vecchio",
+          "result": "difference",
+          "humanValue": "4.1",
+          "aprValue": "6",
+          "aprPortalId": "id-u_pre",
+          "aprPageId": "infisso-3",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.3.trasmittanza_vecchio",
+          "result": "difference",
+          "humanValue": "4.1",
+          "aprValue": "6",
+          "aprPortalId": "id-u_pre",
+          "aprPageId": "infisso-4",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.4.trasmittanza_vecchio",
+          "result": "difference",
+          "humanValue": "4.1",
+          "aprValue": "6",
+          "aprPortalId": "id-u_pre",
+          "aprPageId": "infisso-5",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        }
+      ]
+    },
+    {
+      "practiceId": "5f669e8b-9ef1-45f6-b00d-12449d741314",
+      "displayName": "EUGENIO CODOGNATO",
+      "classification": "SAVED_FIELD_DIFFERENCE_REQUIRES_SOURCE_ADJUDICATION",
+      "exactCause": "36 campi non geometrici della bozza APR differiscono dal PDF ENEA chiuso dall'operatore umano; il confronto da solo non stabilisce quale fonte sia più accurata.",
+      "missingDocumentType": null,
+      "operatorQuestion": "Confermi che per EUGENIO CODOGNATO debbano prevalere i valori della pratica umana nei campi beneficiario.civico_residenza, immobile.civico, impianto.potenza, impianto.rendimento, infissi.0.trasmittanza_nuovo, infissi.0.trasmittanza_vecchio, infissi.0.vetro_nuovo, infissi.0.vetro_vecchio, infissi.1.trasmittanza_nuovo, infissi.1.trasmittanza_vecchio, infissi.1.vetro_nuovo, infissi.1.vetro_vecchio, infissi.2.trasmittanza_nuovo, infissi.2.trasmittanza_vecchio, infissi.2.vetro_nuovo, infissi.2.vetro_vecchio, infissi.3.trasmittanza_nuovo, infissi.3.trasmittanza_vecchio, infissi.3.vetro_nuovo, infissi.3.vetro_vecchio, infissi.4.trasmittanza_nuovo, infissi.4.trasmittanza_vecchio, infissi.4.vetro_nuovo, infissi.4.vetro_vecchio, infissi.5.trasmittanza_nuovo, infissi.5.trasmittanza_vecchio, infissi.5.vetro_nuovo, infissi.5.vetro_vecchio, infissi.6.trasmittanza_nuovo, infissi.6.trasmittanza_vecchio, infissi.6.vetro_nuovo, infissi.6.vetro_vecchio, infissi.7.trasmittanza_nuovo, infissi.7.trasmittanza_vecchio, infissi.7.vetro_nuovo, infissi.7.vetro_vecchio?",
+      "onboardingGap": "Richiedere nel form o in una scheda tecnica strutturata la trasmittanza del nuovo infisso per ogni riga fisica, con associazione univoca al prodotto.",
+      "differences": [
+        {
+          "fieldId": "beneficiario.civico_residenza",
+          "result": "difference",
+          "humanValue": "1/c",
+          "aprValue": "Località Rupecanina 1/C",
+          "aprPortalId": "id-civico_residenza",
+          "aprPageId": "beneficiary",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "immobile.civico",
+          "result": "difference",
+          "humanValue": "1/c",
+          "aprValue": "Località Rupecanina 1/C",
+          "aprPortalId": "id-civico",
+          "aprPageId": "building",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "impianto.potenza",
+          "result": "difference",
+          "humanValue": "23.4",
+          "aprValue": "28,1",
+          "aprPortalId": "id-pn",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "impianto.rendimento",
+          "result": "difference",
+          "humanValue": "92.6",
+          "aprValue": "97,9",
+          "aprPortalId": "id-n",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.0.trasmittanza_nuovo",
+          "result": "difference",
+          "humanValue": "1.28",
+          "aprValue": "1,3",
+          "aprPortalId": "id-u_post",
+          "aprPageId": "infisso-1",
+          "transmittancePolicy": "missing_source_fallback_1_3",
+          "aprEvidence": {
+            "physicalRowId": "5f669e8b-9ef1-45f6-b00d-12449d741314:infisso:1",
+            "field": "newWindowThermalTransmittanceWm2K",
+            "source": "authorized_fallback:fallback;source=1.3;enea=1.3",
+            "ruleId": "user-2026-08-19-infissi-transmittance-1-3-fallback-v1"
+          }
+        },
+        {
+          "fieldId": "infissi.0.trasmittanza_vecchio",
+          "result": "difference",
+          "humanValue": "5",
+          "aprValue": "3",
+          "aprPortalId": "id-u_pre",
+          "aprPageId": "infisso-1",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.0.vetro_nuovo",
+          "result": "difference",
+          "humanValue": "A bassa emissione",
+          "aprValue": "Doppio",
+          "aprPortalId": "id-v_post",
+          "aprPageId": "infisso-1",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.0.vetro_vecchio",
+          "result": "difference",
+          "humanValue": "Singolo",
+          "aprValue": "Doppio",
+          "aprPortalId": "id-v_pre",
+          "aprPageId": "infisso-1",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.1.trasmittanza_nuovo",
+          "result": "difference",
+          "humanValue": "1.22",
+          "aprValue": "1,3",
+          "aprPortalId": "id-u_post",
+          "aprPageId": "infisso-2",
+          "transmittancePolicy": "missing_source_fallback_1_3",
+          "aprEvidence": {
+            "physicalRowId": "5f669e8b-9ef1-45f6-b00d-12449d741314:infisso:2",
+            "field": "newWindowThermalTransmittanceWm2K",
+            "source": "authorized_fallback:fallback;source=1.3;enea=1.3",
+            "ruleId": "user-2026-08-19-infissi-transmittance-1-3-fallback-v1"
+          }
+        },
+        {
+          "fieldId": "infissi.1.trasmittanza_vecchio",
+          "result": "difference",
+          "humanValue": "5",
+          "aprValue": "3",
+          "aprPortalId": "id-u_pre",
+          "aprPageId": "infisso-2",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.1.vetro_nuovo",
+          "result": "difference",
+          "humanValue": "A bassa emissione",
+          "aprValue": "Doppio",
+          "aprPortalId": "id-v_post",
+          "aprPageId": "infisso-2",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.1.vetro_vecchio",
+          "result": "difference",
+          "humanValue": "Singolo",
+          "aprValue": "Doppio",
+          "aprPortalId": "id-v_pre",
+          "aprPageId": "infisso-2",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.2.trasmittanza_nuovo",
+          "result": "difference",
+          "humanValue": "1.27",
+          "aprValue": "1,3",
+          "aprPortalId": "id-u_post",
+          "aprPageId": "infisso-3",
+          "transmittancePolicy": "missing_source_fallback_1_3",
+          "aprEvidence": {
+            "physicalRowId": "5f669e8b-9ef1-45f6-b00d-12449d741314:infisso:3",
+            "field": "newWindowThermalTransmittanceWm2K",
+            "source": "authorized_fallback:fallback;source=1.3;enea=1.3",
+            "ruleId": "user-2026-08-19-infissi-transmittance-1-3-fallback-v1"
+          }
+        },
+        {
+          "fieldId": "infissi.2.trasmittanza_vecchio",
+          "result": "difference",
+          "humanValue": "5",
+          "aprValue": "3",
+          "aprPortalId": "id-u_pre",
+          "aprPageId": "infisso-3",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.2.vetro_nuovo",
+          "result": "difference",
+          "humanValue": "A bassa emissione",
+          "aprValue": "Doppio",
+          "aprPortalId": "id-v_post",
+          "aprPageId": "infisso-3",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.2.vetro_vecchio",
+          "result": "difference",
+          "humanValue": "Singolo",
+          "aprValue": "Doppio",
+          "aprPortalId": "id-v_pre",
+          "aprPageId": "infisso-3",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.3.trasmittanza_nuovo",
+          "result": "difference",
+          "humanValue": "1.2",
+          "aprValue": "1,3",
+          "aprPortalId": "id-u_post",
+          "aprPageId": "infisso-4",
+          "transmittancePolicy": "missing_source_fallback_1_3",
+          "aprEvidence": {
+            "physicalRowId": "5f669e8b-9ef1-45f6-b00d-12449d741314:infisso:4",
+            "field": "newWindowThermalTransmittanceWm2K",
+            "source": "authorized_fallback:fallback;source=1.3;enea=1.3",
+            "ruleId": "user-2026-08-19-infissi-transmittance-1-3-fallback-v1"
+          }
+        },
+        {
+          "fieldId": "infissi.3.trasmittanza_vecchio",
+          "result": "difference",
+          "humanValue": "5",
+          "aprValue": "3",
+          "aprPortalId": "id-u_pre",
+          "aprPageId": "infisso-4",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.3.vetro_nuovo",
+          "result": "difference",
+          "humanValue": "A bassa emissione",
+          "aprValue": "Doppio",
+          "aprPortalId": "id-v_post",
+          "aprPageId": "infisso-4",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.3.vetro_vecchio",
+          "result": "difference",
+          "humanValue": "Singolo",
+          "aprValue": "Doppio",
+          "aprPortalId": "id-v_pre",
+          "aprPageId": "infisso-4",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.4.trasmittanza_nuovo",
+          "result": "difference",
+          "humanValue": "1.28",
+          "aprValue": "1,3",
+          "aprPortalId": "id-u_post",
+          "aprPageId": "infisso-5",
+          "transmittancePolicy": "missing_source_fallback_1_3",
+          "aprEvidence": {
+            "physicalRowId": "5f669e8b-9ef1-45f6-b00d-12449d741314:infisso:5",
+            "field": "newWindowThermalTransmittanceWm2K",
+            "source": "authorized_fallback:fallback;source=1.3;enea=1.3",
+            "ruleId": "user-2026-08-19-infissi-transmittance-1-3-fallback-v1"
+          }
+        },
+        {
+          "fieldId": "infissi.4.trasmittanza_vecchio",
+          "result": "difference",
+          "humanValue": "5",
+          "aprValue": "3",
+          "aprPortalId": "id-u_pre",
+          "aprPageId": "infisso-5",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.4.vetro_nuovo",
+          "result": "difference",
+          "humanValue": "A bassa emissione",
+          "aprValue": "Doppio",
+          "aprPortalId": "id-v_post",
+          "aprPageId": "infisso-5",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.4.vetro_vecchio",
+          "result": "difference",
+          "humanValue": "Singolo",
+          "aprValue": "Doppio",
+          "aprPortalId": "id-v_pre",
+          "aprPageId": "infisso-5",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.5.trasmittanza_nuovo",
+          "result": "difference",
+          "humanValue": "1.28",
+          "aprValue": "1,3",
+          "aprPortalId": "id-u_post",
+          "aprPageId": "infisso-6",
+          "transmittancePolicy": "missing_source_fallback_1_3",
+          "aprEvidence": {
+            "physicalRowId": "5f669e8b-9ef1-45f6-b00d-12449d741314:infisso:6",
+            "field": "newWindowThermalTransmittanceWm2K",
+            "source": "authorized_fallback:fallback;source=1.3;enea=1.3",
+            "ruleId": "user-2026-08-19-infissi-transmittance-1-3-fallback-v1"
+          }
+        },
+        {
+          "fieldId": "infissi.5.trasmittanza_vecchio",
+          "result": "difference",
+          "humanValue": "5",
+          "aprValue": "3",
+          "aprPortalId": "id-u_pre",
+          "aprPageId": "infisso-6",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.5.vetro_nuovo",
+          "result": "difference",
+          "humanValue": "A bassa emissione",
+          "aprValue": "Doppio",
+          "aprPortalId": "id-v_post",
+          "aprPageId": "infisso-6",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.5.vetro_vecchio",
+          "result": "difference",
+          "humanValue": "Singolo",
+          "aprValue": "Doppio",
+          "aprPortalId": "id-v_pre",
+          "aprPageId": "infisso-6",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.6.trasmittanza_nuovo",
+          "result": "difference",
+          "humanValue": "1.23",
+          "aprValue": "1,3",
+          "aprPortalId": "id-u_post",
+          "aprPageId": "infisso-7",
+          "transmittancePolicy": "missing_source_fallback_1_3",
+          "aprEvidence": {
+            "physicalRowId": "5f669e8b-9ef1-45f6-b00d-12449d741314:infisso:7",
+            "field": "newWindowThermalTransmittanceWm2K",
+            "source": "authorized_fallback:fallback;source=1.3;enea=1.3",
+            "ruleId": "user-2026-08-19-infissi-transmittance-1-3-fallback-v1"
+          }
+        },
+        {
+          "fieldId": "infissi.6.trasmittanza_vecchio",
+          "result": "difference",
+          "humanValue": "5",
+          "aprValue": "3",
+          "aprPortalId": "id-u_pre",
+          "aprPageId": "infisso-7",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.6.vetro_nuovo",
+          "result": "difference",
+          "humanValue": "A bassa emissione",
+          "aprValue": "Doppio",
+          "aprPortalId": "id-v_post",
+          "aprPageId": "infisso-7",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.6.vetro_vecchio",
+          "result": "difference",
+          "humanValue": "Singolo",
+          "aprValue": "Doppio",
+          "aprPortalId": "id-v_pre",
+          "aprPageId": "infisso-7",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.7.trasmittanza_nuovo",
+          "result": "difference",
+          "humanValue": "1.27",
+          "aprValue": "1,3",
+          "aprPortalId": "id-u_post",
+          "aprPageId": "infisso-8",
+          "transmittancePolicy": "missing_source_fallback_1_3",
+          "aprEvidence": {
+            "physicalRowId": "5f669e8b-9ef1-45f6-b00d-12449d741314:infisso:8",
+            "field": "newWindowThermalTransmittanceWm2K",
+            "source": "authorized_fallback:fallback;source=1.3;enea=1.3",
+            "ruleId": "user-2026-08-19-infissi-transmittance-1-3-fallback-v1"
+          }
+        },
+        {
+          "fieldId": "infissi.7.trasmittanza_vecchio",
+          "result": "difference",
+          "humanValue": "5",
+          "aprValue": "3",
+          "aprPortalId": "id-u_pre",
+          "aprPageId": "infisso-8",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.7.vetro_nuovo",
+          "result": "difference",
+          "humanValue": "A bassa emissione",
+          "aprValue": "Doppio",
+          "aprPortalId": "id-v_post",
+          "aprPageId": "infisso-8",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.7.vetro_vecchio",
+          "result": "difference",
+          "humanValue": "Singolo",
+          "aprValue": "Doppio",
+          "aprPortalId": "id-v_pre",
+          "aprPageId": "infisso-8",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        }
+      ]
+    },
+    {
+      "practiceId": "9b996147-82e1-4438-affe-9fcec062c003",
+      "displayName": "Fabio Sartori",
+      "classification": "SAVED_FIELD_DIFFERENCE_REQUIRES_SOURCE_ADJUDICATION",
+      "exactCause": "3 campi non geometrici della bozza APR differiscono dal PDF ENEA chiuso dall'operatore umano; il confronto da solo non stabilisce quale fonte sia più accurata.",
+      "missingDocumentType": null,
+      "operatorQuestion": "Confermi che per Fabio Sartori debbano prevalere i valori della pratica umana nei campi impianto.potenza, impianto.rendimento, intervento.data_fine?",
+      "onboardingGap": "Raccogliere in modo strutturato tipo, rendimento e potenza del generatore esistente, indicando la fonte documentale.",
+      "differences": [
+        {
+          "fieldId": "impianto.potenza",
+          "result": "difference",
+          "humanValue": "23.5",
+          "aprValue": "30,6",
+          "aprPortalId": "id-pn",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "impianto.rendimento",
+          "result": "difference",
+          "humanValue": "92.7",
+          "aprValue": "98,8",
+          "aprPortalId": "id-n",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "intervento.data_fine",
+          "result": "difference",
+          "humanValue": "04/08/2026",
+          "aprValue": "23/03/2026",
+          "aprPortalId": "id-data_fine",
+          "aprPageId": "intervention",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        }
+      ]
+    },
+    {
+      "practiceId": "7ff69610-c6d5-4436-9eb5-01883efe08db",
+      "displayName": "Fabrizio Pelizzari",
+      "classification": "SAVED_FIELD_DIFFERENCE_REQUIRES_SOURCE_ADJUDICATION",
+      "exactCause": "4 campi non geometrici della bozza APR differiscono dal PDF ENEA chiuso dall'operatore umano; il confronto da solo non stabilisce quale fonte sia più accurata.",
+      "missingDocumentType": null,
+      "operatorQuestion": "Confermi che per Fabrizio Pelizzari debbano prevalere i valori della pratica umana nei campi beneficiario.cognome, impianto.potenza, impianto.rendimento, intervento.data_inizio?",
+      "onboardingGap": "Raccogliere in modo strutturato tipo, rendimento e potenza del generatore esistente, indicando la fonte documentale.",
+      "differences": [
+        {
+          "fieldId": "beneficiario.cognome",
+          "result": "difference",
+          "humanValue": "pellizzari",
+          "aprValue": "Pelizzari",
+          "aprPortalId": "id-cognome",
+          "aprPageId": "beneficiary",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "impianto.potenza",
+          "result": "difference",
+          "humanValue": "23.6",
+          "aprValue": "31,8",
+          "aprPortalId": "id-pn",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "impianto.rendimento",
+          "result": "difference",
+          "humanValue": "94.2",
+          "aprValue": "97,7",
+          "aprPortalId": "id-n",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "intervento.data_inizio",
+          "result": "difference",
+          "humanValue": "03/02/2026",
+          "aprValue": "15/06/2026",
+          "aprPortalId": "id-data_inizio",
+          "aprPageId": "intervention",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        }
+      ]
+    },
+    {
+      "practiceId": "62510980-062e-4278-83f9-6a583089f783",
+      "displayName": "Fares Hassairi",
+      "classification": "SAVED_FIELD_DIFFERENCE_REQUIRES_SOURCE_ADJUDICATION",
+      "exactCause": "3 campi non geometrici della bozza APR differiscono dal PDF ENEA chiuso dall'operatore umano; il confronto da solo non stabilisce quale fonte sia più accurata.",
+      "missingDocumentType": null,
+      "operatorQuestion": "Confermi che per Fares Hassairi debbano prevalere i valori della pratica umana nei campi beneficiario.comune_nascita, impianto.potenza, impianto.rendimento?",
+      "onboardingGap": "Raccogliere in modo strutturato tipo, rendimento e potenza del generatore esistente, indicando la fonte documentale.",
+      "differences": [
+        {
+          "fieldId": "beneficiario.comune_nascita",
+          "result": "difference",
+          "humanValue": "EE, Tunisia",
+          "aprValue": "Sfax",
+          "aprPortalId": "id-comune_nascita",
+          "aprPageId": "beneficiary",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "impianto.potenza",
+          "result": "difference",
+          "humanValue": "23.4",
+          "aprValue": "27,7",
+          "aprPortalId": "id-pn",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "impianto.rendimento",
+          "result": "difference",
+          "humanValue": "92.8",
+          "aprValue": "97,3",
+          "aprPortalId": "id-n",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        }
+      ]
+    },
+    {
+      "practiceId": "9f785f33-491a-4954-8423-4316d6842dbb",
+      "displayName": "Flavia Cipriani",
+      "classification": "SAVED_FIELD_DIFFERENCE_REQUIRES_SOURCE_ADJUDICATION",
+      "exactCause": "2 campi non geometrici della bozza APR differiscono dal PDF ENEA chiuso dall'operatore umano; il confronto da solo non stabilisce quale fonte sia più accurata.",
+      "missingDocumentType": null,
+      "operatorQuestion": "Confermi che per Flavia Cipriani debbano prevalere i valori della pratica umana nei campi impianto.potenza, impianto.rendimento?",
+      "onboardingGap": "Raccogliere in modo strutturato tipo, rendimento e potenza del generatore esistente, indicando la fonte documentale.",
+      "differences": [
+        {
+          "fieldId": "impianto.potenza",
+          "result": "difference",
+          "humanValue": "21.4",
+          "aprValue": "26,9",
+          "aprPortalId": "id-pn",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "impianto.rendimento",
+          "result": "difference",
+          "humanValue": "92.8",
+          "aprValue": "98,5",
+          "aprPortalId": "id-n",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        }
+      ]
+    },
+    {
+      "practiceId": "49f0a3c1-698c-44c4-ae31-d09ad994196d",
+      "displayName": "gianfranco lavezzi",
+      "classification": "SAVED_FIELD_DIFFERENCE_REQUIRES_SOURCE_ADJUDICATION",
+      "exactCause": "6 campi non geometrici della bozza APR differiscono dal PDF ENEA chiuso dall'operatore umano; il confronto da solo non stabilisce quale fonte sia più accurata.",
+      "missingDocumentType": null,
+      "operatorQuestion": "Confermi che per gianfranco lavezzi debbano prevalere i valori della pratica umana nei campi beneficiario.cognome, beneficiario.nome, immobile.foglio, immobile.mappale, impianto.potenza, impianto.rendimento?",
+      "onboardingGap": "Raccogliere in modo strutturato tipo, rendimento e potenza del generatore esistente, indicando la fonte documentale.",
+      "differences": [
+        {
+          "fieldId": "beneficiario.cognome",
+          "result": "difference",
+          "humanValue": "lavezzi",
+          "aprValue": "beretta",
+          "aprPortalId": "id-cognome",
+          "aprPageId": "beneficiary",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "beneficiario.nome",
+          "result": "difference",
+          "humanValue": "gianfranco",
+          "aprValue": "samuele",
+          "aprPortalId": "id-nome",
+          "aprPageId": "beneficiary",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "immobile.foglio",
+          "result": "difference",
+          "humanValue": "50",
+          "aprValue": "x",
+          "aprPortalId": "id-foglio",
+          "aprPageId": "building",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "immobile.mappale",
+          "result": "difference",
+          "humanValue": "80",
+          "aprValue": "x",
+          "aprPortalId": "id-mappale",
+          "aprPageId": "building",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "impianto.potenza",
+          "result": "difference",
+          "humanValue": "21.4",
+          "aprValue": "27,2",
+          "aprPortalId": "id-pn",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "impianto.rendimento",
+          "result": "difference",
+          "humanValue": "94.6",
+          "aprValue": "97,6",
+          "aprPortalId": "id-n",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        }
+      ]
+    },
+    {
+      "practiceId": "d77a8626-54ac-408c-b7c2-58fd10d3e25a",
+      "displayName": "Gianluigi Chiolin",
+      "classification": "SAVED_FIELD_DIFFERENCE_REQUIRES_SOURCE_ADJUDICATION",
+      "exactCause": "2 campi non geometrici della bozza APR differiscono dal PDF ENEA chiuso dall'operatore umano; il confronto da solo non stabilisce quale fonte sia più accurata.",
+      "missingDocumentType": null,
+      "operatorQuestion": "Confermi che per Gianluigi Chiolin debbano prevalere i valori della pratica umana nei campi impianto.potenza, impianto.rendimento?",
+      "onboardingGap": "Raccogliere in modo strutturato tipo, rendimento e potenza del generatore esistente, indicando la fonte documentale.",
+      "differences": [
+        {
+          "fieldId": "impianto.potenza",
+          "result": "difference",
+          "humanValue": "24.3",
+          "aprValue": "27,9",
+          "aprPortalId": "id-pn",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "impianto.rendimento",
+          "result": "difference",
+          "humanValue": "92.8",
+          "aprValue": "97,7",
+          "aprPortalId": "id-n",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        }
+      ]
+    },
+    {
+      "practiceId": "20c7c802-85da-4d7e-95a3-482b66151b16",
+      "displayName": "Giovanni Pescatori",
+      "classification": "SAVED_FIELD_DIFFERENCE_REQUIRES_SOURCE_ADJUDICATION",
+      "exactCause": "3 campi non geometrici della bozza APR differiscono dal PDF ENEA chiuso dall'operatore umano; il confronto da solo non stabilisce quale fonte sia più accurata.",
+      "missingDocumentType": null,
+      "operatorQuestion": "Confermi che per Giovanni Pescatori debbano prevalere i valori della pratica umana nei campi impianto.potenza, impianto.rendimento, intervento.data_fine?",
+      "onboardingGap": "Raccogliere in modo strutturato tipo, rendimento e potenza del generatore esistente, indicando la fonte documentale.",
+      "differences": [
+        {
+          "fieldId": "impianto.potenza",
+          "result": "difference",
+          "humanValue": "21.4",
+          "aprValue": "27,2",
+          "aprPortalId": "id-pn",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "impianto.rendimento",
+          "result": "difference",
+          "humanValue": "97.4",
+          "aprValue": "98,5",
+          "aprPortalId": "id-n",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "intervento.data_fine",
+          "result": "difference",
+          "humanValue": "15/05/2026",
+          "aprValue": "14/05/2026",
+          "aprPortalId": "id-data_fine",
+          "aprPageId": "intervention",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        }
+      ]
+    },
+    {
+      "practiceId": "7b8fa856-36d9-471b-82f5-a0ae194469b2",
+      "displayName": "gregorio fusco",
+      "classification": "SAVED_FIELD_DIFFERENCE_REQUIRES_SOURCE_ADJUDICATION",
+      "exactCause": "3 campi non geometrici della bozza APR differiscono dal PDF ENEA chiuso dall'operatore umano; il confronto da solo non stabilisce quale fonte sia più accurata.",
+      "missingDocumentType": null,
+      "operatorQuestion": "Confermi che per gregorio fusco debbano prevalere i valori della pratica umana nei campi beneficiario.nome, impianto.potenza, impianto.rendimento?",
+      "onboardingGap": "Raccogliere in modo strutturato tipo, rendimento e potenza del generatore esistente, indicando la fonte documentale.",
+      "differences": [
+        {
+          "fieldId": "beneficiario.nome",
+          "result": "difference",
+          "humanValue": "gregorio",
+          "aprValue": "Gregorio S",
+          "aprPortalId": "id-nome",
+          "aprPageId": "beneficiary",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "impianto.potenza",
+          "result": "difference",
+          "humanValue": "23.6",
+          "aprValue": "30,6",
+          "aprPortalId": "id-pn",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "impianto.rendimento",
+          "result": "difference",
+          "humanValue": "92.8",
+          "aprValue": "97,4",
+          "aprPortalId": "id-n",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        }
+      ]
+    },
+    {
+      "practiceId": "2cef7991-a654-4cd6-b2b8-623cefce596b",
+      "displayName": "Lia Chiericati",
+      "classification": "SAVED_FIELD_DIFFERENCE_REQUIRES_SOURCE_ADJUDICATION",
+      "exactCause": "3 campi non geometrici della bozza APR differiscono dal PDF ENEA chiuso dall'operatore umano; il confronto da solo non stabilisce quale fonte sia più accurata.",
+      "missingDocumentType": null,
+      "operatorQuestion": "Confermi che per Lia Chiericati debbano prevalere i valori della pratica umana nei campi impianto.generatore, impianto.potenza, impianto.rendimento?",
+      "onboardingGap": "Raccogliere in modo strutturato tipo, rendimento e potenza del generatore esistente, indicando la fonte documentale.",
+      "differences": [
+        {
+          "fieldId": "impianto.generatore",
+          "result": "difference",
+          "humanValue": "Altro (energia elettrica)",
+          "aprValue": "Altro",
+          "aprPortalId": "activationLabel",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "impianto.potenza",
+          "result": "difference",
+          "humanValue": "23.5",
+          "aprValue": "29,3",
+          "aprPortalId": "id-pn",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "impianto.rendimento",
+          "result": "difference",
+          "humanValue": "93.8",
+          "aprValue": "98,2",
+          "aprPortalId": "id-n",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        }
+      ]
+    },
+    {
+      "practiceId": "77c5e8b6-34f8-4f1b-830a-526addefdd7d",
+      "displayName": "Luca Cigognetti",
+      "classification": "SAVED_FIELD_DIFFERENCE_REQUIRES_SOURCE_ADJUDICATION",
+      "exactCause": "4 campi non geometrici della bozza APR differiscono dal PDF ENEA chiuso dall'operatore umano; il confronto da solo non stabilisce quale fonte sia più accurata.",
+      "missingDocumentType": null,
+      "operatorQuestion": "Confermi che per Luca Cigognetti debbano prevalere i valori della pratica umana nei campi beneficiario.cognome, impianto.potenza, impianto.rendimento, intervento.data_fine?",
+      "onboardingGap": "Raccogliere in modo strutturato tipo, rendimento e potenza del generatore esistente, indicando la fonte documentale.",
+      "differences": [
+        {
+          "fieldId": "beneficiario.cognome",
+          "result": "difference",
+          "humanValue": "cicognetti",
+          "aprValue": "Cigognetti",
+          "aprPortalId": "id-cognome",
+          "aprPageId": "beneficiary",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "impianto.potenza",
+          "result": "difference",
+          "humanValue": "23.1",
+          "aprValue": "27,7",
+          "aprPortalId": "id-pn",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "impianto.rendimento",
+          "result": "difference",
+          "humanValue": "92.6",
+          "aprValue": "98,9",
+          "aprPortalId": "id-n",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "intervento.data_fine",
+          "result": "difference",
+          "humanValue": "03/08/2026",
+          "aprValue": "24/03/2026",
+          "aprPortalId": "id-data_fine",
+          "aprPageId": "intervention",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        }
+      ]
+    },
+    {
+      "practiceId": "98d44d99-86af-4fec-ba55-ffe24d208e83",
+      "displayName": "Luca Ronconi",
+      "classification": "SAVED_FIELD_DIFFERENCE_REQUIRES_SOURCE_ADJUDICATION",
+      "exactCause": "2 campi non geometrici della bozza APR differiscono dal PDF ENEA chiuso dall'operatore umano; il confronto da solo non stabilisce quale fonte sia più accurata.",
+      "missingDocumentType": null,
+      "operatorQuestion": "Confermi che per Luca Ronconi debbano prevalere i valori della pratica umana nei campi impianto.potenza, impianto.rendimento?",
+      "onboardingGap": "Raccogliere in modo strutturato tipo, rendimento e potenza del generatore esistente, indicando la fonte documentale.",
+      "differences": [
+        {
+          "fieldId": "impianto.potenza",
+          "result": "difference",
+          "humanValue": "25",
+          "aprValue": "29,3",
+          "aprPortalId": "id-pn",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "impianto.rendimento",
+          "result": "difference",
+          "humanValue": "95",
+          "aprValue": "97,2",
+          "aprPortalId": "id-n",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        }
+      ]
+    },
+    {
+      "practiceId": "652f820b-9d49-4706-a8bc-87931bec5148",
+      "displayName": "LUCIA DROGHETTI",
+      "classification": "SAVED_FIELD_DIFFERENCE_REQUIRES_SOURCE_ADJUDICATION",
+      "exactCause": "2 campi non geometrici della bozza APR differiscono dal PDF ENEA chiuso dall'operatore umano; il confronto da solo non stabilisce quale fonte sia più accurata.",
+      "missingDocumentType": null,
+      "operatorQuestion": "Confermi che per LUCIA DROGHETTI debbano prevalere i valori della pratica umana nei campi impianto.potenza, impianto.rendimento?",
+      "onboardingGap": "Raccogliere in modo strutturato tipo, rendimento e potenza del generatore esistente, indicando la fonte documentale.",
+      "differences": [
+        {
+          "fieldId": "impianto.potenza",
+          "result": "difference",
+          "humanValue": "26.4",
+          "aprValue": "26,9",
+          "aprPortalId": "id-pn",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "impianto.rendimento",
+          "result": "difference",
+          "humanValue": "93.8",
+          "aprValue": "98,2",
+          "aprPortalId": "id-n",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        }
+      ]
+    },
+    {
+      "practiceId": "0f468582-9698-4589-b2d8-a103acced455",
+      "displayName": "Lucia Lagrasta",
+      "classification": "SAVED_FIELD_DIFFERENCE_REQUIRES_SOURCE_ADJUDICATION",
+      "exactCause": "3 campi non geometrici della bozza APR differiscono dal PDF ENEA chiuso dall'operatore umano; il confronto da solo non stabilisce quale fonte sia più accurata.",
+      "missingDocumentType": null,
+      "operatorQuestion": "Confermi che per Lucia Lagrasta debbano prevalere i valori della pratica umana nei campi impianto.potenza, impianto.rendimento, intervento.data_fine?",
+      "onboardingGap": "Raccogliere in modo strutturato tipo, rendimento e potenza del generatore esistente, indicando la fonte documentale.",
+      "differences": [
+        {
+          "fieldId": "impianto.potenza",
+          "result": "difference",
+          "humanValue": "23.4",
+          "aprValue": "30,1",
+          "aprPortalId": "id-pn",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "impianto.rendimento",
+          "result": "difference",
+          "humanValue": "93.8",
+          "aprValue": "97,4",
+          "aprPortalId": "id-n",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "intervento.data_fine",
+          "result": "difference",
+          "humanValue": "13/06/2026",
+          "aprValue": "12/06/2026",
+          "aprPortalId": "id-data_fine",
+          "aprPageId": "intervention",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        }
+      ]
+    },
+    {
+      "practiceId": "0572b6a4-a44d-4f13-8fad-d8e91fc5c91d",
+      "displayName": "Luigi Carfora",
+      "classification": "SAVED_FIELD_DIFFERENCE_REQUIRES_SOURCE_ADJUDICATION",
+      "exactCause": "3 campi non geometrici della bozza APR differiscono dal PDF ENEA chiuso dall'operatore umano; il confronto da solo non stabilisce quale fonte sia più accurata.",
+      "missingDocumentType": null,
+      "operatorQuestion": "Confermi che per Luigi Carfora debbano prevalere i valori della pratica umana nei campi impianto.potenza, impianto.rendimento, intervento.data_fine?",
+      "onboardingGap": "Raccogliere in modo strutturato tipo, rendimento e potenza del generatore esistente, indicando la fonte documentale.",
+      "differences": [
+        {
+          "fieldId": "impianto.potenza",
+          "result": "difference",
+          "humanValue": "24",
+          "aprValue": "29,9",
+          "aprPortalId": "id-pn",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "impianto.rendimento",
+          "result": "difference",
+          "humanValue": "95.8",
+          "aprValue": "98,5",
+          "aprPortalId": "id-n",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "intervento.data_fine",
+          "result": "difference",
+          "humanValue": "08/07/2026",
+          "aprValue": "09/04/2026",
+          "aprPortalId": "id-data_fine",
+          "aprPageId": "intervention",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        }
+      ]
+    },
+    {
+      "practiceId": "0a92f92c-22ed-4a43-b47e-6abe1d74282a",
+      "displayName": "massimo cappello",
+      "classification": "SAVED_FIELD_DIFFERENCE_REQUIRES_SOURCE_ADJUDICATION",
+      "exactCause": "14 campi non geometrici della bozza APR differiscono dal PDF ENEA chiuso dall'operatore umano; il confronto da solo non stabilisce quale fonte sia più accurata.",
+      "missingDocumentType": null,
+      "operatorQuestion": "Confermi che per massimo cappello debbano prevalere i valori della pratica umana nei campi impianto.potenza, impianto.rendimento, infissi.0.vetro_nuovo, infissi.1.vetro_nuovo, infissi.10.vetro_nuovo, infissi.11.vetro_nuovo, infissi.2.vetro_nuovo, infissi.3.vetro_nuovo, infissi.4.vetro_nuovo, infissi.5.vetro_nuovo, infissi.6.vetro_nuovo, infissi.7.vetro_nuovo, infissi.8.vetro_nuovo, infissi.9.vetro_nuovo?",
+      "onboardingGap": "Raccogliere in modo strutturato tipo, rendimento e potenza del generatore esistente, indicando la fonte documentale.",
+      "differences": [
+        {
+          "fieldId": "impianto.potenza",
+          "result": "difference",
+          "humanValue": "21.8",
+          "aprValue": "32,2",
+          "aprPortalId": "id-pn",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "impianto.rendimento",
+          "result": "difference",
+          "humanValue": "95.4",
+          "aprValue": "97,2",
+          "aprPortalId": "id-n",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.0.vetro_nuovo",
+          "result": "difference",
+          "humanValue": "A bassa emissione",
+          "aprValue": "Triplo",
+          "aprPortalId": "id-v_post",
+          "aprPageId": "infisso-1",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.1.vetro_nuovo",
+          "result": "difference",
+          "humanValue": "A bassa emissione",
+          "aprValue": "Triplo",
+          "aprPortalId": "id-v_post",
+          "aprPageId": "infisso-2",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.10.vetro_nuovo",
+          "result": "difference",
+          "humanValue": "A bassa emissione",
+          "aprValue": "Triplo",
+          "aprPortalId": "id-v_post",
+          "aprPageId": "infisso-11",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.11.vetro_nuovo",
+          "result": "difference",
+          "humanValue": "A bassa emissione",
+          "aprValue": "Triplo",
+          "aprPortalId": "id-v_post",
+          "aprPageId": "infisso-12",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.2.vetro_nuovo",
+          "result": "difference",
+          "humanValue": "A bassa emissione",
+          "aprValue": "Triplo",
+          "aprPortalId": "id-v_post",
+          "aprPageId": "infisso-3",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.3.vetro_nuovo",
+          "result": "difference",
+          "humanValue": "A bassa emissione",
+          "aprValue": "Triplo",
+          "aprPortalId": "id-v_post",
+          "aprPageId": "infisso-4",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.4.vetro_nuovo",
+          "result": "difference",
+          "humanValue": "A bassa emissione",
+          "aprValue": "Triplo",
+          "aprPortalId": "id-v_post",
+          "aprPageId": "infisso-5",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.5.vetro_nuovo",
+          "result": "difference",
+          "humanValue": "A bassa emissione",
+          "aprValue": "Triplo",
+          "aprPortalId": "id-v_post",
+          "aprPageId": "infisso-6",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.6.vetro_nuovo",
+          "result": "difference",
+          "humanValue": "A bassa emissione",
+          "aprValue": "Triplo",
+          "aprPortalId": "id-v_post",
+          "aprPageId": "infisso-7",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.7.vetro_nuovo",
+          "result": "difference",
+          "humanValue": "A bassa emissione",
+          "aprValue": "Triplo",
+          "aprPortalId": "id-v_post",
+          "aprPageId": "infisso-8",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.8.vetro_nuovo",
+          "result": "difference",
+          "humanValue": "A bassa emissione",
+          "aprValue": "Triplo",
+          "aprPortalId": "id-v_post",
+          "aprPageId": "infisso-9",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.9.vetro_nuovo",
+          "result": "difference",
+          "humanValue": "A bassa emissione",
+          "aprValue": "Triplo",
+          "aprPortalId": "id-v_post",
+          "aprPageId": "infisso-10",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        }
+      ]
+    },
+    {
+      "practiceId": "61b0dc51-4959-46e7-bd6d-37c8f1981c52",
+      "displayName": "MATTEO CAPITANELLI",
+      "classification": "SAVED_FIELD_DIFFERENCE_REQUIRES_SOURCE_ADJUDICATION",
+      "exactCause": "3 campi non geometrici della bozza APR differiscono dal PDF ENEA chiuso dall'operatore umano; il confronto da solo non stabilisce quale fonte sia più accurata.",
+      "missingDocumentType": null,
+      "operatorQuestion": "Confermi che per MATTEO CAPITANELLI debbano prevalere i valori della pratica umana nei campi beneficiario.indirizzo_residenza, infissi.numero, intervento.data_inizio?",
+      "onboardingGap": "Raccogliere date di inizio e fine lavori con documento datato e tipo di evento esplicito.",
+      "differences": [
+        {
+          "fieldId": "beneficiario.indirizzo_residenza",
+          "result": "difference",
+          "humanValue": "Viale Beata Vergine del Carmelo",
+          "aprValue": "Viale Beata Vergine del Carmelo n. 186",
+          "aprPortalId": "id-indirizzo_residenza",
+          "aprPageId": "beneficiary",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.numero",
+          "result": "difference",
+          "humanValue": "4",
+          "aprValue": "7",
+          "aprPortalId": "derived:screeningSteps.length",
+          "aprPageId": "package",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "intervento.data_inizio",
+          "result": "difference",
+          "humanValue": "03/02/2026",
+          "aprValue": "14/03/2026",
+          "aprPortalId": "id-data_inizio",
+          "aprPageId": "intervention",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        }
+      ]
+    },
+    {
+      "practiceId": "d3d11e50-d24e-4f38-b2c7-3a16480b007a",
+      "displayName": "Mauro Ballabio",
+      "classification": "SAVED_FIELD_DIFFERENCE_REQUIRES_SOURCE_ADJUDICATION",
+      "exactCause": "2 campi non geometrici della bozza APR differiscono dal PDF ENEA chiuso dall'operatore umano; il confronto da solo non stabilisce quale fonte sia più accurata.",
+      "missingDocumentType": null,
+      "operatorQuestion": "Confermi che per Mauro Ballabio debbano prevalere i valori della pratica umana nei campi impianto.potenza, impianto.rendimento?",
+      "onboardingGap": "Raccogliere in modo strutturato tipo, rendimento e potenza del generatore esistente, indicando la fonte documentale.",
+      "differences": [
+        {
+          "fieldId": "impianto.potenza",
+          "result": "difference",
+          "humanValue": "23.5",
+          "aprValue": "30,7",
+          "aprPortalId": "id-pn",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "impianto.rendimento",
+          "result": "difference",
+          "humanValue": "91.7",
+          "aprValue": "96,8",
+          "aprPortalId": "id-n",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        }
+      ]
+    },
+    {
+      "practiceId": "3e731c9e-ccea-4b30-b9bc-454f3ec60f06",
+      "displayName": "Milena Albertoni",
+      "classification": "SAVED_FIELD_DIFFERENCE_REQUIRES_SOURCE_ADJUDICATION",
+      "exactCause": "3 campi non geometrici della bozza APR differiscono dal PDF ENEA chiuso dall'operatore umano; il confronto da solo non stabilisce quale fonte sia più accurata.",
+      "missingDocumentType": null,
+      "operatorQuestion": "Confermi che per Milena Albertoni debbano prevalere i valori della pratica umana nei campi impianto.generatore, impianto.potenza, impianto.rendimento?",
+      "onboardingGap": "Raccogliere in modo strutturato tipo, rendimento e potenza del generatore esistente, indicando la fonte documentale.",
+      "differences": [
+        {
+          "fieldId": "impianto.generatore",
+          "result": "difference",
+          "humanValue": "Caldaia ad acqua calda standard",
+          "aprValue": "Altro",
+          "aprPortalId": "activationLabel",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "impianto.potenza",
+          "result": "difference",
+          "humanValue": "24.3",
+          "aprValue": "30,6",
+          "aprPortalId": "id-pn",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "impianto.rendimento",
+          "result": "difference",
+          "humanValue": "92.7",
+          "aprValue": "98,7",
+          "aprPortalId": "id-n",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        }
+      ]
+    },
+    {
+      "practiceId": "b8eb5a0a-21f8-4400-bd8c-ed1c39751b10",
+      "displayName": "MONICA AMBRA FIORAVANTI",
+      "classification": "SAVED_FIELD_DIFFERENCE_REQUIRES_SOURCE_ADJUDICATION",
+      "exactCause": "2 campi non geometrici della bozza APR differiscono dal PDF ENEA chiuso dall'operatore umano; il confronto da solo non stabilisce quale fonte sia più accurata.",
+      "missingDocumentType": null,
+      "operatorQuestion": "Confermi che per MONICA AMBRA FIORAVANTI debbano prevalere i valori della pratica umana nei campi beneficiario.comune_nascita, schermature.spesa?",
+      "onboardingGap": "Raccogliere attributi tecnici e cardinalità in una tabella strutturata associata univocamente alle righe di fattura/scheda tecnica.",
+      "differences": [
+        {
+          "fieldId": "beneficiario.comune_nascita",
+          "result": "difference",
+          "humanValue": "Sesto San Giovanni (MI)",
+          "aprValue": "SESTO S.GIOVANNI",
+          "aprPortalId": "id-comune_nascita",
+          "aprPageId": "beneficiary",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "schermature.spesa",
+          "result": "difference",
+          "humanValue": "4950",
+          "aprValue": "4950,01",
+          "aprPortalId": "id-costo",
+          "aprPageId": "screening-summary",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        }
+      ]
+    },
+    {
+      "practiceId": "aa8d417f-8450-4283-b328-dc8c9cb573ba",
+      "displayName": "Monica Molteni",
+      "classification": "SAVED_FIELD_DIFFERENCE_REQUIRES_SOURCE_ADJUDICATION",
+      "exactCause": "2 campi non geometrici della bozza APR differiscono dal PDF ENEA chiuso dall'operatore umano; il confronto da solo non stabilisce quale fonte sia più accurata.",
+      "missingDocumentType": null,
+      "operatorQuestion": "Confermi che per Monica Molteni debbano prevalere i valori della pratica umana nei campi impianto.potenza, impianto.rendimento?",
+      "onboardingGap": "Raccogliere in modo strutturato tipo, rendimento e potenza del generatore esistente, indicando la fonte documentale.",
+      "differences": [
+        {
+          "fieldId": "impianto.potenza",
+          "result": "difference",
+          "humanValue": "23.7",
+          "aprValue": "32,0",
+          "aprPortalId": "id-pn",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "impianto.rendimento",
+          "result": "difference",
+          "humanValue": "92.8",
+          "aprValue": "98,9",
+          "aprPortalId": "id-n",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        }
+      ]
+    },
+    {
+      "practiceId": "47ef4b16-d334-4acf-8c1f-c7c341281771",
+      "displayName": "Nadia Ragni",
+      "classification": "SAVED_FIELD_DIFFERENCE_REQUIRES_SOURCE_ADJUDICATION",
+      "exactCause": "2 campi non geometrici della bozza APR differiscono dal PDF ENEA chiuso dall'operatore umano; il confronto da solo non stabilisce quale fonte sia più accurata.",
+      "missingDocumentType": null,
+      "operatorQuestion": "Confermi che per Nadia Ragni debbano prevalere i valori della pratica umana nei campi impianto.potenza, impianto.rendimento?",
+      "onboardingGap": "Raccogliere in modo strutturato tipo, rendimento e potenza del generatore esistente, indicando la fonte documentale.",
+      "differences": [
+        {
+          "fieldId": "impianto.potenza",
+          "result": "difference",
+          "humanValue": "21.5",
+          "aprValue": "26,4",
+          "aprPortalId": "id-pn",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "impianto.rendimento",
+          "result": "difference",
+          "humanValue": "92.6",
+          "aprValue": "97,6",
+          "aprPortalId": "id-n",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        }
+      ]
+    },
+    {
+      "practiceId": "805249c4-7248-40ac-990c-6d00cba517c8",
+      "displayName": "Natale Tiraboschi",
+      "classification": "SAVED_FIELD_DIFFERENCE_REQUIRES_SOURCE_ADJUDICATION",
+      "exactCause": "4 campi non geometrici della bozza APR differiscono dal PDF ENEA chiuso dall'operatore umano; il confronto da solo non stabilisce quale fonte sia più accurata.",
+      "missingDocumentType": null,
+      "operatorQuestion": "Confermi che per Natale Tiraboschi debbano prevalere i valori della pratica umana nei campi impianto.generatore, impianto.potenza, impianto.rendimento, intervento.data_inizio?",
+      "onboardingGap": "Raccogliere in modo strutturato tipo, rendimento e potenza del generatore esistente, indicando la fonte documentale.",
+      "differences": [
+        {
+          "fieldId": "impianto.generatore",
+          "result": "difference",
+          "humanValue": "Caldaia ad acqua calda standard",
+          "aprValue": "Altro",
+          "aprPortalId": "activationLabel",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "impianto.potenza",
+          "result": "difference",
+          "humanValue": "25.3",
+          "aprValue": "31,7",
+          "aprPortalId": "id-pn",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "impianto.rendimento",
+          "result": "difference",
+          "humanValue": "91.4",
+          "aprValue": "98,5",
+          "aprPortalId": "id-n",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "intervento.data_inizio",
+          "result": "difference",
+          "humanValue": "03/02/2026",
+          "aprValue": "22/05/2026",
+          "aprPortalId": "id-data_inizio",
+          "aprPageId": "intervention",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        }
+      ]
+    },
+    {
+      "practiceId": "adff093a-ef0d-4013-aa23-5f71dec4234b",
+      "displayName": "Romeo Ropa",
+      "classification": "SAVED_FIELD_DIFFERENCE_REQUIRES_SOURCE_ADJUDICATION",
+      "exactCause": "3 campi non geometrici della bozza APR differiscono dal PDF ENEA chiuso dall'operatore umano; il confronto da solo non stabilisce quale fonte sia più accurata.",
+      "missingDocumentType": null,
+      "operatorQuestion": "Confermi che per Romeo Ropa debbano prevalere i valori della pratica umana nei campi beneficiario.data_nascita, impianto.potenza, impianto.rendimento?",
+      "onboardingGap": "Raccogliere in modo strutturato tipo, rendimento e potenza del generatore esistente, indicando la fonte documentale.",
+      "differences": [
+        {
+          "fieldId": "beneficiario.data_nascita",
+          "result": "difference",
+          "humanValue": "21/11/1941",
+          "aprValue": "12/11/1941",
+          "aprPortalId": "id-data_nascita",
+          "aprPageId": "beneficiary",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "impianto.potenza",
+          "result": "difference",
+          "humanValue": "24.3",
+          "aprValue": "28,4",
+          "aprPortalId": "id-pn",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "impianto.rendimento",
+          "result": "difference",
+          "humanValue": "93.7",
+          "aprValue": "97,0",
+          "aprPortalId": "id-n",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        }
+      ]
+    },
+    {
+      "practiceId": "48098402-2621-40d9-92ae-eb3d5befe380",
+      "displayName": "rosa toscano",
+      "classification": "SAVED_FIELD_DIFFERENCE_REQUIRES_SOURCE_ADJUDICATION",
+      "exactCause": "3 campi non geometrici della bozza APR differiscono dal PDF ENEA chiuso dall'operatore umano; il confronto da solo non stabilisce quale fonte sia più accurata.",
+      "missingDocumentType": null,
+      "operatorQuestion": "Confermi che per rosa toscano debbano prevalere i valori della pratica umana nei campi impianto.potenza, impianto.rendimento, intervento.data_inizio?",
+      "onboardingGap": "Raccogliere in modo strutturato tipo, rendimento e potenza del generatore esistente, indicando la fonte documentale.",
+      "differences": [
+        {
+          "fieldId": "impianto.potenza",
+          "result": "difference",
+          "humanValue": "21.3",
+          "aprValue": "30,0",
+          "aprPortalId": "id-pn",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "impianto.rendimento",
+          "result": "difference",
+          "humanValue": "92.6",
+          "aprValue": "97,4",
+          "aprPortalId": "id-n",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "intervento.data_inizio",
+          "result": "difference",
+          "humanValue": "03/02/2026",
+          "aprValue": "11/05/2026",
+          "aprPortalId": "id-data_inizio",
+          "aprPageId": "intervention",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        }
+      ]
+    },
+    {
+      "practiceId": "5323d52a-6473-46f1-a5aa-faf5568ae3fc",
+      "displayName": "Santo Giuga",
+      "classification": "SAVED_FIELD_DIFFERENCE_REQUIRES_SOURCE_ADJUDICATION",
+      "exactCause": "10 campi non geometrici della bozza APR differiscono dal PDF ENEA chiuso dall'operatore umano; il confronto da solo non stabilisce quale fonte sia più accurata.",
+      "missingDocumentType": null,
+      "operatorQuestion": "Confermi che per Santo Giuga debbano prevalere i valori della pratica umana nei campi impianto.potenza, impianto.rendimento, infissi.0.chiusura_oscurante, infissi.1.chiusura_oscurante, infissi.1.trasmittanza_nuovo, infissi.2.chiusura_oscurante, infissi.3.chiusura_oscurante, infissi.4.chiusura_oscurante, infissi.spesa, intervento.data_fine?",
+      "onboardingGap": "Raccogliere in modo strutturato tipo, rendimento e potenza del generatore esistente, indicando la fonte documentale.",
+      "differences": [
+        {
+          "fieldId": "impianto.potenza",
+          "result": "difference",
+          "humanValue": "24.3",
+          "aprValue": "30,5",
+          "aprPortalId": "id-pn",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "impianto.rendimento",
+          "result": "difference",
+          "humanValue": "92.8",
+          "aprValue": "98,7",
+          "aprPortalId": "id-n",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.0.chiusura_oscurante",
+          "result": "difference",
+          "humanValue": "No",
+          "aprValue": "Sì",
+          "aprPortalId": "id-osc",
+          "aprPageId": "infisso-1",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.1.chiusura_oscurante",
+          "result": "difference",
+          "humanValue": "No",
+          "aprValue": "Sì",
+          "aprPortalId": "id-osc",
+          "aprPageId": "infisso-2",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.1.trasmittanza_nuovo",
+          "result": "difference",
+          "humanValue": "1.57",
+          "aprValue": "1,3",
+          "aprPortalId": "id-u_post",
+          "aprPageId": "infisso-2",
+          "transmittancePolicy": "explicit_source_clamped_to_1_3_for_portal",
+          "aprEvidence": {
+            "physicalRowId": "5323d52a-6473-46f1-a5aa-faf5568ae3fc:infisso:2",
+            "field": "newWindowThermalTransmittanceWm2K",
+            "source": "technical_document:f8dd90112ecea0084152de46a5240e145a7c7dbcb9d3c74a469b8e589305ce41;source=1.57;enea=1.3",
+            "ruleId": "user-2026-08-23-infissi-portal-transmittance-over-max-to-1-3-v1"
+          }
+        },
+        {
+          "fieldId": "infissi.2.chiusura_oscurante",
+          "result": "difference",
+          "humanValue": "No",
+          "aprValue": "Sì",
+          "aprPortalId": "id-osc",
+          "aprPageId": "infisso-3",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.3.chiusura_oscurante",
+          "result": "difference",
+          "humanValue": "No",
+          "aprValue": "Sì",
+          "aprPortalId": "id-osc",
+          "aprPageId": "infisso-4",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.4.chiusura_oscurante",
+          "result": "difference",
+          "humanValue": "No",
+          "aprValue": "Sì",
+          "aprPortalId": "id-osc",
+          "aprPageId": "infisso-5",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.spesa",
+          "result": "difference",
+          "humanValue": "10678.08",
+          "aprValue": "10953,08",
+          "aprPortalId": "id-costo",
+          "aprPageId": "infissi-summary",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "intervento.data_fine",
+          "result": "difference",
+          "humanValue": "01/09/2026",
+          "aprValue": "09/07/2026",
+          "aprPortalId": "id-data_fine",
+          "aprPageId": "intervention",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        }
+      ]
+    },
+    {
+      "practiceId": "36978c5f-f8fb-43b0-8bd9-26665bf553ad",
+      "displayName": "VERA BURACCHI",
+      "classification": "SAVED_FIELD_DIFFERENCE_REQUIRES_SOURCE_ADJUDICATION",
+      "exactCause": "20 campi non geometrici della bozza APR differiscono dal PDF ENEA chiuso dall'operatore umano; il confronto da solo non stabilisce quale fonte sia più accurata.",
+      "missingDocumentType": null,
+      "operatorQuestion": "Confermi che per VERA BURACCHI debbano prevalere i valori della pratica umana nei campi impianto.potenza, impianto.rendimento, infissi.0.trasmittanza_nuovo, infissi.0.trasmittanza_vecchio, infissi.0.vetro_nuovo, infissi.0.vetro_vecchio, infissi.1.trasmittanza_nuovo, infissi.1.trasmittanza_vecchio, infissi.1.vetro_nuovo, infissi.1.vetro_vecchio, infissi.2.trasmittanza_nuovo, infissi.2.trasmittanza_vecchio, infissi.2.vetro_nuovo, infissi.2.vetro_vecchio, infissi.3.trasmittanza_nuovo, infissi.3.trasmittanza_vecchio, infissi.3.vetro_nuovo, infissi.3.vetro_vecchio, infissi.numero, intervento.data_fine?",
+      "onboardingGap": "Richiedere nel form o in una scheda tecnica strutturata la trasmittanza del nuovo infisso per ogni riga fisica, con associazione univoca al prodotto.",
+      "differences": [
+        {
+          "fieldId": "impianto.potenza",
+          "result": "difference",
+          "humanValue": "23.5",
+          "aprValue": "31,8",
+          "aprPortalId": "id-pn",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "impianto.rendimento",
+          "result": "difference",
+          "humanValue": "92.1",
+          "aprValue": "98,2",
+          "aprPortalId": "id-n",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.0.trasmittanza_nuovo",
+          "result": "difference",
+          "humanValue": "1.2",
+          "aprValue": "1,3",
+          "aprPortalId": "id-u_post",
+          "aprPageId": "infisso-1",
+          "transmittancePolicy": "missing_source_fallback_1_3",
+          "aprEvidence": {
+            "physicalRowId": "36978c5f-f8fb-43b0-8bd9-26665bf553ad:infisso:1",
+            "field": "newWindowThermalTransmittanceWm2K",
+            "source": "authorized_fallback:fallback;source=1.3;enea=1.3",
+            "ruleId": "user-2026-08-19-infissi-transmittance-1-3-fallback-v1"
+          }
+        },
+        {
+          "fieldId": "infissi.0.trasmittanza_vecchio",
+          "result": "difference",
+          "humanValue": "5",
+          "aprValue": "3",
+          "aprPortalId": "id-u_pre",
+          "aprPageId": "infisso-1",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.0.vetro_nuovo",
+          "result": "difference",
+          "humanValue": "A bassa emissione",
+          "aprValue": "Triplo",
+          "aprPortalId": "id-v_post",
+          "aprPageId": "infisso-1",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.0.vetro_vecchio",
+          "result": "difference",
+          "humanValue": "Singolo",
+          "aprValue": "Doppio",
+          "aprPortalId": "id-v_pre",
+          "aprPageId": "infisso-1",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.1.trasmittanza_nuovo",
+          "result": "difference",
+          "humanValue": "1.2",
+          "aprValue": "1,3",
+          "aprPortalId": "id-u_post",
+          "aprPageId": "infisso-2",
+          "transmittancePolicy": "missing_source_fallback_1_3",
+          "aprEvidence": {
+            "physicalRowId": "36978c5f-f8fb-43b0-8bd9-26665bf553ad:infisso:2",
+            "field": "newWindowThermalTransmittanceWm2K",
+            "source": "authorized_fallback:fallback;source=1.3;enea=1.3",
+            "ruleId": "user-2026-08-19-infissi-transmittance-1-3-fallback-v1"
+          }
+        },
+        {
+          "fieldId": "infissi.1.trasmittanza_vecchio",
+          "result": "difference",
+          "humanValue": "5",
+          "aprValue": "3",
+          "aprPortalId": "id-u_pre",
+          "aprPageId": "infisso-2",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.1.vetro_nuovo",
+          "result": "difference",
+          "humanValue": "A bassa emissione",
+          "aprValue": "Triplo",
+          "aprPortalId": "id-v_post",
+          "aprPageId": "infisso-2",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.1.vetro_vecchio",
+          "result": "difference",
+          "humanValue": "Singolo",
+          "aprValue": "Doppio",
+          "aprPortalId": "id-v_pre",
+          "aprPageId": "infisso-2",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.2.trasmittanza_nuovo",
+          "result": "difference",
+          "humanValue": "1.2",
+          "aprValue": "1,3",
+          "aprPortalId": "id-u_post",
+          "aprPageId": "infisso-3",
+          "transmittancePolicy": "missing_source_fallback_1_3",
+          "aprEvidence": {
+            "physicalRowId": "36978c5f-f8fb-43b0-8bd9-26665bf553ad:infisso:3",
+            "field": "newWindowThermalTransmittanceWm2K",
+            "source": "authorized_fallback:fallback;source=1.3;enea=1.3",
+            "ruleId": "user-2026-08-19-infissi-transmittance-1-3-fallback-v1"
+          }
+        },
+        {
+          "fieldId": "infissi.2.trasmittanza_vecchio",
+          "result": "difference",
+          "humanValue": "5",
+          "aprValue": "3",
+          "aprPortalId": "id-u_pre",
+          "aprPageId": "infisso-3",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.2.vetro_nuovo",
+          "result": "difference",
+          "humanValue": "A bassa emissione",
+          "aprValue": "Triplo",
+          "aprPortalId": "id-v_post",
+          "aprPageId": "infisso-3",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.2.vetro_vecchio",
+          "result": "difference",
+          "humanValue": "Singolo",
+          "aprValue": "Doppio",
+          "aprPortalId": "id-v_pre",
+          "aprPageId": "infisso-3",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.3.trasmittanza_nuovo",
+          "result": "difference",
+          "humanValue": "1.17",
+          "aprValue": "1,3",
+          "aprPortalId": "id-u_post",
+          "aprPageId": "infisso-4",
+          "transmittancePolicy": "missing_source_fallback_1_3",
+          "aprEvidence": {
+            "physicalRowId": "36978c5f-f8fb-43b0-8bd9-26665bf553ad:infisso:4",
+            "field": "newWindowThermalTransmittanceWm2K",
+            "source": "authorized_fallback:fallback;source=1.3;enea=1.3",
+            "ruleId": "user-2026-08-19-infissi-transmittance-1-3-fallback-v1"
+          }
+        },
+        {
+          "fieldId": "infissi.3.trasmittanza_vecchio",
+          "result": "difference",
+          "humanValue": "5",
+          "aprValue": "3",
+          "aprPortalId": "id-u_pre",
+          "aprPageId": "infisso-4",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.3.vetro_nuovo",
+          "result": "difference",
+          "humanValue": "A bassa emissione",
+          "aprValue": "Triplo",
+          "aprPortalId": "id-v_post",
+          "aprPageId": "infisso-4",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.3.vetro_vecchio",
+          "result": "difference",
+          "humanValue": "Singolo",
+          "aprValue": "Doppio",
+          "aprPortalId": "id-v_pre",
+          "aprPageId": "infisso-4",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "infissi.numero",
+          "result": "difference",
+          "humanValue": "6",
+          "aprValue": "4",
+          "aprPortalId": "derived:screeningSteps.length",
+          "aprPageId": "package",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "intervento.data_fine",
+          "result": "difference",
+          "humanValue": "07/07/2026",
+          "aprValue": "12/03/2026",
+          "aprPortalId": "id-data_fine",
+          "aprPageId": "intervention",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        }
+      ]
+    },
+    {
+      "practiceId": "513b7f1e-d79f-4efc-86f0-20e4018c9155",
+      "displayName": "Zeno Righetti",
+      "classification": "SAVED_FIELD_DIFFERENCE_REQUIRES_SOURCE_ADJUDICATION",
+      "exactCause": "2 campi non geometrici della bozza APR differiscono dal PDF ENEA chiuso dall'operatore umano; il confronto da solo non stabilisce quale fonte sia più accurata.",
+      "missingDocumentType": null,
+      "operatorQuestion": "Confermi che per Zeno Righetti debbano prevalere i valori della pratica umana nei campi impianto.potenza, impianto.rendimento?",
+      "onboardingGap": "Raccogliere in modo strutturato tipo, rendimento e potenza del generatore esistente, indicando la fonte documentale.",
+      "differences": [
+        {
+          "fieldId": "impianto.potenza",
+          "result": "difference",
+          "humanValue": "21.6",
+          "aprValue": "27,7",
+          "aprPortalId": "id-pn",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        },
+        {
+          "fieldId": "impianto.rendimento",
+          "result": "difference",
+          "humanValue": "92.6",
+          "aprValue": "97,9",
+          "aprPortalId": "id-n",
+          "aprPageId": "generator",
+          "transmittancePolicy": null,
+          "aprEvidence": null
+        }
+      ]
+    }
+  ]
+}

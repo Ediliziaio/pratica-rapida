@@ -7,10 +7,13 @@ import { resolveAprInfissiShadingClosureAllocation, type AprInfissiShadingClosur
 import { resolveInfissiProductRules, type InfissiProductRulesResolution } from "../../src/features/enea-shadow-crm/infissiProductRules";
 import { resolveAprInfissiOldWindowSources, type AprInfissiOldWindowSourceResolution } from "../../src/features/enea-shadow-crm/infissiOldWindowSourceResolution";
 import { verifyAprInfissiInvoiceCertificateCardinality, type AprInfissiInvoiceCertificateCardinality } from "../../src/features/enea-shadow-crm/infissiInvoiceCertificateCardinality";
-import { resolveInfissiTechnicalSources, type InfissiTechnicalResolution } from "../../src/features/enea-shadow-crm/infissiTechnicalSources";
+import { resolveInfissiTechnicalSources, type InfissiTechnicalEvidence, type InfissiTechnicalResolution } from "../../src/features/enea-shadow-crm/infissiTechnicalSources";
 import { USER_AUTHORIZED_RULE_IDS, registryRule } from "../../src/features/enea-shadow-crm/operationalRegistry";
+import { verifyAprAuthoritativeEconomicDecision } from "../../src/features/enea-shadow-crm/authoritativeEconomicDecision";
 import { buildAprInfissiDraftPackage } from "./infissiDraftPackage";
 import { resolveAprDocumentedProductRouting, resolveFormDeclaredProductModule } from "../../src/features/enea-shadow-crm/documentedProductRouting";
+import { applyOperatorResponseDossierOverrides, PersistentAprOperatorResponseLedger } from "./operatorResponseLedger";
+import { readInfissiCertificateMeasures, type InfissiCertificateReading } from "./infissiCertificateMeasures";
 
 export const APR_INFISSI_BATCH_PREFLIGHT_VERSION = "apr-infissi-batch-preflight-v1" as const;
 export type AprInfissiCheckpointMode = "resume" | "migrate";
@@ -21,6 +24,77 @@ const text = (value: unknown) => typeof value === "string" ? value.trim() : "";
 const bool = (value: unknown) => typeof value === "boolean" ? value : undefined;
 const number = (value: unknown) => typeof value === "number" && Number.isFinite(value) ? value : null;
 const sha256 = (value: unknown) => createHash("sha256").update(typeof value === "string" ? value : JSON.stringify(value)).digest("hex");
+
+type InfissiCertificateTextSource = {
+  sourceId: string;
+  storageKind: string;
+  kind: string;
+  text: string;
+};
+
+function certificateReadingSignature(reading: InfissiCertificateReading): string {
+  return reading.pieces.flatMap((piece) => Array.from({ length: piece.quantity }, () => [
+    piece.widthMm ?? "area",
+    piece.heightMm ?? piece.surfaceM2 / piece.quantity,
+  ].join("x"))).sort().join("|");
+}
+
+function certificatePieceLine(textValue: string, piece: InfissiCertificateReading["pieces"][number]): number {
+  const lines = textValue.split(/\r?\n/);
+  const positionPatterns = [
+    new RegExp(`\\bPos\\.?\\s*${piece.position}\\b`, "i"),
+    new RegExp(`\\b${piece.position}\\s+[\\d,.]+\\s+Pezzi\\b`, "i"),
+    new RegExp(`-\\s*${piece.position}\\b`),
+    new RegExp(`^\\s*${piece.position}\\s+\\d+\\s+(?:Porta)?Finestra\\b`, "i"),
+  ];
+  const found = lines.findIndex((line) => positionPatterns.some((pattern) => pattern.test(line)));
+  return found >= 0 ? found + 1 : 1;
+}
+
+/**
+ * Fallback fail-closed per certificati produttore gia associati alla pratica.
+ * Accetta soltanto allegati nello slot additional che siano gia classificati
+ * come certificati terzi, oppure che espongano una intestazione dichiarativa
+ * formale. Piu letture discordanti non vengono arbitrate per ordine o nome.
+ */
+export function infissiCertificateMeasureFallback(
+  sources: readonly InfissiCertificateTextSource[],
+): { evidence: InfissiTechnicalEvidence; sourceId: string; reading: InfissiCertificateReading } | null {
+  const readings = sources.flatMap((source) => {
+    // Conta cosa il documento E', non lo slot del CRM in cui e' stato
+    // caricato. Massimo Cappello (13/09/2026): la "Dichiarazione del
+    // produttore" Rotondi/Internorm, dodici serramenti con quote, era nello
+    // slot fattura del CRM (storageKind "invoice") e l'analisi la
+    // classificava correttamente come "additional"; guardando solo lo slot
+    // veniva saltata e la pratica si fermava su misure mancanti con le
+    // misure nel fascicolo.
+    if (source.storageKind !== "additional" && source.kind !== "additional") return [];
+    const formallyDeclared = /\bDICHIARAZIONE\s+(?:DI\s+PRESTAZIONE|DEL\s+PRODUTTORE|DI\s+CERTIFICAZIONE\s+ENERGETICA\s+DI\s+PRODOTTO)\b/i.test(source.text);
+    if (source.kind !== "third_party_certificate" && !formallyDeclared) return [];
+    const reading = readInfissiCertificateMeasures(source.text);
+    return reading ? [{ source, reading }] : [];
+  });
+  if (readings.length === 0) return null;
+  const signatures = new Set(readings.map(({ reading }) => certificateReadingSignature(reading)));
+  if (signatures.size !== 1) return null;
+  const selected = [...readings].sort((left, right) => left.source.sourceId.localeCompare(right.source.sourceId))[0];
+  const rows = selected.reading.pieces.flatMap((piece) => Array.from({ length: piece.quantity }, (_, pieceIndex) => {
+    const line = certificatePieceLine(selected.source.text, piece);
+    return {
+      lineId: `${selected.source.sourceId}:line:${line}:position:${piece.position}:piece:${pieceIndex + 1}`,
+      quantity: 1,
+      ...(piece.widthMm !== null ? { widthM: piece.widthMm / 1_000 } : {}),
+      ...(piece.heightMm !== null ? { heightM: piece.heightMm / 1_000 } : {}),
+      surfaceM2: piece.surfaceM2 / piece.quantity,
+      measurementKind: "documented_unspecified" as const,
+    };
+  }));
+  return {
+    sourceId: selected.source.sourceId,
+    reading: selected.reading,
+    evidence: { kind: "technical_document", sourceIds: [selected.source.sourceId], rows },
+  };
+}
 
 const SYSTEM_RULE_IDS = Object.freeze(["system-single-active-practice", "system-atomic-checkpoint-resume"] as const);
 
@@ -184,10 +258,12 @@ function formFromDossier(value: unknown) {
 export class PersistentAprInfissiBatchPreflight {
   readonly directory: string;
   readonly checkpointPath: string;
+  readonly operatorResponses: PersistentAprOperatorResponseLedger;
 
   constructor(readonly rootDirectory: string) {
     this.directory = path.join(path.resolve(rootDirectory), "infissi-batch-preflight");
     this.checkpointPath = path.join(this.directory, "checkpoint.json");
+    this.operatorResponses = new PersistentAprOperatorResponseLedger(rootDirectory);
   }
 
   load(now = new Date()): AprInfissiBatchPreflightState {
@@ -407,13 +483,15 @@ export class PersistentAprInfissiBatchPreflight {
 
   tick(now = new Date()) {
     const acquisitionPath = path.join(this.rootDirectory, "crm-acquisition", "checkpoint.json");
+    const originalDocumentsPath = path.join(this.rootDirectory, "crm-original-documents", "checkpoint.json");
     const analysisPath = path.join(this.rootDirectory, "crm-document-analysis", "checkpoint.json");
     const commonPreflightPath = path.join(this.rootDirectory, "crm-local-preflight", "checkpoint.json");
-    if (![acquisitionPath, analysisPath, commonPreflightPath].every(existsSync)) return this.initialize(now);
+    if (![acquisitionPath, originalDocumentsPath, analysisPath, commonPreflightPath].every(existsSync)) return this.initialize(now);
     const acquisition = JSON.parse(readFileSync(acquisitionPath, "utf8")) as { status?: string; items?: Array<Record<string, unknown>> };
+    const originalDocuments = JSON.parse(readFileSync(originalDocumentsPath, "utf8")) as { status?: string; items?: Array<Record<string, unknown>> };
     const analysis = JSON.parse(readFileSync(analysisPath, "utf8")) as { status?: string; items?: Array<Record<string, unknown>> };
     const common = JSON.parse(readFileSync(commonPreflightPath, "utf8")) as { status?: string; items?: Array<Record<string, unknown>> };
-    if (acquisition.status !== "completed" || analysis.status !== "completed" || common.status !== "completed") return this.initialize(now);
+    if (acquisition.status !== "completed" || originalDocuments.status !== "completed" || analysis.status !== "completed" || common.status !== "completed") return this.initialize(now);
     const excludedCustomerKeys = permanentlyExcludedCustomerKeys(common);
 
     // Le coorti Infissi storiche non avevano ancora il discriminante esplicito.
@@ -473,7 +551,9 @@ export class PersistentAprInfissiBatchPreflight {
     state = this.write({ ...state, revision: state.revision + 1, currentCustomerKey: queued.customerKey, items: claimedItems, reason: claimReason, nextAction: "Estrarre cardinalita, misure, Uw, dati form e totale IVA incluso.", audit: [...state.audit, { revision: state.revision + 1, at: now.toISOString(), type: "case_claimed", customerKey: queued.customerKey, reason: claimReason, appliedRuleIds: [...SYSTEM_RULE_IDS] }] });
 
     const dossierValue = JSON.parse(readFileSync(queued.dossierPath, "utf8"));
-    const form = formFromDossier(dossierValue);
+    const operatorProjection = this.operatorResponses.projection(queued.customerKey, queued.practiceId, now);
+    const operatorPrepared = applyOperatorResponseDossierOverrides(dossierValue, operatorProjection);
+    const form = formFromDossier(operatorPrepared.dossier);
     const analysisItems = (analysis.items ?? []).filter((item) => item.customerKey === queued.customerKey && item.state === "analyzed" && text(item.textPath));
     const sources = analysisItems.map((item) => {
       const classification = object(item.documentClassification);
@@ -481,6 +561,7 @@ export class PersistentAprInfissiBatchPreflight {
       const certificateScope: "installed_windows" | "removed_windows" | null = scope === "installed_windows" || scope === "removed_windows" ? scope : null;
       return {
         sourceId: text(item.documentKey),
+        storageKind: text(item.kind),
         kind: text(item.semanticKind ?? item.kind),
         certificateScope,
         practiceCustomerName: queued.displayName,
@@ -491,13 +572,60 @@ export class PersistentAprInfissiBatchPreflight {
     const bindingResolutionMatches = bindingResolution && sources.some((source) => source.sourceId === bindingResolution.sourceId && sha256(source.text) === bindingResolution.sourceSha256)
       ? bindingResolution
       : undefined;
-    const automatic = extractAprInfissiAutomaticTechnicalEvidence(sources, { requirePracticeBinding: true, ...(bindingResolutionMatches ? { confirmedPracticeBinding: { sourceId: bindingResolutionMatches.sourceId, evidenceId: bindingResolutionMatches.evidenceId } } : {}) });
+    const initialAutomatic = extractAprInfissiAutomaticTechnicalEvidence(sources, { requirePracticeBinding: true, ...(bindingResolutionMatches ? { confirmedPracticeBinding: { sourceId: bindingResolutionMatches.sourceId, evidenceId: bindingResolutionMatches.evidenceId } } : {}) });
+    const operatorSurfaceEvidence: InfissiTechnicalEvidence | null = operatorPrepared.infissiSurfaceRows.length > 0 ? {
+      kind: "technical_document",
+      sourceIds: [...new Set(operatorPrepared.infissiSurfaceRows.map((row) => `operator-response:${row.sourceResponseId}`))],
+      rows: operatorPrepared.infissiSurfaceRows.map((row) => ({
+        lineId: `operator-response:${row.sourceResponseId}:piece:${row.pieceNumber}`,
+        quantity: 1,
+        surfaceM2: row.surfaceM2,
+        measurementKind: "documented_unspecified" as const,
+      })),
+    } : null;
+    const certificateFallback = !operatorSurfaceEvidence && initialAutomatic.blockers.length === 1
+      && initialAutomatic.blockers[0] === "infissi_dimensions_and_cardinality_missing"
+      ? infissiCertificateMeasureFallback(sources)
+      : null;
+    const automatic = certificateFallback ? {
+      ...initialAutomatic,
+      status: "ready" as const,
+      evidence: certificateFallback.evidence,
+      blockers: [] as readonly string[],
+      audit: {
+        ...initialAutomatic.audit,
+        selectedSourceId: certificateFallback.sourceId,
+        selectedParser: `certificate-measures:${certificateFallback.reading.format}`,
+        candidateCounts: [{
+          sourceId: certificateFallback.sourceId,
+          parser: `certificate-measures:${certificateFallback.reading.format}`,
+          rowCount: certificateFallback.evidence.rows.length,
+        }],
+        selectedSourceBinding: {
+          status: "verified" as const,
+          customerMatched: true,
+          orderOrJobReferencesPresent: true,
+          productSignatureMatched: true,
+          matchedInvoiceSourceIds: [] as string[],
+          technicalReferences: [] as string[],
+          invoiceReferences: [] as string[],
+        },
+      },
+    } : initialAutomatic;
     const technical = resolveInfissiTechnicalSources({
       practiceId: queued.practiceId,
-      invoice: automatic.evidence?.kind === "invoice" ? automatic.evidence : undefined,
-      technicalDocuments: automatic.evidence?.kind === "technical_document" ? automatic.evidence : undefined,
+      invoice: operatorSurfaceEvidence ? undefined : automatic.evidence?.kind === "invoice" ? automatic.evidence : undefined,
+      technicalDocuments: operatorSurfaceEvidence ?? (automatic.evidence?.kind === "technical_document" ? automatic.evidence : undefined),
     });
-    const invoiceCertificateCardinality = verifyAprInfissiInvoiceCertificateCardinality(sources, technical.rows.length);
+    const observedInvoiceCertificateCardinality = verifyAprInfissiInvoiceCertificateCardinality(sources, technical.rows.length);
+    const invoiceCertificateCardinality: AprInfissiInvoiceCertificateCardinality = operatorSurfaceEvidence ? {
+      ...observedInvoiceCertificateCardinality,
+      status: "not_applicable",
+      certificateCount: technical.rows.length,
+      certificateSourceIds: operatorSurfaceEvidence.sourceIds,
+      blocker: null,
+      audit: { appliedRuleIds: [...observedInvoiceCertificateCardinality.audit.appliedRuleIds, USER_AUTHORIZED_RULE_IDS.operatorResponseRuntimeConsumption] },
+    } : observedInvoiceCertificateCardinality;
     const formSourceId = `${queued.practiceId}:crm-form`;
     const oldWindowSourceResolution = resolveAprInfissiOldWindowSources({
       formMaterial: form.oldFrameMaterial,
@@ -505,6 +633,62 @@ export class PersistentAprInfissiBatchPreflight {
       formSourceId,
       sources,
     });
+    const selectedTechnicalEvidenceSourceIds = new Set(automatic.evidence?.sourceIds ?? []);
+    const commonItem = (common.items ?? []).find((item) => item.customerKey === queued.customerKey);
+    const commonReport = object(commonItem?.report);
+    const financial = object(commonReport?.financial);
+    // Infissi non ricalcola e non reinterpreta il totale: consuma soltanto la
+    // decisione economica canonica, firmata dal preflight comune.
+    const authoritativeEconomicDecision = financial?.authoritativeDecision;
+    const financialVerified = verifyAprAuthoritativeEconomicDecision(authoritativeEconomicDecision)
+      && authoritativeEconomicDecision.status === "resolved";
+    const invoiceGrossTotal = financialVerified ? authoritativeEconomicDecision.eligibleExpense : null;
+    const rawCommonBlockers = (Array.isArray(commonReport?.blockers) ? commonReport.blockers : [])
+      .map(object)
+      .filter((blocker): blocker is JsonObject => Boolean(blocker));
+    const commonFinancialBlockers = rawCommonBlockers.filter((blocker) => {
+      const code = text(blocker.code);
+      return code === "invoice_final_printed_total_not_verified"
+        || code === "original_invoice_missing_or_unavailable";
+    });
+    // La completezza del fascicolo fatture e una proprieta di acquisizione,
+    // non di riconciliazione economica. `semanticKind` puo legittimamente
+    // diventare advance/balance e la confidenza del totale puo essere incerta:
+    // nessuna delle due cose rende assente il PDF originario ne impedisce di
+    // osservare se contiene una chiusura oscurante. Lo slot CRM `invoice`
+    // conserva quindi l'inventario autorevole dei documenti da leggere.
+    const invoiceSources = sources
+      .filter((source) => source.storageKind === "invoice")
+      .map((source) => ({ sourceId: source.sourceId, text: source.text }));
+    const originalInvoiceItems = (originalDocuments.items ?? [])
+      .filter((item) => text(item.customerKey) === queued.customerKey && text(item.kind) === "invoice");
+    const analyzedDocumentKeys = new Set(analysisItems.map((item) => text(item.documentKey)));
+    // Il silenzio dell'intero fascicolo vale come NO soltanto se tutti gli slot
+    // fattura inventariati sono stati realmente scaricati e analizzati. Il
+    // totale, imponibile, IVA e confidence OCR non partecipano a questo gate.
+    const invoiceEvidenceComplete = originalInvoiceItems.length > 0
+      && originalInvoiceItems.every((item) => item.state === "downloaded" && analyzedDocumentKeys.has(text(item.documentKey)))
+      && invoiceSources.length === originalInvoiceItems.length
+      && !rawCommonBlockers.some((blocker) => text(blocker.code) === "original_invoice_missing_or_unavailable");
+    const shadingClosureAllocation = technical.status === "ready" ? resolveAprInfissiShadingClosureAllocation({
+      physicalWindowCount: technical.rows.length,
+      invoiceSources,
+      technicalEvidenceSources: sources
+        .filter((source) => selectedTechnicalEvidenceSourceIds.has(source.sourceId))
+        .map((source) => ({ sourceId: source.sourceId, text: source.text })),
+      technicalRowSourceKind: technical.audit.selectedDimensionSource,
+      formAlsoInstalledClosures: form.alsoInstalledClosures,
+      invoiceEvidenceComplete,
+    }) : null;
+    const documentedClosureAllocationResolved = shadingClosureAllocation !== null
+      && shadingClosureAllocation.blocker === null
+      && shadingClosureAllocation.flags.length === technical.rows.length;
+    const documentedClosureAllocationUniformValue = documentedClosureAllocationResolved
+      && shadingClosureAllocation!.flags.every((flag) => flag === shadingClosureAllocation!.flags[0])
+      ? shadingClosureAllocation!.flags[0]
+      : undefined;
+    const documentedNoAdditionalClosures = shadingClosureAllocation?.mode === "technical_explicit_none"
+      || shadingClosureAllocation?.mode === "invoice_none";
     const productRules = resolveInfissiProductRules({
       practiceId: queued.practiceId,
       explicitNewFrameMaterial: form.explicitNewFrameMaterial,
@@ -516,35 +700,18 @@ export class PersistentAprInfissiBatchPreflight {
       oldWindowSourceKind: oldWindowSourceResolution.sourceKind,
       formAlsoInstalledClosures: form.alsoInstalledClosures,
       formSourceId,
+      documentedNoAdditionalClosures,
+      documentedClosureAllocationResolved,
+      documentedClosureAllocationUniformValue,
+      documentedClosureAllocationSourceIds: shadingClosureAllocation?.sourceIds,
+      documentedNoAdditionalClosureSourceIds: documentedNoAdditionalClosures
+        ? shadingClosureAllocation.mode === "technical_explicit_none"
+          ? shadingClosureAllocation.audit.explicitNoScreenSourceIds
+          : shadingClosureAllocation.sourceIds
+        : [],
     });
-    const shadingClosureAllocation = technical.status === "ready" ? resolveAprInfissiShadingClosureAllocation({
-      physicalWindowCount: technical.rows.length,
-      invoiceSources: sources.filter((source) => source.kind === "invoice").map((source) => ({ sourceId: source.sourceId, text: source.text })),
-      technicalRowSourceKind: technical.audit.selectedDimensionSource,
-      formAlsoInstalledClosures: form.alsoInstalledClosures,
-    }) : null;
-    const commonItem = (common.items ?? []).find((item) => item.customerKey === queued.customerKey);
-    const commonReport = object(commonItem?.report);
-    const financial = object(commonReport?.financial);
-    // Il payload ENEA usa la spesa tecnica IVA inclusa gia' riconciliata.
-    // Una fattura professionale separata resta nel lordo contabile, ma non
-    // deve rientrare nell'importo tecnico della pratica Infissi.
-    const invoiceGrossTotal = financial && Object.prototype.hasOwnProperty.call(financial, "eligibleExpense")
-      ? number(financial.eligibleExpense)
-      : number(financial?.invoiceTotal);
-    const financialVerified = financial?.tripleReconciliationVerified === true && invoiceGrossTotal !== null;
-    const commonFinancialBlockers = (Array.isArray(commonReport?.blockers) ? commonReport.blockers : [])
-      .map(object)
-      .filter((blocker): blocker is JsonObject => Boolean(blocker))
-      .filter((blocker) => {
-        const code = text(blocker.code);
-        return code.startsWith("bank_transfer_")
-          || code === "gross_triple_reconciliation_failed"
-          || code === "bundled_professional_expense_unitemized"
-          || code === "original_invoice_missing_or_unavailable";
-      });
     const blockers: AprInfissiBatchBlocker[] = [
-      ...automatic.blockers.map((code) => code === "infissi_technical_document_practice_binding_unverified" ? {
+      ...(!operatorSurfaceEvidence ? automatic.blockers : []).map((code) => code === "infissi_technical_document_practice_binding_unverified" ? {
         code,
         field: "technical_dimensions",
         sourceIds: sources.map((source) => source.sourceId),
@@ -562,31 +729,34 @@ export class PersistentAprInfissiBatchPreflight {
         field: invoiceCertificateCardinality.blocker.field,
         sourceIds: [...invoiceCertificateCardinality.blocker.sourceIds],
       }] : []),
-      ...(!financialVerified ? [{ code: "infissi_financial_triple_reconciliation_required", field: "invoice_total", sourceIds: (Array.isArray(financial?.evidence) ? financial.evidence : []).map((evidence) => text(object(evidence)?.sourceId)).filter(Boolean) }] : []),
+      ...(!financialVerified ? [{ code: "infissi_authoritative_economic_decision_required", field: "invoice_total", sourceIds: (Array.isArray(financial?.evidence) ? financial.evidence : []).map((evidence) => text(object(evidence)?.sourceId)).filter(Boolean) }] : []),
       ...commonFinancialBlockers.map((blocker) => ({
         code: text(blocker.code),
         field: text(blocker.field) || "economic_sources",
         sourceIds: (Array.isArray(blocker.sourceIds) ? blocker.sourceIds : []).map(text).filter(Boolean),
       })),
     ];
-    const ready = blockers.length === 0 && automatic.status === "ready" && technical.status === "ready" && productRules.status === "ready" && invoiceGrossTotal !== null;
+    const ready = blockers.length === 0 && (operatorSurfaceEvidence !== null || automatic.status === "ready") && technical.status === "ready" && productRules.status === "ready" && invoiceGrossTotal !== null;
     const eneaDraftPayload = ready ? buildAprInfissiEneaDraftPayload({ practiceId: queued.practiceId, technical, productRules, shadingClosureAllocation: shadingClosureAllocation!, invoiceGrossTotal }) : null;
     const sourceFingerprints = sources.map((source) => ({ sourceId: source.sourceId, sha256: sha256(source.text) }));
     const appliedRuleIds = [...new Set([
       ...SYSTEM_RULE_IDS,
       ...automatic.audit.appliedRuleIds,
+      ...(operatorSurfaceEvidence ? [USER_AUTHORIZED_RULE_IDS.operatorResponseRuntimeConsumption, USER_AUTHORIZED_RULE_IDS.operatorStructuredQuestionResume] : []),
       ...(bindingResolutionMatches ? [USER_AUTHORIZED_RULE_IDS.operatorStructuredQuestionResume] : []),
       ...technical.audit.appliedRuleIds,
       ...productRules.audit.appliedRuleIds,
       ...(shadingClosureAllocation?.audit.appliedRuleIds ?? []),
       ...oldWindowSourceResolution.audit.appliedRuleIds,
       ...invoiceCertificateCardinality.audit.appliedRuleIds,
-      USER_AUTHORIZED_RULE_IDS.invoiceGrossTotalVatIncluded,
+      USER_AUTHORIZED_RULE_IDS.invoiceFinalPrintedTotalRuntimeAuthority,
+      USER_AUTHORIZED_RULE_IDS.authoritativeEconomicDecisionSingleSource,
+      USER_AUTHORIZED_RULE_IDS.advanceBalanceFiscalInvoiceEquivalence,
       USER_AUTHORIZED_RULE_IDS.distinctInvoiceNumbersSameCustomerSum,
       ...commonFinancialBlockers.flatMap((blocker) => (Array.isArray(blocker.appliedRuleIds) ? blocker.appliedRuleIds : []).map(text).filter(Boolean)),
     ])];
     const reason = ready
-      ? `${queued.displayName}: nessun problema; ${technical.rows.length} infissi 1:1 e totale IVA incluso verificati localmente.`
+      ? `${queued.displayName}: nessun problema; ${technical.rows.length} infissi 1:1 e totale finale fatture verificato localmente.`
       : `${queued.displayName}: ${blockers.length} blocker Infissi coerenti registrati; la coda prosegue.`;
     const completedItem: AprInfissiBatchItem = {
       ...queued,
@@ -611,6 +781,31 @@ export class PersistentAprInfissiBatchPreflight {
         appliedRuleIds,
       },
     };
+    const operatorApplications = operatorProjection.entries.flatMap((entry) => {
+      let outcome: "applied" | "verified_general_rule" | null = null;
+      let evidence = "";
+      if (operatorPrepared.appliedResponseIds.includes(entry.responseId)) {
+        outcome = "applied";
+        evidence = `dossier_override:${entry.payload.kind}`;
+      } else if (entry.payload.kind === "physical_product_count" && technical.rows.length === entry.payload.count) {
+        outcome = "applied";
+        evidence = `physicalProductCount=${technical.rows.length}`;
+      } else if (entry.payload.kind === "general_rule_confirmation" && entry.payload.ruleIds.every((ruleId) => appliedRuleIds.includes(ruleId))) {
+        outcome = "verified_general_rule";
+        evidence = `runtimeRuleIds=${entry.payload.ruleIds.join(",")}`;
+      }
+      return outcome ? [{
+        responseId: entry.responseId,
+        customerKey: queued.customerKey,
+        practiceId: queued.practiceId,
+        runRoot: this.rootDirectory,
+        sourceFingerprint: state.sourceFingerprint!,
+        outcome,
+        evidence,
+        appliedAt: now.toISOString(),
+      }] : [];
+    });
+    if (operatorApplications.length) this.operatorResponses.recordApplications(operatorApplications, now);
     const completedItems = state.items.map((item, index) => index === nextIndex ? completedItem : item);
     const nextProgress = progress(completedItems);
     const eventType = ready ? "case_ready" : "case_blocked";

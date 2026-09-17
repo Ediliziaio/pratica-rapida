@@ -1,0 +1,47 @@
+{
+  "version": "apr-visible-single-case-r104-v1",
+  "experimentId": "apr-visible-domenico-tranquillo-r104-20260910",
+  "authorizationId": "user-2026-09-10-visible-draft-domenico-tranquillo",
+  "authorizedAt": "2026-09-10T11:29:57+02:00",
+  "mode": "real_enea_draft_only",
+  "selection": {
+    "total": 1,
+    "groups": {
+      "visible_demonstration": 1
+    },
+    "allowedStages": [
+      "pronte_da_fare"
+    ],
+    "excludedCustomerKeys": [],
+    "exclusionPolicy": [
+      "unsupported_product",
+      "synthetic_test_name",
+      "permanent_customer_exclusion",
+      "permanent_supplier_exclusion"
+    ]
+  },
+  "cases": [
+    {
+      "practiceId": "4e170ee5-dc57-4660-9392-40c697bf076d",
+      "customerKey": "domenico-tranquillo",
+      "displayName": "DOMENICO TRANQUILLO",
+      "stage": "pronte_da_fare",
+      "stageName": "pronte_da_fare",
+      "module": "infissi",
+      "productEvidence": "Infissi / Serramenti",
+      "reseller": "passione serramenti",
+      "complexity": "previously_saved_visible_retest",
+      "historicalRetest": true,
+      "expectedRouting": "standard",
+      "group": "visible_demonstration",
+      "groupOrder": 1
+    }
+  ],
+  "safety": {
+    "draftOnly": true,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false,
+    "priorDraftPolicy": "fresh_generation_only"
+  }
+}

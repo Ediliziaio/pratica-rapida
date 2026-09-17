@@ -154,6 +154,53 @@ describe("APR browser worker persistente e autonomo", () => {
     expect(execution.snapshot().items[0].canonicalDraftId).toBe(execution.snapshot().items[0].draftId);
     expect(execution.snapshot().supersededGenerations).toHaveLength(1);
   });
+  // r125, 14/09/2026: Bellini (id-telefono "Inserire solo numeri"), Fiorini
+  // (id-gtot vuoto), De Filippo (id-gg vuoto). Il driver registrava gia' il
+  // campo rifiutato dal portale a ogni Salva; il worker apriva comunque il
+  // ciclo del salvataggio incerto, riprovava identico, e finiva in "esito
+  // non dimostrabile" senza mai nominare il campo.
+  it("se il portale ha marcato un campo non valido, isola subito nominando il campo invece di aprire il recupero incerto", async () => {
+    const directory = temporaryDirectory();
+    const execution = new PersistentAprEneaDraftExecution(directory);
+    execution.prepare(preflightFixture(), new Date("2026-09-15T09:00:00.000Z"));
+
+    const base = new PersistentSimulatedEneaPortalDriver(directory, { identity: "apr-profile-portal-rejection" });
+    let rejectionReads = 0;
+    const driver: AprEneaBrowserDriver = {
+      ...base,
+      kind: base.kind,
+      identity: base.identity,
+      verifySession: base.verifySession.bind(base),
+      discoverExistingDraft: base.discoverExistingDraft.bind(base),
+      createDraft: base.createDraft.bind(base),
+      preparePage: base.preparePage.bind(base),
+      savePage: base.savePage.bind(base),
+      // Per case-one il click c'e' stato, ma la GET canonica non trova la
+      // pagina persistita; case-two procede normalmente.
+      verifyPageSaved: async (draft, draftId, pageId) => draft.customerKey === "case-one" ? null : base.verifyPageSaved(draft, draftId, pageId),
+      verifyDraftSaved: base.verifyDraftSaved.bind(base),
+      lastPageSaveRejection: (draft) => {
+        if (draft.customerKey !== "case-one") return null;
+        rejectionReads += 1;
+        return { evidenceId: "cdp-server-13-test", invalidControlIds: ["id-telefono"], messages: ["Inserire solo numeri."] };
+      },
+    };
+    const worker = new PersistentAprEneaBrowserWorker(directory, execution, draftPackage, driver, { instanceId: "apr-worker-portal-rejection", processPid: 4778 });
+    await worker.runUntilTerminal();
+
+    const item = execution.snapshot().items.find((candidate) => candidate.customerKey === "case-one")!;
+    expect(rejectionReads).toBeGreaterThan(0);
+    expect(item.state).toBe("operator_intervention");
+    expect(item.reason).toContain("Il portale ENEA rifiuta la pagina");
+    expect(item.reason).toContain("id-telefono");
+    expect(item.reason).toContain("Inserire solo numeri");
+    // Nessun ciclo di salvataggio incerto e' stato aperto: niente sonde, niente recupero.
+    expect(item.uncertainPageSave ?? null).toBeNull();
+    expect(worker.snapshot().blockedCustomerKeys).toContain("case-one");
+    // La coda non si e' fermata: case-two e' arrivata in fondo.
+    expect(execution.snapshot().items.find((candidate) => candidate.customerKey === "case-two")?.state).toBe("saved");
+  });
+
   it("accetta il Generatore soltanto quando la prova JSON server indipendente lo conferma", async () => {
     const directory = temporaryDirectory();
     const execution = new PersistentAprEneaDraftExecution(directory);

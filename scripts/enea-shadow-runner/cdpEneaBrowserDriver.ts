@@ -1,3 +1,4 @@
+import type { AprEneaPortalPageRejection } from "./aprEneaBrowserWorker";
 import { createHash } from "node:crypto";
 import { closeSync, existsSync, fsyncSync, mkdirSync, openSync, readFileSync, readdirSync, renameSync, writeFileSync } from "node:fs";
 import path from "node:path";
@@ -572,6 +573,30 @@ export class CdpEneaBrowserDriver implements AprEneaBrowserDriver {
     this.identity = `apr-chrome-profile:${runtime.profileFingerprint}`;
     this.checkpointPath = path.join(path.resolve(rootDirectory), "enea-browser-worker", "cdp-driver.json");
     if (!existsSync(this.checkpointPath)) this.write({ version: VERSION, revision: 0, identity: this.identity, activeTargetId: null, pendingCreate: null, createRecoveryRecords: [], creationSurface: null, mappings: [], contract: null, pageDiagnostic: null, pageDiagnostics: [], pagePreparationDiagnostic: null, pageSaveDiagnostics: [], calculationModalContractDiagnostic: null, calculationNetworkDiagnostic: null, events: [] });
+  }
+
+  /**
+   * Legge dalle proprie diagnostiche l'esito dell'ultimo Salva della pagina:
+   * i controlli marcati non validi dal portale e i messaggi di validazione
+   * mostrati. Sola lettura del checkpoint, nessuna azione sul browser.
+   */
+  lastPageSaveRejection(draftPackage: AprEneaDraftPackage, draftId: string, pageId: string): AprEneaPortalPageRejection | null {
+    const state = this.load();
+    const diagnostic = [...state.pageSaveDiagnostics].reverse().find((entry) => {
+      const value = entry as { customerKey?: unknown; draftId?: unknown; pageId?: unknown };
+      return value.customerKey === draftPackage.customerKey && String(value.draftId) === String(draftId) && value.pageId === pageId;
+    }) as { evidenceId?: unknown; postClick?: { invalidControlIds?: unknown; alerts?: unknown } } | undefined;
+    if (!diagnostic?.postClick) return null;
+    const invalidControlIds = Array.isArray(diagnostic.postClick.invalidControlIds)
+      ? diagnostic.postClick.invalidControlIds.filter((id): id is string => typeof id === "string" && id.trim().length > 0)
+      : [];
+    if (invalidControlIds.length === 0) return null;
+    const alerts = Array.isArray(diagnostic.postClick.alerts) ? diagnostic.postClick.alerts.filter((item): item is string => typeof item === "string") : [];
+    // Solo i messaggi brevi di validazione: i testi di aiuto lunghi del
+    // portale ("Inserire i riferimenti di altri eventuali beneficiari...")
+    // contengono le stesse parole ma non sono un rifiuto.
+    const messages = [...new Set(alerts.map((text) => text.trim()).filter((text) => text.length <= 60 && /obbligatori|inserire|non valid|formato|massimo|minimo/i.test(text)))];
+    return { evidenceId: String(diagnostic.evidenceId ?? ""), invalidControlIds, messages };
   }
 
   private load(): DriverState {

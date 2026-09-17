@@ -6,7 +6,7 @@ import path from "node:path";
 export const APR_ENEA_GLOBAL_BROWSER_CONTROLLER_VERSION = "apr-enea-global-browser-controller-v2" as const;
 export const APR_ENEA_GLOBAL_BROWSER_CONTROLLER_RULE_ID = "system-global-enea-browser-controller-fenced-lease-v2" as const;
 export const APR_ENEA_GLOBAL_BROWSER_LOCK_PUBLICATION_RULE_ID = "system-global-browser-lock-atomic-publication-v1" as const;
-export const APR_ENEA_BROWSER_LEASE_DEFAULT_MS = 30_000;
+export const APR_ENEA_BROWSER_LEASE_DEFAULT_MS = 120_000;
 export type AprEneaCdpAccessMode = "readonly" | "mutating";
 
 export interface AprEneaGlobalBrowserAccess {

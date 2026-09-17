@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { resolveAprDocumentedProductRouting, resolveFormDeclaredProductModule } from "./documentedProductRouting";
+import { USER_AUTHORIZED_RULE_IDS } from "./operationalRegistry";
 
 describe("routing prodotto da fonti originarie", () => {
   it("instrada persiane al modulo schermature anche con etichetta Infissi", () => {
@@ -10,6 +11,48 @@ describe("routing prodotto da fonti originarie", () => {
     const result = resolveAprDocumentedProductRouting({ declaredModule: "infissi", sources: [{ sourceId: "invoice", text: "FORNITURA N. 3 SERRAMENTI IN PVC COMPLETI DI N. 3 PERSIANE IN ALLUMINIO" }] });
     expect(result.module).toBe("mixed");
     expect(result.screeningEvidence).not.toHaveLength(0); expect(result.infissiEvidence).not.toHaveLength(0);
+  });
+  // Sostituisce il test omonimo che pretendeva "mixed" per una zanzariera
+  // fornita insieme ai serramenti. Quel test portava il nome della regola di
+  // Giuga e ne fissava il contrario: la regola del 10/09/2026 (confermata
+  // l'11/09 e il 13/09) dice che la zanzariera su un lavoro di infissi e' una
+  // spunta ENEA, non un prodotto Schermature. Con "mixed" la pratica
+  // pretendeva le misure di una schermatura che non esiste e Giuga, cinque
+  // finestre certificate, restava fermo su "misure della schermatura
+  // mancanti" giro dopo giro.
+  it("regola Giuga: zanzariera con infissi resta Infissi (la zanzariera e' una spunta), zanzariera da sola resta Schermature", () => {
+    const withWindows = resolveAprDocumentedProductRouting({
+      sources: [{ sourceId: "fattura-mista", text: "Fornitura di n. 5 infissi PVC e posa di una zanzariera" }],
+    });
+    const standalone = resolveAprDocumentedProductRouting({
+      sources: [{ sourceId: "fattura-zanzariera", text: "Fornitura e posa di n. 1 zanzariera" }],
+    });
+    expect(withWindows).toMatchObject({ module: "infissi", source: "original_documents" });
+    expect(withWindows.screeningEvidence).toEqual([]);
+    expect(withWindows.zanzarieraClosureEvidence).toHaveLength(1);
+    expect(standalone).toMatchObject({ module: "screening", source: "original_documents" });
+    expect(standalone.zanzarieraClosureEvidence).toEqual([]);
+    expect(withWindows.appliedRuleIds).toContain(USER_AUTHORIZED_RULE_IDS.zanzarieraInfissiInstallationContext);
+    expect(standalone.appliedRuleIds).toContain(USER_AUTHORIZED_RULE_IDS.zanzarieraInfissiInstallationContext);
+  });
+  it("Santo Giuga, documenti reali del 13/09/2026: infissi in PVC su sei fonti e 'produzione e posa zanzariera' su due, la pratica e' Infissi", () => {
+    const routing = resolveAprDocumentedProductRouting({
+      declaredModule: "infissi",
+      sources: [
+        { sourceId: "bonifico", text: "Causale: infissi pvc acconto" },
+        { sourceId: "fattura-124", text: "Fattura 124/FE — Fornitura e posa infissi PVC" },
+        { sourceId: "fattura-297", text: "Fattura 297/FE — Fattura per produzione e posa zanzariera + saldo fine lavori" },
+        { sourceId: "dop", text: "Dichiarazione di prestazione — finestre in PVC, FIN2 THERMOFIBRA" },
+      ],
+    });
+    expect(routing.module).toBe("infissi");
+    expect(routing.zanzarieraClosureEvidence.some((item) => item.startsWith("fattura-297:"))).toBe(true);
+  });
+  it("una tenda da sole insieme ai serramenti resta una fornitura mista: la regola vale solo per la zanzariera", () => {
+    const routing = resolveAprDocumentedProductRouting({
+      sources: [{ sourceId: "fattura", text: "Fornitura di n. 3 finestre PVC. Fornitura e posa di tenda da sole a bracci" }],
+    });
+    expect(routing.module).toBe("mixed");
   });
   it("regola generale definitiva di Giuliano (2026-09-08): conserva entrambe le famiglie (mixed) anche quando infissi e chiusura oscurante provengono da fatture separate di fornitori diversi", () => {
     const result = resolveAprDocumentedProductRouting({

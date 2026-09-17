@@ -1,0 +1,1794 @@
+{
+  "version": "apr-atzeni-amadu-field-comparison-v2",
+  "generatedAt": "2026-09-10T15:38:30.762Z",
+  "scope": "Read-only comparison against historical operator-completed ENEA PDF; product surface/measure fields excluded by user request.",
+  "caveat": "APR values marked candidate_blocked are deterministic intermediate mappings only. No complete executable package exists while the independent economic/form/date gates remain closed; this is not an operational saved verdict.",
+  "cases": [
+    {
+      "customerKey": "giovanna-atzeni",
+      "displayName": "GIOVANNA ATZENI",
+      "practiceId": "dc4484cd-c462-49c0-a734-3064dd6469a8",
+      "humanReference": {
+        "path": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-infissi-atzeni-amadu-field-comparison-2026-09-10/historical-pdfs/dc4484cd-c462-49c0-a734-3064dd6469a8/operator-completed-1.pdf",
+        "sha256": "653347e36df7f10fa1043c40bfe6f7dec6977ae9fd92f8d9eb8bb0d24779da33",
+        "cpid": "208400-2026E-UIDYQKPQRRTQYLMI",
+        "parsedFieldCount": 119,
+        "visuallyVerifiedPage": 2,
+        "blankFields": [
+          "impianto.distribuzione",
+          "impianto.regolazione",
+          "impianto.manutenzione_straordinaria"
+        ]
+      },
+      "aprReference": {
+        "commonCheckpoint": {
+          "path": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-infissi-atzeni-amadu-field-comparison-2026-09-10/local-replay-v158b/giovanna-atzeni/crm-local-preflight/checkpoint.json",
+          "sha256": "dc5568a3856f68d6e213785d48d556e4c24443a7d35b232a18f29010ddfeb20f"
+        },
+        "infissiCheckpoint": {
+          "path": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-infissi-atzeni-amadu-field-comparison-2026-09-10/local-replay-v158b/giovanna-atzeni/infissi-batch-preflight/checkpoint.json",
+          "sha256": "0b52c9ca35c906c20bf1e19095a4773dce8eeaec4e370cd66f422c716ff7c6d2"
+        },
+        "commonState": "blocked_case",
+        "infissiState": "blocked_case"
+      },
+      "currentCrmReference": {
+        "path": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-infissi-atzeni-amadu-field-comparison-2026-09-10/current-crm-dossiers.json",
+        "sha256": "5bc2fb9efa6427ee9424d9b5c843037e613ffc4194e5d0ad05958bc7c84709dd",
+        "fetchedAt": "2026-09-10T15:38:04.053Z",
+        "readOnly": true,
+        "hasCustomerForm": false
+      },
+      "safety": {
+        "comparisonOnly": true,
+        "crmWrites": false,
+        "eneaOpened": false,
+        "eneaWrites": false
+      },
+      "closureDecision": {
+        "mode": "technical_explicit_none",
+        "flags": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "evidenceCount": 8,
+        "evidenceSourceIds": [
+          "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8"
+        ],
+        "invoiceClosureMentionSourceIds": [],
+        "ruleId": "user-2026-09-10-infissi-explicit-no-screen-negative-closure-evidence-v1"
+      },
+      "currentNonClosureBlockers": {
+        "common": [
+          {
+            "code": "customer_form_missing",
+            "field": "customer_form",
+            "reason": "Il dossier CRM non contiene un form cliente originario utilizzabile; documenti ENEA storici esclusi.",
+            "sourceIds": [
+              "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8"
+            ],
+            "appliedRuleIds": [
+              "core-form-first",
+              "user-2026-09-03-structured-residual-case-question-v1"
+            ],
+            "exactCause": "Il dossier CRM non contiene un form cliente originario utilizzabile; documenti ENEA storici esclusi.",
+            "missingDocumentType": "modulo cliente originario",
+            "operatorQuestion": "Puoi inserire o indicare il modulo cliente originario richiesto per risolvere customer_form?",
+            "onboardingGap": "Rendere obbligatorio in onboarding: modulo cliente originario."
+          },
+          {
+            "code": "tax_code_missing_or_invalid",
+            "field": "beneficiary.taxCode",
+            "reason": "CF valido e coerente non disponibile nel form o nelle fatture originarie.",
+            "sourceIds": [
+              "giovanna-atzeni"
+            ],
+            "appliedRuleIds": [
+              "core-form-first",
+              "user-2026-08-14-valid-original-document-cf-over-invalid-form",
+              "user-2026-08-16-fiscal-code-identity-cross-check",
+              "user-2026-09-03-structured-residual-case-question-v1"
+            ],
+            "exactCause": "CF valido e coerente non disponibile nel form o nelle fatture originarie.",
+            "missingDocumentType": "documento fiscale o ufficiale con codice fiscale",
+            "operatorQuestion": "Puoi inserire o indicare il documento fiscale o ufficiale con codice fiscale richiesto per risolvere beneficiary.taxCode?",
+            "onboardingGap": "Rendere obbligatorio in onboarding: documento fiscale o ufficiale con codice fiscale."
+          },
+          {
+            "code": "screenings_missing",
+            "field": "screenings",
+            "reason": "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+            "sourceIds": [
+              "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8"
+            ],
+            "appliedRuleIds": [
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "system-specific-incomplete-screening-blocker-v1",
+              "user-2026-09-03-structured-residual-case-question-v1"
+            ],
+            "exactCause": "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+            "missingDocumentType": "documento tecnico con misure del prodotto",
+            "operatorQuestion": "Mancano le misure del prodotto in tutti i documenti originari verificati: puoi inserirle?",
+            "onboardingGap": "Rendere obbligatorio in onboarding: documento tecnico con misure del prodotto."
+          },
+          {
+            "code": "completion_date_portal_year_mismatch",
+            "field": "dates.completion",
+            "reason": "Fine lavori 2025-12-31: anno 2025 incompatibile con il portale ENEA 2026. Selezionare il portale annuale corretto senza modificare la data.",
+            "sourceIds": [
+              "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:invoice:a0807c8f37ed"
+            ],
+            "appliedRuleIds": [
+              "user-2026-08-23-completion-portal-year-operator-gate",
+              "user-2026-08-14-missing-completion-use-latest-invoice",
+              "user-2026-09-03-structured-residual-case-question-v1"
+            ],
+            "exactCause": "Fine lavori 2025-12-31: anno 2025 incompatibile con il portale ENEA 2026. Selezionare il portale annuale corretto senza modificare la data.",
+            "missingDocumentType": null,
+            "operatorQuestion": "Confermi che la pratica è ancora procedibile e indichi l'anno del portale ENEA corretto?",
+            "onboardingGap": "Acquisire e validare in onboarding il dato dates.completion con la relativa fonte originaria."
+          },
+          {
+            "code": "completion_over_90_days_operator_required",
+            "field": "dates.completion",
+            "reason": "Fine lavori 2025-12-31: 253 giorni prima della lavorazione, oltre il limite di 90 giorni. Verificare la procedibilità e il portale annuale corretto.",
+            "sourceIds": [
+              "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:invoice:a0807c8f37ed"
+            ],
+            "appliedRuleIds": [
+              "user-2026-08-23-completion-over-90-operator-gate",
+              "user-2026-08-14-missing-completion-use-latest-invoice",
+              "user-2026-09-03-structured-residual-case-question-v1"
+            ],
+            "exactCause": "Fine lavori 2025-12-31: 253 giorni prima della lavorazione, oltre il limite di 90 giorni. Verificare la procedibilità e il portale annuale corretto.",
+            "missingDocumentType": null,
+            "operatorQuestion": "Confermi che la pratica è ancora procedibile e indichi l'anno del portale ENEA corretto?",
+            "onboardingGap": "Acquisire e validare in onboarding il dato dates.completion con la relativa fonte originaria."
+          },
+          {
+            "code": "invoice_332a5af9",
+            "field": "economic_sources",
+            "reason": "Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture.",
+            "sourceIds": [
+              "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8"
+            ],
+            "appliedRuleIds": [
+              "core-economic-classification",
+              "user-2026-09-03-structured-residual-case-question-v1"
+            ],
+            "exactCause": "Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture.",
+            "missingDocumentType": null,
+            "operatorQuestion": "Confermi il valore corretto da usare per economic_sources, sulla base dei documenti originari?",
+            "onboardingGap": "Acquisire e validare in onboarding il dato economic_sources con la relativa fonte originaria."
+          },
+          {
+            "code": "gross_triple_reconciliation_failed",
+            "field": "economic_sources.total",
+            "reason": "Tripla riconciliazione non dimostrata: estrazione-incerta:0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:invoice:a0807c8f37ed.",
+            "sourceIds": [
+              "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8"
+            ],
+            "appliedRuleIds": [
+              "user-2026-08-16-invoice-gross-total-vat-included",
+              "core-gross-triple-reconciliation",
+              "user-2026-09-07-invoice-gross-total-never-internally-verified-v1",
+              "user-2026-09-03-structured-residual-case-question-v1"
+            ],
+            "exactCause": "Tripla riconciliazione non dimostrata: estrazione-incerta:0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:invoice:a0807c8f37ed.",
+            "missingDocumentType": null,
+            "operatorQuestion": "Confermi il valore corretto da usare per economic_sources.total, sulla base dei documenti originari?",
+            "onboardingGap": "Acquisire e validare in onboarding il dato economic_sources.total con la relativa fonte originaria."
+          }
+        ],
+        "infissi": [
+          {
+            "code": "infissi_financial_triple_reconciliation_required",
+            "field": "invoice_total",
+            "sourceIds": [
+              "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:invoice:a9de80b81628",
+              "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:invoice:a0807c8f37ed"
+            ]
+          },
+          {
+            "code": "gross_triple_reconciliation_failed",
+            "field": "economic_sources.total",
+            "sourceIds": [
+              "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8"
+            ]
+          }
+        ]
+      },
+      "excludedProductMeasurementFields": [
+        "infissi.0.superficie",
+        "infissi.1.superficie",
+        "infissi.2.superficie",
+        "infissi.3.superficie",
+        "infissi.4.superficie",
+        "infissi.5.superficie",
+        "infissi.6.superficie",
+        "infissi.7.superficie"
+      ],
+      "comparisonSummary": {
+        "comparedNonPortalFields": 105,
+        "matches": 44,
+        "differences": 26,
+        "missing": 32,
+        "sameRawButRejected": 3,
+        "portalManaged": 6
+      },
+      "comparisons": [
+        {
+          "fieldId": "intervento.tipo",
+          "humanValue": "Comma 345A - Interventi sull'involucro",
+          "aprValue": "Comma 345A - Interventi sull'involucro",
+          "result": "match",
+          "readiness": "ready_value"
+        },
+        {
+          "fieldId": "immobile.indirizzo",
+          "humanValue": "via alivia",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "immobile.civico",
+          "humanValue": "12",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "immobile.cap",
+          "humanValue": "07100",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "immobile.comune",
+          "humanValue": "Sassari",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "immobile.codice_catastale",
+          "humanValue": "I452",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "immobile.foglio",
+          "humanValue": "89",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "immobile.mappale",
+          "humanValue": "321",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "immobile.subalterno",
+          "humanValue": "23",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "immobile.anno",
+          "humanValue": "1970",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "immobile.superficie",
+          "humanValue": "130",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "beneficiario.nome",
+          "humanValue": "giovanna",
+          "aprValue": "GIOVANNA",
+          "result": "same_raw_crm_value_but_not_accepted_by_preflight",
+          "readiness": "source_present_but_rejected"
+        },
+        {
+          "fieldId": "beneficiario.cognome",
+          "humanValue": "atzeni",
+          "aprValue": "ATZENI",
+          "result": "same_raw_crm_value_but_not_accepted_by_preflight",
+          "readiness": "source_present_but_rejected"
+        },
+        {
+          "fieldId": "beneficiario.cf",
+          "humanValue": "TZNGNN84T64B354Q",
+          "aprValue": "TZNGNN84T64B354Q",
+          "result": "same_raw_crm_value_but_not_accepted_by_preflight",
+          "readiness": "source_present_but_rejected"
+        },
+        {
+          "fieldId": "beneficiario.sesso",
+          "humanValue": "F",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "beneficiario.data_nascita",
+          "humanValue": "24/12/1984",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "beneficiario.comune_nascita",
+          "humanValue": "Cagliari (CA)",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "beneficiario.indirizzo_residenza",
+          "humanValue": "via xxv aprile",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "beneficiario.civico_residenza",
+          "humanValue": "4",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "beneficiario.cap_residenza",
+          "humanValue": "07100",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "beneficiario.comune_residenza",
+          "humanValue": "Sassari",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "beneficiario.titolo",
+          "humanValue": "Proprietario o comproprietario",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "immobile.destinazione_generale",
+          "humanValue": "Residenziale",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "immobile.destinazione_particolare",
+          "humanValue": "Edifici adibiti a residenza e assimilabili (con carattere continuativo o saltuario)",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "immobile.tipologia",
+          "humanValue": "Edificio in linea e condominio oltre i tre piani fuori terra",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "intervento.ambito",
+          "humanValue": "Singola unità immobiliare (in un edificio costituito da più unità immobiliari)",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "intervento.unita_totali",
+          "humanValue": "3",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "intervento.unita_oggetto",
+          "humanValue": "4",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "intervento.data_inizio",
+          "humanValue": "26/11/2025",
+          "aprValue": "2025-11-26",
+          "result": "match",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "intervento.data_fine",
+          "humanValue": "31/03/2026",
+          "aprValue": "2025-12-31",
+          "result": "difference",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "impianto.condizionamento",
+          "humanValue": "Sì",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "impianto.generatore",
+          "humanValue": "Caldaia a gas a condensazione",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "impianto.numero_generatori",
+          "humanValue": "1",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "impianto.rendimento",
+          "humanValue": "97",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "impianto.potenza",
+          "humanValue": "206",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "infissi.0.telaio_vecchio",
+          "humanValue": "Legno",
+          "aprValue": "Metallo, no taglio termico",
+          "result": "difference",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.0.vetro_vecchio",
+          "humanValue": "Singolo",
+          "aprValue": "Singolo",
+          "result": "match",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.0.trasmittanza_vecchio",
+          "humanValue": "5",
+          "aprValue": "6",
+          "result": "difference",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.0.telaio_nuovo",
+          "humanValue": "PVC",
+          "aprValue": "PVC",
+          "result": "match",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.1.telaio_vecchio",
+          "humanValue": "Legno",
+          "aprValue": "Metallo, no taglio termico",
+          "result": "difference",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.1.vetro_vecchio",
+          "humanValue": "Singolo",
+          "aprValue": "Singolo",
+          "result": "match",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.1.trasmittanza_vecchio",
+          "humanValue": "5",
+          "aprValue": "6",
+          "result": "difference",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.1.telaio_nuovo",
+          "humanValue": "PVC",
+          "aprValue": "PVC",
+          "result": "match",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.2.telaio_vecchio",
+          "humanValue": "Legno",
+          "aprValue": "Metallo, no taglio termico",
+          "result": "difference",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.2.vetro_vecchio",
+          "humanValue": "Singolo",
+          "aprValue": "Singolo",
+          "result": "match",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.2.trasmittanza_vecchio",
+          "humanValue": "5",
+          "aprValue": "6",
+          "result": "difference",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.2.telaio_nuovo",
+          "humanValue": "PVC",
+          "aprValue": "PVC",
+          "result": "match",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.3.telaio_vecchio",
+          "humanValue": "Legno",
+          "aprValue": "Metallo, no taglio termico",
+          "result": "difference",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.3.vetro_vecchio",
+          "humanValue": "Singolo",
+          "aprValue": "Singolo",
+          "result": "match",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.3.trasmittanza_vecchio",
+          "humanValue": "5",
+          "aprValue": "6",
+          "result": "difference",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.3.telaio_nuovo",
+          "humanValue": "PVC",
+          "aprValue": "PVC",
+          "result": "match",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.4.telaio_vecchio",
+          "humanValue": "Legno",
+          "aprValue": "Metallo, no taglio termico",
+          "result": "difference",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.4.vetro_vecchio",
+          "humanValue": "Singolo",
+          "aprValue": "Singolo",
+          "result": "match",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.4.trasmittanza_vecchio",
+          "humanValue": "5",
+          "aprValue": "6",
+          "result": "difference",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.4.telaio_nuovo",
+          "humanValue": "PVC",
+          "aprValue": "PVC",
+          "result": "match",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.5.telaio_vecchio",
+          "humanValue": "Legno",
+          "aprValue": "Metallo, no taglio termico",
+          "result": "difference",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.5.vetro_vecchio",
+          "humanValue": "Singolo",
+          "aprValue": "Singolo",
+          "result": "match",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.5.trasmittanza_vecchio",
+          "humanValue": "5",
+          "aprValue": "6",
+          "result": "difference",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.5.telaio_nuovo",
+          "humanValue": "PVC",
+          "aprValue": "PVC",
+          "result": "match",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.6.telaio_vecchio",
+          "humanValue": "Legno",
+          "aprValue": "Metallo, no taglio termico",
+          "result": "difference",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.6.vetro_vecchio",
+          "humanValue": "Singolo",
+          "aprValue": "Singolo",
+          "result": "match",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.6.trasmittanza_vecchio",
+          "humanValue": "5",
+          "aprValue": "6",
+          "result": "difference",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.6.telaio_nuovo",
+          "humanValue": "PVC",
+          "aprValue": "PVC",
+          "result": "match",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.7.telaio_vecchio",
+          "humanValue": "Legno",
+          "aprValue": "Metallo, no taglio termico",
+          "result": "difference",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.7.vetro_vecchio",
+          "humanValue": "Singolo",
+          "aprValue": "Singolo",
+          "result": "match",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.7.trasmittanza_vecchio",
+          "humanValue": "5",
+          "aprValue": "6",
+          "result": "difference",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.7.telaio_nuovo",
+          "humanValue": "PVC",
+          "aprValue": "PVC",
+          "result": "match",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.numero",
+          "humanValue": "8",
+          "aprValue": "8",
+          "result": "match",
+          "readiness": "ready_value"
+        },
+        {
+          "fieldId": "infissi.spesa",
+          "humanValue": "7900",
+          "aprValue": "4582.66",
+          "result": "difference",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "riepilogo.detrazione_totale",
+          "humanValue": "2844",
+          "aprValue": null,
+          "result": "portal_managed_not_written_by_apr",
+          "readiness": "portal_managed"
+        },
+        {
+          "fieldId": "riepilogo.detrazione_massima",
+          "humanValue": "60000",
+          "aprValue": null,
+          "result": "portal_managed_not_written_by_apr",
+          "readiness": "portal_managed"
+        },
+        {
+          "fieldId": "riepilogo.detrazione_ammissibile",
+          "humanValue": "2844",
+          "aprValue": null,
+          "result": "portal_managed_not_written_by_apr",
+          "readiness": "portal_managed"
+        },
+        {
+          "fieldId": "immobile.zona_climatica",
+          "humanValue": "C",
+          "aprValue": null,
+          "result": "portal_managed_not_written_by_apr",
+          "readiness": "portal_managed"
+        },
+        {
+          "fieldId": "immobile.gradi_giorno",
+          "humanValue": "1185",
+          "aprValue": null,
+          "result": "portal_managed_not_written_by_apr",
+          "readiness": "portal_managed"
+        },
+        {
+          "fieldId": "immobile.fascia_solare",
+          "humanValue": "4",
+          "aprValue": null,
+          "result": "portal_managed_not_written_by_apr",
+          "readiness": "portal_managed"
+        },
+        {
+          "fieldId": "beneficiario.cointestatari",
+          "humanValue": "Nessuno",
+          "aprValue": "Nessuno",
+          "result": "match",
+          "readiness": "ready_value"
+        },
+        {
+          "fieldId": "impianto.tipo",
+          "humanValue": "b. impianto centralizzato",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "impianto.terminali",
+          "humanValue": "d. radiatori",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "impianto.combustibile",
+          "humanValue": "c. gpl",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "infissi.0.vetro_nuovo",
+          "humanValue": "A bassa emissione",
+          "aprValue": "A bassa emissione",
+          "result": "match",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.0.trasmittanza_nuovo",
+          "humanValue": "1.4",
+          "aprValue": "1.3",
+          "result": "difference",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.0.confine",
+          "humanValue": "Verso esterno",
+          "aprValue": "Verso esterno",
+          "result": "match",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.0.chiusura_oscurante",
+          "humanValue": "No",
+          "aprValue": "No",
+          "result": "match",
+          "readiness": "ready_value"
+        },
+        {
+          "fieldId": "infissi.1.vetro_nuovo",
+          "humanValue": "A bassa emissione",
+          "aprValue": "A bassa emissione",
+          "result": "match",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.1.trasmittanza_nuovo",
+          "humanValue": "1.4",
+          "aprValue": "1.3",
+          "result": "difference",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.1.confine",
+          "humanValue": "Verso esterno",
+          "aprValue": "Verso esterno",
+          "result": "match",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.1.chiusura_oscurante",
+          "humanValue": "No",
+          "aprValue": "No",
+          "result": "match",
+          "readiness": "ready_value"
+        },
+        {
+          "fieldId": "infissi.2.vetro_nuovo",
+          "humanValue": "A bassa emissione",
+          "aprValue": "A bassa emissione",
+          "result": "match",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.2.trasmittanza_nuovo",
+          "humanValue": "1.38",
+          "aprValue": "1.3",
+          "result": "difference",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.2.confine",
+          "humanValue": "Verso esterno",
+          "aprValue": "Verso esterno",
+          "result": "match",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.2.chiusura_oscurante",
+          "humanValue": "No",
+          "aprValue": "No",
+          "result": "match",
+          "readiness": "ready_value"
+        },
+        {
+          "fieldId": "infissi.3.vetro_nuovo",
+          "humanValue": "A bassa emissione",
+          "aprValue": "A bassa emissione",
+          "result": "match",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.3.trasmittanza_nuovo",
+          "humanValue": "1.4",
+          "aprValue": "1.3",
+          "result": "difference",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.3.confine",
+          "humanValue": "Verso esterno",
+          "aprValue": "Verso esterno",
+          "result": "match",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.3.chiusura_oscurante",
+          "humanValue": "No",
+          "aprValue": "No",
+          "result": "match",
+          "readiness": "ready_value"
+        },
+        {
+          "fieldId": "infissi.4.vetro_nuovo",
+          "humanValue": "A bassa emissione",
+          "aprValue": "A bassa emissione",
+          "result": "match",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.4.trasmittanza_nuovo",
+          "humanValue": "1.37",
+          "aprValue": "1.3",
+          "result": "difference",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.4.confine",
+          "humanValue": "Verso esterno",
+          "aprValue": "Verso esterno",
+          "result": "match",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.4.chiusura_oscurante",
+          "humanValue": "No",
+          "aprValue": "No",
+          "result": "match",
+          "readiness": "ready_value"
+        },
+        {
+          "fieldId": "infissi.5.vetro_nuovo",
+          "humanValue": "A bassa emissione",
+          "aprValue": "A bassa emissione",
+          "result": "match",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.5.trasmittanza_nuovo",
+          "humanValue": "1.39",
+          "aprValue": "0.54",
+          "result": "difference",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.5.confine",
+          "humanValue": "Verso esterno",
+          "aprValue": "Verso esterno",
+          "result": "match",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.5.chiusura_oscurante",
+          "humanValue": "No",
+          "aprValue": "No",
+          "result": "match",
+          "readiness": "ready_value"
+        },
+        {
+          "fieldId": "infissi.6.vetro_nuovo",
+          "humanValue": "A bassa emissione",
+          "aprValue": "A bassa emissione",
+          "result": "match",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.6.trasmittanza_nuovo",
+          "humanValue": "1.37",
+          "aprValue": "1.3",
+          "result": "difference",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.6.confine",
+          "humanValue": "Verso esterno",
+          "aprValue": "Verso esterno",
+          "result": "match",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.6.chiusura_oscurante",
+          "humanValue": "No",
+          "aprValue": "No",
+          "result": "match",
+          "readiness": "ready_value"
+        },
+        {
+          "fieldId": "infissi.7.vetro_nuovo",
+          "humanValue": "A bassa emissione",
+          "aprValue": "A bassa emissione",
+          "result": "match",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.7.trasmittanza_nuovo",
+          "humanValue": "1.39",
+          "aprValue": "1.3",
+          "result": "difference",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.7.confine",
+          "humanValue": "Verso esterno",
+          "aprValue": "Verso esterno",
+          "result": "match",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.7.chiusura_oscurante",
+          "humanValue": "No",
+          "aprValue": "No",
+          "result": "match",
+          "readiness": "ready_value"
+        }
+      ]
+    },
+    {
+      "customerKey": "giovanni-amadu",
+      "displayName": "GIOVANNI AMADU",
+      "practiceId": "e94df373-f8f5-44b9-bd31-3e6c36025c13",
+      "humanReference": {
+        "path": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-infissi-atzeni-amadu-field-comparison-2026-09-10/historical-pdfs/e94df373-f8f5-44b9-bd31-3e6c36025c13/operator-completed-1.pdf",
+        "sha256": "a69c0cff53c5bb922cbcf6157299e4fbcc1223ef2001786b246f72d475f89504",
+        "cpid": "208287-2026E-SGTYCWSJMTOAAYJK",
+        "parsedFieldCount": 92,
+        "visuallyVerifiedPage": 2,
+        "blankFields": [
+          "impianto.distribuzione",
+          "impianto.regolazione",
+          "impianto.manutenzione_straordinaria"
+        ]
+      },
+      "aprReference": {
+        "commonCheckpoint": {
+          "path": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-infissi-atzeni-amadu-field-comparison-2026-09-10/local-replay-v158b/giovanni-amadu/crm-local-preflight/checkpoint.json",
+          "sha256": "985064a827134fb3a06d7cdfd023e922998d7a28ea74f49444df2633d5c2c1a1"
+        },
+        "infissiCheckpoint": {
+          "path": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-infissi-atzeni-amadu-field-comparison-2026-09-10/local-replay-v158b/giovanni-amadu/infissi-batch-preflight/checkpoint.json",
+          "sha256": "4dce7fc7bdec2615f567b9ed1d45e593d32da9daa2c5f646c40d053483322223"
+        },
+        "commonState": "blocked_case",
+        "infissiState": "blocked_case"
+      },
+      "currentCrmReference": {
+        "path": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-infissi-atzeni-amadu-field-comparison-2026-09-10/current-crm-dossiers.json",
+        "sha256": "5bc2fb9efa6427ee9424d9b5c843037e613ffc4194e5d0ad05958bc7c84709dd",
+        "fetchedAt": "2026-09-10T15:38:04.053Z",
+        "readOnly": true,
+        "hasCustomerForm": false
+      },
+      "safety": {
+        "comparisonOnly": true,
+        "crmWrites": false,
+        "eneaOpened": false,
+        "eneaWrites": false
+      },
+      "closureDecision": {
+        "mode": "technical_explicit_none",
+        "flags": [
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "evidenceCount": 5,
+        "evidenceSourceIds": [
+          "a7c6441f69bf6a1fb4624466d5e9dc979caf0802b1e0d5e6ad69a7ef4dc3953c"
+        ],
+        "invoiceClosureMentionSourceIds": [],
+        "ruleId": "user-2026-09-10-infissi-explicit-no-screen-negative-closure-evidence-v1"
+      },
+      "currentNonClosureBlockers": {
+        "common": [
+          {
+            "code": "customer_form_missing",
+            "field": "customer_form",
+            "reason": "Il dossier CRM non contiene un form cliente originario utilizzabile; documenti ENEA storici esclusi.",
+            "sourceIds": [
+              "a7c6441f69bf6a1fb4624466d5e9dc979caf0802b1e0d5e6ad69a7ef4dc3953c"
+            ],
+            "appliedRuleIds": [
+              "core-form-first",
+              "user-2026-09-03-structured-residual-case-question-v1"
+            ],
+            "exactCause": "Il dossier CRM non contiene un form cliente originario utilizzabile; documenti ENEA storici esclusi.",
+            "missingDocumentType": "modulo cliente originario",
+            "operatorQuestion": "Puoi inserire o indicare il modulo cliente originario richiesto per risolvere customer_form?",
+            "onboardingGap": "Rendere obbligatorio in onboarding: modulo cliente originario."
+          },
+          {
+            "code": "tax_code_missing_or_invalid",
+            "field": "beneficiary.taxCode",
+            "reason": "CF valido e coerente non disponibile nel form o nelle fatture originarie.",
+            "sourceIds": [
+              "giovanni-amadu"
+            ],
+            "appliedRuleIds": [
+              "core-form-first",
+              "user-2026-08-14-valid-original-document-cf-over-invalid-form",
+              "user-2026-08-16-fiscal-code-identity-cross-check",
+              "user-2026-09-03-structured-residual-case-question-v1"
+            ],
+            "exactCause": "CF valido e coerente non disponibile nel form o nelle fatture originarie.",
+            "missingDocumentType": "documento fiscale o ufficiale con codice fiscale",
+            "operatorQuestion": "Puoi inserire o indicare il documento fiscale o ufficiale con codice fiscale richiesto per risolvere beneficiary.taxCode?",
+            "onboardingGap": "Rendere obbligatorio in onboarding: documento fiscale o ufficiale con codice fiscale."
+          },
+          {
+            "code": "screenings_missing",
+            "field": "screenings",
+            "reason": "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+            "sourceIds": [
+              "a7c6441f69bf6a1fb4624466d5e9dc979caf0802b1e0d5e6ad69a7ef4dc3953c"
+            ],
+            "appliedRuleIds": [
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "system-specific-incomplete-screening-blocker-v1",
+              "user-2026-09-03-structured-residual-case-question-v1"
+            ],
+            "exactCause": "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+            "missingDocumentType": "documento tecnico con misure del prodotto",
+            "operatorQuestion": "Mancano le misure del prodotto in tutti i documenti originari verificati: puoi inserirle?",
+            "onboardingGap": "Rendere obbligatorio in onboarding: documento tecnico con misure del prodotto."
+          },
+          {
+            "code": "completion_date_missing",
+            "field": "dates.completion",
+            "reason": "Fine lavori assente e data fattura non ricavabile.",
+            "sourceIds": [
+              "a7c6441f69bf6a1fb4624466d5e9dc979caf0802b1e0d5e6ad69a7ef4dc3953c"
+            ],
+            "appliedRuleIds": [
+              "user-2026-08-14-missing-completion-use-latest-invoice",
+              "user-2026-09-03-structured-residual-case-question-v1"
+            ],
+            "exactCause": "Fine lavori assente e data fattura non ricavabile.",
+            "missingDocumentType": "documento originario con data di fine lavori",
+            "operatorQuestion": "Puoi inserire o indicare il documento originario con data di fine lavori richiesto per risolvere dates.completion?",
+            "onboardingGap": "Rendere obbligatorio in onboarding: documento originario con data di fine lavori."
+          },
+          {
+            "code": "gross_triple_reconciliation_failed",
+            "field": "economic_sources.total",
+            "reason": "Tripla riconciliazione non dimostrata: fonti-assenti, nessuna-fattura-economica-valida.",
+            "sourceIds": [
+              "a7c6441f69bf6a1fb4624466d5e9dc979caf0802b1e0d5e6ad69a7ef4dc3953c"
+            ],
+            "appliedRuleIds": [
+              "user-2026-08-16-invoice-gross-total-vat-included",
+              "core-gross-triple-reconciliation",
+              "user-2026-09-07-invoice-gross-total-never-internally-verified-v1",
+              "user-2026-08-31-no-valid-economic-invoice-operator-v1",
+              "user-2026-09-03-structured-residual-case-question-v1"
+            ],
+            "exactCause": "Tripla riconciliazione non dimostrata: fonti-assenti, nessuna-fattura-economica-valida.",
+            "missingDocumentType": null,
+            "operatorQuestion": "Confermi il valore corretto da usare per economic_sources.total, sulla base dei documenti originari?",
+            "onboardingGap": "Acquisire e validare in onboarding il dato economic_sources.total con la relativa fonte originaria."
+          }
+        ],
+        "infissi": [
+          {
+            "code": "infissi_financial_triple_reconciliation_required",
+            "field": "invoice_total",
+            "sourceIds": []
+          },
+          {
+            "code": "gross_triple_reconciliation_failed",
+            "field": "economic_sources.total",
+            "sourceIds": [
+              "a7c6441f69bf6a1fb4624466d5e9dc979caf0802b1e0d5e6ad69a7ef4dc3953c"
+            ]
+          }
+        ]
+      },
+      "excludedProductMeasurementFields": [
+        "infissi.0.superficie",
+        "infissi.1.superficie",
+        "infissi.2.superficie",
+        "infissi.3.superficie",
+        "infissi.4.superficie"
+      ],
+      "comparisonSummary": {
+        "comparedNonPortalFields": 81,
+        "matches": 28,
+        "differences": 15,
+        "missing": 35,
+        "sameRawButRejected": 3,
+        "portalManaged": 6
+      },
+      "comparisons": [
+        {
+          "fieldId": "intervento.tipo",
+          "humanValue": "Comma 345A - Interventi sull'involucro",
+          "aprValue": "Comma 345A - Interventi sull'involucro",
+          "result": "match",
+          "readiness": "ready_value"
+        },
+        {
+          "fieldId": "immobile.indirizzo",
+          "humanValue": "via san lorenzo",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "immobile.civico",
+          "humanValue": "15",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "immobile.cap",
+          "humanValue": "07033",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "immobile.comune",
+          "humanValue": "Osilo",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "immobile.codice_catastale",
+          "humanValue": "G156",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "immobile.foglio",
+          "humanValue": "35",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "immobile.mappale",
+          "humanValue": "469",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "immobile.subalterno",
+          "humanValue": "1",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "immobile.anno",
+          "humanValue": "1965",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "immobile.superficie",
+          "humanValue": "25",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "beneficiario.nome",
+          "humanValue": "giovanni",
+          "aprValue": "GIOVANNI",
+          "result": "same_raw_crm_value_but_not_accepted_by_preflight",
+          "readiness": "source_present_but_rejected"
+        },
+        {
+          "fieldId": "beneficiario.cognome",
+          "humanValue": "amadu",
+          "aprValue": "AMADU",
+          "result": "same_raw_crm_value_but_not_accepted_by_preflight",
+          "readiness": "source_present_but_rejected"
+        },
+        {
+          "fieldId": "beneficiario.cf",
+          "humanValue": "MDAGNN36M18G156I",
+          "aprValue": "MDAGNN36M18G156I",
+          "result": "same_raw_crm_value_but_not_accepted_by_preflight",
+          "readiness": "source_present_but_rejected"
+        },
+        {
+          "fieldId": "beneficiario.sesso",
+          "humanValue": "M",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "beneficiario.data_nascita",
+          "humanValue": "18/08/1936",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "beneficiario.comune_nascita",
+          "humanValue": "Osilo (SS)",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "beneficiario.indirizzo_residenza",
+          "humanValue": "via san lorenzo",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "beneficiario.civico_residenza",
+          "humanValue": "15",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "beneficiario.cap_residenza",
+          "humanValue": "07033",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "beneficiario.comune_residenza",
+          "humanValue": "Osilo",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "beneficiario.titolo",
+          "humanValue": "Proprietario o comproprietario",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "immobile.destinazione_generale",
+          "humanValue": "Residenziale",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "immobile.destinazione_particolare",
+          "humanValue": "Edifici adibiti a residenza e assimilabili (con carattere continuativo o saltuario)",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "immobile.tipologia",
+          "humanValue": "costruzione isolata (es. mono o plurifamiliare)",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "intervento.ambito",
+          "humanValue": "Edificio costituito da una singola unità immobiliare",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "intervento.unita_totali",
+          "humanValue": "3",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "intervento.unita_oggetto",
+          "humanValue": "4",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "intervento.data_inizio",
+          "humanValue": "19/12/2025",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "intervento.data_fine",
+          "humanValue": "31/03/2026",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "impianto.condizionamento",
+          "humanValue": "Sì",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "infissi.0.telaio_vecchio",
+          "humanValue": "Legno",
+          "aprValue": "Metallo, no taglio termico",
+          "result": "difference",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.0.vetro_vecchio",
+          "humanValue": "Singolo",
+          "aprValue": "Singolo",
+          "result": "match",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.0.trasmittanza_vecchio",
+          "humanValue": "5",
+          "aprValue": "6",
+          "result": "difference",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.0.telaio_nuovo",
+          "humanValue": "PVC",
+          "aprValue": "PVC",
+          "result": "match",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.1.telaio_vecchio",
+          "humanValue": "Legno",
+          "aprValue": "Metallo, no taglio termico",
+          "result": "difference",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.1.vetro_vecchio",
+          "humanValue": "Singolo",
+          "aprValue": "Singolo",
+          "result": "match",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.1.trasmittanza_vecchio",
+          "humanValue": "5",
+          "aprValue": "6",
+          "result": "difference",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.1.telaio_nuovo",
+          "humanValue": "PVC",
+          "aprValue": "PVC",
+          "result": "match",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.2.telaio_vecchio",
+          "humanValue": "Legno",
+          "aprValue": "Metallo, no taglio termico",
+          "result": "difference",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.2.vetro_vecchio",
+          "humanValue": "Singolo",
+          "aprValue": "Singolo",
+          "result": "match",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.2.trasmittanza_vecchio",
+          "humanValue": "5",
+          "aprValue": "6",
+          "result": "difference",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.2.telaio_nuovo",
+          "humanValue": "PVC",
+          "aprValue": "PVC",
+          "result": "match",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.3.telaio_vecchio",
+          "humanValue": "Legno",
+          "aprValue": "Metallo, no taglio termico",
+          "result": "difference",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.3.vetro_vecchio",
+          "humanValue": "Singolo",
+          "aprValue": "Singolo",
+          "result": "match",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.3.trasmittanza_vecchio",
+          "humanValue": "5",
+          "aprValue": "6",
+          "result": "difference",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.3.telaio_nuovo",
+          "humanValue": "PVC",
+          "aprValue": "PVC",
+          "result": "match",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.4.telaio_vecchio",
+          "humanValue": "Legno",
+          "aprValue": "Metallo, no taglio termico",
+          "result": "difference",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.4.vetro_vecchio",
+          "humanValue": "Singolo",
+          "aprValue": "Singolo",
+          "result": "match",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.4.trasmittanza_vecchio",
+          "humanValue": "5",
+          "aprValue": "6",
+          "result": "difference",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.4.telaio_nuovo",
+          "humanValue": "PVC",
+          "aprValue": "PVC",
+          "result": "match",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.numero",
+          "humanValue": "5",
+          "aprValue": "5",
+          "result": "match",
+          "readiness": "ready_value"
+        },
+        {
+          "fieldId": "infissi.spesa",
+          "humanValue": "7800",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "riepilogo.detrazione_totale",
+          "humanValue": "3900",
+          "aprValue": null,
+          "result": "portal_managed_not_written_by_apr",
+          "readiness": "portal_managed"
+        },
+        {
+          "fieldId": "riepilogo.detrazione_massima",
+          "humanValue": "60000",
+          "aprValue": null,
+          "result": "portal_managed_not_written_by_apr",
+          "readiness": "portal_managed"
+        },
+        {
+          "fieldId": "riepilogo.detrazione_ammissibile",
+          "humanValue": "3900",
+          "aprValue": null,
+          "result": "portal_managed_not_written_by_apr",
+          "readiness": "portal_managed"
+        },
+        {
+          "fieldId": "immobile.zona_climatica",
+          "humanValue": "D",
+          "aprValue": null,
+          "result": "portal_managed_not_written_by_apr",
+          "readiness": "portal_managed"
+        },
+        {
+          "fieldId": "immobile.gradi_giorno",
+          "humanValue": "2086",
+          "aprValue": null,
+          "result": "portal_managed_not_written_by_apr",
+          "readiness": "portal_managed"
+        },
+        {
+          "fieldId": "immobile.fascia_solare",
+          "humanValue": "4",
+          "aprValue": null,
+          "result": "portal_managed_not_written_by_apr",
+          "readiness": "portal_managed"
+        },
+        {
+          "fieldId": "beneficiario.cointestatari",
+          "humanValue": "Nessuno",
+          "aprValue": "Nessuno",
+          "result": "match",
+          "readiness": "ready_value"
+        },
+        {
+          "fieldId": "impianto.tipo",
+          "humanValue": "a. impianto autonomo",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "impianto.terminali",
+          "humanValue": "b. ventilconvettori",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "impianto.generatore",
+          "humanValue": "Pompa di calore / Impianto geotermico",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "impianto.numero_generatori",
+          "humanValue": "1",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "impianto.rendimento",
+          "humanValue": "97",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "impianto.potenza",
+          "humanValue": "5.6",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "impianto.combustibile",
+          "humanValue": "f. energia elettrica",
+          "aprValue": null,
+          "result": "missing_in_current_apr_inputs",
+          "readiness": "missing"
+        },
+        {
+          "fieldId": "infissi.0.vetro_nuovo",
+          "humanValue": "A bassa emissione",
+          "aprValue": "A bassa emissione",
+          "result": "match",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.0.trasmittanza_nuovo",
+          "humanValue": "1.38",
+          "aprValue": "1.3",
+          "result": "difference",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.0.confine",
+          "humanValue": "Verso esterno",
+          "aprValue": "Verso esterno",
+          "result": "match",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.0.chiusura_oscurante",
+          "humanValue": "No",
+          "aprValue": "No",
+          "result": "match",
+          "readiness": "ready_value"
+        },
+        {
+          "fieldId": "infissi.1.vetro_nuovo",
+          "humanValue": "A bassa emissione",
+          "aprValue": "A bassa emissione",
+          "result": "match",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.1.trasmittanza_nuovo",
+          "humanValue": "1.36",
+          "aprValue": "1.3",
+          "result": "difference",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.1.confine",
+          "humanValue": "Verso esterno",
+          "aprValue": "Verso esterno",
+          "result": "match",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.1.chiusura_oscurante",
+          "humanValue": "No",
+          "aprValue": "No",
+          "result": "match",
+          "readiness": "ready_value"
+        },
+        {
+          "fieldId": "infissi.2.vetro_nuovo",
+          "humanValue": "A bassa emissione",
+          "aprValue": "A bassa emissione",
+          "result": "match",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.2.trasmittanza_nuovo",
+          "humanValue": "1.36",
+          "aprValue": "1.3",
+          "result": "difference",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.2.confine",
+          "humanValue": "Verso esterno",
+          "aprValue": "Verso esterno",
+          "result": "match",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.2.chiusura_oscurante",
+          "humanValue": "No",
+          "aprValue": "No",
+          "result": "match",
+          "readiness": "ready_value"
+        },
+        {
+          "fieldId": "infissi.3.vetro_nuovo",
+          "humanValue": "A bassa emissione",
+          "aprValue": "A bassa emissione",
+          "result": "match",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.3.trasmittanza_nuovo",
+          "humanValue": "1.38",
+          "aprValue": "1.3",
+          "result": "difference",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.3.confine",
+          "humanValue": "Verso esterno",
+          "aprValue": "Verso esterno",
+          "result": "match",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.3.chiusura_oscurante",
+          "humanValue": "No",
+          "aprValue": "No",
+          "result": "match",
+          "readiness": "ready_value"
+        },
+        {
+          "fieldId": "infissi.4.vetro_nuovo",
+          "humanValue": "A bassa emissione",
+          "aprValue": "A bassa emissione",
+          "result": "match",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.4.trasmittanza_nuovo",
+          "humanValue": "1.41",
+          "aprValue": "1.3",
+          "result": "difference",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.4.confine",
+          "humanValue": "Verso esterno",
+          "aprValue": "Verso esterno",
+          "result": "match",
+          "readiness": "candidate_blocked"
+        },
+        {
+          "fieldId": "infissi.4.chiusura_oscurante",
+          "humanValue": "No",
+          "aprValue": "No",
+          "result": "match",
+          "readiness": "ready_value"
+        }
+      ]
+    }
+  ]
+}

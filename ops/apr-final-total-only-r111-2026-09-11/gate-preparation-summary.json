@@ -1,0 +1,40 @@
+{
+  "status": "PASS",
+  "tests": {
+    "total": 2003,
+    "passed": 2003,
+    "failed": 0
+  },
+  "matrixRules": 219,
+  "testedRules": 219,
+  "requiredRuntimeRuleIds": [
+    "system-preflight-upstream-terminal-propagation-v1",
+    "user-2026-09-10-explicit-invoice-product-evidence-recovery-v1",
+    "system-invoice-multi-document-fiscal-segmentation-v2",
+    "user-2026-09-10-infissi-invoice-authoritative-shading-closures-v1",
+    "user-2026-09-10-zanzariera-infissi-installation-context-v1",
+    "user-2026-09-10-infissi-tabular-abbreviated-thermal-evidence-v1",
+    "user-2026-09-10-ideal-sistem-manual-exclusion-v1",
+    "user-2026-09-11-invoice-final-printed-total-runtime-authority-v1",
+    "user-2026-09-11-advance-balance-fiscal-invoice-equivalence-v1",
+    "user-2026-09-11-invoice-slot-content-authority-v1",
+    "user-2026-09-11-screening-measurements-in-line-description-v1",
+    "user-2026-09-11-infissi-explicit-line-quantity-cardinality-v1",
+    "user-2026-09-11-cassonetto-excluded-from-enea-products-v1",
+    "user-2026-09-11-zanzariera-first-window-allocation-v1",
+    "user-2026-09-11-reseller-form-completion-date-over-invoice-v1"
+  ],
+  "stagedBundleSha256": {
+    "apr-supervisor.mjs": "f9e8bdb1c96102f5fb95d0b355aa6a596d620cb2608856033b2b6c3144604a11",
+    "apr-enea-worker.mjs": "b0616c276e002c62d5edaad1d97c53ca211e1ffb1273d026254521b5229faebc",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0"
+  },
+  "historicalAudit": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-final-total-only-r111-2026-09-11/historical-audit-report-r111.json",
+  "historicalAuditSha256": "f05bf92a4a60741ba61037d719f37dedfc0a658a68b25cb96f1dc0a1f894d662",
+  "authorizedHistoricalGapOnly": [
+    "user-2026-08-06-portal-intermediary-physical-beneficiary-v1",
+    "user-2026-08-06-intervention-authoritative-sources-and-defaults-v1",
+    "user-2026-08-06-existing-plant-authoritative-mapping-v1",
+    "user-2026-08-06-portal-municipality-controlled-selection-v1"
+  ]
+}

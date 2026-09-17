@@ -1,0 +1,61 @@
+--- a/ops/apr-global-controller-test10-2026-08-29/sequencerPreflightGuard.mjs
++++ b/ops/apr-global-controller-test10-2026-08-29/sequencerPreflightGuard.mjs
+@@ -166,16 +166,19 @@
+     if (recovery.kind !== "ready") return invalid(recovery.reason ?? "recovery_preflight_invalid");
+     return Object.freeze({ kind: "wait_for_worker_resume", item, ruleId: SEQUENCER_UNCERTAIN_SAVE_LIFECYCLE_RULE_ID });
+   }
+-  // "resolved_saved" e' legittimo sia con la pratica in recovery_queued sia
+-  // con la pratica ancora in filling: e' l'istante in cui la GET canonica ha
+-  // provato il salvataggio e il worker sta gia' proseguendo sulla pagina
+-  // successiva. Fino al 14/09/2026 la coppia filling/resolved_saved cadeva
+-  // nel ramo "state_status_mismatch" e il sequencer isolava una lavorazione
+-  // sana (Lucia Droghetti, coorte 9218: prima pagina persistita e provata,
+-  // 1/8, fermata dal sequencer). La prova richiesta e' identica: una sola
+-  // sonda "saved", checkpoint di pagina "saved" con la stessa evidenza, pagina
+-  // gia' fra le completate.
+-  if ((item.state === "recovery_queued" || item.state === "filling") && resolution.status === "resolved_saved") {
++  // "resolved_saved" e' legittimo con la pratica in recovery_queued, in
++  // filling oppure gia' in save_intent_recorded sulla pagina successiva: e'
++  // l'istante in cui la GET canonica ha provato il salvataggio e il worker sta
++  // gia' proseguendo. Fino al 14/09/2026 la coppia filling/resolved_saved
++  // cadeva nel ramo "state_status_mismatch" e il sequencer isolava una
++  // lavorazione sana (Lucia Droghetti, coorte 9218: prima pagina persistita e
++  // provata, 1/8). Il 16/09/2026 la stessa pratica (coorte 10370) e' caduta un
++  // passo dopo: pagina Schermature risolta e completata, worker gia' con
++  // l'intento di salvataggio registrato su «Calcolo costi», coppia
++  // save_intent_recorded/resolved_saved. La prova richiesta e' identica: una
++  // sola sonda "saved", checkpoint della pagina risolta "saved" con la stessa
++  // evidenza, pagina risolta gia' fra le completate.
++  if ((item.state === "recovery_queued" || item.state === "filling" || item.state === "save_intent_recorded") && resolution.status === "resolved_saved") {
+     const savedProofs = resolution.probes.filter((probe) => probe?.outcome === "saved");
+     if (savedProofs.length !== 1 || page.state !== "saved" || page.savedEvidenceId !== savedProofs[0].evidenceId || !item.completedPageIds?.includes(resolution.pageId)) return invalid("resolved_saved_proof_invalid");
+     return Object.freeze({ kind: "wait_for_worker_resume", item, ruleId: SEQUENCER_UNCERTAIN_SAVE_LIFECYCLE_RULE_ID });
+--- a/scripts/enea-shadow-runner/aprSequencerRecoveryQueuedGate.test.ts
++++ b/scripts/enea-shadow-runner/aprSequencerRecoveryQueuedGate.test.ts
+@@ -293,8 +293,26 @@
+ 
+   it("lascia proseguire il worker quando la prova di salvataggio e' completa", () => {
+     expect(resolveUncertainSaveLifecycle(droghetti() as never, "lucia-droghetti")).toMatchObject({ kind: "wait_for_worker_resume" });
++  });
++
++  // 16/09/2026, coorte 10370: stessa pratica, un passo dopo. Schermature
++  // risolta e completata; il worker ha gia' registrato l'intento di Salva su
++  // «Calcolo costi». Il sequencer giudicava
++  // "state_status_mismatch:save_intent_recorded:resolved_saved".
++  it("lascia proseguire il worker anche se ha gia' registrato l'intento di salvataggio della pagina dopo (Droghetti, 16/09)", () => {
++    const later: any = droghetti();
++    later.items[0].state = "save_intent_recorded";
++    later.items[0].pageCheckpoints[1] = { pageId: "page:Immobile", state: "save_intent_recorded", saveAttemptCount: 1, recoverySaveAttemptCount: 0 };
++    expect(resolveUncertainSaveLifecycle(later, "lucia-droghetti")).toMatchObject({ kind: "wait_for_worker_resume" });
+   });
+ 
++  it("con l'intento registrato sulla pagina dopo resta fail-closed se la pagina risolta non e' fra le completate", () => {
++    const later: any = droghetti();
++    later.items[0].state = "save_intent_recorded";
++    later.items[0].completedPageIds = [];
++    expect(resolveUncertainSaveLifecycle(later, "lucia-droghetti")).toMatchObject({ kind: "invalid", reason: expect.stringContaining("resolved_saved_proof_invalid") });
++  });
++
+   it("resta fail-closed se la prova di salvataggio non e' completa", () => {
+     const noProof: any = droghetti();
+     noProof.items[0].pageCheckpoints[0].savedEvidenceId = "altra-evidenza";

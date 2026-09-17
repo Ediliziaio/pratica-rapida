@@ -1,0 +1,307 @@
+From 773974b26cb1789ce02491de079659b3ffb12dae Mon Sep 17 00:00:00 2001
+From: Giuliano Beretta <giulianolavoro@MacBook-Pro-di-Giuliano-2026.local>
+Date: Sun, 13 Sep 2026 15:45:03 +0200
+Subject: [PATCH] feat(apr): misura il lotto con lo standard di accettazione
+ del titolare
+
+Una pratica puo' finire in due soli modi ammessi: bozza salvata sul
+portale, oppure arrivata all'operatore con la sua domanda scritta. Il
+report finora contava come "intervento operatore" anche le pratiche che
+si fermavano senza produrre alcuna domanda: all'operatore non arrivava
+niente, ma il numero diceva il contrario.
+
+Due correzioni al conteggio:
+
+1. Le pratiche ritirate dall'operatore prima della lavorazione escono
+   dal denominatore. Il preflight scrive gia' "esclusa dal denominatore
+   di autonomia" nella disposizione; nessuno leggeva quella riga.
+2. Una pratica ferma conta come conforme solo se il registro domande
+   operatore contiene almeno una domanda persistita.
+
+Misurato sul lotto r121: 76 presentate, 5 ritirate, 71 lavorabili,
+48 salvate (67,6%), 2 con domanda, 21 non conformi. Le pratiche ferme
+senza alcuna domanda sono 26 su 28.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+---
+ .../apr-lot-acceptance-cli.ts                 |  51 ++++++++
+ .../aprLotAcceptanceSummary.test.ts           |  79 ++++++++++++
+ .../aprLotAcceptanceSummary.ts                | 122 ++++++++++++++++++
+ 3 files changed, 252 insertions(+)
+ create mode 100644 scripts/enea-shadow-runner/apr-lot-acceptance-cli.ts
+ create mode 100644 scripts/enea-shadow-runner/aprLotAcceptanceSummary.test.ts
+ create mode 100644 scripts/enea-shadow-runner/aprLotAcceptanceSummary.ts
+
+diff --git a/scripts/enea-shadow-runner/apr-lot-acceptance-cli.ts b/scripts/enea-shadow-runner/apr-lot-acceptance-cli.ts
+new file mode 100644
+index 0000000..d44b0cd
+--- /dev/null
++++ b/scripts/enea-shadow-runner/apr-lot-acceptance-cli.ts
+@@ -0,0 +1,51 @@
++#!/usr/bin/env vite-node
++import { existsSync, readFileSync } from "node:fs";
++import path from "node:path";
++import { summariseAprLotAcceptance, type AprLotCaseInput } from "./aprLotAcceptanceSummary";
++
++/**
++ * Legge lo stato persistito di un lotto e lo presenta secondo lo standard di
++ * accettazione: salvate, con domanda, non conformi, ritirate. Sola lettura.
++ */
++const runtimeRoot = process.env.APR_ACCEPTANCE_RUNTIME_ROOT
++  ?? process.env.APR_REGRESSION_RUNTIME_ROOT
++  ?? "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner";
++const runId = process.argv[2];
++if (!runId) { process.stderr.write("usage: apr-lot-acceptance-cli.ts <runId>\n"); process.exit(2); }
++
++const readJson = (target: string): Record<string, unknown> | null => {
++  try { return existsSync(target) ? JSON.parse(readFileSync(target, "utf8")) as Record<string, unknown> : null; }
++  catch { return null; }
++};
++const str = (value: unknown) => typeof value === "string" ? value : null;
++
++const runCheckpoint = readJson(path.join(runtimeRoot, "runs", runId, "checkpoint.json"));
++if (!runCheckpoint) { process.stderr.write(`apr_acceptance_run_not_found:${runId}\n`); process.exit(3); }
++
++const results = (runCheckpoint.results as Array<Record<string, unknown>> | undefined) ?? [];
++const cases: AprLotCaseInput[] = [];
++for (const result of results) {
++  const customerKey = str(result.customerKey);
++  if (!customerKey) continue;
++  const cohortRoot = path.join(runtimeRoot, "cohorts", `apr-pilot-${String(result.cohort)}-global-controller-${customerKey}`);
++
++  const preflight = readJson(path.join(cohortRoot, "crm-local-preflight", "checkpoint.json"));
++  const item = ((preflight?.items as Array<Record<string, unknown>> | undefined) ?? [])
++    .find((entry) => str(entry.customerKey) === customerKey);
++  const disposition = (item?.disposition ?? null) as Record<string, unknown> | null;
++
++  const questions = readJson(path.join(cohortRoot, "operator-questions", "checkpoint.json"));
++  const persistedQuestionCount = ((questions?.questions as unknown[] | undefined) ?? []).length;
++
++  cases.push({
++    customerKey,
++    state: str(result.state) ?? "unknown",
++    preflightState: item ? str(item.state) : null,
++    dispositionKind: disposition ? str(disposition.kind) : null,
++    withdrawalReason: item ? str(item.reason) : null,
++    persistedQuestionCount,
++  });
++}
++
++const summary = summariseAprLotAcceptance(cases);
++process.stdout.write(`${JSON.stringify({ runId, ...summary }, null, 2)}\n`);
+diff --git a/scripts/enea-shadow-runner/aprLotAcceptanceSummary.test.ts b/scripts/enea-shadow-runner/aprLotAcceptanceSummary.test.ts
+new file mode 100644
+index 0000000..9946fb2
+--- /dev/null
++++ b/scripts/enea-shadow-runner/aprLotAcceptanceSummary.test.ts
+@@ -0,0 +1,79 @@
++import { describe, expect, it } from "vitest";
++import { isAprCaseWithdrawnByOperator, summariseAprLotAcceptance, type AprLotCaseInput } from "./aprLotAcceptanceSummary";
++
++const caso = (over: Partial<AprLotCaseInput> = {}): AprLotCaseInput => ({
++  customerKey: "eugenio-codognato",
++  state: "saved",
++  preflightState: "ready_local_plan",
++  dispositionKind: null,
++  withdrawalReason: null,
++  persistedQuestionCount: 0,
++  ...over,
++});
++
++const ritirata = (over: Partial<AprLotCaseInput> = {}) => caso({
++  state: "operator_required",
++  preflightState: "deferred_operator",
++  dispositionKind: "user_deferred",
++  withdrawalReason: "Fine lavori oltre il termine legale di 90 giorni.",
++  ...over,
++});
++
++describe("standard di accettazione: o salvata, o arrivata con la sua domanda", () => {
++  it("una pratica ferma senza domanda e' non conforme, non 'in attesa di operatore'", () => {
++    const summary = summariseAprLotAcceptance([caso({ state: "operator_required", persistedQuestionCount: 0 })]);
++    expect(summary).toMatchObject({ salvate: 0, conDomanda: 0, nonConformi: 1 });
++    expect(summary.fermeSenzaDomanda).toEqual(["eugenio-codognato"]);
++    expect(summary.casi[0].reason).toContain("non e' arrivata all'operatore");
++  });
++
++  it("una pratica ferma con la domanda scritta rispetta lo standard", () => {
++    const summary = summariseAprLotAcceptance([caso({ state: "technical_block", persistedQuestionCount: 2 })]);
++    expect(summary).toMatchObject({ conDomanda: 1, nonConformi: 0 });
++    expect(summary.fermeSenzaDomanda).toEqual([]);
++  });
++
++  it("le pratiche ritirate escono dal denominatore invece di contare come fallimenti", () => {
++    const summary = summariseAprLotAcceptance([
++      caso({ customerKey: "a", state: "saved" }),
++      caso({ customerKey: "b", state: "saved" }),
++      caso({ customerKey: "c", state: "saved" }),
++      ritirata({ customerKey: "d" }),
++    ]);
++    expect(summary).toMatchObject({ presentate: 4, lavorabili: 3, ritirate: 1, salvate: 3, autonomiaPercento: 100 });
++  });
++
++  it("il motivo del ritiro viene riportato, non riassunto", () => {
++    const [assessment] = summariseAprLotAcceptance([ritirata({ withdrawalReason: "Pratica dichiarata chiusa da Giuliano." })]).casi;
++    expect(assessment.verdict).toBe("ritirata");
++    expect(assessment.reason).toContain("Pratica dichiarata chiusa da Giuliano.");
++  });
++
++  it("non basta essere fermi per essere ritirati: serve la disposizione dell'operatore", () => {
++    expect(isAprCaseWithdrawnByOperator(caso({ state: "technical_block", preflightState: "blocked_case" }))).toBe(false);
++    expect(isAprCaseWithdrawnByOperator(caso({ preflightState: "deferred_operator", dispositionKind: null }))).toBe(false);
++    expect(isAprCaseWithdrawnByOperator(ritirata())).toBe(true);
++  });
++
++  it("una pratica salvata resta salvata anche se qualcuno le aveva scritto una domanda", () => {
++    expect(summariseAprLotAcceptance([caso({ state: "saved", persistedQuestionCount: 3 })]))
++      .toMatchObject({ salvate: 1, conDomanda: 0 });
++  });
++
++  it("riproduce il lotto r121: 76 presentate, 71 lavorabili, 48 salvate, 26 ferme senza domanda", () => {
++    const cases: AprLotCaseInput[] = [
++      ...Array.from({ length: 48 }, (_, index) => caso({ customerKey: `salvata-${index}`, state: "saved" })),
++      ...Array.from({ length: 2 }, (_, index) => caso({ customerKey: `domanda-${index}`, state: "operator_required", persistedQuestionCount: 1 })),
++      ...Array.from({ length: 21 }, (_, index) => caso({ customerKey: `muta-${index}`, state: "technical_block" })),
++      ...Array.from({ length: 5 }, (_, index) => ritirata({ customerKey: `ritirata-${index}` })),
++    ];
++    expect(summariseAprLotAcceptance(cases)).toMatchObject({
++      presentate: 76, lavorabili: 71, salvate: 48, conDomanda: 2, nonConformi: 21, ritirate: 5, autonomiaPercento: 67.6,
++    });
++  });
++
++  it("senza pratiche lavorabili non inventa una percentuale", () => {
++    expect(summariseAprLotAcceptance([ritirata()]).autonomiaPercento).toBeNull();
++    expect(summariseAprLotAcceptance([]).autonomiaPercento).toBeNull();
++  });
++});
+diff --git a/scripts/enea-shadow-runner/aprLotAcceptanceSummary.ts b/scripts/enea-shadow-runner/aprLotAcceptanceSummary.ts
+new file mode 100644
+index 0000000..cae8ca0
+--- /dev/null
++++ b/scripts/enea-shadow-runner/aprLotAcceptanceSummary.ts
+@@ -0,0 +1,122 @@
++export const APR_LOT_ACCEPTANCE_SUMMARY_VERSION = "apr-lot-acceptance-summary-v1" as const;
++
++/**
++ * Lo standard di accettazione del titolare, misurato invece che raccontato.
++ *
++ * Una pratica puo' finire in due soli modi ammessi: la bozza e' salvata sul
++ * portale, oppure arriva all'operatore con la sua domanda scritta. Tutto il
++ * resto e' non conforme, qualunque sia lo stato tecnico con cui il lotto la
++ * etichetta: una pratica ferma senza domanda non e' "in attesa di operatore",
++ * perche' all'operatore non e' arrivato niente.
++ *
++ * Le pratiche ritirate dall'operatore prima della lavorazione — rinunce del
++ * cliente, fine lavori oltre i 90 giorni, pratiche dichiarate chiuse — non
++ * entrano nel denominatore: il preflight scrive gia' "esclusa dal denominatore
++ * di autonomia" e finora nessuno leggeva quella riga.
++ */
++export type AprLotCaseVerdict = "salvata" | "con_domanda" | "non_conforme" | "ritirata";
++
++export interface AprLotCaseInput {
++  customerKey: string;
++  /** Stato terminale scritto dal lotto: saved | operator_required | technical_block | inconsistent. */
++  state: string;
++  /** Stato del preflight comune per questa pratica, se leggibile. */
++  preflightState?: string | null;
++  /** Tipo di disposizione registrata dal preflight, se presente. */
++  dispositionKind?: string | null;
++  /** Motivo persistito dal preflight per la disposizione. */
++  withdrawalReason?: string | null;
++  /** Quante domande operatore risultano effettivamente persistite per la pratica. */
++  persistedQuestionCount: number;
++}
++
++export interface AprLotCaseAssessment {
++  customerKey: string;
++  verdict: AprLotCaseVerdict;
++  state: string;
++  reason: string;
++}
++
++export interface AprLotAcceptanceSummary {
++  version: typeof APR_LOT_ACCEPTANCE_SUMMARY_VERSION;
++  /** Pratiche presenti nel manifest del lotto. */
++  presentate: number;
++  /** Pratiche effettivamente in gioco: presentate meno le ritirate. */
++  lavorabili: number;
++  salvate: number;
++  conDomanda: number;
++  nonConformi: number;
++  ritirate: number;
++  /** salvate / lavorabili, arrotondato a un decimale; null se non c'e' denominatore. */
++  autonomiaPercento: number | null;
++  /**
++   * Pratiche ferme che non hanno prodotto alcuna domanda: non sono arrivate
++   * all'operatore e quindi non rispettano lo standard, per quanto il loro
++   * stato tecnico possa suggerire il contrario.
++   */
++  fermeSenzaDomanda: readonly string[];
++  casi: readonly AprLotCaseAssessment[];
++}
++
++const SAVED = "saved";
++const WITHDRAWN_PREFLIGHT_STATE = "deferred_operator";
++const WITHDRAWN_DISPOSITION = "user_deferred";
++
++/**
++ * Il ritiro e' un fatto scritto dal preflight, non una deduzione: servono lo
++ * stato differito e la disposizione dell'operatore. Una pratica soltanto ferma
++ * non e' ritirata, e non va tolta dal denominatore.
++ */
++export function isAprCaseWithdrawnByOperator(input: AprLotCaseInput): boolean {
++  return input.preflightState === WITHDRAWN_PREFLIGHT_STATE && input.dispositionKind === WITHDRAWN_DISPOSITION;
++}
++
++function assess(input: AprLotCaseInput): AprLotCaseAssessment {
++  if (isAprCaseWithdrawnByOperator(input)) {
++    return {
++      customerKey: input.customerKey,
++      verdict: "ritirata",
++      state: input.state,
++      reason: input.withdrawalReason?.trim()
++        ? `Ritirata prima della lavorazione: ${input.withdrawalReason.trim()}`
++        : "Ritirata dall'operatore prima della lavorazione.",
++    };
++  }
++  if (input.state === SAVED) {
++    return { customerKey: input.customerKey, verdict: "salvata", state: input.state, reason: "Bozza salvata sul portale." };
++  }
++  if (input.persistedQuestionCount > 0) {
++    return {
++      customerKey: input.customerKey,
++      verdict: "con_domanda",
++      state: input.state,
++      reason: `Ferma con ${input.persistedQuestionCount} domanda/e scritta/e per l'operatore.`,
++    };
++  }
++  return {
++    customerKey: input.customerKey,
++    verdict: "non_conforme",
++    state: input.state,
++    reason: `Ferma in stato ${input.state} senza alcuna domanda persistita: non e' salvata e non e' arrivata all'operatore.`,
++  };
++}
++
++export function summariseAprLotAcceptance(cases: readonly AprLotCaseInput[]): AprLotAcceptanceSummary {
++  const casi = cases.map(assess).sort((left, right) => left.customerKey.localeCompare(right.customerKey));
++  const count = (verdict: AprLotCaseVerdict) => casi.filter((item) => item.verdict === verdict).length;
++  const ritirate = count("ritirata");
++  const salvate = count("salvata");
++  const lavorabili = casi.length - ritirate;
++  return {
++    version: APR_LOT_ACCEPTANCE_SUMMARY_VERSION,
++    presentate: casi.length,
++    lavorabili,
++    salvate,
++    conDomanda: count("con_domanda"),
++    nonConformi: count("non_conforme"),
++    ritirate,
++    autonomiaPercento: lavorabili > 0 ? Math.round((salvate / lavorabili) * 1000) / 10 : null,
++    fermeSenzaDomanda: casi.filter((item) => item.verdict === "non_conforme").map((item) => item.customerKey),
++    casi,
++  };
++}
+-- 
+2.50.1 (Apple Git-155)
+

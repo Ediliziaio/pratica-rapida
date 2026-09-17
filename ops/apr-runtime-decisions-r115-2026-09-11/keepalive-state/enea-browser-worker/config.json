@@ -1,0 +1,18 @@
+{
+  "version": "apr-enea-worker-service-v1",
+  "setupEnabled": true,
+  "operationalEnabled": false,
+  "chromeExecutable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+  "profileDirectory": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/state/enea-browser-worker/chrome-profile",
+  "remoteDebuggingPort": 9331,
+  "keepaliveIntervalMs": 240000,
+  "autoArmWhenReady": true,
+  "allowedOrigin": "https://bonusfiscali.enea.it",
+  "dashboardUrl": "https://bonusfiscali.enea.it/",
+  "minimumConsecutiveCases": 2,
+  "previewAllowed": false,
+  "submitAllowed": false,
+  "communicationsAllowed": false,
+  "authorizationId": "user-2026-09-11-readonly-session-continuity",
+  "updatedAt": "2026-09-11T21:34:35.629Z"
+}

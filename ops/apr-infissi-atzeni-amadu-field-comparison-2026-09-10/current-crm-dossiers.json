@@ -1,0 +1,41 @@
+{
+  "version": "apr-atzeni-amadu-current-crm-dossiers-v1",
+  "generatedAt": "2026-09-10T15:38:04.053Z",
+  "readOnly": true,
+  "crmMethods": [
+    "GET"
+  ],
+  "externalMutationAllowed": false,
+  "rows": [
+    {
+      "id": "e94df373-f8f5-44b9-bd31-3e6c36025c13",
+      "cliente_nome": "GIOVANNI",
+      "cliente_cognome": "AMADU",
+      "cliente_cf": "MDAGNN36M18G156I",
+      "prodotto_installato": "Infissi / Serramenti",
+      "dati_form": {},
+      "pipeline_stages": {
+        "name": "Archiviate",
+        "stage_type": "archiviate"
+      },
+      "companies": {
+        "ragione_sociale": "Ideal sistem"
+      }
+    },
+    {
+      "id": "dc4484cd-c462-49c0-a734-3064dd6469a8",
+      "cliente_nome": "GIOVANNA",
+      "cliente_cognome": "ATZENI",
+      "cliente_cf": "TZNGNN84T64B354Q",
+      "prodotto_installato": "Infissi / Serramenti",
+      "dati_form": {},
+      "pipeline_stages": {
+        "name": "Archiviate",
+        "stage_type": "archiviate"
+      },
+      "companies": {
+        "ragione_sociale": "Ideal sistem"
+      }
+    }
+  ]
+}

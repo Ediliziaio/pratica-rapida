@@ -166,7 +166,19 @@ export function resolveUncertainSaveLifecycle(execution, customerKey, driver = n
     if (recovery.kind !== "ready") return invalid(recovery.reason ?? "recovery_preflight_invalid");
     return Object.freeze({ kind: "wait_for_worker_resume", item, ruleId: SEQUENCER_UNCERTAIN_SAVE_LIFECYCLE_RULE_ID });
   }
-  if (item.state === "recovery_queued" && resolution.status === "resolved_saved") {
+  // "resolved_saved" e' legittimo con la pratica in recovery_queued, in
+  // filling oppure gia' in save_intent_recorded sulla pagina successiva: e'
+  // l'istante in cui la GET canonica ha provato il salvataggio e il worker sta
+  // gia' proseguendo. Fino al 14/09/2026 la coppia filling/resolved_saved
+  // cadeva nel ramo "state_status_mismatch" e il sequencer isolava una
+  // lavorazione sana (Lucia Droghetti, coorte 9218: prima pagina persistita e
+  // provata, 1/8). Il 16/09/2026 la stessa pratica (coorte 10370) e' caduta un
+  // passo dopo: pagina Schermature risolta e completata, worker gia' con
+  // l'intento di salvataggio registrato su «Calcolo costi», coppia
+  // save_intent_recorded/resolved_saved. La prova richiesta e' identica: una
+  // sola sonda "saved", checkpoint della pagina risolta "saved" con la stessa
+  // evidenza, pagina risolta gia' fra le completate.
+  if ((item.state === "recovery_queued" || item.state === "filling" || item.state === "save_intent_recorded") && resolution.status === "resolved_saved") {
     const savedProofs = resolution.probes.filter((probe) => probe?.outcome === "saved");
     if (savedProofs.length !== 1 || page.state !== "saved" || page.savedEvidenceId !== savedProofs[0].evidenceId || !item.completedPageIds?.includes(resolution.pageId)) return invalid("resolved_saved_proof_invalid");
     return Object.freeze({ kind: "wait_for_worker_resume", item, ruleId: SEQUENCER_UNCERTAIN_SAVE_LIFECYCLE_RULE_ID });

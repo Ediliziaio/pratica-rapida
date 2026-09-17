@@ -1,0 +1,480 @@
+From 9682bef867b6a042c2832a60397e6aebcf65cda7 Mon Sep 17 00:00:00 2001
+From: Giuliano Beretta <giulianolavoro@MacBook-Pro-di-Giuliano-2026.local>
+Date: Sun, 13 Sep 2026 15:54:45 +0200
+Subject: [PATCH] feat(apr): nessuna pratica ferma resta muta
+
+Nel lotto r121, 26 pratiche ferme su 28 non hanno prodotto alcuna
+domanda: il registro operator-questions di ciascuna esisteva,
+inizializzato, con la lista vuota. Il generatore copriva un solo blocco
+(screenings_missing) e solo per le schermature; tutto il resto moriva
+senza dire niente.
+
+Una pratica ferma ha ora due soli esiti possibili, mai il silenzio:
+domanda all'operatore quando manca un dato che solo lui o il cliente
+possono dare, oppure guasto di APR quando si e' rotta la nostra
+macchina. Non sapere cosa chiedere e' anch'esso un guasto di APR, non
+un dato mancante del cliente, e viene dichiarato come tale invece di
+essere mascherato da domanda generica.
+
+I testi delle domande derivano dai blocchi realmente persistiti nel
+lotto, non da un elenco immaginato. I blocchi economici con codice
+calcolato a runtime usano il motivo gia' scritto in italiano.
+
+Misurato su r121: 23 ferme al netto delle ritirate, 14 domande
+operatore (12 mai scritte), 9 guasti di APR.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+---
+ .../apr-stop-disposition-cli.ts               |  76 ++++++
+ .../aprStopDisposition.test.ts                | 100 +++++++
+ .../enea-shadow-runner/aprStopDisposition.ts  | 248 ++++++++++++++++++
+ 3 files changed, 424 insertions(+)
+ create mode 100644 scripts/enea-shadow-runner/apr-stop-disposition-cli.ts
+ create mode 100644 scripts/enea-shadow-runner/aprStopDisposition.test.ts
+ create mode 100644 scripts/enea-shadow-runner/aprStopDisposition.ts
+
+diff --git a/scripts/enea-shadow-runner/apr-stop-disposition-cli.ts b/scripts/enea-shadow-runner/apr-stop-disposition-cli.ts
+new file mode 100644
+index 0000000..501000d
+--- /dev/null
++++ b/scripts/enea-shadow-runner/apr-stop-disposition-cli.ts
+@@ -0,0 +1,76 @@
++#!/usr/bin/env vite-node
++import { existsSync, readFileSync } from "node:fs";
++import path from "node:path";
++import { disposeAprStoppedCases, type AprStopCaseInput } from "./aprStopDisposition";
++
++/**
++ * Per ogni pratica ferma del lotto dice cosa ne e' stato: la domanda da porre
++ * all'operatore, oppure il guasto di APR da chiudere. Sola lettura.
++ */
++const runtimeRoot = process.env.APR_ACCEPTANCE_RUNTIME_ROOT
++  ?? process.env.APR_REGRESSION_RUNTIME_ROOT
++  ?? "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner";
++const runId = process.argv[2];
++if (!runId) { process.stderr.write("usage: apr-stop-disposition-cli.ts <runId>\n"); process.exit(2); }
++
++const readJson = (target: string): Record<string, unknown> | null => {
++  try { return existsSync(target) ? JSON.parse(readFileSync(target, "utf8")) as Record<string, unknown> : null; }
++  catch { return null; }
++};
++const str = (value: unknown) => typeof value === "string" ? value : null;
++const items = (checkpoint: Record<string, unknown> | null) =>
++  (checkpoint?.items as Array<Record<string, unknown>> | undefined) ?? [];
++
++const runCheckpoint = readJson(path.join(runtimeRoot, "runs", runId, "checkpoint.json"));
++if (!runCheckpoint) { process.stderr.write(`apr_stop_disposition_run_not_found:${runId}\n`); process.exit(3); }
++
++const cases: AprStopCaseInput[] = [];
++for (const result of (runCheckpoint.results as Array<Record<string, unknown>> | undefined) ?? []) {
++  const customerKey = str(result.customerKey);
++  const state = str(result.state) ?? "unknown";
++  if (!customerKey || state === "saved") continue;
++  const cohortRoot = path.join(runtimeRoot, "cohorts", `apr-pilot-${String(result.cohort)}-global-controller-${customerKey}`);
++
++  const preflightItem = items(readJson(path.join(cohortRoot, "crm-local-preflight", "checkpoint.json")))
++    .find((entry) => str(entry.customerKey) === customerKey);
++  // Le pratiche ritirate dall'operatore non sono ferme: escono prima.
++  if (str(preflightItem?.state) === "deferred_operator") continue;
++
++  const blockerReasons: Record<string, string> = {};
++  const blockerCodes = new Set<string>();
++  for (const stage of ["crm-local-preflight", "deep-case-review", "infissi-batch-preflight", "enea-draft-execution"]) {
++    for (const entry of items(readJson(path.join(cohortRoot, stage, "checkpoint.json")))) {
++      if (str(entry.customerKey) !== customerKey) continue;
++      for (const code of (entry.blockerCodes as unknown[] | undefined) ?? []) {
++        if (typeof code === "string") blockerCodes.add(code);
++      }
++      const report = entry.report as Record<string, unknown> | undefined;
++      for (const blocker of (report?.blockers as Array<Record<string, unknown>> | undefined) ?? []) {
++        const code = str(blocker.code);
++        if (!code) continue;
++        blockerCodes.add(code);
++        const reason = str(blocker.reason);
++        if (reason && !blockerReasons[code]) blockerReasons[code] = reason;
++      }
++    }
++  }
++
++  const executionItem = items(readJson(path.join(cohortRoot, "enea-draft-execution", "checkpoint.json")))
++    .find((entry) => str(entry.customerKey) === customerKey);
++  const documentKeys = items(readJson(path.join(cohortRoot, "crm-document-analysis", "checkpoint.json")))
++    .filter((entry) => str(entry.customerKey) === customerKey);
++  const questions = readJson(path.join(cohortRoot, "operator-questions", "checkpoint.json"));
++
++  cases.push({
++    customerKey,
++    state,
++    blockerCodes: [...blockerCodes],
++    blockerReasons,
++    executionState: executionItem ? str(executionItem.state) : null,
++    executionReason: executionItem ? str(executionItem.reason) : null,
++    persistedQuestionCount: ((questions?.questions as unknown[] | undefined) ?? []).length,
++    documentsAcquired: documentKeys.length > 0,
++  });
++}
++
++process.stdout.write(`${JSON.stringify({ runId, ...disposeAprStoppedCases(cases) }, null, 2)}\n`);
+diff --git a/scripts/enea-shadow-runner/aprStopDisposition.test.ts b/scripts/enea-shadow-runner/aprStopDisposition.test.ts
+new file mode 100644
+index 0000000..bc9de13
+--- /dev/null
++++ b/scripts/enea-shadow-runner/aprStopDisposition.test.ts
+@@ -0,0 +1,100 @@
++import { describe, expect, it } from "vitest";
++import { disposeAprStoppedCase, disposeAprStoppedCases, type AprStopCaseInput } from "./aprStopDisposition";
++
++const ferma = (over: Partial<AprStopCaseInput> = {}): AprStopCaseInput => ({
++  customerKey: "loretta-riviera",
++  state: "technical_block",
++  blockerCodes: [],
++  executionState: null,
++  executionReason: null,
++  persistedQuestionCount: 0,
++  documentsAcquired: true,
++  ...over,
++});
++
++describe("nessuna pratica ferma resta muta", () => {
++  it("un dato mancante diventa una domanda che dice cosa serve", () => {
++    const esito = disposeAprStoppedCase(ferma({ blockerCodes: ["infissi_dimensions_and_cardinality_missing"] }));
++    expect(esito.kind).toBe("domanda_operatore");
++    expect(esito.field).toBe("infissi.dimensioni_e_numero");
++    expect(esito.text).toContain("quanti serramenti");
++  });
++
++  it("un guasto di APR non diventa una domanda al cliente", () => {
++    const esito = disposeAprStoppedCase(ferma({ blockerCodes: ["crm_readonly_acquisition_invalid_response"] }));
++    expect(esito.kind).toBe("guasto_apr");
++    expect(esito.text).toContain("non c'e' niente da chiedere");
++  });
++
++  it("una sessione scaduta e' un guasto, non una pratica incompleta", () => {
++    const esito = disposeAprStoppedCase(ferma({
++      state: "inconsistent", executionState: "operator_intervention",
++      executionReason: "Errore circoscritto alla pratica: apr_global_browser_lease_expired",
++    }));
++    expect(esito).toMatchObject({ kind: "guasto_apr", blockerCode: null });
++    expect(esito.text).toContain("sessione del browser e' scaduta");
++  });
++
++  it("un esito non dimostrabile va riverificato, non chiesto all'operatore", () => {
++    const esito = disposeAprStoppedCase(ferma({
++      executionState: "operator_intervention",
++      executionReason: "Anche l'unico recupero autorizzato ha esito incerto: Esito non dimostrabile dopo l'unico recupero",
++    }));
++    expect(esito.kind).toBe("guasto_apr");
++    expect(esito.text).toContain("riverificata");
++  });
++
++  it("un blocco con codice calcolato usa il motivo persistito invece di inventarne uno", () => {
++    const esito = disposeAprStoppedCase(ferma({
++      blockerCodes: ["invoice_929a8665"],
++      blockerReasons: { invoice_929a8665: "Il totale di almeno un documento fiscale non e' stato riconosciuto." },
++    }));
++    expect(esito).toMatchObject({ kind: "domanda_operatore", blockerCode: "invoice_929a8665" });
++    expect(esito.text).toContain("Il totale di almeno un documento fiscale");
++    expect(esito.text).toContain("senza ricalcolarlo");
++  });
++
++  it("un fascicolo vuoto e' un guasto di acquisizione", () => {
++    const esito = disposeAprStoppedCase(ferma({ documentsAcquired: false, blockerCodes: ["screenings_missing"] }));
++    expect(esito.kind).toBe("guasto_apr");
++    expect(esito.text).toContain("acquisizione");
++  });
++
++  it("un blocco specifico vince su uno generico", () => {
++    expect(disposeAprStoppedCase(ferma({
++      blockerCodes: ["screenings_missing", "screening_primary_measurements_missing"],
++    })).blockerCode).toBe("screening_primary_measurements_missing");
++  });
++
++  it("non sapere cosa chiedere e' un difetto di APR, non una domanda generica", () => {
++    const esito = disposeAprStoppedCase(ferma({ blockerCodes: ["codice_mai_visto"] }));
++    expect(esito).toMatchObject({ kind: "guasto_apr", blockerCode: "codice_mai_visto" });
++    expect(esito.text).toContain("non sa formulare la domanda");
++  });
++
++  it("una pratica ferma senza alcun motivo registrato lo dichiara", () => {
++    expect(disposeAprStoppedCase(ferma()).text).toContain("senza registrare alcun motivo");
++  });
++
++  it("una domanda gia' scritta non viene contata fra quelle mancanti", () => {
++    const report = disposeAprStoppedCases([
++      ferma({ customerKey: "a", blockerCodes: ["customer_form_missing"], persistedQuestionCount: 1 }),
++      ferma({ customerKey: "b", blockerCodes: ["tax_code_missing_or_invalid"] }),
++      ferma({ customerKey: "c", blockerCodes: ["crm_readonly_acquisition_invalid_response"] }),
++    ]);
++    expect(report).toMatchObject({ ferme: 3, domandeOperatore: 2, guastiApr: 1, domandeMancanti: 1 });
++  });
++
++  it("ogni pratica ferma riceve sempre un esito: il silenzio non e' possibile", () => {
++    const casi = [
++      ferma({ customerKey: "a" }),
++      ferma({ customerKey: "b", blockerCodes: ["ignoto"] }),
++      ferma({ customerKey: "c", executionState: "queued" }),
++      ferma({ customerKey: "d", documentsAcquired: false }),
++    ];
++    const report = disposeAprStoppedCases(casi);
++    expect(report.disposizioni).toHaveLength(4);
++    expect(report.disposizioni.every((item) => item.text.length > 0)).toBe(true);
++    expect(report.domandeOperatore + report.guastiApr).toBe(4);
++  });
++});
+diff --git a/scripts/enea-shadow-runner/aprStopDisposition.ts b/scripts/enea-shadow-runner/aprStopDisposition.ts
+new file mode 100644
+index 0000000..5fbbe70
+--- /dev/null
++++ b/scripts/enea-shadow-runner/aprStopDisposition.ts
+@@ -0,0 +1,248 @@
++export const APR_STOP_DISPOSITION_VERSION = "apr-stop-disposition-v1" as const;
++
++/**
++ * Nessuna pratica si ferma in silenzio.
++ *
++ * Nel lotto r121 del 13/09/2026, 26 pratiche ferme su 28 non hanno prodotto
++ * alcuna domanda: il registro `operator-questions` di ciascuna esisteva,
++ * inizializzato, con la lista vuota. Il generatore di domande copriva un solo
++ * blocco (`screenings_missing`) e solo per le schermature; tutto il resto
++ * moriva senza dire niente.
++ *
++ * Qui una pratica ferma puo' avere due soli esiti, mai il silenzio:
++ *
++ *  - `domanda_operatore`: manca un dato che solo l'operatore o il cliente
++ *    possono fornire. Si scrive la domanda, in italiano, che dice cosa serve.
++ *  - `guasto_apr`: si e' rotto APR, non la pratica. Sessione scaduta, timeout
++ *    del CRM, esito non dimostrabile, mappatura incompleta. Non si disturba
++ *    l'operatore: la pratica va rilavorata e il guasto va chiuso.
++ *
++ * Un blocco che non sappiamo tradurre in domanda e' anch'esso un guasto di
++ * APR — non sapere cosa chiedere e' un difetto nostro, non un dato mancante
++ * del cliente — e viene dichiarato come tale invece di essere mascherato da
++ * domanda generica.
++ */
++export type AprStopKind = "domanda_operatore" | "guasto_apr";
++
++export interface AprStopDispositionEntry {
++  kind: AprStopKind;
++  /** Testo rivolto all'operatore, oppure descrizione del guasto. */
++  text: string;
++  /** Campo da compilare, quando la domanda ne indica uno. */
++  field?: string;
++}
++
++/**
++ * Le domande sono scritte a partire dai blocchi realmente persistiti nel lotto
++ * r121, non da un elenco immaginato. Ogni testo dice cosa manca e cosa fare.
++ */
++const BLOCKER_DISPOSITIONS: Readonly<Record<string, AprStopDispositionEntry>> = {
++  infissi_dimensions_and_cardinality_missing: {
++    kind: "domanda_operatore",
++    field: "infissi.dimensioni_e_numero",
++    text: "Mancano le misure e il numero dei serramenti. Nei documenti allegati (certificati, ordini, schede tecniche) le misure di solito ci sono: indica quanti serramenti sono stati installati e la misura di ciascuno.",
++  },
++  screenings_missing: {
++    kind: "domanda_operatore",
++    field: "screenings",
++    text: "Dalle fatture non risulta riconciliato nessun prodotto di schermatura. Indica quale prodotto e' stato installato e in quale documento e' descritto.",
++  },
++  screening_primary_measurements_missing: {
++    kind: "domanda_operatore",
++    field: "screenings.dimensions",
++    text: "La fattura descrive la schermatura ma nessun documento riporta le misure del prodotto. Indica larghezza e altezza del prodotto installato (non della finestra protetta).",
++  },
++  infissi_shading_closures_form_answer_missing_or_ambiguous: {
++    kind: "domanda_operatore",
++    field: "infissi.chiusure_oscuranti",
++    text: "Non e' chiaro se l'intervento comprenda chiusure oscuranti (persiane, tapparelle, zanzariere). Conferma se sono state installate e su quali serramenti.",
++  },
++  invoice_final_printed_total_not_verified: {
++    kind: "domanda_operatore",
++    field: "economic.invoiceTotal",
++    text: "Il totale finale stampato sulla fattura non e' stato letto. Indica il totale come stampato sul documento, senza ricalcolarlo.",
++  },
++  completion_date_missing: {
++    kind: "domanda_operatore",
++    field: "completionDate",
++    text: "Manca la data di fine lavori e non e' ricavabile dalla fattura. Indica la data di fine lavori.",
++  },
++  completion_date_portal_year_mismatch: {
++    kind: "domanda_operatore",
++    field: "completionDate.portalYear",
++    text: "La data di fine lavori appartiene a un anno diverso da quello del portale aperto. Conferma su quale portale annuale va inserita la pratica.",
++  },
++  completion_over_90_days_operator_required: {
++    kind: "domanda_operatore",
++    field: "completionDate.procedibilita",
++    text: "La fine lavori supera il termine di 90 giorni. Conferma se la pratica e' ancora procedibile o va ritirata.",
++  },
++  co_beneficiary_invoice_identity_unresolved: {
++    kind: "domanda_operatore",
++    field: "beneficiary.identity",
++    text: "Le fatture non permettono di identificare con certezza un solo intestatario persona fisica. Indica nome, cognome e codice fiscale del beneficiario da inserire.",
++  },
++  customer_form_missing: {
++    kind: "domanda_operatore",
++    field: "customerForm",
++    text: "Il fascicolo CRM non contiene un form cliente utilizzabile. Allega il form compilato del cliente.",
++  },
++  tax_code_missing_or_invalid: {
++    kind: "domanda_operatore",
++    field: "beneficiary.taxCode",
++    text: "Il codice fiscale del beneficiario non e' presente o non e' valido nei documenti. Indica il codice fiscale corretto.",
++  },
++  operator_response_pending_external_data: {
++    kind: "domanda_operatore",
++    field: "operator.pendingData",
++    text: "La pratica attende un dato che era stato richiesto e non e' ancora arrivato. Fornisci il dato mancante indicato nella richiesta.",
++  },
++  infissi_authoritative_economic_decision_required: {
++    kind: "domanda_operatore",
++    field: "economic.eligibleExpense",
++    text: "Non e' stato possibile stabilire la spesa ammissibile dai documenti economici. Indica l'importo da portare in detrazione e il documento da cui va letto.",
++  },
++  crm_readonly_acquisition_invalid_response: {
++    kind: "guasto_apr",
++    text: "Il CRM ha risposto con un errore durante l'acquisizione dei documenti: la pratica non e' mai stata letta. Va rilavorata, non c'e' niente da chiedere al cliente.",
++  },
++  draft_payload_mapping_incomplete: {
++    kind: "guasto_apr",
++    text: "I documenti non presentano conflitti ma APR non riesce a completare il payload della bozza: manca una mappatura nel modulo. E' un difetto da chiudere nel codice.",
++  },
++};
++
++/**
++ * Un blocco riconosciuto dall'elenco vince sempre su un guasto generico: se la
++ * pratica ha davvero un dato mancante, all'operatore serve la domanda, non la
++ * notizia che la sessione era scaduta.
++ */
++const EXECUTION_FAULT_PATTERNS: readonly { pattern: RegExp; text: string }[] = [
++  { pattern: /lease_expired|browser_lease/i, text: "La sessione del browser e' scaduta durante la lavorazione: la pratica era pronta e non e' stata portata a termine. Va rilavorata." },
++  { pattern: /esito non dimostrabile|non dimostrabile/i, text: "APR non e' riuscito a dimostrare l'esito del salvataggio dopo l'unico tentativo di recupero autorizzato. La bozza puo' esistere o no: va riverificata." },
++  { pattern: /apr_cdp_/i, text: "Errore tecnico del controllo del browser durante la compilazione sul portale. La pratica era pronta: va rilavorata." },
++  { pattern: /timeout|504/i, text: "Timeout durante la lavorazione: la pratica non e' arrivata in fondo per un guasto di rete o del servizio, non per i suoi documenti." },
++];
++
++/**
++ * Alcuni blocchi economici hanno un codice calcolato a runtime
++ * (`invoice_<hash del messaggio>`), quindi non possono stare in un elenco
++ * fisso. Il motivo persistito, pero', e' gia' scritto in italiano: si usa
++ * quello, senza inventare nulla.
++ */
++const DYNAMIC_BLOCKER_PREFIXES: readonly { prefix: string; kind: AprStopKind; field: string; lead: string }[] = [
++  { prefix: "invoice_", kind: "domanda_operatore", field: "economic.invoiceTotal", lead: "Problema sui documenti fiscali" },
++];
++
++export interface AprStopCaseInput {
++  customerKey: string;
++  state: string;
++  /** Codici di blocco persistiti, in qualunque ordine. */
++  blockerCodes: readonly string[];
++  /** Motivo persistito per ciascun codice, quando disponibile. */
++  blockerReasons?: Readonly<Record<string, string>>;
++  /** Stato dello stadio di esecuzione, quando la pratica ci e' arrivata. */
++  executionState?: string | null;
++  /** Motivo persistito dallo stadio di esecuzione. */
++  executionReason?: string | null;
++  /** Quante domande risultano gia' persistite per questa pratica. */
++  persistedQuestionCount: number;
++  /** Vero se nessun documento originario e' stato acquisito. */
++  documentsAcquired: boolean;
++}
++
++export interface AprStopDisposition {
++  customerKey: string;
++  kind: AprStopKind;
++  /** Blocco da cui deriva l'esito, quando ce n'e' uno. */
++  blockerCode: string | null;
++  text: string;
++  field: string | null;
++  /** Vero se la domanda era gia' stata scritta e non serve riscriverla. */
++  alreadyAsked: boolean;
++}
++
++/** Ordine stabile: il blocco piu' specifico prima di quelli generici. */
++const GENERIC_LAST = ["infissi_authoritative_economic_decision_required", "screenings_missing"];
++
++function pickBlocker(blockerCodes: readonly string[]): string | null {
++  const known = [...new Set(blockerCodes)].filter((code) => code in BLOCKER_DISPOSITIONS);
++  if (known.length === 0) return null;
++  const specific = known.filter((code) => !GENERIC_LAST.includes(code)).sort();
++  return specific[0] ?? known.sort()[0];
++}
++
++export function disposeAprStoppedCase(input: AprStopCaseInput): AprStopDisposition {
++  const base = { customerKey: input.customerKey, alreadyAsked: input.persistedQuestionCount > 0 };
++
++  if (!input.documentsAcquired) {
++    return {
++      ...base, kind: "guasto_apr", blockerCode: null, field: null,
++      text: "Nessun documento originario e' stato acquisito: il verdetto non riguarda la pratica ma l'acquisizione. Va rilavorata.",
++    };
++  }
++
++  const blockerCode = pickBlocker(input.blockerCodes);
++  if (blockerCode) {
++    const entry = BLOCKER_DISPOSITIONS[blockerCode];
++    return { ...base, kind: entry.kind, blockerCode, text: entry.text, field: entry.field ?? null };
++  }
++
++  const dynamic = [...new Set(input.blockerCodes)].sort()
++    .flatMap((code) => DYNAMIC_BLOCKER_PREFIXES.filter((rule) => code.startsWith(rule.prefix)).map((rule) => ({ code, rule })));
++  if (dynamic.length > 0) {
++    const { code, rule } = dynamic[0];
++    const reason = input.blockerReasons?.[code]?.trim();
++    return {
++      ...base, kind: rule.kind, blockerCode: code, field: rule.field,
++      text: reason
++        ? `${reason} Indica il dato corretto leggendolo dal documento, senza ricalcolarlo.`
++        : `${rule.lead} non risolvibile automaticamente: indica il dato corretto leggendolo dal documento.`,
++    };
++  }
++
++  const executionText = `${input.executionState ?? ""} ${input.executionReason ?? ""}`;
++  const fault = EXECUTION_FAULT_PATTERNS.find((candidate) => candidate.pattern.test(executionText));
++  if (fault) {
++    return { ...base, kind: "guasto_apr", blockerCode: null, field: null, text: fault.text };
++  }
++
++  if (input.executionState === "queued") {
++    return {
++      ...base, kind: "guasto_apr", blockerCode: null, field: null,
++      text: "La pratica era pronta e in coda per il portale, ma il lotto si e' chiuso senza eseguirla. Va rilavorata.",
++    };
++  }
++
++  const unknown = [...new Set(input.blockerCodes)].sort();
++  return {
++    ...base, kind: "guasto_apr", blockerCode: unknown[0] ?? null, field: null,
++    text: unknown.length > 0
++      ? `APR si e' fermato su ${unknown.join(", ")} e non sa formulare la domanda corrispondente: e' un difetto da chiudere, non un dato mancante del cliente.`
++      : "APR si e' fermato senza registrare alcun motivo: non c'e' niente da chiedere all'operatore finche' il motivo non viene scritto.",
++  };
++}
++
++export interface AprStopDispositionReport {
++  version: typeof APR_STOP_DISPOSITION_VERSION;
++  ferme: number;
++  domandeOperatore: number;
++  guastiApr: number;
++  /** Domande che andavano scritte e non risultavano ancora persistite. */
++  domandeMancanti: number;
++  disposizioni: readonly AprStopDisposition[];
++}
++
++export function disposeAprStoppedCases(cases: readonly AprStopCaseInput[]): AprStopDispositionReport {
++  const disposizioni = cases.map(disposeAprStoppedCase)
++    .sort((left, right) => left.customerKey.localeCompare(right.customerKey));
++  const domande = disposizioni.filter((item) => item.kind === "domanda_operatore");
++  return {
++    version: APR_STOP_DISPOSITION_VERSION,
++    ferme: disposizioni.length,
++    domandeOperatore: domande.length,
++    guastiApr: disposizioni.filter((item) => item.kind === "guasto_apr").length,
++    domandeMancanti: domande.filter((item) => !item.alreadyAsked).length,
++    disposizioni,
++  };
++}
+-- 
+2.50.1 (Apple Git-155)
+

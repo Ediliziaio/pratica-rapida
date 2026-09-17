@@ -1,0 +1,63 @@
+{
+  "version": "apr-crm-ombra-second-round-rerun-three-v1",
+  "authorizationId": "user-2026-09-16-crm-ombra-second-round-with-staropoli-v1",
+  "authorizedAt": "2026-09-16T20:05:00.000Z",
+  "mode": "real_enea_draft_only",
+  "selection": {
+    "total": 3,
+    "allowedStages": ["pronte_da_fare"],
+    "excludedCustomerKeys": [],
+    "groups": [{ "id": "crm_ombra_response_rerun", "count": 3 }]
+  },
+  "safety": {
+    "draftOnly": true,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false,
+    "priorDraftPolicy": "fresh_generation_only"
+  },
+  "cases": [
+    {
+      "practiceId": "2527ecd1-8dd6-479e-a6d9-e1eddabd2a93",
+      "customerKey": "maria-luigia-fusco",
+      "displayName": "Maria Luigia Fusco",
+      "stage": "pronte_da_fare",
+      "stageName": "Pronte da fare",
+      "module": "infissi",
+      "productEvidence": "Infissi / Serramenti",
+      "reseller": null,
+      "historicalRetest": true,
+      "reacquireBeforeReplay": true,
+      "expectedRouting": "standard",
+      "group": "crm_ombra_response_rerun"
+    },
+    {
+      "practiceId": "bc08d27a-0c8c-40cb-9c83-5c454a15b040",
+      "customerKey": "amaranti-gigliola",
+      "displayName": "Amaranti Gigliola",
+      "stage": "pronte_da_fare",
+      "stageName": "Pronte da fare",
+      "module": "screening",
+      "productEvidence": "Schermature Solari",
+      "reseller": null,
+      "historicalRetest": true,
+      "reacquireBeforeReplay": true,
+      "expectedRouting": "standard",
+      "group": "crm_ombra_response_rerun"
+    },
+    {
+      "practiceId": "5aa5410c-f849-4dfc-b55a-ddccf911303e",
+      "customerKey": "federico-marino",
+      "displayName": "Federico Marino",
+      "stage": "pronte_da_fare",
+      "stageName": "Pronte da fare",
+      "module": "screening",
+      "productEvidence": "Schermature Solari",
+      "reseller": null,
+      "historicalRetest": true,
+      "reacquireBeforeReplay": true,
+      "expectedRouting": "standard",
+      "group": "crm_ombra_response_rerun"
+    }
+  ]
+}

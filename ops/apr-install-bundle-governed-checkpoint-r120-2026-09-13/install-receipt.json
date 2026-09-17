@@ -1,0 +1,26 @@
+{
+  "version": "apr-install-bundle-cli-receipt-v1",
+  "installedAt": "2026-09-13T01:05:00.161Z",
+  "label": "bundle-governed-checkpoint-r120",
+  "versionId": "d1a1e4c4-bundle-governed-checkpoint-r120-20260913",
+  "previousTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/f086c1f4-crm-refresh-serialization-r118-20260912",
+  "currentTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/d1a1e4c4-bundle-governed-checkpoint-r120-20260913",
+  "installedBundle": {
+    "apr-supervisor.mjs": "a2a64b8918b4e13fd255dfa7c83aad152129d65fce5ea33fbc9368b4f50c77d4",
+    "apr-enea-worker.mjs": "7388baca752e57d3a321bddbffd288fa64f600846203716ebfc7e4ddb2538453",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "apr-rule-governance-attestation.json": "2103b63d56dfde38df574e67cd515b04cd6579d3679d687668bc8e14c6e03279"
+  },
+  "gateResultArtifactId": "0ae15da8bd6088800d9a85fbefd5d073d4179fa2d114f0f8854d04fb82d3b8cd",
+  "gateStatus": "PASS",
+  "governanceAttestation": {
+    "path": "apr-rule-governance-attestation.json",
+    "sha256": "2103b63d56dfde38df574e67cd515b04cd6579d3679d687668bc8e14c6e03279",
+    "historicalAuditReport": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-bundle-governed-checkpoint-r120-2026-09-13/historical-audit-report-r120.json",
+    "authorizedHistoricalGap": true
+  },
+  "legacyGovernanceDebtNoticed": [
+    "user-2026-09-05-co-beneficiary-trusted-enter-delivery-v2",
+    "user-2026-09-05-terminal-cohort-browser-quiescence-v1"
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "version": "apr-general-rule-candidate-v1",
+  "status": "candidate",
+  "recordedAt": "2026-09-12T22:58:00.000Z",
+  "authority": "Giuliano",
+  "ruleIdCandidate": "user-2026-09-13-supplier-header-not-product-evidence-v1",
+  "condition": "Il nome, la ragione sociale, il logo o l'intestazione del fornitore contengono parole che indicano una famiglia di prodotti diversa da quella descritta nelle righe della fattura.",
+  "sourcePrecedence": [
+    "descrizione delle righe di fattura originarie",
+    "struttura esplicita del form cliente",
+    "etichetta CRM del prodotto",
+    "mai ragione sociale, logo o intestazione del fornitore"
+  ],
+  "deterministicAction": "Non usare mai ragione sociale, logo, indirizzo, email o intestazione del fornitore per classificare il tipo di intervento. Classificare esclusivamente dalle descrizioni delle righe fiscali; se queste non sono sufficienti, applicare le altre fonti autorizzate oppure fermare la sola pratica in fail-closed.",
+  "audit": "practiceId, sourceId della fattura, testo delle righe fiscali usato, testo di intestazione escluso, modulo risultante e ID regola.",
+  "outcome": "continue_or_operator_required",
+  "fixture": {
+    "customerKey": "milena-fiorini",
+    "practiceId": "5ffcaa4d-60d6-4c6f-92dd-158ba844b6d1",
+    "supplierHeader": "Cisam Infissi Srl",
+    "invoiceLineEvidence": [
+      "Fornitura e posa di n. 2 + 2 tende tecniche a caduta",
+      "n. 1 tenda tecnica a caduta",
+      "Acconto ... per acquisto con posa in opera di schermature solari"
+    ],
+    "expectedModule": "screening"
+  },
+  "deployment": {
+    "implemented": false,
+    "tested": false,
+    "matrixUpdated": false,
+    "bundled": false,
+    "reason": "Registrata durante il lotto; nessuna modifica runtime o installazione e consentita durante l'esecuzione."
+  }
+}

@@ -11,6 +11,10 @@ export interface InfissiTechnicalEvidenceRow {
   quantity: number;
   widthM?: number;
   heightM?: number;
+  /** Superficie documentata del singolo gruppo di pezzi. Necessaria quando
+   * il certificato rappresenta un unico serramento composto da piu quote e
+   * non espone una coppia LxH complessiva (es. una posizione EKO-OKNA). */
+  surfaceM2?: number;
   thermalTransmittanceWm2K?: number;
   measurementKind?: "overall_external" | "other_documented" | "documented_unspecified";
 }
@@ -25,8 +29,8 @@ export interface ResolvedInfissoTechnicalRow {
   physicalRowId: string;
   sourceLineId: string;
   pieceIndex: number;
-  widthM: number;
-  heightM: number;
+  widthM?: number;
+  heightM?: number;
   exactAreaM2: number;
   eneaAreaM2: number;
   thermalTransmittanceWm2K: number;
@@ -56,8 +60,9 @@ export interface InfissiTechnicalResolution {
 interface ExpandedEvidenceRow {
   sourceLineId: string;
   pieceIndex: number;
-  widthM: number;
-  heightM: number;
+  widthM?: number;
+  heightM?: number;
+  exactAreaM2: number;
   thermalTransmittanceWm2K?: number;
   measurementKind: "overall_external" | "other_documented" | "documented_unspecified";
 }
@@ -77,8 +82,8 @@ function evidenceIsDimensionComplete(evidence: InfissiTechnicalEvidence | undefi
   return Boolean(evidence?.rows.length) && evidence!.rows.every((row) =>
     Number.isInteger(row.quantity)
     && row.quantity > 0
-    && finitePositive(row.widthM)
-    && finitePositive(row.heightM),
+    && ((finitePositive(row.widthM) && finitePositive(row.heightM))
+      || finitePositive(row.surfaceM2)),
   );
 }
 
@@ -86,8 +91,11 @@ function expandEvidence(evidence: InfissiTechnicalEvidence): ExpandedEvidenceRow
   return evidence.rows.flatMap((row) => Array.from({ length: row.quantity }, (_, index) => ({
     sourceLineId: row.lineId,
     pieceIndex: index + 1,
-    widthM: row.widthM!,
-    heightM: row.heightM!,
+    ...(finitePositive(row.widthM) ? { widthM: row.widthM } : {}),
+    ...(finitePositive(row.heightM) ? { heightM: row.heightM } : {}),
+    exactAreaM2: finitePositive(row.surfaceM2)
+      ? row.surfaceM2 / row.quantity
+      : row.widthM! * row.heightM!,
     thermalTransmittanceWm2K: finitePositive(row.thermalTransmittanceWm2K)
       ? row.thermalTransmittanceWm2K
       : undefined,
@@ -95,8 +103,10 @@ function expandEvidence(evidence: InfissiTechnicalEvidence): ExpandedEvidenceRow
   })));
 }
 
-function dimensionKey(row: Pick<ExpandedEvidenceRow, "widthM" | "heightM">): string {
-  return `${row.widthM.toFixed(6)}x${row.heightM.toFixed(6)}`;
+function dimensionKey(row: Pick<ExpandedEvidenceRow, "widthM" | "heightM" | "exactAreaM2">): string {
+  return finitePositive(row.widthM) && finitePositive(row.heightM)
+    ? `${row.widthM.toFixed(6)}x${row.heightM.toFixed(6)}`
+    : `area:${row.exactAreaM2.toFixed(6)}`;
 }
 
 function sameDimensionMultiset(left: readonly ExpandedEvidenceRow[], right: readonly ExpandedEvidenceRow[]): boolean {
@@ -175,13 +185,13 @@ export function resolveInfissiTechnicalSources(input: {
 
       const transmittanceFromSecondary = !finitePositive(row.thermalTransmittanceWm2K) && Boolean(match);
       const transmittanceFromFallback = !finitePositive(documentedTransmittance);
-      const exactAreaM2 = row.widthM * row.heightM;
+      const exactAreaM2 = row.exactAreaM2;
       resolvedRows.push({
         physicalRowId: `${input.practiceId.trim()}:infisso:${index + 1}`,
         sourceLineId: row.sourceLineId,
         pieceIndex: row.pieceIndex,
-        widthM: row.widthM,
-        heightM: row.heightM,
+        ...(finitePositive(row.widthM) ? { widthM: row.widthM } : {}),
+        ...(finitePositive(row.heightM) ? { heightM: row.heightM } : {}),
         exactAreaM2,
         eneaAreaM2: roundInfissoAreaForEnea(exactAreaM2),
         thermalTransmittanceWm2K: transmittance,

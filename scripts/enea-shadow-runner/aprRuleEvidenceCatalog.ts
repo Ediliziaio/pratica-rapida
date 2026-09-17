@@ -17,6 +17,11 @@ export interface AprRuleEvidenceCatalogEntry {
  */
 export const APR_RULE_EVIDENCE_CATALOG: readonly AprRuleEvidenceCatalogEntry[] = [
   {
+    key: "canonical-executable-draft-package",
+    positive: { fileRef: "scripts/enea-shadow-runner/aprCanonicalDraftPackages.test.ts", testId: "pacchetto eseguibile canonico il worker consuma il piano esatto persistito dal preflight anche se dossier e analisi cambiano dopo il verdetto" },
+    negative: { fileRef: "scripts/enea-shadow-runner/aprCanonicalDraftPackages.test.ts", testId: "pacchetto eseguibile canonico fallisce chiuso se piano eseguibile e audit del preflight non coincidono" },
+  },
+  {
     key: "user-decision-permanent-learning-governance",
     positive: { fileRef: "scripts/enea-shadow-runner/userDecisionRegistry.test.ts", testId: "registro durevole delle decisioni di Giuliano registra ogni risposta riutilizzabile come general_rule_candidate per default" },
     negative: { fileRef: "scripts/enea-shadow-runner/aprRuleGovernanceAdmission.test.ts", testId: "admission APR vincolata a bundle registro matrice e decisioni fallisce chiuso con attestazione assente o bundle modificato" },
@@ -45,6 +50,21 @@ export const APR_RULE_EVIDENCE_CATALOG: readonly AprRuleEvidenceCatalogEntry[] =
     key: "structured-residual-case-question",
     positive: { fileRef: "scripts/enea-shadow-runner/crmLocalPreflight.test.ts", testId: "preflight locale durevole fino a quindici dossier CRM classifica la fattura assente come intervento operatore riprendibile" },
     negative: { fileRef: "src/features/enea-shadow-crm/technicalAutonomyMetric.test.ts", testId: "residui strutturati per operatore e onboarding rifiuta descrizioni incomplete, domande non dirette e documenti mancanti senza tipo" },
+  },
+  {
+    key: "operator-question-configurable-delivery",
+    positive: { fileRef: "scripts/enea-shadow-runner/operatorQuestionDelivery.test.ts", testId: "consegna separata delle domande operatore persiste prima il documento locale, invia una sola volta e non accede al CRM" },
+    negative: { fileRef: "scripts/enea-shadow-runner/operatorQuestionDelivery.test.ts", testId: "consegna separata delle domande operatore resta pending e ritenta dopo un errore ntfy senza perdere l'artefatto locale" },
+  },
+  {
+    key: "operator-response-runtime-consumption",
+    positive: { fileRef: "scripts/enea-shadow-runner/operatorResponseLedger.test.ts", testId: "registro runtime delle risposte operatore attende una contesa transitoria e conserva entrambe le scritture senza perdere risposte" },
+    negative: { fileRef: "scripts/enea-shadow-runner/operatorResponseLedger.test.ts", testId: "registro runtime delle risposte operatore resta fail-closed se la contesa non si risolve entro il budget" },
+  },
+  {
+    key: "crm-practice-id-lookup-stage-independent",
+    positive: { fileRef: "scripts/enea-shadow-runner/crmAuthenticatedReadOnly.test.ts", testId: "acquisizione CRM autenticata e read-only APR riacquisisce per ID la stessa pratica anche se e stata spostata di fase" },
+    negative: { fileRef: "scripts/enea-shadow-runner/crmAuthenticatedReadOnly.test.ts", testId: "acquisizione CRM autenticata e read-only APR resta fail-closed se l'ID esatto appartiene a un'identita diversa" },
   },
   {
     key: "official-municipality-canonical-identity",
@@ -123,8 +143,8 @@ export const APR_RULE_EVIDENCE_CATALOG: readonly AprRuleEvidenceCatalogEntry[] =
   },
   {
     key: "original-pratica-rapida-paper-form-explicit-values",
-    positive: { fileRef: "scripts/enea-shadow-runner/crmLocalPreflight.test.ts", testId: "preflight locale durevole fino a quindici dossier CRM accetta i soli valori espliciti del modulo cartaceo PraticaRapida anche per un altro rivenditore" },
-    negative: { fileRef: "scripts/enea-shadow-runner/crmLocalPreflight.test.ts", testId: "preflight locale durevole fino a quindici dossier CRM rifiuta fail-closed un modulo cartaceo PraticaRapida con identità diversa" },
+    positive: { fileRef: "scripts/enea-shadow-runner/crmLocalPreflight.test.ts", testId: "preflight locale durevole fino a quindici dossier CRM regressione Venturi: completa un form inline parziale con le sole sezioni esplicite del modulo cartaceo" },
+    negative: { fileRef: "scripts/enea-shadow-runner/crmLocalPreflight.test.ts", testId: "preflight locale durevole fino a quindici dossier CRM resta fail-closed sui conflitti: il modulo cartaceo non sovrascrive valori inline presenti" },
   },
   {
     key: "positioned-technical-order-products",
@@ -193,8 +213,8 @@ export const APR_RULE_EVIDENCE_CATALOG: readonly AprRuleEvidenceCatalogEntry[] =
   },
   {
     key: "zero-total-full-reversal-non-economic",
-    positive: { fileRef: "scripts/enea-shadow-runner/localInvoiceFinancialEvidence.test.ts", testId: "evidenza finanziaria da PDF originario locale classifica come non economica la fattura di puro storno a zero solo con prove contabili complete" },
-    negative: { fileRef: "scripts/enea-shadow-runner/localInvoiceFinancialEvidence.test.ts", testId: "evidenza finanziaria da PDF originario locale non esclude una fattura a zero senza riferimento e righe negative di storno" },
+    positive: { fileRef: "scripts/enea-shadow-runner/localInvoiceFinancialEvidence.test.ts", testId: "evidenza economica: solo totale finale stampato classifica come non economico uno storno integrale a zero provato" },
+    negative: { fileRef: "scripts/enea-shadow-runner/localInvoiceFinancialEvidence.test.ts", testId: "evidenza economica: solo totale finale stampato non trasforma in storno una fattura zero priva del riferimento esplicito" },
   },
   {
     key: "resolved-non-economic-total-blocker-retirement",
@@ -203,18 +223,18 @@ export const APR_RULE_EVIDENCE_CATALOG: readonly AprRuleEvidenceCatalogEntry[] =
   },
   {
     key: "document-ocr-orientation-normalization",
-    positive: { fileRef: "scripts/enea-shadow-runner/crmDocumentAnalysis.test.ts", testId: "analisi locale persistente dei PDF CRM riarma una sola volta soltanto le vecchie fatture OCR prive di marker orientamento" },
-    negative: { fileRef: "scripts/enea-shadow-runner/crmDocumentAnalysis.test.ts", testId: "analisi locale persistente dei PDF CRM non riarma una fattura OCR che possiede gia il marker di orientamento" },
+    positive: { fileRef: "scripts/enea-shadow-runner/aprPdfOcr.test.ts", testId: "ordine semantico OCR orientato trasforma le coordinate per 90, 180 e 270 gradi" },
+    negative: { fileRef: "scripts/enea-shadow-runner/aprPdfOcr.test.ts", testId: "ordine semantico OCR orientato lascia invariate le coordinate quando la pagina non e ruotata" },
   },
   {
     key: "label-anchored-invoice-totals",
     positive: { fileRef: "scripts/enea-shadow-runner/localInvoiceSegmentation.test.ts", testId: "segmentazione locale fatture acconto/saldo preferisce il totale fattura etichettato al totale ordine e al totale IVA di colonna" },
-    negative: { fileRef: "scripts/enea-shadow-runner/localInvoiceFinancialEvidence.test.ts", testId: "evidenza finanziaria da PDF originario locale non scambia il totale documento Bonfanti per l'IVA nel riepilogo fiscale verticale" },
+    negative: { fileRef: "scripts/enea-shadow-runner/localInvoiceFinancialEvidence.test.ts", testId: "evidenza economica: solo totale finale stampato OCR accetta il totale soltanto quando ancorato a una etichetta finale" },
   },
   {
     key: "sdi-pa-digitale-fiscal-summary",
-    positive: { fileRef: "scripts/enea-shadow-runner/localInvoiceFinancialEvidence.test.ts", testId: "evidenza finanziaria da PDF originario locale riconcilia il riepilogo IVA PA-Digitale a una o più aliquote e il pagamento separato" },
-    negative: { fileRef: "scripts/enea-shadow-runner/localInvoiceFinancialEvidence.test.ts", testId: "evidenza finanziaria da PDF originario locale regola generale di Giuliano: un riepilogo IVA PA-Digitale che non torna col totale documento è comunque riconciliato sul solo totale dichiarato" },
+    positive: { fileRef: "scripts/enea-shadow-runner/localInvoiceSegmentation.test.ts", testId: "segmentazione locale fatture acconto/saldo riconosce numero e data nella testata PA-Digitale TD01" },
+    negative: { fileRef: "scripts/enea-shadow-runner/localInvoiceFinancialEvidence.test.ts", testId: "evidenza economica: solo totale finale stampato resta fail-closed quando il totale finale manca" },
   },
   {
     key: "current-cohort-economic-bridge",
@@ -253,8 +273,8 @@ export const APR_RULE_EVIDENCE_CATALOG: readonly AprRuleEvidenceCatalogEntry[] =
   },
   {
     key: "no-valid-economic-invoice",
-    positive: { fileRef: "src/features/enea-shadow-crm/financialReconciliation.test.ts", testId: "riconciliazione finanziaria tripla classifica come intervento operatore l'assenza di qualsiasi fattura economica candidata valida" },
-    negative: { fileRef: "src/features/enea-shadow-crm/financialReconciliation.test.ts", testId: "riconciliazione finanziaria tripla blocca fail-closed una fonte dichiarata fattura senza terna completa" },
+    positive: { fileRef: "src/features/enea-shadow-crm/financialReconciliation.test.ts", testId: "verifica del solo totale finale stampato classifica come intervento operatore l'assenza di qualsiasi fattura economica candidata valida" },
+    negative: { fileRef: "src/features/enea-shadow-crm/financialReconciliation.test.ts", testId: "verifica del solo totale finale stampato non usa numero o data come requisito economico quando il totale finale e certo" },
   },
   {
     key: "apr-chrome-keepalive-immortal",
@@ -363,8 +383,8 @@ export const APR_RULE_EVIDENCE_CATALOG: readonly AprRuleEvidenceCatalogEntry[] =
   },
   {
     key: "invoice-schedule-missing-amount",
-    positive: { fileRef: "scripts/enea-shadow-runner/localInvoiceFinancialEvidence.test.ts", testId: "evidenza finanziaria da PDF originario locale preserva uno zero monetario esplicito nello scadenziario" },
-    negative: { fileRef: "scripts/enea-shadow-runner/localInvoiceFinancialEvidence.test.ts", testId: "evidenza finanziaria da PDF originario locale riconosce la scadenza Beghini due righe dopo la data senza inventare zero" },
+    positive: { fileRef: "scripts/enea-shadow-runner/localInvoiceFinancialEvidence.test.ts", testId: "evidenza economica: solo totale finale stampato una scadenza priva di importo non crea issue o blocker" },
+    negative: { fileRef: "scripts/enea-shadow-runner/localInvoiceFinancialEvidence.test.ts", testId: "evidenza economica: solo totale finale stampato resta fail-closed quando il totale finale manca" },
   },
   {
     key: "screening-dimension-unit-surface-coherence",
@@ -398,8 +418,8 @@ export const APR_RULE_EVIDENCE_CATALOG: readonly AprRuleEvidenceCatalogEntry[] =
   },
   {
     key: "missing-explicit-advance-invoice-reference",
-    positive: { fileRef: "scripts/enea-shadow-runner/crmLocalPreflight.test.ts", testId: "preflight locale durevole fino a quindici dossier CRM non usa la stessa fattura di saldo per soddisfare il proprio riferimento acconto" },
-    negative: { fileRef: "scripts/enea-shadow-runner/crmLocalPreflight.test.ts", testId: "preflight locale durevole fino a quindici dossier CRM richiede la fattura di acconto citata e sottratta quando non e presente fra le fonti fiscali" },
+    positive: { fileRef: "scripts/enea-shadow-runner/crmLocalPreflight.test.ts", testId: "preflight locale durevole fino a quindici dossier CRM regressione Buracchi, fattura auto-contenuta con Totale complessivo fornitura non fabbrica un documento mancante" },
+    negative: { fileRef: "scripts/enea-shadow-runner/crmLocalPreflight.test.ts", testId: "preflight locale durevole fino a quindici dossier CRM mantiene fail-closed un acconto citato quando esiste soltanto il Totale documento generico" },
   },
   {
     key: "explicit-advance-invoice-reference-marker",
@@ -418,7 +438,7 @@ export const APR_RULE_EVIDENCE_CATALOG: readonly AprRuleEvidenceCatalogEntry[] =
   },
   {
     key: "draft-payload-mapping-completeness",
-    positive: { fileRef: "scripts/enea-shadow-runner/crmLocalPreflight.test.ts", testId: "preflight locale durevole fino a quindici dossier CRM rende lavorabile Lucia Lagrasta usando il lordo IVA incluso della seconda pagina" },
+    positive: { fileRef: "scripts/enea-shadow-runner/crmLocalPreflight.test.ts", testId: "preflight locale durevole fino a quindici dossier CRM mantiene Lucia Lagrasta nel gate di mapping quando la seconda pagina etichetta esplicitamente il totale finale" },
     negative: { fileRef: "scripts/enea-shadow-runner/crmLocalPreflight.test.ts", testId: "preflight locale durevole fino a quindici dossier CRM ricalcola da una revisione locale delle fonti senza ripetere il caso o mutare sistemi esterni" },
   },
   {
@@ -453,8 +473,8 @@ export const APR_RULE_EVIDENCE_CATALOG: readonly AprRuleEvidenceCatalogEntry[] =
   },
   {
     key: "infissi-invoice-or-technical-source-resolution",
-    positive: { fileRef: "src/features/enea-shadow-crm/infissiTechnicalSources.test.ts", testId: "APR Infissi · fattura e documenti tecnici originari non sceglie arbitrariamente quando fattura e documento tecnico confliggono" },
-    negative: { fileRef: "src/features/enea-shadow-crm/infissiTechnicalSources.test.ts", testId: "APR Infissi · fattura e documenti tecnici originari usa numero, misure e trasmittanza espliciti della fattura ed espande ogni pezzo 1:1" },
+    positive: { fileRef: "src/features/enea-shadow-crm/infissiAutomaticDocumentEvidence.test.ts", testId: "APR Infissi · estrazione automatica documenti reali regressione Capatti end-to-end: la firma unica di fattura con sette pezzi prevale sulle misure diverse del certificato" },
+    negative: { fileRef: "src/features/enea-shadow-crm/infissiAutomaticDocumentEvidence.test.ts", testId: "APR Infissi · estrazione automatica documenti reali resta fail-closed se fattura e certificato discordano sulla cardinalita fisica" },
   },
   {
     key: "infissi-invoice-certificate-cardinality",
@@ -492,9 +512,24 @@ export const APR_RULE_EVIDENCE_CATALOG: readonly AprRuleEvidenceCatalogEntry[] =
     negative: { fileRef: "src/features/enea-shadow-crm/infissiProductRules.test.ts", testId: "APR Infissi · materiale, vetro e chiusure oscuranti non inventa la risposta quando il campo del form manca o e ambiguo" },
   },
   {
-    key: "infissi-shading-closure-invoice-order-allocation",
-    positive: { fileRef: "src/features/enea-shadow-crm/infissiShadingClosureAllocation.test.ts", testId: "allocazione chiusure oscuranti Infissi in ordine fattura non assegna posizioni se le righe tecniche seguono l'ordine del certificato" },
-    negative: { fileRef: "src/features/enea-shadow-crm/infissiShadingClosureAllocation.test.ts", testId: "allocazione chiusure oscuranti Infissi in ordine fattura assegna due chiusure ai primi due di tre infissi e deduplica acconto/saldo identici" },
+    key: "infissi-invoice-authoritative-shading-closures",
+    positive: { fileRef: "scripts/enea-shadow-runner/infissiBatchPreflight.test.ts", testId: "APR Infissi · batch preflight persistente regressione Stricelli end-to-end: il fascicolo fatture completo e silente sovrascrive il SI del form con NO" },
+    negative: { fileRef: "scripts/enea-shadow-runner/infissiBatchPreflight.test.ts", testId: "APR Infissi · batch preflight persistente non interpreta il silenzio come NO quando una fattura inventariata non e stata scaricata" },
+  },
+  {
+    key: "zanzariera-infissi-installation-context",
+    positive: { fileRef: "src/features/enea-shadow-crm/infissiShadingClosureAllocation.test.ts", testId: "allocazione chiusure oscuranti Infissi in ordine fattura regressione Giuga: la zanzariera fatturata nella pratica Infissi vale come chiusura aggiuntiva anche se il form dice NO" },
+    negative: { fileRef: "src/features/enea-shadow-crm/documentedProductRouting.test.ts", testId: "routing prodotto da fonti originarie regola Giuga: zanzariera con infissi e mixed, zanzariera da sola resta Schermature" },
+  },
+  {
+    key: "infissi-closure-flag-no-measurements-portal-order",
+    positive: { fileRef: "src/features/enea-shadow-crm/infissiShadingClosureAllocation.test.ts", testId: "allocazione chiusure oscuranti Infissi in ordine fattura assegna le chiusure ai primi infissi nell'ordine portale anche se le righe tecniche provengono dal certificato" },
+    negative: { fileRef: "src/features/enea-shadow-crm/infissiShadingClosureAllocation.test.ts", testId: "allocazione chiusure oscuranti Infissi in ordine fattura resta fail-closed sulla quantita, non sulle misure, se le chiusure superano gli infissi" },
+  },
+  {
+    key: "infissi-explicit-no-screen-negative-closure-evidence",
+    positive: { fileRef: "src/features/enea-shadow-crm/infissiShadingClosureAllocation.test.ts", testId: "allocazione chiusure oscuranti Infissi in ordine fattura usa NO documentale quando ogni infisso dichiara Senza schermo e la fattura non contiene chiusure" },
+    negative: { fileRef: "src/features/enea-shadow-crm/infissiShadingClosureAllocation.test.ts", testId: "allocazione chiusure oscuranti Infissi in ordine fattura usa il silenzio della fattura completa anche con Senza schermo parziale, ma non contro una chiusura fatturata" },
   },
   {
     key: "vepa-bonus-casa-routing-and-anagraphic-contract",
@@ -573,8 +608,8 @@ export const APR_RULE_EVIDENCE_CATALOG: readonly AprRuleEvidenceCatalogEntry[] =
   },
   {
     key: "linea-sole-potito-paper-form",
-    positive: { fileRef: "scripts/enea-shadow-runner/lineaSolePotitoPolicy.test.ts", testId: "Linea Sole Potito — modulo cartaceo e fallback vendor-scoped usa Sud solo in assenza di orientamento esplicito" },
-    negative: { fileRef: "scripts/enea-shadow-runner/lineaSolePotitoPolicy.test.ts", testId: "Linea Sole Potito — modulo cartaceo e fallback vendor-scoped genera 2,0-2,9 in modo stabile per pratica+riga e lascia prevalere l'esplicito" },
+    positive: { fileRef: "scripts/enea-shadow-runner/aprFutureTestExclusions.test.ts", testId: "esclusioni permanenti APR per relazione instrada Linea Sole Potito come esclusione fornitore prima dell'elaborazione" },
+    negative: { fileRef: "scripts/enea-shadow-runner/aprFutureTestExclusions.test.ts", testId: "esclusioni permanenti APR per relazione non estende gli alias a nomi solo parzialmente simili" },
   },
   {
     key: "narrative-invoice-product-extraction",
@@ -583,12 +618,12 @@ export const APR_RULE_EVIDENCE_CATALOG: readonly AprRuleEvidenceCatalogEntry[] =
   },
   {
     key: "invoice-gross-total-vat-included",
-    positive: { fileRef: "src/features/enea-lab/invoiceParser.vendorFormats.test.ts", testId: "invoiceParser formati rivenditore originari non usa un importo isolato che non coincide con imponibile piu IVA" },
+    positive: { fileRef: "src/features/enea-lab/invoiceParser.vendorFormats.test.ts", testId: "invoiceParser formati rivenditore originari riconosce il totale lordo IVA incluso isolato nella seconda pagina" },
     negative: { fileRef: "src/features/enea-lab/invoiceParser.vendorFormats.test.ts", testId: "invoiceParser formati rivenditore originari riconosce il lordo S.A. Montaggi quando imponibile e' in coda alla riga aliquota" },
   },
   {
     key: "distinct-invoice-numbers-same-customer-sum",
-    positive: { fileRef: "src/features/enea-shadow-crm/financialReconciliation.test.ts", testId: "riconciliazione finanziaria tripla somma automaticamente due fatture OCR con numeri distinti e terne fiscali riconciliate" },
+    positive: { fileRef: "src/features/enea-shadow-crm/financialReconciliation.test.ts", testId: "verifica del solo totale finale stampato somma automaticamente due fatture OCR con numeri distinti e terne fiscali riconciliate" },
     negative: { fileRef: "scripts/enea-shadow-runner/crmLocalPreflight.test.ts", testId: "preflight locale durevole fino a quindici dossier CRM somma acconto e saldo economici ma conserva una sola riga tecnica" },
   },
   {
@@ -648,8 +683,18 @@ export const APR_RULE_EVIDENCE_CATALOG: readonly AprRuleEvidenceCatalogEntry[] =
   },
   {
     key: "permanent-supplier-automation-exclusion",
-    positive: { fileRef: "scripts/enea-shadow-runner/aprFutureTestExclusions.test.ts", testId: "esclusioni permanenti APR per relazione riconosce Erre Emme e RM Legno nei campi CRM disponibili" },
+    positive: { fileRef: "scripts/enea-shadow-runner/aprFutureTestExclusions.test.ts", testId: "esclusioni permanenti APR per relazione instrada Linea Sole Potito come esclusione fornitore prima dell'elaborazione" },
     negative: { fileRef: "scripts/enea-shadow-runner/aprFutureTestExclusions.test.ts", testId: "esclusioni permanenti APR per relazione non estende gli alias a nomi solo parzialmente simili" },
+  },
+  {
+    key: "ideal-sistem-manual-processing-exclusion",
+    positive: { fileRef: "scripts/enea-shadow-runner/aprFutureTestExclusions.test.ts", testId: "esclusioni permanenti APR per relazione instrada Ideal Sistem alla lavorazione manuale e fuori dal denominatore prima dell'elaborazione" },
+    negative: { fileRef: "scripts/enea-shadow-runner/aprFutureTestExclusions.test.ts", testId: "esclusioni permanenti APR per relazione non estende l'esclusione Ideal Sistem a societa dal nome simile" },
+  },
+  {
+    key: "infissi-tabular-abbreviated-thermal-evidence",
+    positive: { fileRef: "src/features/enea-shadow-crm/infissiAutomaticDocumentEvidence.test.ts", testId: "APR Infissi · estrazione automatica documenti reali DoP tabellare associa gli Uw solo a una firma fattura univoca" },
+    negative: { fileRef: "src/features/enea-shadow-crm/infissiAutomaticDocumentEvidence.test.ts", testId: "APR Infissi · estrazione automatica documenti reali DoP tabellare con cardinalita non coincidente resta fail-closed" },
   },
   {
     key: "permanent-internal-practice-exclusion",
@@ -678,8 +723,8 @@ export const APR_RULE_EVIDENCE_CATALOG: readonly AprRuleEvidenceCatalogEntry[] =
   },
   {
     key: "explicit-original-completion-date",
-    positive: { fileRef: "scripts/enea-shadow-runner/crmLocalPreflight.test.ts", testId: "preflight locale durevole fino a quindici dossier CRM usa una dichiarazione originaria esplicita di fine installazione prima della data fattura" },
-    negative: { fileRef: "scripts/enea-shadow-runner/crmLocalPreflight.test.ts", testId: "preflight locale durevole fino a quindici dossier CRM non trasforma date di fattura, pagamento o posa descrittiva in fine lavori e fallisce chiuso sui conflitti" },
+    positive: { fileRef: "scripts/enea-shadow-runner/crmLocalPreflight.test.ts", testId: "preflight locale durevole fino a quindici dossier CRM regressione Cigognetti: usa la data etichettata del verbale di collaudo e consegna prima della fattura" },
+    negative: { fileRef: "scripts/enea-shadow-runner/crmLocalPreflight.test.ts", testId: "preflight locale durevole fino a quindici dossier CRM non confonde righe fiscali di collaudo o verbali di prova prodotto con un verbale di collaudo della pratica" },
   },
   {
     key: "cristal-explicit-or-operator",
@@ -783,8 +828,23 @@ export const APR_RULE_EVIDENCE_CATALOG: readonly AprRuleEvidenceCatalogEntry[] =
   },
   {
     key: "invoice-gross-total-never-internally-verified",
-    positive: { fileRef: "src/features/enea-shadow-crm/financialReconciliation.test.ts", testId: "riconciliazione finanziaria tripla regola generale di Giuliano: accetta anche quando imponibile+IVA non torna col lordo, perché quella coerenza interna non viene più verificata" },
-    negative: { fileRef: "src/features/enea-shadow-crm/financialReconciliation.test.ts", testId: "riconciliazione finanziaria tripla regola generale di Giuliano: non blocca mai per un presunto mismatch imponibile+IVA, usa esclusivamente il lordo dichiarato" },
+    positive: { fileRef: "src/features/enea-shadow-crm/financialReconciliation.test.ts", testId: "verifica del solo totale finale stampato regola generale di Giuliano: accetta anche quando imponibile+IVA non torna col lordo, perché quella coerenza interna non viene più verificata" },
+    negative: { fileRef: "src/features/enea-shadow-crm/financialReconciliation.test.ts", testId: "verifica del solo totale finale stampato regola generale di Giuliano: non blocca mai per un presunto mismatch imponibile+IVA, usa esclusivamente il lordo dichiarato" },
+  },
+  {
+    key: "invoice-final-printed-total-only-never-internal-recalculation",
+    positive: { fileRef: "src/features/enea-shadow-crm/financialReconciliation.test.ts", testId: "verifica del solo totale finale stampato usa il totale finale stampato anche quando non sono verificabili cifre intermedie" },
+    negative: { fileRef: "src/features/enea-shadow-crm/financialReconciliation.test.ts", testId: "verifica del solo totale finale stampato resta fail-closed se il totale finale stampato non e leggibile" },
+  },
+  {
+    key: "advance-balance-fiscal-invoice-equivalence",
+    positive: { fileRef: "scripts/enea-shadow-runner/infissiBatchPreflight.test.ts", testId: "APR Infissi · batch preflight persistente Ranzoni: advance e balance valgono entrambe come evidenza fiscale completa" },
+    negative: { fileRef: "src/features/enea-shadow-crm/financialReconciliation.test.ts", testId: "verifica del solo totale finale stampato classifica come intervento operatore l'assenza di qualsiasi fattura economica candidata valida" },
+  },
+  {
+    key: "invoice-slot-content-authority",
+    positive: { fileRef: "src/features/enea-shadow-crm/infissiTechnicalDocumentClassifier.test.ts", testId: "classificazione semantica dei documenti tecnici Infissi mantiene fattura una vera fonte fiscale anche se contiene un'appendice tecnica" },
+    negative: { fileRef: "src/features/enea-shadow-crm/infissiTechnicalDocumentClassifier.test.ts", testId: "classificazione semantica dei documenti tecnici Infissi declassa documento identita archiviato nello slot fattura" },
   },
   {
     key: "screening-invoice-description-inherits-uniform-form-family",
@@ -805,11 +865,6 @@ export const APR_RULE_EVIDENCE_CATALOG: readonly AprRuleEvidenceCatalogEntry[] =
     key: "unlabelled-unambiguous-measurement-pair",
     positive: { fileRef: "src/features/enea-lab/invoiceParser.vendorFormats.test.ts", testId: "invoiceParser formati rivenditore originari regola generale di Giuliano (Laurelli): riconosce la misura 'N. <n> TEND[AE] DA <numero> X <numero>' anche senza le etichette esplicite L./H." },
     negative: { fileRef: "src/features/enea-lab/invoiceParser.vendorFormats.test.ts", testId: "invoiceParser formati rivenditore originari regola generale di Giuliano: non riconosce come misura un 'TENDA DA SOLE' generico dove 'DA' introduce del testo, non due numeri" },
-  },
-  {
-    key: "ocr-typo-double-period-schedule-amount",
-    positive: { fileRef: "scripts/enea-shadow-runner/localInvoiceFinancialEvidence.test.ts", testId: "evidenza finanziaria da PDF originario locale regola generale di Giuliano (Laurelli): riconosce come importo valido la scadenza con il punto al posto della virgola nei decimali ('3.759.40')" },
-    negative: { fileRef: "scripts/enea-shadow-runner/localInvoiceFinancialEvidence.test.ts", testId: "evidenza finanziaria da PDF originario locale regola generale di Giuliano: il ripiego per il punto-al-posto-della-virgola non si attiva su un importo a un solo punto, gia' ambiguo di suo" },
   },
   {
     key: "zanzasol-plural-header-and-gtot-period-tolerance",
@@ -953,13 +1008,8 @@ export const APR_RULE_EVIDENCE_CATALOG: readonly AprRuleEvidenceCatalogEntry[] =
   },
   {
     key: "duplicate-invoice-matching-number-and-date-over-total",
-    positive: { fileRef: "scripts/enea-shadow-runner/localInvoiceSegmentation.test.ts", testId: "segmentazione locale fatture acconto/saldo regressione Tocchetti: riconosce come duplicata una scansione OCR quando numero e data coincidono, anche se nessun prodotto e' stato riconosciuto sul lato nativo e il totale letto e' diverso" },
+    positive: { fileRef: "scripts/enea-shadow-runner/crmLocalPreflight.test.ts", testId: "preflight locale durevole fino a quindici dossier CRM regressione Tocchetti end-to-end: ritira la copia OCR duplicata prima del gate sui riferimenti di acconto" },
     negative: { fileRef: "scripts/enea-shadow-runner/localInvoiceSegmentation.test.ts", testId: "segmentazione locale fatture acconto/saldo non riconosce come duplicati due segmenti con numero coincidente ma data diversa (resta fail-closed su due fatture distinte)" },
-  },
-  {
-    key: "invoice-final-printed-total-only-never-internal-recalculation",
-    positive: { fileRef: "scripts/enea-shadow-runner/localInvoiceFinancialEvidence.test.ts", testId: "evidenza finanziaria da PDF originario locale regola generale di Giuliano (2026-09-08, regressione Calvacchi): quando il saldo netta un acconto precedente con una riga di credito esplicita, il totale finale stampato resta l'unica prova, mai una ricostruzione dalle righe" },
-    negative: { fileRef: "scripts/enea-shadow-runner/localInvoiceFinancialEvidence.test.ts", testId: "evidenza finanziaria da PDF originario locale senza una riga di credito interno verso un acconto, la ricostruzione dalle righe resta attiva come prima (nessuna regressione)" },
   },
   {
     key: "reseller-installer-invoice-excluded-from-economic-total",
@@ -1015,6 +1065,91 @@ export const APR_RULE_EVIDENCE_CATALOG: readonly AprRuleEvidenceCatalogEntry[] =
     key: "reseller-addressee-multi-line-beneficiary-lookup",
     positive: { fileRef: "scripts/enea-shadow-runner/crmLocalPreflight.test.ts", testId: "preflight locale durevole fino a quindici dossier CRM regressione Biagioni/Riviera: non esclude la fattura del cliente quando 'SPETT.LE' e' seguito prima dalla ragione sociale del fornitore stesso e solo alla riga successiva dal nome del cliente (formato Finestra Italia)" },
     negative: { fileRef: "scripts/enea-shadow-runner/crmLocalPreflight.test.ts", testId: "preflight locale durevole fino a quindici dossier CRM continua a riconoscere una fattura verso il rivenditore quando il nome del beneficiario non compare affatto entro le righe controllate (nessuna regressione Calvacchi)" },
+  },
+  {
+    key: "document-type-bare-word-fattura-narrative-exclusion",
+    positive: { fileRef: "src/features/enea-lab/invoiceParser.test.ts", testId: "parseScreeningInvoiceText regressione Tiraboschi (2026-09-08): non classifica come fattura una dichiarazione di aliquota IVA agevolata solo perche' cita 'fattura' in una clausola su un documento futuro/ipotetico" },
+    negative: { fileRef: "src/features/enea-lab/invoiceParser.test.ts", testId: "parseScreeningInvoiceText non esclude una vera fattura anche se contiene una clausola 'DICHIARA...aliquota IVA agevolata', quando ha comunque un'intestazione fattura esplicita (nessuna regressione)" },
+  },
+  {
+    key: "scrambled-fiscal-header-unique-local-candidates",
+    positive: { fileRef: "src/features/enea-lab/invoiceParser.vendorFormats.test.ts", testId: "invoiceParser formati rivenditore originari legge testata e lordo di una fattura a colonne intercalate quando i candidati locali sono univoci" },
+    negative: { fileRef: "src/features/enea-lab/invoiceParser.vendorFormats.test.ts", testId: "invoiceParser formati rivenditore originari resta fail-closed se la testata intercalata contiene piu candidati numero documento" },
+  },
+  {
+    key: "scrambled-net-payable-repeated-amount",
+    positive: { fileRef: "src/features/enea-lab/invoiceParser.vendorFormats.test.ts", testId: "invoiceParser formati rivenditore originari legge testata e lordo di una fattura a colonne intercalate quando i candidati locali sono univoci" },
+    negative: { fileRef: "src/features/enea-lab/invoiceParser.vendorFormats.test.ts", testId: "invoiceParser formati rivenditore originari resta fail-closed sul totale intercalato se due importi distinti sono entrambi ripetuti" },
+  },
+  {
+    key: "explicit-invoice-product-evidence-recovery",
+    positive: { fileRef: "src/features/enea-lab/invoiceParser.multiInvoiceReliability.test.ts", testId: "parser fatture native: evidenza prodotto esplicita e fail-closed espande un elenco di misure soltanto quando coincide con la quantita esplicita" },
+    negative: { fileRef: "src/features/enea-lab/invoiceParser.multiInvoiceReliability.test.ts", testId: "parser fatture native: evidenza prodotto esplicita e fail-closed resta fail-closed se quantita ed elenco misure non coincidono" },
+  },
+  {
+    key: "preflight-upstream-terminal-propagation",
+    positive: { fileRef: "scripts/enea-shadow-runner/crmLocalPreflight.test.ts", testId: "preflight locale durevole fino a quindici dossier CRM propaga subito pratica CRM non trovata, esclusione fornitore e zero allegati come terminali con blocker e domanda operatore" },
+    negative: { fileRef: "scripts/enea-shadow-runner/crmLocalPreflight.test.ts", testId: "preflight locale durevole fino a quindici dossier CRM non terminalizza a monte un dossier normale con allegati: deve attraversare download e analisi" },
+  },
+  {
+    key: "preflight-upstream-deep-review-propagation",
+    positive: { fileRef: "scripts/enea-shadow-runner/deepCaseReview.test.ts", testId: "revisione profonda persistente APR terminalizza una prova CRM a monte anche se il gate Infissi non e applicabile" },
+    negative: { fileRef: "scripts/enea-shadow-runner/deepCaseReview.test.ts", testId: "revisione profonda persistente APR resta fail-closed se il gate Infissi e incompleto e il blocker non ha prova terminale a monte" },
+  },
+  {
+    key: "screening-measurements-in-line-description",
+    positive: { fileRef: "src/features/enea-lab/invoiceParser.vendorFormats.test.ts", testId: "invoiceParser formati rivenditore originari regressione Muzzi: legge le misure della tenda nella descrizione della riga tecnica senza promuovere l'ordine a fattura" },
+    negative: { fileRef: "src/features/enea-lab/invoiceParser.vendorFormats.test.ts", testId: "invoiceParser formati rivenditore originari non inventa misure da una descrizione priva di unita o da una coppia accessoria P/tapparelle" },
+  },
+  {
+    key: "infissi-explicit-line-quantity-cardinality",
+    positive: { fileRef: "src/features/enea-shadow-crm/infissiAutomaticDocumentEvidence.test.ts", testId: "APR Infissi · estrazione automatica documenti reali regressione Capatti: somma i pezzi espliciti N. q davanti a L/H invece di contare le righe" },
+    negative: { fileRef: "src/features/enea-shadow-crm/infissiAutomaticDocumentEvidence.test.ts", testId: "APR Infissi · estrazione automatica documenti reali non interpreta parole o numeri generici come righe fisiche senza la sequenza quantita-da-misura" },
+  },
+  {
+    key: "cassonetto-excluded-from-enea-products",
+    positive: { fileRef: "src/features/enea-lab/invoiceParser.vendorFormats.test.ts", testId: "invoiceParser formati rivenditore originari continua a leggere una vera tapparella dopo l'esclusione degli accessori del serramento" },
+    negative: { fileRef: "src/features/enea-lab/invoiceParser.vendorFormats.test.ts", testId: "invoiceParser formati rivenditore originari non inventa misure da una descrizione priva di unita o da una coppia accessoria P/tapparelle" },
+  },
+  {
+    key: "zanzariera-first-window-allocation",
+    positive: { fileRef: "src/features/enea-shadow-crm/infissiEneaDraftPayload.test.ts", testId: "payload tecnico locale Infissi per ENEA assegna una zanzariera non posizionata soltanto alla prima finestra" },
+    negative: { fileRef: "src/features/enea-shadow-crm/documentedProductRouting.test.ts", testId: "routing prodotto da fonti originarie regola Giuga: zanzariera con infissi e mixed, zanzariera da sola resta Schermature" },
+  },
+  {
+    key: "reseller-form-completion-date-over-invoice",
+    positive: { fileRef: "scripts/enea-shadow-runner/crmLocalPreflight.test.ts", testId: "preflight locale durevole fino a quindici dossier CRM usa la data fine lavori esplicita del form rivenditore prima della cronologia fatture" },
+    negative: { fileRef: "scripts/enea-shadow-runner/crmLocalPreflight.test.ts", testId: "preflight locale durevole fino a quindici dossier CRM usa il collaudo finale datato come prova di completamento della posa" },
+  },
+  {
+    key: "authoritative-economic-decision-single-source",
+    positive: { fileRef: "scripts/enea-shadow-runner/aprAuthoritativeEconomicBridge.test.ts", testId: "bridge economico autorevole bridge economico autorevole: consuma il totale del preflight senza riaprire o ricalcolare le fatture" },
+    negative: { fileRef: "scripts/enea-shadow-runner/aprAuthoritativeEconomicBridge.test.ts", testId: "bridge economico autorevole bridge economico autorevole: rifiuta decisione mancante alterata o riferita a un'altra pratica" },
+  },
+  {
+    key: "bank-transfer-receipt-never-invoice",
+    positive: { fileRef: "scripts/enea-shadow-runner/aprAuthoritativeEconomicBridge.test.ts", testId: "bridge economico autorevole bridge economico autorevole: una ricevuta bancaria con riferimenti fiscali non viene mai ricostruita come fattura" },
+    negative: { fileRef: "scripts/enea-shadow-runner/localInvoiceSegmentation.test.ts", testId: "segmentazione locale fatture acconto/saldo non esclude un documento che contiene realmente un'intestazione fattura anche se cita 'Beneficiario' o 'Dichiara' (fail-closed: mai escludere una fattura vera)" },
+  },
+  {
+    key: "partial-invoice-totals-do-not-block",
+    positive: { fileRef: "src/features/enea-shadow-crm/financialReconciliation.test.ts", testId: "verifica del solo totale finale stampato riconciliazione economica ignora un segmento nullo quando esiste almeno un totale finale leggibile" },
+    negative: { fileRef: "src/features/enea-shadow-crm/financialReconciliation.test.ts", testId: "verifica del solo totale finale stampato riconciliazione economica resta fail-closed quando tutti i segmenti sono privi di totale" },
+  },
+  {
+    key: "infissi-blocker-question-persistence",
+    positive: { fileRef: "scripts/enea-shadow-runner/operatorQuestions.test.ts", testId: "PersistentAprOperatorQuestions domande operatore Infissi: persiste la domanda formulata dal blocker Infissi" },
+    negative: { fileRef: "scripts/enea-shadow-runner/operatorQuestions.test.ts", testId: "PersistentAprOperatorQuestions domande operatore Infissi: non inventa una domanda per un technical_block" },
+  },
+  {
+    key: "missing-measurement-null-payload",
+    positive: { fileRef: "scripts/enea-shadow-runner/operatorQuestions.test.ts", testId: "PersistentAprOperatorQuestions domande operatore: una misura assente persiste valori null e mai il segnaposto 1x1" },
+    negative: { fileRef: "scripts/enea-shadow-runner/noSyntheticPortalPlaceholders.test.ts", testId: "anti-segnaposto ENEA anti-segnaposto ENEA: nessun percorso runtime inserisce dimensioni sintetiche per soddisfare uno schema" },
+  },
+  {
+    key: "crm-refresh-session-serialization",
+    positive: { fileRef: "scripts/enea-shadow-runner/crmAuth.test.ts", testId: "sessione CRM dedicata APR serializza due processi e fa usare al secondo il refresh token appena ruotato" },
+    negative: { fileRef: "scripts/enea-shadow-runner/crmAuth.test.ts", testId: "sessione CRM dedicata APR chiude fail-closed soltanto sul rifiuto definitivo del token ancora corrente" },
   },
 
 ] as const;

@@ -1,0 +1,28 @@
+{
+  "version": "apr-enea-minimum-queue-gate-v1",
+  "revision": 1,
+  "observedAt": "2026-09-17T12:07:31.635Z",
+  "status": "waiting",
+  "runnableCount": 0,
+  "cohortCount": 0,
+  "isolatedCount": 0,
+  "minimumRequired": 2,
+  "domContractReady": true,
+  "serverReadOnlyProbeReady": true,
+  "repeatDeletionReady": true,
+  "ciottaExcluded": true,
+  "executionSafetyReady": true,
+  "verifiedMapperBridgeReady": true,
+  "reason": "apr_enea_worker_no_resumable_case",
+  "nextAction": "Nessun caso da riprendere nel checkpoint: APR non attribuisce questa condizione al bridge verificato.",
+  "appliedRuleIds": [
+    "authorized-19-test-stop-at-saved-draft",
+    "authorized-27-enea-session-readonly-keepalive",
+    "system-atomic-checkpoint-resume",
+    "system-single-active-practice",
+    "system-verified-mapper-bridge-before-autoarm",
+    "system-public-state-process-liveness",
+    "system-readonly-adapter-contract",
+    "system-operator-block-fail-closed"
+  ]
+}

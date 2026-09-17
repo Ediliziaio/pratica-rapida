@@ -1,0 +1,131 @@
+Subject: [PATCH] fix(apr): la zanzariera sugli infissi e' una spunta, non una schermatura — la regola ora decide
+
+Santo Giuga, 13/09/2026. Il CRM dice infissi; i documenti dicono infissi
+sei volte e 'produzione e posa zanzariera' due volte. Il routing contava
+la zanzariera come evidenza di schermatura e concludeva 'mixed': da li'
+la pratica pretendeva le misure di una schermatura che non esiste e si
+fermava su screenings_missing giro dopo giro, con cinque finestre
+certificate e misurate nel fascicolo.
+
+La regola del titolare (user-2026-09-10-zanzariera-infissi-installation-
+context-v1) era gia' nel codice, ma solo come identificativo aggiunto ad
+appliedRuleIds: dichiarata applicata, non cambiava la decisione. Ora,
+in presenza di serramenti documentati, la zanzariera esce dall'evidenza
+di schermatura e resta visibile a parte (zanzarieraClosureEvidence) per
+la spunta ENEA. Una zanzariera senza serramenti resta Schermature.
+
+Sostituito il test che portava il nome della regola di Giuga e ne
+fissava il contrario. Verificato sui documenti reali della coorte 8130:
+module=infissi, screening=0, infissi=6, zanzariere=2.
+17/17 nel file, 426/426 nel modulo enea-shadow-crm, typecheck pulito.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+---
+--- a/src/features/enea-shadow-crm/documentedProductRouting.ts
++++ b/src/features/enea-shadow-crm/documentedProductRouting.ts
+@@ -9,6 +9,11 @@
+   source: "form_declared" | "original_documents" | "declared_label" | "unresolved";
+   screeningEvidence: string[];
+   infissiEvidence: string[];
++  /**
++   * Zanzariere documentate insieme a serramenti: non sono prodotti
++   * Schermature, sono chiusure associate agli Infissi (spunta ENEA).
++   */
++  zanzarieraClosureEvidence: string[];
+   appliedRuleIds: string[];
+ }
+ 
+@@ -72,8 +77,27 @@
+     screeningEvidence.push(...found.screening);
+     infissiEvidence.push(...found.infissi);
+   }
+-  const documented = screeningEvidence.length && infissiEvidence.length ? "mixed"
+-    : screeningEvidence.length ? "screening"
++  // Regola generale di Giuliano (2026-09-10, confermata l'11/09 e di nuovo il
++  // 13/09 su Santo Giuga): una zanzariera fornita insieme a dei serramenti
++  // e' una chiusura associata agli Infissi — una spunta ENEA — non un
++  // prodotto Schermature con misure proprie. Fino al 13/09/2026 la regola
++  // esisteva solo come identificativo aggiunto ad appliedRuleIds: veniva
++  // dichiarata applicata e non cambiava la decisione, che restava "mixed"
++  // perche' l'evidenza della zanzariera era gia' stata contata come
++  // schermatura. Risultato: Giuga, cinque finestre certificate con misure,
++  // fermo da settimane su "misure della schermatura mancanti", e Giuliano
++  // costretto a rispondere ogni volta che sono infissi.
++  //
++  // Qui la zanzariera viene tolta dall'evidenza di schermatura quando ci sono
++  // infissi documentati: la pratica resta Infissi e la zanzariera resta
++  // visibile a parte, per la spunta. Una zanzariera senza serramenti resta
++  // un prodotto Schermature, come prima.
++  const zanzarieraEvidence = screeningEvidence.filter((item) => /\bzanzarier[ae]\b/iu.test(item));
++  const effectiveScreeningEvidence = infissiEvidence.length
++    ? screeningEvidence.filter((item) => !/\bzanzarier[ae]\b/iu.test(item))
++    : screeningEvidence;
++  const documented = effectiveScreeningEvidence.length && infissiEvidence.length ? "mixed"
++    : effectiveScreeningEvidence.length ? "screening"
+       : infissiEvidence.length ? "infissi" : null;
+   const declaredModule = input.declaredModule ?? null;
+   const formDeclaredModule = input.formDeclaredModule ?? null;
+@@ -96,8 +120,9 @@
+     declaredModule,
+     formDeclaredModule,
+     source,
+-    screeningEvidence: [...new Set(screeningEvidence)],
++    screeningEvidence: [...new Set(effectiveScreeningEvidence)],
+     infissiEvidence: [...new Set(infissiEvidence)],
++    zanzarieraClosureEvidence: [...new Set(infissiEvidence.length ? zanzarieraEvidence : [])],
+     appliedRuleIds: [
+       USER_AUTHORIZED_RULE_IDS.documentedProductModuleOverLabel,
+       ...(source === "form_declared" ? [USER_AUTHORIZED_RULE_IDS.formDeclaredProductModulePriority] : []),
+--- a/src/features/enea-shadow-crm/documentedProductRouting.test.ts
++++ b/src/features/enea-shadow-crm/documentedProductRouting.test.ts
+@@ -12,18 +12,48 @@
+     expect(result.module).toBe("mixed");
+     expect(result.screeningEvidence).not.toHaveLength(0); expect(result.infissiEvidence).not.toHaveLength(0);
+   });
+-  it("regola Giuga: zanzariera con infissi e mixed, zanzariera da sola resta Schermature", () => {
++  // Sostituisce il test omonimo che pretendeva "mixed" per una zanzariera
++  // fornita insieme ai serramenti. Quel test portava il nome della regola di
++  // Giuga e ne fissava il contrario: la regola del 10/09/2026 (confermata
++  // l'11/09 e il 13/09) dice che la zanzariera su un lavoro di infissi e' una
++  // spunta ENEA, non un prodotto Schermature. Con "mixed" la pratica
++  // pretendeva le misure di una schermatura che non esiste e Giuga, cinque
++  // finestre certificate, restava fermo su "misure della schermatura
++  // mancanti" giro dopo giro.
++  it("regola Giuga: zanzariera con infissi resta Infissi (la zanzariera e' una spunta), zanzariera da sola resta Schermature", () => {
+     const withWindows = resolveAprDocumentedProductRouting({
+       sources: [{ sourceId: "fattura-mista", text: "Fornitura di n. 5 infissi PVC e posa di una zanzariera" }],
+     });
+     const standalone = resolveAprDocumentedProductRouting({
+       sources: [{ sourceId: "fattura-zanzariera", text: "Fornitura e posa di n. 1 zanzariera" }],
+     });
+-    expect(withWindows).toMatchObject({ module: "mixed", source: "original_documents" });
++    expect(withWindows).toMatchObject({ module: "infissi", source: "original_documents" });
++    expect(withWindows.screeningEvidence).toEqual([]);
++    expect(withWindows.zanzarieraClosureEvidence).toHaveLength(1);
+     expect(standalone).toMatchObject({ module: "screening", source: "original_documents" });
++    expect(standalone.zanzarieraClosureEvidence).toEqual([]);
+     expect(withWindows.appliedRuleIds).toContain(USER_AUTHORIZED_RULE_IDS.zanzarieraInfissiInstallationContext);
+     expect(standalone.appliedRuleIds).toContain(USER_AUTHORIZED_RULE_IDS.zanzarieraInfissiInstallationContext);
+   });
++  it("Santo Giuga, documenti reali del 13/09/2026: infissi in PVC su sei fonti e 'produzione e posa zanzariera' su due, la pratica e' Infissi", () => {
++    const routing = resolveAprDocumentedProductRouting({
++      declaredModule: "infissi",
++      sources: [
++        { sourceId: "bonifico", text: "Causale: infissi pvc acconto" },
++        { sourceId: "fattura-124", text: "Fattura 124/FE — Fornitura e posa infissi PVC" },
++        { sourceId: "fattura-297", text: "Fattura 297/FE — Fattura per produzione e posa zanzariera + saldo fine lavori" },
++        { sourceId: "dop", text: "Dichiarazione di prestazione — finestre in PVC, FIN2 THERMOFIBRA" },
++      ],
++    });
++    expect(routing.module).toBe("infissi");
++    expect(routing.zanzarieraClosureEvidence.some((item) => item.startsWith("fattura-297:"))).toBe(true);
++  });
++  it("una tenda da sole insieme ai serramenti resta una fornitura mista: la regola vale solo per la zanzariera", () => {
++    const routing = resolveAprDocumentedProductRouting({
++      sources: [{ sourceId: "fattura", text: "Fornitura di n. 3 finestre PVC. Fornitura e posa di tenda da sole a bracci" }],
++    });
++    expect(routing.module).toBe("mixed");
++  });
+   it("regola generale definitiva di Giuliano (2026-09-08): conserva entrambe le famiglie (mixed) anche quando infissi e chiusura oscurante provengono da fatture separate di fornitori diversi", () => {
+     const result = resolveAprDocumentedProductRouting({
+       declaredModule: null,

@@ -1,0 +1,48 @@
+{
+  "version": "apr-atzeni-amadu-historical-inputs-v1",
+  "generatedAt": "2026-09-10T15:18:53.995Z",
+  "readOnly": true,
+  "crmMethods": [
+    "GET",
+    "HEAD"
+  ],
+  "externalMutationAllowed": false,
+  "cases": [
+    {
+      "practiceId": "dc4484cd-c462-49c0-a734-3064dd6469a8",
+      "displayName": "GIOVANNA ATZENI",
+      "documents": [
+        {
+          "objectPath": "dc4484cd-c462-49c0-a734-3064dd6469a8/conclusa/2183c0ff-310c-4862-96f3-babc9aebcdb7.pdf",
+          "localPath": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-infissi-atzeni-amadu-field-comparison-2026-09-10/historical-pdfs/dc4484cd-c462-49c0-a734-3064dd6469a8/operator-completed-1.pdf",
+          "byteLength": 234365,
+          "sha256": "653347e36df7f10fa1043c40bfe6f7dec6977ae9fd92f8d9eb8bb0d24779da33"
+        },
+        {
+          "objectPath": "dc4484cd-c462-49c0-a734-3064dd6469a8/conclusa/41d598ac-9eb1-4c60-8038-7377bda6e482.pdf",
+          "localPath": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-infissi-atzeni-amadu-field-comparison-2026-09-10/historical-pdfs/dc4484cd-c462-49c0-a734-3064dd6469a8/operator-completed-2.pdf",
+          "byteLength": 34700,
+          "sha256": "b60e39b6b29ee2fbaac027d808bd1ad3fd998bd00f1f9af2012b2ef5ad13edfc"
+        }
+      ]
+    },
+    {
+      "practiceId": "e94df373-f8f5-44b9-bd31-3e6c36025c13",
+      "displayName": "GIOVANNI AMADU",
+      "documents": [
+        {
+          "objectPath": "e94df373-f8f5-44b9-bd31-3e6c36025c13/conclusa/70135a73-0771-4b57-bc66-28c2d684bd12.pdf",
+          "localPath": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-infissi-atzeni-amadu-field-comparison-2026-09-10/historical-pdfs/e94df373-f8f5-44b9-bd31-3e6c36025c13/operator-completed-1.pdf",
+          "byteLength": 201739,
+          "sha256": "a69c0cff53c5bb922cbcf6157299e4fbcc1223ef2001786b246f72d475f89504"
+        },
+        {
+          "objectPath": "e94df373-f8f5-44b9-bd31-3e6c36025c13/conclusa/d9e497bc-bd8f-4c63-862a-9be3b27f74e7.pdf",
+          "localPath": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-infissi-atzeni-amadu-field-comparison-2026-09-10/historical-pdfs/e94df373-f8f5-44b9-bd31-3e6c36025c13/operator-completed-2.pdf",
+          "byteLength": 35375,
+          "sha256": "36aff63bdac49875878f8c2e566305779439c5333837640c4cd4376cd45566ee"
+        }
+      ]
+    }
+  ]
+}

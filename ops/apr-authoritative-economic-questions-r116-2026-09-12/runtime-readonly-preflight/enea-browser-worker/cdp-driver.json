@@ -1,0 +1,36 @@
+{
+  "version": "apr-cdp-enea-driver-v1",
+  "revision": 2,
+  "identity": "apr-chrome-profile:0ffd88dd3d6c108727f75fdea9df20f642bcfd92afbde077ce27e6cf7ce4bc9b",
+  "activeTargetId": "5A80C5AA22DAECA06C12BC1E09EABA5C",
+  "pendingCreate": null,
+  "createRecoveryRecords": [],
+  "creationSurface": null,
+  "mappings": [],
+  "contract": null,
+  "pageDiagnostic": null,
+  "pageDiagnostics": [],
+  "pagePreparationDiagnostic": null,
+  "pageSaveDiagnostics": [],
+  "calculationModalContractDiagnostic": null,
+  "calculationNetworkDiagnostic": null,
+  "events": [
+    {
+      "revision": 2,
+      "at": "2026-09-11T23:47:42.275Z",
+      "action": "verify_session_dom_server_get",
+      "evidenceId": "cdp-server-2-1fc02458a7a3cc779f57",
+      "url": "https://bonusfiscali.enea.it/dashboard",
+      "targetId": "5A80C5AA22DAECA06C12BC1E09EABA5C",
+      "customerKey": null,
+      "draftId": null,
+      "pageId": null,
+      "domSha256": "1fc02458a7a3cc779f57e0da33c5d53628b500b432fc299d603d02cc4d91f277",
+      "appliedRuleIds": [
+        "authorized-27-enea-session-readonly-keepalive",
+        "system-atomic-checkpoint-resume",
+        "system-single-active-practice"
+      ]
+    }
+  ]
+}

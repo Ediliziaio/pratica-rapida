@@ -1,0 +1,43 @@
+{
+  "status": "PASS",
+  "tests": {
+    "total": 2029,
+    "passed": 2029,
+    "failed": 0,
+    "pending": 0,
+    "nonCdp": 1947,
+    "socket": 82
+  },
+  "matrixRules": 226,
+  "testedRules": 226,
+  "requiredRuntimeRules": {
+    "apr-supervisor.mjs": [
+      "user-2026-09-12-authoritative-economic-decision-single-source-v1",
+      "user-2026-09-12-bank-transfer-receipt-never-invoice-v1",
+      "user-2026-09-12-partial-invoice-totals-do-not-block-v1",
+      "user-2026-09-12-infissi-blocker-question-persistence-v1",
+      "user-2026-09-12-missing-measurement-null-payload-v1"
+    ],
+    "apr-enea-worker.mjs": [
+      "user-2026-09-12-authoritative-economic-decision-single-source-v1",
+      "user-2026-09-12-bank-transfer-receipt-never-invoice-v1",
+      "user-2026-09-12-partial-invoice-totals-do-not-block-v1",
+      "user-2026-09-12-infissi-blocker-question-persistence-v1",
+      "user-2026-09-12-missing-measurement-null-payload-v1"
+    ]
+  },
+  "stagedBundleSha256": {
+    "apr-supervisor.mjs": "61743f5fe85ae9f765a9a52ddb4b3657529e76f48b58d17eb9f9d408faf683b4",
+    "apr-enea-worker.mjs": "75c629d7e69dd934a10c5d196b2a8e99a39a3709ed7ada2dea8e4766c0785a82",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0"
+  },
+  "historicalAudit": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-authoritative-economic-questions-r116-2026-09-12/historical-audit-report-r116.json",
+  "historicalAuditSha256": "40a9b1fbd38bd26209ac03e10dd051142006c2da5c6513074075cabeae7288c3",
+  "authorizedHistoricalGapOnly": [
+    "user-2026-08-06-portal-intermediary-physical-beneficiary-v1",
+    "user-2026-08-06-intervention-authoritative-sources-and-defaults-v1",
+    "user-2026-08-06-existing-plant-authoritative-mapping-v1",
+    "user-2026-08-06-portal-municipality-controlled-selection-v1"
+  ],
+  "placeholderAudit": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-authoritative-economic-questions-r116-2026-09-12/synthetic-placeholder-audit.json"
+}

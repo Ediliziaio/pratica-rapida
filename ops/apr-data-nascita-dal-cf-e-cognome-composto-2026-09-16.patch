@@ -1,0 +1,389 @@
+--- a/scripts/enea-shadow-runner/crmLocalPreflight.ts
++++ b/scripts/enea-shadow-runner/crmLocalPreflight.ts
+@@ -175,9 +175,11 @@
+   taxCodeSourceIds: string[];
+   primaryBeneficiaryResolution: {
+     status: "verified_document" | "not_found" | "conflict";
++    conflictKind?: "identity" | "birth_date";
+     identity: { name: string; surname: string; taxCode: string; birthDate: string | null; sex: "M" | "F" } | null;
+     sourceIds: string[];
+     authority: "official_identity_document" | "fiscal_document" | null;
++    birthDateSource?: "form_century_with_fiscal_code" | "fiscal_code_over_form" | null;
+   };
+   worksMunicipalityResolution: {
+     status: "verified_document" | "not_found" | "conflict";
+@@ -488,7 +490,11 @@
+   return value.toLocaleLowerCase("it-IT").replace(/(^|[\s'’-])([a-zà-öø-ÿ])/giu, (_match, separator: string, letter: string) => `${separator}${letter.toLocaleUpperCase("it-IT")}`);
+ }
+ 
+-function splitInvoicePersonName(fullName: string, taxCode: string, preferShortest = false) {
++// Cognomi composti (Della Vedova, De Filippo, Di Maio): piu tagli sono coerenti
++// con i prefissi del CF. Se il modulo cliente riproduce esattamente uno dei
++// tagli, e quello a vincere; altrimenti resta il taglio piu corto (regola
++// user-2026-09-16-invoice-person-name-split-from-form-v1).
++function splitInvoicePersonName(fullName: string, taxCode: string, preferShortest = false, hint?: { name: string; surname: string } | null) {
+   const words = fullName.replace(/\s+/g, " ").trim().split(" ").filter(Boolean);
+   const candidates: Array<{ name: string; surname: string; taxCode: string; wordCount: number }> = [];
+   // OCR/layout text often places address or invoice headings on the same line
+@@ -505,6 +511,10 @@
+         }
+       }
+     }
++  }
++  if (hint && hint.name && hint.surname) {
++    const hinted = candidates.filter((candidate) => normalizedIdentityText(candidate.name) === normalizedIdentityText(hint.name) && normalizedIdentityText(candidate.surname) === normalizedIdentityText(hint.surname));
++    if (hinted.length >= 1) { const { wordCount: _wordCount, ...candidate } = hinted[0]; return candidate; }
+   }
+   const minimum = Math.min(...candidates.map((candidate) => candidate.wordCount));
+   const eligible = preferShortest ? candidates.filter((candidate) => candidate.wordCount === minimum) : candidates.filter((candidate) => candidate.wordCount === words.length);
+@@ -588,7 +598,7 @@
+   return [...new Map(results.map((candidate) => [candidate.taxCode, candidate])).values()];
+ }
+ 
+-function explicitInvoicePrimaryBeneficiaries(textValue: string) {
++function explicitInvoicePrimaryBeneficiaries(textValue: string, hint?: { name: string; surname: string } | null) {
+   const results: Array<{ name: string; surname: string; taxCode: string }> = [];
+   const lines = stripHistoricalEneaAppendix(textValue).split(/\r?\n/).map((value) => value.replace(/\s+/g, " ").trim()).filter(Boolean);
+   for (let index = 0; index < lines.length; index += 1) {
+@@ -600,7 +610,7 @@
+     const taxCode = normalizeCf(cfMatch[1]);
+     if (!isValidCodiceFiscale(taxCode)) continue;
+     const fullName = window.slice(0, cfMatch.index).replace(/\b(?:p\.?\s*iva|partita\s+iva)\b.*$/i, "").trim();
+-    const identity = splitInvoicePersonName(fullName, taxCode, true);
++    const identity = splitInvoicePersonName(fullName, taxCode, true, hint);
+     if (identity) results.push(identity);
+   }
+   return [...new Map(results.map((candidate) => [`${candidate.name}|${candidate.surname}|${candidate.taxCode}`, candidate])).values()];
+@@ -793,16 +803,18 @@
+   customerKey: string;
+   taxCode: string | null;
+   requesterBirthDate?: string | null;
++  requesterIdentity?: { name: string; surname: string } | null;
+   analysis: ReturnType<PersistentAprCrmDocumentAnalysis["snapshot"]>;
++  now?: Date;
+ }) {
+-  if (!input.taxCode) return { status: "not_found" as const, identity: null, sourceIds: [] as string[], authority: null };
++  if (!input.taxCode) return { status: "not_found" as const, identity: null, sourceIds: [] as string[], authority: null, birthDateSource: null };
+   const officialCandidates = new Map<string, { identity: { name: string; surname: string; taxCode: string }; sourceIds: string[] }>();
+   const fiscalCandidates = new Map<string, { identity: { name: string; surname: string; taxCode: string }; sourceIds: string[] }>();
+   for (const item of input.analysis.items) {
+     if (item.customerKey !== input.customerKey || item.state !== "analyzed" || !item.textPath || !existsSync(item.textPath)) continue;
+     const originalText = readFileSync(item.textPath, "utf8");
+     const official = explicitOfficialIdentityBeneficiaries(originalText).filter((identity) => identity.taxCode === input.taxCode);
+-    const fiscal = isSemanticInvoice(item) ? explicitInvoicePrimaryBeneficiaries(originalText).filter((identity) => identity.taxCode === input.taxCode) : [];
++    const fiscal = isSemanticInvoice(item) ? explicitInvoicePrimaryBeneficiaries(originalText, input.requesterIdentity ?? null).filter((identity) => identity.taxCode === input.taxCode) : [];
+     for (const [authorityCandidates, identities] of [[officialCandidates, official], [fiscalCandidates, fiscal]] as const) for (const identity of identities) {
+       const key = `${normalizedIdentityText(identity.name)}|${normalizedIdentityText(identity.surname)}|${identity.taxCode}`;
+       const candidate = authorityCandidates.get(key) ?? { identity, sourceIds: [] };
+@@ -814,8 +826,8 @@
+   // fiscal documents are considered only when no official identity is present.
+   const candidates = officialCandidates.size ? officialCandidates : fiscalCandidates;
+   const authority = officialCandidates.size ? "official_identity_document" as const : "fiscal_document" as const;
+-  if (candidates.size === 0) return { status: "not_found" as const, identity: null, sourceIds: [] as string[], authority: null };
+-  if (candidates.size > 1) return { status: "conflict" as const, identity: null, sourceIds: [...new Set([...candidates.values()].flatMap((candidate) => candidate.sourceIds))].sort(), authority: null };
++  if (candidates.size === 0) return { status: "not_found" as const, identity: null, sourceIds: [] as string[], authority: null, birthDateSource: null };
++  if (candidates.size > 1) return { status: "conflict" as const, conflictKind: "identity" as const, identity: null, sourceIds: [...new Set([...candidates.values()].flatMap((candidate) => candidate.sourceIds))].sort(), authority: null, birthDateSource: null };
+   const candidate = [...candidates.values()][0];
+   const encodedYear = Number(candidate.identity.taxCode.slice(6, 8));
+   const encodedMonth = "ABCDEHLMPRST".indexOf(candidate.identity.taxCode[8]) + 1;
+@@ -825,16 +837,33 @@
+   const requesterBirthDate = text(input.requesterBirthDate).slice(0, 10);
+   const requesterDateMatch = requesterBirthDate.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+   // Il CF documentale prova giorno, mese, sesso e le ultime due cifre
+-  // dell'anno, ma non il secolo. Il solo dato CRM ammesso e' quindi il secolo,
+-  // e soltanto quando le ultime due cifre concordano. Altrimenti il caso resta
+-  // fail-closed: non inventiamo 19xx/20xx.
+-  if (requesterDateMatch && Number(requesterDateMatch[1].slice(-2)) !== encodedYear) return {
+-    status: "conflict" as const,
+-    identity: null,
+-    sourceIds: [...new Set(candidate.sourceIds)].sort(),
+-    authority: null,
+-  };
+-  const birthDate = requesterDateMatch && encodedMonth > 0 && encodedDay >= 1 && encodedDay <= 31
++  // dell'anno, ma non il secolo. Se l'anno del modulo concorda, il modulo
++  // fornisce il secolo. Se l'anno del modulo contraddice il CF ma giorno e
++  // mese concordano, vale il CF (triangolazione modulo-CF-fattura decisa dal
++  // titolare il 16/09/2026): il secolo e' l'unico che da un'eta fra 18 e 110
++  // anni. Giorno o mese discordi, o secolo ambiguo, restano fail-closed.
++  const validDayMonth = encodedMonth > 0 && encodedDay >= 1 && encodedDay <= 31;
++  if (requesterDateMatch && Number(requesterDateMatch[1].slice(-2)) !== encodedYear) {
++    const formMonth = Number(requesterDateMatch[2]); const formDay = Number(requesterDateMatch[3]);
++    const dayMonthAgree = validDayMonth && formMonth === encodedMonth && formDay === encodedDay;
++    const century = dayMonthAgree ? plausibleBirthCentury(encodedYear, input.now ?? new Date()) : null;
++    if (!dayMonthAgree || century === null) return {
++      status: "conflict" as const,
++      conflictKind: "birth_date" as const,
++      identity: null,
++      sourceIds: [...new Set(candidate.sourceIds)].sort(),
++      authority: null,
++      birthDateSource: null,
++    };
++    return {
++      status: "verified_document" as const,
++      identity: { ...candidate.identity, birthDate: `${century + encodedYear}-${String(encodedMonth).padStart(2, "0")}-${String(encodedDay).padStart(2, "0")}`, sex },
++      sourceIds: [...new Set(candidate.sourceIds)].sort(),
++      authority,
++      birthDateSource: "fiscal_code_over_form" as const,
++    };
++  }
++  const birthDate = requesterDateMatch && validDayMonth
+     ? `${requesterDateMatch[1]}-${String(encodedMonth).padStart(2, "0")}-${String(encodedDay).padStart(2, "0")}`
+     : null;
+   return {
+@@ -842,7 +871,16 @@
+     identity: { ...candidate.identity, birthDate, sex },
+     sourceIds: [...new Set(candidate.sourceIds)].sort(),
+     authority,
++    birthDateSource: birthDate ? "form_century_with_fiscal_code" as const : null,
+   };
++}
++
++// Secolo di nascita: l'unico (1900 o 2000) che rende l'eta compresa fra 18 e
++// 110 anni alla data odierna. Se entrambi o nessuno la rendono, null.
++function plausibleBirthCentury(twoDigitYear: number, now: Date): number | null {
++  const currentYear = now.getUTCFullYear();
++  const admissible = [1900, 2000].filter((century) => { const age = currentYear - (century + twoDigitYear); return age >= 18 && age <= 110; });
++  return admissible.length === 1 ? admissible[0] : null;
+ }
+ 
+ export function resolveCoBeneficiaryFromOriginalInvoices(input: {
+@@ -1693,7 +1731,10 @@
+     reason: `CF originario ${fiscalCodeRepair.original} corretto in ${fiscalCodeRepair.corrected}: unica sostituzione OCR confondibile, checksum valido e anagrafica form concordante; entrambi conservati in audit.`,
+     appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.fiscalCodeIdentityCrossCheck],
+   });
+-  const primaryBeneficiaryResolution = resolvePrimaryBeneficiaryFromOfficialDocuments({ customerKey, taxCode: resolvedTaxCode, requesterBirthDate: text(requester?.data_nascita), analysis });
++  const primaryBeneficiaryResolution = resolvePrimaryBeneficiaryFromOfficialDocuments({
++    customerKey, taxCode: resolvedTaxCode, requesterBirthDate: text(requester?.data_nascita), analysis,
++    requesterIdentity: { name: text(requester?.nome) || text(row?.cliente_nome), surname: text(requester?.cognome) || text(row?.cliente_cognome) },
++  });
+   if (!resolvedTaxCode) blockers.push({
+     code: taxCodeStatus === "conflict" ? "tax_code_conflict" : "tax_code_missing_or_invalid",
+     field: "beneficiary.taxCode",
+@@ -1701,13 +1742,24 @@
+     sourceIds: [customerKey, ...effectiveDocumentCf.sourceIds],
+     appliedRuleIds: ["core-form-first", USER_AUTHORIZED_RULE_IDS.validOriginalDocumentFiscalCode, USER_AUTHORIZED_RULE_IDS.fiscalCodeIdentityCrossCheck],
+   });
+-  if (primaryBeneficiaryResolution.status === "conflict") blockers.push({
++  if (primaryBeneficiaryResolution.status === "conflict") blockers.push(primaryBeneficiaryResolution.conflictKind === "birth_date" ? {
++    code: "primary_beneficiary_birth_date_conflict",
++    field: "beneficiary.birthDate",
++    reason: `La data di nascita del modulo (${text(requester?.data_nascita).slice(0, 10) || "assente"}) non concorda con giorno o mese codificati nel CF verificato ${resolvedTaxCode}: indicare la data di nascita corretta.`,
++    sourceIds: primaryBeneficiaryResolution.sourceIds,
++    appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.birthDateFromVerifiedFiscalCode, USER_AUTHORIZED_RULE_IDS.fiscalCodeIdentityCrossCheck, "system-apr-operator-intervention-routing"],
++  } : {
+     code: "primary_beneficiary_invoice_identity_conflict",
+     field: "beneficiary.identity",
+     reason: "Le fatture originarie riportano identita anagrafiche diverse per lo stesso CF; la precedenza fattura non e applicabile senza intervento operatore.",
+     sourceIds: primaryBeneficiaryResolution.sourceIds,
+     appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.officialIdentityOverManualCrm, USER_AUTHORIZED_RULE_IDS.fiscalCodeIdentityCrossCheck, "system-apr-operator-intervention-routing"],
+   });
++  if (primaryBeneficiaryResolution.status === "verified_document" && primaryBeneficiaryResolution.birthDateSource === "fiscal_code_over_form") warnings.push({
++    code: "birth_date_taken_from_verified_fiscal_code",
++    reason: `Data di nascita del modulo ${text(requester?.data_nascita).slice(0, 10)} sostituita da ${primaryBeneficiaryResolution.identity?.birthDate}: il CF ${resolvedTaxCode} coincide nel modulo e nella fattura originaria, giorno e mese concordano e solo l'anno digitato differisce (triangolazione modulo-CF-fattura).`,
++    appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.birthDateFromVerifiedFiscalCode, USER_AUTHORIZED_RULE_IDS.fiscalCodeIdentityCrossCheck],
++  });
+   if (primaryBeneficiaryResolution.status === "verified_document" && primaryBeneficiaryResolution.identity
+     && (normalizedIdentityText(text(requester?.nome)) !== normalizedIdentityText(primaryBeneficiaryResolution.identity.name)
+       || normalizedIdentityText(text(requester?.cognome)) !== normalizedIdentityText(primaryBeneficiaryResolution.identity.surname)
+--- a/scripts/enea-shadow-runner/crmLocalPreflight.test.ts
++++ b/scripts/enea-shadow-runner/crmLocalPreflight.test.ts
+@@ -1525,7 +1525,7 @@
+       { documentKey: "invoice", customerKey: "antonino-formisabo", kind: "invoice", state: "analyzed", textPath: invoice },
+       { documentKey: "identity-card", customerKey: "antonino-formisabo", kind: "additional", state: "analyzed", textPath: identityCard },
+     ] } as never });
+-    expect(result).toEqual({ status: "verified_document", identity: { name: "Antonino", surname: "Formisano", taxCode: "FRMNNN66P27L259X", birthDate: null, sex: "M" }, sourceIds: ["identity-card"], authority: "official_identity_document" });
++    expect(result).toMatchObject({ status: "verified_document", identity: { name: "Antonino", surname: "Formisano", taxCode: "FRMNNN66P27L259X", birthDate: null, sex: "M" }, sourceIds: ["identity-card"], authority: "official_identity_document" });
+   });
+ 
+   it("resta fail-closed se due documenti ufficiali coerenti col CF discordano sul cognome", () => {
+@@ -1547,7 +1547,7 @@
+     expect(resolvePrimaryBeneficiaryFromOfficialDocuments({ customerKey: "gregorio-fusco", taxCode: "FSCGGR80B08L845D", analysis: { items: [
+       { documentKey: "card", customerKey: "gregorio-fusco", kind: "additional", state: "analyzed", textPath: card },
+       { documentKey: "invoice", customerKey: "gregorio-fusco", kind: "invoice", state: "analyzed", textPath: invoice },
+-    ] } as never })).toEqual({ status: "verified_document", identity: { name: "Gregorio", surname: "Fusco", taxCode: "FSCGGR80B08L845D", birthDate: null, sex: "M" }, sourceIds: ["card"], authority: "official_identity_document" });
++    ] } as never })).toMatchObject({ status: "verified_document", identity: { name: "Gregorio", surname: "Fusco", taxCode: "FSCGGR80B08L845D", birthDate: null, sex: "M" }, sourceIds: ["card"], authority: "official_identity_document" });
+   });
+ 
+   it("fa prevalere giorno, mese e sesso del CF documentale usando solo il secolo concordante del form", () => {
+@@ -1557,23 +1557,80 @@
+     expect(resolvePrimaryBeneficiaryFromOfficialDocuments({
+       customerKey: "riccardo-coda", taxCode: "CDORCR50A30A859R", requesterBirthDate: "1950-09-30",
+       analysis: { items: [{ documentKey: "invoice", customerKey: "riccardo-coda", kind: "invoice", state: "analyzed", textPath: invoice }] } as never,
+-    })).toEqual({
++    })).toMatchObject({
+       status: "verified_document",
+       identity: { name: "Riccardo", surname: "Coda", taxCode: "CDORCR50A30A859R", birthDate: "1950-01-30", sex: "M" },
+-      sourceIds: ["invoice"], authority: "fiscal_document",
++      sourceIds: ["invoice"], authority: "fiscal_document", birthDateSource: "form_century_with_fiscal_code",
+     });
+   });
+ 
+-  it("resta fail-closed se il secolo non e ricavabile senza contraddire l'anno del form", () => {
+-    const root = mkdtempSync(path.join(os.tmpdir(), "apr-official-demographics-century-")); directories.push(root);
++  // Regola del titolare, 16/09/2026 (Giancarlo Della Vedova): il CF scritto nel
++  // modulo coincide con quello stampato in fattura, quindi e' provato da un
++  // documento ufficiale; se la data digitata contraddice solo l'anno, vale il
++  // CF. Sostituisce il vecchio comportamento fail-closed sul secolo.
++  it("la data di nascita viene dal CF verificato quando il form sbaglia l'anno (Della Vedova)", () => {
++    const root = mkdtempSync(path.join(os.tmpdir(), "apr-birth-date-from-cf-")); directories.push(root);
+     const invoice = path.join(root, "fattura.txt");
++    writeFileSync(invoice, "CLIENTE Giancarlo Della Vedova C.F.: DLLGCR63P16F205G Via Montale 1 20017 - Rho (MI) - IT\nTOTALE DOCUMENTO 1.000,00");
++    const result = resolvePrimaryBeneficiaryFromOfficialDocuments({
++      customerKey: "giancarlo-della-vedova", taxCode: "DLLGCR63P16F205G", requesterBirthDate: "1976-09-16",
++      requesterIdentity: { name: "Giancarlo", surname: "Della Vedova" }, now: new Date("2026-09-16T12:00:00Z"),
++      analysis: { items: [{ documentKey: "invoice", customerKey: "giancarlo-della-vedova", kind: "invoice", state: "analyzed", textPath: invoice }] } as never,
++    });
++    expect(result).toMatchObject({
++      status: "verified_document",
++      identity: { name: "Giancarlo", surname: "Della Vedova", taxCode: "DLLGCR63P16F205G", birthDate: "1963-09-16", sex: "M" },
++      sourceIds: ["invoice"], authority: "fiscal_document", birthDateSource: "fiscal_code_over_form",
++    });
++  });
++
++  it("giorno o mese del form discordi dal CF restano fail-closed", () => {
++    const root = mkdtempSync(path.join(os.tmpdir(), "apr-birth-date-cf-day-mismatch-")); directories.push(root);
++    const invoice = path.join(root, "fattura.txt");
+     writeFileSync(invoice, "CLIENTE\nRICCARDO CODA\nC.F. CDORCR50A30A859R\nTOTALE DOCUMENTO 1.000,00");
++    // CF: 30 gennaio (A30); il form dice 30 settembre 1949: mese diverso, non solo l'anno.
+     expect(resolvePrimaryBeneficiaryFromOfficialDocuments({
+-      customerKey: "riccardo-coda", taxCode: "CDORCR50A30A859R", requesterBirthDate: "1949-09-30",
++      customerKey: "riccardo-coda", taxCode: "CDORCR50A30A859R", requesterBirthDate: "1949-09-30", now: new Date("2026-09-16T12:00:00Z"),
+       analysis: { items: [{ documentKey: "invoice", customerKey: "riccardo-coda", kind: "invoice", state: "analyzed", textPath: invoice }] } as never,
+-    })).toMatchObject({ status: "conflict", identity: null, sourceIds: ["invoice"], authority: null });
++    })).toMatchObject({ status: "conflict", conflictKind: "birth_date", identity: null, sourceIds: ["invoice"], authority: null });
+   });
+ 
++  it("un cognome composto stampato in fattura viene tagliato come nel form (Della Vedova)", () => {
++    const root = mkdtempSync(path.join(os.tmpdir(), "apr-composite-surname-")); directories.push(root);
++    const invoice = path.join(root, "fattura.txt");
++    writeFileSync(invoice, "CLIENTE Giancarlo Della Vedova C.F.: DLLGCR63P16F205G Via Montale 1 20017 - Rho (MI) - IT\nTOTALE DOCUMENTO 1.000,00");
++    const analysis = { items: [{ documentKey: "invoice", customerKey: "giancarlo-della-vedova", kind: "invoice", state: "analyzed", textPath: invoice }] } as never;
++    expect(resolvePrimaryBeneficiaryFromOfficialDocuments({
++      customerKey: "giancarlo-della-vedova", taxCode: "DLLGCR63P16F205G", requesterIdentity: { name: "Giancarlo", surname: "Della Vedova" }, analysis,
++    }).identity).toMatchObject({ name: "Giancarlo", surname: "Della Vedova" });
++  });
++
++  it("senza suggerimento del form resta il taglio piu corto coerente col CF", () => {
++    const root = mkdtempSync(path.join(os.tmpdir(), "apr-composite-surname-no-hint-")); directories.push(root);
++    const invoice = path.join(root, "fattura.txt");
++    writeFileSync(invoice, "CLIENTE Giancarlo Della Vedova C.F.: DLLGCR63P16F205G Via Montale 1 20017 - Rho (MI) - IT\nTOTALE DOCUMENTO 1.000,00");
++    const analysis = { items: [{ documentKey: "invoice", customerKey: "giancarlo-della-vedova", kind: "invoice", state: "analyzed", textPath: invoice }] } as never;
++    expect(resolvePrimaryBeneficiaryFromOfficialDocuments({ customerKey: "giancarlo-della-vedova", taxCode: "DLLGCR63P16F205G", analysis }).identity)
++      .toMatchObject({ name: "Giancarlo", surname: "Della" });
++  });
++
++  it("il preflight consegna la data del CF e non blocca la pratica quando il form sbaglia l'anno", () => {
++    const root = mkdtempSync(path.join(os.tmpdir(), "apr-birth-date-cf-report-")); directories.push(root);
++    const invoicePath = path.join(root, "fattura.txt");
++    writeFileSync(invoicePath, "FATTURA 12 del 01/07/2026\nCLIENTE Giancarlo Della Vedova C.F.: DLLGCR63P16F205G Via Montale 1 20017 - Rho (MI) - IT\nTOTALE DOCUMENTO 1.000,00 €");
++    const report = buildCrmLocalPreflightReport({ row: {
++      id: "fixture-della-vedova", cliente_nome: "Giancarlo", cliente_cognome: "Della Vedova", cliente_cf: "DLLGCR63P16F205G",
++      dati_form: { richiedente: { nome: "Giancarlo", cognome: "Della Vedova", cf: "DLLGCR63P16F205G", data_nascita: "1976-09-16" } },
++    } }, "fixture-della-vedova", { items: [{
++      documentKey: "fattura-12", customerKey: "fixture-della-vedova", kind: "invoice", state: "analyzed", textPath: invoicePath,
++      extractionMode: "native_text", invoiceResult: { documentType: "invoice", documentNumber: "12", documentDate: "2026-07-01", total: 1000 }, screeningItems: [],
++    }] } as never, new Date("2026-09-16T12:00:00Z"));
++    expect(report.blockers).not.toContainEqual(expect.objectContaining({ code: "primary_beneficiary_invoice_identity_conflict" }));
++    expect(report.blockers).not.toContainEqual(expect.objectContaining({ code: "primary_beneficiary_birth_date_conflict" }));
++    expect(report.warnings).toContainEqual(expect.objectContaining({ code: "birth_date_taken_from_verified_fiscal_code" }));
++    expect(report.primaryBeneficiaryResolution).toMatchObject({ status: "verified_document", identity: { surname: "Della Vedova", birthDate: "1963-09-16" } });
++  });
++
+   it("estrae il Comune lavori dal blocco CLIENTE di una fattura originaria", () => {
+     const root = mkdtempSync(path.join(os.tmpdir(), "apr-works-municipality-extraction-")); directories.push(root);
+     const invoice = path.join(root, "fattura.txt");
+--- a/src/features/enea-shadow-crm/operationalRegistry.ts
++++ b/src/features/enea-shadow-crm/operationalRegistry.ts
+@@ -1,7 +1,7 @@
+ import crypto from "node:crypto";
+ import { OPERATIONAL_RULES } from "./operationalRules";
+ 
+-export const ENEA_OPERATIONAL_REGISTRY_VERSION = "enea-operational-registry-v175" as const;
++export const ENEA_OPERATIONAL_REGISTRY_VERSION = "enea-operational-registry-v176" as const;
+ export const ENEA_GLOBAL_PREREQUISITE = Object.freeze({
+   id: "browser-session-contract-v1",
+   scope: "global_not_practice",
+@@ -101,6 +101,8 @@
+   officialMunicipalityProvinceLineage: "user-2026-09-02-official-municipality-province-lineage-v1",
+   officialMunicipalityCanonicalIdentity: "user-2026-09-05-official-municipality-canonical-identity-v1",
+   birthMunicipalityFromFiscalCode: "user-2026-09-14-birth-municipality-from-fiscal-code-v1",
++  birthDateFromVerifiedFiscalCode: "user-2026-09-16-birth-date-from-verified-fiscal-code-v1",
++  invoicePersonNameSplitFromForm: "user-2026-09-16-invoice-person-name-split-from-form-v1",
+   currentCohortEconomicBridge: "user-2026-09-02-current-cohort-economic-bridge-v1",
+   coBeneficiarySingleIntentDelivery: "user-2026-09-02-co-beneficiary-single-intent-delivery-v1",
+   coBeneficiaryTrustedEnterDelivery: "user-2026-09-05-co-beneficiary-trusted-enter-delivery-v2",
+@@ -356,6 +358,12 @@
+   source: "delegated_user_instruction" as const,
+ });
+ 
++const USER_RULE_PROVENANCE_2026_09_16 = Object.freeze({
++  authority: "user" as const,
++  receivedAt: "2026-09-16",
++  source: "delegated_user_instruction" as const,
++});
++
+ /** Regole business aggiunte soltanto in seguito a istruzione esplicita dell'utente. */
+ export const ENEA_USER_AUTHORIZED_RULES: readonly OperationalRegistryRule[] = Object.freeze([
+   {
+@@ -515,6 +523,30 @@
+     outcome: "continue",
+     priority: 1_225,
+     provenance: USER_RULE_PROVENANCE_2026_09_14,
++  },
++  {
++    id: USER_AUTHORIZED_RULE_IDS.birthDateFromVerifiedFiscalCode,
++    step: "identity_property",
++    kind: "business",
++    condition: "Il codice fiscale del modulo coincide con quello stampato nel blocco cliente di una fattura originaria (checksum valido, prefissi di nome e cognome concordanti) e la data di nascita scritta nel modulo contraddice l'anno codificato nel codice fiscale, mentre giorno e mese concordano.",
++    sourcePrecedence: ["codice fiscale del modulo confermato dalla fattura originaria (triangolazione modulo-CF-fattura)", "data di nascita scritta nel modulo", "CRM manuale"],
++    deterministicAction: "Ricavare la data di nascita dal codice fiscale: giorno, mese e sesso dal codice; secolo scelto come l'unico che produce un'eta compresa fra 18 e 110 anni. La data digitata nel modulo perde senza domanda all'operatore. Se giorno o mese del modulo non concordano col codice, o se piu di un secolo e ammissibile, il caso resta fail-closed con domanda.",
++    audit: "data del modulo, codice fiscale verificato e sue fonti, data ricavata, secolo scelto e ID regola.",
++    outcome: "continue",
++    priority: 1_226,
++    provenance: USER_RULE_PROVENANCE_2026_09_16,
++  },
++  {
++    id: USER_AUTHORIZED_RULE_IDS.invoicePersonNameSplitFromForm,
++    step: "identity_property",
++    kind: "business",
++    condition: "Il blocco cliente di una fattura originaria stampa nome e cognome di seguito senza etichette e piu di un taglio fra nome e cognome e coerente con i prefissi del codice fiscale (cognomi composti come Della Vedova, De Filippo, Di Maio).",
++    sourcePrecedence: ["nome e cognome del modulo cliente quando la loro concatenazione coincide con il testo stampato in fattura", "taglio piu corto coerente col codice fiscale"],
++    deterministicAction: "Fra i tagli coerenti col codice fiscale scegliere quello che riproduce esattamente nome e cognome del modulo cliente (o del CRM); solo in assenza di tale corrispondenza usare il taglio piu corto. Nessun taglio puo introdurre parole assenti dalla fattura.",
++    audit: "testo stampato, tagli candidati, taglio scelto, fonte del suggerimento e ID regola.",
++    outcome: "continue",
++    priority: 1_227,
++    provenance: USER_RULE_PROVENANCE_2026_09_16,
+   },
+   {
+     id: USER_AUTHORIZED_RULE_IDS.officialMunicipalityProvinceLineage,
+--- a/src/features/enea-shadow-crm/operationalRegistry.test.ts
++++ b/src/features/enea-shadow-crm/operationalRegistry.test.ts
+@@ -12,7 +12,7 @@
+   });
+   it("rende reperibili le regole solo per id",()=>expect(registryRule("core-form-first")?.step).toBe("customer_form"));
+   it("registra le nuove regole utente con provenienza, precedenza e audit",()=>{
+-    expect(ENEA_OPERATIONAL_REGISTRY_VERSION).toBe("enea-operational-registry-v175");
++    expect(ENEA_OPERATIONAL_REGISTRY_VERSION).toBe("enea-operational-registry-v176");
+     expect(registryRule("system-operator-response-ledger-concurrency-v1")).toMatchObject({
+       step: "checkpoint_persistence",
+       kind: "system",
+--- a/src/features/enea-shadow-crm/ruleTestMatrix.ts
++++ b/src/features/enea-shadow-crm/ruleTestMatrix.ts
+@@ -2,7 +2,7 @@
+ import { ENEA_OPERATIONAL_REGISTRY, ENEA_OPERATIONAL_REGISTRY_VERSION, USER_AUTHORIZED_RULE_IDS } from "./operationalRegistry";
+ import { APR_BUSINESS_DECISION_LEDGER_FINGERPRINT, APR_BUSINESS_DECISION_LEDGER_VERSION } from "./businessDecisionLedger";
+ 
+-export const APR_RULE_TEST_MATRIX_VERSION = "apr-enea-rule-test-matrix-v191" as const;
++export const APR_RULE_TEST_MATRIX_VERSION = "apr-enea-rule-test-matrix-v192" as const;
+ export interface AprRuleTestEntry {
+   key: string;
+   rule: string;
+@@ -22,6 +22,8 @@
+   { key: "operator-response-runtime-consumption", rule: "Le risposte operatore strutturate e legacy vengono persistite in un registro globale condiviso tra coorti e modificano realmente i cinque campi autorizzati prima di chiudere la domanda. Una ricevuta e applied soltanto se il dossier cambia; altrimenti e not_applied con motivo. Due scrittori concorrenti vengono serializzati con attesa limitata, senza perdere dati e restando fail-closed oltre il budget.", registryRuleIds: [USER_AUTHORIZED_RULE_IDS.operatorResponseRuntimeConsumption, USER_AUTHORIZED_RULE_IDS.operatorStructuredQuestionResume, "system-operator-response-ledger-concurrency-v1", "system-atomic-checkpoint-resume"], automaticTests: ["persiste globalmente la risposta e la rende visibile a una nuova coorte", "attende una contesa transitoria e conserva entrambe le scritture senza perdere risposte", "resta fail-closed se la contesa non si risolve entro il budget", "fallisce chiuso se il registro viene manomesso o una regola generale non esiste", "consuma dal registro condiviso la risposta sull'infisso vecchio e ne persiste la ricevuta runtime", "consuma i cinque campi tipizzati e legacy soltanto quando modificano realmente il dossier", "registra not_applied quando la risposta non produce alcun dato consumabile"] },
+   { key: "crm-practice-id-lookup-stage-independent", rule: "Il practiceId immutabile identifica la pratica anche dopo uno spostamento di fase: il GET non filtra la fase e accetta soltanto la coincidenza con nome/cognome esatti; la ricerca senza ID conserva i controlli di fase.", registryRuleIds: [USER_AUTHORIZED_RULE_IDS.crmPracticeIdLookupStageIndependent, "system-apr-crm-readonly-adapter-contract"], automaticTests: ["crmAuthenticatedReadOnly: riacquisisce per ID la stessa pratica anche se e stata spostata di fase", "crmAuthenticatedReadOnly: resta fail-closed se l'ID esatto appartiene a un'identita diversa"] },
+   { key: "crm-refresh-session-serialization", rule: "Login e refresh della sessione CRM condivisa sono serializzati tra processi; ogni processo rilegge il token soltanto dopo il lock, non cancella una rotazione piu recente e distingue un rifiuto definitivo da un errore temporaneo del fornitore. Qualunque login_required ferma immediatamente il lotto.", registryRuleIds: ["system-apr-crm-refresh-serialization-v1", "system-apr-crm-dedicated-auth", "system-atomic-checkpoint-resume"], automaticTests: ["crmAuth: due processi serializzano la rotazione e il secondo usa il token nuovo", "crmAuth: un rifiuto di token superato rilegge e non cancella la sessione nuova", "crmAuth: un errore temporaneo conserva la sessione", "crmAuth: un timeout del trasporto conserva la sessione", "crmAuth: un rifiuto definitivo del token corrente chiude fail-closed", "simpleIndependentRunnerAuthStop: login_required arresta subito il lotto e authenticated non lo arresta"] },
++  { key: "birth-date-from-verified-fiscal-code", rule: "Quando il CF del modulo coincide con quello stampato in fattura e la data di nascita digitata contraddice l'anno del CF (giorno e mese concordi), vale il CF con il secolo che da un'eta fra 18 e 110 anni; giorno o mese discordi restano fail-closed.", registryRuleIds: [USER_AUTHORIZED_RULE_IDS.birthDateFromVerifiedFiscalCode, USER_AUTHORIZED_RULE_IDS.fiscalCodeIdentityCrossCheck], automaticTests: ["la data di nascita viene dal CF verificato quando il form sbaglia l'anno (Della Vedova)", "giorno o mese del form discordi dal CF restano fail-closed", "il preflight consegna la data del CF e non blocca la pratica quando il form sbaglia l'anno"] },
++  { key: "invoice-person-name-split-from-form", rule: "Se la fattura stampa nome e cognome di seguito e piu tagli sono coerenti col CF, si sceglie quello che coincide con nome e cognome del modulo (cognomi composti); altrimenti il piu corto.", registryRuleIds: [USER_AUTHORIZED_RULE_IDS.invoicePersonNameSplitFromForm, USER_AUTHORIZED_RULE_IDS.fiscalCodeIdentityCrossCheck], automaticTests: ["un cognome composto stampato in fattura viene tagliato come nel form (Della Vedova)", "senza suggerimento del form resta il taglio piu corto coerente col CF"] },
+   { key: "birth-municipality-from-fiscal-code", rule: "Quando il Comune di nascita scritto nel modulo non trova una sola voce ISTAT, per la nascita in Italia si ripiega sul codice catastale del codice fiscale; un modulo gia risolvibile non viene sovrascritto e un codice estero resta fail-closed.", registryRuleIds: [USER_AUTHORIZED_RULE_IDS.birthMunicipalityFromFiscalCode, USER_AUTHORIZED_RULE_IDS.officialMunicipalityCanonicalIdentity], automaticTests: ["il comune di nascita viene dal codice fiscale anche se il form scrive la provincia per esteso (Bolzano)", "il codice fiscale corregge una grafia non ufficiale del comune (Reggio Calabria -> Reggio di Calabria)", "il codice fiscale corregge una provincia sbagliata nel form (Napoli con provincia CO)", "la residenza in una provincia bilingue trova il comune anche con il nome in una sola lingua (Laives, Bolzano)", "officialMunicipalities: dal codice fiscale al comune di nascita, estero fail-closed"] },
+   { key: "official-municipality-canonical-identity", rule: "Le varianti meramente grafiche di un Comune italiano vengono risolte verso nome, provincia e codice correnti soltanto con una corrispondenza unica nel catalogo ISTAT; omonimie, refusi lessicali e province discordanti restano fail-closed.", registryRuleIds: [USER_AUTHORIZED_RULE_IDS.officialMunicipalityCanonicalIdentity, USER_AUTHORIZED_RULE_IDS.officialMunicipalityNameChange, USER_AUTHORIZED_RULE_IDS.officialMunicipalityProvinceLineage], automaticTests: ["officialMunicipalities: Montecompatri diventa Monte Compatri 058060/F477", "officialMunicipalities: omonimia e provincia discordante fail-closed", "mapper: residenza e immobile canonici auditati", "portalBeneficiary/portalBuilding: nome, provincia e codice ufficiali consegnati"] },
+   { key: "infissi-required-revisions-durable-convergence", rule: "Il bridge Infissi si apre soltanto quando il checkpoint riletto contiene simultaneamente tutte le revisioni obbligatorie; un marker perso da uno scrittore concorrente viene riapplicato in modo limitato, mentre una perdita persistente resta fail-closed.", registryRuleIds: ["system-infissi-required-revisions-durable-convergence-v1", "system-atomic-checkpoint-resume"], automaticTests: ["infissiExecutionGate: revisione persa una volta viene recuperata", "infissiExecutionGate: revisione mai durevole chiude il gate"] },

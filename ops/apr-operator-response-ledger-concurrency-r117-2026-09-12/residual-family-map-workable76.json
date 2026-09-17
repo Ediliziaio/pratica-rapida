@@ -1,0 +1,106 @@
+{
+  "schemaVersion": "apr-residual-family-map-latest-observed-v1",
+  "scope": {
+    "population": 76,
+    "baseline": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-workable76-r111-20260911/report.json",
+    "latestOverlay": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-authoritative-economic-questions-r116-targeted21-20260912/report.json",
+    "method": "Per ognuna delle 76 pratiche si usa l'esito r111, sostituito dall'esito r116 soltanto per le 21 pratiche realmente rieseguite.",
+    "limitation": "Fotografia dell'ultimo esito operativo osservato, non nuovo replay uniforme delle 76 con r116."
+  },
+  "sourceConcordance": {
+    "r111": {
+      "aggregateReportCases": 76,
+      "checkpointResults": 76,
+      "journalTerminalized": 76,
+      "mismatches": 0
+    },
+    "r116": {
+      "aggregateReportCases": 21,
+      "checkpointResults": 21,
+      "journalTerminalized": 21,
+      "mismatches": 0
+    }
+  },
+  "families": [
+    {
+      "family": "prodotti_misure_cardinalita",
+      "count": 8,
+      "names": [
+        "Rossella Munafò",
+        "Loretta Riviera",
+        "Massimo Cappello",
+        "Guido Calvacchi",
+        "Sarah Mondini",
+        "Giulia Kasermann",
+        "Cesare Imperiali",
+        "Stefano Buosi"
+      ],
+      "identified": true,
+      "detail": "Tre casi espongono product_cardinality_form_invoice_mismatch; cinque espongono infissi_dimensions_and_cardinality_missing."
+    },
+    {
+      "family": "stallo_preflight_7_minuti",
+      "count": 7,
+      "names": [
+        "Marco De Marinis",
+        "Sabrina Eustomi",
+        "Maurizia Coreggioli",
+        "Rocco Giacotto",
+        "Paolino Bellini",
+        "Gabriele Girelli",
+        "Silvia Lomartire"
+      ],
+      "identified": false,
+      "detail": "Esito comune no_material_progress_for_7_minutes; il punto tecnico sottostante non è ancora dimostrato uniforme per tutti i sette casi."
+    },
+    {
+      "family": "comune_rifiutato_da_enea",
+      "count": 3,
+      "names": [
+        "Gloria Padoani",
+        "Fausta De Filippo",
+        "Danila Serpa"
+      ],
+      "identified": true,
+      "detail": "Il portale rifiuta id-comune_nascita e, per Padoani, anche id-comune_residenza."
+    },
+    {
+      "family": "chiusure_oscuranti_ambigue",
+      "count": 2,
+      "names": [
+        "Luca Cigognetti",
+        "Claudia Sellati"
+      ],
+      "identified": true,
+      "detail": "infissi_shading_closures_form_answer_missing_or_ambiguous."
+    },
+    {
+      "family": "recupero_con_esito_incerto",
+      "count": 2,
+      "names": [
+        "Vincenzo Falconi",
+        "Milena Fiorini"
+      ],
+      "identified": true,
+      "detail": "L'unico recupero autorizzato non produce prova server conclusiva; il verdetto resta INCONSISTENT."
+    },
+    {
+      "family": "data_fine_o_totale_non_risolti",
+      "count": 1,
+      "names": [
+        "Patrizia Muzzi"
+      ],
+      "identified": true,
+      "detail": "completion_date_missing insieme a invoice_final_printed_total_not_verified."
+    },
+    {
+      "family": "payload_enea_incompleto",
+      "count": 1,
+      "names": [
+        "Stefania Venturi"
+      ],
+      "identified": false,
+      "detail": "draft_payload_mapping_incomplete; la specifica lista di campi non è stata diagnosticata in questo intervento."
+    }
+  ]
+}

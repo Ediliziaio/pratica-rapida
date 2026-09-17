@@ -155,7 +155,7 @@ export class PersistentAprInfissiShadowTestPreparation {
       USER_AUTHORIZED_RULE_IDS.infissiTransmittanceFallback,
       USER_AUTHORIZED_RULE_IDS.infissiOldWindowTransmittanceMatrix,
       USER_AUTHORIZED_RULE_IDS.infissiMaterialGlassFallbacks,
-      USER_AUTHORIZED_RULE_IDS.infissiShadingClosuresFromForm,
+      USER_AUTHORIZED_RULE_IDS.infissiInvoiceAuthoritativeShadingClosures,
       USER_AUTHORIZED_RULE_IDS.infissiPortalManagedEnergySavings,
     ])];
     const checklist = [

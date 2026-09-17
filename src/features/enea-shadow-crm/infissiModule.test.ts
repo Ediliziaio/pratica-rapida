@@ -41,7 +41,7 @@ describe("APR modulo Infissi · gate flusso condiviso", () => {
         areaContract: "exact_area_audited_enea_area_rounded_to_one_decimal",
         measurementContract: "overall_external_preferred_other_documented_measurement_allowed",
         productDefaults: "pvc_and_low_emissivity_only_when_original_sources_are_silent",
-        shadingClosuresFlag: "form_yes_checked_form_no_unchecked_missing_operator",
+        shadingClosuresFlag: "complete_invoice_dossier_authoritative_including_silence_form_audit_only",
         technicalPortalMapping: "next_gate_not_defined",
       },
     });

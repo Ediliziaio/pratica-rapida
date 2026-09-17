@@ -1,0 +1,162 @@
+--- a/src/features/enea-lab/invoiceParser.ts
++++ b/src/features/enea-lab/invoiceParser.ts
+@@ -831,6 +831,25 @@
+ const BANK_TRANSFER_DOCUMENT_MARKERS = /\b(?:Ricevuta\s+bonifico|Codice\s+identificativo\s+dell['’]operazione|Disposizione\s+di\s+bonifico\s+effettuata|Dettaglio\s+(?:singolo\s+)?movimento|Desc\.\s+movimento|Sezione\s+(?:Ordinante|Beneficiario)|DATI\s+DI\s+PAGAMENTO\b[\s\S]{0,80}?\bTRN\b)\b/i;
+ export const isNonFiscalBankTransferReceipt = (text: string): boolean => BANK_TRANSFER_DOCUMENT_MARKERS.test(text)
+   && !HAS_GENUINE_INVOICE_HEADER.test(text);
++/**
++ * Decisione del titolare (2026-09-13): un ordine di vendita caricato nello
++ * slot fattura vale come documento fiscale. Alcuni fornitori — Di Iorio Group
++ * sulla pratica Muzzi — non emettono fattura e caricano l'ordine.
++ *
++ * Il riconoscimento e' strutturale, non per parola isolata: servono
++ * l'intestazione dell'ordine e la coppia numero/data documento, come nella
++ * regressione Tiraboschi, dove la sola parola "fattura" in una clausola
++ * narrativa bastava a classificare male un documento. Preventivi, offerte e
++ * proforma restano esclusi: non sono documenti fiscali.
++ */
++const SALES_ORDER_HEADING = /\bordine\s+di\s+vendita\b/iu;
++const SALES_ORDER_DOCUMENT_REFERENCE = /\bN[.°º]?\s*DOCUMENTO\b[\s\S]{0,40}?\bDATA\s+DOCUMENTO\b|\bDATA\s+DOCUMENTO\b[\s\S]{0,40}?\bN[.°º]?\s*DOCUMENTO\b/iu;
++const NON_FISCAL_COMMERCIAL_OFFER = /\b(?:preventivo|offerta\s+(?:commerciale|n[.°º])|proforma|pro\s+forma)\b/iu;
++
++export const isCommercialSalesOrder = (text: string): boolean => SALES_ORDER_HEADING.test(text)
++  && SALES_ORDER_DOCUMENT_REFERENCE.test(text)
++  && !NON_FISCAL_COMMERCIAL_OFFER.test(text);
++
+ export const isNonFiscalIdentityDocument = (text: string): boolean => /\bTESSERA\s+SANITARIA\b|\bCARTA\s+DI\s+IDENTIT[AÀ]\b|\bIDENTITY\s+CARD\b|\bCARTA\s+REGIONALE\s+DEI\s+SERVIZI\b|\bTESSERA\s+EUROPEA\s+DI\s+ASSICURAZIONE\s+MALATTIA\b/i.test(text)
+   && !HAS_GENUINE_INVOICE_HEADER.test(text);
+ 
+@@ -848,7 +867,7 @@
+     || isNonFiscalIdentityDocument(sourceText);
+   const documentType = /nota\s+di\s+credito|\bstorno\b/i.test(sourceText)
+     ? "credit_note"
+-    : !nonFiscalSupportingDocument && /\bfattura\b/i.test(sourceText)
++    : !nonFiscalSupportingDocument && (/\bfattura\b/i.test(sourceText) || isCommercialSalesOrder(sourceText))
+       ? "invoice"
+       : "unknown";
+   const compact = sourceText.replace(/\s+/g, " ");
+--- a/src/features/enea-lab/invoiceParser.test.ts
++++ b/src/features/enea-lab/invoiceParser.test.ts
+@@ -297,5 +297,54 @@
+ Totale Fattura € 868,00`, "fattura-vera-con-clausola-iva.pdf");
+     expect(parsed.result.documentType).toBe("invoice");
+     expect(parsed.result.total).toBe(868);
++  });
++
++  it("decisione Muzzi (2026-09-13): un ordine di vendita caricato nello slot fattura vale come documento fiscale", () => {
++    const parsed = parseScreeningInvoiceText([
++      "SPETT.LE",
++      "Muzzi Patrizia",
++      "Di Iorio GROUP SRL",
++      "Partita IVA 02487960920 - Codice Fiscale: 02487960920",
++      "CONDIZIONI DI PAGAMENTO",
++      "50% acconto ordine e saldo alla consegna",
++      "CODICE ARTICOLO DESCRIZIONE LUOGO DI DESTINAZIONE",
++      "AGENTE Cannas Veronica",
++      "UM QUANTITA'",
++      "Ordine di Vendita",
++      "N° DOCUMENTO DATA DOCUMENTO 177",
++      "15-07-26",
++      "PREZZO UNITARIO SC.% PREZZO TOTALE PAG.",
++      "TDST42 Tenda da sole Modello Everest M T61",
++      "CM Largh. 435 X Sporg. 210",
++    ].join("\n"), "ordine-di-vendita-muzzi.pdf");
++    expect(parsed.result.documentType).toBe("invoice");
++    // Su questo ordine il totale non e' stampato: resta nullo e non si ricalcola.
++    expect(parsed.result.total).toBeNull();
+   });
++
++  it("non accetta come documento fiscale un preventivo, anche con la struttura di un ordine", () => {
++    const parsed = parseScreeningInvoiceText([
++      "Preventivo n. 42",
++      "Ordine di Vendita",
++      "N° DOCUMENTO DATA DOCUMENTO 42",
++      "PREZZO UNITARIO SC.% PREZZO TOTALE",
++    ].join("\n"), "preventivo.pdf");
++    expect(parsed.result.documentType).toBe("unknown");
++  });
++
++  it("non accetta come documento fiscale una proforma", () => {
++    const parsed = parseScreeningInvoiceText([
++      "Ordine di Vendita PRO FORMA",
++      "N° DOCUMENTO DATA DOCUMENTO 9",
++    ].join("\n"), "proforma.pdf");
++    expect(parsed.result.documentType).toBe("unknown");
++  });
++
++  it("non accetta un documento che nomina un ordine senza esserne uno strutturato", () => {
++    const parsed = parseScreeningInvoiceText(
++      "Si conferma il vostro ordine di vendita telefonico del mese scorso; seguira' comunicazione.",
++      "lettera.pdf",
++    );
++    expect(parsed.result.documentType).toBe("unknown");
++  });
+ });
+--- a/src/features/enea-shadow-crm/operationalRegistry.ts
++++ b/src/features/enea-shadow-crm/operationalRegistry.ts
+@@ -1,7 +1,7 @@
+ import crypto from "node:crypto";
+ import { OPERATIONAL_RULES } from "./operationalRules";
+ 
+-export const ENEA_OPERATIONAL_REGISTRY_VERSION = "enea-operational-registry-v172" as const;
++export const ENEA_OPERATIONAL_REGISTRY_VERSION = "enea-operational-registry-v173" as const;
+ export const ENEA_GLOBAL_PREREQUISITE = Object.freeze({
+   id: "browser-session-contract-v1",
+   scope: "global_not_practice",
+@@ -196,6 +196,7 @@
+   infissiInvoiceAuthoritativeShadingClosures: "user-2026-09-10-infissi-invoice-authoritative-shading-closures-v1",
+   zanzarieraInfissiInstallationContext: "user-2026-09-10-zanzariera-infissi-installation-context-v1",
+   infissiClosureMentionNotSuppliedEvidence: "user-2026-09-13-infissi-closure-mention-not-supplied-evidence-v1",
++  salesOrderInInvoiceSlotIsFiscalDocument: "user-2026-09-13-sales-order-in-invoice-slot-is-fiscal-document-v1",
+   infissiTransmittanceFallback: "user-2026-08-19-infissi-transmittance-1-3-fallback-v1",
+   infissiPortalTransmittance131To13: "user-2026-08-22-infissi-portal-transmittance-1-31-to-1-3-v1",
+   infissiPortalTransmittanceOverMaxTo13: "user-2026-08-23-infissi-portal-transmittance-over-max-to-1-3-v1",
+@@ -898,6 +899,18 @@
+     provenance: USER_RULE_PROVENANCE_2026_09_10,
+   },
+   {
++    id: USER_AUTHORIZED_RULE_IDS.salesOrderInInvoiceSlotIsFiscalDocument,
++    step: "gross_reconciliation",
++    kind: "business",
++    condition: "TEST o produzione: nello slot fattura di una pratica e' caricato un ordine di vendita strutturato (intestazione dell'ordine e coppia numero/data documento) invece di una fattura, perche' il fornitore non ne emette una.",
++    sourcePrecedence: ["struttura del documento: intestazione ordine di vendita e riferimento numero/data documento", "totale finale stampato sul documento, se presente", "esclusione esplicita di preventivi, offerte e proforma"],
++    deterministicAction: "Trattare l'ordine di vendita come documento fiscale a tutti gli effetti: identita', numero, data e righe prodotto valgono come quelle di una fattura. Il totale resta quello finale stampato e non si ricalcola mai dalle righe, dall'imponibile o dall'IVA; se il documento non stampa un totale la pratica resta ferma sul dato mancante, mai sul tipo di documento. Preventivi, offerte commerciali e proforma non sono documenti fiscali e restano esclusi. Il riconoscimento e' strutturale: la sola parola ordine in un testo narrativo non qualifica il documento.",
++    audit: "practiceId, sourceId, intestazione riconosciuta, numero e data documento, presenza o assenza del totale stampato, eventuale esclusione come preventivo/proforma e ID regola.",
++    outcome: "continue",
++    priority: 1_288,
++    provenance: { authority: "user", receivedAt: "2026-09-13", source: "delegated_user_instruction" },
++  },
++  {
+     id: USER_AUTHORIZED_RULE_IDS.infissiClosureMentionNotSuppliedEvidence,
+     step: "enea_mapping",
+     kind: "business",
+--- a/src/features/enea-shadow-crm/operationalRegistry.test.ts
++++ b/src/features/enea-shadow-crm/operationalRegistry.test.ts
+@@ -12,7 +12,7 @@
+   });
+   it("rende reperibili le regole solo per id",()=>expect(registryRule("core-form-first")?.step).toBe("customer_form"));
+   it("registra le nuove regole utente con provenienza, precedenza e audit",()=>{
+-    expect(ENEA_OPERATIONAL_REGISTRY_VERSION).toBe("enea-operational-registry-v172");
++    expect(ENEA_OPERATIONAL_REGISTRY_VERSION).toBe("enea-operational-registry-v173");
+     expect(registryRule("system-operator-response-ledger-concurrency-v1")).toMatchObject({
+       step: "checkpoint_persistence",
+       kind: "system",
+--- a/src/features/enea-shadow-crm/ruleTestMatrix.ts
++++ b/src/features/enea-shadow-crm/ruleTestMatrix.ts
+@@ -2,7 +2,7 @@
+ import { ENEA_OPERATIONAL_REGISTRY, ENEA_OPERATIONAL_REGISTRY_VERSION, USER_AUTHORIZED_RULE_IDS } from "./operationalRegistry";
+ import { APR_BUSINESS_DECISION_LEDGER_FINGERPRINT, APR_BUSINESS_DECISION_LEDGER_VERSION } from "./businessDecisionLedger";
+ 
+-export const APR_RULE_TEST_MATRIX_VERSION = "apr-enea-rule-test-matrix-v185" as const;
++export const APR_RULE_TEST_MATRIX_VERSION = "apr-enea-rule-test-matrix-v186" as const;
+ export interface AprRuleTestEntry {
+   key: string;
+   rule: string;
+@@ -121,6 +121,7 @@
+   { key: "infissi-shading-closures-form-flag", rule: "Regola storica superseded: il flag del form non e piu autoritativo sulle chiusure; resta coperto per tracciabilita e viene sostituito dal fascicolo fatture completo.", registryRuleIds: [USER_AUTHORIZED_RULE_IDS.infissiShadingClosuresFromForm], automaticTests: ["operationalRegistry: regola form marcata superseded", "infissiProductRules: percorso storico del form isolato dal percorso operativo"] },
+   { key: "infissi-invoice-authoritative-shading-closures", rule: "Sulle chiusure oscuranti la fattura comanda anche quando tace: completezza significa tutti gli slot fattura scaricati e analizzati, indipendentemente da totale e confidence economica; una chiusura documentata produce SI, il silenzio produce NO e l'acquisizione incompleta resta fail-closed. La riconciliazione precede sempre le domande.", registryRuleIds: [USER_AUTHORIZED_RULE_IDS.infissiInvoiceAuthoritativeShadingClosures, USER_AUTHORIZED_RULE_IDS.infissiClosureMeasurementsNotApplicable], automaticTests: ["regressione Stricelli end-to-end: il fascicolo fatture completo e silente sovrascrive il SI del form con NO", "non interpreta il silenzio come NO quando una fattura inventariata non e stata scaricata", "risolve le chiusure prima delle domande anche se la confidence economica e incerta"] },
+   { key: "zanzariera-infissi-installation-context", rule: "La zanzariera fatturata insieme agli infissi e una chiusura oscurante aggiuntiva nel percorso Infissi; la zanzariera senza infissi resta una schermatura solare autonoma.", registryRuleIds: [USER_AUTHORIZED_RULE_IDS.zanzarieraInfissiInstallationContext, USER_AUTHORIZED_RULE_IDS.zanzarieraScreening, USER_AUTHORIZED_RULE_IDS.infissiWithAdditionalScreeningCombinedPractice], automaticTests: ["regressione Giuga: la zanzariera fatturata nella pratica Infissi vale come chiusura aggiuntiva anche se il form dice NO", "regola Giuga: zanzariera con infissi e mixed, zanzariera da sola resta Schermature"] },
++  { key: "sales-order-in-invoice-slot-is-fiscal-document", rule: "Un ordine di vendita strutturato caricato nello slot fattura vale come documento fiscale: identita', numero, data e righe valgono come quelle di una fattura. Il totale resta quello finale stampato e non si ricalcola; se manca, la pratica si ferma sul dato mancante e non sul tipo di documento. Preventivi, offerte e proforma restano esclusi e il riconoscimento e' strutturale, non per parola isolata.", registryRuleIds: [USER_AUTHORIZED_RULE_IDS.salesOrderInInvoiceSlotIsFiscalDocument, USER_AUTHORIZED_RULE_IDS.invoiceFinalPrintedTotalOnlyNeverInternalRecalculation], automaticTests: ["parseScreeningInvoiceText: decisione Muzzi (2026-09-13): un ordine di vendita caricato nello slot fattura vale come documento fiscale", "parseScreeningInvoiceText: non accetta come documento fiscale un preventivo, anche con la struttura di un ordine", "parseScreeningInvoiceText: non accetta come documento fiscale una proforma", "parseScreeningInvoiceText: non accetta un documento che nomina un ordine senza esserne uno strutturato"] },
+   { key: "infissi-closure-mention-not-supplied-evidence", rule: "Una parola di chiusura non prova una fornitura quando compare nella ragione sociale del fornitore, in un consiglio di posa, in un'ipotesi, in una sostituzione o in una lavorazione a cura di terzi: la riga non conta ne come menzione ne come blocco, e il silenzio del fascicolo completo conclude NO. La quantita scritta dopo la descrizione vale quanto quella scritta prima, e tipi diversi di chiusura sulle stesse finestre non si sommano. La stessa unica zanzariera ripetuta su acconto e saldo resta una sola chiusura.", registryRuleIds: [USER_AUTHORIZED_RULE_IDS.infissiClosureMentionNotSuppliedEvidence, USER_AUTHORIZED_RULE_IDS.infissiInvoiceAuthoritativeShadingClosures, USER_AUTHORIZED_RULE_IDS.zanzarieraFirstWindowAllocation], automaticTests: ["allocazione chiusure oscuranti Infissi in ordine fattura: regressione Cigognetti: legge la quantita scritta dopo la descrizione e non somma tipi diversi sulle stesse finestre", "allocazione chiusure oscuranti Infissi in ordine fattura: non conta come chiusura fornita una menzione consigliata, ipotetica, sostituita o a cura di terzi", "allocazione chiusure oscuranti Infissi in ordine fattura: non conta come chiusura fornita la ragione sociale del fornitore", "allocazione chiusure oscuranti Infissi in ordine fattura: regressione Giuga: la stessa unica zanzariera su acconto e saldo resta una sola chiusura sulla prima finestra", "allocazione chiusure oscuranti Infissi in ordine fattura: resta fail-closed se accanto alla zanzariera singola una fonte nomina un'altra chiusura fornita", "allocazione chiusure oscuranti Infissi in ordine fattura: conta la chiusura realmente fornita anche quando il documento contiene altrove note a cura di terzi"] },
+   { key: "infissi-closure-flag-no-measurements-portal-order", rule: "Le chiusure oscuranti della pratica Infissi sono soltanto flag senza misure: M chiusure vengono associate ai primi M infissi nell'ordine del payload ENEA; solo quantita o fascicolo non verificabili restano fail-closed.", registryRuleIds: [USER_AUTHORIZED_RULE_IDS.infissiClosureMeasurementsNotApplicable, USER_AUTHORIZED_RULE_IDS.technicalProductCardinality], automaticTests: ["infissiShadingClosureAllocation: assegna le chiusure ai primi infissi nell'ordine portale anche se le righe tecniche provengono dal certificato", "infissiShadingClosureAllocation: resta fail-closed sulla quantita, non sulle misure, se le chiusure superano gli infissi", "infissiEneaDraftPayload: propaga l'allocazione parziale in ordine portale senza misure della chiusura nel payload e nell'audit per riga", "PersistentAprOperatorQuestions: non genera e ritira domande dimensionali per chiusure della pratica Infissi ma conserva la domanda per una schermatura autonoma"] },
+   { key: "infissi-explicit-no-screen-negative-closure-evidence", rule: "La copertura completa 'Schermatura: Senza schermo' corrobora il NO gia determinato dal fascicolo fatture completo; copertura parziale non invalida il silenzio fiscale completo, mentre una chiusura fatturata prevale.", registryRuleIds: [USER_AUTHORIZED_RULE_IDS.infissiExplicitNoScreenNegativeClosureEvidence, USER_AUTHORIZED_RULE_IDS.infissiInvoiceAuthoritativeShadingClosures], automaticTests: ["usa NO documentale quando ogni infisso dichiara Senza schermo e la fattura non contiene chiusure", "usa il silenzio della fattura completa anche con Senza schermo parziale, ma non contro una chiusura fatturata"] },

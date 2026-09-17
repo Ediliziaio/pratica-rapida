@@ -1,0 +1,387 @@
+From c4dbf5a058e2cd719eb165ebc682a04239ab9133 Mon Sep 17 00:00:00 2001
+From: Giuliano Beretta <giulianolavoro@MacBook-Pro-di-Giuliano-2026.local>
+Date: Sun, 13 Sep 2026 19:36:16 +0200
+Subject: [PATCH] feat(apr): legge misure e numero dei serramenti dai
+ certificati
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Nove pratiche del lotto si sono fermate su
+infissi_dimensions_and_cardinality_missing e in sei le misure erano
+stampate in chiaro: APR conosceva una sola forma di scrittura,
+"1200 x 1500". Su Cappello, dove le quote sono "Largh.: 1177,
+Alt.: 1497", avevo dichiarato io stesso "nessuna misura" prima che il
+titolare mi correggesse.
+
+Quattro formati reali, uno per fornitore:
+- DoP a posizioni Piva Group (Riviera, Biagioni), dove "Luce passaggio"
+  non e' la misura del serramento e non va letta;
+- tabella Riga/Qta/Misure SIDEL (Calvacchi), con misura nuda, misura coi
+  coprifili e metri quadri stampati: si prende la nuda;
+- DoP per ordine EKO-OKNA (Buosi), con la stessa pagina ripetuta sette
+  volte in OCR: si contano le posizioni, non le occorrenze;
+- dichiarazione Internorm/Rotondi (Cappello), quote etichettate
+  Largh./Alt.
+
+Regole del titolare: una riga per pezzo, sempre; l'unica somma ammessa e'
+dentro il singolo pezzo, quando il certificato spezza una stessa
+finestra su piu' misure. Una misura letta male in una sola copia OCR non
+diventa un secondo pezzo.
+
+Verificato sui documenti reali contro i numeri confermati dal titolare:
+Riviera 5,11/2,99/1,72 · Biagioni 1,88/2,24 · Calvacchi 2,34/2,08/0,90 ·
+Buosi 1,73/1,32/0,35/1,32 · Cappello 12 pezzi. Imperiali non produce
+misure, e li' la domanda all'operatore resta legittima.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+---
+ .../infissiCertificateMeasures.test.ts        | 132 ++++++++++++
+ .../infissiCertificateMeasures.ts             | 196 ++++++++++++++++++
+ 2 files changed, 328 insertions(+)
+ create mode 100644 scripts/enea-shadow-runner/infissiCertificateMeasures.test.ts
+ create mode 100644 scripts/enea-shadow-runner/infissiCertificateMeasures.ts
+
+diff --git a/scripts/enea-shadow-runner/infissiCertificateMeasures.test.ts b/scripts/enea-shadow-runner/infissiCertificateMeasures.test.ts
+new file mode 100644
+index 0000000..61a1539
+--- /dev/null
++++ b/scripts/enea-shadow-runner/infissiCertificateMeasures.test.ts
+@@ -0,0 +1,132 @@
++import { describe, expect, it } from "vitest";
++import { readInfissiCertificateMeasures, totalInfissiCertificateSurfaceM2 } from "./infissiCertificateMeasures";
++
++/**
++ * I campioni sono estratti dai certificati reali delle pratiche del lotto del
++ * 13/09/2026, e i numeri attesi sono quelli confermati dal titolare quella
++ * sera, una riga per pezzo.
++ */
++const RIVIERA = `Dichiarazione di prestazione (DoP) N° 74081-26 - ORDINE 49
++Pos. 1 Q.tà 1 [01] Cod.Identif.Prodotto tipo: Portafinestra a due ante con ribalta e fisso later [02] N. di lotto serie: 74081 - 1
++da 2170 x 2353 mm.
++[09] Prestazioni dichiarate Valori Classi Livelli
++1499 x 2311
++Pos. 2 Q.tà 1 [01] Cod.Identif.Prodotto tipo: Portafinestra a 2 ante con apertura a ribalta. [02] N. di lotto serie: 74081 - 2
++da 1270 x 2353 mm.
++1162 x 2311
++Pos. 3 Q.tà 1 [01] Cod.Identif.Prodotto tipo: Finestra a 2 ante con apertura a ribalta. [02] N. di lotto serie: 74081 - 3
++da 1270 x 1353 mm.
++Luce passaggio: 1499 x 2311
++Luce passaggio: 1162 x 2311`;
++
++const CALVACCHI = `DICHIARAZIONE DI CERTIFICAZIONE ENERGETICA DI PRODOTTO
++Riga Qtà Modello - Misure Vetro Coefficiente
++1 1 Portafinestra 2 ante serie Omnia+
++, in Abete
++Lamellare da 1030 x 2269 x 101
++Misure comprensive di coprifili
++2343 x 1048 Mq. 2.46
++2 1 Portafinestra 1 anta serie Omnia+
++, in Abete
++Lamellare da 915 x 2269 x 101
++Misure comprensive di coprifili
++2343 x 933 Mq. 2.19
++3 1 Finestra 1 anta serie Omnia+
++, in Abete
++Lamellare da 650 x 1384 x 101
++Misure comprensive di coprifili
++1458 x 668 Mq. 0.97`;
++
++/** La stessa pagina passata piu' volte sotto OCR, con un refuso in una copia. */
++const BUOSI = `DICHIARAZIONE DI PRESTAZIONE
++WEB/26/0103175 - 001
++Quantità: 1
++* 1625 x 780
++‡ 680 x 684
++WEB/26/0103175 - 001
++* 1625 x 780
++‡ 680 x 684
++WEB/26/0103175 - 002
++629 x 2100
++WEB/26/0103175 - 002
++629 x 2100
++WEB/26/0103175 - 003
++529 x 669
++WEB/26/0103175 - 003
++529 x 669
++WEB/26/0103175 - 003
++529 x 609
++WEB/26/0103175 - 004
++629 x 2100
++WEB/26/0103175 - 004
++629 x 2100`;
++
++const CAPPELLO = `DICHIARAZIONE DEL PRODUTTORE
++Pos. Quantitá Descrizione Valore Uw (calcolato)
++100 1,00 Pezzi SALOTTO SX:
++KF310 1-anta
++Largh. 1.177 Alt. 1.497
++Largh.: 1177, Alt.: 1497,
++110 1,00 Pezzi CAMERA EMANUELE:
++KF310 1-anta
++Largh.: 1177, Alt.: 1497,
++120 1,00 Pezzi SALOTTO SX:
++KF310 porta 1-anta con soglia rib.
++Largh.: 803, Alt.: 2333,
++210 1,00 Pezzi LAVANDERIA:
++Largh.: 993, Alt.: 895,`;
++
++describe("misure degli infissi lette dai certificati, una riga per pezzo", () => {
++  it("Riviera: DoP a posizioni, e la Luce passaggio non e' la misura del serramento", () => {
++    const reading = readInfissiCertificateMeasures(RIVIERA)!;
++    expect(reading.format).toBe("dop_pos_quantita");
++    expect(reading.pieces.map((piece) => piece.surfaceM2)).toEqual([5.11, 2.99, 1.72]);
++    expect(reading.pieces[0]).toMatchObject({ position: "1", widthMm: 2170, heightMm: 2353, quantity: 1 });
++    // 1499 x 2311 e 1162 x 2311 sono luce di passaggio: non devono comparire.
++    expect(reading.pieces.some((piece) => piece.widthMm === 1499 || piece.widthMm === 1162)).toBe(false);
++  });
++
++  it("Calvacchi: tabella con misura nuda e misura coi coprifili, si prende la nuda", () => {
++    const reading = readInfissiCertificateMeasures(CALVACCHI)!;
++    expect(reading.format).toBe("tabella_riga_qta_misure");
++    expect(reading.pieces.map((piece) => piece.surfaceM2)).toEqual([2.34, 2.08, 0.9]);
++    expect(reading.pieces[0]).toMatchObject({ widthMm: 1030, heightMm: 2269 });
++  });
++
++  it("Buosi: quattro posizioni, la prima e' una finestra sola in due parti", () => {
++    const reading = readInfissiCertificateMeasures(BUOSI)!;
++    expect(reading.format).toBe("dop_ordine_web");
++    expect(reading.pieces.map((piece) => piece.surfaceM2)).toEqual([1.73, 1.32, 0.35, 1.32]);
++    expect(reading.pieces[0]).toMatchObject({ position: "001", description: "Serramento in 2 parti" });
++  });
++
++  it("Buosi: una misura letta male in una sola copia OCR non diventa un secondo pezzo", () => {
++    const reading = readInfissiCertificateMeasures(BUOSI)!;
++    // 529 x 669 compare due volte, 529 x 609 una sola: vale 0,35 e non 0,68.
++    expect(reading.pieces.find((piece) => piece.position === "003")).toMatchObject({ surfaceM2: 0.35, widthMm: 529, heightMm: 669 });
++  });
++
++  it("Buosi: se il documento e' scansionato una volta sola, nessuna misura viene scartata", () => {
++    const reading = readInfissiCertificateMeasures("WEB/26/0103175 - 001\n1625 x 780\n680 x 684")!;
++    expect(reading.pieces).toHaveLength(1);
++    expect(reading.pieces[0].surfaceM2).toBe(1.73);
++  });
++
++  it("Cappello: quote etichettate Largh./Alt., il formato che avevo dichiarato privo di misure", () => {
++    const reading = readInfissiCertificateMeasures(CAPPELLO)!;
++    expect(reading.format).toBe("dichiarazione_largh_alt");
++    expect(reading.pieces.map((piece) => piece.surfaceM2)).toEqual([1.76, 1.76, 1.87, 0.89]);
++    expect(reading.pieces[0]).toMatchObject({ position: "100", description: "SALOTTO SX", widthMm: 1177, heightMm: 1497 });
++  });
++
++  it("una fattura senza certificato non produce misure inventate", () => {
++    expect(readInfissiCertificateMeasures("FORNITURA DI N. 3 SERRAMENTI IN PVC\nTOTALE DOCUMENTO 4.500,00")).toBeNull();
++    expect(readInfissiCertificateMeasures("")).toBeNull();
++  });
++
++  it("il totale serve solo al controllo: i pezzi restano distinti", () => {
++    const reading = readInfissiCertificateMeasures(RIVIERA)!;
++    expect(totalInfissiCertificateSurfaceM2(reading)).toBe(9.82);
++    expect(reading.pieces).toHaveLength(3);
++  });
++});
+diff --git a/scripts/enea-shadow-runner/infissiCertificateMeasures.ts b/scripts/enea-shadow-runner/infissiCertificateMeasures.ts
+new file mode 100644
+index 0000000..6d8ef68
+--- /dev/null
++++ b/scripts/enea-shadow-runner/infissiCertificateMeasures.ts
+@@ -0,0 +1,196 @@
++export const INFISSI_CERTIFICATE_MEASURES_VERSION = "apr-infissi-certificate-measures-v1" as const;
++
++/**
++ * Legge misure e numero dei serramenti dai certificati dei produttori.
++ *
++ * Nel lotto del 13/09/2026 nove pratiche si sono fermate su
++ * `infissi_dimensions_and_cardinality_missing`. In sei di esse le misure
++ * erano stampate in chiaro nei documenti allegati: APR non le vedeva perche'
++ * conosceva una sola forma di scrittura, `1200 x 1500`. Su Cappello, dove le
++ * quote sono scritte `Largh.: 1177, Alt.: 1497`, ho dichiarato io stesso
++ * "nessuna misura" prima che il titolare mi correggesse.
++ *
++ * Regole del titolare applicate qui:
++ *  - conta la superficie in metri quadri **di ogni pezzo**, non la quota al
++ *    millimetro: una riga per pezzo, dieci pezzi restano dieci righe;
++ *  - l'unica somma ammessa e' dentro il singolo pezzo, quando il certificato
++ *    spezza una stessa finestra su piu' misure (Buosi, posizione 001);
++ *  - fra misura nuda e misura comprensiva di coprifili si prende la nuda,
++ *    perche' ENEA non chiede quella precisione.
++ */
++export interface InfissiCertificatePiece {
++  /** Identificativo della posizione cosi' come stampato sul certificato. */
++  position: string;
++  description: string;
++  widthMm: number | null;
++  heightMm: number | null;
++  /** Superficie del pezzo in metri quadri, arrotondata a due decimali. */
++  surfaceM2: number;
++  quantity: number;
++}
++
++export type InfissiCertificateFormat =
++  | "dop_pos_quantita"
++  | "tabella_riga_qta_misure"
++  | "dop_ordine_web"
++  | "dichiarazione_largh_alt";
++
++export interface InfissiCertificateReading {
++  format: InfissiCertificateFormat;
++  pieces: InfissiCertificatePiece[];
++}
++
++const round2 = (value: number) => Math.round(value * 100) / 100;
++const area = (width: number, height: number) => width * height / 1_000_000;
++const clean = (value: string) => value.replace(/\s+/g, " ").trim().replace(/[:.,;]+$/, "");
++const mm = (value: string) => Number(value.replace(/\./g, ""));
++
++/**
++ * Formato DoP con posizioni numerate (Piva Group: Riviera, Biagioni). La
++ * misura del serramento e' la riga `da LARG x ALT mm.` che segue la
++ * posizione. Nello stesso documento compare anche `Luce passaggio`, che e' il
++ * vano di passaggio e non il serramento: non viene mai letta, perche' non ha
++ * quella forma.
++ */
++function readDopPosQuantita(lines: readonly string[]): InfissiCertificatePiece[] {
++  const pieces = new Map<string, InfissiCertificatePiece>();
++  let current: { position: string; description: string; quantity: number } | null = null;
++  for (const line of lines) {
++    const header = line.match(/\bPos\.?\s*(\d+)\s+Q\.?t[aà]\s*([\d.,]+)\s*(.*)$/i);
++    if (header) {
++      const description = header[3].replace(/^\[\d+\]\s*/, "").replace(/Cod\.?\s*Identif\.?\s*Prodotto\s*tipo:\s*/i, "");
++      current = { position: header[1], description: clean(description).slice(0, 90), quantity: Number(header[2].replace(",", ".")) || 1 };
++      continue;
++    }
++    const dimension = line.match(/\bda\s+(\d{3,4})\s*[x×]\s*(\d{3,4})\s*mm/i);
++    if (!dimension || !current || pieces.has(current.position)) continue;
++    const width = mm(dimension[1]); const height = mm(dimension[2]);
++    pieces.set(current.position, { position: current.position, description: current.description, widthMm: width, heightMm: height, surfaceM2: round2(area(width, height) * current.quantity), quantity: current.quantity });
++  }
++  return [...pieces.values()];
++}
++
++/**
++ * Tabella `Riga Qta Modello - Misure` (SIDEL: Calvacchi). Ogni riga porta la
++ * misura nuda e, subito sotto, quella comprensiva di coprifili con i metri
++ * quadri gia' stampati. Si legge la nuda, come deciso dal titolare.
++ */
++function readTabellaRigaQtaMisure(lines: readonly string[]): InfissiCertificatePiece[] {
++  const pieces: InfissiCertificatePiece[] = [];
++  let current: { position: string; description: string; quantity: number } | null = null;
++  for (const line of lines) {
++    const header = line.match(/^\s*(\d{1,2})\s+(\d{1,2})\s+((?:Porta)?[Ff]inestra\b.*)$/);
++    if (header) {
++      current = { position: header[1], description: clean(header[3]).slice(0, 90), quantity: Number(header[2]) || 1 };
++      continue;
++    }
++    const dimension = line.match(/\bda\s+(\d{3,4})\s*[x×]\s*(\d{3,4})\s*[x×]\s*\d{2,4}\b/i);
++    if (!dimension || !current) continue;
++    const width = mm(dimension[1]); const height = mm(dimension[2]);
++    pieces.push({ position: current.position, description: current.description, widthMm: width, heightMm: height, surfaceM2: round2(area(width, height) * current.quantity), quantity: current.quantity });
++    current = null;
++  }
++  return pieces;
++}
++
++/**
++ * DoP per ordine con posizioni `.../ -001`, `-002`… (EKO-OKNA: Buosi). La
++ * stessa pagina compare sette volte in OCR: si contano le posizioni, non le
++ * occorrenze. Piu' misure sulla stessa posizione sono lo stesso serramento
++ * spezzato in due, e le superfici si sommano — confermato dal titolare.
++ */
++function readDopOrdineWeb(lines: readonly string[]): InfissiCertificatePiece[] {
++  const perPosition = new Map<string, Map<string, { width: number; height: number; seen: number }>>();
++  let current: string | null = null;
++  for (const line of lines) {
++    const marker = line.match(/WEB\/\d{2}\/\d+\s*-\s*(\d{3})/);
++    if (marker) { current = marker[1]; if (!perPosition.has(current)) perPosition.set(current, new Map()); }
++    if (!current) continue;
++    for (const dimension of line.matchAll(/(\d{3,4})\s*[x×]\s*(\d{3,4})/g)) {
++      const key = `${dimension[1]}x${dimension[2]}`;
++      const known = perPosition.get(current)!.get(key);
++      if (known) known.seen += 1;
++      else perPosition.get(current)!.set(key, { width: mm(dimension[1]), height: mm(dimension[2]), seen: 1 });
++    }
++  }
++  return [...perPosition.entries()]
++    .filter(([, dimensions]) => dimensions.size > 0)
++    .sort(([left], [right]) => left.localeCompare(right))
++    .map(([position, dimensions]) => {
++      // La stessa pagina e' passata sotto OCR piu' volte, e una lettura
++      // sbagliata di una cifra produce una misura fantasma. Una misura vera
++      // ricorre in quasi tutte le copie; un refuso in una sola. Quando le
++      // copie sono piu' d'una si tengono solo le misure ricorrenti, cosi' una
++      // "529 x 609" letta una volta non diventa un secondo pezzo accanto alla
++      // "529 x 669" letta cinque volte (Buosi, posizione 003).
++      const observations = [...dimensions.values()];
++      const mostSeen = Math.max(...observations.map((item) => item.seen));
++      const parts = mostSeen === 1
++        ? observations
++        : observations.filter((item) => item.seen >= Math.max(2, Math.ceil(mostSeen / 3)));
++      const surfaceM2 = round2(parts.reduce((total, part) => total + area(part.width, part.height), 0));
++      const single = parts.length === 1 ? parts[0] : null;
++      return {
++        position,
++        description: parts.length > 1 ? `Serramento in ${parts.length} parti` : "Serramento",
++        widthMm: single?.width ?? null,
++        heightMm: single?.height ?? null,
++        surfaceM2,
++        quantity: 1,
++      };
++    });
++}
++
++/**
++ * Dichiarazione del produttore con righe `POS QTA Pezzi DESCRIZIONE` e quote
++ * etichettate `Largh.: N, Alt.: N` (Internorm/Rotondi: Cappello). E' il
++ * formato che il 13/09 avevo dichiarato privo di misure.
++ */
++function readDichiarazioneLarghAlt(lines: readonly string[]): InfissiCertificatePiece[] {
++  const pieces: InfissiCertificatePiece[] = [];
++  let current: { position: string; description: string; quantity: number } | null = null;
++  for (const line of lines) {
++    const header = line.trim().match(/^(\d{2,4})\s+([\d,.]+)\s+Pezzi\s+(.*)$/i);
++    if (header) {
++      current = { position: header[1], description: clean(header[3]).slice(0, 90), quantity: Number(header[2].replace(",", ".")) || 1 };
++      continue;
++    }
++    const dimension = line.match(/Largh\.?:?\s*(\d[\d.]*)\s*,?\s*Alt\.?:?\s*(\d[\d.]*)/i);
++    if (!dimension || !current) continue;
++    const width = mm(dimension[1]); const height = mm(dimension[2]);
++    pieces.push({ position: current.position, description: current.description, widthMm: width, heightMm: height, surfaceM2: round2(area(width, height) * current.quantity), quantity: current.quantity });
++    current = null;
++  }
++  return pieces;
++}
++
++const READERS: readonly { format: InfissiCertificateFormat; detect: RegExp; read: (lines: readonly string[]) => InfissiCertificatePiece[] }[] = [
++  { format: "dop_ordine_web", detect: /WEB\/\d{2}\/\d+\s*-\s*\d{3}/, read: readDopOrdineWeb },
++  { format: "dichiarazione_largh_alt", detect: /Largh\.?:?\s*\d/i, read: readDichiarazioneLarghAlt },
++  // Niente \b dopo "à": in JavaScript le lettere accentate non sono
++  // caratteri di parola, quindi "Q.tà 1" non verrebbe riconosciuto e solo la
++  // variante senza accento passerebbe.
++  { format: "dop_pos_quantita", detect: /\bPos\.?\s*\d+\s+Q\.?\s*t[aà]/i, read: readDopPosQuantita },
++  { format: "tabella_riga_qta_misure", detect: /Riga\s+Qt[aà]\s+Modello/i, read: readTabellaRigaQtaMisure },
++];
++
++/**
++ * Riconosce il formato e restituisce un pezzo per riga. Restituisce null solo
++ * quando nessun formato noto e' presente o non produce alcuna misura: in quel
++ * caso la domanda all'operatore e' legittima (Imperiali, dove il rilievo e'
++ * manoscritto e illeggibile).
++ */
++export function readInfissiCertificateMeasures(text: string): InfissiCertificateReading | null {
++  const lines = text.split(/\r?\n/);
++  for (const reader of READERS) {
++    if (!reader.detect.test(text)) continue;
++    const pieces = reader.read(lines);
++    if (pieces.length > 0) return { format: reader.format, pieces };
++  }
++  return null;
++}
++
++/** Superficie complessiva, utile solo per i controlli: in ENEA va una riga per pezzo. */
++export function totalInfissiCertificateSurfaceM2(reading: InfissiCertificateReading): number {
++  return round2(reading.pieces.reduce((total, piece) => total + piece.surfaceM2, 0));
++}
+-- 
+2.50.1 (Apple Git-155)
+

@@ -1,0 +1,297 @@
+From a2b963c14fc5a2fd685c42da9e5be9741c010a00 Mon Sep 17 00:00:00 2001
+From: Giuliano Beretta <giulianolavoro@MacBook-Pro-di-Giuliano-2026.local>
+Date: Sun, 13 Sep 2026 15:32:52 +0200
+Subject: [PATCH] feat(apr): cricchetto di non regressione sulle pratiche gia'
+ salvate
+
+Una pratica che ha raggiunto la bozza salvata con un dato insieme di
+documenti non puo' tornare ferma se i documenti non sono cambiati: se
+accade e' un difetto del cancello introdotto dopo, non un problema della
+pratica. Il confronto usa le chiavi di contenuto dei documenti CRM, che
+sono stabili fra i giri, non l'impronta di preflight, che include la
+coorte e cambia sempre.
+
+Distingue inoltre i verdetti emessi su fascicolo vuoto: nel lotto r121
+due pratiche su 76 sono state giudicate senza alcun documento acquisito
+e vanno rilavorate, non contate fra le ferme.
+
+Misurato su tutto lo storico dei lotti: r121 ha 4 regressioni certificate
+(Codognato, Dettori, Cappello, Giuga) e 2 giudizi senza fascicolo
+(Depalma, De Filippo).
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+---
+ .../apr-case-regression-cli.ts                |  65 ++++++++++
+ .../aprCaseRegressionGuard.test.ts            |  69 +++++++++++
+ .../aprCaseRegressionGuard.ts                 | 111 ++++++++++++++++++
+ 3 files changed, 245 insertions(+)
+ create mode 100644 scripts/enea-shadow-runner/apr-case-regression-cli.ts
+ create mode 100644 scripts/enea-shadow-runner/aprCaseRegressionGuard.test.ts
+ create mode 100644 scripts/enea-shadow-runner/aprCaseRegressionGuard.ts
+
+diff --git a/scripts/enea-shadow-runner/apr-case-regression-cli.ts b/scripts/enea-shadow-runner/apr-case-regression-cli.ts
+new file mode 100644
+index 0000000..3c3e0ae
+--- /dev/null
++++ b/scripts/enea-shadow-runner/apr-case-regression-cli.ts
+@@ -0,0 +1,65 @@
++#!/usr/bin/env vite-node
++import { existsSync, readFileSync, readdirSync } from "node:fs";
++import path from "node:path";
++import { detectAprCaseRegressions, detectAprCasesJudgedWithoutDocuments, type AprCaseOutcomeRecord } from "./aprCaseRegressionGuard";
++
++/**
++ * Confronta il lotto indicato con tutta la storia precedente e dichiara quali
++ * pratiche gia' salvate sono tornate ferme a documenti invariati. Sola
++ * lettura: non tocca checkpoint, non rilancia nulla.
++ */
++const runtimeRoot = process.env.APR_REGRESSION_RUNTIME_ROOT
++  ?? "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner";
++const currentRunId = process.argv[2];
++if (!currentRunId) { process.stderr.write("usage: apr-case-regression-cli.ts <runId>\n"); process.exit(2); }
++
++const readJson = (target: string): Record<string, unknown> | null => {
++  try { return existsSync(target) ? JSON.parse(readFileSync(target, "utf8")) as Record<string, unknown> : null; }
++  catch { return null; }
++};
++
++/** Chiavi di contenuto dei documenti originari della pratica, dalla sua coorte. */
++const documentKeysByCustomer = new Map<string, string[]>();
++const cohortsRoot = path.join(runtimeRoot, "cohorts");
++for (const entry of existsSync(cohortsRoot) ? readdirSync(cohortsRoot) : []) {
++  const analysis = readJson(path.join(cohortsRoot, entry, "crm-document-analysis", "checkpoint.json"));
++  for (const item of (analysis?.items as Array<Record<string, unknown>> | undefined) ?? []) {
++    const customerKey = typeof item.customerKey === "string" ? item.customerKey : null;
++    const documentKey = typeof item.documentKey === "string" ? item.documentKey : null;
++    if (!customerKey || !documentKey) continue;
++    const bucket = documentKeysByCustomer.get(`${entry}::${customerKey}`) ?? [];
++    bucket.push(documentKey);
++    documentKeysByCustomer.set(`${entry}::${customerKey}`, bucket);
++  }
++}
++
++const cohortFor = (cohort: unknown, customerKey: string) => `apr-pilot-${cohort}-global-controller-${customerKey}`;
++
++const outcomes: AprCaseOutcomeRecord[] = [];
++const runsRoot = path.join(runtimeRoot, "runs");
++for (const runId of existsSync(runsRoot) ? readdirSync(runsRoot) : []) {
++  const checkpoint = readJson(path.join(runsRoot, runId, "checkpoint.json"));
++  if (!checkpoint) continue;
++  const observedAt = typeof checkpoint.startedAt === "string" ? checkpoint.startedAt : "";
++  for (const result of (checkpoint.results as Array<Record<string, unknown>> | undefined) ?? []) {
++    const customerKey = typeof result.customerKey === "string" ? result.customerKey : null;
++    if (!customerKey || !observedAt) continue;
++    outcomes.push({
++      customerKey, runId, observedAt,
++      state: typeof result.state === "string" ? result.state : "unknown",
++      documentKeys: documentKeysByCustomer.get(`${cohortFor(result.cohort, customerKey)}::${customerKey}`) ?? [],
++    });
++  }
++}
++
++const current = outcomes.filter((item) => item.runId === currentRunId);
++if (current.length === 0) { process.stderr.write(`apr_regression_run_not_found:${currentRunId}\n`); process.exit(3); }
++const regressions = detectAprCaseRegressions(current, outcomes.filter((item) => item.runId !== currentRunId));
++
++process.stdout.write(`${JSON.stringify({
++  runId: currentRunId,
++  casiEsaminati: current.length,
++  regressioni: regressions.length,
++  dettaglio: regressions,
++  giudicateSenzaFascicolo: detectAprCasesJudgedWithoutDocuments(current),
++}, null, 2)}\n`);
+diff --git a/scripts/enea-shadow-runner/aprCaseRegressionGuard.test.ts b/scripts/enea-shadow-runner/aprCaseRegressionGuard.test.ts
+new file mode 100644
+index 0000000..af58e59
+--- /dev/null
++++ b/scripts/enea-shadow-runner/aprCaseRegressionGuard.test.ts
+@@ -0,0 +1,69 @@
++import { describe, expect, it } from "vitest";
++import { aprCaseDocumentFingerprint, detectAprCaseRegressions, detectAprCasesJudgedWithoutDocuments, type AprCaseOutcomeRecord } from "./aprCaseRegressionGuard";
++
++const record = (over: Partial<AprCaseOutcomeRecord> = {}): AprCaseOutcomeRecord => ({
++  customerKey: "eugenio-codognato",
++  runId: "lotto-corrente",
++  observedAt: "2026-09-13T08:39:00.000Z",
++  state: "technical_block",
++  documentKeys: ["doc-a", "doc-b", "doc-c"],
++  ...over,
++});
++
++const salvataPrima = (over: Partial<AprCaseOutcomeRecord> = {}) => record({
++  runId: "lotto-precedente", observedAt: "2026-09-08T20:00:00.000Z", state: "saved", ...over,
++});
++
++describe("cricchetto: una pratica salvata non puo' essere ribloccata a documenti invariati", () => {
++  it("riconosce la regressione quando il fascicolo e' identico", () => {
++    const [regressione] = detectAprCaseRegressions([record()], [salvataPrima()]);
++    expect(regressione).toMatchObject({
++      customerKey: "eugenio-codognato", previousRunId: "lotto-precedente", currentState: "technical_block",
++    });
++    expect(regressione.reason).toContain("difetto del cancello");
++  });
++
++  it("non dichiara regressione se i documenti sono cambiati", () => {
++    const conNuovoDocumento = record({ documentKeys: ["doc-a", "doc-b", "doc-c", "doc-nuovo"] });
++    expect(detectAprCaseRegressions([conNuovoDocumento], [salvataPrima()])).toEqual([]);
++  });
++
++  it("non dichiara regressione se la pratica e' ancora salvata", () => {
++    expect(detectAprCaseRegressions([record({ state: "saved" })], [salvataPrima()])).toEqual([]);
++  });
++
++  it("non dichiara regressione se non era mai stata salvata", () => {
++    expect(detectAprCaseRegressions([record()], [salvataPrima({ state: "operator_required" })])).toEqual([]);
++  });
++
++  it("ignora i giri senza documenti acquisiti, che non provano nulla", () => {
++    expect(detectAprCaseRegressions([record({ documentKeys: [] })], [salvataPrima()])).toEqual([]);
++    expect(detectAprCaseRegressions([record()], [salvataPrima({ documentKeys: [] })])).toEqual([]);
++  });
++
++  it("usa il salvataggio piu' recente quando la pratica e' stata salvata piu' volte", () => {
++    const storia = [
++      salvataPrima({ runId: "vecchio", observedAt: "2026-09-02T10:00:00.000Z" }),
++      salvataPrima({ runId: "recente", observedAt: "2026-09-09T22:00:00.000Z" }),
++    ];
++    expect(detectAprCaseRegressions([record()], storia)[0]).toMatchObject({ previousRunId: "recente" });
++  });
++
++  it("l'identita' del fascicolo non dipende dall'ordine dei documenti", () => {
++    expect(aprCaseDocumentFingerprint({ documentKeys: ["b", "a"] }))
++      .toBe(aprCaseDocumentFingerprint({ documentKeys: ["a", "b", "a"] }));
++  });
++
++  it("distingue una pratica giudicata senza fascicolo da una ferma vera", () => {
++    const senzaDocumenti = record({ customerKey: "elena-depalma", documentKeys: [] });
++    const [caso] = detectAprCasesJudgedWithoutDocuments([senzaDocumenti, record()]);
++    expect(caso).toMatchObject({ customerKey: "elena-depalma", state: "technical_block" });
++    expect(caso.reason).toContain("va rilavorata");
++    expect(detectAprCasesJudgedWithoutDocuments([record({ state: "saved", documentKeys: [] })])).toEqual([]);
++  });
++
++  it("non confronta un lotto con se stesso", () => {
++    const stesso = salvataPrima({ runId: "lotto-corrente", observedAt: "2026-09-13T07:00:00.000Z" });
++    expect(detectAprCaseRegressions([record({ runId: "lotto-corrente" })], [stesso])).toEqual([]);
++  });
++});
+diff --git a/scripts/enea-shadow-runner/aprCaseRegressionGuard.ts b/scripts/enea-shadow-runner/aprCaseRegressionGuard.ts
+new file mode 100644
+index 0000000..dbb6503
+--- /dev/null
++++ b/scripts/enea-shadow-runner/aprCaseRegressionGuard.ts
+@@ -0,0 +1,111 @@
++import { createHash } from "node:crypto";
++
++export const APR_CASE_REGRESSION_GUARD_VERSION = "apr-case-regression-guard-v1" as const;
++
++/**
++ * Il cricchetto che mancava.
++ *
++ * Ogni regola nuova aggiunge un cancello fail-closed: giusto per una pratica
++ * mai vista, distruttivo per una gia' completata. Fra l'8 e il 13 settembre
++ * 2026 cinque pratiche gia' salvate — Codognato, Giuga, Depalma, Cappello,
++ * Dettori — sono tornate ferme, ciascuna per un cancello diverso introdotto
++ * dopo, e nessuno se n'e' accorto: nel lotto delle 76 il saldo netto e' stato
++ * di una pratica guadagnata e cinque perse.
++ *
++ * Qui non si aggira nessun cancello: un cancello che blocca puo' avere
++ * ragione. Si riconosce e si dichiara la regressione, con la prova che i
++ * documenti non sono cambiati, cosi' che sia un difetto da chiudere e non una
++ * pratica da rilavorare.
++ */
++export interface AprCaseDocumentIdentity {
++  /** Chiavi di contenuto dei documenti originari, in qualunque ordine. */
++  documentKeys: readonly string[];
++}
++
++export interface AprCaseOutcomeRecord {
++  customerKey: string;
++  runId: string;
++  observedAt: string;
++  state: string;
++  documentKeys: readonly string[];
++}
++
++export interface AprCaseRegression {
++  customerKey: string;
++  previousRunId: string;
++  previousObservedAt: string;
++  currentRunId: string;
++  currentState: string;
++  documentFingerprint: string;
++  reason: string;
++}
++
++/**
++ * Identita' del fascicolo: il contenuto dei documenti, non la coorte. Le
++ * impronte calcolate dal preflight includono il numero di coorte e cambiano a
++ * ogni giro, quindi non distinguono "stessi documenti" da "documenti nuovi".
++ */
++export function aprCaseDocumentFingerprint(identity: AprCaseDocumentIdentity): string | null {
++  const keys = [...new Set(identity.documentKeys.filter((key) => typeof key === "string" && key.trim()))].sort();
++  if (keys.length === 0) return null;
++  return createHash("sha256").update(keys.join("|")).digest("hex");
++}
++
++const SAVED = "saved";
++
++/**
++ * Un verdetto emesso su un fascicolo vuoto non e' un verdetto. Nel lotto del
++ * 13/09/2026 due pratiche su 76 sono state giudicate senza alcun documento
++ * acquisito: Depalma, fermata sulle revisioni, e De Filippo, fermata da un
++ * HTTP 504 del CRM. Vanno distinte dalle ferme vere, perche' non dicono nulla
++ * sulla pratica e vanno solo rilavorate.
++ */
++export function detectAprCasesJudgedWithoutDocuments(current: readonly AprCaseOutcomeRecord[]) {
++  return current
++    .filter((record) => record.state !== SAVED && aprCaseDocumentFingerprint(record) === null)
++    .map((record) => ({
++      customerKey: record.customerKey,
++      runId: record.runId,
++      state: record.state,
++      reason: "Nessun documento originario acquisito o analizzato: l'esito non riguarda la pratica ma l'acquisizione, e va rilavorata.",
++    }))
++    .sort((left, right) => left.customerKey.localeCompare(right.customerKey));
++}
++
++/**
++ * Una regressione richiede tre prove: la pratica era salvata, adesso non lo
++ * e', e il fascicolo e' identico. Un giro senza documenti acquisiti non prova
++ * nulla e non viene mai confrontato.
++ */
++export function detectAprCaseRegressions(
++  current: readonly AprCaseOutcomeRecord[],
++  history: readonly AprCaseOutcomeRecord[],
++): AprCaseRegression[] {
++  const bestSaved = new Map<string, AprCaseOutcomeRecord>();
++  for (const record of history) {
++    if (record.state !== SAVED) continue;
++    if (aprCaseDocumentFingerprint(record) === null) continue;
++    const known = bestSaved.get(record.customerKey);
++    if (!known || record.observedAt > known.observedAt) bestSaved.set(record.customerKey, record);
++  }
++
++  const regressions: AprCaseRegression[] = [];
++  for (const record of current) {
++    if (record.state === SAVED) continue;
++    const fingerprint = aprCaseDocumentFingerprint(record);
++    if (fingerprint === null) continue;
++    const previous = bestSaved.get(record.customerKey);
++    if (!previous || previous.runId === record.runId) continue;
++    if (aprCaseDocumentFingerprint(previous) !== fingerprint) continue;
++    regressions.push({
++      customerKey: record.customerKey,
++      previousRunId: previous.runId,
++      previousObservedAt: previous.observedAt,
++      currentRunId: record.runId,
++      currentState: record.state,
++      documentFingerprint: fingerprint,
++      reason: `La pratica era salvata il ${previous.observedAt.slice(0, 10)} con gli stessi documenti ed e' tornata ${record.state}: e' un difetto del cancello che la blocca, non un problema della pratica.`,
++    });
++  }
++  return regressions.sort((left, right) => left.customerKey.localeCompare(right.customerKey));
++}
+-- 
+2.50.1 (Apple Git-155)
+

@@ -1,0 +1,42 @@
+{
+  "status": "PASS",
+  "tests": {
+    "total": 2018,
+    "passed": 2018,
+    "failed": 0,
+    "pending": 0,
+    "nonCdp": 1936,
+    "socket": 82
+  },
+  "matrixRules": 221,
+  "testedRules": 221,
+  "requiredRuntimeRules": {
+    "apr-supervisor.mjs": [
+      "user-2026-09-10-infissi-invoice-authoritative-shading-closures-v1",
+      "user-2026-09-11-infissi-closure-measurements-not-applicable-v1",
+      "user-2026-08-19-infissi-invoice-or-technical-source-resolution-v1",
+      "user-2026-09-11-invoice-final-printed-total-runtime-authority-v1",
+      "user-2026-09-11-crm-practice-id-lookup-stage-independent-v1"
+    ],
+    "apr-enea-worker.mjs": [
+      "user-2026-09-10-infissi-invoice-authoritative-shading-closures-v1",
+      "user-2026-09-11-infissi-closure-measurements-not-applicable-v1",
+      "user-2026-08-19-infissi-invoice-or-technical-source-resolution-v1",
+      "user-2026-09-11-invoice-final-printed-total-runtime-authority-v1",
+      "user-2026-09-11-crm-practice-id-lookup-stage-independent-v1"
+    ]
+  },
+  "stagedBundleSha256": {
+    "apr-supervisor.mjs": "8b4ad2ddf2159a8c178753f852854ab0118246a2983b5d60118139419ff4ee58",
+    "apr-enea-worker.mjs": "6a0d11677a9d8fc056b7b375cae76a4d417d1f52325cb98ec99620fea33b0ccc",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0"
+  },
+  "historicalAudit": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-runtime-decisions-r115-2026-09-11/historical-audit-report-r115.json",
+  "historicalAuditSha256": "44a136610fabcc7cfb3edc92b54dcea7360de35984831f4242305bd4dbffed39",
+  "authorizedHistoricalGapOnly": [
+    "user-2026-08-06-portal-intermediary-physical-beneficiary-v1",
+    "user-2026-08-06-intervention-authoritative-sources-and-defaults-v1",
+    "user-2026-08-06-existing-plant-authoritative-mapping-v1",
+    "user-2026-08-06-portal-municipality-controlled-selection-v1"
+  ]
+}

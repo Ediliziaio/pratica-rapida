@@ -1,0 +1,455 @@
+{
+  "version": "apr-crm-local-preflight-v1",
+  "revision": 4,
+  "status": "completed",
+  "sourceFingerprint": "69039e1b0c877ae1f2130f97cbafb8c0121c93912fa7caa6ad6616f75f5fecb2",
+  "currentCustomerKey": null,
+  "items": [
+    {
+      "customerKey": "giovanna-atzeni",
+      "displayName": "GIOVANNA ATZENI",
+      "practiceId": "dc4484cd-c462-49c0-a734-3064dd6469a8",
+      "dossierPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5342-global-controller-giovanna-atzeni/crm-acquisition/dossiers/giovanna-atzeni.json",
+      "state": "blocked_case",
+      "attemptCount": 1,
+      "startedAt": "2026-09-10T08:00:03.000Z",
+      "endedAt": "2026-09-10T08:00:03.000Z",
+      "report": {
+        "outcome": "blocked_case",
+        "formAvailable": false,
+        "startDate": "2025-11-26",
+        "startDateSource": "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:invoice:a9de80b81628",
+        "completionDate": "2025-12-31",
+        "completionDateSource": "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:invoice:a0807c8f37ed",
+        "buildingQualification": null,
+        "buildingUnitCount": null,
+        "deductionRate": null,
+        "taxCodeStatus": "missing_or_invalid",
+        "resolvedTaxCode": null,
+        "taxCodeSourceIds": [
+          "giovanna-atzeni"
+        ],
+        "primaryBeneficiaryResolution": {
+          "status": "not_found",
+          "identity": null,
+          "sourceIds": [],
+          "authority": null
+        },
+        "worksMunicipalityResolution": {
+          "status": "not_found",
+          "value": null,
+          "sourceIds": []
+        },
+        "coBeneficiaryResolution": {
+          "status": "not_declared",
+          "present": false,
+          "identity": null,
+          "sourceIds": []
+        },
+        "products": [],
+        "financial": {
+          "invoiceTotal": 4582.66,
+          "eligibleExpense": 4582.66,
+          "tripleReconciliationVerified": false,
+          "reconciledTotal": 4582.66,
+          "evidence": [
+            {
+              "sourceId": "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:invoice:a9de80b81628",
+              "kind": "invoice",
+              "taxableAmount": 3590.91,
+              "vatAmount": 359.09,
+              "grossTotal": 3950,
+              "interventionGrossAmount": 3950,
+              "extractionConfidence": "certain",
+              "extractionIssues": []
+            },
+            {
+              "sourceId": "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:invoice:a0807c8f37ed",
+              "kind": "invoice",
+              "taxableAmount": null,
+              "vatAmount": null,
+              "grossTotal": 632.66,
+              "interventionGrossAmount": null,
+              "extractionConfidence": "uncertain",
+              "extractionIssues": []
+            }
+          ],
+          "bankTransfers": [
+            {
+              "sourceId": "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:transfer-1",
+              "transactionReference": null,
+              "principalAmount": 3950,
+              "fees": 0.5,
+              "debitedTotal": 3950.5,
+              "invoiceReference": "715/00",
+              "taxReliefType": "energy_saving",
+              "appliedRuleIds": [
+                "user-2026-08-16-invoice-total-over-bank-transfers",
+                "user-2026-08-18-mandatory-bank-transfer-invoice-expense-cross-check",
+                "core-economic-classification"
+              ]
+            },
+            {
+              "sourceId": "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:transfer-2",
+              "transactionReference": null,
+              "principalAmount": 3950,
+              "fees": null,
+              "debitedTotal": null,
+              "invoiceReference": "630/00",
+              "taxReliefType": null,
+              "appliedRuleIds": [
+                "user-2026-08-16-invoice-total-over-bank-transfers",
+                "user-2026-08-18-mandatory-bank-transfer-invoice-expense-cross-check",
+                "core-economic-classification"
+              ]
+            }
+          ],
+          "bankTransferReconciliation": {
+            "status": "principal_exceeds_invoices",
+            "principalTotal": 7900,
+            "feesTotal": 0.5,
+            "debitedTotal": null,
+            "difference": 3317.34,
+            "referenceStatus": "verified",
+            "missingInvoiceReferences": [],
+            "taxReliefTypes": [
+              "energy_saving"
+            ]
+          },
+          "methods": [
+            {
+              "method": "structured_extraction",
+              "ok": false,
+              "total": null,
+              "sources": [
+                "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:invoice:a9de80b81628",
+                "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:invoice:a0807c8f37ed"
+              ],
+              "reason": "estrazione-incerta:0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:invoice:a0807c8f37ed"
+            },
+            {
+              "method": "accounting_reconciliation",
+              "ok": false,
+              "total": null,
+              "sources": [
+                "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:invoice:a9de80b81628",
+                "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:invoice:a0807c8f37ed"
+              ],
+              "reason": "estrazione-incerta:0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:invoice:a0807c8f37ed"
+            },
+            {
+              "method": "intervention_cross_check",
+              "ok": false,
+              "total": null,
+              "sources": [
+                "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:invoice:a9de80b81628",
+                "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:invoice:a0807c8f37ed"
+              ],
+              "reason": "righe-intervento-non-dimostrate:0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:invoice:a0807c8f37ed"
+            }
+          ],
+          "discardedDuplicateSourceIds": [],
+          "supersededTechnicalSourceIds": [],
+          "appliedRuleIds": [
+            "user-2026-08-16-invoice-gross-total-vat-included",
+            "user-2026-09-06-gross-invoice-sum-supersedes-service-separation-v1",
+            "user-2026-08-18-mandatory-bank-transfer-invoice-expense-cross-check",
+            "core-gross-triple-reconciliation",
+            "user-2026-08-14-preserve-technical-product-cardinality",
+            "system-explicit-advance-invoice-reference-marker-v1",
+            "user-2026-09-07-invoice-gross-total-never-internally-verified-v1"
+          ]
+        },
+        "warnings": [
+          {
+            "code": "invoice_segment_kept_despite_bank_transfer_evidence",
+            "reason": "1 segmento/i fattura mantenuti nonostante una conferma di bonifico accodata nello stesso allegato: terna fiscale (numero, data, totale) gia' completamente risolta dall'intestazione propria, il bonifico non e' letto per questa decisione.",
+            "appliedRuleIds": [
+              "user-2026-09-08-bank-transfer-segment-exclusion-requires-incomplete-triple-v1"
+            ]
+          }
+        ],
+        "blockers": [
+          {
+            "code": "customer_form_missing",
+            "field": "customer_form",
+            "reason": "Il dossier CRM non contiene un form cliente originario utilizzabile; documenti ENEA storici esclusi.",
+            "sourceIds": [
+              "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8"
+            ],
+            "appliedRuleIds": [
+              "core-form-first",
+              "user-2026-09-03-structured-residual-case-question-v1"
+            ],
+            "exactCause": "Il dossier CRM non contiene un form cliente originario utilizzabile; documenti ENEA storici esclusi.",
+            "missingDocumentType": "modulo cliente originario",
+            "operatorQuestion": "Puoi inserire o indicare il modulo cliente originario richiesto per risolvere customer_form?",
+            "onboardingGap": "Rendere obbligatorio in onboarding: modulo cliente originario."
+          },
+          {
+            "code": "tax_code_missing_or_invalid",
+            "field": "beneficiary.taxCode",
+            "reason": "CF valido e coerente non disponibile nel form o nelle fatture originarie.",
+            "sourceIds": [
+              "giovanna-atzeni"
+            ],
+            "appliedRuleIds": [
+              "core-form-first",
+              "user-2026-08-14-valid-original-document-cf-over-invalid-form",
+              "user-2026-08-16-fiscal-code-identity-cross-check",
+              "user-2026-09-03-structured-residual-case-question-v1"
+            ],
+            "exactCause": "CF valido e coerente non disponibile nel form o nelle fatture originarie.",
+            "missingDocumentType": "documento fiscale o ufficiale con codice fiscale",
+            "operatorQuestion": "Puoi inserire o indicare il documento fiscale o ufficiale con codice fiscale richiesto per risolvere beneficiary.taxCode?",
+            "onboardingGap": "Rendere obbligatorio in onboarding: documento fiscale o ufficiale con codice fiscale."
+          },
+          {
+            "code": "screenings_missing",
+            "field": "screenings",
+            "reason": "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+            "sourceIds": [
+              "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8"
+            ],
+            "appliedRuleIds": [
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "system-specific-incomplete-screening-blocker-v1",
+              "user-2026-09-03-structured-residual-case-question-v1"
+            ],
+            "exactCause": "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+            "missingDocumentType": "documento tecnico con misure del prodotto",
+            "operatorQuestion": "Mancano le misure del prodotto in tutti i documenti originari verificati: puoi inserirle?",
+            "onboardingGap": "Rendere obbligatorio in onboarding: documento tecnico con misure del prodotto."
+          },
+          {
+            "code": "completion_date_portal_year_mismatch",
+            "field": "dates.completion",
+            "reason": "Fine lavori 2025-12-31: anno 2025 incompatibile con il portale ENEA 2026. Selezionare il portale annuale corretto senza modificare la data.",
+            "sourceIds": [
+              "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:invoice:a0807c8f37ed"
+            ],
+            "appliedRuleIds": [
+              "user-2026-08-23-completion-portal-year-operator-gate",
+              "user-2026-08-14-missing-completion-use-latest-invoice",
+              "user-2026-09-03-structured-residual-case-question-v1"
+            ],
+            "exactCause": "Fine lavori 2025-12-31: anno 2025 incompatibile con il portale ENEA 2026. Selezionare il portale annuale corretto senza modificare la data.",
+            "missingDocumentType": null,
+            "operatorQuestion": "Confermi che la pratica è ancora procedibile e indichi l'anno del portale ENEA corretto?",
+            "onboardingGap": "Acquisire e validare in onboarding il dato dates.completion con la relativa fonte originaria."
+          },
+          {
+            "code": "completion_over_90_days_operator_required",
+            "field": "dates.completion",
+            "reason": "Fine lavori 2025-12-31: 253 giorni prima della lavorazione, oltre il limite di 90 giorni. Verificare la procedibilità e il portale annuale corretto.",
+            "sourceIds": [
+              "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:invoice:a0807c8f37ed"
+            ],
+            "appliedRuleIds": [
+              "user-2026-08-23-completion-over-90-operator-gate",
+              "user-2026-08-14-missing-completion-use-latest-invoice",
+              "user-2026-09-03-structured-residual-case-question-v1"
+            ],
+            "exactCause": "Fine lavori 2025-12-31: 253 giorni prima della lavorazione, oltre il limite di 90 giorni. Verificare la procedibilità e il portale annuale corretto.",
+            "missingDocumentType": null,
+            "operatorQuestion": "Confermi che la pratica è ancora procedibile e indichi l'anno del portale ENEA corretto?",
+            "onboardingGap": "Acquisire e validare in onboarding il dato dates.completion con la relativa fonte originaria."
+          },
+          {
+            "code": "invoice_332a5af9",
+            "field": "economic_sources",
+            "reason": "Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture.",
+            "sourceIds": [
+              "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8"
+            ],
+            "appliedRuleIds": [
+              "core-economic-classification",
+              "user-2026-09-03-structured-residual-case-question-v1"
+            ],
+            "exactCause": "Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture.",
+            "missingDocumentType": null,
+            "operatorQuestion": "Confermi il valore corretto da usare per economic_sources, sulla base dei documenti originari?",
+            "onboardingGap": "Acquisire e validare in onboarding il dato economic_sources con la relativa fonte originaria."
+          },
+          {
+            "code": "gross_triple_reconciliation_failed",
+            "field": "economic_sources.total",
+            "reason": "Tripla riconciliazione non dimostrata: estrazione-incerta:0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:invoice:a0807c8f37ed.",
+            "sourceIds": [
+              "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8"
+            ],
+            "appliedRuleIds": [
+              "user-2026-08-16-invoice-gross-total-vat-included",
+              "core-gross-triple-reconciliation",
+              "user-2026-09-07-invoice-gross-total-never-internally-verified-v1",
+              "user-2026-09-03-structured-residual-case-question-v1"
+            ],
+            "exactCause": "Tripla riconciliazione non dimostrata: estrazione-incerta:0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:invoice:a0807c8f37ed.",
+            "missingDocumentType": null,
+            "operatorQuestion": "Confermi il valore corretto da usare per economic_sources.total, sulla base dei documenti originari?",
+            "onboardingGap": "Acquisire e validare in onboarding il dato economic_sources.total con la relativa fonte originaria."
+          }
+        ],
+        "sourceIds": [
+          "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8"
+        ],
+        "eneaPayloadAudit": {
+          "status": "payload_incomplete",
+          "mappingFingerprint": null,
+          "fieldSummary": {
+            "ready": 0,
+            "review": 0,
+            "missing": 0
+          },
+          "requiredPortalFieldCount": 0,
+          "blockerCount": 2,
+          "blockers": [
+            {
+              "code": "crm-source-not-screening",
+              "fieldId": null,
+              "message": "Il dossier non è mappabile come pratica schermature."
+            },
+            {
+              "code": "screenings_missing",
+              "fieldId": "screenings",
+              "message": "Nessun prodotto fisico riconciliato dalle fatture originarie."
+            }
+          ],
+          "excludedUnverifiedFields": [],
+          "draftReady": false,
+          "officialSubmissionAllowed": false,
+          "portalGate": {
+            "status": "blocked",
+            "reason": "screening-component-blocked",
+            "workflowFingerprint": null,
+            "supportedPages": [],
+            "screeningItemCount": 0,
+            "saveAllowedOnlyBySeparateCapability": true,
+            "previewAllowed": false,
+            "submitAllowed": false
+          },
+          "externalActionAllowed": false,
+          "reason": "1 blocker della componente Schermature invalidano il payload della bozza TEST."
+        },
+        "eneaExecutablePlan": null,
+        "draftPlan": {
+          "status": "blocked",
+          "externalActionAllowed": false,
+          "previewAllowed": false,
+          "submitAllowed": false,
+          "communicationsAllowed": false,
+          "nextAction": "Risolvere i blocker con sole fonti originarie; la coda prosegue sugli altri casi."
+        }
+      },
+      "reason": "7 blocker per-pratica registrati; coda prosegue.",
+      "disposition": null
+    }
+  ],
+  "externalActionAllowed": false,
+  "reason": "Preflight locale concluso: 0 piani pronti, 1 casi bloccati, 0 accantonati; nessuna azione esterna.",
+  "nextAction": "Mostrare fonti e blocker in dashboard; ENEA resta chiusa.",
+  "validationRevisionsApplied": [],
+  "sourceRevisionsApplied": [],
+  "operatorMeasurementResolutions": [],
+  "audit": [
+    {
+      "revision": 0,
+      "at": "2026-09-10T08:00:01.000Z",
+      "type": "initialized",
+      "customerKey": null,
+      "reason": "Preflight CRM locale non preparato.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "core-mapping-complete",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume",
+        "system-preflight-upstream-terminal-propagation-v1",
+        "user-2026-08-16-ten-case-monday-restart"
+      ]
+    },
+    {
+      "revision": 1,
+      "at": "2026-09-10T08:00:01.000Z",
+      "type": "prepared",
+      "customerKey": null,
+      "reason": "1 dossier acquisiti preparati per preflight locale sequenziale; i casi bloccati a monte non fermano la coda.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "core-mapping-complete",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume",
+        "system-preflight-upstream-terminal-propagation-v1",
+        "user-2026-08-16-ten-case-monday-restart"
+      ]
+    },
+    {
+      "revision": 2,
+      "at": "2026-09-10T08:00:03.000Z",
+      "type": "claimed",
+      "customerKey": "giovanna-atzeni",
+      "reason": "Preflight locale reclamato; ripresa idempotente dopo riavvio.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "core-mapping-complete",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume",
+        "system-preflight-upstream-terminal-propagation-v1",
+        "user-2026-08-16-ten-case-monday-restart"
+      ]
+    },
+    {
+      "revision": 3,
+      "at": "2026-09-10T08:00:03.000Z",
+      "type": "case_blocked",
+      "customerKey": "giovanna-atzeni",
+      "reason": "7 blocker per-pratica registrati; coda prosegue.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "core-mapping-complete",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume",
+        "system-preflight-upstream-terminal-propagation-v1",
+        "user-2026-08-16-ten-case-monday-restart",
+        "user-2026-08-16-invoice-gross-total-vat-included",
+        "user-2026-09-06-gross-invoice-sum-supersedes-service-separation-v1",
+        "user-2026-08-18-mandatory-bank-transfer-invoice-expense-cross-check",
+        "user-2026-08-14-preserve-technical-product-cardinality",
+        "system-explicit-advance-invoice-reference-marker-v1",
+        "user-2026-09-07-invoice-gross-total-never-internally-verified-v1",
+        "user-2026-09-03-structured-residual-case-question-v1",
+        "user-2026-08-14-valid-original-document-cf-over-invalid-form",
+        "user-2026-08-16-fiscal-code-identity-cross-check",
+        "system-specific-incomplete-screening-blocker-v1",
+        "user-2026-08-23-completion-portal-year-operator-gate",
+        "user-2026-08-14-missing-completion-use-latest-invoice",
+        "user-2026-08-23-completion-over-90-operator-gate",
+        "user-2026-09-08-bank-transfer-segment-exclusion-requires-incomplete-triple-v1"
+      ]
+    },
+    {
+      "revision": 4,
+      "at": "2026-09-10T08:00:03.000Z",
+      "type": "completed",
+      "customerKey": null,
+      "reason": "Preflight locale concluso: 0 piani pronti, 1 casi bloccati, 0 accantonati; nessuna azione esterna.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "core-mapping-complete",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume",
+        "system-preflight-upstream-terminal-propagation-v1",
+        "user-2026-08-16-ten-case-monday-restart"
+      ]
+    }
+  ]
+}

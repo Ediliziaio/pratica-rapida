@@ -1,0 +1,40 @@
+{
+  "version": "apr-contractual-reliability-targeted-r100-v1",
+  "authorizationId": "user-2026-09-02-wide-infissi-screening-single-run-v2",
+  "authorizedAt": "2026-09-02T00:00:00.000Z",
+  "mode": "real_enea_draft_only",
+  "safety": {
+    "draftOnly": true,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false,
+    "priorDraftPolicy": "preserve_and_ignore_for_new_test_draft"
+  },
+  "selection": {
+    "total": 17,
+    "allowedStages": ["archiviate", "recensione"],
+    "excludedCustomerKeys": ["beatrice-ciotta", "nicoletta-garbarino", "vittorio-paolinelli", "samuele-beretta"],
+    "sourceManifest": "ops/apr-wide100-province-lineage-2026-09-02/manifest.json",
+    "sourceManifestSha256": "51842252f71cabb6714f78923fe59ec9789ad06739393f61a553bb4bdb9154e0",
+    "reason": "Replay operativo autorizzato dei quattro falsi blocker documentali/payload, due mismatch di cardinalita e undici mismatch di fingerprint; nessuna pratica aggiunta al corpus originario."
+  },
+  "cases": [
+    { "cohort": 19, "practiceId": "7e616b55-67fd-4d6f-aa4b-42af0fa00ce4", "customerKey": "vincenzo-falconi", "displayName": "VINCENZO FALCONI", "stage": "archiviate", "stageName": "Archiviate", "module": "screening", "productEvidence": "Schermature Solari", "reseller": "Zanzasol", "invoiceCount": 1, "complexity": "simple", "historicalRetest": true },
+    { "cohort": 21, "practiceId": "92f0a811-6199-494e-bc12-dafefe1a37b2", "customerKey": "rossella-munafo", "displayName": "Rossella Munafò", "stage": "recensione", "stageName": "Recensione", "module": "screening", "productEvidence": "Schermature Solari", "reseller": "Brianza serramenti", "invoiceCount": 2, "complexity": "medium", "historicalRetest": true },
+    { "cohort": 25, "practiceId": "36978c5f-f8fb-43b0-8bd9-26665bf553ad", "customerKey": "vera-buracchi", "displayName": "VERA BURACCHI", "stage": "archiviate", "stageName": "Archiviate", "module": "infissi", "productEvidence": "Infissi / Serramenti", "reseller": "Euroinfissi snc di Valdambrini Nico e Cristian", "invoiceCount": 1, "complexity": "simple", "historicalRetest": true },
+    { "cohort": 30, "practiceId": "802a1cc1-c046-4c4b-a245-25401217740f", "customerKey": "della-maria-carla-vigetti", "displayName": "Della Maria Carla Vigetti", "stage": "archiviate", "stageName": "Archiviate", "module": "screening", "productEvidence": "Schermature Solari", "reseller": "lm tende", "invoiceCount": 2, "complexity": "medium", "historicalRetest": true },
+    { "cohort": 34, "practiceId": "99c19e81-7252-4325-afbd-1e7f2698b6df", "customerKey": "patrizia-muzzi", "displayName": "Patrizia Muzzi", "stage": "recensione", "stageName": "Recensione", "module": "screening", "productEvidence": "Schermature Solari", "reseller": "⚠️ Da abbinare — richieste sito", "invoiceCount": 1, "complexity": "simple", "historicalRetest": true },
+    { "cohort": 37, "practiceId": "1d6b08fa-7120-4eab-a118-ce3a263ce001", "customerKey": "loretta-riviera", "displayName": "Loretta Riviera", "stage": "archiviate", "stageName": "Archiviate", "module": "infissi", "productEvidence": "Infissi / Serramenti", "reseller": "Finestra Italia", "invoiceCount": 3, "complexity": "medium", "historicalRetest": true },
+    { "cohort": 46, "practiceId": "805249c4-7248-40ac-990c-6d00cba517c8", "customerKey": "natale-tiraboschi", "displayName": "Natale Tiraboschi", "stage": "archiviate", "stageName": "Archiviate", "module": "screening", "productEvidence": "Schermature Solari", "reseller": "Zanzasol", "invoiceCount": 2, "complexity": "medium", "historicalRetest": true },
+    { "cohort": 48, "practiceId": "53420a92-8872-4df5-8915-0b7f76be9e66", "customerKey": "lea-dettori", "displayName": "Lea Dettori", "stage": "archiviate", "stageName": "Archiviate", "module": "screening", "productEvidence": "Schermature Solari", "reseller": "lm tende", "invoiceCount": 2, "complexity": "medium", "historicalRetest": true },
+    { "cohort": 51, "practiceId": "20c7c802-85da-4d7e-95a3-482b66151b16", "customerKey": "giovanni-pescatori", "displayName": "Giovanni Pescatori", "stage": "archiviate", "stageName": "Archiviate", "module": "screening", "productEvidence": "Schermature Solari", "reseller": "Mar tende di Sartori Marco", "invoiceCount": 1, "complexity": "simple", "historicalRetest": true },
+    { "cohort": 57, "practiceId": "62510980-062e-4278-83f9-6a583089f783", "customerKey": "fares-hassairi", "displayName": "Fares Hassairi", "stage": "archiviate", "stageName": "Archiviate", "module": "screening", "productEvidence": "Schermature Solari", "reseller": "lm tende", "invoiceCount": 2, "complexity": "medium", "historicalRetest": true },
+    { "cohort": 64, "practiceId": "3e731c9e-ccea-4b30-b9bc-454f3ec60f06", "customerKey": "milena-albertoni", "displayName": "Milena Albertoni", "stage": "archiviate", "stageName": "Archiviate", "module": "screening", "productEvidence": "Schermature Solari", "reseller": "lm tende", "invoiceCount": 2, "complexity": "medium", "historicalRetest": true },
+    { "cohort": 65, "practiceId": "46a577d1-53f3-438e-9a85-96ae4d246259", "customerKey": "cataldo-cassone", "displayName": "Cataldo Cassone", "stage": "archiviate", "stageName": "Archiviate", "module": "screening", "productEvidence": "Schermature Solari", "reseller": "lm tende", "invoiceCount": 2, "complexity": "medium", "historicalRetest": true },
+    { "cohort": 66, "practiceId": "1b6d780a-2e81-415f-9a27-c67e2f19e846", "customerKey": "marco-tocchetti", "displayName": "Marco Tocchetti", "stage": "archiviate", "stageName": "Archiviate", "module": "screening", "productEvidence": "Schermature Solari", "reseller": "cor tende", "invoiceCount": 2, "complexity": "medium", "historicalRetest": true },
+    { "cohort": 71, "practiceId": "5ffcaa4d-60d6-4c6f-92dd-158ba844b6d1", "customerKey": "milena-fiorini", "displayName": "Milena Fiorini", "stage": "archiviate", "stageName": "Archiviate", "module": "screening", "productEvidence": "Schermature Solari", "reseller": "Cisam Infissi Srl", "invoiceCount": 2, "complexity": "medium", "historicalRetest": true },
+    { "cohort": 83, "practiceId": "d4f1480f-a224-415e-b4c0-121db8040ef8", "customerKey": "claudio-beghini", "displayName": "Claudio Beghini", "stage": "archiviate", "stageName": "Archiviate", "module": "screening", "productEvidence": "Schermature Solari", "reseller": "Zanzasol", "invoiceCount": 1, "complexity": "simple", "historicalRetest": true },
+    { "cohort": 88, "practiceId": "d77a8626-54ac-408c-b7c2-58fd10d3e25a", "customerKey": "gianluigi-chiolini", "displayName": "Gianluigi Chiolini", "stage": "archiviate", "stageName": "Archiviate", "module": "screening", "productEvidence": "Schermature Solari", "reseller": "lm tende", "invoiceCount": 2, "complexity": "medium", "historicalRetest": true },
+    { "cohort": 89, "practiceId": "64d1ab0c-7633-4f03-992b-2fe430584a4e", "customerKey": "stefania-venturi", "displayName": "Stefania Venturi", "stage": "recensione", "stageName": "Recensione", "module": "screening", "productEvidence": "Schermature Solari", "reseller": "sa montaggi", "invoiceCount": 1, "complexity": "simple", "historicalRetest": true }
+  ]
+}

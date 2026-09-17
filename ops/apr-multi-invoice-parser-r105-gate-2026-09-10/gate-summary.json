@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 1,
+  "completedAt": "2026-09-10T12:09:53Z",
+  "status": "PASS_STAGED_NOT_INSTALLED",
+  "scope": "multi_invoice_parser_r105",
+  "authorization": {
+    "fullLocalGate": true,
+    "installation": false,
+    "operationalEneaExecution": false
+  },
+  "denominatorCorrection": {
+    "workable": 13,
+    "saved": 5,
+    "roundedPercent": 38,
+    "excludedAsNotWorkable": [
+      "Silvia Lomartire",
+      "Marina Gerbaudo"
+    ],
+    "evidence": "ops/apr-multi-invoice-parser-r105-prep-2026-09-10/r104-denominator-correction.json",
+    "sha256": "57b2b3caa398aed6511d7f793aa5ae86ccfcb9e5e36915ab3035dfa64595e26a"
+  },
+  "verification": {
+    "fullSuite": {
+      "testSuitesPassed": 454,
+      "testSuitesTotal": 454,
+      "testsPassed": 1963,
+      "testsTotal": 1963,
+      "failedTests": 0,
+      "evidenceReused": false,
+      "report": "ops/apr-multi-invoice-parser-r105-gate-2026-09-10/rule-evidence/rule-activation/vitest-1789041458766-9ef49315-75e4-470a-9114-1d5cbfe59351.json",
+      "sha256": "bead77055ed16e8182de252307b62e9f46103bffc07f16f262135f428ec867e0"
+    },
+    "ruleActivation": {
+      "status": "tested_not_deployed",
+      "meaning": "The staged bundle passed the complete local activation verification and intentionally differs from installed r104 because installation was not authorized.",
+      "matrixRules": 208,
+      "sourceFingerprint": "4926089f5785ee4e2a189ac7200605e3641c08092176669c7b4e09dc0cdda5aa",
+      "registryLinksVerified": true,
+      "checkpoint": "ops/apr-multi-invoice-parser-r105-gate-2026-09-10/rule-evidence/rule-activation/checkpoint.json",
+      "sha256": "938e53294dd204977232d30ffeacf9dfb0c0c609b61540c343e4cf3a39c27ad4"
+    },
+    "correctionActivationGate": {
+      "status": "PASS",
+      "artifactId": "3cb645b97b9a09aeb73142a17418a1db8c52d8be3a81ac317699ed483c3cb423",
+      "missingMatrixCoverage": [],
+      "unwiredCurrentRuleIds": [],
+      "missingDeclaredTests": [],
+      "bundleFreshnessMatched": true,
+      "legacyUnwiredNonBlockingRuleIds": [
+        "user-2026-09-05-co-beneficiary-trusted-enter-delivery-v2",
+        "user-2026-09-05-terminal-cohort-browser-quiescence-v1"
+      ],
+      "evidence": "ops/apr-multi-invoice-parser-r105-gate-2026-09-10/correction-activation-gate.json",
+      "sha256": "fb712080d29e972790cc1ddbb0ea9f68acedb4d1eb6af052d53692e02de99dde"
+    },
+    "historicalGovernance": {
+      "status": "certified_deployed_with_authorized_historical_gap",
+      "unresolvedAuthorizedDecisionIds": [
+        "user-2026-08-06-existing-plant-authoritative-mapping-v1",
+        "user-2026-08-06-intervention-authoritative-sources-and-defaults-v1",
+        "user-2026-08-06-portal-intermediary-physical-beneficiary-v1",
+        "user-2026-08-06-portal-municipality-controlled-selection-v1"
+      ],
+      "allThreeExecutablesAdmitted": true,
+      "audit": "ops/apr-multi-invoice-parser-r105-gate-2026-09-10/historical-audit-report-r105.json",
+      "auditSha256": "1c5362807a53623d2642b916e29a7629edae6eca92dcfa59eb67e2697e63e731",
+      "attestation": "ops/apr-multi-invoice-parser-r105-gate-2026-09-10/staged-bundle/apr-rule-governance-attestation.json",
+      "attestationSha256": "376e047a962721fb5d257f67a92debb3735d4048e7bc6a374d78549925110ccc"
+    }
+  },
+  "stagedBundleSha256": {
+    "apr-supervisor.mjs": "303aa3b39bf3c7d7ca6a1dcb99c01b21d11cbae2554013dff0727c44073ee154",
+    "apr-enea-worker.mjs": "e25c11a9a1052b161a26908f44a83910205912431e375aceca0a0786ee2f6545",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0"
+  },
+  "installedBundleLeftUnchanged": "versions/0b183b6e-preflight-deep-review-propagation-r104-20260910",
+  "operationalActions": {
+    "bundleInstalled": false,
+    "workerRestarted": false,
+    "eneaAccessed": false,
+    "draftCreatedOrModified": false,
+    "batchStarted": false
+  }
+}

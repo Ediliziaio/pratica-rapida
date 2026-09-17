@@ -1,0 +1,114 @@
+{
+  "version": "apr-crm-readonly-acquisition-v1",
+  "revision": 4,
+  "status": "completed",
+  "candidateFingerprint": "4a26f9dee8a43860efc12c9223f9ee9f57594c488f0b94be45a4acbfe4512305",
+  "currentCustomerKey": null,
+  "items": [
+    {
+      "customerKey": "giovanna-atzeni",
+      "displayName": "GIOVANNA ATZENI",
+      "expectedPracticeId": "dc4484cd-c462-49c0-a734-3064dd6469a8",
+      "expectedStageType": "archiviate",
+      "productModule": "infissi",
+      "state": "acquired",
+      "requestId": "crm-readonly-giovanna-atzeni",
+      "attemptCount": 1,
+      "practiceId": "dc4484cd-c462-49c0-a734-3064dd6469a8",
+      "dossierPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5342-global-controller-giovanna-atzeni/crm-acquisition/dossiers/giovanna-atzeni.json",
+      "responseSha256": "5807a67b93abdce0bace0b0b28512d1823ee6dc29c3cc93bd6aab6e1493594b9",
+      "sourceDocumentCount": 3,
+      "reason": "Dossier CRM acquisito via GET e salvato con fingerprint; 3 fonti originarie referenziate.",
+      "startedAt": "2026-09-09T20:03:22.352Z",
+      "endedAt": "2026-09-09T20:03:22.352Z",
+      "automationExclusion": null
+    }
+  ],
+  "externalActionAllowed": false,
+  "operationalGate": "crm_readonly_acquisition_only",
+  "reason": "Acquisizione CRM read-only conclusa: 1 dossier acquisiti, 0 bloccati per-pratica.",
+  "nextAction": "Validare e scaricare le sole fonti originarie dei dossier acquisiti; ENEA resta fuori ambito.",
+  "repairsApplied": [],
+  "audit": [
+    {
+      "revision": 0,
+      "at": "2026-09-09T20:03:19.624Z",
+      "type": "initialized",
+      "customerKey": null,
+      "reason": "Acquisizione CRM APR non preparata; nessun dato reale letto.",
+      "appliedRuleIds": [
+        "system-apr-crm-dedicated-auth",
+        "system-apr-crm-readonly-adapter-contract",
+        "system-apr-crm-integration-boundary",
+        "system-apr-operator-intervention-routing",
+        "system-readonly-adapter-contract",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume"
+      ]
+    },
+    {
+      "revision": 1,
+      "at": "2026-09-09T20:03:19.624Z",
+      "type": "prepared",
+      "customerKey": null,
+      "reason": "1 dossier pilot preparati per acquisizione sequenziale CRM in sola lettura.",
+      "appliedRuleIds": [
+        "system-apr-crm-dedicated-auth",
+        "system-apr-crm-readonly-adapter-contract",
+        "system-apr-crm-integration-boundary",
+        "system-apr-operator-intervention-routing",
+        "system-readonly-adapter-contract",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume"
+      ]
+    },
+    {
+      "revision": 2,
+      "at": "2026-09-09T20:03:22.352Z",
+      "type": "item_claimed",
+      "customerKey": "giovanna-atzeni",
+      "reason": "GET CRM read-only reclamato; replay sicuro dopo crash.",
+      "appliedRuleIds": [
+        "system-apr-crm-dedicated-auth",
+        "system-apr-crm-readonly-adapter-contract",
+        "system-apr-crm-integration-boundary",
+        "system-apr-operator-intervention-routing",
+        "system-readonly-adapter-contract",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume"
+      ]
+    },
+    {
+      "revision": 3,
+      "at": "2026-09-09T20:03:22.352Z",
+      "type": "item_acquired",
+      "customerKey": "giovanna-atzeni",
+      "reason": "Dossier CRM acquisito via GET e salvato con fingerprint; 3 fonti originarie referenziate.",
+      "appliedRuleIds": [
+        "system-apr-crm-dedicated-auth",
+        "system-apr-crm-readonly-adapter-contract",
+        "system-apr-crm-integration-boundary",
+        "system-apr-operator-intervention-routing",
+        "system-readonly-adapter-contract",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume"
+      ]
+    },
+    {
+      "revision": 4,
+      "at": "2026-09-09T20:03:22.352Z",
+      "type": "completed",
+      "customerKey": null,
+      "reason": "Acquisizione CRM read-only conclusa: 1 dossier acquisiti, 0 bloccati per-pratica.",
+      "appliedRuleIds": [
+        "system-apr-crm-dedicated-auth",
+        "system-apr-crm-readonly-adapter-contract",
+        "system-apr-crm-integration-boundary",
+        "system-apr-operator-intervention-routing",
+        "system-readonly-adapter-contract",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume"
+      ]
+    }
+  ]
+}

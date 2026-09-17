@@ -1,10 +1,10 @@
 import { createHash } from "node:crypto";
 import { closeSync, existsSync, fsyncSync, mkdirSync, openSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { registryRule } from "../../src/features/enea-shadow-crm/operationalRegistry";
+import { registryRule, USER_AUTHORIZED_RULE_IDS } from "../../src/features/enea-shadow-crm/operationalRegistry";
 import type { PersistentAprCrmAuth } from "./crmAuth";
 import type { AprPilotCandidate } from "./pilotSample";
-import { APR_FUTURE_TEST_EXCLUSION_RULE_ID, aprAutomationExclusion, type AprAutomationExclusion } from "./aprFutureTestExclusions";
+import { aprAutomationExclusion, type AprAutomationExclusion } from "./aprFutureTestExclusions";
 
 export const APR_CRM_ACQUISITION_VERSION = "apr-crm-readonly-acquisition-v1" as const;
 const RULE_IDS = [
@@ -15,6 +15,7 @@ const RULE_IDS = [
   "system-readonly-adapter-contract",
   "system-single-active-practice",
   "system-atomic-checkpoint-resume",
+  USER_AUTHORIZED_RULE_IDS.crmPracticeIdLookupStageIndependent,
 ];
 const sha256 = (value: string | Buffer) => createHash("sha256").update(value).digest("hex");
 const normalize = (value: string) => value.normalize("NFKD").replace(/[\u0300-\u036f]/g, "").trim().replace(/\s+/g, " ").toLowerCase();
@@ -27,6 +28,8 @@ const DOSSIER_SELECT = [
 ].join(",");
 
 export interface AprCrmReadOnlyTransport {
+  /** Origin actually queried by this transport; omitted only by legacy/fixture transports. */
+  readonly sourceOrigin?: string;
   readOnlyGet(pathname: string, searchParams: URLSearchParams, now?: Date): Promise<Response>;
   snapshot(now?: Date): { status: string };
 }
@@ -321,11 +324,10 @@ export class PersistentAprCrmAuthenticatedReadOnly {
     const matchesByPracticeId = new Map<string, { row: Record<string, unknown>; bodyHash: string; partition: { firstName: string; lastName: string } }>();
     let lastBodyHash = sha256("");
     for (const partition of partitions) {
-      const expectedStageType = item.expectedStageType ?? "pronte_da_fare";
       const params = item.expectedPracticeId
-        ? new URLSearchParams({ select: DOSSIER_SELECT, brand: "eq.enea", id: `eq.${item.expectedPracticeId}`, "pipeline_stages.stage_type": `eq.${expectedStageType}`, limit: "2" })
+        ? new URLSearchParams({ select: DOSSIER_SELECT, brand: "eq.enea", id: `eq.${item.expectedPracticeId}`, limit: "2" })
         : new URLSearchParams({ select: DOSSIER_SELECT, brand: "eq.enea", cliente_nome: `ilike.${partition.firstName}`, cliente_cognome: `ilike.${partition.lastName}`, limit: "3" });
-      if (item.operatorResolution?.kind === "pipeline_stage_type") params.set("pipeline_stages.stage_type", `eq.${item.operatorResolution.stageType}`);
+      if (!item.expectedPracticeId && item.operatorResolution?.kind === "pipeline_stage_type") params.set("pipeline_stages.stage_type", `eq.${item.operatorResolution.stageType}`);
       let response: Response;
       try { response = await this.transport.readOnlyGet("/rest/v1/enea_practices_public", params, now); }
       catch { return this.blockItem(item.customerKey, "blocked_invalid_response", "Trasporto CRM GET non disponibile; nessun valore inventato.", now); }
@@ -343,10 +345,9 @@ export class PersistentAprCrmAuthenticatedReadOnly {
       try { rows = JSON.parse(body) as Array<Record<string, unknown>>; }
       catch { return this.blockItem(item.customerKey, "blocked_invalid_response", `JSON CRM non valido, sha256 ${bodyHash}.`, now, bodyHash); }
       let matches = item.expectedPracticeId
-        ? rows.filter((row) => row.id === item.expectedPracticeId && normalize(`${row.cliente_nome ?? ""} ${row.cliente_cognome ?? ""}`) === normalize(item.displayName)
-          && typeof row.pipeline_stages === "object" && row.pipeline_stages !== null && (row.pipeline_stages as { stage_type?: unknown }).stage_type === expectedStageType)
+        ? rows.filter((row) => row.id === item.expectedPracticeId && normalize(`${row.cliente_nome ?? ""} ${row.cliente_cognome ?? ""}`) === normalize(item.displayName))
         : rows.filter((row) => normalize(`${row.cliente_nome ?? ""} ${row.cliente_cognome ?? ""}`) === normalize(item.displayName));
-      if (item.operatorResolution?.kind === "pipeline_stage_type") matches = matches.filter((row) => {
+      if (!item.expectedPracticeId && item.operatorResolution?.kind === "pipeline_stage_type") matches = matches.filter((row) => {
         const stage = row.pipeline_stages;
         return typeof stage === "object" && stage !== null && "stage_type" in stage && (stage as { stage_type?: unknown }).stage_type === item.operatorResolution?.stageType;
       });
@@ -371,16 +372,20 @@ export class PersistentAprCrmAuthenticatedReadOnly {
       fornitore: row.fornitore,
       companies: row.companies,
     });
-    const dossier = { version: "apr-crm-dossier-v1", acquiredAt: now.toISOString(), requestId: item.requestId, appliedRuleIds: [...RULE_IDS, ...(automationExclusion ? [APR_FUTURE_TEST_EXCLUSION_RULE_ID] : [])], source: { origin: "https://xmkjrhwmmuzaqjqlvzxm.supabase.co", relation: "enea_practices_public", method: "GET", responseSha256: bodyHash, identityPartition: partition, partitionCount: partitions.length }, row, automationExclusion };
+    const dossier = { version: "apr-crm-dossier-v1", acquiredAt: now.toISOString(), requestId: item.requestId, appliedRuleIds: [...RULE_IDS, ...(automationExclusion ? [automationExclusion.ruleId] : [])], source: { origin: this.transport.sourceOrigin ?? "https://xmkjrhwmmuzaqjqlvzxm.supabase.co", relation: "enea_practices_public", method: "GET", responseSha256: bodyHash, identityPartition: partition, partitionCount: partitions.length }, row, automationExclusion };
     const dossierPath = path.join(this.dossierDirectory, `${item.customerKey}.json`);
     atomicWrite(dossierPath, `${JSON.stringify(dossier, null, 2)}\n`);
     const next = structuredClone(this.load(now));
     const target = next.items.find((candidate) => candidate.customerKey === item.customerKey)!;
     next.revision += 1; target.state = "acquired"; target.practiceId = practiceId; target.dossierPath = dossierPath; target.responseSha256 = bodyHash; target.automationExclusion = automationExclusion;
     target.sourceDocumentCount = [...(Array.isArray(row.fatture_urls) ? row.fatture_urls : []), ...(Array.isArray(row.documenti_aggiuntivi_urls) ? row.documenti_aggiuntivi_urls : [])].length;
+    const currentStageType = typeof row.pipeline_stages === "object" && row.pipeline_stages !== null
+      && typeof (row.pipeline_stages as { stage_type?: unknown }).stage_type === "string"
+      ? ((row.pipeline_stages as { stage_type: string }).stage_type).trim()
+      : "";
     target.reason = automationExclusion
       ? `Dossier CRM acquisito via GET: esclusione automatica ${automationExclusion.displayName} rilevata in ${automationExclusion.sourceField}; gli allegati non saranno scaricati o analizzati.`
-      : `Dossier CRM acquisito via GET e salvato con fingerprint; ${target.sourceDocumentCount} fonti originarie referenziate.${target.operatorResolution ? ` Risoluzione operatore ${target.operatorResolution.resolutionId} applicata.` : ""}`;
+      : `Dossier CRM acquisito via GET e salvato con fingerprint; ${target.sourceDocumentCount} fonti originarie referenziate.${item.expectedPracticeId ? ` Lookup per ID indipendente dalla fase: attesa ${item.expectedStageType ?? "pronte_da_fare"}, corrente ${currentStageType || "non dichiarata"}.` : ""}${target.operatorResolution ? ` Risoluzione operatore ${target.operatorResolution.resolutionId} applicata.` : ""}`;
     target.endedAt = now.toISOString();
     next.currentCustomerKey = null; next.reason = target.reason; next.nextAction = "Proseguire con il prossimo dossier; non scaricare documenti o aprire ENEA in questa fase.";
     next.audit.push({ revision: next.revision, at: now.toISOString(), type: "item_acquired", customerKey: target.customerKey, reason: target.reason, appliedRuleIds: RULE_IDS });

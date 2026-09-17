@@ -1,0 +1,23 @@
+{
+  "version": "apr-business-decision-v1",
+  "decisionId": "user-2026-09-11-ordered-shading-closure-allocation-v1",
+  "recordedAt": "2026-09-11T16:42:00+02:00",
+  "status": "general_rule_candidate",
+  "scope": "Tutte le pratiche Infissi future e pregresse con chiusure oscuranti documentate ma non associabili a finestre specifiche.",
+  "condition": "Il numero delle chiusure oscuranti è inferiore al numero degli infissi e nessuna fonte documentale permette un'associazione univoca.",
+  "action": "Associare la prima chiusura al primo infisso inserito, la seconda al secondo e così via fino a esaurimento delle chiusure.",
+  "prohibitedHeuristic": "Non associare le chiusure per somiglianza delle misure.",
+  "precedence": "Un'associazione documentale esplicita prevale sempre; l'ordine di inserimento si usa soltanto quando tale associazione manca.",
+  "fixtures": [
+    {
+      "customer": "Matteo Capitanelli",
+      "expected": "Due chiusure assegnate ai primi due dei sette infissi; nessuna operatorQuestion."
+    },
+    {
+      "customer": "Luca Cigognetti",
+      "expected": "Una chiusura assegnata al primo infisso; nessuna operatorQuestion."
+    }
+  ],
+  "installation": "deferred_until_r111_lot_terminal",
+  "runtimeMutationPerformed": false
+}

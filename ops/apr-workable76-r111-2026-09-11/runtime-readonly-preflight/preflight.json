@@ -1,0 +1,54 @@
+{
+  "version": "apr-r111-runtime-readonly-preflight-v1",
+  "checkedAt": "2026-09-11T12:05:25.056Z",
+  "status": "PASS",
+  "safety": {
+    "accessMode": "readonly",
+    "purpose": "diagnostic_readonly",
+    "portalMethodsAllowed": [
+      "GET",
+      "HEAD"
+    ],
+    "mutationAllowed": false,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false
+  },
+  "runtimeBundle": {
+    "canonicalDirectory": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/cd448b42-final-total-only-r111-20260911",
+    "workerPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/cd448b42-final-total-only-r111-20260911/apr-enea-worker.mjs",
+    "workerSha256": "b0616c276e002c62d5edaad1d97c53ca211e1ffb1273d026254521b5229faebc",
+    "expectedWorkerSha256": "b0616c276e002c62d5edaad1d97c53ca211e1ffb1273d026254521b5229faebc",
+    "governanceStatus": "admitted",
+    "governanceAttestationPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/current/apr-rule-governance-attestation.json",
+    "requiredRuleIds": [
+      "system-preflight-upstream-terminal-propagation-v1",
+      "user-2026-09-10-explicit-invoice-product-evidence-recovery-v1",
+      "system-invoice-multi-document-fiscal-segmentation-v2",
+      "user-2026-09-10-infissi-invoice-authoritative-shading-closures-v1",
+      "user-2026-09-10-zanzariera-infissi-installation-context-v1",
+      "user-2026-09-10-infissi-tabular-abbreviated-thermal-evidence-v1",
+      "user-2026-09-10-ideal-sistem-manual-exclusion-v1",
+      "user-2026-09-11-invoice-final-printed-total-runtime-authority-v1",
+      "user-2026-09-11-advance-balance-fiscal-invoice-equivalence-v1",
+      "user-2026-09-11-invoice-slot-content-authority-v1",
+      "user-2026-09-11-screening-measurements-in-line-description-v1",
+      "user-2026-09-11-infissi-explicit-line-quantity-cardinality-v1",
+      "user-2026-09-11-cassonetto-excluded-from-enea-products-v1",
+      "user-2026-09-11-zanzariera-first-window-allocation-v1",
+      "user-2026-09-11-reseller-form-completion-date-over-invoice-v1"
+    ],
+    "missingRuleIds": []
+  },
+  "browser": {
+    "pid": 4656,
+    "profileFingerprint": "0ffd88dd3d6c108727f75fdea9df20f642bcfd92afbde077ce27e6cf7ce4bc9b",
+    "remoteDebuggingPort": 9331
+  },
+  "session": {
+    "authenticated": true,
+    "serverLogoutProven": false,
+    "evidenceId": "cdp-server-2-f169a740ab14cb0c3a1c",
+    "url": "https://bonusfiscali.enea.it/pratica/ecobonus/2026/schermature/485793"
+  }
+}

@@ -8,6 +8,9 @@ import {
   openSync,
   readFileSync,
   renameSync,
+  rmdirSync,
+  statSync,
+  unlinkSync,
   writeFileSync,
 } from "node:fs";
 import path from "node:path";
@@ -19,15 +22,22 @@ export const APR_CRM_AUTH_STATE_VERSION = "apr-crm-auth-state-v1" as const;
 export const APR_CRM_KEYCHAIN_SERVICE = "it.praticarapida.apr.crm.session";
 export const APR_CRM_KEYCHAIN_ACCOUNT = "apr-crm-refresh-session";
 export const APR_CRM_SUPABASE_ORIGIN = "https://xmkjrhwmmuzaqjqlvzxm.supabase.co";
+export const APR_CRM_REFRESH_SERIALIZATION_RULE_ID = "system-apr-crm-refresh-serialization-v1" as const;
 
 const RULE_IDS = [
   "system-apr-crm-dedicated-auth",
   "system-apr-crm-readonly-adapter-contract",
+  APR_CRM_REFRESH_SERIALIZATION_RULE_ID,
   "system-atomic-checkpoint-resume",
 ] as const;
 const execFile = promisify(execFileCallback);
 const sha256 = (value: string) => createHash("sha256").update(value).digest("hex");
 const LOGIN_KEYCHAIN_PATH = path.join(homedir(), "Library", "Keychains", "login.keychain-db");
+const GLOBAL_REFRESH_LOCK_DIRECTORY = path.join(homedir(), "Library", "Application Support", "PraticaRapida", "enea-shadow-runner", "state", "crm-auth", "refresh.lock");
+const REFRESH_LOCK_LEASE_MS = 45_000;
+const REFRESH_LOCK_WAIT_MS = 50_000;
+const REFRESH_LOCK_POLL_MS = 20;
+const TOKEN_REQUEST_TIMEOUT_MS = 15_000;
 const KEYCHAIN_WRITE_EXPECT_SCRIPT = `
 set timeout 15
 log_user 0
@@ -90,6 +100,19 @@ interface SupabaseTokenResponse {
   error?: string;
   error_description?: string;
   msg?: string;
+}
+
+interface AprCrmAuthOptions {
+  refreshLockDirectory?: string;
+  refreshLockWaitMs?: number;
+  refreshLockPollMs?: number;
+  tokenRequestTimeoutMs?: number;
+}
+
+class AprCrmAuthServerRejectedError extends Error {
+  constructor(readonly status: number, readonly serverReason: string) {
+    super(`crm_auth_server_rejected:${status}:${serverReason}`);
+  }
 }
 
 export interface AprSecretStore {
@@ -208,17 +231,79 @@ export class PersistentAprCrmAuth {
 
   readonly secretStore: AprSecretStore;
   readonly fetcher: AprCrmAuthFetch;
+  readonly refreshLockDirectory: string;
+  readonly refreshLockWaitMs: number;
+  readonly refreshLockPollMs: number;
+  readonly tokenRequestTimeoutMs: number;
 
   constructor(
     readonly rootDirectory: string,
     secretStore?: AprSecretStore,
     fetcher: AprCrmAuthFetch = fetch,
+    options: AprCrmAuthOptions = {},
   ) {
     this.directory = path.join(path.resolve(rootDirectory), "crm-auth");
     this.checkpointPath = path.join(this.directory, "checkpoint.json");
     this.configPath = path.join(this.directory, "public-auth-config.json");
     this.secretStore = secretStore ?? new MacOsKeychainSecretStore(path.join(this.directory, "keychain-write.exp"));
     this.fetcher = fetcher;
+    this.refreshLockDirectory = path.resolve(options.refreshLockDirectory
+      ?? (secretStore ? path.join(this.directory, "refresh.lock") : GLOBAL_REFRESH_LOCK_DIRECTORY));
+    this.refreshLockWaitMs = Math.max(0, options.refreshLockWaitMs ?? REFRESH_LOCK_WAIT_MS);
+    this.refreshLockPollMs = Math.max(1, options.refreshLockPollMs ?? REFRESH_LOCK_POLL_MS);
+    this.tokenRequestTimeoutMs = Math.max(1, options.tokenRequestTimeoutMs ?? TOKEN_REQUEST_TIMEOUT_MS);
+  }
+
+  private async withRefreshLock<T>(action: () => Promise<T>): Promise<T> {
+    const ownerId = `crm-refresh:${process.pid}:${crypto.randomUUID()}`;
+    const parent = path.dirname(this.refreshLockDirectory);
+    const staleDirectory = path.join(parent, "stale-refresh-locks");
+    mkdirSync(parent, { recursive: true, mode: 0o700 });
+    mkdirSync(staleDirectory, { recursive: true, mode: 0o700 });
+    const deadline = Date.now() + this.refreshLockWaitMs;
+    while (true) {
+      try {
+        mkdirSync(this.refreshLockDirectory, { mode: 0o700 });
+        atomicWrite(path.join(this.refreshLockDirectory, "owner.json"), `${JSON.stringify({
+          ownerId,
+          pid: process.pid,
+          acquiredAt: new Date().toISOString(),
+          expiresAt: new Date(Date.now() + REFRESH_LOCK_LEASE_MS).toISOString(),
+          appliedRuleIds: [APR_CRM_REFRESH_SERIALIZATION_RULE_ID],
+        }, null, 2)}\n`);
+        break;
+      } catch (error) {
+        const code = (error as NodeJS.ErrnoException).code ?? "unknown";
+        if (code !== "EEXIST") throw new Error(`crm_auth_refresh_lock_failed:${code}`);
+        let expiresAt = 0;
+        try {
+          const owner = JSON.parse(readFileSync(path.join(this.refreshLockDirectory, "owner.json"), "utf8")) as { expiresAt?: string };
+          expiresAt = Date.parse(owner.expiresAt ?? "");
+        } catch {
+          try { expiresAt = statSync(this.refreshLockDirectory).mtimeMs + REFRESH_LOCK_LEASE_MS; }
+          catch { continue; }
+        }
+        if (Number.isFinite(expiresAt) && expiresAt <= Date.now()) {
+          try {
+            renameSync(this.refreshLockDirectory, path.join(staleDirectory, `refresh-lock-${Date.now()}-${crypto.randomUUID()}`));
+            continue;
+          } catch { /* un altro processo ha gia acquisito o recuperato il lock */ }
+        }
+        const remaining = deadline - Date.now();
+        if (remaining <= 0) throw new Error("crm_auth_refresh_lock_busy");
+        await new Promise((resolve) => setTimeout(resolve, Math.min(this.refreshLockPollMs, remaining)));
+      }
+    }
+    try { return await action(); }
+    finally {
+      try {
+        const owner = JSON.parse(readFileSync(path.join(this.refreshLockDirectory, "owner.json"), "utf8")) as { ownerId?: string };
+        if (owner.ownerId === ownerId) {
+          unlinkSync(path.join(this.refreshLockDirectory, "owner.json"));
+          rmdirSync(this.refreshLockDirectory);
+        }
+      } catch { /* un recupero stale non deve consentire al vecchio owner di cancellare il lock nuovo */ }
+    }
   }
 
   load(now = new Date()): AprCrmAuthState {
@@ -280,18 +365,33 @@ export class PersistentAprCrmAuth {
   private async tokenRequest(body: Record<string, string>) {
     const config = this.loadConfig();
     const grantType = body.password ? "password" : "refresh_token";
-    const response = await this.fetcher(`${config.supabaseOrigin}/auth/v1/token?grant_type=${grantType}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", apikey: config.publishableKey },
-      body: JSON.stringify(body),
-      redirect: "error",
-    });
+    let response: Response;
+    const controller = new AbortController();
+    let timedOut = false;
+    const timeout = setTimeout(() => {
+      timedOut = true;
+      controller.abort();
+    }, this.tokenRequestTimeoutMs);
+    try {
+      response = await this.fetcher(`${config.supabaseOrigin}/auth/v1/token?grant_type=${grantType}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", apikey: config.publishableKey },
+        body: JSON.stringify(body),
+        redirect: "error",
+        signal: controller.signal,
+      });
+    } catch (error) {
+      const reason = timedOut ? "timeout" : "network_error";
+      throw new Error(`crm_auth_transport_unavailable:${reason}`);
+    } finally {
+      clearTimeout(timeout);
+    }
     let payload: SupabaseTokenResponse = {};
     try { payload = await response.json() as SupabaseTokenResponse; }
     catch { /* errore server senza corpo JSON */ }
     if (!response.ok || !payload.access_token || !payload.refresh_token) {
       const serverReason = payload.error_description ?? payload.msg ?? payload.error ?? `http_${response.status}`;
-      throw new Error(`crm_auth_server_rejected:${serverReason.replace(/[^a-zA-Z0-9 _.-]/g, "").slice(0, 100)}`);
+      throw new AprCrmAuthServerRejectedError(response.status, serverReason.replace(/[^a-zA-Z0-9 _.-]/g, "").slice(0, 100));
     }
     const expiresAt = payload.expires_at
       ? payload.expires_at * 1_000
@@ -322,10 +422,12 @@ export class PersistentAprCrmAuth {
   async authenticate(email: string, password: string, now = new Date()) {
     const normalizedEmail = email.trim().toLowerCase();
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(normalizedEmail) || password.length < 1 || password.length > 4096) throw new Error("crm_auth_credentials_invalid");
-    const { payload, expiresAt } = await this.tokenRequest({ email: normalizedEmail, password });
-    const serverEmail = payload.user?.email?.trim().toLowerCase();
-    if (serverEmail && serverEmail !== normalizedEmail) throw new Error("crm_auth_identity_mismatch");
-    return this.recordAuthenticated(normalizedEmail, payload.access_token!, payload.refresh_token!, expiresAt, "authenticated", now);
+    return this.withRefreshLock(async () => {
+      const { payload, expiresAt } = await this.tokenRequest({ email: normalizedEmail, password });
+      const serverEmail = payload.user?.email?.trim().toLowerCase();
+      if (serverEmail && serverEmail !== normalizedEmail) throw new Error("crm_auth_identity_mismatch");
+      return this.recordAuthenticated(normalizedEmail, payload.access_token!, payload.refresh_token!, expiresAt, "authenticated", now);
+    });
   }
 
   private async readStoredSession() {
@@ -358,22 +460,31 @@ export class PersistentAprCrmAuth {
     const current = this.load(now);
     if (current.status === "unconfigured") return current;
     if (this.accessToken && this.accessTokenExpiresAt - now.getTime() > 5 * 60_000) return current;
-    const stored = await this.readStoredSession();
-    if (!stored) return current.status === "login_required"
-      ? current
-      : this.recordLoginRequired("Sessione APR non presente nel Portachiavi macOS.", now, false);
-    try {
-      const { payload, expiresAt } = await this.tokenRequest({ refresh_token: stored.refreshToken });
-      const serverEmail = payload.user?.email?.trim().toLowerCase();
-      if (serverEmail && serverEmail !== stored.email.trim().toLowerCase()) throw new Error("crm_auth_identity_mismatch");
-      return await this.recordAuthenticated(stored.email, payload.access_token!, payload.refresh_token!, expiresAt, "session_refreshed", now);
-    } catch (error) {
-      const reason = error instanceof Error ? error.message : String(error);
-      if (reason.startsWith("crm_auth_server_rejected:")) {
-        return this.recordLoginRequired("Il server CRM ha rifiutato il rinnovo della sessione APR; nuovo login necessario.", now, true);
+    return this.withRefreshLock(async () => {
+      if (this.accessToken && this.accessTokenExpiresAt - now.getTime() > 5 * 60_000) return this.load(now);
+      let stored = await this.readStoredSession();
+      if (!stored) return current.status === "login_required"
+        ? current
+        : this.recordLoginRequired("Sessione APR non presente nel Portachiavi macOS.", now, false);
+      for (let attempt = 0; attempt < 2; attempt += 1) {
+        try {
+          const { payload, expiresAt } = await this.tokenRequest({ refresh_token: stored.refreshToken });
+          const serverEmail = payload.user?.email?.trim().toLowerCase();
+          if (serverEmail && serverEmail !== stored.email.trim().toLowerCase()) throw new Error("crm_auth_identity_mismatch");
+          return await this.recordAuthenticated(stored.email, payload.access_token!, payload.refresh_token!, expiresAt, "session_refreshed", now);
+        } catch (error) {
+          if (!(error instanceof AprCrmAuthServerRejectedError)) throw error;
+          if (![400, 401].includes(error.status)) throw new Error(`crm_auth_refresh_transient:http_${error.status}`);
+          const latest = await this.readStoredSession();
+          if (attempt === 0 && latest && latest.refreshToken !== stored.refreshToken) {
+            stored = latest;
+            continue;
+          }
+          return this.recordLoginRequired("Il server CRM ha rifiutato definitivamente il refresh token APR corrente; nuovo login necessario.", now, true);
+        }
       }
-      throw error;
-    }
+      throw new Error("crm_auth_refresh_retry_exhausted");
+    });
   }
 
   async acquireAccessToken(now = new Date()) {

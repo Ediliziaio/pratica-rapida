@@ -1,0 +1,43 @@
+{
+  "version": "apr-r108-operational-closure-date-audit-integrity-v1",
+  "generatedAt": "2026-09-10T21:05:00Z",
+  "verdict": "PASS_WITH_OPERATIONAL_BATCH_PENDING_EXPLICIT_MANIFEST_HASH_APPROVAL",
+  "files": [
+    {
+      "path": "ops/apr-saved-field-comparison-and-exclusions-2026-09-10/r108-operational-closure-date-audit.md",
+      "sha256": "ac3765693e97d6e4426c61de22026ca29ca11365e2f99b0a2060e3f41a4ccf0a"
+    },
+    {
+      "path": "ops/apr-saved-field-comparison-and-exclusions-2026-09-10/r108-residual-operator-questions.json",
+      "sha256": "6bbd7c7f40a2eaf6e0c6ef807ada6f497d4064d0189b86a7cdb40b0d41cc6a37"
+    },
+    {
+      "path": "ops/apr-saved-field-comparison-and-exclusions-2026-09-10/saved-non-geometric-field-comparison.json",
+      "sha256": "5016c6883d6710552f6a6409d33d34d617643de61641982c22309d8a100d77d8"
+    },
+    {
+      "path": "ops/apr-saved-field-comparison-and-exclusions-2026-09-10/difference-field-triage.json",
+      "sha256": "739cec6bdb16982f188bfef94159f2aa2a06d740151713f7e57728e0ed3f84f5"
+    },
+    {
+      "path": "ops/apr-r104-r105-remeasurement-24-2026-09-10/manifest.json",
+      "sha256": "3d08eaea759af7c5c5d4a33866d0c7b76a58ca8652c26f2f153b8a4c6ad54bff"
+    },
+    {
+      "path": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-tabular-abbreviated-uw-r108-operational-two-20260910/report.json",
+      "sha256": "6cc8fd494f66e9325193223ae86d5502ab99c5c31b9760a7c9b71542d2b04fa9"
+    }
+  ],
+  "counts": {
+    "operationalCases": 2,
+    "operationalSaved": 1,
+    "operationalInconsistent": 1,
+    "closureDifferences": 12,
+    "closureDifferencesAlreadyCoveredByR106": 0,
+    "dateDifferences": 15,
+    "dateAprEvidenceRecognitionErrorsDemonstrated": 1,
+    "oldWindowTransmittanceRowsAwaitingOperator": 5,
+    "batch24Cases": 24,
+    "batch24Launched": false
+  }
+}

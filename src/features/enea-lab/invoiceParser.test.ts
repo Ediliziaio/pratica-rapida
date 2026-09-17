@@ -260,4 +260,92 @@ Totale Fattura € 500,00`, "estranea.pdf");
       expect(parsed.items).toHaveLength(0);
     });
   });
+
+  it("regressione Tiraboschi (2026-09-08): non classifica come fattura una dichiarazione di aliquota IVA agevolata solo perche' cita 'fattura' in una clausola su un documento futuro/ipotetico", () => {
+    const parsed = parseScreeningInvoiceText(`Spett.le
+Zanzasol snc
+Via del Risorgimento 36
+24060 Villongo (bg)
+P.iva 04499370163
+Oggetto: Dichiarazione per applicazione aliquota IVA agevolata al 10%.
+Il sottoscritto Sig. Tiraboschi Natale, nato ad Adrara S. Martino (BG) il 01/02/1962, residente in
+Adrara S. Martino (BG) in Via Muracche n. 2, codice fiscale TRB NTL 62B01 A057F, con la presente
+dichiara, sotto la sua personale responsabilita, che l'intervento edilizio autorizzato con:
+S.C.I.A. n. 37/2023 prot. n. 4943 del 06/11/2023 concernente opere di "Manutenzione
+straordinaria appartamento al piano primo" presso l'immobile sito in Comune di Adrara S. Martino
+(BG) Via Muracche n. 2 rientra nelle previsioni di cui all'art. 7, comma 1 lettera b) della Legge 23
+dicembre 1999 n. 488 e successive modifiche e proroghe e, pertanto
+DICHIARA
+che sulle prestazioni eseguite verra applicata l'aliquota I.V.A. nella misura agevolata del 10%.
+Il sottoscritto si impegna a comunicare tempestivamente ogni eventuale fatto o circostanza che
+faccia venire meno il diritto alla sopra indicata agevolazione, al fine di consentirvi l'emissione della
+fattura integrativa per la differenza di aliquota, secondo quanto previsto dall'articolo 26, comma 1,
+del d.P.R. 26 ottobre 1972 n. 633 e successive modifiche.
+Distinti saluti
+Adrara S. Martino, 15 maggio 2026
+In fede`, "dichiarazione-iva-tiraboschi.pdf");
+    expect(parsed.result.documentType).toBe("unknown");
+    expect(parsed.result.total).toBeNull();
+  });
+
+  it("non esclude una vera fattura anche se contiene una clausola 'DICHIARA...aliquota IVA agevolata', quando ha comunque un'intestazione fattura esplicita (nessuna regressione)", () => {
+    const parsed = parseScreeningInvoiceText(`FATTURA n. 84 del 22/05/2026
+Spett.le Mario Rossi
+DICHIARA che sulle prestazioni eseguite verra applicata l'aliquota I.V.A. nella misura agevolata del 10%.
+SCHERMATURA SOLARE MOBILE NR 1,00 868,00 868,00
+LARGHEZZA 2900X1300 VALORE G TOT 0,13
+Totale Fattura € 868,00`, "fattura-vera-con-clausola-iva.pdf");
+    expect(parsed.result.documentType).toBe("invoice");
+    expect(parsed.result.total).toBe(868);
+  });
+
+  it("decisione Muzzi (2026-09-13): un ordine di vendita caricato nello slot fattura vale come documento fiscale", () => {
+    const parsed = parseScreeningInvoiceText([
+      "SPETT.LE",
+      "Muzzi Patrizia",
+      "Di Iorio GROUP SRL",
+      "Partita IVA 02487960920 - Codice Fiscale: 02487960920",
+      "CONDIZIONI DI PAGAMENTO",
+      "50% acconto ordine e saldo alla consegna",
+      "CODICE ARTICOLO DESCRIZIONE LUOGO DI DESTINAZIONE",
+      "AGENTE Cannas Veronica",
+      "UM QUANTITA'",
+      "Ordine di Vendita",
+      "N° DOCUMENTO DATA DOCUMENTO 177",
+      "15-07-26",
+      "PREZZO UNITARIO SC.% PREZZO TOTALE PAG.",
+      "TDST42 Tenda da sole Modello Everest M T61",
+      "CM Largh. 435 X Sporg. 210",
+    ].join("\n"), "ordine-di-vendita-muzzi.pdf");
+    expect(parsed.result.documentType).toBe("invoice");
+    expect(parsed.result.documentTypeRuleId).toBe("user-2026-09-13-sales-order-in-invoice-slot-is-fiscal-document-v1");
+    // Su questo ordine il totale non e' stampato: resta nullo e non si ricalcola.
+    expect(parsed.result.total).toBeNull();
+  });
+
+  it("non accetta come documento fiscale un preventivo, anche con la struttura di un ordine", () => {
+    const parsed = parseScreeningInvoiceText([
+      "Preventivo n. 42",
+      "Ordine di Vendita",
+      "N° DOCUMENTO DATA DOCUMENTO 42",
+      "PREZZO UNITARIO SC.% PREZZO TOTALE",
+    ].join("\n"), "preventivo.pdf");
+    expect(parsed.result.documentType).toBe("unknown");
+  });
+
+  it("non accetta come documento fiscale una proforma", () => {
+    const parsed = parseScreeningInvoiceText([
+      "Ordine di Vendita PRO FORMA",
+      "N° DOCUMENTO DATA DOCUMENTO 9",
+    ].join("\n"), "proforma.pdf");
+    expect(parsed.result.documentType).toBe("unknown");
+  });
+
+  it("non accetta un documento che nomina un ordine senza esserne uno strutturato", () => {
+    const parsed = parseScreeningInvoiceText(
+      "Si conferma il vostro ordine di vendita telefonico del mese scorso; seguira' comunicazione.",
+      "lettera.pdf",
+    );
+    expect(parsed.result.documentType).toBe("unknown");
+  });
 });

@@ -1,0 +1,34 @@
+{
+  "schemaVersion": "apr-operator-response-ledger-concurrency-final-attestation-v1",
+  "status": "INSTALLED_LOCAL_NOT_OPERATIONALLY_REPLAYED",
+  "installedAt": "2026-09-12T08:49:25.012Z",
+  "versionId": "16bbdf1b-operator-response-ledger-concurrency-r117-20260912",
+  "ruleId": "system-operator-response-ledger-concurrency-v1",
+  "tests": {
+    "total": 2031,
+    "passed": 2031,
+    "failed": 0,
+    "pending": 0,
+    "report": "ops/apr-operator-response-ledger-concurrency-r117-2026-09-12/full-vitest-report-sequential.json",
+    "reportSha256": "6006fa5882c1bdd286eb1a34afa89cd75c3446c6f2c7b02fb91c390c7620d050"
+  },
+  "installedBundleSha256": {
+    "apr-supervisor.mjs": "f6d3ca51055ceae1976807eb3a2ed3fbb05c5522eee855ae757699338de227cf",
+    "apr-enea-worker.mjs": "2ba02d4bfd2a157fee8bd92efac23a7af6a4164fb523b4a05b8ae90590d432b0",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "apr-rule-governance-attestation.json": "4ba2fd915edab673d42849f9f7b6f49a39e61a820c8542dbc287e3a2e527004c"
+  },
+  "verification": {
+    "currentPointer": "versions/16bbdf1b-operator-response-ledger-concurrency-r117-20260912",
+    "receiptHashMatches": true,
+    "rulePresentInSupervisorBundle": true,
+    "rulePresentInWorkerBundle": true,
+    "keepalivePreserved": true,
+    "chromeAprPreserved": true,
+    "operationalLotRun": false
+  },
+  "familyMap": {
+    "path": "ops/apr-operator-response-ledger-concurrency-r117-2026-09-12/residual-family-map-workable76.json",
+    "sha256": "777a3708ae3bb39163bc0ec58bfd840b1002776f3cc7e65079bc51364fba0a49"
+  }
+}

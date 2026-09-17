@@ -1,0 +1,56 @@
+{
+  "version": "apr-crm-auth-state-v1",
+  "revision": 2,
+  "status": "authenticated",
+  "transport": "dedicated_supabase_user_session",
+  "keychainService": "it.praticarapida.apr.crm.session",
+  "supabaseOrigin": "https://xmkjrhwmmuzaqjqlvzxm.supabase.co",
+  "publishableKeyFingerprint": "a46840271f762c2748d86d39e62ecf762fb009b1beff60d39bdea10f18f89c00",
+  "accountEmailMasked": "m**********@praticarapida.it",
+  "accountFingerprint": "c27774ae74d3f320df53b14565d517d6a52082f5af3e2159abecf97f3acb596e",
+  "tokenExpiresAt": "2026-09-12T20:04:11.000Z",
+  "configuredAt": "2026-09-12T19:04:08.254Z",
+  "lastVerifiedAt": "2026-09-12T19:04:08.728Z",
+  "externalActionAllowed": false,
+  "readOnlyOnly": true,
+  "reason": "Sessione utente APR ripresa e rinnovata dal Portachiavi con prova server valida.",
+  "nextAction": "Mantenere l’adattatore CRM in sola lettura; il gate pratiche resta chiuso finché acquisizione e validazioni reali non sono verificate.",
+  "audit": [
+    {
+      "revision": 0,
+      "at": "2026-09-12T19:04:08.254Z",
+      "type": "initialized",
+      "reason": "Accesso CRM dedicato APR non configurato; nessuna sessione persistente disponibile.",
+      "appliedRuleIds": [
+        "system-apr-crm-dedicated-auth",
+        "system-apr-crm-readonly-adapter-contract",
+        "system-apr-crm-refresh-serialization-v1",
+        "system-atomic-checkpoint-resume"
+      ]
+    },
+    {
+      "revision": 1,
+      "at": "2026-09-12T19:04:08.254Z",
+      "type": "configured",
+      "reason": "Trasporto autenticato APR configurato; sessione utente dedicata ancora assente.",
+      "appliedRuleIds": [
+        "system-apr-crm-dedicated-auth",
+        "system-apr-crm-readonly-adapter-contract",
+        "system-apr-crm-refresh-serialization-v1",
+        "system-atomic-checkpoint-resume"
+      ]
+    },
+    {
+      "revision": 2,
+      "at": "2026-09-12T19:04:08.728Z",
+      "type": "session_refreshed",
+      "reason": "Sessione utente APR ripresa e rinnovata dal Portachiavi con prova server valida.",
+      "appliedRuleIds": [
+        "system-apr-crm-dedicated-auth",
+        "system-apr-crm-readonly-adapter-contract",
+        "system-apr-crm-refresh-serialization-v1",
+        "system-atomic-checkpoint-resume"
+      ]
+    }
+  ]
+}

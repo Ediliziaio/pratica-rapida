@@ -1,0 +1,32 @@
+{
+  "status": "PASS",
+  "tests": {
+    "total": 2005,
+    "passed": 2005,
+    "failed": 0,
+    "pending": 0
+  },
+  "matrixRules": 219,
+  "testedRules": 219,
+  "requiredRuntimeRules": {
+    "apr-supervisor.mjs": [
+      "user-2026-09-11-infissi-closure-measurements-not-applicable-v1"
+    ],
+    "apr-enea-worker.mjs": [
+      "user-2026-09-11-infissi-closure-measurements-not-applicable-v1"
+    ]
+  },
+  "stagedBundleSha256": {
+    "apr-supervisor.mjs": "e7de03484be07f1b7b3a49c8e1746d2ccc7f38d1467e571b943853771b106f81",
+    "apr-enea-worker.mjs": "9018aeb38189f529f0f7aa17189d663813dea5611d264088b16719d9c03a086f",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0"
+  },
+  "historicalAudit": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-infissi-closure-flags-r112-2026-09-11/historical-audit-report-r112.json",
+  "historicalAuditSha256": "c672752ff668de0998e1f7554a6ade0a1f1d271289a086489c75186063c360a2",
+  "authorizedHistoricalGapOnly": [
+    "user-2026-08-06-portal-intermediary-physical-beneficiary-v1",
+    "user-2026-08-06-intervention-authoritative-sources-and-defaults-v1",
+    "user-2026-08-06-existing-plant-authoritative-mapping-v1",
+    "user-2026-08-06-portal-municipality-controlled-selection-v1"
+  ]
+}

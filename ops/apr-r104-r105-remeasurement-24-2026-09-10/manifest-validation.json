@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "apr-r104-r105-remeasurement-manifest-validation-v1",
+  "validatedAt": "2026-09-10T17:08:00+02:00",
+  "manifestPath": "ops/apr-r104-r105-remeasurement-24-2026-09-10/manifest.json",
+  "manifestSha256": "3d08eaea759af7c5c5d4a33866d0c7b76a58ca8652c26f2f153b8a4c6ad54bff",
+  "authorizedSourceManifest": {
+    "path": "ops/apr-wide100-province-lineage-2026-09-02/manifest.json",
+    "sha256": "51842252f71cabb6714f78923fe59ec9789ad06739393f61a553bb4bdb9154e0"
+  },
+  "familyMap": {
+    "path": "ops/apr-residual-family-map-2026-09-10/family-map.json",
+    "sha256": "74823d5ae1a43d9db82cfd1d09d7c5b179eaa21e8eccbaabd7683a77de28bc90"
+  },
+  "checks": {
+    "jsonValid": true,
+    "uniquePracticeCount": 24,
+    "allCasesBelongToAuthorizedWide100": true,
+    "duplicatePracticeIds": 0,
+    "PAR01MembershipCount": 12,
+    "PRE01MembershipCount": 12,
+    "DAT05SelectedCrossMembershipCount": 2,
+    "DAT05ExcludedCount": 1,
+    "launchState": "PREPARED_NOT_LAUNCHED",
+    "executionContractComplete": true,
+    "excludedCustomerKeysCopiedExactlyFromAuthorizedSource": true
+  },
+  "excludedDAT05Case": {
+    "displayName": "caterina Claudia garbato",
+    "practiceId": "9f44491c-30f7-44ef-84db-14877259d716",
+    "reason": "completion_over_90_days_operator_required"
+  },
+  "launchContractRepair": {
+    "at": "2026-09-10T20:44:23Z",
+    "reason": "The execution runner requires selection.excludedCustomerKeys in the derived manifest; the field was copied byte-for-value from the authorized source without changing cases, order, stages or safety policy.",
+    "previousManifestSha256": "199389c693a2291a702c2165a889348b0c9ca2ee617cd003c8dda14ca41e055c",
+    "currentManifestSha256": "3d08eaea759af7c5c5d4a33866d0c7b76a58ca8652c26f2f153b8a4c6ad54bff"
+  },
+  "verdict": "VALID_PREPARED_NOT_LAUNCHED_EXECUTION_CONTRACT_COMPLETE"
+}

@@ -18,6 +18,7 @@ import type { AprEneaMappingArtifact } from "./aprEneaPureMapper";
 import { PersistentAprEneaGlobalBrowserController, type AprEneaCdpCapability, type AprEneaGlobalBrowserAccess } from "./aprEneaGlobalBrowserController";
 import { assertAprRuleGovernanceAdmission } from "./aprRuleGovernanceAdmission";
 import { AUTO_CURRENT_VALIDATION_REVISION } from "../../src/features/enea-shadow-crm/operationalRegistry";
+import { PersistentAprCanonicalDraftPackages } from "./aprCanonicalDraftPackages";
 
 function option(name: string) { const index = process.argv.indexOf(name); return index >= 0 ? process.argv[index + 1] : undefined; }
 const mode = process.argv[2] ?? "status";
@@ -315,47 +316,51 @@ async function serve() {
           : preflightSnapshot;
         const infissiExecutionReady = infissiExecutionGateReady(infissiSnapshot);
         const operationalBridge = new PersistentAprEneaOperationalBridge(rootDirectory);
-        const legacyDraftPackageFor = (customerKey: string): AprEneaDraftPackage => {
-          const infissiItem = infissiSnapshot.items.find((item) => item.customerKey === customerKey);
-          if (infissiItem) {
-            if (!infissiExecutionReady || infissiItem.state !== "ready_local_plan") throw new Error("crm_enea_infissi_execution_gate_not_ready");
-            return infissiPreflight.buildDraftExecutionPackage(customerKey);
-          }
-          return preflight.buildDraftExecutionPackage(customerKey);
-        };
-        const draftPackageFor = (customerKey: string): AprEneaDraftPackage => operationalBridge.apply(legacyDraftPackageFor(customerKey));
         execution.applyValidationOperatorGates(preflightSnapshot, "completion-date-operator-gate-v48-cross-module");
         if (infissiExecutionReady) {
           const readyAfterOfficialDeadlineRule = dateGateReleaseReadyCustomerKeys(preflightSnapshot.items, infissiSnapshot.items);
           execution.releaseResolvedDateOperatorGates(readyAfterOfficialDeadlineRule, "enea-2026-june25-deadline-window-v1");
         }
-        const buildableInfissiPackages = () => infissiSnapshot.items
-          .filter((item) => item.state === "ready_local_plan")
-          .flatMap((item) => {
-            try {
-              return [infissiPreflight.buildDraftExecutionPackage(item.customerKey)];
-            } catch {
-              // Un mapping condiviso non ancora pronto appartiene alla singola
-              // pratica: non deve impedire l'accodamento dei pacchetti verdi.
-              return [];
-            }
-          });
-        if (!execution.snapshot().sourceFingerprint) {
-          const common = execution.prepare(commonOnlySnapshot);
-          if (infissiExecutionReady && infissiSnapshot.sourceFingerprint) {
-            const packages = buildableInfissiPackages();
-            if (common.sourceFingerprint) execution.appendEligiblePackages(packages, infissiSnapshot.sourceFingerprint);
-            else execution.preparePackages(packages, infissiSnapshot.sourceFingerprint);
+        // Il pacchetto consegnato al browser viene costruito una volta sola,
+        // dopo tutti i gate locali e il bridge economico, quindi congelato su
+        // disco. I tick successivi lo rileggono byte-per-byte: il worker non
+        // ricostruisce piu' payload/fingerprint da checkpoint mutabili.
+        const canonicalPackageStore = new PersistentAprCanonicalDraftPackages(rootDirectory);
+        const canonicalSourceFingerprint = createHash("sha256").update(JSON.stringify({
+          preflightSourceFingerprint: preflightSnapshot.sourceFingerprint,
+          infissiSourceFingerprint: infissiExecutionReady ? infissiSnapshot.sourceFingerprint : null,
+          commonReady: commonOnlySnapshot.items.filter((item) => item.state === "ready_local_plan").map((item) => ({
+            customerKey: item.customerKey,
+            mappingFingerprint: item.report?.eneaPayloadAudit?.mappingFingerprint ?? null,
+            workflowFingerprint: item.report?.eneaPayloadAudit?.portalGate.workflowFingerprint ?? null,
+          })),
+          infissiReady: infissiExecutionReady ? infissiSnapshot.items.filter((item) => item.state === "ready_local_plan").map((item) => ({
+            customerKey: item.customerKey,
+            state: item.state,
+          })) : [],
+        })).digest("hex");
+        let canonicalPackages = canonicalPackageStore.loadManifestPackages(canonicalSourceFingerprint);
+        if (!canonicalPackages) {
+          const freshlyBuilt: AprEneaDraftPackage[] = [];
+          for (const item of commonOnlySnapshot.items.filter((candidate) => candidate.state === "ready_local_plan")) {
+            freshlyBuilt.push(operationalBridge.apply(preflight.buildDraftExecutionPackage(item.customerKey)));
           }
+          if (infissiExecutionReady) for (const item of infissiSnapshot.items.filter((candidate) => candidate.state === "ready_local_plan")) {
+            freshlyBuilt.push(operationalBridge.apply(infissiPreflight.buildDraftExecutionPackage(item.customerKey)));
+          }
+          canonicalPackages = canonicalPackageStore.freeze(canonicalSourceFingerprint, freshlyBuilt);
         }
-        else {
-          const validationRevision = preflightSnapshot.validationRevisionsApplied?.at(-1);
-          if (validationRevision) execution.appendNewEligibleFromValidation(commonOnlySnapshot, validationRevision);
-        }
+        const canonicalByCustomer = new Map(canonicalPackages.map((item) => [item.customerKey, item]));
+        const draftPackageFor = (customerKey: string): AprEneaDraftPackage => {
+          const expected = execution.snapshot().items.find((item) => item.customerKey === customerKey)?.mappingFingerprint;
+          const frozen = canonicalByCustomer.get(customerKey);
+          if (!frozen || (expected && frozen.packageFingerprint !== expected)) throw new Error("crm_enea_canonical_package_execution_mismatch");
+          return canonicalPackageStore.load(customerKey, frozen.packageFingerprint);
+        };
+        if (canonicalPackages.length > 0) execution.preparePackages(canonicalPackages, canonicalSourceFingerprint);
         execution.resumePreExternalPackageFailures(commonOnlySnapshot, "worker:pre-external-package-repair:v2");
         if (infissiExecutionReady) {
-          const packages = buildableInfissiPackages();
-          if (execution.snapshot().sourceFingerprint && infissiSnapshot.sourceFingerprint) execution.appendEligiblePackages(packages, infissiSnapshot.sourceFingerprint);
+          const packages = canonicalPackages.filter((item) => infissiCandidateKeys.has(item.customerKey));
           execution.resumeInfissiPackageAvailabilityFailures(packages, "local-infissi-validation-stable", "worker:infissi-package-availability-repair:v1");
         }
         execution.upgradeUncertainPageSaveOperatorInstructions("worker:operator-instruction-upgrade:v1");

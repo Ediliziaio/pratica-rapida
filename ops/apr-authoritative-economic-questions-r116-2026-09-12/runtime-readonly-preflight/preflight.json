@@ -1,0 +1,48 @@
+{
+  "version": "apr-r116-runtime-readonly-preflight-v1",
+  "checkedAt": "2026-09-11T23:47:42.288Z",
+  "status": "PASS",
+  "runtimeBundle": {
+    "canonicalDirectory": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/e5c6096c-authoritative-economic-questions-r116-20260911",
+    "workerPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/e5c6096c-authoritative-economic-questions-r116-20260911/apr-enea-worker.mjs",
+    "workerSha256": "75c629d7e69dd934a10c5d196b2a8e99a39a3709ed7ada2dea8e4766c0785a82",
+    "expectedWorkerSha256": "75c629d7e69dd934a10c5d196b2a8e99a39a3709ed7ada2dea8e4766c0785a82",
+    "governanceStatus": "admitted",
+    "governanceAttestationPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/current/apr-rule-governance-attestation.json",
+    "requiredRuleIds": [
+      "user-2026-09-12-authoritative-economic-decision-single-source-v1",
+      "user-2026-09-12-bank-transfer-receipt-never-invoice-v1",
+      "user-2026-09-12-partial-invoice-totals-do-not-block-v1",
+      "user-2026-09-12-infissi-blocker-question-persistence-v1",
+      "user-2026-09-12-missing-measurement-null-payload-v1"
+    ],
+    "missingRuleIds": []
+  },
+  "crm": {
+    "status": "authenticated",
+    "accountEmailMasked": "m**********@praticarapida.it",
+    "lastVerifiedAt": "2026-09-11T23:47:40.318Z"
+  },
+  "browser": {
+    "pid": 4656,
+    "profileFingerprint": "0ffd88dd3d6c108727f75fdea9df20f642bcfd92afbde077ce27e6cf7ce4bc9b",
+    "remoteDebuggingPort": 9331
+  },
+  "session": {
+    "authenticated": true,
+    "serverLogoutProven": false,
+    "evidenceId": "cdp-server-2-1fc02458a7a3cc779f57",
+    "url": "https://bonusfiscali.enea.it/dashboard"
+  },
+  "safety": {
+    "accessMode": "readonly",
+    "portalMethodsAllowed": [
+      "GET",
+      "HEAD"
+    ],
+    "mutationAllowed": false,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false
+  }
+}

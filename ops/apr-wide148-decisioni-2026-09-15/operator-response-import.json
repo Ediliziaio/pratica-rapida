@@ -1,0 +1,85 @@
+{
+  "version": "apr-operator-response-import-v1",
+  "responses": [
+    {
+      "responseId": "response:chat:completion-date:luca-bonoli:20260915",
+      "customerKey": "luca-bonoli",
+      "displayName": "Luca Bonoli",
+      "practiceId": "cec2b8e3-42d0-4612-bf7e-05b068a93591",
+      "receivedAt": "2026-09-15T13:40:00.000Z",
+      "source": "giuliano_chat_decision",
+      "question": "Puoi indicare la data di fine lavori?",
+      "answer": "Fine lavori 10/09/2026. Decisione del titolare: la data documentale 04/06/2026 e' oltre 90 giorni; autorizzato l'inserimento del 10/09/2026.",
+      "payload": {
+        "kind": "operator_required",
+        "operatorQuestion": "Puoi indicare la data di fine lavori?",
+        "missingDocumentType": null
+      },
+      "status": "active",
+      "supersedesResponseId": null,
+      "appliedRuleIds": [
+        "user-2026-09-11-operator-response-runtime-consumption-v1"
+      ]
+    },
+    {
+      "responseId": "response:chat:completion-date:sara-agostinelli:20260915",
+      "customerKey": "sara-agostinelli",
+      "displayName": "Sara Agostinelli",
+      "practiceId": "e71a1e7f-9c07-4550-8d19-256912e67e67",
+      "receivedAt": "2026-09-15T13:40:00.000Z",
+      "source": "giuliano_chat_decision",
+      "question": "Puoi confermare su quale portale annuale va inserita la pratica?",
+      "answer": "Fine lavori 29/08/2026. Decisione del titolare: fine lavori documentale 06/05/2025, portale 2026; autorizzato l'inserimento del 29/08/2026.",
+      "payload": {
+        "kind": "operator_required",
+        "operatorQuestion": "Puoi confermare su quale portale annuale va inserita la pratica?",
+        "missingDocumentType": null
+      },
+      "status": "active",
+      "supersedesResponseId": null,
+      "appliedRuleIds": [
+        "user-2026-09-11-operator-response-runtime-consumption-v1"
+      ]
+    },
+    {
+      "responseId": "response:chat:completion-date:ubaldo-carriero:20260915",
+      "customerKey": "ubaldo-carriero",
+      "displayName": "Ubaldo Carriero",
+      "practiceId": "2fbee8ee-6517-4b16-8b94-0d213a5a421d",
+      "receivedAt": "2026-09-15T13:40:00.000Z",
+      "source": "giuliano_chat_decision",
+      "question": "Puoi confermare su quale portale annuale va inserita la pratica?",
+      "answer": "Fine lavori 29/08/2026. Decisione del titolare: fine lavori documentale 02/12/2025, portale 2026; autorizzato l'inserimento del 29/08/2026.",
+      "payload": {
+        "kind": "operator_required",
+        "operatorQuestion": "Puoi confermare su quale portale annuale va inserita la pratica?",
+        "missingDocumentType": null
+      },
+      "status": "active",
+      "supersedesResponseId": null,
+      "appliedRuleIds": [
+        "user-2026-09-11-operator-response-runtime-consumption-v1"
+      ]
+    },
+    {
+      "responseId": "response:chat:completion-date:anna-rita-battista-colella:20260915",
+      "customerKey": "anna-rita-battista-colella",
+      "displayName": "Anna Rita Battista Colella",
+      "practiceId": "1129e5c7-a559-4bb4-85a6-0f47d735e578",
+      "receivedAt": "2026-09-15T13:40:00.000Z",
+      "source": "giuliano_chat_decision",
+      "question": "Puoi confermare su quale portale annuale va inserita la pratica?",
+      "answer": "Fine lavori 29/08/2026. Decisione del titolare: fine lavori documentale 03/10/2025, portale 2026; autorizzato l'inserimento del 29/08/2026.",
+      "payload": {
+        "kind": "operator_required",
+        "operatorQuestion": "Puoi confermare su quale portale annuale va inserita la pratica?",
+        "missingDocumentType": null
+      },
+      "status": "active",
+      "supersedesResponseId": null,
+      "appliedRuleIds": [
+        "user-2026-09-11-operator-response-runtime-consumption-v1"
+      ]
+    }
+  ]
+}

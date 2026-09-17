@@ -9,7 +9,7 @@ import { registryRule, USER_AUTHORIZED_RULE_IDS } from "../../src/features/enea-
 
 export const APR_CRM_DOCUMENT_ANALYSIS_VERSION = "apr-crm-document-analysis-v1" as const;
 const execFileAsync = promisify(execFile);
-const RULE_IDS = ["core-form-first", "core-economic-classification", "core-gross-triple-reconciliation", "system-single-active-practice", "system-atomic-checkpoint-resume"];
+const RULE_IDS = ["core-form-first", "core-economic-classification", USER_AUTHORIZED_RULE_IDS.invoiceFinalPrintedTotalRuntimeAuthority, USER_AUTHORIZED_RULE_IDS.advanceBalanceFiscalInvoiceEquivalence, USER_AUTHORIZED_RULE_IDS.invoiceSlotContentAuthority, "system-single-active-practice", "system-atomic-checkpoint-resume"];
 const sha256 = (value: string | Buffer) => createHash("sha256").update(value).digest("hex");
 
 export interface LocalPdfAnalysisResult {
@@ -144,9 +144,9 @@ export class PersistentAprCrmDocumentAnalysis {
       const compactText = result.text.replace(/\s+/g, "");
       const hasFiscalSignal = /fattur|ricevut|totale|imponibile|\biva\b|\beur\b|€|\d+[,.]\d{2}/i.test(result.text);
       const nonFiscalImageExcluded = image && compactText.length < 40 && !hasFiscalSignal;
-      const parsed = item.kind === "invoice" && !nonFiscalImageExcluded ? parseScreeningInvoiceText(result.text, item.documentKey) : null;
       const historicalEneaAppendixExcluded = containsHistoricalEneaAppendix(result.text);
       const documentClassification = classifyAprInfissiTechnicalDocument({ storageKind: item.kind, text: result.text, historicalEneaAppendixExcluded });
+      const parsed = documentClassification.verifiedKind === "invoice" && !nonFiscalImageExcluded ? parseScreeningInvoiceText(result.text, item.documentKey) : null;
       const next = structuredClone(this.load(now)); const target = next.items.find((candidate) => candidate.documentKey === item!.documentKey)!; next.revision += 1; target.state = "analyzed";
       target.extractionMode = result.extractionMode; target.pageCount = result.pageCount; target.textCharacterCount = result.text.length; target.textSha256 = textHash; target.textPath = textPath;
       target.invoiceResult = parsed?.result ?? null; target.screeningItems = parsed?.items ?? []; target.nonFiscalImageExcluded = nonFiscalImageExcluded; target.historicalEneaAppendixExcluded = historicalEneaAppendixExcluded; target.semanticKind = documentClassification.verifiedKind; target.documentClassification = documentClassification; target.endedAt = now.toISOString(); target.reason = nonFiscalImageExcluded
@@ -245,6 +245,10 @@ export class PersistentAprCrmDocumentAnalysis {
       const classification = classifyAprInfissiTechnicalDocument({ storageKind: item.kind, text, historicalEneaAppendixExcluded: item.historicalEneaAppendixExcluded });
       item.semanticKind = classification.verifiedKind;
       item.documentClassification = classification;
+      if (classification.verifiedKind !== "invoice") {
+        item.invoiceResult = null;
+        item.screeningItems = [];
+      }
       evaluated += 1;
       if (classification.verifiedKind === "third_party_certificate") promoted += 1;
     }
@@ -263,7 +267,12 @@ export class PersistentAprCrmDocumentAnalysis {
       if (item.state !== "analyzed" || !item.textPath) continue;
       if (item.nonFiscalImageExcluded) continue;
       const text = readFileSync(item.textPath, "utf8"); item.historicalEneaAppendixExcluded = containsHistoricalEneaAppendix(text);
-      if (item.kind !== "invoice") {
+      const classification = classifyAprInfissiTechnicalDocument({ storageKind: item.kind, text, historicalEneaAppendixExcluded: item.historicalEneaAppendixExcluded });
+      item.semanticKind = classification.verifiedKind;
+      item.documentClassification = classification;
+      if (classification.verifiedKind !== "invoice") {
+        item.invoiceResult = null;
+        item.screeningItems = [];
         item.reason = `Testo gia' estratto localmente; documento non fiscale conservato come fonte.${item.historicalEneaAppendixExcluded ? " Appendice ENEA storica rilevata ed esclusa dall'uso." : ""}`;
         continue;
       }
@@ -293,7 +302,7 @@ export class PersistentAprCrmDocumentAnalysis {
   }
   snapshot(now = new Date()) {
     const state = this.load(now); const customerReports = [...new Set(state.items.map((item) => item.customerKey))].map((customerKey) => {
-      const items = state.items.filter((item) => item.customerKey === customerKey); const parsed = items.filter((item) => item.kind === "invoice" && item.invoiceResult).map((item) => ({ result: item.invoiceResult!, items: item.screeningItems }));
+      const items = state.items.filter((item) => item.customerKey === customerKey); const parsed = items.filter((item) => item.semanticKind === "invoice" && item.invoiceResult).map((item) => ({ result: item.invoiceResult!, items: item.screeningItems }));
       const combined = parsed.length ? combineDocumentResults(parsed) : null;
       return { customerKey, documents: items.length, analyzed: items.filter((item) => item.state === "analyzed").length, ocrDocuments: items.filter((item) => item.extractionMode === "macos_vision_ocr").length,
         historicalEneaExcludedDocuments: items.filter((item) => item.historicalEneaAppendixExcluded).length,

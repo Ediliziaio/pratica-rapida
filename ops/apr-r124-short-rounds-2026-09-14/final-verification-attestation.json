@@ -1,0 +1,82 @@
+{
+  "schemaVersion": "apr-r124-short-rounds-final-verification-v1",
+  "generatedAt": "2026-09-14T10:10:43Z",
+  "safetyScope": {
+    "environment": "ENEA_TEST",
+    "draftSaveAllowed": true,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "protocolAllowed": false,
+    "communicationsAllowed": false
+  },
+  "bundle": {
+    "versionId": "c58ba2b3-patch-notte-r124-governed-20260914",
+    "currentSymlinkTargetVerified": true,
+    "workerSha256": "3c5d11fbb9040189cf77202f359ebc47134031fe4af95cd116730c1d95ea71d4",
+    "sourceRuleFingerprint": "d3e9fd7141671f63d614712c8fe51fc4a620315748793bb0085eaca66bd82fbd",
+    "bundleRuleFingerprint": "d3e9fd7141671f63d614712c8fe51fc4a620315748793bb0085eaca66bd82fbd",
+    "ruleSourceAligned": true,
+    "gateStatus": "PASS",
+    "gateResultSha256": "289e18c2857fee6dd4627465595416a1c925ee24fcaddbde5728f1398ebcf35d",
+    "installReceiptSha256": "ccf429d38ba30d9629ad15c9a17b50433949691bd5d86941d992aaa52575fcce"
+  },
+  "roundA": {
+    "runId": "apr-r124-short-round-a-20260914",
+    "manifestSha256": "38770435ca0607e468b7aa33d61949bef36bb9f68a717c04a87e5652cc84f86c",
+    "runnerAcceptance": {
+      "saved": 3,
+      "withQuestion": 6,
+      "nonConforming": 11,
+      "withdrawn": 0
+    },
+    "tripleSourceVerdict": {
+      "saved": 2,
+      "operatorRequired": 3,
+      "technicalBlock": 6,
+      "inconsistent": 9,
+      "total": 20
+    },
+    "checkpointSha256": "541a820476c08b8426433d669929a46117f9d4802ec95518c15dc92b16ec83be",
+    "reportSha256": "8692830862f5978a0792142e79010e66142a6b7b0d716d77f892e74b63e9f2ae",
+    "acceptanceSha256": "c7d5e229c8ebaf820d50eb9b10b90db811238eaef8b8bf3af8f7f84ea95eaa1b",
+    "regressionSha256": "777cb448b65ba5c8f41ecc2e5e51aafa264f4d578793f706f9833a85209fd781",
+    "verifiedReportSha256": "5509bd36ed34dd1738411dfda4491ad1ba9835b275c82fd522e3fba80136c56a"
+  },
+  "roundB": {
+    "runId": "apr-r124-short-round-b-20260914",
+    "manifestSha256": "e4d23f88673f331b6aea9f8fb90a253433dafe596823b098f222480ca3909272",
+    "crmSelection": {
+      "requested": 7,
+      "uniquelyFoundInReadyStage": 7,
+      "readOnly": true
+    },
+    "runnerAcceptance": {
+      "saved": 2,
+      "withQuestion": 2,
+      "nonConforming": 3,
+      "withdrawn": 0
+    },
+    "tripleSourceVerdict": {
+      "saved": 2,
+      "operatorRequired": 2,
+      "technicalBlock": 2,
+      "inconsistent": 1,
+      "total": 7
+    },
+    "checkpointSha256": "92d6f22c6517cd0325973ce3dcdba7dc990af7f6376d87c8a8c52f1782adf7ec",
+    "reportSha256": "3626a557bf6a55fdccb2d48424986cacb79ba40ac6f40d93af23edbdc6a1c7bc",
+    "acceptanceSha256": "b4eb682b36551d1bed0c0925402960e4686f04d9e58563c3c8e9673153d202b3",
+    "regressionSha256": "2254515802fe77488e2f44039ca5a3b588a465fdcb4b2b9ed55ce005713c08fc",
+    "verifiedReportSha256": "fbd8420fab239b2bf299415add0ea8879b5c6af2f940f5b771022eef4d097965"
+  },
+  "runtimeAfterRuns": {
+    "roundControllersActive": false,
+    "dashboardActive": true,
+    "keepaliveActive": true,
+    "aprChromeActive": true
+  },
+  "notes": [
+    "Il conteggio automatico del giro A non sostituisce il verdetto a tre fonti: Milena Albertoni e' INCONSISTENT per divergenza fra checkpoint/report e dashboard.",
+    "Le modifiche locali al ciclo di vita delle domande operatore sono testate localmente ma non appartengono al bundle congelato usato dai due giri."
+  ]
+}

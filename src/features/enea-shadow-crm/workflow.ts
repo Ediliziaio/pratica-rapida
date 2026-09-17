@@ -398,7 +398,7 @@ export function requestOperatorIntervention(
   return appendAudit({ ...state, operatorStatus: "requested_operator", exceptions: [...state.exceptions, exception] }, "operator-intervention-requested", now);
 }
 
-export function applyTripleFinancialReconciliationGate(
+export function applyFinalPrintedInvoiceTotalGate(
   state: ShadowCrmPracticeState,
   reconciliation: TripleFinancialReconciliation,
   now = new Date(),
@@ -411,16 +411,23 @@ export function applyTripleFinancialReconciliationGate(
     const audited = reconciliation.auditNotes.reduce(
       (current, note) => appendAudit(current, `financial-internal-adjustment-noted:${note}`, now), duplicateAudited,
     );
-    return appendAudit(audited, "financial-triple-reconciled", now);
+    return appendAudit(audited, "financial-final-printed-total-verified", now);
   }
   const methodSummary = reconciliation.methods.map((method) => `${method.method}=${method.ok ? method.total : method.reason}`).join("; ");
   return requestOperatorIntervention(state, {
-    field: "economico.riconciliazione_tripla",
+    field: "economico.totale_finale_fatture",
     sources: [...new Set(reconciliation.methods.flatMap((method) => [...method.sources]))],
-    reason: `Totale ENEA non dimostrabile con tre verifiche indipendenti (${reconciliation.policyVersion}, tolleranza €${reconciliation.toleranceEur.toFixed(2)}): ${methodSummary}`,
-    options: ["Riconciliare documenti e righe economiche", "Assegnare a lavorazione manuale"],
+    reason: `Totale finale stampato delle fatture non verificabile (${reconciliation.policyVersion}): ${methodSummary}`,
+    options: ["Indicare o acquisire il totale finale stampato", "Assegnare a lavorazione manuale"],
   }, now);
 }
+
+/**
+ * @deprecated Alias di compatibilita per chiamanti e checkpoint storici. Il
+ * runtime non esegue piu alcuna riconciliazione tripla: delega al solo gate
+ * del totale finale stampato.
+ */
+export const applyTripleFinancialReconciliationGate = applyFinalPrintedInvoiceTotalGate;
 
 export function applyShadowWindowInputGate(
   state: ShadowCrmPracticeState,

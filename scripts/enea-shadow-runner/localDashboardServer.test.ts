@@ -1,9 +1,9 @@
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { DEFAULT_AUDITED_OPERATOR_QUEUE } from "../../src/features/enea-shadow-crm/auditedOperatorQueue";
-import { executionWorkerObservationIsConsistent, LocalDashboardSupervisor, prepareEneaDraftExecutionIfAbsent, resolveAprCheckpointMode, resolveTerminalPreflightObservation, shouldRunCheckpointMigration, shouldRunShadowIntake } from "./localDashboardServer";
+import { executionWorkerObservationIsConsistent, LocalDashboardSupervisor, prepareEneaDraftExecutionIfAbsent, resolveAprCheckpointMode, resolveDashboardTerminalObservabilityRoot, resolveTerminalPreflightObservation, shouldRunCheckpointMigration, shouldRunShadowIntake, terminalSnapshotCustomerKey } from "./localDashboardServer";
 import { PersistentEneaRunner } from "./runner";
 import { SupervisorBusyError } from "./supervisorRuntime";
 import { PersistentReadOnlyAdapter } from "./readOnlyAdapter";
@@ -69,6 +69,76 @@ afterEach(async () => {
 });
 
 describe("dashboard HTTP e supervisore persistente", () => {
+  it("in modalita osservatore legge lo store terminale condiviso senza rieseguire lo stato storico", async () => {
+    const base = temporaryStateDirectory();
+    const stateRoot = path.join(base, "state");
+    const savedCohortRoot = path.join(base, "cohorts", "apr-pilot-1000-saved-fixture");
+    const inconsistentCohortRoot = path.join(base, "cohorts", "apr-pilot-1001-inconsistent-fixture");
+    for (const [cohortRoot, customerKey] of [[savedCohortRoot, "saved-fixture"], [inconsistentCohortRoot, "inconsistent-fixture"]] as const) {
+      mkdirSync(path.join(cohortRoot, "cohort-seed"), { recursive: true });
+      writeFileSync(path.join(cohortRoot, "cohort-seed", "checkpoint.json"), `${JSON.stringify({ candidates: [{ customerKey }] })}\n`);
+    }
+    new PersistentEneaRunner(stateRoot).initialize(DEFAULT_AUDITED_OPERATOR_QUEUE);
+    publishSequencerTerminalTruth({
+      cohortRoot: savedCohortRoot,
+      kind: "saved",
+      verified: true,
+      entry: { customerKey: "saved-fixture", state: "saved", completedPageIds: ["page:one"], expectedPageIds: ["page:one"] },
+    });
+    publishSequencerTerminalTruth({
+      cohortRoot: inconsistentCohortRoot,
+      kind: "case_block",
+      verified: false,
+      entry: { customerKey: "inconsistent-fixture", state: "filling", completedPageIds: [], expectedPageIds: ["page:one"] },
+    });
+    const inconsistentSnapshotPath = path.join(base, "terminal-observability", `${path.basename(inconsistentCohortRoot)}.json`);
+    const inconsistentSnapshot = JSON.parse(readFileSync(inconsistentSnapshotPath, "utf8"));
+    inconsistentSnapshot.aprStatus.source = "reconciled_inconsistent";
+    inconsistentSnapshot.caseTruth = null;
+    writeFileSync(inconsistentSnapshotPath, `${JSON.stringify(inconsistentSnapshot, null, 2)}\n`);
+
+    expect(resolveDashboardTerminalObservabilityRoot(stateRoot)).toBe(base);
+    const observer = new LocalDashboardSupervisor(stateRoot, { port: 0, heartbeatIntervalMs: 10_000, observerOnly: true });
+    const commonTick = vi.spyOn(observer.crmLocalPreflight, "tick");
+    const commonRevision = vi.spyOn(observer.crmLocalPreflight, "applyValidationRevision");
+    const infissiTick = vi.spyOn(observer.infissiBatchPreflight, "tick");
+    const infissiRevision = vi.spyOn(observer.infissiBatchPreflight, "applyValidationRevision");
+    const acquisitionTick = vi.spyOn(observer.crmAcquisition, "tick");
+    const analysisTick = vi.spyOn(observer.crmDocumentAnalysis, "tick");
+    const deepReviewTick = vi.spyOn(observer.deepCaseReview, "tick");
+    const terminalPublish = vi.spyOn(observer.terminalObservability, "publish");
+    runningSupervisors.push(observer);
+    const url = await startDashboard(observer);
+    observer.pulseForTest();
+
+    expect(commonTick).not.toHaveBeenCalled();
+    expect(commonRevision).not.toHaveBeenCalled();
+    expect(infissiTick).not.toHaveBeenCalled();
+    expect(infissiRevision).not.toHaveBeenCalled();
+    expect(acquisitionTick).not.toHaveBeenCalled();
+    expect(analysisTick).not.toHaveBeenCalled();
+    expect(deepReviewTick).not.toHaveBeenCalled();
+    expect(terminalPublish).not.toHaveBeenCalled();
+    expect(existsSync(path.join(stateRoot, "terminal-observability", "state.json"))).toBe(false);
+    const terminalIndex = await (await dashboardFetch(`${url}/api/terminal-snapshots`)).json() as { snapshots: Array<Parameters<typeof terminalSnapshotCustomerKey>[0]> };
+    expect(terminalIndex).toMatchObject({ snapshots: expect.arrayContaining([
+      expect.objectContaining({ cohortId: path.basename(savedCohortRoot) }),
+      expect.objectContaining({ cohortId: path.basename(inconsistentCohortRoot) }),
+    ]) });
+    const indexedInconsistentSnapshot = terminalIndex.snapshots.find((snapshot) => snapshot.cohortId === path.basename(inconsistentCohortRoot))!;
+    expect(indexedInconsistentSnapshot.cohortRoot).toBe(inconsistentCohortRoot);
+    expect(existsSync(path.join(indexedInconsistentSnapshot.cohortRoot, "cohort-seed", "checkpoint.json"))).toBe(true);
+    expect(JSON.parse(readFileSync(path.join(indexedInconsistentSnapshot.cohortRoot, "cohort-seed", "checkpoint.json"), "utf8"))).toEqual({ candidates: [{ customerKey: "inconsistent-fixture" }] });
+    expect(terminalSnapshotCustomerKey(indexedInconsistentSnapshot)).toBe("inconsistent-fixture");
+    expect(await (await dashboardFetch(`${url}/api/case-truth?customerKey=saved-fixture`)).json()).toMatchObject({ customerKey: "saved-fixture", status: "READY" });
+    expect(await (await dashboardFetch(`${url}/api/case-truth?customerKey=inconsistent-fixture`)).json()).toMatchObject({ customerKey: "inconsistent-fixture", status: "INCONSISTENT", terminalSnapshotId: inconsistentSnapshot.snapshotId });
+  });
+
+  it("il comando serve abilita obbligatoriamente la modalita osservatore", () => {
+    const source = readFileSync(path.join(import.meta.dirname, "apr-cli.ts"), "utf8");
+    expect(source).toContain("observerOnly: true");
+  });
+
   it("serve la verita caso terminale di una coorte quiescente da un osservatore indipendente", async () => {
     const base = temporaryStateDirectory();
     const cohortRoot = path.join(base, "cohorts", "apr-pilot-999-fixture");

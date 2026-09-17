@@ -1,0 +1,35 @@
+{
+  "version": "apr-crm-ombra-pronte11-first-case-v1",
+  "authorizationId": "user-2026-09-16-crm-ombra-pronte11-draft-only-v1",
+  "authorizedAt": "2026-09-16T19:10:00.000Z",
+  "mode": "real_enea_draft_only",
+  "selection": {
+    "total": 1,
+    "allowedStages": ["pronte_da_fare"],
+    "excludedCustomerKeys": [],
+    "groups": [{ "id": "crm_ombra_pronte11_first", "count": 1 }]
+  },
+  "safety": {
+    "draftOnly": true,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false,
+    "priorDraftPolicy": "fresh_generation_only"
+  },
+  "cases": [
+    {
+      "practiceId": "991b5ad3-442c-4d8e-8288-dc6d073b419a",
+      "customerKey": "manuela-vassilich",
+      "displayName": "Manuela Vassilich",
+      "stage": "pronte_da_fare",
+      "stageName": "Pronte da fare",
+      "module": "screening",
+      "productEvidence": "Schermature Solari",
+      "reseller": null,
+      "historicalRetest": false,
+      "reacquireBeforeReplay": true,
+      "expectedRouting": "standard",
+      "group": "crm_ombra_pronte11_first"
+    }
+  ]
+}

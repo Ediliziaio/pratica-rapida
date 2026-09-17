@@ -1,0 +1,168 @@
+{
+  "version": "apr-operator-response-import-v1",
+  "source": "Decisioni esplicite di Giuliano del 2026-09-11; migrazione dal file di audit passivo verso il registro runtime condiviso",
+  "responses": [
+    {
+      "responseId": "response:documents:filippo-bigalli:20260911",
+      "customerKey": "filippo-bigalli", "displayName": "Filippo Bigalli", "practiceId": "e5a0905b-446b-49f5-9b25-a7d10819d831", "receivedAt": "2026-09-11T09:37:00.000Z", "source": "giuliano_chat_decision",
+      "question": "La fattura mancante e stata caricata?", "answer": "Si, la fattura e stata caricata nel CRM; riacquisire il fascicolo.", "payload": { "kind": "document_refresh", "documentTypes": ["fattura"] }, "status": "active", "supersedesResponseId": null,
+      "appliedRuleIds": ["user-2026-09-11-operator-response-runtime-consumption-v1"]
+    },
+    {
+      "responseId": "response:documents:alessandro-zaniboni:20260911",
+      "customerKey": "alessandro-zaniboni", "displayName": "Alessandro Zaniboni", "practiceId": "20325492-9c01-4ccc-af20-961882bb010a", "receivedAt": "2026-09-11T09:37:00.000Z", "source": "giuliano_chat_decision",
+      "question": "La fattura mancante e stata caricata?", "answer": "Si, la fattura e stata caricata nel CRM; riacquisire il fascicolo.", "payload": { "kind": "document_refresh", "documentTypes": ["fattura"] }, "status": "active", "supersedesResponseId": null,
+      "appliedRuleIds": ["user-2026-09-11-operator-response-runtime-consumption-v1"]
+    },
+    {
+      "responseId": "response:documents:rocco-giacotto:20260911",
+      "customerKey": "rocco-giacotto", "displayName": "Rocco Giacotto", "practiceId": "f06f17bc-aeab-4975-a2bd-54b3c023162d", "receivedAt": "2026-09-11T09:37:00.000Z", "source": "giuliano_chat_decision",
+      "question": "La fattura mancante e stata caricata?", "answer": "Si, la fattura e stata caricata nel CRM; riacquisire il fascicolo.", "payload": { "kind": "document_refresh", "documentTypes": ["fattura"] }, "status": "active", "supersedesResponseId": null,
+      "appliedRuleIds": ["user-2026-09-11-operator-response-runtime-consumption-v1"]
+    },
+    {
+      "responseId": "response:documents:paolino-bellini:20260911",
+      "customerKey": "paolino-bellini", "displayName": "Paolino Bellini", "practiceId": "b02daf33-b4e5-4ba5-90e1-85ebb3578fe9", "receivedAt": "2026-09-11T09:37:00.000Z", "source": "giuliano_chat_decision",
+      "question": "La fattura mancante e stata caricata?", "answer": "Si, la fattura e stata caricata nel CRM; riacquisire il fascicolo.", "payload": { "kind": "document_refresh", "documentTypes": ["fattura"] }, "status": "active", "supersedesResponseId": null,
+      "appliedRuleIds": ["user-2026-09-11-operator-response-runtime-consumption-v1"]
+    },
+    {
+      "responseId": "response:documents:gabriele-girelli:20260911",
+      "customerKey": "gabriele-girelli", "displayName": "Gabriele Girelli", "practiceId": "b35fc3d3-d441-48d0-99f0-1d1e967ab6e7", "receivedAt": "2026-09-11T09:37:00.000Z", "source": "giuliano_chat_decision",
+      "question": "La fattura mancante e stata caricata?", "answer": "Si, la fattura e stata caricata nel CRM; riacquisire il fascicolo.", "payload": { "kind": "document_refresh", "documentTypes": ["fattura"] }, "status": "active", "supersedesResponseId": null,
+      "appliedRuleIds": ["user-2026-09-11-operator-response-runtime-consumption-v1"]
+    },
+    {
+      "responseId": "response:documents:silvia-lomartire:20260911",
+      "customerKey": "silvia-lomartire", "displayName": "Silvia Lomartire", "practiceId": "84688adb-14d8-4a0a-957b-67626c27a886", "receivedAt": "2026-09-11T09:37:00.000Z", "source": "giuliano_chat_decision",
+      "question": "La fattura mancante e stata caricata?", "answer": "Si, la fattura e stata caricata nel CRM; riacquisire il fascicolo.", "payload": { "kind": "document_refresh", "documentTypes": ["fattura"] }, "status": "active", "supersedesResponseId": null,
+      "appliedRuleIds": ["user-2026-09-11-operator-response-runtime-consumption-v1"]
+    },
+    {
+      "responseId": "response:disposition:marina-gerbaudo:20260911",
+      "customerKey": "marina-gerbaudo", "displayName": "Marina Gerbaudo", "practiceId": "f077d241-79ca-4acf-b84c-e056ead877c1", "receivedAt": "2026-09-11T09:37:00.000Z", "source": "giuliano_chat_decision",
+      "question": "La pratica e lavorabile in autonomia?", "answer": "No, pratica non lavorabile.", "payload": { "kind": "case_disposition", "disposition": "not_workable", "reason": "Pratica dichiarata non lavorabile da Giuliano." }, "status": "active", "supersedesResponseId": null,
+      "appliedRuleIds": ["user-2026-09-11-operator-response-runtime-consumption-v1"]
+    },
+    {
+      "responseId": "response:disposition:antonino-formisabo:20260911",
+      "customerKey": "antonino-formisabo", "displayName": "Antonino Formisabo / Formisano", "practiceId": "ada3267b-29d0-4765-b15d-489e27b23ec6", "receivedAt": "2026-09-11T09:37:00.000Z", "source": "giuliano_chat_decision",
+      "question": "La pratica e ancora presente nel CRM?", "answer": "No, non e piu nel CRM.", "payload": { "kind": "case_disposition", "disposition": "removed_from_crm", "reason": "Pratica rimossa dal CRM e fuori dal perimetro corrente." }, "status": "active", "supersedesResponseId": null,
+      "appliedRuleIds": ["user-2026-09-11-operator-response-runtime-consumption-v1"]
+    },
+    {
+      "responseId": "response:rule:patrizia-muzzi:description-measures:20260911",
+      "customerKey": "patrizia-muzzi", "displayName": "Patrizia Muzzi", "practiceId": "99c19e81-7252-4325-afbd-1e7f2698b6df", "receivedAt": "2026-09-11T09:37:00.000Z", "source": "giuliano_chat_decision",
+      "question": "Dove sono indicate le misure?", "answer": "Nella descrizione testuale della riga fattura.", "payload": { "kind": "general_rule_confirmation", "ruleIds": ["user-2026-09-11-screening-measurements-in-line-description-v1"] }, "status": "active", "supersedesResponseId": null,
+      "appliedRuleIds": ["user-2026-09-11-operator-response-runtime-consumption-v1", "user-2026-09-11-screening-measurements-in-line-description-v1"]
+    },
+    {
+      "responseId": "response:pending:rossella-munafo:20260911",
+      "customerKey": "rossella-munafo", "displayName": "Rossella Munafo", "practiceId": "92f0a811-6199-494e-bc12-dafefe1a37b2", "receivedAt": "2026-09-11T09:37:00.000Z", "source": "giuliano_chat_decision",
+      "question": "Indica le misure della bioclimatica riportate nel foglio manoscritto corretto per questa pratica.", "answer": "Le misure non sono presenti nella fattura e il foglio manoscritto corretto deve ancora essere identificato.", "payload": { "kind": "operator_required", "operatorQuestion": "Indica le misure della bioclimatica riportate nel foglio manoscritto corretto per questa pratica.", "missingDocumentType": "foglio manoscritto con misure della bioclimatica" }, "status": "active", "supersedesResponseId": null,
+      "appliedRuleIds": ["user-2026-09-11-operator-response-runtime-consumption-v1"]
+    },
+    {
+      "responseId": "response:dimensions:sarah-mondini:20260911",
+      "customerKey": "sarah-mondini", "displayName": "Sarah Mondini", "practiceId": "36a9a1ab-0a3d-47d7-8671-e0654167ccb1", "receivedAt": "2026-09-11T09:37:00.000Z", "source": "giuliano_chat_decision",
+      "question": "Quali sono quantita e misure della schermatura?", "answer": "Una pergotenda, 540 x 400 cm.", "payload": { "kind": "screening_products", "products": [{ "description": "Pergotenda", "quantity": 1, "widthMm": 5400, "heightMm": 4000 }] }, "status": "active", "supersedesResponseId": null,
+      "appliedRuleIds": ["user-2026-09-11-operator-response-runtime-consumption-v1"]
+    },
+    {
+      "responseId": "response:dimensions:giulia-kasermann:20260911",
+      "customerKey": "giulia-kasermann", "displayName": "Giulia Kasermann", "practiceId": "b9ecef3e-0431-4f11-9eec-afabea5d5532", "receivedAt": "2026-09-11T09:37:00.000Z", "source": "giuliano_chat_decision",
+      "question": "Quali sono quantita e misure della schermatura?", "answer": "Una tenda da sole, 300 x 200 cm.", "payload": { "kind": "screening_products", "products": [{ "description": "Tenda da sole", "quantity": 1, "widthMm": 3000, "heightMm": 2000 }] }, "status": "active", "supersedesResponseId": null,
+      "appliedRuleIds": ["user-2026-09-11-operator-response-runtime-consumption-v1"]
+    },
+    {
+      "responseId": "response:documents:stefano-buosi:20260911",
+      "customerKey": "stefano-buosi", "displayName": "Stefano Buosi", "practiceId": "3a393231-4cb9-4bf6-93f0-99da9a2a2972", "receivedAt": "2026-09-11T09:37:00.000Z", "source": "giuliano_chat_decision",
+      "question": "I certificati con le misure sono stati caricati?", "answer": "Si, sono stati caricati; riacquisire il fascicolo.", "payload": { "kind": "document_refresh", "documentTypes": ["certificati di trasmittanza con misure"] }, "status": "active", "supersedesResponseId": null,
+      "appliedRuleIds": ["user-2026-09-11-operator-response-runtime-consumption-v1"]
+    },
+    {
+      "responseId": "response:pending:anthony-juscamaita:20260911",
+      "customerKey": "anthony-pool-juscamaita-fuertes", "displayName": "Anthony Pool Juscamaita Fuertes", "practiceId": "272f370a-aba5-48b5-8e9f-6cebad5639f3", "receivedAt": "2026-09-11T09:37:00.000Z", "source": "giuliano_chat_decision",
+      "question": "Inserisci le misure della schermatura quando il fornitore le avra comunicate.", "answer": "Le misure sono ancora attese dal fornitore.", "payload": { "kind": "operator_required", "operatorQuestion": "Inserisci le misure della schermatura quando il fornitore le avra comunicate.", "missingDocumentType": "misure della schermatura dal fornitore" }, "status": "active", "supersedesResponseId": null,
+      "appliedRuleIds": ["user-2026-09-11-operator-response-runtime-consumption-v1"]
+    },
+    {
+      "responseId": "response:cadastral:alberto-maggi:20260911",
+      "customerKey": "alberto-maggi", "displayName": "Alberto Maggi", "practiceId": "2233668f-d9e6-42e2-a7e4-3abed8de74ad", "receivedAt": "2026-09-11T09:37:00.000Z", "source": "giuliano_chat_decision",
+      "question": "Quali sono foglio e particella?", "answer": "Foglio 9, particella 6642.", "payload": { "kind": "cadastral_identifiers", "sheet": "9", "parcel": "6642" }, "status": "active", "supersedesResponseId": null,
+      "appliedRuleIds": ["user-2026-09-11-operator-response-runtime-consumption-v1"]
+    },
+    {
+      "responseId": "response:rule:luca-cigognetti:first-window:20260911",
+      "customerKey": "luca-cigognetti", "displayName": "Luca Cigognetti", "practiceId": "77c5e8b6-34f8-4f1b-830a-526addefdd7d", "receivedAt": "2026-09-11T09:37:00.000Z", "source": "giuliano_chat_decision",
+      "question": "A quale finestra va associata la zanzariera?", "answer": "Alla prima finestra inserita sul portale.", "payload": { "kind": "general_rule_confirmation", "ruleIds": ["user-2026-09-11-zanzariera-first-window-allocation-v1"] }, "status": "active", "supersedesResponseId": null,
+      "appliedRuleIds": ["user-2026-09-11-operator-response-runtime-consumption-v1", "user-2026-09-11-zanzariera-first-window-allocation-v1"]
+    },
+    {
+      "responseId": "response:old-window:elena-depalma:20260911",
+      "customerKey": "elena-depalma", "displayName": "Elena Depalma", "practiceId": "af39159b-62d9-4c0d-8056-d2462e4b7727", "receivedAt": "2026-09-11T09:37:00.000Z", "source": "giuliano_chat_decision",
+      "question": "Quali sono materiale e vetro dei vecchi infissi?", "answer": "Metallo e vetro doppio, per tutti e cinque.", "payload": { "kind": "old_window_characteristics", "material": "metal", "glazing": "double", "appliesToCount": 5 }, "status": "active", "supersedesResponseId": null,
+      "appliedRuleIds": ["user-2026-09-11-operator-response-runtime-consumption-v1"]
+    },
+    {
+      "responseId": "response:count:marcella-capatti:20260911",
+      "customerKey": "marcella-capatti", "displayName": "Marcella Capatti", "practiceId": "e5c4f390-461b-43ea-ada7-d44cec4b91fb", "receivedAt": "2026-09-11T09:37:00.000Z", "source": "giuliano_chat_decision",
+      "question": "Quanti infissi fisici risultano dalle quantita delle righe?", "answer": "Sette infissi.", "payload": { "kind": "physical_product_count", "count": 7 }, "status": "active", "supersedesResponseId": null,
+      "appliedRuleIds": ["user-2026-09-11-operator-response-runtime-consumption-v1", "user-2026-09-11-infissi-explicit-line-quantity-cardinality-v1"]
+    },
+    {
+      "responseId": "response:rule:mario-spano:cassonetti:20260911",
+      "customerKey": "mario-spano", "displayName": "Mario Spano", "practiceId": "6f94e990-e371-4128-88ac-9b0cbdf1b09a", "receivedAt": "2026-09-11T09:37:00.000Z", "source": "giuliano_chat_decision",
+      "question": "I cassonetti sono prodotti ENEA?", "answer": "No: sono accessori degli infissi; le misure degli infissi sono nei certificati.", "payload": { "kind": "general_rule_confirmation", "ruleIds": ["user-2026-09-11-cassonetto-excluded-from-enea-products-v1"] }, "status": "active", "supersedesResponseId": null,
+      "appliedRuleIds": ["user-2026-09-11-operator-response-runtime-consumption-v1", "user-2026-09-11-cassonetto-excluded-from-enea-products-v1"]
+    },
+    {
+      "responseId": "response:disposition:marian-maeschi:20260911",
+      "customerKey": "marian-maeschi", "displayName": "Marian Maeschi", "practiceId": "775bd8e8-f71f-4c00-b93a-eeea9ade948d", "receivedAt": "2026-09-11T10:10:00.000Z", "source": "giuliano_chat_decision",
+      "question": "La pratica richiede ancora lavorazione?", "answer": "No, la pratica e chiusa.", "payload": { "kind": "case_disposition", "disposition": "closed_externally", "reason": "Pratica dichiarata chiusa da Giuliano." }, "status": "active", "supersedesResponseId": null,
+      "appliedRuleIds": ["user-2026-09-11-operator-response-runtime-consumption-v1"]
+    },
+    {
+      "responseId": "response:rule:completion-date:tuttolani:20260911", "customerKey": "angela-tuttolani", "displayName": "Angela Tuttolani", "practiceId": "8e011a14-60b7-43f4-8b35-04626b35bc91", "receivedAt": "2026-09-11T09:37:00.000Z", "source": "giuliano_chat_decision", "question": "Quale fonte prevale per la fine lavori?", "answer": "Il form rivenditore esplicito prevale sulla fattura.", "payload": { "kind": "general_rule_confirmation", "ruleIds": ["user-2026-09-11-reseller-form-completion-date-over-invoice-v1"] }, "status": "active", "supersedesResponseId": null, "appliedRuleIds": ["user-2026-09-11-operator-response-runtime-consumption-v1", "user-2026-09-11-reseller-form-completion-date-over-invoice-v1"]
+    },
+    {
+      "responseId": "response:rule:completion-date:ferletic:20260911", "customerKey": "antonella-ferletic", "displayName": "Antonella Ferletic", "practiceId": "3e7d38d2-e40d-4304-850c-e128698be78e", "receivedAt": "2026-09-11T09:37:00.000Z", "source": "giuliano_chat_decision", "question": "Quale fonte prevale per la fine lavori?", "answer": "Il form rivenditore esplicito prevale sulla fattura.", "payload": { "kind": "general_rule_confirmation", "ruleIds": ["user-2026-09-11-reseller-form-completion-date-over-invoice-v1"] }, "status": "active", "supersedesResponseId": null, "appliedRuleIds": ["user-2026-09-11-operator-response-runtime-consumption-v1", "user-2026-09-11-reseller-form-completion-date-over-invoice-v1"]
+    },
+    {
+      "responseId": "response:rule:completion-date:sellati:20260911", "customerKey": "claudia-sellati", "displayName": "Claudia Sellati", "practiceId": "58f03680-c716-42e7-ad7d-e3ceaee5573d", "receivedAt": "2026-09-11T09:37:00.000Z", "source": "giuliano_chat_decision", "question": "Quale fonte prevale per la fine lavori?", "answer": "Il form rivenditore esplicito prevale sulla fattura.", "payload": { "kind": "general_rule_confirmation", "ruleIds": ["user-2026-09-11-reseller-form-completion-date-over-invoice-v1"] }, "status": "active", "supersedesResponseId": null, "appliedRuleIds": ["user-2026-09-11-operator-response-runtime-consumption-v1", "user-2026-09-11-reseller-form-completion-date-over-invoice-v1"]
+    },
+    {
+      "responseId": "response:rule:completion-date:beghini:20260911", "customerKey": "claudio-beghini", "displayName": "Claudio Beghini", "practiceId": "d4f1480f-a224-415e-b4c0-121db8040ef8", "receivedAt": "2026-09-11T09:37:00.000Z", "source": "giuliano_chat_decision", "question": "Quale fonte prevale per la fine lavori?", "answer": "Il form rivenditore esplicito prevale sulla fattura.", "payload": { "kind": "general_rule_confirmation", "ruleIds": ["user-2026-09-11-reseller-form-completion-date-over-invoice-v1"] }, "status": "active", "supersedesResponseId": null, "appliedRuleIds": ["user-2026-09-11-operator-response-runtime-consumption-v1", "user-2026-09-11-reseller-form-completion-date-over-invoice-v1"]
+    },
+    {
+      "responseId": "response:rule:completion-date:sartori:20260911", "customerKey": "fabio-sartori", "displayName": "Fabio Sartori", "practiceId": "9b996147-82e1-4438-affe-9fcec062c003", "receivedAt": "2026-09-11T09:37:00.000Z", "source": "giuliano_chat_decision", "question": "Quale fonte prevale per la fine lavori?", "answer": "Il form rivenditore esplicito prevale sulla fattura.", "payload": { "kind": "general_rule_confirmation", "ruleIds": ["user-2026-09-11-reseller-form-completion-date-over-invoice-v1"] }, "status": "active", "supersedesResponseId": null, "appliedRuleIds": ["user-2026-09-11-operator-response-runtime-consumption-v1", "user-2026-09-11-reseller-form-completion-date-over-invoice-v1"]
+    },
+    {
+      "responseId": "response:rule:completion-date:pelizzari:20260911", "customerKey": "fabrizio-pelizzari", "displayName": "Fabrizio Pelizzari", "practiceId": "7ff69610-c6d5-4436-9eb5-01883efe08db", "receivedAt": "2026-09-11T09:37:00.000Z", "source": "giuliano_chat_decision", "question": "Quale fonte prevale per la fine lavori?", "answer": "Il form rivenditore esplicito prevale sulla fattura.", "payload": { "kind": "general_rule_confirmation", "ruleIds": ["user-2026-09-11-reseller-form-completion-date-over-invoice-v1"] }, "status": "active", "supersedesResponseId": null, "appliedRuleIds": ["user-2026-09-11-operator-response-runtime-consumption-v1", "user-2026-09-11-reseller-form-completion-date-over-invoice-v1"]
+    },
+    {
+      "responseId": "response:rule:completion-date:pescatori:20260911", "customerKey": "giovanni-pescatori", "displayName": "Giovanni Pescatori", "practiceId": "20c7c802-85da-4d7e-95a3-482b66151b16", "receivedAt": "2026-09-11T09:37:00.000Z", "source": "giuliano_chat_decision", "question": "Quale fonte prevale per la fine lavori?", "answer": "Il form rivenditore esplicito prevale sulla fattura.", "payload": { "kind": "general_rule_confirmation", "ruleIds": ["user-2026-09-11-reseller-form-completion-date-over-invoice-v1"] }, "status": "active", "supersedesResponseId": null, "appliedRuleIds": ["user-2026-09-11-operator-response-runtime-consumption-v1", "user-2026-09-11-reseller-form-completion-date-over-invoice-v1"]
+    },
+    {
+      "responseId": "response:rule:completion-date:lagrasta:20260911", "customerKey": "lucia-lagrasta", "displayName": "Lucia Lagrasta", "practiceId": "0f468582-9698-4589-b2d8-a103acced455", "receivedAt": "2026-09-11T09:37:00.000Z", "source": "giuliano_chat_decision", "question": "Quale fonte prevale per la fine lavori?", "answer": "Il form rivenditore esplicito prevale sulla fattura.", "payload": { "kind": "general_rule_confirmation", "ruleIds": ["user-2026-09-11-reseller-form-completion-date-over-invoice-v1"] }, "status": "active", "supersedesResponseId": null, "appliedRuleIds": ["user-2026-09-11-operator-response-runtime-consumption-v1", "user-2026-09-11-reseller-form-completion-date-over-invoice-v1"]
+    },
+    {
+      "responseId": "response:rule:completion-date:carfora:20260911", "customerKey": "luigi-carfora", "displayName": "Luigi Carfora", "practiceId": "0572b6a4-a44d-4f13-8fad-d8e91fc5c91d", "receivedAt": "2026-09-11T09:37:00.000Z", "source": "giuliano_chat_decision", "question": "Quale fonte prevale per la fine lavori?", "answer": "Il form rivenditore esplicito prevale sulla fattura.", "payload": { "kind": "general_rule_confirmation", "ruleIds": ["user-2026-09-11-reseller-form-completion-date-over-invoice-v1"] }, "status": "active", "supersedesResponseId": null, "appliedRuleIds": ["user-2026-09-11-operator-response-runtime-consumption-v1", "user-2026-09-11-reseller-form-completion-date-over-invoice-v1"]
+    },
+    {
+      "responseId": "response:rule:completion-date:capitanelli:20260911", "customerKey": "matteo-capitanelli", "displayName": "Matteo Capitanelli", "practiceId": "61b0dc51-4959-46e7-bd6d-37c8f1981c52", "receivedAt": "2026-09-11T09:37:00.000Z", "source": "giuliano_chat_decision", "question": "Quale fonte prevale per la fine lavori?", "answer": "Il form rivenditore esplicito prevale sulla fattura.", "payload": { "kind": "general_rule_confirmation", "ruleIds": ["user-2026-09-11-reseller-form-completion-date-over-invoice-v1"] }, "status": "active", "supersedesResponseId": null, "appliedRuleIds": ["user-2026-09-11-operator-response-runtime-consumption-v1", "user-2026-09-11-reseller-form-completion-date-over-invoice-v1"]
+    },
+    {
+      "responseId": "response:rule:completion-date:tiraboschi:20260911", "customerKey": "natale-tiraboschi", "displayName": "Natale Tiraboschi", "practiceId": "805249c4-7248-40ac-990c-6d00cba517c8", "receivedAt": "2026-09-11T09:37:00.000Z", "source": "giuliano_chat_decision", "question": "Quale fonte prevale per la fine lavori?", "answer": "Il form rivenditore esplicito prevale sulla fattura.", "payload": { "kind": "general_rule_confirmation", "ruleIds": ["user-2026-09-11-reseller-form-completion-date-over-invoice-v1"] }, "status": "active", "supersedesResponseId": null, "appliedRuleIds": ["user-2026-09-11-operator-response-runtime-consumption-v1", "user-2026-09-11-reseller-form-completion-date-over-invoice-v1"]
+    },
+    {
+      "responseId": "response:rule:completion-date:toscano:20260911", "customerKey": "rosa-toscano", "displayName": "Rosa Toscano", "practiceId": "48098402-2621-40d9-92ae-eb3d5befe380", "receivedAt": "2026-09-11T09:37:00.000Z", "source": "giuliano_chat_decision", "question": "Quale fonte prevale per la fine lavori?", "answer": "Il form rivenditore esplicito prevale sulla fattura.", "payload": { "kind": "general_rule_confirmation", "ruleIds": ["user-2026-09-11-reseller-form-completion-date-over-invoice-v1"] }, "status": "active", "supersedesResponseId": null, "appliedRuleIds": ["user-2026-09-11-operator-response-runtime-consumption-v1", "user-2026-09-11-reseller-form-completion-date-over-invoice-v1"]
+    },
+    {
+      "responseId": "response:rule:completion-date:giuga:20260911", "customerKey": "santo-giuga", "displayName": "Santo Giuga", "practiceId": "5323d52a-6473-46f1-a5aa-faf5568ae3fc", "receivedAt": "2026-09-11T09:37:00.000Z", "source": "giuliano_chat_decision", "question": "Quale fonte prevale per la fine lavori?", "answer": "Il form rivenditore esplicito prevale sulla fattura.", "payload": { "kind": "general_rule_confirmation", "ruleIds": ["user-2026-09-11-reseller-form-completion-date-over-invoice-v1"] }, "status": "active", "supersedesResponseId": null, "appliedRuleIds": ["user-2026-09-11-operator-response-runtime-consumption-v1", "user-2026-09-11-reseller-form-completion-date-over-invoice-v1"]
+    },
+    {
+      "responseId": "response:rule:completion-date:buracchi:20260911", "customerKey": "vera-buracchi", "displayName": "Vera Buracchi", "practiceId": "36978c5f-f8fb-43b0-8bd9-26665bf553ad", "receivedAt": "2026-09-11T09:37:00.000Z", "source": "giuliano_chat_decision", "question": "Quale fonte prevale per la fine lavori?", "answer": "Il form rivenditore esplicito prevale sulla fattura.", "payload": { "kind": "general_rule_confirmation", "ruleIds": ["user-2026-09-11-reseller-form-completion-date-over-invoice-v1"] }, "status": "active", "supersedesResponseId": null, "appliedRuleIds": ["user-2026-09-11-operator-response-runtime-consumption-v1", "user-2026-09-11-reseller-form-completion-date-over-invoice-v1"]
+    }
+  ]
+}

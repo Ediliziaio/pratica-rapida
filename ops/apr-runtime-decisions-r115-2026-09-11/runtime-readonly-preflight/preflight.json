@@ -1,0 +1,49 @@
+{
+  "version": "apr-r115-runtime-readonly-preflight-v1",
+  "checkedAt": "2026-09-11T21:36:03.097Z",
+  "status": "PASS",
+  "runtimeBundle": {
+    "canonicalDirectory": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/0ae77c33-runtime-decisions-r115-20260911",
+    "workerPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/0ae77c33-runtime-decisions-r115-20260911/apr-enea-worker.mjs",
+    "workerSha256": "6a0d11677a9d8fc056b7b375cae76a4d417d1f52325cb98ec99620fea33b0ccc",
+    "expectedWorkerSha256": "6a0d11677a9d8fc056b7b375cae76a4d417d1f52325cb98ec99620fea33b0ccc",
+    "governanceStatus": "admitted",
+    "governanceAttestationPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/current/apr-rule-governance-attestation.json",
+    "requiredRuleIds": [
+      "user-2026-09-10-infissi-invoice-authoritative-shading-closures-v1",
+      "user-2026-09-10-infissi-explicit-no-screen-negative-closure-evidence-v1",
+      "user-2026-09-11-infissi-closure-measurements-not-applicable-v1",
+      "user-2026-09-11-zanzariera-first-window-allocation-v1",
+      "user-2026-09-11-invoice-final-printed-total-runtime-authority-v1",
+      "user-2026-09-11-crm-practice-id-lookup-stage-independent-v1"
+    ],
+    "missingRuleIds": []
+  },
+  "crm": {
+    "status": "authenticated",
+    "accountEmailMasked": "m**********@praticarapida.it",
+    "lastVerifiedAt": "2026-09-11T21:36:00.831Z"
+  },
+  "browser": {
+    "pid": 4656,
+    "profileFingerprint": "0ffd88dd3d6c108727f75fdea9df20f642bcfd92afbde077ce27e6cf7ce4bc9b",
+    "remoteDebuggingPort": 9331
+  },
+  "session": {
+    "authenticated": true,
+    "serverLogoutProven": false,
+    "evidenceId": "cdp-server-2-886f6eecdd9fbd23eb91",
+    "url": "https://bonusfiscali.enea.it/dashboard"
+  },
+  "safety": {
+    "accessMode": "readonly",
+    "portalMethodsAllowed": [
+      "GET",
+      "HEAD"
+    ],
+    "mutationAllowed": false,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false
+  }
+}

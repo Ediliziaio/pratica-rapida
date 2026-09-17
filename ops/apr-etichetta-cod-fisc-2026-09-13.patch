@@ -1,0 +1,114 @@
+From 927d1d437646ab1704ac05a4157d9bd91e7e7f08 Mon Sep 17 00:00:00 2001
+From: Giuliano Beretta <giulianolavoro@MacBook-Pro-di-Giuliano-2026.local>
+Date: Sun, 13 Sep 2026 19:09:10 +0200
+Subject: [PATCH] fix(apr): riconosce il codice fiscale anche etichettato "Cod.
+ Fisc."
+
+Sulla fattura Cisam di Gemma Minore il codice fiscale della cliente e'
+stampato in chiaro alla riga 19: "Cod. Fisc. MNRGMM95H42G273W". Lo
+schema conosceva "C.F.", "C F", "C.fisc" e "codice fiscale", ma non
+"Cod. Fisc.". APR concludeva quindi che il beneficiario non fosse
+verificabile su documento e ricadeva nel ramo che chiede all'operatore
+il cointestatario: la stessa domanda a ogni giro, nonostante la risposta
+fosse registrata e attiva nel ledger dal 12/09 e la regola esista dal
+16/08.
+
+La causa non era la regola sul cointestatario, che e' corretta: era
+l'etichetta che non sappiamo leggere. Una prima versione di questa
+correzione allentava invece il ramo fail-closed del cointestatario: era
+sbagliata, aggirava il sintomo, ed e' stata revertita.
+
+Il vincolo di 16 caratteri continua a tenere fuori le partite IVA, che
+sui documenti condividono spesso la stessa etichetta.
+
+123/123 verdi: la suite esistente ha intercettato una prima versione del
+pattern che perdeva la forma "C.fisc:" (Lerose).
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+---
+ .../crmLocalPreflight.test.ts                 | 45 +++++++++++++++++++
+ .../enea-shadow-runner/crmLocalPreflight.ts   | 12 ++++-
+ 2 files changed, 56 insertions(+), 1 deletion(-)
+
+diff --git a/scripts/enea-shadow-runner/crmLocalPreflight.test.ts b/scripts/enea-shadow-runner/crmLocalPreflight.test.ts
+index e49e4aa..dd946df 100644
+--- a/scripts/enea-shadow-runner/crmLocalPreflight.test.ts
++++ b/scripts/enea-shadow-runner/crmLocalPreflight.test.ts
+@@ -1085,6 +1085,51 @@ Totale documento 915,00 €`);
+     })).toEqual({ status: "unresolved", present: true, identity: null, sourceIds: ["invoice-mario"] });
+   });
+ 
++  // Gemma Minore, 13/09/2026: il CF era stampato in chiaro sulla fattura
++  // Cisam come "Cod. Fisc. MNRGMM95H42G273W", un'etichetta che lo schema non
++  // conosceva. APR concludeva che il beneficiario non fosse verificabile su
++  // documento e finiva nel ramo che chiedeva all'operatore il cointestatario,
++  // a ogni giro, nonostante la risposta fosse gia' registrata e attiva.
++  it("riconosce il codice fiscale anche quando l'etichetta e' 'Cod. Fisc.' (Gemma Minore)", () => {
++    const root = mkdtempSync(path.join(os.tmpdir(), "apr-crm-preflight-cod-fisc-label-")); directories.push(root);
++    const invoice = path.join(root, "fattura.txt");
++    writeFileSync(invoice, [
++      "Cisam Infissi Srl",
++      "C.F./P.Iva 04332691205",
++      "Gemma Minore",
++      "Via G. Marconi, 12A",
++      "Cod. Fisc. MNRGMM95H42G273W",
++      "Tot. documento € 1.190,00",
++    ].join("\n"));
++    const analysis = { items: [{ documentKey: "invoice-minore", customerKey: "gemma-minore", kind: "invoice", state: "analyzed", textPath: invoice }] } as never;
++    const resolved = resolveOriginalDocumentFiscalCode({
++      customerKey: "gemma-minore",
++      requester: { nome: "Gemma", cognome: "Minore", data_nascita: "1995-06-02" },
++      analysis,
++    });
++    expect(resolved).toMatchObject({ status: "verified", value: "MNRGMM95H42G273W", sourceIds: ["invoice-minore"] });
++
++    // Con il beneficiario verificato, il cointestatario dichiarato solo nel
++    // form viene escluso dalla fattura invece di fermare la pratica.
++    expect(resolveCoBeneficiaryFromOriginalInvoices({
++      customerKey: "gemma-minore",
++      coOwnership: { presente: true, nome: "Luigi", cognome: "Bianchi", cf: "BNCLGU80A01H501X" },
++      mainDocumentFiscalCode: resolved,
++      analysis,
++    })).toEqual({ status: "excluded_by_invoice", present: false, identity: null, sourceIds: ["invoice-minore"] });
++  });
++
++  it("l'etichetta condivisa con la partita IVA non produce un falso codice fiscale", () => {
++    const root = mkdtempSync(path.join(os.tmpdir(), "apr-crm-preflight-cf-vs-piva-")); directories.push(root);
++    const invoice = path.join(root, "fattura.txt");
++    writeFileSync(invoice, "Cisam Infissi Srl\nC.F./P.Iva 04332691205\nGemma Minore\nTot. documento € 1.190,00");
++    expect(resolveOriginalDocumentFiscalCode({
++      customerKey: "gemma-minore",
++      requester: { nome: "Gemma", cognome: "Minore", data_nascita: "1995-06-02" },
++      analysis: { items: [{ documentKey: "invoice-minore", customerKey: "gemma-minore", kind: "invoice", state: "analyzed", textPath: invoice }] } as never,
++    })).toMatchObject({ status: "not_found", value: null });
++  });
++
+   it("non duplica il beneficiario principale quando il form lo ripete come cointestatario", () => {
+     const root = mkdtempSync(path.join(os.tmpdir(), "apr-crm-preflight-self-co-beneficiary-")); directories.push(root);
+     const invoice = path.join(root, "fattura.txt");
+diff --git a/scripts/enea-shadow-runner/crmLocalPreflight.ts b/scripts/enea-shadow-runner/crmLocalPreflight.ts
+index 02efdc9..f0752fb 100644
+--- a/scripts/enea-shadow-runner/crmLocalPreflight.ts
++++ b/scripts/enea-shadow-runner/crmLocalPreflight.ts
+@@ -328,7 +328,17 @@ export function resolveBundledProfessionalExpense(
+   return { status: "gross_used_marker_present" as const, eligibleTechnicalExpense: grossInvoiceTotal, excludedUnclassifiedExpense: 0, markers: allMarkers };
+ }
+ 
+-const LABELED_FISCAL_CODE = /(?:c\s*\.?\s*f\s*\.?|c\.?\s*fisc\.?|codice\s+fiscale)\s*[:\-]?\s*([A-Z0-9]{16})\b/gi;
++// Il codice fiscale sulle fatture non e' etichettato in un modo solo. Fino al
++// 13/09/2026 questo schema conosceva "C.F.", "C F" e "codice fiscale", ma non
++// "Cod. Fisc.", che e' la forma delle fatture Cisam: su Gemma Minore il CF era
++// stampato in chiaro (riga 19: "Cod. Fisc. MNRGMM95H42G273W") e APR concludeva
++// che il beneficiario non fosse verificabile su documento, ricadendo nel ramo
++// che chiedeva all'operatore il cointestatario — la stessa domanda, giro dopo
++// giro, a cui era gia' stata data risposta il 12/09.
++//
++// Il vincolo di 16 caratteri tiene fuori le partite IVA, che sui documenti
++// condividono spesso la stessa etichetta ("C.F./P.Iva 04332691205").
++const LABELED_FISCAL_CODE = /(?:cod(?:ice)?\s*\.?\s*fisc(?:ale)?\s*\.?|c\s*\.?\s*fisc(?:ale)?\s*\.?|c\s*\.?\s*f\s*\.?)\s*[:\-]?\s*([A-Z0-9]{16})\b/gi;
+ export const INVOICE_CUSTOMER_BLOCK_CRM_CF_RULE_ID = "system-invoice-customer-block-crm-cf-v1" as const;
+ export const RESELLER_ADDRESSEE_MULTI_LINE_BENEFICIARY_LOOKUP_RULE_ID = "user-2026-09-08-reseller-addressee-multi-line-beneficiary-lookup-v1" as const;
+ 
+-- 
+2.50.1 (Apple Git-155)
+

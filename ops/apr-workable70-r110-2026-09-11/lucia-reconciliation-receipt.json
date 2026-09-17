@@ -1,0 +1,41 @@
+{
+  "version": "apr-outer-checkpoint-terminal-case-reconciliation-v1",
+  "status": "PASS",
+  "reconciledAt": "2026-09-11T08:04:06.224Z",
+  "changed": true,
+  "runId": "apr-workable70-r110-20260911",
+  "customerKey": "lucia-lagrasta",
+  "practiceId": "0f468582-9698-4589-b2d8-a103acced455",
+  "cohort": 5838,
+  "state": "saved",
+  "draftId": "484382",
+  "pages": {
+    "completed": 11,
+    "expected": 11
+  },
+  "resultCountAfterReconciliation": 38,
+  "remainingAfterReconciliation": 32,
+  "evidence": [
+    {
+      "file": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-workable70-r110-20260911/case-5838-lucia-lagrasta/report.json",
+      "sha256": "b0bf5e2bb4d6a02d696c756e6648d4df2b4d905bedc2c1ed16cd4df6d5511a10"
+    },
+    {
+      "file": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5838-global-controller-lucia-lagrasta/enea-draft-execution/checkpoint.json",
+      "sha256": "7999e508313f49e914a2d6b59cd5819b29114bce6c5fa29e8f53711f6dda86b9"
+    },
+    {
+      "file": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5838-global-controller-lucia-lagrasta/dashboard/status.json",
+      "sha256": "e7e17561475e13e522e4c93b86773ef4c9b366da682c1ac56c81dcffdaa60374"
+    },
+    {
+      "file": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5838-global-controller-lucia-lagrasta/supervisor/checkpoint.json",
+      "sha256": "8b0b5ccebcf32f75818d1a7e9e4aef5c96b7081a67592b3c5200a56d15e2b15c"
+    }
+  ],
+  "manifest": {
+    "path": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-workable70-r110-2026-09-11/manifest.json",
+    "sha256": "dc16fe1373645a33054cbf994fea1a647a5acd2bf7212341419e41070623a45d"
+  },
+  "bundleWorkerSha256": "5beccb73cd8ee89d2fb440a45bdd70a2b7c668052bd5161c37be95595a551d79"
+}

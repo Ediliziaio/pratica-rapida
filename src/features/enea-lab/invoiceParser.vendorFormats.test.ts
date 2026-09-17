@@ -27,6 +27,52 @@ EUR 680,14`, "fattura-tabellare-generica.pdf");
     expect(parsed.result).toMatchObject({ documentNumber: "619", documentDate: "2026-06-19", total: 680.14 });
   });
 
+  it("legge testata e lordo di una fattura a colonne intercalate quando i candidati locali sono univoci", () => {
+    const parsed = parseScreeningInvoiceText(`FATTURA DI VENDITA
+SPETT.LE
+LORETTA RIVIERA
+268
+N° DOCUMENTO DATA DOCUMENTO PAG.
+CONDIZIONI DI PAGAMENTO
+13-03-26
+1/1
+EUR
+2.411,20
+NETTO A PAGARE
+2.192,00
+219,20
+2.411,20`, "fattura-colonne-intercalate.pdf");
+    expect(parsed.result).toMatchObject({ documentNumber: "268", documentDate: "2026-03-13", total: 2411.2 });
+  });
+
+  it("resta fail-closed se la testata intercalata contiene piu candidati numero documento", () => {
+    const parsed = parseScreeningInvoiceText(`FATTURA DI VENDITA
+268
+269
+N° DOCUMENTO DATA DOCUMENTO PAG.
+13-03-26
+1/1
+NETTO A PAGARE
+2.411,20
+2.411,20`, "fattura-colonne-intercalate-ambigua.pdf");
+    expect(parsed.result.documentNumber).toBeUndefined();
+    expect(parsed.result.documentDate).toBeUndefined();
+  });
+
+  it("resta fail-closed sul totale intercalato se due importi distinti sono entrambi ripetuti", () => {
+    const parsed = parseScreeningInvoiceText(`FATTURA DI VENDITA
+268
+N° DOCUMENTO DATA DOCUMENTO PAG.
+13-03-26
+1/1
+2.192,00
+2.411,20
+NETTO A PAGARE
+2.192,00
+2.411,20`, "fattura-totale-intercalato-ambiguo.pdf");
+    expect(parsed.result.total).toBeNull();
+  });
+
   it("legge identita e totale quando Fattura precede Data e Numero sulla stessa riga tabellare", () => {
     const parsed = parseScreeningInvoiceText(`Fattura
 Data 22/06/2026 Numero 146 Pagina
@@ -1199,12 +1245,12 @@ Totale Fattura € 875,00`, "moro.pdf");
       [888, 1640, 0.1], [870, 2480, 0.1], [800, 1600, 0.1],
     ]);
   });
-  it("non usa un importo isolato che non coincide con imponibile piu IVA", () => {
+  it("usa il totale finale stampato senza riconciliarlo con imponibile e IVA", () => {
     const parsed = parseScreeningInvoiceText(`FATTURA nr. 161/2026 del 12/06/2026
 Imponibile € 2.672,13
 Totale IVA € 467,87
 € 3.141,00`, "totale-incoerente.pdf");
-    expect(parsed.result.total).toBeNull();
+    expect(parsed.result.total).toBe(3141);
   });
   it("regola generale di Giuliano (Laurelli): senza un'etichetta piu' specifica, con piu' righe 'Totale' vince sempre l'ultima (dopo lo storno dell'acconto interno)", () => {
     const parsed = parseScreeningInvoiceText(`Fattura Accompagnatoria n. 169/A del 02/07/2026
@@ -1482,5 +1528,30 @@ TOTALE FATTURA
 EUR 280,28`, "finestra-italia-senza-pagina.pdf");
     expect(parsed.result.documentNumber).toBeUndefined();
     expect(parsed.result.documentDate).toBeUndefined();
+  });
+
+  it("regressione Muzzi: legge le misure della tenda nella descrizione della riga tecnica senza promuovere l'ordine a fattura", () => {
+    const source = `Ordine di Vendita
+TDST42 Tenda da sole Modello Everest M T61
+CM Largh. 435 X Sporg. 210
+Gtote: 0.10`;
+    const fiscal = parseScreeningInvoiceText(source, "ordine-muzzi.pdf");
+    expect(fiscal.result.documentType).toBe("unknown");
+    expect(fiscal.result.total).toBeNull();
+    expect(fiscal.items).toEqual([]);
+    expect(parseScreeningTechnicalSourceText(source, "ordine-muzzi.pdf")).toEqual([
+      expect.objectContaining({ widthMm: 4350, heightMm: 2100, gTot: 0.1 }),
+    ]);
+  });
+
+  it("non inventa misure da una descrizione priva di unita o da una coppia accessoria P/tapparelle", () => {
+    expect(parseScreeningTechnicalSourceText("Ordine: tenda da sole Largh. 435 X Sporg. 210", "ordine-incompleto.pdf")).toEqual([]);
+    expect(parseScreeningTechnicalSourceText("Finestra 1 anta Misura luce anta (P/ tapparelle int.) (largh x alt: 463 x 2232)", "preventivo-infissi.pdf")).toEqual([]);
+  });
+
+  it("continua a leggere una vera tapparella dopo l'esclusione degli accessori del serramento", () => {
+    expect(parseScreeningTechnicalSourceText("Tapparella N. 1 100 x 180 cm Gtot 0,06", "ordine-tapparella.pdf")).toEqual([
+      expect.objectContaining({ widthMm: 1000, heightMm: 1800, gTot: 0.06 }),
+    ]);
   });
 });

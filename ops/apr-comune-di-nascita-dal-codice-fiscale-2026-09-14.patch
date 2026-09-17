@@ -1,0 +1,356 @@
+Subject: [PATCH] feat(apr): il comune di nascita si ripiega sul codice fiscale quando la grafia del form non trova la lista ENEA
+
+Tre pratiche il 14/09/2026 rifiutate dal portale su id-comune_nascita:
+Padoani ('Bolzano', provincia per esteso; ufficiale Bolzano/Bozen), Serpa
+('Reggio Calabria'; ufficiale Reggio di Calabria), De Filippo ('Napoli' con
+provincia 'CO': errore del form). Il codice fiscale, caratteri 12-15,
+portava in tutti e tre i casi il comune ufficiale (A952, H224, F839).
+
+Regola nuova user-2026-09-14-birth-municipality-from-fiscal-code-v1: per la
+nascita in Italia, quando il nome del form non risolve a una sola voce ISTAT,
+si ripiega sul codice catastale del CF. Non e' un override: un form gia'
+risolvibile resta com'e'; un codice estero o assente resta fail-closed.
+In piu', il confronto della provincia accetta ciascuna meta' di un nome
+bilingue (Laives / 'Bolzano' -> BZ), che valeva anche per la residenza.
+
+Registro v173 -> v174, matrice v187 -> v188, gate di attivazione verificato
+verde su una build di prova. 779/779 fra enea-shadow-crm ed enea-lab,
+typecheck app e runner puliti. Un'aspettativa del mock ('Comune Demo
+Nord' passato tal quale) aggiornata: un nome inesistente ora ripiega su
+Roma dal CF di prova, invece di essere mandato al portale che lo rifiuta.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+---
+--- a/src/features/enea-shadow-crm/officialMunicipalities.ts
++++ b/src/features/enea-shadow-crm/officialMunicipalities.ts
+@@ -1,5 +1,8 @@
++import { isValidCodiceFiscale } from "@/components/form-cliente/validation-utils";
+ import { OFFICIAL_MUNICIPALITIES, OFFICIAL_MUNICIPALITIES_SOURCE } from "./officialMunicipalities.generated";
+ 
++export const OFFICIAL_MUNICIPALITY_FROM_FISCAL_CODE_RULE_ID = "user-2026-09-14-birth-municipality-from-fiscal-code-v1" as const;
++
+ export const OFFICIAL_MUNICIPALITY_CANONICAL_IDENTITY_RULE_ID = "user-2026-09-05-official-municipality-canonical-identity-v1" as const;
+ 
+ export interface OfficialMunicipalityCanonicalResolution {
+@@ -35,6 +38,18 @@
+   return fold(value).replace(/[^a-z0-9]+/g, "");
+ }
+ 
++/**
++ * Le province bilingui sono registrate con il doppio nome ("Bolzano/Bozen",
++ * "Aosta/Aoste"). Chi compila un form scrive una sola delle due lingue: la
++ * residenza di Gloria Padoani (Laives, provincia "Bolzano") il 14/09/2026
++ * non trovava riscontro perche' il confronto pretendeva la stringa intera.
++ * Ogni meta' del nome ufficiale vale come corrispondenza esatta.
++ */
++function provinceNameMatches(officialProvinceName: string, provinceKey: string): boolean {
++  if (normalizedProvince(officialProvinceName) === provinceKey) return true;
++  return officialProvinceName.split("/").some((part) => normalizedProvince(part) === provinceKey);
++}
++
+ function splitInlineProvince(name: string): { name: string; province: string | null } {
+   const match = name.trim().match(/^(.*?)\s*\(\s*([A-Za-z]{2})\s*\)\s*$/);
+   return match ? { name: match[1].trim(), province: match[2].toUpperCase() } : { name: name.trim(), province: null };
+@@ -56,7 +71,7 @@
+   const matches = OFFICIAL_MUNICIPALITIES.filter((entry) => {
+     if (compactMunicipality(entry.name) !== municipalityKey) return false;
+     if (!provinceKey) return true;
+-    return normalizedProvince(entry.provinceCode) === provinceKey || normalizedProvince(entry.provinceName) === provinceKey;
++    return normalizedProvince(entry.provinceCode) === provinceKey || provinceNameMatches(entry.provinceName, provinceKey);
+   });
+   if (matches.length !== 1) return null;
+   const [match] = matches;
+@@ -78,3 +93,47 @@
+ export function officialMunicipalityCatalogSize(): number {
+   return OFFICIAL_MUNICIPALITIES.length;
+ }
++
++export interface OfficialMunicipalityFromFiscalCode {
++  ruleId: typeof OFFICIAL_MUNICIPALITY_FROM_FISCAL_CODE_RULE_ID;
++  cadastralCode: string;
++  canonicalName: string;
++  provinceName: string;
++  provinceCode: string;
++  istatCode: string;
++}
++
++/**
++ * Il comune di nascita e' scritto nel codice fiscale, nei caratteri 12-15
++ * (codice catastale). E' l'identita' ufficiale, e non dipende da come il
++ * cliente ha scritto il nome nel form. Il 14/09/2026 tre pratiche si sono
++ * fermate perche' il portale ENEA non trovava il comune scritto nel form:
++ * "Bolzano" con provincia per esteso (ufficiale: Bolzano/Bozen), "Reggio
++ * Calabria" (ufficiale: Reggio di Calabria), "Napoli" con provincia "CO"
++ * (errore del form: il CF F839 dice Napoli). In tutti e tre i casi il CF
++ * dava la risposta giusta.
++ *
++ * Un codice catastale estero (nascita all'estero, lettera Z) non e' in
++ * questa tabella e resta null: lo gestisce resolveForeignBirthCountryFromFiscalCode.
++ */
++export function resolveOfficialMunicipalityFromCadastralCode(cadastralCode: string | null | undefined): OfficialMunicipalityFromFiscalCode | null {
++  const code = (cadastralCode ?? "").trim().toUpperCase();
++  if (!/^[A-Z]\d{3}$/.test(code)) return null;
++  const matches = OFFICIAL_MUNICIPALITIES.filter((entry) => entry.cadastralCode === code);
++  if (matches.length !== 1) return null;
++  const [match] = matches;
++  return {
++    ruleId: OFFICIAL_MUNICIPALITY_FROM_FISCAL_CODE_RULE_ID,
++    cadastralCode: code,
++    canonicalName: match.name,
++    provinceName: match.provinceName,
++    provinceCode: match.provinceCode,
++    istatCode: match.istatCode,
++  };
++}
++
++export function resolveOfficialMunicipalityFromFiscalCode(fiscalCode: string | null | undefined): OfficialMunicipalityFromFiscalCode | null {
++  const clean = (fiscalCode ?? "").replace(/\s+/g, "").toUpperCase();
++  if (!isValidCodiceFiscale(clean)) return null;
++  return resolveOfficialMunicipalityFromCadastralCode(clean.slice(11, 15));
++}
+--- a/src/features/enea-shadow-crm/officialMunicipalities.test.ts
++++ b/src/features/enea-shadow-crm/officialMunicipalities.test.ts
+@@ -1,5 +1,5 @@
+ import { describe, expect, it } from "vitest";
+-import { officialMunicipalityCatalogSize, resolveOfficialMunicipalityCanonicalIdentity } from "./officialMunicipalities";
++import { officialMunicipalityCatalogSize, resolveOfficialMunicipalityCanonicalIdentity, resolveOfficialMunicipalityFromCadastralCode, resolveOfficialMunicipalityFromFiscalCode } from "./officialMunicipalities";
+ 
+ describe("catalogo corrente ufficiale dei Comuni", () => {
+   it("risolve una grafia senza spazio e la provincia estesa verso l'entita ISTAT", () => {
+@@ -22,3 +22,25 @@
+     expect(resolveOfficialMunicipalityCanonicalIdentity({ name: "Montecompatri (RM)", province: "MI" })).toBeNull();
+   });
+ });
++
++describe("officialMunicipalities: dal codice fiscale al comune di nascita", () => {
++  it("officialMunicipalities: dal codice fiscale al comune di nascita, estero fail-closed", () => {
++    // Padoani, Serpa, De Filippo: 14/09/2026.
++    expect(resolveOfficialMunicipalityFromFiscalCode("PDNGLR62C70A952K")).toMatchObject({ canonicalName: "Bolzano", provinceCode: "BZ", istatCode: "021008", cadastralCode: "A952" });
++    expect(resolveOfficialMunicipalityFromFiscalCode("SRPDNL83A48H224F")).toMatchObject({ canonicalName: "Reggio di Calabria", provinceCode: "RC" });
++    expect(resolveOfficialMunicipalityFromFiscalCode("DFLFST77R45F839T")).toMatchObject({ canonicalName: "Napoli", provinceCode: "NA" });
++    // Nascita all'estero: codice paese, non comune. Resta null.
++    expect(resolveOfficialMunicipalityFromFiscalCode("LTNNRN87R57Z129Z")).toBeNull();
++    // CF non valido o assente: niente deduzioni.
++    expect(resolveOfficialMunicipalityFromFiscalCode("PDNGLR62C70A952X")).toBeNull();
++    expect(resolveOfficialMunicipalityFromFiscalCode("")).toBeNull();
++    expect(resolveOfficialMunicipalityFromCadastralCode("ZZZZ")).toBeNull();
++  });
++
++  it("una provincia bilingue accetta una sola delle due lingue nel confronto", () => {
++    expect(resolveOfficialMunicipalityCanonicalIdentity({ name: "Laives", province: "Bolzano" })).toMatchObject({ canonicalName: "Laives", provinceCode: "BZ" });
++    expect(resolveOfficialMunicipalityCanonicalIdentity({ name: "Laives", province: "Bozen" })).toMatchObject({ canonicalName: "Laives", provinceCode: "BZ" });
++    // Ma il nome del comune stesso non viene mai avvicinato: "Reggio Calabria" resta irrisolto per nome.
++    expect(resolveOfficialMunicipalityCanonicalIdentity({ name: "Reggio Calabria", province: "RC" })).toBeNull();
++  });
++});
+--- a/src/features/enea-lab/portalBeneficiary.ts
++++ b/src/features/enea-lab/portalBeneficiary.ts
+@@ -1,7 +1,7 @@
+ import type { EneaLabMappedPractice } from "./types";
+ import { resolveOfficialMunicipalityIdentity } from "@/features/enea-shadow-crm/officialMunicipalityChanges";
+ import { resolveOfficialMunicipalityProvinceChange } from "@/features/enea-shadow-crm/officialMunicipalityProvinceChanges";
+-import { resolveOfficialMunicipalityCanonicalIdentity } from "@/features/enea-shadow-crm/officialMunicipalities";
++import { resolveOfficialMunicipalityCanonicalIdentity, resolveOfficialMunicipalityFromFiscalCode } from "@/features/enea-shadow-crm/officialMunicipalities";
+ import { resolveForeignBirthCountryFromFiscalCode } from "@/features/enea-shadow-crm/operationalRules";
+ import {
+   buildEneaPortalRuntimeScript,
+@@ -71,6 +71,17 @@
+   const verifiedForeignBirth = resolveForeignBirthCountryFromFiscalCode(fieldsById.get("beneficiario.cf")?.value);
+   const nationIsItaly = (fieldId: string) =>
+     fieldsById.get(fieldId)?.value.trim().toLocaleLowerCase("it") === "italia";
++  // Il comune di nascita e' scritto nel codice fiscale (caratteri 12-15) ed e'
++  // l'identita' ufficiale: serve come ripiego quando la grafia del form non
++  // trova riscontro nella lista ufficiale. Il 14/09/2026 tre pratiche sono
++  // state rifiutate dal portale su id-comune_nascita — "Bolzano" con provincia
++  // per esteso, "Reggio Calabria" invece di "Reggio di Calabria", "Napoli" con
++  // provincia "CO" per errore del form — e in tutti e tre i casi il CF
++  // indicava il comune giusto. Vale solo per la nascita in Italia: per
++  // l'estero il CF porta un codice paese, non un comune.
++  const birthMunicipalityFromFiscalCode = nationIsItaly("beneficiario.nazione_nascita") && !verifiedForeignBirth
++    ? resolveOfficialMunicipalityFromFiscalCode(fieldsById.get("beneficiario.cf")?.value)
++    : null;
+   const readyFields = ENEA_BENEFICIARY_PORTAL_FIELDS.flatMap((definition) => {
+     const field = fieldsById.get(definition.fieldId);
+     if (!field || field.status !== "ready" || field.testOnly || isInternalPlaceholder(field.value)) return [];
+@@ -115,7 +126,17 @@
+         province: officialProvinceChange?.currentProvinceCode ?? officialMunicipality?.provinceCode ?? supportingProvince,
+       })
+       : null;
+-    const autocompleteQualifier = officialCanonical?.provinceCode ?? officialProvinceChange?.currentProvinceCode ?? officialMunicipality?.provinceCode ?? (isBirthMunicipality
++    // La risoluzione per nome resta la prima scelta. Quando il nome scritto
++    // nel form non trova una sola voce ufficiale — grafia diversa, provincia
++    // per esteso, provincia sbagliata — per la nascita in Italia si ripiega
++    // sul codice fiscale, che porta il comune ufficiale. Non e' un override:
++    // un form leggibile resta com'e'.
++    const authoritativeMunicipality = officialCanonical
++      ? { canonicalName: officialCanonical.canonicalName, provinceCode: officialCanonical.provinceCode, istatCode: officialCanonical.istatCode }
++      : isBirthMunicipality && birthMunicipalityFromFiscalCode
++        ? { canonicalName: birthMunicipalityFromFiscalCode.canonicalName, provinceCode: birthMunicipalityFromFiscalCode.provinceCode, istatCode: birthMunicipalityFromFiscalCode.istatCode }
++        : null;
++    const autocompleteQualifier = authoritativeMunicipality?.provinceCode ?? officialProvinceChange?.currentProvinceCode ?? officialMunicipality?.provinceCode ?? (isBirthMunicipality
+       && nationIsItaly("beneficiario.nazione_nascita")
+       && fieldsById.get("beneficiario.provincia_nascita")?.status === "ready"
+       ? fieldsById.get("beneficiario.provincia_nascita")!.value.trim().toUpperCase()
+@@ -123,10 +144,10 @@
+     return [{
+       ...definition,
+       control,
+-      value: officialCanonical?.canonicalName ?? field.value,
++      value: authoritativeMunicipality?.canonicalName ?? field.value,
+       ...(selectValue ? { selectValue } : {}),
+       ...(autocompleteQualifier ? { autocompleteQualifier } : {}),
+-      ...(officialCanonical ? { autocompleteAuthoritativeIstatCode: officialCanonical.istatCode } : officialProvinceChange ? { autocompleteAuthoritativeIstatCode: officialProvinceChange.currentIstatCode } : {}),
++      ...(authoritativeMunicipality ? { autocompleteAuthoritativeIstatCode: authoritativeMunicipality.istatCode } : officialProvinceChange ? { autocompleteAuthoritativeIstatCode: officialProvinceChange.currentIstatCode } : {}),
+     }];
+   });
+   const readyFieldIds = readyFields.map(({ fieldId }) => fieldId);
+--- a/src/features/enea-lab/portalBeneficiary.test.ts
++++ b/src/features/enea-lab/portalBeneficiary.test.ts
+@@ -39,6 +39,55 @@
+     ]));
+   });
+ 
++  // 14/09/2026: Padoani, Serpa e De Filippo rifiutate dal portale su
++  // id-comune_nascita. Il codice fiscale portava il comune giusto in tutti e
++  // tre i casi; la grafia del form no.
++  it("il comune di nascita viene dal codice fiscale anche se il form scrive la provincia per esteso (Bolzano)", () => {
++    const source = structuredClone(ENEA_LAB_MOCK_PRACTICES[0]);
++    source.form.richiedente.cf = "RNZRND49B18A952X";
++    source.form.richiedente.data_nascita = "1949-02-18";
++    source.form.richiedente.comune_nascita = "Bolzano";
++    source.form.richiedente.provincia_nascita = "Bolzano";
++    const preparation = buildEneaBeneficiaryPortalScript(mapSchermaturaPractice(source));
++    expect(preparation.runtime.fields).toEqual(expect.arrayContaining([expect.objectContaining({
++      portalId: "id-comune_nascita", value: "Bolzano", autocompleteQualifier: "BZ", autocompleteAuthoritativeIstatCode: "021008",
++    })]));
++  });
++
++  it("il codice fiscale corregge una grafia non ufficiale del comune (Reggio Calabria -> Reggio di Calabria)", () => {
++    const source = structuredClone(ENEA_LAB_MOCK_PRACTICES[0]);
++    source.form.richiedente.cf = "RNZRND49B18H224P";
++    source.form.richiedente.data_nascita = "1949-02-18";
++    source.form.richiedente.comune_nascita = "Reggio Calabria";
++    source.form.richiedente.provincia_nascita = "RC";
++    const preparation = buildEneaBeneficiaryPortalScript(mapSchermaturaPractice(source));
++    expect(preparation.runtime.fields).toEqual(expect.arrayContaining([expect.objectContaining({
++      portalId: "id-comune_nascita", value: "Reggio di Calabria", autocompleteQualifier: "RC", autocompleteAuthoritativeIstatCode: "080063",
++    })]));
++  });
++
++  it("il codice fiscale corregge una provincia sbagliata nel form (Napoli con provincia CO)", () => {
++    const source = structuredClone(ENEA_LAB_MOCK_PRACTICES[0]);
++    source.form.richiedente.cf = "RNZRND49B18F839O";
++    source.form.richiedente.data_nascita = "1949-02-18";
++    source.form.richiedente.comune_nascita = "Napoli";
++    source.form.richiedente.provincia_nascita = "CO";
++    const preparation = buildEneaBeneficiaryPortalScript(mapSchermaturaPractice(source));
++    expect(preparation.runtime.fields).toEqual(expect.arrayContaining([expect.objectContaining({
++      portalId: "id-comune_nascita", value: "Napoli", autocompleteQualifier: "NA", autocompleteAuthoritativeIstatCode: "063049",
++    })]));
++  });
++
++  it("la residenza in una provincia bilingue trova il comune anche con il nome in una sola lingua (Laives, Bolzano)", () => {
++    const source = structuredClone(ENEA_LAB_MOCK_PRACTICES[0]);
++    source.form.residenza.comune = "Laives";
++    source.form.residenza.provincia = "Bolzano";
++    const preparation = buildEneaBeneficiaryPortalScript(mapSchermaturaPractice(source));
++    expect(preparation.runtime.fields).toEqual(expect.arrayContaining([expect.objectContaining({
++      portalId: "id-comune_residenza", value: "Laives", autocompleteQualifier: "BZ",
++    })]));
++  });
++
+   it("sostituisce la provincia storica soltanto tramite la linea ISTAT ufficiale", () => {
+     const source = structuredClone(ENEA_LAB_MOCK_PRACTICES[0]);
+     source.form.richiedente.cf = "RSSMRA80A01H501U";
+@@ -91,7 +140,10 @@
+     expect(preparation.script).toContain('"portalId":"id-nome"');
+     expect(preparation.runtime.fields).toEqual(expect.arrayContaining([
+       expect.objectContaining({ portalId: "id-nazione_nascita", value: "Italia", selectValue: "ita" }),
+-      expect.objectContaining({ portalId: "id-comune_nascita", value: source.form.richiedente.comune_nascita, autocompleteQualifier: "RM" }),
++      // "Comune Demo Nord" non esiste nella lista ufficiale: dal 14/09/2026 un
++      // nome irrisolvibile ripiega sul comune scritto nel codice fiscale
++      // (H501 = Roma), invece di essere mandato al portale che lo rifiuterebbe.
++      expect.objectContaining({ portalId: "id-comune_nascita", value: "Roma", autocompleteQualifier: "RM", autocompleteAuthoritativeIstatCode: "058091" }),
+       expect.objectContaining({ portalId: "id-nazione_residenza", value: "Italia", selectValue: "ita" }),
+     ]));
+     expect(preparation.script).not.toContain("Intervento umano richiesto");
+--- a/src/features/enea-shadow-crm/operationalRegistry.ts
++++ b/src/features/enea-shadow-crm/operationalRegistry.ts
+@@ -1,7 +1,7 @@
+ import crypto from "node:crypto";
+ import { OPERATIONAL_RULES } from "./operationalRules";
+ 
+-export const ENEA_OPERATIONAL_REGISTRY_VERSION = "enea-operational-registry-v173" as const;
++export const ENEA_OPERATIONAL_REGISTRY_VERSION = "enea-operational-registry-v174" as const;
+ export const ENEA_GLOBAL_PREREQUISITE = Object.freeze({
+   id: "browser-session-contract-v1",
+   scope: "global_not_practice",
+@@ -100,6 +100,7 @@
+   officialMunicipalityNameChange: "user-2026-08-27-official-municipality-name-change-v1",
+   officialMunicipalityProvinceLineage: "user-2026-09-02-official-municipality-province-lineage-v1",
+   officialMunicipalityCanonicalIdentity: "user-2026-09-05-official-municipality-canonical-identity-v1",
++  birthMunicipalityFromFiscalCode: "user-2026-09-14-birth-municipality-from-fiscal-code-v1",
+   currentCohortEconomicBridge: "user-2026-09-02-current-cohort-economic-bridge-v1",
+   coBeneficiarySingleIntentDelivery: "user-2026-09-02-co-beneficiary-single-intent-delivery-v1",
+   coBeneficiaryTrustedEnterDelivery: "user-2026-09-05-co-beneficiary-trusted-enter-delivery-v2",
+@@ -346,6 +347,11 @@
+ const USER_RULE_PROVENANCE_2026_09_12 = Object.freeze({
+   authority: "user" as const,
+   receivedAt: "2026-09-12",
++  source: "delegated_user_instruction" as const,
++});
++const USER_RULE_PROVENANCE_2026_09_14 = Object.freeze({
++  authority: "user" as const,
++  receivedAt: "2026-09-14",
+   source: "delegated_user_instruction" as const,
+ });
+ 
+@@ -496,6 +502,18 @@
+     outcome: "continue",
+     priority: 1_224,
+     provenance: USER_RULE_PROVENANCE_2026_09_05,
++  },
++  {
++    id: USER_AUTHORIZED_RULE_IDS.birthMunicipalityFromFiscalCode,
++    step: "identity_property",
++    kind: "business",
++    condition: "Il beneficiario e nato in Italia, il codice fiscale e valido e coerente con l'identita, e il Comune di nascita scritto nel modulo non trova una sola voce nel catalogo corrente ISTAT (grafia non ufficiale, provincia per esteso o bilingue, provincia errata).",
++    sourcePrecedence: ["codice catastale nei caratteri 12-15 del codice fiscale", "catalogo corrente ISTAT versionato", "modulo cliente", "CRM manuale"],
++    deterministicAction: "Risolvere il Comune di nascita dal codice catastale del codice fiscale verso una sola entita ISTAT e consegnare a ENEA denominazione, sigla e codice correnti. Un modulo gia risolvibile per nome non viene mai sovrascritto; un codice catastale estero o assente dal catalogo resta fail-closed.",
++    audit: "codice fiscale, codice catastale estratto, nome/provincia/ISTAT risolti, grafia originaria del modulo e ID regola.",
++    outcome: "continue",
++    priority: 1_225,
++    provenance: USER_RULE_PROVENANCE_2026_09_14,
+   },
+   {
+     id: USER_AUTHORIZED_RULE_IDS.officialMunicipalityProvinceLineage,
+--- a/src/features/enea-shadow-crm/operationalRegistry.test.ts
++++ b/src/features/enea-shadow-crm/operationalRegistry.test.ts
+@@ -12,7 +12,7 @@
+   });
+   it("rende reperibili le regole solo per id",()=>expect(registryRule("core-form-first")?.step).toBe("customer_form"));
+   it("registra le nuove regole utente con provenienza, precedenza e audit",()=>{
+-    expect(ENEA_OPERATIONAL_REGISTRY_VERSION).toBe("enea-operational-registry-v173");
++    expect(ENEA_OPERATIONAL_REGISTRY_VERSION).toBe("enea-operational-registry-v174");
+     expect(registryRule("system-operator-response-ledger-concurrency-v1")).toMatchObject({
+       step: "checkpoint_persistence",
+       kind: "system",
+--- a/src/features/enea-shadow-crm/ruleTestMatrix.ts
++++ b/src/features/enea-shadow-crm/ruleTestMatrix.ts
+@@ -2,7 +2,7 @@
+ import { ENEA_OPERATIONAL_REGISTRY, ENEA_OPERATIONAL_REGISTRY_VERSION, USER_AUTHORIZED_RULE_IDS } from "./operationalRegistry";
+ import { APR_BUSINESS_DECISION_LEDGER_FINGERPRINT, APR_BUSINESS_DECISION_LEDGER_VERSION } from "./businessDecisionLedger";
+ 
+-export const APR_RULE_TEST_MATRIX_VERSION = "apr-enea-rule-test-matrix-v187" as const;
++export const APR_RULE_TEST_MATRIX_VERSION = "apr-enea-rule-test-matrix-v188" as const;
+ export interface AprRuleTestEntry {
+   key: string;
+   rule: string;
+@@ -22,6 +22,7 @@
+   { key: "operator-response-runtime-consumption", rule: "Le risposte operatore strutturate vengono persistite in un registro globale condiviso tra coorti, consumate idempotentemente dai preflight comuni e Infissi e accompagnate da ricevute di applicazione; due scrittori concorrenti vengono serializzati con attesa limitata, senza perdere dati e restando fail-closed oltre il budget. Un aggiornamento documentale richiede sempre una nuova acquisizione e una regola generale vale soltanto se certificata nel bundle.", registryRuleIds: [USER_AUTHORIZED_RULE_IDS.operatorResponseRuntimeConsumption, USER_AUTHORIZED_RULE_IDS.operatorStructuredQuestionResume, "system-operator-response-ledger-concurrency-v1", "system-atomic-checkpoint-resume"], automaticTests: ["persiste globalmente la risposta e la rende visibile a una nuova coorte", "attende una contesa transitoria e conserva entrambe le scritture senza perdere risposte", "resta fail-closed se la contesa non si risolve entro il budget", "fallisce chiuso se il registro viene manomesso o una regola generale non esiste", "consuma dal registro condiviso la risposta sull'infisso vecchio e ne persiste la ricevuta runtime"] },
+   { key: "crm-practice-id-lookup-stage-independent", rule: "Il practiceId immutabile identifica la pratica anche dopo uno spostamento di fase: il GET non filtra la fase e accetta soltanto la coincidenza con nome/cognome esatti; la ricerca senza ID conserva i controlli di fase.", registryRuleIds: [USER_AUTHORIZED_RULE_IDS.crmPracticeIdLookupStageIndependent, "system-apr-crm-readonly-adapter-contract"], automaticTests: ["crmAuthenticatedReadOnly: riacquisisce per ID la stessa pratica anche se e stata spostata di fase", "crmAuthenticatedReadOnly: resta fail-closed se l'ID esatto appartiene a un'identita diversa"] },
+   { key: "crm-refresh-session-serialization", rule: "Login e refresh della sessione CRM condivisa sono serializzati tra processi; ogni processo rilegge il token soltanto dopo il lock, non cancella una rotazione piu recente e distingue un rifiuto definitivo da un errore temporaneo del fornitore. Qualunque login_required ferma immediatamente il lotto.", registryRuleIds: ["system-apr-crm-refresh-serialization-v1", "system-apr-crm-dedicated-auth", "system-atomic-checkpoint-resume"], automaticTests: ["crmAuth: due processi serializzano la rotazione e il secondo usa il token nuovo", "crmAuth: un rifiuto di token superato rilegge e non cancella la sessione nuova", "crmAuth: un errore temporaneo conserva la sessione", "crmAuth: un timeout del trasporto conserva la sessione", "crmAuth: un rifiuto definitivo del token corrente chiude fail-closed", "simpleIndependentRunnerAuthStop: login_required arresta subito il lotto e authenticated non lo arresta"] },
++  { key: "birth-municipality-from-fiscal-code", rule: "Quando il Comune di nascita scritto nel modulo non trova una sola voce ISTAT, per la nascita in Italia si ripiega sul codice catastale del codice fiscale; un modulo gia risolvibile non viene sovrascritto e un codice estero resta fail-closed.", registryRuleIds: [USER_AUTHORIZED_RULE_IDS.birthMunicipalityFromFiscalCode, USER_AUTHORIZED_RULE_IDS.officialMunicipalityCanonicalIdentity], automaticTests: ["il comune di nascita viene dal codice fiscale anche se il form scrive la provincia per esteso (Bolzano)", "il codice fiscale corregge una grafia non ufficiale del comune (Reggio Calabria -> Reggio di Calabria)", "il codice fiscale corregge una provincia sbagliata nel form (Napoli con provincia CO)", "la residenza in una provincia bilingue trova il comune anche con il nome in una sola lingua (Laives, Bolzano)", "officialMunicipalities: dal codice fiscale al comune di nascita, estero fail-closed"] },
+   { key: "official-municipality-canonical-identity", rule: "Le varianti meramente grafiche di un Comune italiano vengono risolte verso nome, provincia e codice correnti soltanto con una corrispondenza unica nel catalogo ISTAT; omonimie, refusi lessicali e province discordanti restano fail-closed.", registryRuleIds: [USER_AUTHORIZED_RULE_IDS.officialMunicipalityCanonicalIdentity, USER_AUTHORIZED_RULE_IDS.officialMunicipalityNameChange, USER_AUTHORIZED_RULE_IDS.officialMunicipalityProvinceLineage], automaticTests: ["officialMunicipalities: Montecompatri diventa Monte Compatri 058060/F477", "officialMunicipalities: omonimia e provincia discordante fail-closed", "mapper: residenza e immobile canonici auditati", "portalBeneficiary/portalBuilding: nome, provincia e codice ufficiali consegnati"] },
+   { key: "infissi-required-revisions-durable-convergence", rule: "Il bridge Infissi si apre soltanto quando il checkpoint riletto contiene simultaneamente tutte le revisioni obbligatorie; un marker perso da uno scrittore concorrente viene riapplicato in modo limitato, mentre una perdita persistente resta fail-closed.", registryRuleIds: ["system-infissi-required-revisions-durable-convergence-v1", "system-atomic-checkpoint-resume"], automaticTests: ["infissiExecutionGate: revisione persa una volta viene recuperata", "infissiExecutionGate: revisione mai durevole chiude il gate"] },
+   { key: "cohort-seed-atomic-fresh-generation-initialization", rule: "Ogni processo che inizializza, prepara o estende il checkpoint rilegge il cohort seed autorevole: una policy fresh_generation non puo essere persa per ordine di avvio; seed invalidi e override discordanti restano fail-closed.", registryRuleIds: ["system-cohort-seed-atomic-fresh-generation-initialization-v1", "system-generation-scoped-canonical-draft-v1", "system-atomic-checkpoint-resume"], automaticTests: ["eneaDraftExecution: initialize prima del seed e prepare dopo conserva fresh_generation", "eneaDraftExecution: coorte ordinaria resta requiresFreshDraft false", "eneaDraftExecution: seed corrotto o override divergente fallisce chiuso"] },

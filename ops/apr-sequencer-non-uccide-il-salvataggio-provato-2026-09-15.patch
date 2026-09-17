@@ -1,0 +1,90 @@
+Subject: [PATCH] fix(apr): il sequencer non isola una lavorazione con salvataggio gia' provato (filling + resolved_saved)
+
+Lucia Droghetti, 14/09/2026, coorte 9218 (giro r125): prima pagina
+persistita e provata dalla GET canonica (persisted_fields_get: saved), il
+worker gia' in filling sulla pagina successiva. Il validatore del ciclo
+di salvataggio incerto conosceva resolved_saved solo con la pratica in
+recovery_queued: la coppia filling/resolved_saved cadeva in
+state_status_mismatch, il sequencer isolava il caso e rendeva quiescente
+una coorte sana. Riprodotto eseguendo il validatore sul checkpoint reale.
+
+Ora resolved_saved e' accettato anche in filling, con la stessa prova
+richiesta in recovery_queued (una sola sonda saved, pagina saved con la
+stessa evidenza, pagina fra le completate); senza prova resta invalid.
+Sul checkpoint reale di Droghetti il verdetto passa da invalid a
+wait_for_worker_resume. 24/24 vitest, 20/20 node:test del guard.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+---
+--- a/ops/apr-global-controller-test10-2026-08-29/sequencerPreflightGuard.mjs
++++ b/ops/apr-global-controller-test10-2026-08-29/sequencerPreflightGuard.mjs
+@@ -166,7 +166,16 @@
+     if (recovery.kind !== "ready") return invalid(recovery.reason ?? "recovery_preflight_invalid");
+     return Object.freeze({ kind: "wait_for_worker_resume", item, ruleId: SEQUENCER_UNCERTAIN_SAVE_LIFECYCLE_RULE_ID });
+   }
+-  if (item.state === "recovery_queued" && resolution.status === "resolved_saved") {
++  // "resolved_saved" e' legittimo sia con la pratica in recovery_queued sia
++  // con la pratica ancora in filling: e' l'istante in cui la GET canonica ha
++  // provato il salvataggio e il worker sta gia' proseguendo sulla pagina
++  // successiva. Fino al 14/09/2026 la coppia filling/resolved_saved cadeva
++  // nel ramo "state_status_mismatch" e il sequencer isolava una lavorazione
++  // sana (Lucia Droghetti, coorte 9218: prima pagina persistita e provata,
++  // 1/8, fermata dal sequencer). La prova richiesta e' identica: una sola
++  // sonda "saved", checkpoint di pagina "saved" con la stessa evidenza, pagina
++  // gia' fra le completate.
++  if ((item.state === "recovery_queued" || item.state === "filling") && resolution.status === "resolved_saved") {
+     const savedProofs = resolution.probes.filter((probe) => probe?.outcome === "saved");
+     if (savedProofs.length !== 1 || page.state !== "saved" || page.savedEvidenceId !== savedProofs[0].evidenceId || !item.completedPageIds?.includes(resolution.pageId)) return invalid("resolved_saved_proof_invalid");
+     return Object.freeze({ kind: "wait_for_worker_resume", item, ruleId: SEQUENCER_UNCERTAIN_SAVE_LIFECYCLE_RULE_ID });
+--- a/scripts/enea-shadow-runner/aprSequencerRecoveryQueuedGate.test.ts
++++ b/scripts/enea-shadow-runner/aprSequencerRecoveryQueuedGate.test.ts
+@@ -258,5 +258,49 @@
+ 
+     delete execution.audit;
+     expect(resolveUncertainSaveLifecycle(execution, "fixture-screening", canonicalAbsenceDriverFixture())).toMatchObject({ kind: "invalid" });
++  });
++});
++
++// Lucia Droghetti, 14/09/2026, coorte 9218: prima pagina salvata e provata
++// dalla GET canonica, worker gia' in filling sulla pagina dopo. Il sequencer
++// giudicava "state_status_mismatch:filling:resolved_saved" e isolava una
++// lavorazione sana. La prova e' la stessa richiesta in recovery_queued.
++describe("resolved_saved con la pratica ancora in filling (Droghetti)", () => {
++  const droghetti = () => ({
++    status: "running",
++    currentCustomerKey: "lucia-droghetti",
++    items: [{
++      customerKey: "lucia-droghetti",
++      state: "filling",
++      draftId: "494037",
++      serverEvidenceIds: ["cdp-server-13-7888883a4b35c43d04d7"],
++      completedPageIds: ["page:Anagrafica Beneficiario"],
++      uncertainPageSave: {
++        pageId: "page:Anagrafica Beneficiario",
++        status: "resolved_saved",
++        operatorDecision: null,
++        probes: [
++          { method: "server_redirect", outcome: "inconclusive", evidenceId: "cdp-server-12-x" },
++          { method: "persisted_fields_get", outcome: "saved", evidenceId: "cdp-server-13-7888883a4b35c43d04d7", url: "https://bonusfiscali.enea.it/pratica/ecobonus/2026/beneficiario/494037" },
++        ],
++      },
++      pageCheckpoints: [
++        { pageId: "page:Anagrafica Beneficiario", state: "saved", saveAttemptCount: 1, recoverySaveAttemptCount: 0, savedEvidenceId: "cdp-server-13-7888883a4b35c43d04d7" },
++        { pageId: "page:Immobile", state: "pending", saveAttemptCount: 0, recoverySaveAttemptCount: 0 },
++      ],
++    }],
+   });
++
++  it("lascia proseguire il worker quando la prova di salvataggio e' completa", () => {
++    expect(resolveUncertainSaveLifecycle(droghetti() as never, "lucia-droghetti")).toMatchObject({ kind: "wait_for_worker_resume" });
++  });
++
++  it("resta fail-closed se la prova di salvataggio non e' completa", () => {
++    const noProof: any = droghetti();
++    noProof.items[0].pageCheckpoints[0].savedEvidenceId = "altra-evidenza";
++    expect(resolveUncertainSaveLifecycle(noProof, "lucia-droghetti")).toMatchObject({ kind: "invalid", reason: expect.stringContaining("resolved_saved_proof_invalid") });
++    const notCompleted: any = droghetti();
++    notCompleted.items[0].completedPageIds = [];
++    expect(resolveUncertainSaveLifecycle(notCompleted, "lucia-droghetti")).toMatchObject({ kind: "invalid" });
++  });
+ });

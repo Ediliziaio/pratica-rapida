@@ -4,10 +4,45 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { buildCrmEneaDraftPackage, buildCrmEneaPayloadAudit } from "./crmEneaPayloadAudit";
 import { USER_AUTHORIZED_RULE_IDS } from "../../src/features/enea-shadow-crm/operationalRegistry";
+import type { LocalInvoiceSegment } from "./localInvoiceSegmentation";
 
 const analysis = { items: [] } as never;
 
 describe("audit payload ENEA da dossier CRM locale", () => {
+  it("usa nel payload il segmento con totale a colonne gia risolto dal preflight comune", () => {
+    const sourceId = "ordine-177:invoice:resolved";
+    const resolvedInvoiceSegments: LocalInvoiceSegment[] = [{
+      sourceId,
+      parentDocumentKey: "ordine-177",
+      index: 0,
+      text: "ORDINE DI VENDITA N. 177 DATA 15/07/2026\nTENDA DA SOLE 300 x 200 cm\nTOTALE ORDINE\n2.587,62",
+      documentNumber: "177",
+      documentDate: "2026-07-15",
+      total: 2587.62,
+      result: { path: sourceId, status: "parsed", documentType: "invoice", total: 2587.62, itemCount: 1, documentNumber: "177", documentDate: "2026-07-15" },
+      items: [{ widthMm: 3000, heightMm: 2000, surfaceM2: 6, gTot: 0.13, description: "Tenda da sole", sourcePath: sourceId }],
+      extractionMode: "native_text",
+      referencedInvoiceNumbers: [],
+      replacedInvoiceNumbers: [],
+      technicalSignature: "tenda da sole|3000|2000|0.13",
+    } as LocalInvoiceSegment];
+    const result = buildCrmEneaDraftPackage({
+      customerKey: "totale-risolto",
+      completionDate: "2026-07-15",
+      financialVerified: true,
+      reconciledTotal: 2587.62,
+      products: [{ description: "Tenda da sole", widthMm: 3000, heightMm: 2000, surfaceM2: 6, declaredType: "tende_da_sole", exposure: "sud", gTot: 0.13, gTotSource: "authorized_fallback", material: "Tessuto", movement: "Manuale", appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.invoiceFinalPrintedTotalRuntimeAuthority] }],
+      analysis: { items: [] } as never,
+      resolvedInvoiceSegments,
+      dossierValue: { row: { id: "00000000-0000-4000-8000-000000000177", cliente_nome: "Mario", cliente_cognome: "Rossi", cliente_cf: "RSSMRA80A01H501U", prodotto_installato: "Schermature solari", fatture_urls: [], documenti_aggiuntivi_urls: [], pipeline_stages: { stage_type: "pronte_da_fare" }, dati_form: { richiedente: { nome: "Mario", cognome: "Rossi", cf: "RSSMRA80A01H501U" }, prodotto: { schermature: [{ tipo_prodotto: "tende_da_sole", direzione: "sud" }] } } } },
+    });
+    expect(result.status).toBe("built");
+    if (result.status === "built") {
+      expect(result.documentAnalysis?.invoiceTotal).toBe(2587.62);
+      expect(result.documentAnalysis?.blockers).not.toContain("Il totale di almeno un documento fiscale non è stato riconosciuto.");
+    }
+  });
+
   it("costruisce una persiana con il modulo Schermature anche se l'etichetta CRM dichiara Infissi", () => {
     const result = buildCrmEneaDraftPackage({
       customerKey: "persiana-etichettata-infissi", completionDate: "2026-06-10", financialVerified: true, reconciledTotal: 1200,

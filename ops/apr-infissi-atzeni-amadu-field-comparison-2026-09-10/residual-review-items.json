@@ -1,0 +1,83 @@
+{
+  "version": "apr-atzeni-amadu-residual-review-items-v1",
+  "generatedAt": "2026-09-10T17:45:00+02:00",
+  "delivery": "record_only_not_sent",
+  "cases": [
+    {
+      "practiceId": "dc4484cd-c462-49c0-a734-3064dd6469a8",
+      "displayName": "GIOVANNA ATZENI",
+      "items": [
+        {
+          "classification": "pending_review",
+          "exactCause": "Il PDF ENEA storico dell'operatore riporta fine lavori 31/03/2026; il replay APR dai documenti originari propone 31/12/2025 dalla cronologia fatture.",
+          "missingDocumentType": null,
+          "operatorQuestion": "Per Giovanna Atzeni, la data di fine lavori corretta è 31/03/2026 come nella pratica storica oppure 31/12/2025 come ricavata da APR dalle fatture?",
+          "onboardingGap": "Raccogliere nel modulo originario una data di fine lavori esplicita e accompagnata dalla fonte.",
+          "evidenceFieldIds": ["intervento.data_fine"]
+        },
+        {
+          "classification": "pending_review",
+          "exactCause": "Il PDF ENEA storico riporta spesa Infissi 7.900,00 euro; il replay APR propone 4.582,66 euro e conserva una riconciliazione economica separata non risolta.",
+          "missingDocumentType": null,
+          "operatorQuestion": "Per Giovanna Atzeni, quale importo deve essere portato in detrazione: 7.900,00 euro oppure 4.582,66 euro, e quale documento lo prova?",
+          "onboardingGap": "Raccogliere e collegare tutte le fatture fiscali della commessa, distinguendo acconto, saldo e importo agevolabile.",
+          "evidenceFieldIds": ["infissi.spesa"]
+        },
+        {
+          "classification": "pending_review",
+          "exactCause": "Per tutti gli otto infissi il PDF storico usa telaio precedente Legno e trasmittanza 5; APR usa il fallback Metallo senza taglio termico e trasmittanza 6 perché il modulo cliente originario non è presente neppure nella vista CRM corrente.",
+          "missingDocumentType": "modulo cliente originario con materiale e vetro degli infissi sostituiti",
+          "operatorQuestion": "Per Giovanna Atzeni, confermi che tutti gli otto infissi sostituiti avevano telaio in legno e trasmittanza convenzionale 5?",
+          "onboardingGap": "Rendere obbligatori materiale del vecchio telaio e tipo di vetro nel modulo iniziale.",
+          "evidenceFieldIds": ["infissi.*.telaio_vecchio", "infissi.*.trasmittanza_vecchio"]
+        },
+        {
+          "classification": "pending_review",
+          "exactCause": "Le trasmittanze nuove del PDF storico variano tra 1,37 e 1,40; APR usa per sette righe il fallback 1,3 e per una riga legge 0,54.",
+          "missingDocumentType": null,
+          "operatorQuestion": "Per Giovanna Atzeni, confermi per gli otto infissi i valori Uw 1,40; 1,40; 1,38; 1,40; 1,37; 1,39; 1,37; 1,39 e che il valore APR 0,54 sulla sesta riga è errato?",
+          "onboardingGap": "Acquisire una tabella tecnica associabile uno-a-uno a ciascun infisso con il relativo Uw.",
+          "evidenceFieldIds": ["infissi.*.trasmittanza_nuovo"]
+        }
+      ]
+    },
+    {
+      "practiceId": "e94df373-f8f5-44b9-bd31-3e6c36025c13",
+      "displayName": "GIOVANNI AMADU",
+      "items": [
+        {
+          "classification": "pending_review",
+          "exactCause": "Il PDF ENEA storico riporta spesa Infissi 7.800,00 euro; il replay APR non produce alcun importo eseguibile e conserva una riconciliazione economica separata non risolta.",
+          "missingDocumentType": null,
+          "operatorQuestion": "Per Giovanni Amadu, confermi che la spesa da portare in detrazione è 7.800,00 euro e quale fattura o insieme di fatture la prova?",
+          "onboardingGap": "Raccogliere e collegare tutte le fatture fiscali della commessa, distinguendo acconto, saldo e importo agevolabile.",
+          "evidenceFieldIds": ["infissi.spesa"]
+        },
+        {
+          "classification": "pending_review",
+          "exactCause": "Il PDF storico riporta inizio lavori 19/12/2025 e fine lavori 31/03/2026; il replay APR non dispone di entrambe le date perché il modulo cliente originario manca anche nella vista CRM corrente.",
+          "missingDocumentType": "modulo cliente originario con date dei lavori",
+          "operatorQuestion": "Per Giovanni Amadu, confermi inizio lavori 19/12/2025 e fine lavori 31/03/2026?",
+          "onboardingGap": "Rendere obbligatorie e documentate le date di inizio e fine lavori nel modulo iniziale.",
+          "evidenceFieldIds": ["intervento.data_inizio", "intervento.data_fine"]
+        },
+        {
+          "classification": "pending_review",
+          "exactCause": "Per tutti i cinque infissi il PDF storico usa telaio precedente Legno e trasmittanza 5; APR usa il fallback Metallo senza taglio termico e trasmittanza 6 perché il modulo cliente originario non è presente neppure nella vista CRM corrente.",
+          "missingDocumentType": "modulo cliente originario con materiale e vetro degli infissi sostituiti",
+          "operatorQuestion": "Per Giovanni Amadu, confermi che tutti i cinque infissi sostituiti avevano telaio in legno e trasmittanza convenzionale 5?",
+          "onboardingGap": "Rendere obbligatori materiale del vecchio telaio e tipo di vetro nel modulo iniziale.",
+          "evidenceFieldIds": ["infissi.*.telaio_vecchio", "infissi.*.trasmittanza_vecchio"]
+        },
+        {
+          "classification": "pending_review",
+          "exactCause": "Le trasmittanze nuove del PDF storico sono 1,38; 1,36; 1,36; 1,38; 1,41; APR usa il fallback 1,3 per tutte e cinque le righe.",
+          "missingDocumentType": null,
+          "operatorQuestion": "Per Giovanni Amadu, confermi per i cinque infissi i valori Uw 1,38; 1,36; 1,36; 1,38; 1,41 invece del fallback APR 1,3?",
+          "onboardingGap": "Acquisire una tabella tecnica associabile uno-a-uno a ciascun infisso con il relativo Uw.",
+          "evidenceFieldIds": ["infissi.*.trasmittanza_nuovo"]
+        }
+      ]
+    }
+  ]
+}

@@ -47,6 +47,15 @@ function seedAnalyzedHistoricalInfissiCheckpoint(root: string) {
     return { customerKey: item.key, documentKey: `${item.key}-invoice`, kind: "invoice", textPath, state: "analyzed" };
   });
   writeJson(path.join(root, "crm-acquisition", "checkpoint.json"), { status: "completed", progress: { acquired: 2 }, items: acquisitionItems });
+  writeJson(path.join(root, "crm-original-documents", "checkpoint.json"), {
+    status: "completed",
+    items: cases.map((item) => ({
+      customerKey: item.key,
+      documentKey: `${item.key}-invoice`,
+      kind: "invoice",
+      state: "downloaded",
+    })),
+  });
   writeJson(path.join(root, "crm-document-analysis", "checkpoint.json"), { status: "completed", items: analysisItems });
   writeJson(path.join(root, "crm-local-preflight", "checkpoint.json"), {
     status: "completed",

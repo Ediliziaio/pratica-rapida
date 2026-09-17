@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-09-10T00:00:00+02:00",
+  "source": "user_manual_document_verification",
+  "scope": "r104_pronte_da_fare",
+  "previousWorkableDenominator": 15,
+  "correctedWorkableDenominator": 13,
+  "excludedAsNotWorkable": [
+    {
+      "name": "Silvia Lomartire",
+      "reason": "required_documents_absent"
+    },
+    {
+      "name": "Marina Gerbaudo",
+      "reason": "required_documents_absent"
+    }
+  ],
+  "observedSaved": 5,
+  "observedAutonomy": {
+    "numerator": 5,
+    "denominator": 13,
+    "ratio": 0.38461538461538464,
+    "roundedPercent": 38
+  },
+  "parserFamilyCasesAwaitingOperationalVerification": [
+    "Gianluca Bianco",
+    "Matia Bertarelli",
+    "Alberto Maggi"
+  ],
+  "conditionalProjectionOnly": {
+    "condition": "all_three_parser_family_cases_saved_in_future_authorized_operational_test",
+    "numerator": 8,
+    "denominator": 13,
+    "ratio": 0.6153846153846154,
+    "note": "Not an operational result; gate-only authorization is active."
+  }
+}

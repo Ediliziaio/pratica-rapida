@@ -1,0 +1,26 @@
+{
+  "version": "apr-install-bundle-cli-receipt-v1",
+  "installedAt": "2026-09-11T12:00:14.321Z",
+  "label": "final-total-only-r111",
+  "versionId": "cd448b42-final-total-only-r111-20260911",
+  "previousTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/6da0194c-infissi-closure-authority-r110-20260910",
+  "currentTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/cd448b42-final-total-only-r111-20260911",
+  "installedBundle": {
+    "apr-supervisor.mjs": "f9e8bdb1c96102f5fb95d0b355aa6a596d620cb2608856033b2b6c3144604a11",
+    "apr-enea-worker.mjs": "b0616c276e002c62d5edaad1d97c53ca211e1ffb1273d026254521b5229faebc",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "apr-rule-governance-attestation.json": "e20a710405a999d59258c37175bd23aaa4a4f5adb18133e20697f858eb4cd023"
+  },
+  "gateResultArtifactId": "4d3c21e99e2face66c1bd0fa0c2d0eb48729a83523b65b9f00eb845cae84f287",
+  "gateStatus": "PASS",
+  "governanceAttestation": {
+    "path": "apr-rule-governance-attestation.json",
+    "sha256": "e20a710405a999d59258c37175bd23aaa4a4f5adb18133e20697f858eb4cd023",
+    "historicalAuditReport": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-final-total-only-r111-2026-09-11/historical-audit-report-r111.json",
+    "authorizedHistoricalGap": true
+  },
+  "legacyGovernanceDebtNoticed": [
+    "user-2026-09-05-co-beneficiary-trusted-enter-delivery-v2",
+    "user-2026-09-05-terminal-cohort-browser-quiescence-v1"
+  ]
+}

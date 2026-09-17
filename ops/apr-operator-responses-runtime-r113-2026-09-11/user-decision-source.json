@@ -1,0 +1,11 @@
+{
+  "version": "apr-user-decision-source-v1",
+  "messages": [
+    {
+      "threadId": "current-pratica-rapida",
+      "messageId": "chat-operator-responses-runtime-priority",
+      "startedAt": "2026-09-11T00:00:00.000Z",
+      "text": "Priorita assoluta: le risposte operatore non devono restare in un file di audit passivo. Devono essere persistite dove il preflight le legge e applicate al prossimo giro. Verificare l'applicazione di Mondini 540x400, Kasermann 300x200, Maeschi chiusa, Maggi foglio 9 particella 6642, Depalma metallo vetro doppio, Capatti 7 infissi, Cigognetti prima finestra e tutte le altre risposte odierne."
+    }
+  ]
+}

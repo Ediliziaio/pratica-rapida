@@ -1,0 +1,35 @@
+{
+  "version": "apr-crm-ombra-federico-marino-single-v1",
+  "authorizationId": "user-2026-09-16-federico-marino-crm-ombra-single-v1",
+  "authorizedAt": "2026-09-16T19:00:00.000Z",
+  "mode": "real_enea_draft_only",
+  "selection": {
+    "total": 1,
+    "allowedStages": ["pronte_da_fare"],
+    "excludedCustomerKeys": [],
+    "groups": [{ "id": "crm_ombra_single", "count": 1 }]
+  },
+  "safety": {
+    "draftOnly": true,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false,
+    "priorDraftPolicy": "fresh_generation_only"
+  },
+  "cases": [
+    {
+      "practiceId": "5aa5410c-f849-4dfc-b55a-ddccf911303e",
+      "customerKey": "federico-marino",
+      "displayName": "Federico Marino",
+      "stage": "pronte_da_fare",
+      "stageName": "Pronte da fare",
+      "module": "screening",
+      "productEvidence": "Schermature Solari",
+      "reseller": null,
+      "historicalRetest": false,
+      "reacquireBeforeReplay": true,
+      "expectedRouting": "standard",
+      "group": "crm_ombra_single"
+    }
+  ]
+}

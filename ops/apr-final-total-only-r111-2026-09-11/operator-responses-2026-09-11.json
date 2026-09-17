@@ -1,0 +1,96 @@
+{
+  "version": "apr-operator-responses-v1",
+  "recordedAt": "2026-09-11T09:37:00.000Z",
+  "source": "Giuliano, risposta esplicita in chat del 2026-09-11",
+  "communicationsSent": false,
+  "crmMutationsPerformed": false,
+  "responses": [
+    {
+      "customerKeys": ["filippo-bigalli", "alessandro-zaniboni", "rocco-giacotto", "paolino-bellini", "gabriele-girelli", "silvia-lomartire"],
+      "answer": "Le fatture mancanti sono state caricate nel CRM; riacquisire integralmente il fascicolo prima del nuovo tentativo.",
+      "effect": "reacquire_before_replay"
+    },
+    {
+      "customerKeys": ["marina-gerbaudo"],
+      "answer": "Pratica non lavorabile.",
+      "effect": "exclude_from_workable_denominator"
+    },
+    {
+      "customerKeys": ["antonino-formisano", "antonino-formisabo"],
+      "answer": "La pratica non e piu presente nel CRM.",
+      "effect": "remove_from_current_scope_after_historical_lineage_audit"
+    },
+    {
+      "customerKeys": ["patrizia-muzzi"],
+      "answer": "Le misure sono nella descrizione testuale della riga fattura.",
+      "effect": "general_rule_candidate",
+      "ruleCandidate": "Le misure prodotto possono essere estratte anche dal testo descrittivo della riga fattura, non soltanto da campi o colonne dedicate."
+    },
+    {
+      "customerKeys": ["rossella-munafo"],
+      "answer": "Prodotto bioclimatica; Brianza Serramenti compare in fattura come Unionsteel e allega fogli manoscritti senza misure in fattura.",
+      "effect": "operator_required_case",
+      "operatorQuestion": "Indica le misure della bioclimatica riportate nel foglio manoscritto corretto per questa pratica."
+    },
+    {
+      "customerKeys": ["sarah-mondini"],
+      "answer": "Una pergotenda, 540 x 400 cm.",
+      "effect": "operator_answer"
+    },
+    {
+      "customerKeys": ["giulia-kasermann"],
+      "answer": "Una tenda da sole, 300 x 200 cm.",
+      "effect": "operator_answer"
+    },
+    {
+      "customerKeys": ["stefano-buosi"],
+      "answer": "Sono stati allegati i certificati di trasmittanza contenenti le misure; riacquisire il fascicolo.",
+      "effect": "reacquire_before_replay"
+    },
+    {
+      "customerKeys": ["anthony-pool-juscamaita-fuertes"],
+      "answer": "Misure ancora attese dal fornitore.",
+      "effect": "keep_operator_question_open"
+    },
+    {
+      "customerKeys": ["alberto-maggi"],
+      "answer": "Foglio 9, particella 6642.",
+      "effect": "operator_answer"
+    },
+    {
+      "customerKeys": ["luca-cigognetti"],
+      "answer": "La zanzariera va associata alla prima finestra inserita sul portale.",
+      "effect": "general_rule_candidate",
+      "ruleCandidate": "Quando una zanzariera documentata nella stessa pratica Infissi non e associata a una finestra specifica, assegnarla alla prima finestra nell'ordine del portale."
+    },
+    {
+      "customerKeys": ["elena-depalma"],
+      "answer": "Il form cliente indica metallo e vetro doppio; vale per tutti e cinque gli infissi esistenti.",
+      "effect": "general_rule_candidate",
+      "ruleCandidate": "Leggere il form cliente prima di dichiarare generica la descrizione del vecchio infisso; un abbinamento unico esplicito nel form vale per tutte le righe del gruppo."
+    },
+    {
+      "customerKeys": ["marcella-capatti"],
+      "answer": "Sette infissi: cinque righe in fattura, due con quantita due.",
+      "effect": "general_rule_candidate",
+      "ruleCandidate": "La cardinalita fisica e la somma delle quantita delle righe, non il numero delle righe."
+    },
+    {
+      "customerKeys": ["mario-spano"],
+      "answer": "Non ci sono avvolgibili: sono infissi con cassonetti; le misure sono nei certificati allegati.",
+      "effect": "general_rule_candidate",
+      "ruleCandidate": "I cassonetti non sono prodotti ENEA e non incrementano la cardinalita, ma il totale finale della fattura resta invariato e li comprende."
+    },
+    {
+      "customerKeys": ["angela-tuttolani", "antonella-ferletic", "claudia-sellati", "claudio-beghini", "fabio-sartori", "fabrizio-pelizzari", "giovanni-pescatori", "lucia-lagrasta", "luigi-carfora", "matteo-capitanelli", "natale-tiraboschi", "rosa-toscano", "santo-giuga", "vera-buracchi"],
+      "answer": "Usare normalmente la cronologia delle fatture; se il form del rivenditore contiene una data di fine lavori esplicita, quella prevale sulla fattura.",
+      "effect": "general_rule_candidate",
+      "ruleCandidate": "La data esplicita di fine lavori nel form del rivenditore prevale sulla data fattura; in sua assenza si applica la cronologia fatture."
+    }
+  ],
+  "safety": {
+    "eneaPreviewAllowed": false,
+    "eneaSubmitAllowed": false,
+    "communicationsAllowed": false
+  }
+}

@@ -3,8 +3,8 @@ import { closeSync, existsSync, fsyncSync, mkdirSync, openSync, readFileSync, re
 import path from "node:path";
 import { isValidCodiceFiscale } from "../../src/components/form-cliente/validation-utils";
 import { combineDocumentResults, parseScreeningInvoiceText, parseScreeningTechnicalSourceText, PERSIANA_MEASURE_LIMITS_MM, stripHistoricalEneaAppendix } from "../../src/features/enea-lab/invoiceParser";
-import { fingerprintPreparedPractice } from "../../src/features/enea-lab/preparation";
 import { reconcileFinancialEvidence } from "../../src/features/enea-shadow-crm/financialReconciliation";
+import { buildAprAuthoritativeEconomicDecision, type AprAuthoritativeEconomicDecision } from "../../src/features/enea-shadow-crm/authoritativeEconomicDecision";
 import { USER_AUTHORIZED_RULE_IDS, registryRule } from "../../src/features/enea-shadow-crm/operationalRegistry";
 import { structureAprResidualBlocker } from "../../src/features/enea-shadow-crm/technicalAutonomyMetric";
 import { birthNationFromProvince, fiscalCodeMatchesPartialIdentity, repairFiscalCodeSingleOcrConfusable, resolveBeneficiaryFiscalCode, resolveForeignBirthCountryFromFiscalCode } from "../../src/features/enea-shadow-crm/operationalRules";
@@ -12,28 +12,74 @@ import { classifyScreeningProduct, resolveScreeningGTot } from "../../src/featur
 import { resolveOfficialMunicipalityCanonicalIdentity } from "../../src/features/enea-shadow-crm/officialMunicipalities";
 import type { AprCrmAcquisitionItem } from "./crmAuthenticatedReadOnly";
 import type { PersistentAprCrmDocumentAnalysis } from "./crmDocumentAnalysis";
-import { buildCrmEneaDraftPackage, buildCrmEneaPayloadAudit, type CrmEneaPayloadAuditResult } from "./crmEneaPayloadAudit";
+import { buildCrmEneaPayloadAuditAndExecutablePlan, type CrmEneaPayloadAuditResult, type CrmEneaPreflightExecutablePlan } from "./crmEneaPayloadAudit";
 import { extractBankTransferEvidences, firstBankTransferHeaderIndex, reconcileBankTransfers } from "./bankTransferEvidence";
-import { extractLocalInvoiceFinancialEvidence, hasInternalAdvanceCreditLine } from "./localInvoiceFinancialEvidence";
-import { EXPLICIT_ADVANCE_INVOICE_REFERENCE_MARKER_RULE_ID, EXPLICIT_PERCENTAGE_CAUSAL_TECHNICAL_SUPERSESSION_RULE_ID, NATIVE_OCR_FISCAL_DUPLICATE_AUTHORITY_RULE_ID, reconcileLocalInvoiceSegments, splitLocalInvoiceText } from "./localInvoiceSegmentation";
+import { extractLocalInvoiceFinancialEvidence } from "./localInvoiceFinancialEvidence";
+import { EXPLICIT_ADVANCE_INVOICE_REFERENCE_MARKER_RULE_ID, EXPLICIT_PERCENTAGE_CAUSAL_TECHNICAL_SUPERSESSION_RULE_ID, NATIVE_OCR_FISCAL_DUPLICATE_AUTHORITY_RULE_ID, reconcileLocalInvoiceSegments, splitLocalInvoiceText, type LocalInvoiceSegment } from "./localInvoiceSegmentation";
 import { isLineaSolePotitoPaperForm, lineaSolePotitoSupplierEvidence, ORIGINAL_PRACTICA_RAPIDA_PAPER_FORM_RULE_ID, PAPER_FORM_BIRTH_DATE_OCR_REPAIR_RULE_ID, parseLineaSolePotitoPaperForm, resolveLineaSolePotitoExposure, resolveLineaSolePotitoProtectedWindowSurface } from "./lineaSolePotitoPolicy";
 import type { AprEneaDraftPackage } from "./aprEneaBrowserWorker";
 import { isScreeningOnlyCommonBlocker } from "./commonBlockerApplicability";
-import { APR_FUTURE_TEST_EXCLUSION_RULE_ID, aprAutomationExclusion } from "./aprFutureTestExclusions";
+import { aprAutomationExclusion } from "./aprFutureTestExclusions";
+import { applyOperatorResponseDossierOverrides, operatorScreeningProducts, PersistentAprOperatorResponseLedger, type AprOperatorResponseProjection } from "./operatorResponseLedger";
+import { readPrintedDocumentTotal, type PrintedDocumentTotal } from "./printedDocumentTotal";
 
 export const APR_CRM_LOCAL_PREFLIGHT_VERSION = "apr-crm-local-preflight-v1" as const;
 export const RESOLVED_NON_ECONOMIC_TOTAL_BLOCKER_RETIREMENT_RULE_ID = "system-resolved-non-economic-total-blocker-retirement-v1" as const;
 export const EXPLICIT_ORIGINAL_COMPLETION_DATE_RULE_ID = "system-explicit-original-completion-date-v1" as const;
 export const SPECIFIC_INCOMPLETE_SCREENING_BLOCKER_RULE_ID = "system-specific-incomplete-screening-blocker-v1" as const;
+export const UPSTREAM_PREFLIGHT_TERMINALIZATION_RULE_ID = "system-preflight-upstream-terminal-propagation-v1" as const;
 // Decisione di Giuliano (2026-09-07, USER_AUTHORIZED_RULE_IDS.bankTransferReconciliationGateSuspended):
 // sospensione temporanea del controllo bonifici, da rivalutare entro dicembre
 // 2026 per un eventuale requisito di separazione pagamenti 2026/2027
 // richiesto da ENEA. Vedi il commento sopra invoiceSegments e i due blocker
 // bank_transfer_* per i due punti in cui questo flag e' applicato.
 const BANK_TRANSFER_RECONCILIATION_GATE_SUSPENDED = true;
-const BASE_RULE_IDS = ["core-form-first", "core-economic-classification", "core-gross-triple-reconciliation", "core-mapping-complete", "system-single-active-practice", "system-atomic-checkpoint-resume", USER_AUTHORIZED_RULE_IDS.tenCaseMondayRestart];
+const BASE_RULE_IDS = ["core-form-first", "core-economic-classification", USER_AUTHORIZED_RULE_IDS.invoiceFinalPrintedTotalRuntimeAuthority, USER_AUTHORIZED_RULE_IDS.advanceBalanceFiscalInvoiceEquivalence, USER_AUTHORIZED_RULE_IDS.invoiceSlotContentAuthority, "core-mapping-complete", "system-single-active-practice", "system-atomic-checkpoint-resume", UPSTREAM_PREFLIGHT_TERMINALIZATION_RULE_ID, USER_AUTHORIZED_RULE_IDS.tenCaseMondayRestart];
 const sha256 = (value: unknown) => createHash("sha256").update(JSON.stringify(value)).digest("hex");
 type PreflightBlocker = { code: string; field: string; reason: string; sourceIds: string[]; appliedRuleIds: string[] };
+
+export function applyPrintedDocumentTotalFallback(
+  segments: readonly LocalInvoiceSegment[],
+): { segments: LocalInvoiceSegment[]; recovered: Array<{ sourceId: string; reading: PrintedDocumentTotal }> } {
+  const recovered: Array<{ sourceId: string; reading: PrintedDocumentTotal }> = [];
+  const resolved = segments.map((segment) => {
+    if (segment.total !== null) return segment;
+    const reading = readPrintedDocumentTotal(segment.text);
+    if (!reading) return segment;
+    recovered.push({ sourceId: segment.sourceId, reading });
+    return {
+      ...segment,
+      total: reading.amount,
+      result: { ...segment.result, total: reading.amount },
+    };
+  });
+  return { segments: resolved, recovered };
+}
+
+export function applyOperatorInvoiceTotalOverride(
+  segments: readonly LocalInvoiceSegment[],
+  invoiceTotal: number | null,
+): { segments: LocalInvoiceSegment[]; appliedSourceIds: string[] } {
+  if (invoiceTotal === null || !Number.isFinite(invoiceTotal) || invoiceTotal <= 0) {
+    return { segments: [...segments], appliedSourceIds: [] };
+  }
+  const unresolved = segments.filter((segment) => segment.total === null);
+  if (unresolved.length === 0) return { segments: [...segments], appliedSourceIds: [] };
+  const identities = new Set(unresolved.map((segment) => `${segment.documentNumber ?? ""}|${segment.documentDate ?? ""}`));
+  const identity = [...identities][0] ?? "|";
+  // Una risposta puo valorizzare piu scansioni soltanto quando numero e data
+  // provano che rappresentano lo stesso documento. Documenti diversi con
+  // totale mancante restano fail-closed: un solo importo non viene ripartito.
+  const mayApply = unresolved.length === 1 || (identities.size === 1 && identity !== "|");
+  if (!mayApply) return { segments: [...segments], appliedSourceIds: [] };
+  const appliedSourceIds = new Set(unresolved.map((segment) => segment.sourceId));
+  return {
+    segments: segments.map((segment) => appliedSourceIds.has(segment.sourceId)
+      ? { ...segment, total: invoiceTotal, result: { ...segment.result, total: invoiceTotal } }
+      : segment),
+    appliedSourceIds: [...appliedSourceIds],
+  };
+}
 
 export function isResolvedNonEconomicTotalBlocker(
   message: string,
@@ -129,9 +175,11 @@ export interface AprCrmLocalPreflightReport {
   taxCodeSourceIds: string[];
   primaryBeneficiaryResolution: {
     status: "verified_document" | "not_found" | "conflict";
+    conflictKind?: "identity" | "birth_date";
     identity: { name: string; surname: string; taxCode: string; birthDate: string | null; sex: "M" | "F" } | null;
     sourceIds: string[];
     authority: "official_identity_document" | "fiscal_document" | null;
+    birthDateSource?: "form_century_with_fiscal_code" | "fiscal_code_over_form" | null;
   };
   worksMunicipalityResolution: {
     status: "verified_document" | "not_found" | "conflict";
@@ -146,7 +194,8 @@ export interface AprCrmLocalPreflightReport {
   };
   products: ProductPlanRow[];
   financial: {
-    invoiceTotal: number | null; eligibleExpense: number | null; tripleReconciliationVerified: boolean; reconciledTotal: number | null;
+    invoiceTotal: number | null; eligibleExpense: number | null; finalPrintedTotalVerified: boolean; /** @deprecated compatibilita checkpoint storici */ tripleReconciliationVerified: boolean; reconciledTotal: number | null;
+    authoritativeDecision?: AprAuthoritativeEconomicDecision;
     evidence: Array<{ sourceId: string; kind: string; taxableAmount: number | null; vatAmount: number | null; grossTotal: number | null; interventionGrossAmount: number | null; extractionConfidence: string; extractionIssues: Array<{ code: string; reason: string }> }>;
     bankTransfers: Array<{ sourceId: string; principalAmount: number | null; fees: number | null; debitedTotal: number | null; invoiceReference: string | null; taxReliefType: "energy_saving" | "building_renovation" | null; appliedRuleIds: string[] }>;
     bankTransferReconciliation: { status: "not_provided" | "unverified" | "reconciled" | "principal_exceeds_invoices" | "principal_below_invoices"; principalTotal: number | null; feesTotal: number | null; debitedTotal: number | null; difference: number | null; referenceStatus: "not_provided" | "not_checked" | "incomplete" | "verified"; missingInvoiceReferences: string[]; taxReliefTypes: Array<"energy_saving" | "building_renovation"> };
@@ -156,9 +205,10 @@ export interface AprCrmLocalPreflightReport {
     appliedRuleIds: string[];
   };
   warnings: Array<{ code: string; reason: string; appliedRuleIds: string[] }>;
-  blockers: Array<{ code: string; field: string; reason: string; sourceIds: string[]; appliedRuleIds: string[]; exactCause?: string; operatorQuestion?: string; missingDocumentType?: string | null; onboardingGap?: string | null }>;
+  blockers: Array<{ code: string; field: string; reason: string; sourceIds: string[]; appliedRuleIds: string[]; exactCause?: string; operatorQuestion?: string; missingDocumentType?: string | null; onboardingGap?: string | null; reportingCategory?: "excluded_upstream" }>;
   sourceIds: string[];
   eneaPayloadAudit: CrmEneaPayloadAuditResult;
+  eneaExecutablePlan: CrmEneaPreflightExecutablePlan | null;
   draftPlan: { status: "ready_before_external_action" | "blocked"; externalActionAllowed: false; previewAllowed: false; submitAllowed: false; communicationsAllowed: false; nextAction: string };
 }
 export interface AprCrmLocalPreflightItem {
@@ -175,6 +225,22 @@ export interface AprCrmLocalPreflightState {
   sourceRevisionsApplied: string[];
   operatorMeasurementResolutions: Array<{ questionId: string; customerKey: string; sourceId: string; description: string; rawWidth: number; rawHeight: number; unit: "millimeters" | "centimeters"; note: string; operatorId: string; commandId: string; answeredAt: string }>;
   audit: Array<{ revision: number; at: string; type: "initialized" | "prepared" | "claimed" | "case_ready" | "case_blocked" | "case_deferred" | "source_revision_applied" | "validation_recomputed" | "operator_resolution_requeued" | "completed"; customerKey: string | null; reason: string; appliedRuleIds: string[] }>;
+}
+
+type AprCrmUpstreamTerminalEvidence = {
+  version: "apr-crm-upstream-terminal-evidence-v1";
+  customerKey: string;
+  displayName: string;
+  practiceId: string;
+  acquisitionState: Extract<AprCrmAcquisitionItem["state"], "blocked_not_found" | "blocked_ambiguous" | "blocked_invalid_response">;
+  reason: string;
+};
+
+export function acquisitionCanTerminalizeWithoutDocuments(items: readonly AprCrmAcquisitionItem[]) {
+  return items.length > 0 && items.every((item) => item.state === "blocked_not_found"
+    || item.state === "blocked_ambiguous"
+    || item.state === "blocked_invalid_response"
+    || (item.state === "acquired" && (Boolean(item.automationExclusion) || item.sourceDocumentCount === 0)));
 }
 
 type AprCrmLocalPreflightBlocker = AprCrmLocalPreflightReport["blockers"][number];
@@ -265,6 +331,32 @@ function atomicWrite(target: string, contents: string) {
   renameSync(temporary, target); const directory = openSync(path.dirname(target), "r"); try { fsyncSync(directory); } finally { closeSync(directory); }
 }
 const object = (value: unknown): JsonObject | null => value && typeof value === "object" && !Array.isArray(value) ? value as JsonObject : null;
+// Checkpoint storici e fixture precedenti alla revisione semantica non hanno
+// `semanticKind`: in quel solo caso conserva il tipo originario. Una
+// classificazione semantica esplicita, anche quando declassa uno slot invoice,
+// prevale sempre.
+const isSemanticInvoice = (item: { kind?: unknown; semanticKind?: unknown }) => (item.semanticKind ?? item.kind) === "invoice";
+
+/**
+ * Compone due fonti dello stesso form senza permettere alla fonte secondaria
+ * di sovrascrivere un valore gia' presente. Una sezione inline parziale non
+ * deve mascherare le sezioni esplicite lette dal modulo cartaceo originario;
+ * conflitti reali restano invece invariati sul valore primario e quindi
+ * auditabili/fail-closed dai resolver di campo a valle.
+ */
+export function mergeOriginalFormSourcesPreferPrimary(primaryValue: unknown, secondaryValue: unknown): JsonObject | null {
+  const merge = (primary: unknown, secondary: unknown): unknown => {
+    const primaryObject = object(primary); const secondaryObject = object(secondary);
+    if (primaryObject && secondaryObject) {
+      const keys = new Set([...Object.keys(secondaryObject), ...Object.keys(primaryObject)]);
+      return Object.fromEntries([...keys].map((key) => [key, merge(primaryObject[key], secondaryObject[key])]));
+    }
+    if (Array.isArray(primary)) return primary.length > 0 ? primary : Array.isArray(secondary) ? secondary : primary;
+    if (primary === null || primary === undefined || (typeof primary === "string" && !primary.trim())) return secondary;
+    return primary;
+  };
+  return object(merge(primaryValue, secondaryValue));
+}
 const text = (value: unknown) => typeof value === "string" ? value.trim() : "";
 const number = (value: unknown) => typeof value === "number" && Number.isFinite(value) ? value : null;
 const normalizeCf = (value: unknown) => text(value).replace(/\s+/g, "").toUpperCase();
@@ -328,7 +420,17 @@ export function resolveBundledProfessionalExpense(
   return { status: "gross_used_marker_present" as const, eligibleTechnicalExpense: grossInvoiceTotal, excludedUnclassifiedExpense: 0, markers: allMarkers };
 }
 
-const LABELED_FISCAL_CODE = /(?:c\s*\.?\s*f\s*\.?|c\.?\s*fisc\.?|codice\s+fiscale)\s*[:\-]?\s*([A-Z0-9]{16})\b/gi;
+// Il codice fiscale sulle fatture non e' etichettato in un modo solo. Fino al
+// 13/09/2026 questo schema conosceva "C.F.", "C F" e "codice fiscale", ma non
+// "Cod. Fisc.", che e' la forma delle fatture Cisam: su Gemma Minore il CF era
+// stampato in chiaro (riga 19: "Cod. Fisc. MNRGMM95H42G273W") e APR concludeva
+// che il beneficiario non fosse verificabile su documento, ricadendo nel ramo
+// che chiedeva all'operatore il cointestatario — la stessa domanda, giro dopo
+// giro, a cui era gia' stata data risposta il 12/09.
+//
+// Il vincolo di 16 caratteri tiene fuori le partite IVA, che sui documenti
+// condividono spesso la stessa etichetta ("C.F./P.Iva 04332691205").
+const LABELED_FISCAL_CODE = /(?:cod(?:ice)?\s*\.?\s*fisc(?:ale)?\s*\.?|c\s*\.?\s*fisc(?:ale)?\s*\.?|c\s*\.?\s*f\s*\.?)\s*[:\-]?\s*([A-Z0-9]{16})\b/gi;
 export const INVOICE_CUSTOMER_BLOCK_CRM_CF_RULE_ID = "system-invoice-customer-block-crm-cf-v1" as const;
 export const RESELLER_ADDRESSEE_MULTI_LINE_BENEFICIARY_LOOKUP_RULE_ID = "user-2026-09-08-reseller-addressee-multi-line-beneficiary-lookup-v1" as const;
 
@@ -388,7 +490,11 @@ function personNameCase(value: string) {
   return value.toLocaleLowerCase("it-IT").replace(/(^|[\s'’-])([a-zà-öø-ÿ])/giu, (_match, separator: string, letter: string) => `${separator}${letter.toLocaleUpperCase("it-IT")}`);
 }
 
-function splitInvoicePersonName(fullName: string, taxCode: string, preferShortest = false) {
+// Cognomi composti (Della Vedova, De Filippo, Di Maio): piu tagli sono coerenti
+// con i prefissi del CF. Se il modulo cliente riproduce esattamente uno dei
+// tagli, e quello a vincere; altrimenti resta il taglio piu corto (regola
+// user-2026-09-16-invoice-person-name-split-from-form-v1).
+function splitInvoicePersonName(fullName: string, taxCode: string, preferShortest = false, hint?: { name: string; surname: string } | null) {
   const words = fullName.replace(/\s+/g, " ").trim().split(" ").filter(Boolean);
   const candidates: Array<{ name: string; surname: string; taxCode: string; wordCount: number }> = [];
   // OCR/layout text often places address or invoice headings on the same line
@@ -405,6 +511,10 @@ function splitInvoicePersonName(fullName: string, taxCode: string, preferShortes
         }
       }
     }
+  }
+  if (hint && hint.name && hint.surname) {
+    const hinted = candidates.filter((candidate) => normalizedIdentityText(candidate.name) === normalizedIdentityText(hint.name) && normalizedIdentityText(candidate.surname) === normalizedIdentityText(hint.surname));
+    if (hinted.length >= 1) { const { wordCount: _wordCount, ...candidate } = hinted[0]; return candidate; }
   }
   const minimum = Math.min(...candidates.map((candidate) => candidate.wordCount));
   const eligible = preferShortest ? candidates.filter((candidate) => candidate.wordCount === minimum) : candidates.filter((candidate) => candidate.wordCount === words.length);
@@ -488,7 +598,7 @@ function explicitInvoiceCoBeneficiaries(textValue: string) {
   return [...new Map(results.map((candidate) => [candidate.taxCode, candidate])).values()];
 }
 
-function explicitInvoicePrimaryBeneficiaries(textValue: string) {
+function explicitInvoicePrimaryBeneficiaries(textValue: string, hint?: { name: string; surname: string } | null) {
   const results: Array<{ name: string; surname: string; taxCode: string }> = [];
   const lines = stripHistoricalEneaAppendix(textValue).split(/\r?\n/).map((value) => value.replace(/\s+/g, " ").trim()).filter(Boolean);
   for (let index = 0; index < lines.length; index += 1) {
@@ -500,7 +610,7 @@ function explicitInvoicePrimaryBeneficiaries(textValue: string) {
     const taxCode = normalizeCf(cfMatch[1]);
     if (!isValidCodiceFiscale(taxCode)) continue;
     const fullName = window.slice(0, cfMatch.index).replace(/\b(?:p\.?\s*iva|partita\s+iva)\b.*$/i, "").trim();
-    const identity = splitInvoicePersonName(fullName, taxCode, true);
+    const identity = splitInvoicePersonName(fullName, taxCode, true, hint);
     if (identity) results.push(identity);
   }
   return [...new Map(results.map((candidate) => [`${candidate.name}|${candidate.surname}|${candidate.taxCode}`, candidate])).values()];
@@ -575,7 +685,7 @@ export function resolveWorksMunicipalityFromOriginalInvoices(input: {
 }) {
   const candidates = new Map<string, { value: { comune: string; provincia: string }; sourceIds: string[] }>();
   for (const item of input.analysis.items) {
-    if (item.customerKey !== input.customerKey || item.kind !== "invoice" || item.state !== "analyzed" || !item.textPath || !existsSync(item.textPath)) continue;
+    if (item.customerKey !== input.customerKey || !isSemanticInvoice(item) || item.state !== "analyzed" || !item.textPath || !existsSync(item.textPath)) continue;
     const found = explicitInvoiceWorksMunicipality(readFileSync(item.textPath, "utf8"), { requireDeliveryDestinationMarker: input.requireDeliveryDestinationMarker });
     if (!found) continue;
     const key = `${normalizedIdentityText(found.comune)}|${found.provincia}`;
@@ -615,7 +725,7 @@ export function resolveCrmFiscalCodeFromOriginalInvoiceCustomerBlock(input: {
   const discoveredCodes = new Set<string>();
   let usedCfDestinatarioAnchor = false;
   for (const item of input.analysis.items) {
-    if (item.customerKey !== input.customerKey || item.kind !== "invoice" || item.state !== "analyzed" || !item.textPath || !existsSync(item.textPath)) continue;
+    if (item.customerKey !== input.customerKey || !isSemanticInvoice(item) || item.state !== "analyzed" || !item.textPath || !existsSync(item.textPath)) continue;
     const pages = stripHistoricalEneaAppendix(readFileSync(item.textPath, "utf8")).split(/\f/);
     for (const page of pages) {
       const lines = page.split(/\r?\n/).map((value) => value.replace(/\s+/g, " ").trim()).filter(Boolean);
@@ -675,7 +785,7 @@ export function resolvePrimaryBeneficiaryFromOriginalInvoices(input: {
   if (!input.taxCode) return { status: "not_found" as const, identity: null, sourceIds: [] as string[] };
   const candidates = new Map<string, { identity: { name: string; surname: string; taxCode: string }; sourceIds: string[] }>();
   for (const item of input.analysis.items) {
-    if (item.customerKey !== input.customerKey || item.kind !== "invoice" || item.state !== "analyzed" || !item.textPath || !existsSync(item.textPath)) continue;
+    if (item.customerKey !== input.customerKey || !isSemanticInvoice(item) || item.state !== "analyzed" || !item.textPath || !existsSync(item.textPath)) continue;
     for (const identity of explicitInvoicePrimaryBeneficiaries(readFileSync(item.textPath, "utf8"))) {
       if (identity.taxCode !== input.taxCode) continue;
       const key = `${normalizedIdentityText(identity.name)}|${normalizedIdentityText(identity.surname)}|${identity.taxCode}`;
@@ -693,16 +803,18 @@ export function resolvePrimaryBeneficiaryFromOfficialDocuments(input: {
   customerKey: string;
   taxCode: string | null;
   requesterBirthDate?: string | null;
+  requesterIdentity?: { name: string; surname: string } | null;
   analysis: ReturnType<PersistentAprCrmDocumentAnalysis["snapshot"]>;
+  now?: Date;
 }) {
-  if (!input.taxCode) return { status: "not_found" as const, identity: null, sourceIds: [] as string[], authority: null };
+  if (!input.taxCode) return { status: "not_found" as const, identity: null, sourceIds: [] as string[], authority: null, birthDateSource: null };
   const officialCandidates = new Map<string, { identity: { name: string; surname: string; taxCode: string }; sourceIds: string[] }>();
   const fiscalCandidates = new Map<string, { identity: { name: string; surname: string; taxCode: string }; sourceIds: string[] }>();
   for (const item of input.analysis.items) {
     if (item.customerKey !== input.customerKey || item.state !== "analyzed" || !item.textPath || !existsSync(item.textPath)) continue;
     const originalText = readFileSync(item.textPath, "utf8");
     const official = explicitOfficialIdentityBeneficiaries(originalText).filter((identity) => identity.taxCode === input.taxCode);
-    const fiscal = item.kind === "invoice" ? explicitInvoicePrimaryBeneficiaries(originalText).filter((identity) => identity.taxCode === input.taxCode) : [];
+    const fiscal = isSemanticInvoice(item) ? explicitInvoicePrimaryBeneficiaries(originalText, input.requesterIdentity ?? null).filter((identity) => identity.taxCode === input.taxCode) : [];
     for (const [authorityCandidates, identities] of [[officialCandidates, official], [fiscalCandidates, fiscal]] as const) for (const identity of identities) {
       const key = `${normalizedIdentityText(identity.name)}|${normalizedIdentityText(identity.surname)}|${identity.taxCode}`;
       const candidate = authorityCandidates.get(key) ?? { identity, sourceIds: [] };
@@ -714,8 +826,8 @@ export function resolvePrimaryBeneficiaryFromOfficialDocuments(input: {
   // fiscal documents are considered only when no official identity is present.
   const candidates = officialCandidates.size ? officialCandidates : fiscalCandidates;
   const authority = officialCandidates.size ? "official_identity_document" as const : "fiscal_document" as const;
-  if (candidates.size === 0) return { status: "not_found" as const, identity: null, sourceIds: [] as string[], authority: null };
-  if (candidates.size > 1) return { status: "conflict" as const, identity: null, sourceIds: [...new Set([...candidates.values()].flatMap((candidate) => candidate.sourceIds))].sort(), authority: null };
+  if (candidates.size === 0) return { status: "not_found" as const, identity: null, sourceIds: [] as string[], authority: null, birthDateSource: null };
+  if (candidates.size > 1) return { status: "conflict" as const, conflictKind: "identity" as const, identity: null, sourceIds: [...new Set([...candidates.values()].flatMap((candidate) => candidate.sourceIds))].sort(), authority: null, birthDateSource: null };
   const candidate = [...candidates.values()][0];
   const encodedYear = Number(candidate.identity.taxCode.slice(6, 8));
   const encodedMonth = "ABCDEHLMPRST".indexOf(candidate.identity.taxCode[8]) + 1;
@@ -725,16 +837,33 @@ export function resolvePrimaryBeneficiaryFromOfficialDocuments(input: {
   const requesterBirthDate = text(input.requesterBirthDate).slice(0, 10);
   const requesterDateMatch = requesterBirthDate.match(/^(\d{4})-(\d{2})-(\d{2})$/);
   // Il CF documentale prova giorno, mese, sesso e le ultime due cifre
-  // dell'anno, ma non il secolo. Il solo dato CRM ammesso e' quindi il secolo,
-  // e soltanto quando le ultime due cifre concordano. Altrimenti il caso resta
-  // fail-closed: non inventiamo 19xx/20xx.
-  if (requesterDateMatch && Number(requesterDateMatch[1].slice(-2)) !== encodedYear) return {
-    status: "conflict" as const,
-    identity: null,
-    sourceIds: [...new Set(candidate.sourceIds)].sort(),
-    authority: null,
-  };
-  const birthDate = requesterDateMatch && encodedMonth > 0 && encodedDay >= 1 && encodedDay <= 31
+  // dell'anno, ma non il secolo. Se l'anno del modulo concorda, il modulo
+  // fornisce il secolo. Se l'anno del modulo contraddice il CF ma giorno e
+  // mese concordano, vale il CF (triangolazione modulo-CF-fattura decisa dal
+  // titolare il 16/09/2026): il secolo e' l'unico che da un'eta fra 18 e 110
+  // anni. Giorno o mese discordi, o secolo ambiguo, restano fail-closed.
+  const validDayMonth = encodedMonth > 0 && encodedDay >= 1 && encodedDay <= 31;
+  if (requesterDateMatch && Number(requesterDateMatch[1].slice(-2)) !== encodedYear) {
+    const formMonth = Number(requesterDateMatch[2]); const formDay = Number(requesterDateMatch[3]);
+    const dayMonthAgree = validDayMonth && formMonth === encodedMonth && formDay === encodedDay;
+    const century = dayMonthAgree ? plausibleBirthCentury(encodedYear, input.now ?? new Date()) : null;
+    if (!dayMonthAgree || century === null) return {
+      status: "conflict" as const,
+      conflictKind: "birth_date" as const,
+      identity: null,
+      sourceIds: [...new Set(candidate.sourceIds)].sort(),
+      authority: null,
+      birthDateSource: null,
+    };
+    return {
+      status: "verified_document" as const,
+      identity: { ...candidate.identity, birthDate: `${century + encodedYear}-${String(encodedMonth).padStart(2, "0")}-${String(encodedDay).padStart(2, "0")}`, sex },
+      sourceIds: [...new Set(candidate.sourceIds)].sort(),
+      authority,
+      birthDateSource: "fiscal_code_over_form" as const,
+    };
+  }
+  const birthDate = requesterDateMatch && validDayMonth
     ? `${requesterDateMatch[1]}-${String(encodedMonth).padStart(2, "0")}-${String(encodedDay).padStart(2, "0")}`
     : null;
   return {
@@ -742,7 +871,16 @@ export function resolvePrimaryBeneficiaryFromOfficialDocuments(input: {
     identity: { ...candidate.identity, birthDate, sex },
     sourceIds: [...new Set(candidate.sourceIds)].sort(),
     authority,
+    birthDateSource: birthDate ? "form_century_with_fiscal_code" as const : null,
   };
+}
+
+// Secolo di nascita: l'unico (1900 o 2000) che rende l'eta compresa fra 18 e
+// 110 anni alla data odierna. Se entrambi o nessuno la rendono, null.
+function plausibleBirthCentury(twoDigitYear: number, now: Date): number | null {
+  const currentYear = now.getUTCFullYear();
+  const admissible = [1900, 2000].filter((century) => { const age = currentYear - (century + twoDigitYear); return age >= 18 && age <= 110; });
+  return admissible.length === 1 ? admissible[0] : null;
 }
 
 export function resolveCoBeneficiaryFromOriginalInvoices(input: {
@@ -753,7 +891,7 @@ export function resolveCoBeneficiaryFromOriginalInvoices(input: {
   analysis: ReturnType<PersistentAprCrmDocumentAnalysis["snapshot"]>;
 }) {
   const coName = text(input.coOwnership?.nome); const coSurname = text(input.coOwnership?.cognome); const coCf = normalizeCf(input.coOwnership?.cf);
-  const invoiceSources = input.analysis.items.filter((item) => item.customerKey === input.customerKey && item.kind === "invoice" && item.state === "analyzed" && item.textPath && existsSync(item.textPath));
+  const invoiceSources = input.analysis.items.filter((item) => item.customerKey === input.customerKey && isSemanticInvoice(item) && item.state === "analyzed" && item.textPath && existsSync(item.textPath));
   const primaryFiscalCodes = new Set([
     normalizeCf(input.mainDocumentFiscalCode.value),
     ...(input.primaryFiscalCodes ?? []).map(normalizeCf),
@@ -811,7 +949,7 @@ export function resolveOriginalDocumentFiscalCode(input: {
   }
   const evidence = new Map<string, Set<string>>();
   for (const item of input.analysis.items) {
-    if (item.customerKey !== input.customerKey || item.kind !== "invoice" || item.state !== "analyzed" || !item.textPath || !existsSync(item.textPath)) continue;
+    if (item.customerKey !== input.customerKey || !isSemanticInvoice(item) || item.state !== "analyzed" || !item.textPath || !existsSync(item.textPath)) continue;
     const originalOnly = stripHistoricalEneaAppendix(readFileSync(item.textPath, "utf8"));
     for (const match of originalOnly.matchAll(LABELED_FISCAL_CODE)) {
       const candidate = match[1].toUpperCase();
@@ -939,7 +1077,7 @@ type ExplicitOriginalCompletionDateResolution = {
   status: "verified" | "not_found" | "conflict";
   value: string | null;
   sourceIds: string[];
-  evidenceKinds: Array<"completion_declaration" | "final_installation_commissioning">;
+  evidenceKinds: Array<"completion_declaration" | "final_installation_commissioning" | "dated_commissioning_report">;
 };
 
 function normalizeItalianCalendarDate(value: string): string | null {
@@ -955,12 +1093,14 @@ export function resolveExplicitOriginalCompletionDate(
   analysis: ReturnType<PersistentAprCrmDocumentAnalysis["snapshot"]>,
   customerKey: string,
 ): ExplicitOriginalCompletionDateResolution {
-  const candidates: Array<{ value: string; sourceId: string; evidenceKind: "completion_declaration" | "final_installation_commissioning" }> = [];
+  const candidates: Array<{ value: string; sourceId: string; evidenceKind: ExplicitOriginalCompletionDateResolution["evidenceKinds"][number] }> = [];
   const explicitCompletionPatterns = [
     /\b(?:i\s+)?lavori\s+(?:di\s+)?(?:installazione|posa(?:\s+in\s+opera)?)\s+sono\s+(?:stati\s+)?(?:terminati|ultimati|completati)\s+(?:in\s+)?data\s+(\d{1,2}[./-]\d{1,2}[./-]\d{4})\b/gi,
     /\b(?:i\s+)?lavori\s+sono\s+(?:stati\s+)?(?:terminati|ultimati|completati)\s+(?:in\s+)?data\s+(\d{1,2}[./-]\d{1,2}[./-]\d{4})\b/gi,
   ];
   const finalCommissioningPattern = /\bdichiarazione\s+di\s+collaudo\s+finale\s+della\s+posa\s+in\s+opera[\s\S]{0,800}?\bin\s+data\s+(\d{1,2}[./-]\d{1,2}[./-]\d{4})\s+si\s+[eè]\s+verificat[oa]\s+(?:il\s+)?collaudo\s+della\s+posa\s+in\s+opera\b/gi;
+  const datedCommissioningReportHeader = /\b(?:verbale|dichiarazione)\s+di\s+collaudo(?:\s+(?:finale|e\s+consegna))?\b/i;
+  const labelledCommissioningDatePattern = /\bdata\s*[:.]?\s*(\d{1,2}[./-]\d{1,2}[./-]\d{4})\b/gi;
   for (const item of analysis.items) {
     if (item.customerKey !== customerKey || item.state !== "analyzed" || !item.textPath || !existsSync(item.textPath)) continue;
     const originalOnly = stripHistoricalEneaAppendix(readFileSync(item.textPath, "utf8"));
@@ -969,9 +1109,25 @@ export function resolveExplicitOriginalCompletionDate(
         const value = normalizeItalianCalendarDate(match[1]);
         if (value) candidates.push({ value, sourceId: item.documentKey, evidenceKind: "completion_declaration" });
       }
+      let detailedFinalCommissioningMatched = false;
       for (const match of page.matchAll(finalCommissioningPattern)) {
         const value = normalizeItalianCalendarDate(match[1]);
-        if (value) candidates.push({ value, sourceId: item.documentKey, evidenceKind: "final_installation_commissioning" });
+        if (value) {
+          candidates.push({ value, sourceId: item.documentKey, evidenceKind: "final_installation_commissioning" });
+          detailedFinalCommissioningMatched = true;
+        }
+      }
+      // I verbali reali non seguono sempre la formula estesa "collaudo finale
+      // della posa in opera". Accettiamo anche il titolo documentale
+      // "Verbale di collaudo [e consegna]" quando, sulla stessa pagina, e'
+      // presente una data esplicitamente etichettata. Il vincolo sul titolo
+      // esclude sia le righe fiscali "fornitura/posa/collaudo" sia i generici
+      // verbali di prova dei prodotti; date multiple restano fail-closed.
+      if (!detailedFinalCommissioningMatched && datedCommissioningReportHeader.test(page)) {
+        for (const match of page.matchAll(labelledCommissioningDatePattern)) {
+          const value = normalizeItalianCalendarDate(match[1]);
+          if (value) candidates.push({ value, sourceId: item.documentKey, evidenceKind: "dated_commissioning_report" });
+        }
       }
     }
   }
@@ -987,11 +1143,18 @@ type InvoiceReferenceSegment = { sourceId: string; documentNumber?: string | nul
 
 const canonicalInvoiceNumber = (value: string) => value.toUpperCase().replace(/[^A-Z0-9/.-]/g, "").replace(/^0+(?=\d)/, "");
 const numericInvoiceBase = (value: string) => canonicalInvoiceNumber(value).match(/^(\d+)(?:[\/.-].*)?$/)?.[1].replace(/^0+(?=\d)/, "") ?? null;
+const explicitSelfContainedSupplyTotal = (value: string) => {
+  const match = value.match(/\btotale\s+complessivo\s+(?:della\s+)?(?:fornitura|commessa)(?:\s+e\s+posa(?:\s+in\s+opera)?)?\s*(?:euro|eur|€)?\s*([\d.]+(?:,\d{2})?)\b/i);
+  if (!match) return null;
+  const amount = Number(match[1].replace(/\./g, "").replace(",", "."));
+  return Number.isFinite(amount) && amount > 0 ? { amount, evidence: match[0].replace(/\s+/g, " ").trim() } : null;
+};
 
 export function resolveExplicitAdvanceInvoiceReferences(segments: InvoiceReferenceSegment[]) {
   const observed = [...new Set(segments.map((segment) => canonicalInvoiceNumber(segment.documentNumber ?? "")).filter(Boolean))];
   const missing: Array<{ sourceId: string; reference: string }> = [];
   const uniqueBaseMatches: Array<{ sourceId: string; reference: string; matchedDocumentNumber: string }> = [];
+  const selfContainedReferences: Array<{ sourceId: string; reference: string; declaredSupplyTotal: number; evidence: string }> = [];
   for (const segment of segments) {
     if (!/\b(?:fatt(?:ura)?\.?\s*(?:di\s+)?acconto|acconto\s+(?:ricevuto\s+)?(?:rif\.?\s*)?(?:ns\.?\s*)?fatt)/i.test(segment.text)) continue;
     for (const reference of segment.referencedInvoiceNumbers) {
@@ -1001,10 +1164,25 @@ export function resolveExplicitAdvanceInvoiceReferences(segments: InvoiceReferen
       const base = numericInvoiceBase(reference);
       const candidates = base === null ? [] : observed.filter((documentNumber) => documentNumber !== referencingDocumentNumber && numericInvoiceBase(documentNumber) === base);
       if (candidates.length === 1) uniqueBaseMatches.push({ sourceId: segment.sourceId, reference, matchedDocumentNumber: candidates[0] });
-      else missing.push({ sourceId: segment.sourceId, reference });
+      else {
+        // Una fattura finale puo' richiamare contabilmente un acconto pur
+        // contenendo gia' la prova autonoma del valore dell'intera fornitura.
+        // La deroga e' volutamente stretta: serve l'etichetta semantica
+        // esplicita "Totale complessivo fornitura/commessa" e un importo
+        // positivo. Un semplice "totale documento", una detrazione o una
+        // cifra vicina al richiamo non bastano e restano fail-closed.
+        const selfContained = explicitSelfContainedSupplyTotal(segment.text);
+        if (selfContained) selfContainedReferences.push({
+          sourceId: segment.sourceId,
+          reference,
+          declaredSupplyTotal: selfContained.amount,
+          evidence: selfContained.evidence,
+        });
+        else missing.push({ sourceId: segment.sourceId, reference });
+      }
     }
   }
-  return { missing, uniqueBaseMatches };
+  return { missing, uniqueBaseMatches, selfContainedReferences };
 }
 
 export function missingExplicitAdvanceInvoiceReferences(segments: InvoiceReferenceSegment[]) {
@@ -1119,8 +1297,67 @@ export function resolveFormScreeningMappings(declaredValues: unknown[], productD
   };
 }
 
-export function buildCrmLocalPreflightReport(dossierValue: unknown, customerKey: string, analysis: ReturnType<PersistentAprCrmDocumentAnalysis["snapshot"]>, now: Date, operatorMeasurementResolution?: AprCrmLocalPreflightState["operatorMeasurementResolutions"][number]): AprCrmLocalPreflightReport {
-  const dossier = object(dossierValue); const row = object(dossier?.row); const inlineForm = object(row?.dati_form);
+function buildUpstreamTerminalPreflightReport(evidence: AprCrmUpstreamTerminalEvidence): AprCrmLocalPreflightReport {
+  const details = evidence.acquisitionState === "blocked_not_found"
+    ? {
+      code: "crm_practice_exact_match_not_found",
+      field: "crm.practice_identity",
+      operatorQuestion: `Indica l'ID esatto e la fase CRM attuale della pratica di ${evidence.displayName}.`,
+      onboardingGap: "Conservare nel seed operativo l'ID stabile della pratica e la fase CRM attesa, senza affidarsi al solo nome.",
+    }
+    : evidence.acquisitionState === "blocked_ambiguous"
+      ? {
+        code: "crm_practice_identity_ambiguous",
+        field: "crm.practice_identity",
+        operatorQuestion: `Qual e l'ID esatto della pratica di ${evidence.displayName} da lavorare?`,
+        onboardingGap: "Rendere obbligatorio l'ID stabile della pratica quando esistono omonimi o piu record compatibili.",
+      }
+      : {
+        code: "crm_readonly_acquisition_invalid_response",
+        field: "crm.readonly_transport",
+        operatorQuestion: `Il CRM e nuovamente raggiungibile con l'account APR in sola lettura per acquisire la pratica di ${evidence.displayName}?`,
+        onboardingGap: null,
+      };
+  const blocker = {
+    ...details,
+    reason: evidence.reason,
+    exactCause: evidence.reason,
+    sourceIds: [`crm-acquisition:${evidence.customerKey}`],
+    appliedRuleIds: [UPSTREAM_PREFLIGHT_TERMINALIZATION_RULE_ID, "system-apr-operator-intervention-routing"],
+    missingDocumentType: null,
+  };
+  return {
+    outcome: "blocked_case", formAvailable: false, startDate: null, startDateSource: null,
+    completionDate: null, completionDateSource: null, buildingQualification: null, buildingUnitCount: null, deductionRate: null,
+    taxCodeStatus: "missing_or_invalid", resolvedTaxCode: null, taxCodeSourceIds: [],
+    primaryBeneficiaryResolution: { status: "not_found", identity: null, sourceIds: [], authority: null },
+    worksMunicipalityResolution: { status: "not_found", value: null, sourceIds: [] },
+    coBeneficiaryResolution: { status: "not_declared", present: false, identity: null, sourceIds: [] },
+    products: [],
+    financial: {
+      invoiceTotal: null, eligibleExpense: null, finalPrintedTotalVerified: false, tripleReconciliationVerified: false, reconciledTotal: null,
+      evidence: [], bankTransfers: [],
+      bankTransferReconciliation: { status: "not_provided", principalTotal: null, feesTotal: null, debitedTotal: null, difference: null, referenceStatus: "not_provided", missingInvoiceReferences: [], taxReliefTypes: [] },
+      methods: [], discardedDuplicateSourceIds: [], supersededTechnicalSourceIds: [], appliedRuleIds: [UPSTREAM_PREFLIGHT_TERMINALIZATION_RULE_ID],
+    },
+    warnings: [], blockers: [blocker], sourceIds: blocker.sourceIds,
+    eneaPayloadAudit: {
+      status: "payload_incomplete", mappingFingerprint: null, fieldSummary: { ready: 0, review: 0, missing: 0 }, requiredPortalFieldCount: 0,
+      blockerCount: 1, blockers: [{ code: blocker.code, fieldId: blocker.field, message: blocker.reason }], excludedUnverifiedFields: [],
+      draftReady: false, officialSubmissionAllowed: false,
+      portalGate: { status: "blocked", reason: blocker.code, workflowFingerprint: null, supportedPages: [], screeningItemCount: 0, saveAllowedOnlyBySeparateCapability: true, previewAllowed: false, submitAllowed: false },
+      externalActionAllowed: false, reason: blocker.reason,
+    },
+    eneaExecutablePlan: null,
+    draftPlan: { status: "blocked", externalActionAllowed: false, previewAllowed: false, submitAllowed: false, communicationsAllowed: false, nextAction: "Richiesto intervento operatore sul solo caso; la coda prosegue senza attendere il timeout di liveness." },
+  };
+}
+
+export function buildCrmLocalPreflightReport(dossierValue: unknown, customerKey: string, analysis: ReturnType<PersistentAprCrmDocumentAnalysis["snapshot"]>, now: Date, operatorMeasurementResolution?: AprCrmLocalPreflightState["operatorMeasurementResolutions"][number], operatorResponseProjection?: AprOperatorResponseProjection): AprCrmLocalPreflightReport {
+  const dossier = object(dossierValue);
+  const upstreamTerminal = object(dossier?.upstreamTerminal) as AprCrmUpstreamTerminalEvidence | null;
+  if (upstreamTerminal?.version === "apr-crm-upstream-terminal-evidence-v1") return buildUpstreamTerminalPreflightReport(upstreamTerminal);
+  const row = object(dossier?.row); const inlineForm = object(row?.dati_form);
   const automationExclusion = aprAutomationExclusion({ customerKey, displayName: `${text(row?.cliente_nome)} ${text(row?.cliente_cognome)}`, fornitore: row?.fornitore, companies: row?.companies });
   if (automationExclusion) {
     const sourceId = `${automationExclusion.sourceField}:${automationExclusion.sourceValue}`;
@@ -1129,12 +1366,13 @@ export function buildCrmLocalPreflightReport(dossierValue: unknown, customerKey:
       code: supplierExclusion ? "permanent_supplier_automation_exclusion" : "permanent_customer_automation_exclusion",
       field: supplierExclusion ? "supplier" : "practice",
       reason: `${automationExclusion.displayName}: ${automationExclusion.reason} Nessun allegato viene elaborato e nessuna azione ENEA viene tentata.`,
-      sourceIds: [sourceId], appliedRuleIds: [APR_FUTURE_TEST_EXCLUSION_RULE_ID, "system-apr-operator-intervention-routing"],
+      sourceIds: [sourceId], appliedRuleIds: [automationExclusion.ruleId, "system-apr-operator-intervention-routing"],
       operatorQuestion: supplierExclusion
         ? `Confermi che la pratica collegata a ${automationExclusion.displayName} deve restare esclusa dall'automazione APR?`
         : `Confermi che ${automationExclusion.displayName} deve restare una pratica interna esclusa dall'automazione APR?`,
       exactCause: `${automationExclusion.displayName}: ${automationExclusion.reason}`,
-      missingDocumentType: null, onboardingGap: "Applicare l'esclusione anagrafica prima dell'acquisizione documentale.",
+      missingDocumentType: null, onboardingGap: "Instradare il flusso cartaceo alla lavorazione manuale prima dell'acquisizione documentale.",
+      reportingCategory: automationExclusion.denominatorDisposition,
     };
     return {
       outcome: "blocked_case", formAvailable: Boolean(inlineForm && Object.keys(inlineForm).length), startDate: null, startDateSource: null,
@@ -1143,9 +1381,10 @@ export function buildCrmLocalPreflightReport(dossierValue: unknown, customerKey:
       primaryBeneficiaryResolution: { status: "not_found", identity: null, sourceIds: [], authority: null },
       worksMunicipalityResolution: { status: "not_found", value: null, sourceIds: [] },
       coBeneficiaryResolution: { status: "not_declared", present: false, identity: null, sourceIds: [] },
-      products: [], financial: { invoiceTotal: null, eligibleExpense: null, tripleReconciliationVerified: false, reconciledTotal: null, evidence: [], bankTransfers: [], bankTransferReconciliation: { status: "not_provided", principalTotal: null, feesTotal: null, debitedTotal: null, difference: null, referenceStatus: "not_provided", missingInvoiceReferences: [], taxReliefTypes: [] }, methods: [], discardedDuplicateSourceIds: [], supersededTechnicalSourceIds: [], appliedRuleIds: [APR_FUTURE_TEST_EXCLUSION_RULE_ID] },
+      products: [], financial: { invoiceTotal: null, eligibleExpense: null, finalPrintedTotalVerified: false, tripleReconciliationVerified: false, reconciledTotal: null, evidence: [], bankTransfers: [], bankTransferReconciliation: { status: "not_provided", principalTotal: null, feesTotal: null, debitedTotal: null, difference: null, referenceStatus: "not_provided", missingInvoiceReferences: [], taxReliefTypes: [] }, methods: [], discardedDuplicateSourceIds: [], supersededTechnicalSourceIds: [], appliedRuleIds: [automationExclusion.ruleId] },
       warnings: [], blockers: [blocker], sourceIds: [sourceId],
       eneaPayloadAudit: { status: "payload_incomplete", mappingFingerprint: null, fieldSummary: { ready: 0, review: 0, missing: 0 }, requiredPortalFieldCount: 0, blockerCount: 1, blockers: [{ code: blocker.code, fieldId: blocker.field, message: blocker.reason }], excludedUnverifiedFields: [], draftReady: false, officialSubmissionAllowed: false, portalGate: { status: "blocked", reason: supplierExclusion ? "permanent-supplier-automation-exclusion" : "permanent-customer-automation-exclusion", workflowFingerprint: null, supportedPages: [], screeningItemCount: 0, saveAllowedOnlyBySeparateCapability: true, previewAllowed: false, submitAllowed: false }, externalActionAllowed: false, reason: blocker.reason },
+      eneaExecutablePlan: null,
       draftPlan: { status: "blocked", externalActionAllowed: false, previewAllowed: false, submitAllowed: false, communicationsAllowed: false, nextAction: `Richiesto intervento operatore: pratica esclusa per ${supplierExclusion ? "fornitore" : "decisione permanente"}; proseguire con la pratica successiva.` },
     };
   }
@@ -1153,10 +1392,10 @@ export function buildCrmLocalPreflightReport(dossierValue: unknown, customerKey:
   const paperFormDocuments = analysis.items.filter((item) => item.customerKey === customerKey && item.state === "analyzed" && item.textPath && existsSync(item.textPath) && isLineaSolePotitoPaperForm(readFileSync(item.textPath, "utf8")));
   const lineaSolePaperForm = supplierEvidence.matched && paperFormDocuments.length > 0;
   const crmTaxCodeCandidate = normalizeCf(row?.cliente_cf);
-  const invoiceConfirmsCrmTaxCode = isValidCodiceFiscale(crmTaxCodeCandidate) && analysis.items.some((item) => item.customerKey === customerKey && item.kind === "invoice" && item.state === "analyzed" && item.textPath && existsSync(item.textPath)
+  const invoiceConfirmsCrmTaxCode = isValidCodiceFiscale(crmTaxCodeCandidate) && analysis.items.some((item) => item.customerKey === customerKey && isSemanticInvoice(item) && item.state === "analyzed" && item.textPath && existsSync(item.textPath)
     && readFileSync(item.textPath, "utf8").replace(/\s+/g, "").toUpperCase().includes(crmTaxCodeCandidate));
   const invoicePaperTaxCodes = [...new Set(analysis.items
-    .filter((item) => item.customerKey === customerKey && item.kind === "invoice" && item.state === "analyzed" && item.textPath && existsSync(item.textPath))
+    .filter((item) => item.customerKey === customerKey && isSemanticInvoice(item) && item.state === "analyzed" && item.textPath && existsSync(item.textPath))
     .flatMap((item) => [...readFileSync(item.textPath!, "utf8").matchAll(LABELED_FISCAL_CODE)].map((match) => normalizeCf(match[1])))
     .filter(isValidCodiceFiscale))];
   const paperTaxCodeCandidates = invoicePaperTaxCodes.length
@@ -1175,7 +1414,9 @@ export function buildCrmLocalPreflightReport(dossierValue: unknown, customerKey:
   }));
   const paperFormConflict = paperFormSignatures.size > 1;
   const parsedPaperForm = paperFormSignatures.size === 1 ? [...paperFormSignatures.values()][0] : null;
-  const form = inlineForm && Object.keys(inlineForm).length ? inlineForm : object(parsedPaperForm);
+  const form = mergeOriginalFormSourcesPreferPrimary(inlineForm, parsedPaperForm);
+  const paperFormCompletedPartialInline = Boolean(inlineForm && Object.keys(inlineForm).length && parsedPaperForm
+    && JSON.stringify(form) !== JSON.stringify(inlineForm));
   const paperMetadata = object(object(parsedPaperForm)?._lineaSolePotito);
   const paperBirthDateResolution = object(paperMetadata?.birthDateResolution);
   const paperWrappedBirthOcrRepair = paperMetadata?.wrappedBirthOcrRepair === true;
@@ -1183,7 +1424,7 @@ export function buildCrmLocalPreflightReport(dossierValue: unknown, customerKey:
   const formAvailable = Boolean(form && Object.keys(form).length);
   const blockers: AprCrmLocalPreflightReport["blockers"] = []; const warnings: AprCrmLocalPreflightReport["warnings"] = [];
   const sourceIds: string[] = [];
-  const customerDocuments = analysis.items.filter((item) => item.customerKey === customerKey && item.kind === "invoice" && !item.nonFiscalImageExcluded && item.invoiceResult);
+  const customerDocuments = analysis.items.filter((item) => item.customerKey === customerKey && isSemanticInvoice(item) && !item.nonFiscalImageExcluded && item.invoiceResult);
   const documentTexts = customerDocuments.map((item) => ({ item, text: item.textPath && existsSync(item.textPath) ? readFileSync(item.textPath, "utf8") : "" }));
   const bankTransferEvidenceKeys = new Set<string>();
   const bankTransfers = documentTexts.flatMap(({ item, text: documentText }) => {
@@ -1232,6 +1473,7 @@ export function buildCrmLocalPreflightReport(dossierValue: unknown, customerKey:
   // controprova "Presa in carico"). Si ri-analizza percio' soltanto il
   // testo del segmento precedente alla prima intestazione bancaria.
   const bankEvidenceContaminatedSourceIds: string[] = [];
+  const bankReceiptExcludedSourceIds: string[] = [];
   const invoiceSegments = invoiceDocuments.flatMap(({ item, text: documentText }) => splitLocalInvoiceText({
     documentKey: item.documentKey,
     text: documentText,
@@ -1245,15 +1487,38 @@ export function buildCrmLocalPreflightReport(dossierValue: unknown, customerKey:
     const hasCompleteTripleBeforeBankHeader = Boolean(parsedBeforeBankHeader.result.documentNumber
       && parsedBeforeBankHeader.result.documentDate && parsedBeforeBankHeader.result.total !== null);
     if (hasCompleteTripleBeforeBankHeader) bankEvidenceContaminatedSourceIds.push(segment.sourceId);
+    else bankReceiptExcludedSourceIds.push(segment.sourceId);
     return hasCompleteTripleBeforeBankHeader;
   });
   if (bankEvidenceContaminatedSourceIds.length) warnings.push({
     code: "invoice_segment_kept_despite_bank_transfer_evidence",
     reason: `${bankEvidenceContaminatedSourceIds.length} segmento/i fattura mantenuti nonostante una conferma di bonifico accodata nello stesso allegato: terna fiscale (numero, data, totale) gia' completamente risolta dall'intestazione propria, il bonifico non e' letto per questa decisione.`,
-    appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.bankTransferSegmentExclusionRequiresIncompleteTriple],
+    appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.bankTransferSegmentExclusionRequiresIncompleteTriple, USER_AUTHORIZED_RULE_IDS.bankTransferReceiptNeverInvoice],
   });
-  const segmentReconciliation = reconcileLocalInvoiceSegments(invoiceSegments);
-  const advanceInvoiceReferences = resolveExplicitAdvanceInvoiceReferences(invoiceSegments);
+  if (bankReceiptExcludedSourceIds.length) warnings.push({
+    code: "bank_transfer_receipt_excluded_from_invoice_count",
+    reason: `${bankReceiptExcludedSourceIds.length} segmento/i bancari esclusi integralmente da conteggio fatture e totale: ${bankReceiptExcludedSourceIds.join(", ")}.`,
+    appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.bankTransferReceiptNeverInvoice, USER_AUTHORIZED_RULE_IDS.nonFiscalSupportingDocumentExclusion],
+  });
+  const printedTotalFallback = applyPrintedDocumentTotalFallback(invoiceSegments);
+  if (printedTotalFallback.recovered.length) warnings.push({
+    code: "printed_document_total_column_layout_applied",
+    reason: `Totale finale stampato letto da impaginazione a colonne, senza ricalcoli: ${printedTotalFallback.recovered.map(({ sourceId, reading }) => `${sourceId} € ${reading.printed} (etichetta riga ${reading.labelLine}, valore riga ${reading.valueLine})`).join("; ")}.`,
+    appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.invoiceFinalPrintedTotalRuntimeAuthority, USER_AUTHORIZED_RULE_IDS.invoiceFinalPrintedTotalOnlyNeverInternalRecalculation],
+  });
+  const operatorInvoiceTotal = number(object(form?.economico)?.invoice_total);
+  const operatorTotalOverride = applyOperatorInvoiceTotalOverride(printedTotalFallback.segments, operatorInvoiceTotal);
+  if (operatorTotalOverride.appliedSourceIds.length) warnings.push({
+    code: "operator_response_invoice_total_applied",
+    reason: `Totale finale stampato confermato dall'operatore applicato senza ricalcoli a ${operatorTotalOverride.appliedSourceIds.join(", ")}.`,
+    appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.operatorResponseRuntimeConsumption, USER_AUTHORIZED_RULE_IDS.invoiceFinalPrintedTotalRuntimeAuthority],
+  });
+  const segmentReconciliation = reconcileLocalInvoiceSegments(operatorTotalOverride.segments);
+  // Tutti i gate economici devono osservare lo stesso insieme fiscale
+  // autorevole. In particolare, una copia OCR duplicata puo' citare se stessa
+  // come acconto: eseguire questo controllo sui segmenti grezzi fabbricherebbe
+  // una fattura "mancante" che il deduplicatore ha gia' provato inesistente.
+  const advanceInvoiceReferences = resolveExplicitAdvanceInvoiceReferences(segmentReconciliation.uniqueFinancialSegments);
   const missingAdvanceInvoices = advanceInvoiceReferences.missing;
   if (missingAdvanceInvoices.length) blockers.push({
     code: "original_invoice_missing_or_unavailable",
@@ -1266,6 +1531,11 @@ export function buildCrmLocalPreflightReport(dossierValue: unknown, customerKey:
     code: "invoice_reference_unique_base_matched",
     reason: `Riferimenti fattura risolti tramite numero base univoco: ${advanceInvoiceReferences.uniqueBaseMatches.map((item) => `${item.reference} -> ${item.matchedDocumentNumber}`).join(", ")}. Riferimento e numero documento completi restano separati nell'audit.`,
     appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.uniqueInvoiceBaseReferenceMatch, USER_AUTHORIZED_RULE_IDS.missingInvoiceOperatorRequeue],
+  });
+  if (advanceInvoiceReferences.selfContainedReferences.length) warnings.push({
+    code: "invoice_reference_self_contained_supply_total",
+    reason: `Riferimenti contabili ad acconti non acquisiti non trasformati in documenti mancanti: la stessa fonte espone un totale complessivo esplicito e positivo dell'intera fornitura (${advanceInvoiceReferences.selfContainedReferences.map((item) => `${item.reference}: € ${item.declaredSupplyTotal.toFixed(2)}`).join(", ")}). Il totale fiscale stampato della fattura resta autorevole e non viene ricalcolato internamente.`,
+    appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.selfContainedAdvanceInvoiceReference, USER_AUTHORIZED_RULE_IDS.invoiceFinalPrintedTotalOnlyNeverInternalRecalculation],
   });
   if (segmentReconciliation.replacedFinancialSourceIds.length) warnings.push({
     code: "explicit_replacement_invoice_superseded",
@@ -1310,7 +1580,22 @@ export function buildCrmLocalPreflightReport(dossierValue: unknown, customerKey:
     invoiceSegments.map((segment) => segment.text),
     paperFormDocuments.map((item) => readFileSync(item.textPath!, "utf8")),
   );
-  if (operatorMeasurementResolution && technicalItems.length === 0) {
+  const structuredOperatorProducts = operatorResponseProjection ? operatorScreeningProducts(operatorResponseProjection) : [];
+  if (structuredOperatorProducts.length > 0) {
+    technicalItems.splice(0, technicalItems.length, ...structuredOperatorProducts.map((product) => ({
+      widthMm: product.widthMm,
+      heightMm: product.heightMm,
+      surfaceM2: Math.round((product.widthMm * product.heightMm / 1_000_000) * 1_000) / 1_000,
+      gTot: null,
+      description: product.description,
+      sourcePath: product.sourceId,
+    })));
+    warnings.push({
+      code: "operator_response_screening_products_applied",
+      reason: `${structuredOperatorProducts.length} prodotto/i e relative misure applicati dal registro persistente delle risposte operatore; il dato e limitato alla pratica e non diventa fallback generale.`,
+      appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.operatorResponseRuntimeConsumption, USER_AUTHORIZED_RULE_IDS.operatorStructuredQuestionResume],
+    });
+  } else if (operatorMeasurementResolution && technicalItems.length === 0) {
     const multiplier = operatorMeasurementResolution.unit === "centimeters" ? 10 : 1;
     const widthMm = operatorMeasurementResolution.rawWidth * multiplier;
     const heightMm = operatorMeasurementResolution.rawHeight * multiplier;
@@ -1336,9 +1621,6 @@ export function buildCrmLocalPreflightReport(dossierValue: unknown, customerKey:
     return { ...evidence, kind: "non_economic" as const };
   });
   const financialReconciliation = reconcileFinancialEvidence(financialEvidence, { mode: "test", scheme: "ecobonus" });
-  const scheduleAmountMissingSources = financialEvidence
-    .filter((item) => item.extractionIssues?.some((issue) => issue.code === "schedule_amount_missing"))
-    .map((item) => item.sourceId);
   // Regola generale definitiva di Giuliano (2026-09-08, regressione
   // Calvacchi): il totale fatture della pratica e' sempre e soltanto la
   // somma delle fatture verso il cliente beneficiario; una fattura del
@@ -1346,10 +1628,10 @@ export function buildCrmLocalPreflightReport(dossierValue: unknown, customerKey:
   // invoiceAddressedToDifferentCompanyThanBeneficiary) non va mai contata,
   // in nessuno degli usi di questo totale (eleggibilita', riconciliazione
   // bonifici, importo mostrato in report).
-  const economicFinancialEvidence = financialEvidence.filter((item) => item.kind !== "non_economic");
-  const invoiceGrossValues = economicFinancialEvidence.map((item) => item.grossTotal);
-  const invoiceGrossTotal = invoiceGrossValues.length > 0 && invoiceGrossValues.every((value) => value !== null)
-    ? Math.round((invoiceGrossValues.reduce<number>((sum, value) => sum + (value ?? 0), 0) + Number.EPSILON) * 100) / 100 : null;
+  // Il riconciliatore comune e' l'unico proprietario del totale economico.
+  // Nessun secondo reduce sui segmenti e nessuna ricostruzione del bridge:
+  // tutti i consumatori leggono la stessa decisione persistita.
+  const invoiceGrossTotal = financialReconciliation.usable ? financialReconciliation.total : null;
   const practiceId = text(row?.id);
   const bundledProfessionalExpense = resolveBundledProfessionalExpense(
     segmentReconciliation.uniqueFinancialSegments.map((segment) => ({ sourceId: segment.sourceId, text: segment.text, grossTotal: segment.total })),
@@ -1359,8 +1641,37 @@ export function buildCrmLocalPreflightReport(dossierValue: unknown, customerKey:
   const bankTransferReconciliation = reconcileBankTransfers(invoiceGrossTotal, bankTransfers, financialEvidence.map((item) => item.documentNumber));
   sourceIds.push(...customerDocuments.map((item) => item.documentKey), ...paperFormDocuments.map((item) => item.documentKey));
   if (!formAvailable) blockers.push({ code: "customer_form_missing", field: "customer_form", reason: "Il dossier CRM non contiene un form cliente originario utilizzabile; documenti ENEA storici esclusi.", sourceIds, appliedRuleIds: ["core-form-first"] });
+  else {
+    const requiredSectionSource = inlineForm && !text(row?.form_compilato_at) ? inlineForm : form;
+    const missingRequiredSections = ["edificio", "impianto"].filter((section) => {
+      const value = object(requiredSectionSource?.[section]);
+      return !value || Object.keys(value).length === 0;
+    });
+    // Le generazioni storiche possono omettere una singola sottosezione e
+    // avere comunque dati equivalenti mappabili. Il caso non compilato e'
+    // invece dimostrato dall'assenza congiunta delle due sezioni portale.
+    if (missingRequiredSections.length === 2) {
+      const joined = "dati dell'edificio e dell'impianto";
+      blockers.push({
+        code: "customer_form_required_sections_missing",
+        field: "customer_form.required_sections",
+        reason: `Il form del cliente non e completo: mancano i ${joined}.`,
+        sourceIds: [customerKey],
+        appliedRuleIds: ["core-form-first", USER_AUTHORIZED_RULE_IDS.structuredResidualCaseQuestion, USER_AUTHORIZED_RULE_IDS.operatorStructuredQuestionResume, "system-apr-operator-intervention-routing"],
+        exactCause: `Sezioni obbligatorie completamente assenti: ${missingRequiredSections.join(", ")}.`,
+        operatorQuestion: `Il form del cliente non è completo: mancano i ${joined}. Puoi completare queste sezioni?`,
+        missingDocumentType: "sezioni edificio e impianto del form cliente",
+        onboardingGap: "Rendere obbligatorie e validate le sezioni edificio e impianto prima dell'invio del form.",
+      });
+    }
+  }
   if (paperFormConflict) blockers.push({ code: "customer_paper_form_conflict", field: "customer_form", reason: "Più moduli cartacei PraticaRapida originari espongono valori espliciti non concordanti; nessun documento viene scelto per posizione o ordine.", sourceIds: paperFormDocuments.map((item) => item.documentKey), appliedRuleIds: [ORIGINAL_PRACTICA_RAPIDA_PAPER_FORM_RULE_ID, "core-form-first", "system-apr-operator-intervention-routing"] });
   if (parsedPaperForm && !lineaSolePaperForm) warnings.push({ code: "original_pratica_rapida_paper_form_explicit_values_accepted", reason: `Valori espliciti del modulo cartaceo PraticaRapida originario riconosciuti da ${paperFormDocuments.map((item) => item.documentKey).join(", ")}; nessun fallback specifico del rivenditore applicato.`, appliedRuleIds: [ORIGINAL_PRACTICA_RAPIDA_PAPER_FORM_RULE_ID, "core-form-first"] });
+  if (paperFormCompletedPartialInline) warnings.push({
+    code: "paper_form_completed_partial_inline_form",
+    reason: "Il form inline era parziale: i soli campi assenti sono stati completati con valori testuali espliciti del modulo cartaceo originario; nessun valore inline presente e' stato sovrascritto.",
+    appliedRuleIds: [ORIGINAL_PRACTICA_RAPIDA_PAPER_FORM_RULE_ID, "core-form-first", "core-mapping-complete"],
+  });
   if (lineaSolePaperForm) warnings.push({ code: "linea_sole_potito_paper_form_accepted", reason: `Modulo cartaceo Linea Sole Potito riconosciuto come form originario da ${paperFormDocuments.map((item) => item.documentKey).join(", ")}.`, appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.lineaSolePotitoPaperForm, "core-form-first"] });
   if (paperBirthDateResolution?.repaired === true) warnings.push({
     code: "paper_form_birth_date_leading_digit_ocr_repaired",
@@ -1420,7 +1731,10 @@ export function buildCrmLocalPreflightReport(dossierValue: unknown, customerKey:
     reason: `CF originario ${fiscalCodeRepair.original} corretto in ${fiscalCodeRepair.corrected}: unica sostituzione OCR confondibile, checksum valido e anagrafica form concordante; entrambi conservati in audit.`,
     appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.fiscalCodeIdentityCrossCheck],
   });
-  const primaryBeneficiaryResolution = resolvePrimaryBeneficiaryFromOfficialDocuments({ customerKey, taxCode: resolvedTaxCode, requesterBirthDate: text(requester?.data_nascita), analysis });
+  const primaryBeneficiaryResolution = resolvePrimaryBeneficiaryFromOfficialDocuments({
+    customerKey, taxCode: resolvedTaxCode, requesterBirthDate: text(requester?.data_nascita), analysis,
+    requesterIdentity: { name: text(requester?.nome) || text(row?.cliente_nome), surname: text(requester?.cognome) || text(row?.cliente_cognome) },
+  });
   if (!resolvedTaxCode) blockers.push({
     code: taxCodeStatus === "conflict" ? "tax_code_conflict" : "tax_code_missing_or_invalid",
     field: "beneficiary.taxCode",
@@ -1428,12 +1742,23 @@ export function buildCrmLocalPreflightReport(dossierValue: unknown, customerKey:
     sourceIds: [customerKey, ...effectiveDocumentCf.sourceIds],
     appliedRuleIds: ["core-form-first", USER_AUTHORIZED_RULE_IDS.validOriginalDocumentFiscalCode, USER_AUTHORIZED_RULE_IDS.fiscalCodeIdentityCrossCheck],
   });
-  if (primaryBeneficiaryResolution.status === "conflict") blockers.push({
+  if (primaryBeneficiaryResolution.status === "conflict") blockers.push(primaryBeneficiaryResolution.conflictKind === "birth_date" ? {
+    code: "primary_beneficiary_birth_date_conflict",
+    field: "beneficiary.birthDate",
+    reason: `La data di nascita del modulo (${text(requester?.data_nascita).slice(0, 10) || "assente"}) non concorda con giorno o mese codificati nel CF verificato ${resolvedTaxCode}: indicare la data di nascita corretta.`,
+    sourceIds: primaryBeneficiaryResolution.sourceIds,
+    appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.birthDateFromVerifiedFiscalCode, USER_AUTHORIZED_RULE_IDS.fiscalCodeIdentityCrossCheck, "system-apr-operator-intervention-routing"],
+  } : {
     code: "primary_beneficiary_invoice_identity_conflict",
     field: "beneficiary.identity",
     reason: "Le fatture originarie riportano identita anagrafiche diverse per lo stesso CF; la precedenza fattura non e applicabile senza intervento operatore.",
     sourceIds: primaryBeneficiaryResolution.sourceIds,
     appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.officialIdentityOverManualCrm, USER_AUTHORIZED_RULE_IDS.fiscalCodeIdentityCrossCheck, "system-apr-operator-intervention-routing"],
+  });
+  if (primaryBeneficiaryResolution.status === "verified_document" && primaryBeneficiaryResolution.birthDateSource === "fiscal_code_over_form") warnings.push({
+    code: "birth_date_taken_from_verified_fiscal_code",
+    reason: `Data di nascita del modulo ${text(requester?.data_nascita).slice(0, 10)} sostituita da ${primaryBeneficiaryResolution.identity?.birthDate}: il CF ${resolvedTaxCode} coincide nel modulo e nella fattura originaria, giorno e mese concordano e solo l'anno digitato differisce (triangolazione modulo-CF-fattura).`,
+    appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.birthDateFromVerifiedFiscalCode, USER_AUTHORIZED_RULE_IDS.fiscalCodeIdentityCrossCheck],
   });
   if (primaryBeneficiaryResolution.status === "verified_document" && primaryBeneficiaryResolution.identity
     && (normalizedIdentityText(text(requester?.nome)) !== normalizedIdentityText(primaryBeneficiaryResolution.identity.name)
@@ -1552,7 +1877,10 @@ export function buildCrmLocalPreflightReport(dossierValue: unknown, customerKey:
     appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.secondaryHome36PercentAllocation, "system-atomic-checkpoint-resume"],
   });
 
-  const declaredScreenings = object(form?.prodotto) && Array.isArray(object(form?.prodotto)?.schermature) ? object(form?.prodotto)!.schermature as unknown[] : [];
+  const rawDeclaredScreenings = object(form?.prodotto) && Array.isArray(object(form?.prodotto)?.schermature) ? object(form?.prodotto)!.schermature as unknown[] : [];
+  const declaredScreenings = structuredOperatorProducts.length > 0
+    ? rawDeclaredScreenings.slice(0, structuredOperatorProducts.length)
+    : rawDeclaredScreenings;
   const formMappings = resolveFormScreeningMappings(declaredScreenings, technicalItems.map((item) => item.description));
   if (declaredScreenings.length > 0 && formMappings.status === "cardinality_mismatch") blockers.push({ code: "product_cardinality_form_invoice_mismatch", field: "screenings.quantity", reason: `Controllo incrociato ripetuto: il form descrive ${declaredScreenings.length} righe e le fatture ${technicalItems.length} prodotti fisici non riconciliabili in modo univoco per famiglia. Richiesto intervento operatore: confermare la cardinalita fisica e l'assegnazione degli attributi form.`, sourceIds, appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.formInvoicePortalCardinalityCrossCheck, USER_AUTHORIZED_RULE_IDS.technicalProductCardinality, USER_AUTHORIZED_RULE_IDS.formGroupProductInheritance, "system-apr-operator-intervention-routing"] });
   if (declaredScreenings.length > 0 && declaredScreenings.length !== technicalItems.length && formMappings.status === "mapped") warnings.push({
@@ -1719,7 +2047,7 @@ export function buildCrmLocalPreflightReport(dossierValue: unknown, customerKey:
       ? `Data fine lavori CRM ${crmExplicitCompletion} diversa dalla dichiarazione originaria ${originalCompletion.value}; richiesto controllo operatore.`
       : "Più documenti originari dichiarano date di fine lavori/collaudo finale diverse; richiesto controllo operatore.",
     sourceIds: [...new Set([customerKey, ...originalCompletion.sourceIds])],
-    appliedRuleIds: [EXPLICIT_ORIGINAL_COMPLETION_DATE_RULE_ID, "system-apr-operator-intervention-routing"],
+    appliedRuleIds: [EXPLICIT_ORIGINAL_COMPLETION_DATE_RULE_ID, USER_AUTHORIZED_RULE_IDS.datedCommissioningReportCompletionPrecedence, "system-apr-operator-intervention-routing"],
   });
   const explicitCompletion = crmExplicitCompletion || (originalCompletion.status === "verified" && !originalCompletionConflictsWithCrm ? originalCompletion.value : "");
   const completionDate = explicitCompletion || invoiceWorkDates.completionDate || combinedFinancial?.lastInvoiceDate || null;
@@ -1727,10 +2055,15 @@ export function buildCrmLocalPreflightReport(dossierValue: unknown, customerKey:
     : originalCompletion.status === "verified" && !originalCompletionConflictsWithCrm ? originalCompletion.sourceIds[0] ?? null
     : invoiceWorkDates.completionDateSource
     ?? combinedFinancial?.documents.filter((document) => document.documentDate === combinedFinancial.lastInvoiceDate).at(-1)?.path ?? null;
+  if (crmExplicitCompletion) warnings.push({
+    code: "reseller_form_completion_date_over_invoice_applied",
+    reason: `Data fine lavori ${crmExplicitCompletion} acquisita dal campo esplicito del form rivenditore e mantenuta come fonte autorevole rispetto alla cronologia delle fatture.`,
+    appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.resellerFormCompletionDateOverInvoice, USER_AUTHORIZED_RULE_IDS.invoiceWorkDateChronology],
+  });
   if (!crmExplicitCompletion && originalCompletion.status === "verified" && !originalCompletionConflictsWithCrm) warnings.push({
     code: "explicit_original_completion_date_applied",
     reason: `Data fine lavori ${originalCompletion.value} acquisita da dichiarazione originaria esplicita (${originalCompletion.evidenceKinds.join(", ")}).`,
-    appliedRuleIds: [EXPLICIT_ORIGINAL_COMPLETION_DATE_RULE_ID],
+    appliedRuleIds: [EXPLICIT_ORIGINAL_COMPLETION_DATE_RULE_ID, USER_AUTHORIZED_RULE_IDS.datedCommissioningReportCompletionPrecedence],
   });
   if (!completionDate) blockers.push({ code: "completion_date_missing", field: "dates.completion", reason: "Fine lavori assente e data fattura non ricavabile.", sourceIds, appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.missingCompletionDate] });
   else {
@@ -1748,8 +2081,8 @@ export function buildCrmLocalPreflightReport(dossierValue: unknown, customerKey:
     if (isResolvedNonEconomicTotalBlocker(message, combinedFinancial?.documents ?? [], financialReconciliation)) {
       warnings.push({
         code: "resolved_non_economic_total_blocker_retired",
-        reason: `Rimosso il falso blocker di totale non riconosciuto: tutti i segmenti senza totale del parser documentale coincidono con storni non_economic verificati (${financialReconciliation.nonEconomicSourceIds.join(", ")}) e la tripla riconciliazione economica e verde.`,
-        appliedRuleIds: [RESOLVED_NON_ECONOMIC_TOTAL_BLOCKER_RETIREMENT_RULE_ID, "system-zero-total-full-reversal-non-economic-v1", "core-gross-triple-reconciliation"],
+        reason: `Rimosso il falso blocker di totale non riconosciuto: tutti i segmenti senza totale del parser documentale coincidono con storni non_economic verificati (${financialReconciliation.nonEconomicSourceIds.join(", ")}) e i totali finali stampati delle fatture economiche sono verificati.`,
+        appliedRuleIds: [RESOLVED_NON_ECONOMIC_TOTAL_BLOCKER_RETIREMENT_RULE_ID, "system-zero-total-full-reversal-non-economic-v1", USER_AUTHORIZED_RULE_IDS.invoiceFinalPrintedTotalRuntimeAuthority],
       });
       continue;
     }
@@ -1757,22 +2090,17 @@ export function buildCrmLocalPreflightReport(dossierValue: unknown, customerKey:
       ? { code: "screening_primary_measurements_missing", field: "screenings.dimensions", reason: "La fattura descrive la schermatura ma nessuna fonte primaria riporta le misure fisiche del prodotto. APR non usa le misure della finestra protetta come misure del prodotto: acquisire o confermare le misure e rimettere la pratica in Pronte da fare.", sourceIds, appliedRuleIds: ["system-screening-primary-measurements-operator-routing", USER_AUTHORIZED_RULE_IDS.technicalProductCardinality, "system-apr-operator-intervention-routing"] }
       : { code: `invoice_${sha256(message).slice(0, 8)}`, field: "economic_sources", reason: message, sourceIds, appliedRuleIds: ["core-economic-classification"] });
   }
-  if (scheduleAmountMissingSources.length > 0) blockers.push({
-    code: "invoice_schedule_amount_missing",
-    field: "economic_sources.schedule.amount",
-    reason: "Scadenza non leggibile, importo mancante: verificare l'importo dello scadenziario nella fattura originaria.",
-    sourceIds: scheduleAmountMissingSources,
-    appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.invoiceScheduleMissingAmount],
-  });
-  if (!financialReconciliation.usable) blockers.push({ code: "gross_triple_reconciliation_failed", field: "economic_sources.total", reason: `Tripla riconciliazione non dimostrata: ${financialReconciliation.blockers.length ? financialReconciliation.blockers.join(", ") : financialReconciliation.methods.filter((method) => !method.ok).map((method) => method.reason).join(", ")}.`, sourceIds, appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.invoiceGrossTotalVatIncluded, "core-gross-triple-reconciliation", ...financialReconciliation.appliedRuleIds] });
+  if (!financialReconciliation.usable) blockers.push({ code: "invoice_final_printed_total_not_verified", field: "economic_sources.total", reason: `Totale finale stampato della fattura non verificato: ${financialReconciliation.blockers.length ? financialReconciliation.blockers.join(", ") : "nessuna fattura fiscale con totale finale leggibile"}.`, sourceIds, appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.invoiceFinalPrintedTotalRuntimeAuthority, ...financialReconciliation.appliedRuleIds] });
   const uniqueBlockers = blockers.filter((item, index, all) => all.findIndex((candidate) => candidate.code === item.code) === index);
   const financialEligibleForEnea = financialReconciliation.usable;
-  // Conservare la ripartizione economica auditata anche quando un controllo
-  // indipendente (per esempio il tipo fiscale del bonifico) blocca la pratica.
-  // Il gate resta chiuso tramite tripleReconciliationVerified/blockers, ma la
-  // dashboard non deve perdere il valore tecnico verificato e tornare al lordo.
+  // Nessuna cifra economica intermedia o controllo bonifico puo sostituire o
+  // bloccare il totale finale stampato autorevole.
   const eligibleTechnicalExpense = bundledProfessionalExpense.eligibleTechnicalExpense;
-  const baseEneaPayloadAudit = buildCrmEneaPayloadAudit({
+  const authoritativeEconomicDecision = buildAprAuthoritativeEconomicDecision({
+    reconciliation: financialReconciliation,
+    eligibleExpense: financialReconciliation.usable ? eligibleTechnicalExpense : null,
+  });
+  const builtEneaPayload = buildCrmEneaPayloadAuditAndExecutablePlan({
     customerKey,
     dossierValue: dossier && row && form ? { ...dossier, row: { ...row, dati_form: form } } : dossierValue,
     resolvedTaxCode,
@@ -1791,8 +2119,9 @@ export function buildCrmLocalPreflightReport(dossierValue: unknown, customerKey:
     resolvedCoBeneficiaryPresent: coBeneficiaryResolution.present,
     resolvedCoBeneficiary: coBeneficiaryResolution.identity ? { ...coBeneficiaryResolution.identity, sourceIds: coBeneficiaryResolution.sourceIds } : null,
     analysis,
+    resolvedInvoiceSegments: operatorTotalOverride.segments,
   });
-  const eneaPayloadAudit = invalidateCrmEneaPayloadAuditForScreeningBlockers(baseEneaPayloadAudit, uniqueBlockers);
+  const eneaPayloadAudit = invalidateCrmEneaPayloadAuditForScreeningBlockers(builtEneaPayload.audit, uniqueBlockers);
   const finalBlockers = [...uniqueBlockers];
   if (finalBlockers.length === 0 && !eneaPayloadAudit.draftReady) finalBlockers.push({
     code: "draft_payload_mapping_incomplete",
@@ -1803,7 +2132,14 @@ export function buildCrmLocalPreflightReport(dossierValue: unknown, customerKey:
   });
   const structuredFinalBlockers = finalBlockers.map((blocker) => {
     const structured = structureAprResidualBlocker({ practiceId: text(row?.id) || customerKey, code: blocker.code, field: blocker.field, reason: blocker.reason });
-    return { ...blocker, exactCause: structured.exactCause, missingDocumentType: structured.missingDocumentType, operatorQuestion: structured.operatorQuestion, onboardingGap: structured.onboardingGap, appliedRuleIds: [...new Set([...blocker.appliedRuleIds, structured.ruleId])] };
+    return {
+      ...blocker,
+      exactCause: blocker.exactCause ?? structured.exactCause,
+      missingDocumentType: blocker.missingDocumentType ?? structured.missingDocumentType,
+      operatorQuestion: blocker.operatorQuestion ?? structured.operatorQuestion,
+      onboardingGap: blocker.onboardingGap ?? structured.onboardingGap,
+      appliedRuleIds: [...new Set([...blocker.appliedRuleIds, structured.ruleId])],
+    };
   });
   const ready = structuredFinalBlockers.length === 0;
   return { outcome: ready ? "ready_local_plan" : "blocked_case", formAvailable, startDate, startDateSource, completionDate, completionDateSource, buildingQualification, buildingUnitCount, deductionRate, taxCodeStatus, resolvedTaxCode, taxCodeSourceIds: taxCodeStatus === "verified_original_document" ? effectiveDocumentCf.sourceIds : [customerKey], primaryBeneficiaryResolution, worksMunicipalityResolution, coBeneficiaryResolution, products,
@@ -1812,6 +2148,10 @@ export function buildCrmLocalPreflightReport(dossierValue: unknown, customerKey:
       // mentre gli importi fiscali restano tutte le fatture uniche. Non usare
       // quindi il sottoinsieme tecnico per il totale economico.
       invoiceTotal: invoiceGrossTotal, eligibleExpense: eligibleTechnicalExpense,
+      authoritativeDecision: authoritativeEconomicDecision,
+      finalPrintedTotalVerified: financialEligibleForEnea,
+      // Alias persistito per leggere checkpoint storici: non rappresenta piu'
+      // una riconciliazione tripla e non alimenta alcun blocker.
       tripleReconciliationVerified: financialEligibleForEnea, reconciledTotal: eligibleTechnicalExpense,
       evidence: financialEvidence.map(({ sourceId, kind, taxableAmount, vatAmount, grossTotal, interventionGrossAmount, extractionConfidence, extractionIssues }) => ({ sourceId, kind, taxableAmount, vatAmount, grossTotal, interventionGrossAmount, extractionConfidence, extractionIssues: [...(extractionIssues ?? [])] })),
       bankTransfers,
@@ -1819,8 +2159,9 @@ export function buildCrmLocalPreflightReport(dossierValue: unknown, customerKey:
       methods: financialReconciliation.methods.map((method) => ({ ...method })),
       discardedDuplicateSourceIds: [...new Set([...segmentReconciliation.discardedDuplicateSourceIds, ...financialReconciliation.discardedDuplicateSourceIds])],
       supersededTechnicalSourceIds: segmentReconciliation.supersededTechnicalSourceIds,
-      appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.invoiceGrossTotalVatIncluded, USER_AUTHORIZED_RULE_IDS.grossInvoiceSumSupersedesServiceSeparation, USER_AUTHORIZED_RULE_IDS.mandatoryBankTransferInvoiceExpenseCrossCheck, "core-gross-triple-reconciliation", USER_AUTHORIZED_RULE_IDS.technicalProductCardinality, EXPLICIT_ADVANCE_INVOICE_REFERENCE_MARKER_RULE_ID, ...(advanceInvoiceReferences.uniqueBaseMatches.length ? [USER_AUTHORIZED_RULE_IDS.uniqueInvoiceBaseReferenceMatch] : []), ...(segmentReconciliation.discardedDuplicateSourceIds.length ? ["system-invoice-header-identity-over-body-reference"] : []), ...(segmentReconciliation.discardedPartialScanDuplicateSourceIds.length ? [USER_AUTHORIZED_RULE_IDS.partialScanSameInvoiceNumberDuplicateMerge] : []), ...(segmentReconciliation.discardedConflictingOcrDuplicateSourceIds.length ? [NATIVE_OCR_FISCAL_DUPLICATE_AUTHORITY_RULE_ID, USER_AUTHORIZED_RULE_IDS.duplicateInvoiceOcrVariantDeduplication, USER_AUTHORIZED_RULE_IDS.duplicateInvoiceMatchingNumberAndDateOverTotal] : []), ...(segmentReconciliation.nonFiscalTechnicalSourceIds.length ? [USER_AUTHORIZED_RULE_IDS.nonFiscalSupportingDocumentExclusion] : []), ...(resellerInvoiceExclusionApplied ? [USER_AUTHORIZED_RULE_IDS.resellerInstallerInvoiceExcludedFromEconomicTotal] : []), ...(segmentReconciliation.uniqueFinancialSegments.some((segment) => hasInternalAdvanceCreditLine(segment.text)) ? [USER_AUTHORIZED_RULE_IDS.invoiceFinalPrintedTotalOnlyNeverInternalRecalculation] : []), ...(segmentReconciliation.replacedFinancialSourceIds.length ? ["system-explicit-replacement-invoice-supersession"] : []), ...(segmentReconciliation.percentageCausalSupersededTechnicalSourceIds.length ? [EXPLICIT_PERCENTAGE_CAUSAL_TECHNICAL_SUPERSESSION_RULE_ID] : []), ...financialReconciliation.appliedRuleIds],
+      appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.invoiceFinalPrintedTotalRuntimeAuthority, USER_AUTHORIZED_RULE_IDS.advanceBalanceFiscalInvoiceEquivalence, USER_AUTHORIZED_RULE_IDS.invoiceSlotContentAuthority, USER_AUTHORIZED_RULE_IDS.grossInvoiceSumSupersedesServiceSeparation, USER_AUTHORIZED_RULE_IDS.mandatoryBankTransferInvoiceExpenseCrossCheck, USER_AUTHORIZED_RULE_IDS.technicalProductCardinality, EXPLICIT_ADVANCE_INVOICE_REFERENCE_MARKER_RULE_ID, ...(advanceInvoiceReferences.uniqueBaseMatches.length ? [USER_AUTHORIZED_RULE_IDS.uniqueInvoiceBaseReferenceMatch] : []), ...(segmentReconciliation.discardedDuplicateSourceIds.length ? ["system-invoice-header-identity-over-body-reference"] : []), ...(segmentReconciliation.discardedPartialScanDuplicateSourceIds.length ? [USER_AUTHORIZED_RULE_IDS.partialScanSameInvoiceNumberDuplicateMerge] : []), ...(segmentReconciliation.discardedConflictingOcrDuplicateSourceIds.length ? [NATIVE_OCR_FISCAL_DUPLICATE_AUTHORITY_RULE_ID, USER_AUTHORIZED_RULE_IDS.duplicateInvoiceOcrVariantDeduplication, USER_AUTHORIZED_RULE_IDS.duplicateInvoiceMatchingNumberAndDateOverTotal] : []), ...(segmentReconciliation.nonFiscalTechnicalSourceIds.length ? [USER_AUTHORIZED_RULE_IDS.nonFiscalSupportingDocumentExclusion] : []), ...(resellerInvoiceExclusionApplied ? [USER_AUTHORIZED_RULE_IDS.resellerInstallerInvoiceExcludedFromEconomicTotal] : []), ...(segmentReconciliation.replacedFinancialSourceIds.length ? ["system-explicit-replacement-invoice-supersession"] : []), ...(segmentReconciliation.percentageCausalSupersededTechnicalSourceIds.length ? [EXPLICIT_PERCENTAGE_CAUSAL_TECHNICAL_SUPERSESSION_RULE_ID] : []), ...financialReconciliation.appliedRuleIds],
     }, warnings, blockers: structuredFinalBlockers, sourceIds, eneaPayloadAudit,
+    eneaExecutablePlan: ready && eneaPayloadAudit.draftReady ? builtEneaPayload.executablePlan : null,
     draftPlan: { status: ready ? "ready_before_external_action" : "blocked", externalActionAllowed: false, previewAllowed: false, submitAllowed: false, communicationsAllowed: false,
       nextAction: ready ? "Piano locale pronto; fermo prima di ENEA." : uniqueBlockers.some((item) => item.code === "original_invoice_missing_or_unavailable") ? "Richiesto intervento operatore: acquisire la fattura; al ritorno in Pronte da fare APR riprende dal nuovo fingerprint." : "Risolvere i blocker con sole fonti originarie; la coda prosegue sugli altri casi." } };
 }
@@ -1832,17 +2173,193 @@ function verifiedBeneficiaryDisplayName(report: AprCrmLocalPreflightReport, fall
   return identity ? `${identity.name} ${identity.surname}`.trim().replace(/\s+/g, " ") : fallback;
 }
 
+function appendOperatorResponseBlocker(report: AprCrmLocalPreflightReport, blocker: AprCrmLocalPreflightReport["blockers"][number]) {
+  if (report.blockers.some((item) => item.code === blocker.code)) return report;
+  const blockers = [...report.blockers, blocker];
+  return {
+    ...report,
+    outcome: "blocked_case" as const,
+    blockers,
+    eneaPayloadAudit: {
+      ...report.eneaPayloadAudit,
+      status: "payload_incomplete" as const,
+      blockerCount: report.eneaPayloadAudit.blockerCount + 1,
+      blockers: [...report.eneaPayloadAudit.blockers, { code: blocker.code, fieldId: blocker.field, message: blocker.reason }],
+      draftReady: false,
+      portalGate: { ...report.eneaPayloadAudit.portalGate, status: "blocked" as const, reason: blocker.code },
+      reason: blocker.reason,
+    },
+    eneaExecutablePlan: null,
+    draftPlan: { ...report.draftPlan, status: "blocked" as const, nextAction: `Richiesto intervento operatore: ${blocker.operatorQuestion ?? blocker.reason}` },
+  };
+}
+
 export class PersistentAprCrmLocalPreflight {
-  readonly directory: string; readonly checkpointPath: string;
-  constructor(readonly rootDirectory: string, readonly documentAnalysis: PersistentAprCrmDocumentAnalysis) { this.directory = path.join(path.resolve(rootDirectory), "crm-local-preflight"); this.checkpointPath = path.join(this.directory, "checkpoint.json"); }
+  readonly directory: string; readonly checkpointPath: string; readonly operatorResponses: PersistentAprOperatorResponseLedger;
+  constructor(readonly rootDirectory: string, readonly documentAnalysis: PersistentAprCrmDocumentAnalysis) {
+    this.directory = path.join(path.resolve(rootDirectory), "crm-local-preflight");
+    this.checkpointPath = path.join(this.directory, "checkpoint.json");
+    this.operatorResponses = new PersistentAprOperatorResponseLedger(rootDirectory);
+  }
+  private buildReportFor(dossierPath: string, customerKey: string, sourceFingerprint: string, now: Date, legacyResolution?: AprCrmLocalPreflightState["operatorMeasurementResolutions"][number]) {
+    const dossierValue = JSON.parse(readFileSync(dossierPath, "utf8"));
+    const originalPracticeId = text(object(object(dossierValue)?.row)?.id) || null;
+    const projection = this.operatorResponses.projection(customerKey, originalPracticeId, now);
+    const prepared = applyOperatorResponseDossierOverrides(dossierValue, projection);
+    let report = buildCrmLocalPreflightReport(prepared.dossier, customerKey, this.documentAnalysis.snapshot(now), now, legacyResolution, projection);
+    const dossier = object(prepared.dossier);
+    const row = object(dossier?.row);
+    const practiceId = text(row?.id) || null;
+    const acquiredAt = text(dossier?.acquiredAt);
+    const refreshEntries = projection.entries.filter((entry) => entry.payload.kind === "document_refresh");
+    const refreshSatisfied = refreshEntries.length === 0 || (Number.isFinite(Date.parse(acquiredAt)) && refreshEntries.every((entry) => Date.parse(acquiredAt) >= Date.parse(entry.receivedAt)));
+    if (!refreshSatisfied) report = appendOperatorResponseBlocker(report, {
+      code: "operator_response_source_refresh_pending",
+      field: "original_documents",
+      reason: "L'operatore ha segnalato nuovi documenti, ma il dossier in uso e stato acquisito prima della risposta: e obbligatoria una nuova acquisizione read-only prima del preflight.",
+      sourceIds: [customerKey],
+      appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.operatorResponseRuntimeConsumption, "system-apr-operator-intervention-routing"],
+      exactCause: `dossier acquiredAt=${acquiredAt || "missing"}; ultima risposta documento=${refreshEntries.at(-1)?.receivedAt ?? "missing"}`,
+      operatorQuestion: "I nuovi documenti risultano caricati nel CRM e la pratica puo essere riacquisita?",
+      missingDocumentType: refreshEntries.flatMap((entry) => entry.payload.kind === "document_refresh" ? entry.payload.documentTypes : []).join(", ") || null,
+      onboardingGap: null,
+    });
+    // Decisione del titolare (13/09/2026): vince la risposta piu' recente, per
+    // qualsiasi tipo. Una richiesta "dato in attesa" e' pendente soltanto se
+    // e' l'ULTIMA cosa che l'operatore ha detto sulla pratica. Se dopo e'
+    // arrivata una risposta con il dato — misure, decisione, documento — la
+    // richiesta e' superata anche se nessuno l'ha marcata tale: cercarla fra
+    // tutte le risposte attive faceva vincere la vecchia (Rossella Munafo:
+    // richiesta dell'11/09 e misure del 12/09 entrambe attive, misure
+    // applicate, richiesta che bloccava la pratica per quattro giri).
+    const latestOperatorEntry = projection.entries.at(-1);
+    const pendingOperatorResponse = latestOperatorEntry
+      && (latestOperatorEntry.payload.kind === "operator_required" || latestOperatorEntry.payload.kind === "case_decision")
+      && prepared.applications.find((application) => application.responseId === latestOperatorEntry.responseId)?.outcome !== "applied"
+      ? latestOperatorEntry
+      : undefined;
+    if (pendingOperatorResponse) report = appendOperatorResponseBlocker(report, {
+      code: "operator_response_pending_external_data",
+      field: "operator_response",
+      reason: pendingOperatorResponse.question,
+      sourceIds: [customerKey],
+      appliedRuleIds: [USER_AUTHORIZED_RULE_IDS.operatorResponseRuntimeConsumption, "system-apr-operator-intervention-routing"],
+      exactCause: pendingOperatorResponse.question,
+      operatorQuestion: pendingOperatorResponse.question,
+      missingDocumentType: pendingOperatorResponse.payload.kind === "operator_required" ? pendingOperatorResponse.payload.missingDocumentType : null,
+      onboardingGap: null,
+    });
+    const reportRuleIds = new Set([
+      ...report.financial.appliedRuleIds,
+      ...report.products.flatMap((product) => product.appliedRuleIds),
+      ...report.blockers.flatMap((blocker) => blocker.appliedRuleIds),
+      ...report.warnings.flatMap((warning) => warning.appliedRuleIds),
+    ]);
+    const applications = projection.entries.flatMap((entry) => {
+      let outcome: "applied" | "not_applied" | "pending_source_refresh" | "verified_general_rule" | null = null;
+      let evidence = "";
+      const dossierApplication = prepared.applications.find((application) => application.responseId === entry.responseId);
+      if (dossierApplication) {
+        outcome = dossierApplication.outcome;
+        evidence = dossierApplication.evidence;
+      }
+      else if (entry.payload.kind === "screening_products") {
+        const expected = entry.payload.products.flatMap((product) => Array.from({ length: product.quantity }, () => `${product.widthMm}x${product.heightMm}`)).sort();
+        const observed = report.products.map((product) => `${product.widthMm}x${product.heightMm}`).sort();
+        if (expected.length === observed.length && expected.every((value, index) => value === observed[index])) {
+          outcome = "applied"; evidence = `report.products=${observed.join(",")}`;
+        }
+      }
+      else if (entry.payload.kind === "document_refresh") { outcome = refreshSatisfied ? "applied" : "pending_source_refresh"; evidence = `dossier.acquiredAt=${acquiredAt || "missing"};response.receivedAt=${entry.receivedAt}`; }
+      else if (entry.payload.kind === "general_rule_confirmation" && entry.payload.ruleIds.every((id) => reportRuleIds.has(id))) { outcome = "verified_general_rule"; evidence = `report.appliedRuleIds=${entry.payload.ruleIds.join(",")}`; }
+      if (!outcome) return [];
+      return [{ responseId: entry.responseId, customerKey, practiceId, runRoot: path.resolve(this.rootDirectory), sourceFingerprint, outcome, evidence, appliedAt: now.toISOString() }];
+    });
+    if (applications.length) this.operatorResponses.recordApplications(applications, now);
+    return report;
+  }
   load(now = new Date()) { if (!existsSync(this.checkpointPath)) return initialState(now); try { const value = JSON.parse(readFileSync(this.checkpointPath, "utf8")) as AprCrmLocalPreflightState; value.validationRevisionsApplied ??= []; value.sourceRevisionsApplied ??= []; value.operatorMeasurementResolutions ??= []; return value.version === APR_CRM_LOCAL_PREFLIGHT_VERSION && value.externalActionAllowed === false && value.audit.every((event) => event.appliedRuleIds.every((id) => registryRule(id)) ) ? value : initialState(now); } catch { return initialState(now); } }
   private write(state: AprCrmLocalPreflightState) { atomicWrite(this.checkpointPath, `${JSON.stringify(state, null, 2)}\n`); return state; }
   initialize(now = new Date()) { const state = this.load(now); if (!existsSync(this.checkpointPath)) this.write(state); return state; }
+  prepareFromTerminalAcquisition(items: AprCrmAcquisitionItem[], sourceFingerprint: string, now = new Date()) {
+    const current = this.initialize(now);
+    if (current.sourceFingerprint === sourceFingerprint) return current;
+    if (current.sourceFingerprint) throw new Error("crm_local_preflight_source_immutable");
+    if (!/^[a-f0-9]{64}$/.test(sourceFingerprint) || !acquisitionCanTerminalizeWithoutDocuments(items)) {
+      throw new Error("crm_local_preflight_upstream_terminal_source_invalid");
+    }
+    const next = structuredClone(current);
+    next.revision += 1;
+    next.status = "completed";
+    next.sourceFingerprint = sourceFingerprint;
+    next.currentCustomerKey = null;
+    const dispositionApplications: Parameters<PersistentAprOperatorResponseLedger["recordApplications"]>[0] = [];
+    next.items = items.map((item) => {
+      const practiceId = item.practiceId ?? item.expectedPracticeId ?? `unresolved-${sha256(item.customerKey).slice(0, 24)}`;
+      const projection = this.operatorResponses.projection(item.customerKey, practiceId, now);
+      const dispositionEntry = [...projection.entries].reverse().find((entry) => entry.payload.kind === "case_disposition");
+      let dossierPath = item.dossierPath;
+      if (item.state !== "acquired") {
+        if (item.state !== "blocked_not_found" && item.state !== "blocked_ambiguous" && item.state !== "blocked_invalid_response") {
+          throw new Error(`crm_local_preflight_upstream_terminal_state_invalid:${item.customerKey}:${item.state}`);
+        }
+        const evidence: AprCrmUpstreamTerminalEvidence = {
+          version: "apr-crm-upstream-terminal-evidence-v1",
+          customerKey: item.customerKey,
+          displayName: item.displayName,
+          practiceId,
+          acquisitionState: item.state,
+          reason: item.reason,
+        };
+        dossierPath = path.join(this.directory, "upstream-terminal-evidence", `${item.customerKey.replace(/[^a-z0-9._-]/gi, "-")}.json`);
+        atomicWrite(dossierPath, `${JSON.stringify({ upstreamTerminal: evidence }, null, 2)}\n`);
+      }
+      if (!dossierPath || !existsSync(dossierPath)) throw new Error(`crm_local_preflight_upstream_terminal_evidence_missing:${item.customerKey}`);
+      if (projection.caseDisposition && dispositionEntry) {
+        const reason = `Risposta operatore applicata all'esito di acquisizione: ${projection.caseDisposition.reason}`;
+        dispositionApplications.push({ responseId: dispositionEntry.responseId, customerKey: item.customerKey, practiceId, runRoot: path.resolve(this.rootDirectory), sourceFingerprint, outcome: "disposition_applied", evidence: projection.caseDisposition.disposition, appliedAt: now.toISOString() });
+        return { customerKey: item.customerKey, displayName: item.displayName, practiceId, dossierPath, state: "deferred_operator" as const, attemptCount: 0, startedAt: item.startedAt, endedAt: item.endedAt ?? now.toISOString(), report: null, reason, disposition: { kind: "user_deferred" as const, commandId: dispositionEntry.responseId, at: now.toISOString(), reason } };
+      }
+      const report = buildCrmLocalPreflightReport(JSON.parse(readFileSync(dossierPath, "utf8")), item.customerKey, this.documentAnalysis.snapshot(now), now);
+      if (report.outcome !== "blocked_case" || report.blockers.length === 0) throw new Error(`crm_local_preflight_upstream_terminal_report_invalid:${item.customerKey}`);
+      for (const blocker of report.blockers) {
+        blocker.appliedRuleIds = [...new Set([...blocker.appliedRuleIds, UPSTREAM_PREFLIGHT_TERMINALIZATION_RULE_ID])];
+      }
+      return {
+        customerKey: item.customerKey,
+        displayName: item.displayName,
+        practiceId,
+        dossierPath,
+        state: "blocked_case" as const,
+        attemptCount: 0,
+        startedAt: item.startedAt,
+        endedAt: item.endedAt ?? now.toISOString(),
+        report,
+        reason: `${report.blockers.length} esito/i terminale/i propagato/i dall'acquisizione; nessuna attesa di liveness necessaria.`,
+        disposition: null,
+      };
+    });
+    if (dispositionApplications.length) this.operatorResponses.recordApplications(dispositionApplications, now);
+    next.reason = `Preflight terminale propagato dall'acquisizione per ${next.items.length} pratica/pratiche non elaborabili senza documenti; nessuna azione ENEA.`;
+    next.nextAction = "Pubblicare blocker e operatorQuestion per il solo caso, rilasciare la coda e proseguire.";
+    for (const item of next.items) next.audit.push({ revision: next.revision, at: now.toISOString(), type: item.state === "deferred_operator" ? "case_deferred" : "case_blocked", customerKey: item.customerKey, reason: item.reason, appliedRuleIds: [...new Set([...BASE_RULE_IDS, ...(item.report?.blockers.flatMap((blocker) => blocker.appliedRuleIds) ?? []), ...(item.state === "deferred_operator" ? [USER_AUTHORIZED_RULE_IDS.operatorResponseRuntimeConsumption] : [])])] });
+    next.audit.push({ revision: next.revision, at: now.toISOString(), type: "completed", customerKey: null, reason: next.reason, appliedRuleIds: BASE_RULE_IDS });
+    return this.write(next);
+  }
   prepare(acquired: AprCrmAcquisitionItem[], sourceFingerprint: string, now = new Date()) {
     const current = this.initialize(now); if (current.sourceFingerprint === sourceFingerprint) return current; if (current.sourceFingerprint) throw new Error("crm_local_preflight_source_immutable");
     if (acquired.length < 1 || acquired.length > 40 || acquired.some((item) => item.state !== "acquired" || !item.practiceId || !item.dossierPath || !existsSync(item.dossierPath))) throw new Error("crm_local_preflight_source_invalid");
     const next = structuredClone(current); next.revision += 1; next.status = "queued"; next.sourceFingerprint = sourceFingerprint;
-    next.items = acquired.map((item) => ({ customerKey: item.customerKey, displayName: item.displayName, practiceId: item.practiceId!, dossierPath: item.dossierPath!, state: "queued", attemptCount: 0, startedAt: null, endedAt: null, report: null, reason: "In coda per preflight esclusivamente locale.", disposition: null }));
+    const dispositionApplications: Parameters<PersistentAprOperatorResponseLedger["recordApplications"]>[0] = [];
+    next.items = acquired.map((item) => {
+      const projection = this.operatorResponses.projection(item.customerKey, item.practiceId, now);
+      const dispositionEntry = [...projection.entries].reverse().find((entry) => entry.payload.kind === "case_disposition");
+      if (!projection.caseDisposition || !dispositionEntry) return { customerKey: item.customerKey, displayName: item.displayName, practiceId: item.practiceId!, dossierPath: item.dossierPath!, state: "queued" as const, attemptCount: 0, startedAt: null, endedAt: null, report: null, reason: "In coda per preflight esclusivamente locale.", disposition: null };
+      const reason = `Risposta operatore applicata prima del preflight: ${projection.caseDisposition.reason}`;
+      dispositionApplications.push({ responseId: dispositionEntry.responseId, customerKey: item.customerKey, practiceId: item.practiceId!, runRoot: path.resolve(this.rootDirectory), sourceFingerprint, outcome: "disposition_applied", evidence: projection.caseDisposition.disposition, appliedAt: now.toISOString() });
+      return { customerKey: item.customerKey, displayName: item.displayName, practiceId: item.practiceId!, dossierPath: item.dossierPath!, state: "deferred_operator" as const, attemptCount: 0, startedAt: null, endedAt: now.toISOString(), report: null, reason, disposition: { kind: "user_deferred" as const, commandId: dispositionEntry.responseId, at: now.toISOString(), reason } };
+    });
+    if (dispositionApplications.length) this.operatorResponses.recordApplications(dispositionApplications, now);
     next.reason = `${acquired.length} dossier acquisiti preparati per preflight locale sequenziale; i casi bloccati a monte non fermano la coda.`; next.nextAction = "Elaborare una pratica alla volta; nessuna azione CRM o ENEA."; next.audit.push({ revision: next.revision, at: now.toISOString(), type: "prepared", customerKey: null, reason: next.reason, appliedRuleIds: BASE_RULE_IDS }); return this.write(next);
   }
   applySourceRevision(acquired: AprCrmAcquisitionItem[], sourceFingerprint: string, sourceRevision: string, now = new Date()) {
@@ -1857,7 +2374,7 @@ export class PersistentAprCrmLocalPreflight {
     for (const item of next.items) {
       if (item.state === "deferred_operator") continue;
       const acquiredItem = acquiredByKey.get(item.customerKey)!;
-      const report = buildCrmLocalPreflightReport(JSON.parse(readFileSync(acquiredItem.dossierPath!, "utf8")), item.customerKey, this.documentAnalysis.snapshot(now), now, next.operatorMeasurementResolutions.find((entry) => entry.customerKey === item.customerKey));
+      const report = this.buildReportFor(acquiredItem.dossierPath!, item.customerKey, sourceFingerprint, now, next.operatorMeasurementResolutions.find((entry) => entry.customerKey === item.customerKey));
       item.report = report; item.displayName = verifiedBeneficiaryDisplayName(report, item.displayName); item.state = report.outcome; item.reason = report.outcome === "ready_local_plan" ? "Piano bozza locale pronto dopo revisione fonti; azioni esterne ancora bloccate." : `${report.blockers.length} blocker per-pratica dopo revisione fonti; coda conservata.`;
     }
     const existingKeys = new Set(next.items.map((item) => item.customerKey));
@@ -1875,7 +2392,7 @@ export class PersistentAprCrmLocalPreflight {
     let current = this.load(now); if (current.status === "unprepared" || current.status === "completed") return current;
     let item = current.items.find((candidate) => candidate.state === "processing");
     if (!item) { const index = current.items.findIndex((candidate) => candidate.state === "queued"); if (index < 0) return this.complete(now); const next = structuredClone(current); item = next.items[index]; next.revision += 1; next.status = "running"; next.currentCustomerKey = item.customerKey; item.state = "processing"; item.attemptCount += 1; item.startedAt ??= now.toISOString(); item.reason = "Preflight locale reclamato; ripresa idempotente dopo riavvio."; next.audit.push({ revision: next.revision, at: now.toISOString(), type: "claimed", customerKey: item.customerKey, reason: item.reason, appliedRuleIds: BASE_RULE_IDS }); this.write(next); current = next; }
-    const report = buildCrmLocalPreflightReport(JSON.parse(readFileSync(item.dossierPath, "utf8")), item.customerKey, this.documentAnalysis.snapshot(now), now, current.operatorMeasurementResolutions.find((entry) => entry.customerKey === item!.customerKey));
+    const report = this.buildReportFor(item.dossierPath, item.customerKey, current.sourceFingerprint ?? sha256(item.dossierPath), now, current.operatorMeasurementResolutions.find((entry) => entry.customerKey === item!.customerKey));
     const next = structuredClone(this.load(now)); const target = next.items.find((candidate) => candidate.customerKey === item!.customerKey)!; next.revision += 1; target.state = report.outcome; target.report = report; target.displayName = verifiedBeneficiaryDisplayName(report, target.displayName); target.endedAt = now.toISOString(); target.reason = report.outcome === "ready_local_plan" ? "Piano bozza locale pronto; azioni esterne bloccate." : `${report.blockers.length} blocker per-pratica registrati; coda prosegue.`; next.currentCustomerKey = null; next.reason = `${target.displayName}: ${target.reason}`; next.nextAction = "Proseguire con il caso successivo senza aprire ENEA."; next.audit.push({ revision: next.revision, at: now.toISOString(), type: report.outcome === "ready_local_plan" ? "case_ready" : "case_blocked", customerKey: target.customerKey, reason: target.reason, appliedRuleIds: [...new Set([...BASE_RULE_IDS, ...report.financial.appliedRuleIds, ...report.products.flatMap((product) => product.appliedRuleIds), ...report.blockers.flatMap((blocker) => blocker.appliedRuleIds), ...report.warnings.flatMap((warning) => warning.appliedRuleIds)])] }); this.write(next);
     return next.items.some((candidate) => candidate.state === "queued" || candidate.state === "processing") ? next : this.complete(now);
   }
@@ -1890,10 +2407,10 @@ export class PersistentAprCrmLocalPreflight {
   applyValidationRevision(validationRevision: string, now = new Date()) {
     const current = this.initialize(now); if (current.validationRevisionsApplied.includes(validationRevision) || current.status !== "completed") return current;
     if (!/^[a-z0-9][a-z0-9._:-]{7,127}$/.test(validationRevision)) throw new Error("crm_local_preflight_validation_revision_invalid");
-    const analysis = this.documentAnalysis.snapshot(now); const next = structuredClone(current); next.revision += 1;
+    const next = structuredClone(current); next.revision += 1;
     for (const item of next.items) {
       if (item.state === "deferred_operator") continue;
-      const report = buildCrmLocalPreflightReport(JSON.parse(readFileSync(item.dossierPath, "utf8")), item.customerKey, analysis, now, next.operatorMeasurementResolutions.find((entry) => entry.customerKey === item.customerKey));
+      const report = this.buildReportFor(item.dossierPath, item.customerKey, next.sourceFingerprint ?? sha256(item.dossierPath), now, next.operatorMeasurementResolutions.find((entry) => entry.customerKey === item.customerKey));
       item.report = report; item.displayName = verifiedBeneficiaryDisplayName(report, item.displayName); item.state = report.outcome; item.reason = report.outcome === "ready_local_plan" ? "Piano bozza locale pronto; azioni esterne bloccate." : `${report.blockers.length} blocker per-pratica registrati; coda conclusa senza perdita.`;
     }
     next.validationRevisionsApplied.push(validationRevision); const ready = next.items.filter((item) => item.state === "ready_local_plan").length; const blocked = next.items.filter((item) => item.state === "blocked_case").length; const deferred = next.items.filter((item) => item.state === "deferred_operator").length;
@@ -2000,43 +2517,20 @@ export class PersistentAprCrmLocalPreflight {
     if (!item || item.state !== "ready_local_plan" || !item.report || !item.report.eneaPayloadAudit?.draftReady || item.report.eneaPayloadAudit.portalGate.status !== "ready") {
       throw new Error("crm_enea_draft_package_not_ready");
     }
-    const dossierValue = JSON.parse(readFileSync(item.dossierPath, "utf8")) as unknown;
-    const packageResult = buildCrmEneaDraftPackage({
-      customerKey,
-      dossierValue,
-      resolvedTaxCode: item.report.resolvedTaxCode,
-      startDate: item.report.startDate,
-      startDateSource: item.report.startDateSource,
-      completionDate: item.report.completionDate,
-      products: item.report.products,
-      financialVerified: item.report.financial.tripleReconciliationVerified,
-      reconciledTotal: item.report.financial.reconciledTotal,
-      // The executable package must be rebuilt with the same resolved values
-      // used by the audited preflight.  Omitting the authorized single-unit
-      // default made an already-green case fail only at execution time.
-      resolvedBuildingUnitCount: item.report.buildingUnitCount,
-      resolvedBuildingQualification: item.report.buildingQualification,
-      resolvedCoBeneficiaryPresent: item.report.coBeneficiaryResolution.present,
-      resolvedCoBeneficiary: item.report.coBeneficiaryResolution.identity ? { ...item.report.coBeneficiaryResolution.identity, sourceIds: item.report.coBeneficiaryResolution.sourceIds } : null,
-      analysis: this.documentAnalysis.snapshot(now),
-    });
-    if (packageResult.status !== "built" || packageResult.portalGate.status !== "ready") throw new Error("crm_enea_draft_package_rebuild_blocked");
-    const mappingFingerprint = fingerprintPreparedPractice(packageResult.mapped, packageResult.issues);
-    const controlledCalculationExtension = mappingFingerprint === item.report.eneaPayloadAudit.mappingFingerprint
-      && packageResult.portalGate.fingerprint === `${mappingFingerprint}:${item.report.eneaPayloadAudit.requiredPortalFieldCount + 1}:${item.report.eneaPayloadAudit.portalGate.screeningItemCount}`
-      && packageResult.portalGate.workflow.preparedFieldIds.includes("schermature.risparmio_energia")
-      && packageResult.portalGate.workflow.steps.some(({ id }) => id === "calculation");
+    const executablePlan = item.report.eneaExecutablePlan;
+    if (!executablePlan) throw new Error("crm_enea_canonical_preflight_package_missing");
+    const mappingFingerprint = executablePlan.mappingFingerprint;
     if (mappingFingerprint !== item.report.eneaPayloadAudit.mappingFingerprint
-      || (packageResult.portalGate.fingerprint !== item.report.eneaPayloadAudit.portalGate.workflowFingerprint && !controlledCalculationExtension)) {
-      throw new Error("crm_enea_draft_package_fingerprint_mismatch");
+      || executablePlan.workflowFingerprint !== item.report.eneaPayloadAudit.portalGate.workflowFingerprint) {
+      throw new Error("crm_enea_canonical_preflight_package_audit_mismatch");
     }
     const stablePackage = {
-      mode: packageResult.payload.mode,
-      practiceCode: packageResult.payload.practiceCode,
-      fields: packageResult.payload.fields,
-      portalFields: packageResult.payload.portalFields,
-      workflowFingerprint: packageResult.portalGate.fingerprint,
-      workflowScript: packageResult.portalGate.workflow.script,
+      mode: executablePlan.payload.mode,
+      practiceCode: executablePlan.payload.practiceCode,
+      fields: executablePlan.payload.fields,
+      portalFields: executablePlan.payload.portalFields,
+      workflowFingerprint: executablePlan.workflowFingerprint,
+      workflowScript: executablePlan.workflow.script,
     };
     const draftPackage = asScreeningDraftPackage({
       version: "apr-crm-enea-draft-package-v1" as const,
@@ -2045,10 +2539,10 @@ export class PersistentAprCrmLocalPreflight {
       practiceId: item.practiceId,
       sourceFingerprint: state.sourceFingerprint,
       mappingFingerprint,
-      workflowFingerprint: packageResult.portalGate.fingerprint,
+      workflowFingerprint: executablePlan.workflowFingerprint,
       packageFingerprint: sha256(stablePackage),
-      payload: packageResult.payload,
-      workflow: packageResult.portalGate.workflow,
+      payload: executablePlan.payload,
+      workflow: executablePlan.workflow,
       safety: { createAllowedAfterPersistentIntent: true, saveAllowedAfterAllPageCheckpoints: true, previewAllowed: false, submitAllowed: false, communicationsAllowed: false } as const,
     });
     return draftPackage;

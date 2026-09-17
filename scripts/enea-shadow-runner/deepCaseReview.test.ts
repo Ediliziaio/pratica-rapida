@@ -24,6 +24,30 @@ function fixture() {
 }
 
 describe("revisione profonda persistente APR", () => {
+  it("terminalizza una prova CRM a monte anche se il gate Infissi non e applicabile", () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "apr-deep-review-upstream-"));
+    const dossier = write(root, "crm-local-preflight/upstream-terminal-evidence/not-found.json", { upstreamTerminal: { version: "apr-crm-upstream-terminal-evidence-v1" } });
+    write(root, "cohort-seed/checkpoint.json", { candidateFingerprint: "seed-upstream", candidates: [{ customerKey: "not-found", displayName: "Non Trovato", practiceId: "expected-p1", productModule: "infissi" }] });
+    write(root, "crm-local-preflight/checkpoint.json", { status: "completed", revision: 1, sourceFingerprint: "common-upstream", items: [{ customerKey: "not-found", displayName: "Non Trovato", practiceId: "expected-p1", dossierPath: dossier, state: "blocked_case", report: { sourceIds: ["crm-acquisition:not-found"], blockers: [{ code: "crm_practice_exact_match_not_found", field: "crm.practice_identity", sourceIds: ["crm-acquisition:not-found"], operatorQuestion: "Indica l'ID esatto della pratica.", appliedRuleIds: ["system-preflight-upstream-terminal-propagation-v1", "system-apr-operator-intervention-routing"] }] } }] });
+    write(root, "infissi-batch-preflight/checkpoint.json", { status: "unprepared", revision: 0, sourceFingerprint: null, items: [] });
+    write(root, "crm-document-analysis/checkpoint.json", { items: [] });
+
+    const final = new PersistentAprDeepCaseReview(root).runToCompletion(new Date("2026-09-10T08:40:00Z"));
+    expect(final).toMatchObject({ status: "completed", progress: { total: 1, operatorRequired: 1 } });
+    expect(final.items[0]).toMatchObject({ classification: "OPERATOR_REQUIRED", blockerCodes: ["crm_practice_exact_match_not_found"], nextAction: "Indica l'ID esatto della pratica.", evidencePasses: [{ id: "source_inventory", ok: true }, { id: "document_extraction", ok: true }, { id: "rule_replay", ok: true }] });
+  });
+
+  it("resta fail-closed se il gate Infissi e incompleto e il blocker non ha prova terminale a monte", () => {
+    const root = fixture();
+    const infissiPath = path.join(root, "infissi-batch-preflight/checkpoint.json");
+    const infissi = JSON.parse(readFileSync(infissiPath, "utf8"));
+    infissi.status = "unprepared";
+    writeFileSync(infissiPath, JSON.stringify(infissi));
+
+    const state = new PersistentAprDeepCaseReview(root).prepareFromCurrentCheckpoints(new Date("2026-09-10T08:41:00Z"));
+    expect(state).toMatchObject({ status: "unprepared", progress: { total: 0, processed: 0 } });
+  });
+
   it("separa riparazioni tecniche da prove operatore senza inventare regole business", () => {
     const review = new PersistentAprDeepCaseReview(fixture()); const final = review.runToCompletion(new Date("2026-08-23T08:00:00Z"));
     expect(final).toMatchObject({ status: "completed", progress: { total: 3, technicalRepair: 2, operatorRequired: 1, businessRuleRequired: 0 } });

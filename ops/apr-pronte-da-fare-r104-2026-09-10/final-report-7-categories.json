@@ -1,0 +1,881 @@
+{
+  "version": "apr-pronte-da-fare-r104-final-7-categories-v1",
+  "generatedAt": "2026-09-10T11:28:03.989Z",
+  "status": "FINAL",
+  "scope": {
+    "total": 19,
+    "currentPronteDaFare": 15,
+    "explicitlyIncludedMovedToRecensione": 4,
+    "syntheticRecordsExcluded": 2,
+    "manifestPath": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-pronte-da-fare-r104-2026-09-10/manifest.json",
+    "manifestSha256": "ce711c2f0806da7e347408aa992776f7fca52a5dea1fd6749f8c604749db8ffd"
+  },
+  "execution": {
+    "startedAt": "2026-09-10T10:35:30.201Z",
+    "endedAt": "2026-09-10T11:25:43.607Z",
+    "bundle": {
+      "path": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/0b183b6e-preflight-deep-review-propagation-r104-20260910",
+      "workerSha256": "eb44de5edaee1412b4ca3593647885a272815cb4071116c816f76a437da1c932"
+    },
+    "sequential": true,
+    "freshGeneration": true,
+    "noMidLotCorrections": true,
+    "safety": {
+      "previewAttempted": false,
+      "submitAttempted": false,
+      "communicationsAttempted": false,
+      "operatorProgressNotificationsOnly": false
+    }
+  },
+  "taxonomy": [
+    "SALVATA",
+    "FALLITA_TECNICA",
+    "BLOCCO_DOCUMENTALE_REALE",
+    "BLOCCO_DATI_O_CONFLITTO_FONTI",
+    "NON_PROCEDIBILE_PER_REGOLA",
+    "ESCLUSA_A_MONTE",
+    "INCONSISTENT_DA_VERIFICARE"
+  ],
+  "counts": {
+    "SALVATA": 5,
+    "FALLITA_TECNICA": 1,
+    "BLOCCO_DOCUMENTALE_REALE": 0,
+    "BLOCCO_DATI_O_CONFLITTO_FONTI": 5,
+    "NON_PROCEDIBILE_PER_REGOLA": 0,
+    "ESCLUSA_A_MONTE": 4,
+    "INCONSISTENT_DA_VERIFICARE": 4
+  },
+  "publishedSystemCounts": {
+    "saved": 5,
+    "operatorRequired": 9,
+    "technicalBlock": 1,
+    "inconsistent": 4
+  },
+  "interpretation": {
+    "preflightSevenMinuteStalls": 0,
+    "completedDrafts": [
+      {
+        "displayName": "Luca Ballori",
+        "draftId": "481830"
+      },
+      {
+        "displayName": "DOMENICO TRANQUILLO",
+        "draftId": "481862"
+      },
+      {
+        "displayName": "Lorenzo Sarpa",
+        "draftId": "481903"
+      },
+      {
+        "displayName": "Maddalena Giovanna Pezzani",
+        "draftId": "481954"
+      },
+      {
+        "displayName": "Sanjaya wickramarathna Thammita arachchige",
+        "draftId": "481970"
+      }
+    ],
+    "documentBlocksNotPromotedWithoutManualPrimaryEvidence": true
+  },
+  "cases": [
+    {
+      "cohort": 5701,
+      "customerKey": "mario-martegani",
+      "displayName": "Mario Martegani",
+      "practiceId": "eabc194f-5206-4eea-a97a-8a3521a48280",
+      "group": "pronte_da_fare",
+      "category": "ESCLUSA_A_MONTE",
+      "systemVerdict": "operator_required",
+      "draftId": null,
+      "completedPages": 0,
+      "expectedPages": 0,
+      "exactCause": [
+        "permanent_supplier_automation_exclusion"
+      ],
+      "reportBlockers": [
+        {
+          "code": "permanent_supplier_automation_exclusion",
+          "message": "Linea Sole Potito: Fornitore con modulo cartaceo e fatture scansionate destinato alla lavorazione manuale per decisione permanente dell'utente. Nessun allegato viene elaborato e nessuna azione ENEA viene tentata."
+        }
+      ],
+      "missingDocumentType": null,
+      "operatorQuestion": "Confermi la presa in carico manuale della pratica del fornitore escluso dall'automazione APR?",
+      "onboardingGap": null,
+      "tripleVerification": {
+        "outerReportState": "operator_required",
+        "checkpointState": "operator_required",
+        "childReportState": "operator_required",
+        "caseTruthStatus": "blocked_case",
+        "caseTruthBlockerCount": 1,
+        "terminalConsistency": "CONSISTENT",
+        "statesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-pronte-da-fare-r104-current-flow-20260910/case-5701-mario-martegani/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-pronte-da-fare-r104-current-flow-20260910/case-5701-mario-martegani/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5701-global-controller-mario-martegani.json"
+      }
+    },
+    {
+      "cohort": 5702,
+      "customerKey": "gianluca-bianco",
+      "displayName": "GIANLUCA BIANCO",
+      "practiceId": "526f3361-70f8-4ee9-9d5d-2a38506b9610",
+      "group": "pronte_da_fare",
+      "category": "BLOCCO_DATI_O_CONFLITTO_FONTI",
+      "systemVerdict": "operator_required",
+      "draftId": null,
+      "completedPages": 0,
+      "expectedPages": 0,
+      "exactCause": [
+        "product_cardinality_form_invoice_mismatch",
+        "screenings_missing",
+        "completion_date_missing",
+        "invoice_332a5af9",
+        "gross_triple_reconciliation_failed"
+      ],
+      "reportBlockers": [
+        {
+          "code": "product_cardinality_form_invoice_mismatch",
+          "message": "Controllo incrociato ripetuto: il form descrive 1 righe e le fatture 0 prodotti fisici non riconciliabili in modo univoco per famiglia. Richiesto intervento operatore: confermare la cardinalita fisica e l'assegnazione degli attributi form."
+        },
+        {
+          "code": "screenings_missing",
+          "message": "Nessun prodotto fisico riconciliato dalle fatture originarie."
+        },
+        {
+          "code": "completion_date_missing",
+          "message": "Fine lavori assente e data fattura non ricavabile."
+        },
+        {
+          "code": "invoice_332a5af9",
+          "message": "Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture."
+        },
+        {
+          "code": "gross_triple_reconciliation_failed",
+          "message": "Tripla riconciliazione non dimostrata: terna-fattura-incerta:aed305b24bf1b7c1b10b2917fb71032ba9a41de9c03c57e1f45259d7db6f94f9:invoice:264f0ccd0374, nessuna-fattura-economica-valida."
+        }
+      ],
+      "missingDocumentType": null,
+      "operatorQuestion": "Conferma il numero esatto dei prodotti fisici indicati dalle fatture e la loro corrispondenza con le righe del form.",
+      "onboardingGap": "Richiedere nel form una riga per ogni prodotto fisico e un riferimento univoco alla riga fattura.",
+      "tripleVerification": {
+        "outerReportState": "operator_required",
+        "checkpointState": "operator_required",
+        "childReportState": "operator_required",
+        "caseTruthStatus": "blocked_case",
+        "caseTruthBlockerCount": 5,
+        "terminalConsistency": "CONSISTENT",
+        "statesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-pronte-da-fare-r104-current-flow-20260910/case-5702-gianluca-bianco/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-pronte-da-fare-r104-current-flow-20260910/case-5702-gianluca-bianco/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5702-global-controller-gianluca-bianco.json"
+      }
+    },
+    {
+      "cohort": 5703,
+      "customerKey": "marzia-bellotti",
+      "displayName": "Marzia Bellotti",
+      "practiceId": "b99df64d-259b-4469-baff-f50bfa4a3184",
+      "group": "pronte_da_fare",
+      "category": "ESCLUSA_A_MONTE",
+      "systemVerdict": "operator_required",
+      "draftId": null,
+      "completedPages": 0,
+      "expectedPages": 0,
+      "exactCause": [
+        "permanent_supplier_automation_exclusion"
+      ],
+      "reportBlockers": [
+        {
+          "code": "permanent_supplier_automation_exclusion",
+          "message": "Linea Sole Potito: Fornitore con modulo cartaceo e fatture scansionate destinato alla lavorazione manuale per decisione permanente dell'utente. Nessun allegato viene elaborato e nessuna azione ENEA viene tentata."
+        }
+      ],
+      "missingDocumentType": null,
+      "operatorQuestion": "Confermi la presa in carico manuale della pratica del fornitore escluso dall'automazione APR?",
+      "onboardingGap": null,
+      "tripleVerification": {
+        "outerReportState": "operator_required",
+        "checkpointState": "operator_required",
+        "childReportState": "operator_required",
+        "caseTruthStatus": "blocked_case",
+        "caseTruthBlockerCount": 1,
+        "terminalConsistency": "CONSISTENT",
+        "statesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-pronte-da-fare-r104-current-flow-20260910/case-5703-marzia-bellotti/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-pronte-da-fare-r104-current-flow-20260910/case-5703-marzia-bellotti/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5703-global-controller-marzia-bellotti.json"
+      }
+    },
+    {
+      "cohort": 5704,
+      "customerKey": "luca-ballori",
+      "displayName": "Luca Ballori",
+      "practiceId": "3c595968-9ef9-4ee8-a350-f9bf42e9f3f6",
+      "group": "pronte_da_fare",
+      "category": "SALVATA",
+      "systemVerdict": "saved",
+      "draftId": "481830",
+      "completedPages": 13,
+      "expectedPages": 13,
+      "exactCause": [
+        "nessuna_causa_registrata"
+      ],
+      "reportBlockers": [],
+      "missingDocumentType": null,
+      "operatorQuestion": null,
+      "onboardingGap": null,
+      "tripleVerification": {
+        "outerReportState": "saved",
+        "checkpointState": "saved",
+        "childReportState": "saved",
+        "caseTruthStatus": "READY",
+        "caseTruthBlockerCount": 0,
+        "terminalConsistency": "CONSISTENT",
+        "statesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-pronte-da-fare-r104-current-flow-20260910/case-5704-luca-ballori/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-pronte-da-fare-r104-current-flow-20260910/case-5704-luca-ballori/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5704-global-controller-luca-ballori.json"
+      }
+    },
+    {
+      "cohort": 5705,
+      "customerKey": "odoardo-lotto",
+      "displayName": "Odoardo Lotto",
+      "practiceId": "1bee7587-bd5d-45ba-93b2-c2700e408cbf",
+      "group": "pronte_da_fare",
+      "category": "INCONSISTENT_DA_VERIFICARE",
+      "systemVerdict": "inconsistent",
+      "draftId": null,
+      "completedPages": 0,
+      "expectedPages": 0,
+      "exactCause": [
+        "Resta necessaria una prova primaria o decisione operatore: infissi_shading_closures_form_answer_missing_or_ambiguous, infissi_shading_closures_form_answer_missing_or_ambiguous."
+      ],
+      "reportBlockers": [],
+      "missingDocumentType": null,
+      "operatorQuestion": "Il form conferma la presenza di chiusure oscuranti abbinate agli infissi? Rispondi sì o no.",
+      "onboardingGap": null,
+      "tripleVerification": {
+        "outerReportState": "inconsistent",
+        "checkpointState": "inconsistent",
+        "childReportState": "inconsistent",
+        "caseTruthStatus": "INCONSISTENT",
+        "caseTruthBlockerCount": 0,
+        "terminalConsistency": "INCONSISTENT",
+        "statesAgree": true,
+        "conclusion": "INCONSISTENT"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-pronte-da-fare-r104-current-flow-20260910/case-5705-odoardo-lotto/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-pronte-da-fare-r104-current-flow-20260910/case-5705-odoardo-lotto/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5705-global-controller-odoardo-lotto.json"
+      }
+    },
+    {
+      "cohort": 5706,
+      "customerKey": "domenico-tranquillo",
+      "displayName": "DOMENICO TRANQUILLO",
+      "practiceId": "4e170ee5-dc57-4660-9392-40c697bf076d",
+      "group": "pronte_da_fare",
+      "category": "SALVATA",
+      "systemVerdict": "saved",
+      "draftId": "481862",
+      "completedPages": 9,
+      "expectedPages": 9,
+      "exactCause": [
+        "nessuna_causa_registrata"
+      ],
+      "reportBlockers": [],
+      "missingDocumentType": null,
+      "operatorQuestion": null,
+      "onboardingGap": null,
+      "tripleVerification": {
+        "outerReportState": "saved",
+        "checkpointState": "saved",
+        "childReportState": "saved",
+        "caseTruthStatus": "READY",
+        "caseTruthBlockerCount": 0,
+        "terminalConsistency": "CONSISTENT",
+        "statesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-pronte-da-fare-r104-current-flow-20260910/case-5706-domenico-tranquillo/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-pronte-da-fare-r104-current-flow-20260910/case-5706-domenico-tranquillo/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5706-global-controller-domenico-tranquillo.json"
+      }
+    },
+    {
+      "cohort": 5707,
+      "customerKey": "silvia-lomartire",
+      "displayName": "silvia lomartire",
+      "practiceId": "84688adb-14d8-4a0a-957b-67626c27a886",
+      "group": "pronte_da_fare",
+      "category": "BLOCCO_DATI_O_CONFLITTO_FONTI",
+      "systemVerdict": "operator_required",
+      "draftId": null,
+      "completedPages": 0,
+      "expectedPages": 0,
+      "exactCause": [
+        "customer_form_missing",
+        "tax_code_missing_or_invalid",
+        "screenings_missing",
+        "completion_date_missing",
+        "screening_primary_measurements_missing",
+        "invoice_929a8665",
+        "gross_triple_reconciliation_failed"
+      ],
+      "reportBlockers": [
+        {
+          "code": "customer_form_missing",
+          "message": "Il dossier CRM non contiene un form cliente originario utilizzabile; documenti ENEA storici esclusi."
+        },
+        {
+          "code": "tax_code_missing_or_invalid",
+          "message": "CF valido e coerente non disponibile nel form o nelle fatture originarie."
+        },
+        {
+          "code": "screenings_missing",
+          "message": "Nessun prodotto fisico riconciliato dalle fatture originarie."
+        },
+        {
+          "code": "completion_date_missing",
+          "message": "Fine lavori assente e data fattura non ricavabile."
+        },
+        {
+          "code": "screening_primary_measurements_missing",
+          "message": "La fattura descrive la schermatura ma nessuna fonte primaria riporta le misure fisiche del prodotto. APR non usa le misure della finestra protetta come misure del prodotto: acquisire o confermare le misure e rimettere la pratica in Pronte da fare."
+        },
+        {
+          "code": "invoice_929a8665",
+          "message": "Il totale di almeno un documento fiscale non è stato riconosciuto."
+        },
+        {
+          "code": "gross_triple_reconciliation_failed",
+          "message": "Tripla riconciliazione non dimostrata: terna-fattura-incerta:bd27ca4ae0a45e1897430faef9a58093693074430f0cf79de865eea90e8aa98b:invoice:264f0ccd0374, nessuna-fattura-economica-valida."
+        }
+      ],
+      "missingDocumentType": [
+        "modulo cliente",
+        "misure primarie dei prodotti"
+      ],
+      "operatorQuestion": "Inserisci il modulo cliente e, per ogni schermatura, larghezza e altezza mancanti.",
+      "onboardingGap": "Rendere obbligatorie nel form iniziale larghezza, altezza e quantità per ogni prodotto.",
+      "tripleVerification": {
+        "outerReportState": "operator_required",
+        "checkpointState": "operator_required",
+        "childReportState": "operator_required",
+        "caseTruthStatus": "blocked_case",
+        "caseTruthBlockerCount": 7,
+        "terminalConsistency": "CONSISTENT",
+        "statesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-pronte-da-fare-r104-current-flow-20260910/case-5707-silvia-lomartire/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-pronte-da-fare-r104-current-flow-20260910/case-5707-silvia-lomartire/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5707-global-controller-silvia-lomartire.json"
+      }
+    },
+    {
+      "cohort": 5708,
+      "customerKey": "anthony-pool-juscamaita-fuertes",
+      "displayName": "Anthony Pool Juscamaita Fuertes",
+      "practiceId": "272f370a-aba5-48b5-8e9f-6cebad5639f3",
+      "group": "pronte_da_fare",
+      "category": "INCONSISTENT_DA_VERIFICARE",
+      "systemVerdict": "inconsistent",
+      "draftId": null,
+      "completedPages": 0,
+      "expectedPages": 0,
+      "exactCause": [
+        "Manca una regola business autorizzata per: avvolgibile_measurement_ambiguous_1, avvolgibile_measurement_ambiguous_2, avvolgibile_measurement_ambiguous_5, avvolgibile_measurement_ambiguous_6."
+      ],
+      "reportBlockers": [],
+      "missingDocumentType": null,
+      "operatorQuestion": "Inserisci larghezza e altezza corrette degli avvolgibili 1, 2, 5 e 6.",
+      "onboardingGap": null,
+      "tripleVerification": {
+        "outerReportState": "inconsistent",
+        "checkpointState": "inconsistent",
+        "childReportState": "inconsistent",
+        "caseTruthStatus": "INCONSISTENT",
+        "caseTruthBlockerCount": 0,
+        "terminalConsistency": "INCONSISTENT",
+        "statesAgree": true,
+        "conclusion": "INCONSISTENT"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-pronte-da-fare-r104-current-flow-20260910/case-5708-anthony-pool-juscamaita-fuertes/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-pronte-da-fare-r104-current-flow-20260910/case-5708-anthony-pool-juscamaita-fuertes/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5708-global-controller-anthony-pool-juscamaita-fuertes.json"
+      }
+    },
+    {
+      "cohort": 5709,
+      "customerKey": "mario-spano",
+      "displayName": "Mario Spano",
+      "practiceId": "6f94e990-e371-4128-88ac-9b0cbdf1b09a",
+      "group": "pronte_da_fare",
+      "category": "INCONSISTENT_DA_VERIFICARE",
+      "systemVerdict": "inconsistent",
+      "draftId": null,
+      "completedPages": 0,
+      "expectedPages": 0,
+      "exactCause": [
+        "Manca una regola business autorizzata per: avvolgibile_measurement_ambiguous_1, avvolgibile_measurement_ambiguous_2, avvolgibile_measurement_ambiguous_5, avvolgibile_measurement_ambiguous_6."
+      ],
+      "reportBlockers": [],
+      "missingDocumentType": null,
+      "operatorQuestion": "Inserisci larghezza e altezza corrette degli avvolgibili 1, 2, 5 e 6.",
+      "onboardingGap": null,
+      "tripleVerification": {
+        "outerReportState": "inconsistent",
+        "checkpointState": "inconsistent",
+        "childReportState": "inconsistent",
+        "caseTruthStatus": "INCONSISTENT",
+        "caseTruthBlockerCount": 0,
+        "terminalConsistency": "INCONSISTENT",
+        "statesAgree": true,
+        "conclusion": "INCONSISTENT"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-pronte-da-fare-r104-current-flow-20260910/case-5709-mario-spano/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-pronte-da-fare-r104-current-flow-20260910/case-5709-mario-spano/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5709-global-controller-mario-spano.json"
+      }
+    },
+    {
+      "cohort": 5710,
+      "customerKey": "matia-bertarelli",
+      "displayName": "Matia Bertarelli",
+      "practiceId": "b8e33e49-1f0c-4103-ad0a-b0822362fa37",
+      "group": "pronte_da_fare",
+      "category": "BLOCCO_DATI_O_CONFLITTO_FONTI",
+      "systemVerdict": "operator_required",
+      "draftId": null,
+      "completedPages": 0,
+      "expectedPages": 0,
+      "exactCause": [
+        "product_cardinality_form_invoice_mismatch",
+        "screenings_missing",
+        "invoice_332a5af9"
+      ],
+      "reportBlockers": [
+        {
+          "code": "product_cardinality_form_invoice_mismatch",
+          "message": "Controllo incrociato ripetuto: il form descrive 2 righe e le fatture 0 prodotti fisici non riconciliabili in modo univoco per famiglia. Richiesto intervento operatore: confermare la cardinalita fisica e l'assegnazione degli attributi form."
+        },
+        {
+          "code": "screenings_missing",
+          "message": "Nessun prodotto fisico riconciliato dalle fatture originarie."
+        },
+        {
+          "code": "invoice_332a5af9",
+          "message": "Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture."
+        }
+      ],
+      "missingDocumentType": null,
+      "operatorQuestion": "Conferma il numero esatto dei prodotti fisici indicati dalle fatture e la loro corrispondenza con le righe del form.",
+      "onboardingGap": "Richiedere nel form una riga per ogni prodotto fisico e un riferimento univoco alla riga fattura.",
+      "tripleVerification": {
+        "outerReportState": "operator_required",
+        "checkpointState": "operator_required",
+        "childReportState": "operator_required",
+        "caseTruthStatus": "blocked_case",
+        "caseTruthBlockerCount": 3,
+        "terminalConsistency": "CONSISTENT",
+        "statesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-pronte-da-fare-r104-current-flow-20260910/case-5710-matia-bertarelli/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-pronte-da-fare-r104-current-flow-20260910/case-5710-matia-bertarelli/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5710-global-controller-matia-bertarelli.json"
+      }
+    },
+    {
+      "cohort": 5711,
+      "customerKey": "lorenzo-sarpa",
+      "displayName": "Lorenzo Sarpa",
+      "practiceId": "bf710ed1-36e1-4560-b1a2-7a1fbec06390",
+      "group": "pronte_da_fare",
+      "category": "SALVATA",
+      "systemVerdict": "saved",
+      "draftId": "481903",
+      "completedPages": 12,
+      "expectedPages": 12,
+      "exactCause": [
+        "nessuna_causa_registrata"
+      ],
+      "reportBlockers": [],
+      "missingDocumentType": null,
+      "operatorQuestion": null,
+      "onboardingGap": null,
+      "tripleVerification": {
+        "outerReportState": "saved",
+        "checkpointState": "saved",
+        "childReportState": "saved",
+        "caseTruthStatus": "READY",
+        "caseTruthBlockerCount": 0,
+        "terminalConsistency": "CONSISTENT",
+        "statesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-pronte-da-fare-r104-current-flow-20260910/case-5711-lorenzo-sarpa/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-pronte-da-fare-r104-current-flow-20260910/case-5711-lorenzo-sarpa/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5711-global-controller-lorenzo-sarpa.json"
+      }
+    },
+    {
+      "cohort": 5712,
+      "customerKey": "alberto-maggi",
+      "displayName": "Alberto Maggi",
+      "practiceId": "2233668f-d9e6-42e2-a7e4-3abed8de74ad",
+      "group": "pronte_da_fare",
+      "category": "BLOCCO_DATI_O_CONFLITTO_FONTI",
+      "systemVerdict": "operator_required",
+      "draftId": null,
+      "completedPages": 0,
+      "expectedPages": 0,
+      "exactCause": [
+        "product_cardinality_form_invoice_mismatch",
+        "screenings_missing",
+        "screening_primary_measurements_missing"
+      ],
+      "reportBlockers": [
+        {
+          "code": "product_cardinality_form_invoice_mismatch",
+          "message": "Controllo incrociato ripetuto: il form descrive 1 righe e le fatture 0 prodotti fisici non riconciliabili in modo univoco per famiglia. Richiesto intervento operatore: confermare la cardinalita fisica e l'assegnazione degli attributi form."
+        },
+        {
+          "code": "screenings_missing",
+          "message": "Nessun prodotto fisico riconciliato dalle fatture originarie."
+        },
+        {
+          "code": "screening_primary_measurements_missing",
+          "message": "La fattura descrive la schermatura ma nessuna fonte primaria riporta le misure fisiche del prodotto. APR non usa le misure della finestra protetta come misure del prodotto: acquisire o confermare le misure e rimettere la pratica in Pronte da fare."
+        }
+      ],
+      "missingDocumentType": [
+        "misure primarie dei prodotti"
+      ],
+      "operatorQuestion": "Conferma il numero esatto dei prodotti e inserisci larghezza e altezza per ciascuna schermatura.",
+      "onboardingGap": "Rendere obbligatorie nel form iniziale larghezza, altezza e quantità per ogni prodotto.",
+      "tripleVerification": {
+        "outerReportState": "operator_required",
+        "checkpointState": "operator_required",
+        "childReportState": "operator_required",
+        "caseTruthStatus": "blocked_case",
+        "caseTruthBlockerCount": 3,
+        "terminalConsistency": "CONSISTENT",
+        "statesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-pronte-da-fare-r104-current-flow-20260910/case-5712-alberto-maggi/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-pronte-da-fare-r104-current-flow-20260910/case-5712-alberto-maggi/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5712-global-controller-alberto-maggi.json"
+      }
+    },
+    {
+      "cohort": 5713,
+      "customerKey": "mattia-albini",
+      "displayName": "Mattia Albini",
+      "practiceId": "d02ed702-d4b9-4613-a14e-6eaee4f1d1ea",
+      "group": "pronte_da_fare",
+      "category": "FALLITA_TECNICA",
+      "systemVerdict": "technical_block",
+      "draftId": "481934",
+      "completedPages": 0,
+      "expectedPages": 8,
+      "exactCause": [
+        "Errore circoscritto alla pratica: apr_cdp_enea_field_verification_failed:id-comune_residenza"
+      ],
+      "reportBlockers": [],
+      "missingDocumentType": null,
+      "operatorQuestion": "Vuoi autorizzare la diagnosi generale del rifiuto ENEA del comune di residenza prima di riprovare questa pratica?",
+      "onboardingGap": null,
+      "tripleVerification": {
+        "outerReportState": "technical_block",
+        "checkpointState": "technical_block",
+        "childReportState": "technical_block",
+        "caseTruthStatus": "TECHNICAL_BLOCK",
+        "caseTruthBlockerCount": 0,
+        "terminalConsistency": "CONSISTENT",
+        "statesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-pronte-da-fare-r104-current-flow-20260910/case-5713-mattia-albini/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-pronte-da-fare-r104-current-flow-20260910/case-5713-mattia-albini/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5713-global-controller-mattia-albini.json"
+      }
+    },
+    {
+      "cohort": 5714,
+      "customerKey": "virginia-madia",
+      "displayName": "VIRGINIA MADIA",
+      "practiceId": "4db26f2b-33ec-4b73-97dc-38bad15e401b",
+      "group": "moved_to_recensione",
+      "category": "ESCLUSA_A_MONTE",
+      "systemVerdict": "operator_required",
+      "draftId": null,
+      "completedPages": 0,
+      "expectedPages": 0,
+      "exactCause": [
+        "permanent_supplier_automation_exclusion"
+      ],
+      "reportBlockers": [
+        {
+          "code": "permanent_supplier_automation_exclusion",
+          "message": "Linea Sole Potito: Fornitore con modulo cartaceo e fatture scansionate destinato alla lavorazione manuale per decisione permanente dell'utente. Nessun allegato viene elaborato e nessuna azione ENEA viene tentata."
+        }
+      ],
+      "missingDocumentType": null,
+      "operatorQuestion": "Confermi la presa in carico manuale della pratica del fornitore escluso dall'automazione APR?",
+      "onboardingGap": null,
+      "tripleVerification": {
+        "outerReportState": "operator_required",
+        "checkpointState": "operator_required",
+        "childReportState": "operator_required",
+        "caseTruthStatus": "blocked_case",
+        "caseTruthBlockerCount": 1,
+        "terminalConsistency": "CONSISTENT",
+        "statesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-pronte-da-fare-r104-current-flow-20260910/case-5714-virginia-madia/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-pronte-da-fare-r104-current-flow-20260910/case-5714-virginia-madia/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5714-global-controller-virginia-madia.json"
+      }
+    },
+    {
+      "cohort": 5715,
+      "customerKey": "salvatore-di-bello",
+      "displayName": "SALVATORE DI BELLO",
+      "practiceId": "abe740b8-890f-4a2a-bc5d-12ef87b1f7ec",
+      "group": "moved_to_recensione",
+      "category": "ESCLUSA_A_MONTE",
+      "systemVerdict": "operator_required",
+      "draftId": null,
+      "completedPages": 0,
+      "expectedPages": 0,
+      "exactCause": [
+        "permanent_supplier_automation_exclusion"
+      ],
+      "reportBlockers": [
+        {
+          "code": "permanent_supplier_automation_exclusion",
+          "message": "Linea Sole Potito: Fornitore con modulo cartaceo e fatture scansionate destinato alla lavorazione manuale per decisione permanente dell'utente. Nessun allegato viene elaborato e nessuna azione ENEA viene tentata."
+        }
+      ],
+      "missingDocumentType": null,
+      "operatorQuestion": "Confermi la presa in carico manuale della pratica del fornitore escluso dall'automazione APR?",
+      "onboardingGap": null,
+      "tripleVerification": {
+        "outerReportState": "operator_required",
+        "checkpointState": "operator_required",
+        "childReportState": "operator_required",
+        "caseTruthStatus": "blocked_case",
+        "caseTruthBlockerCount": 1,
+        "terminalConsistency": "CONSISTENT",
+        "statesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-pronte-da-fare-r104-current-flow-20260910/case-5715-salvatore-di-bello/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-pronte-da-fare-r104-current-flow-20260910/case-5715-salvatore-di-bello/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5715-global-controller-salvatore-di-bello.json"
+      }
+    },
+    {
+      "cohort": 5716,
+      "customerKey": "ernestina-avalli",
+      "displayName": "ERNESTINA AVALLI",
+      "practiceId": "d5edef9f-2b12-459f-a226-5d92fa069767",
+      "group": "moved_to_recensione",
+      "category": "INCONSISTENT_DA_VERIFICARE",
+      "systemVerdict": "inconsistent",
+      "draftId": "481943",
+      "completedPages": 0,
+      "expectedPages": 9,
+      "exactCause": [
+        "Anche l'unico recupero autorizzato ha esito incerto: Esito non dimostrabile dopo l'unico recupero cdp-server-22-736915266ad0585a3a48."
+      ],
+      "reportBlockers": [],
+      "missingDocumentType": null,
+      "operatorQuestion": "Nella bozza ENEA 481943 i dati risultano già presenti e completi? Rispondi sì o no.",
+      "onboardingGap": null,
+      "tripleVerification": {
+        "outerReportState": "inconsistent",
+        "checkpointState": "inconsistent",
+        "childReportState": "inconsistent",
+        "caseTruthStatus": "INCONSISTENT",
+        "caseTruthBlockerCount": 0,
+        "terminalConsistency": "INCONSISTENT",
+        "statesAgree": true,
+        "conclusion": "INCONSISTENT"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-pronte-da-fare-r104-current-flow-20260910/case-5716-ernestina-avalli/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-pronte-da-fare-r104-current-flow-20260910/case-5716-ernestina-avalli/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5716-global-controller-ernestina-avalli.json"
+      }
+    },
+    {
+      "cohort": 5717,
+      "customerKey": "maddalena-giovanna-pezzani",
+      "displayName": "Maddalena Giovanna Pezzani",
+      "practiceId": "8921b07b-b618-4fc8-ade0-11f06c5177fe",
+      "group": "moved_to_recensione",
+      "category": "SALVATA",
+      "systemVerdict": "saved",
+      "draftId": "481954",
+      "completedPages": 9,
+      "expectedPages": 9,
+      "exactCause": [
+        "nessuna_causa_registrata"
+      ],
+      "reportBlockers": [],
+      "missingDocumentType": null,
+      "operatorQuestion": null,
+      "onboardingGap": null,
+      "tripleVerification": {
+        "outerReportState": "saved",
+        "checkpointState": "saved",
+        "childReportState": "saved",
+        "caseTruthStatus": "READY",
+        "caseTruthBlockerCount": 0,
+        "terminalConsistency": "CONSISTENT",
+        "statesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-pronte-da-fare-r104-current-flow-20260910/case-5717-maddalena-giovanna-pezzani/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-pronte-da-fare-r104-current-flow-20260910/case-5717-maddalena-giovanna-pezzani/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5717-global-controller-maddalena-giovanna-pezzani.json"
+      }
+    },
+    {
+      "cohort": 5718,
+      "customerKey": "sanjaya-wickramarathna-thammita-arachchige",
+      "displayName": "Sanjaya wickramarathna Thammita arachchige",
+      "practiceId": "1467453f-2964-45b1-98a1-30e71d2c8c15",
+      "group": "pronte_da_fare",
+      "category": "SALVATA",
+      "systemVerdict": "saved",
+      "draftId": "481970",
+      "completedPages": 12,
+      "expectedPages": 12,
+      "exactCause": [
+        "nessuna_causa_registrata"
+      ],
+      "reportBlockers": [],
+      "missingDocumentType": null,
+      "operatorQuestion": null,
+      "onboardingGap": null,
+      "tripleVerification": {
+        "outerReportState": "saved",
+        "checkpointState": "saved",
+        "childReportState": "saved",
+        "caseTruthStatus": "READY",
+        "caseTruthBlockerCount": 0,
+        "terminalConsistency": "CONSISTENT",
+        "statesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-pronte-da-fare-r104-current-flow-20260910/case-5718-sanjaya-wickramarathna-thammita-arachchige/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-pronte-da-fare-r104-current-flow-20260910/case-5718-sanjaya-wickramarathna-thammita-arachchige/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5718-global-controller-sanjaya-wickramarathna-thammita-arachchige.json"
+      }
+    },
+    {
+      "cohort": 5719,
+      "customerKey": "marina-gerbaudo",
+      "displayName": "Marina Gerbaudo",
+      "practiceId": "f077d241-79ca-4acf-b84c-e056ead877c1",
+      "group": "pronte_da_fare",
+      "category": "BLOCCO_DATI_O_CONFLITTO_FONTI",
+      "systemVerdict": "operator_required",
+      "draftId": null,
+      "completedPages": 0,
+      "expectedPages": 0,
+      "exactCause": [
+        "product_cardinality_form_invoice_mismatch",
+        "screenings_missing",
+        "completion_date_missing",
+        "screening_primary_measurements_missing",
+        "invoice_929a8665",
+        "gross_triple_reconciliation_failed"
+      ],
+      "reportBlockers": [
+        {
+          "code": "product_cardinality_form_invoice_mismatch",
+          "message": "Controllo incrociato ripetuto: il form descrive 1 righe e le fatture 0 prodotti fisici non riconciliabili in modo univoco per famiglia. Richiesto intervento operatore: confermare la cardinalita fisica e l'assegnazione degli attributi form."
+        },
+        {
+          "code": "screenings_missing",
+          "message": "Nessun prodotto fisico riconciliato dalle fatture originarie."
+        },
+        {
+          "code": "completion_date_missing",
+          "message": "Fine lavori assente e data fattura non ricavabile."
+        },
+        {
+          "code": "screening_primary_measurements_missing",
+          "message": "La fattura descrive la schermatura ma nessuna fonte primaria riporta le misure fisiche del prodotto. APR non usa le misure della finestra protetta come misure del prodotto: acquisire o confermare le misure e rimettere la pratica in Pronte da fare."
+        },
+        {
+          "code": "invoice_929a8665",
+          "message": "Il totale di almeno un documento fiscale non è stato riconosciuto."
+        },
+        {
+          "code": "gross_triple_reconciliation_failed",
+          "message": "Tripla riconciliazione non dimostrata: terna-fattura-incerta:2771433e5abb23482ff4865e5701282480c347b81ae4f1c34949d0ac5b6c6b16:invoice:264f0ccd0374, nessuna-fattura-economica-valida."
+        }
+      ],
+      "missingDocumentType": [
+        "misure primarie dei prodotti"
+      ],
+      "operatorQuestion": "Conferma il numero esatto dei prodotti e inserisci larghezza e altezza per ciascuna schermatura.",
+      "onboardingGap": "Rendere obbligatorie nel form iniziale larghezza, altezza e quantità per ogni prodotto.",
+      "tripleVerification": {
+        "outerReportState": "operator_required",
+        "checkpointState": "operator_required",
+        "childReportState": "operator_required",
+        "caseTruthStatus": "blocked_case",
+        "caseTruthBlockerCount": 6,
+        "terminalConsistency": "CONSISTENT",
+        "statesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-pronte-da-fare-r104-current-flow-20260910/case-5719-marina-gerbaudo/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-pronte-da-fare-r104-current-flow-20260910/case-5719-marina-gerbaudo/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5719-global-controller-marina-gerbaudo.json"
+      }
+    }
+  ],
+  "integrity": {
+    "mainReportSha256": "8206de569e6935233e1058d9f655c5b547eb2897f7f0cb84caca897ed9ca502d",
+    "mainCheckpointSha256": "f445e6643ee0617b9acadc64b86a8257e211e57d3a02fe139b950bd165eabf15",
+    "journalSha256": "8b80d96d6b1b4ba5eb35936fb2f6d95ff99b5971413c4a031b0d3e3f5c86ccdf",
+    "manifestSha256": "ce711c2f0806da7e347408aa992776f7fca52a5dea1fd6749f8c604749db8ffd"
+  }
+}

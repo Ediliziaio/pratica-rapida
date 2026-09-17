@@ -86,7 +86,7 @@ describe("payload tecnico locale Infissi per ENEA", () => {
     expect(payload.audit.appliedRuleIds).toContain(USER_AUTHORIZED_RULE_IDS.infissiPortalManagedEnergySavings);
   });
 
-  it("propaga l'allocazione parziale in ordine fattura nel payload e nell'audit per riga", () => {
+  it("propaga l'allocazione parziale in ordine portale senza misure della chiusura nel payload e nell'audit per riga", () => {
     const technical = resolveInfissiTechnicalSources({
       practiceId: "partial-closures",
       invoice: { kind: "invoice", sourceIds: ["fattura"], rows: [{ lineId: "infissi", quantity: 3, widthM: 1.2, heightM: 1.4 }] },
@@ -96,19 +96,77 @@ describe("payload tecnico locale Infissi per ENEA", () => {
       invoiceSources: [{ sourceId: "fattura", text: "FATTURA Tapparella N° 1 da 100 x 180 cm N° 1 da 120 x 180 cm" }],
       technicalRowSourceKind: "invoice",
       formAlsoInstalledClosures: true,
+      invoiceEvidenceComplete: true,
     });
     const payload = buildAprInfissiEneaDraftPayload({
       practiceId: "partial-closures",
       technical,
-      productRules: resolveInfissiProductRules({ practiceId: "partial-closures", formAlsoInstalledClosures: true, formSourceId: "form" }),
+      productRules: resolveInfissiProductRules({
+        practiceId: "partial-closures",
+        documentedClosureAllocationResolved: true,
+        documentedClosureAllocationSourceIds: allocation.sourceIds,
+      }),
       shadingClosureAllocation: allocation,
       invoiceGrossTotal: 3_000,
     });
     expect(payload.windows.map((window) => window.shadingClosuresChecked)).toEqual([true, true, false]);
     expect(payload.audit.fieldEvidence.filter((entry) => entry.field === "shadingClosuresChecked")).toEqual([
-      expect.objectContaining({ source: expect.stringContaining("position=1"), ruleId: USER_AUTHORIZED_RULE_IDS.infissiShadingClosureInvoiceOrderAllocation }),
-      expect.objectContaining({ source: expect.stringContaining("position=2"), ruleId: USER_AUTHORIZED_RULE_IDS.infissiShadingClosureInvoiceOrderAllocation }),
-      expect.objectContaining({ source: expect.stringContaining("position=3"), ruleId: USER_AUTHORIZED_RULE_IDS.infissiShadingClosureInvoiceOrderAllocation }),
+      expect.objectContaining({ source: expect.stringContaining("position=1;closureMeasurements=not_applicable"), ruleId: USER_AUTHORIZED_RULE_IDS.infissiClosureMeasurementsNotApplicable }),
+      expect.objectContaining({ source: expect.stringContaining("position=2;closureMeasurements=not_applicable"), ruleId: USER_AUTHORIZED_RULE_IDS.infissiClosureMeasurementsNotApplicable }),
+      expect.objectContaining({ source: expect.stringContaining("position=3;closureMeasurements=not_applicable"), ruleId: USER_AUTHORIZED_RULE_IDS.infissiClosureMeasurementsNotApplicable }),
+    ]);
+  });
+
+  it("attribuisce il NO documentale sulle chiusure alla regola dedicata e non al form assente", () => {
+    const technical = resolveInfissiTechnicalSources({
+      practiceId: "documented-no-closures",
+      invoice: { kind: "invoice", sourceIds: ["fattura"], rows: [{ lineId: "r1", quantity: 1, widthM: 1, heightM: 1 }] },
+    });
+    const allocation = resolveAprInfissiShadingClosureAllocation({
+      physicalWindowCount: 1,
+      invoiceSources: [{ sourceId: "fattura", text: "Fattura serramento PVC" }],
+      technicalEvidenceSources: [{ sourceId: "scheda-tecnica", text: "Schermatura: Senza schermo" }],
+      technicalRowSourceKind: "invoice",
+      invoiceEvidenceComplete: true,
+    });
+    const payload = buildAprInfissiEneaDraftPayload({
+      practiceId: "documented-no-closures",
+      technical,
+      productRules: resolveInfissiProductRules({
+        practiceId: "documented-no-closures",
+        documentedNoAdditionalClosures: true,
+        documentedNoAdditionalClosureSourceIds: ["scheda-tecnica"],
+      }),
+      shadingClosureAllocation: allocation,
+      invoiceGrossTotal: 1_000,
+    });
+    expect(payload.audit.fieldEvidence).toContainEqual(expect.objectContaining({
+      field: "shadingClosuresChecked",
+      source: "technical_explicit_none:scheda-tecnica;count=1;invoiceClosureMentions=0",
+      ruleId: USER_AUTHORIZED_RULE_IDS.infissiExplicitNoScreenNegativeClosureEvidence,
+    }));
+    expect(payload.audit.appliedRuleIds).toContain(USER_AUTHORIZED_RULE_IDS.infissiExplicitNoScreenNegativeClosureEvidence);
+  });
+
+  it("assegna una zanzariera non posizionata soltanto alla prima finestra", () => {
+    const technical = readyTechnical();
+    const allocation = resolveAprInfissiShadingClosureAllocation({
+      physicalWindowCount: 2,
+      invoiceSources: [{ sourceId: "fattura-zanzariera", text: "Fattura per fornitura e posa di una zanzariera" }],
+      technicalRowSourceKind: "technical_document",
+      invoiceEvidenceComplete: true,
+    });
+    const payload = buildAprInfissiEneaDraftPayload({
+      practiceId: "zanzariera-first-window",
+      technical,
+      productRules: resolveInfissiProductRules({ practiceId: "zanzariera-first-window", documentedClosureAllocationResolved: true, documentedClosureAllocationSourceIds: allocation.sourceIds }),
+      shadingClosureAllocation: allocation,
+      invoiceGrossTotal: 2_000,
+    });
+    expect(payload.windows.map((item) => item.shadingClosuresChecked)).toEqual([true, false]);
+    expect(payload.audit.fieldEvidence.filter((item) => item.field === "shadingClosuresChecked")).toEqual([
+      expect.objectContaining({ ruleId: USER_AUTHORIZED_RULE_IDS.zanzarieraFirstWindowAllocation, source: expect.stringContaining("position=1;checked=true") }),
+      expect.objectContaining({ ruleId: USER_AUTHORIZED_RULE_IDS.zanzarieraFirstWindowAllocation, source: expect.stringContaining("position=2;checked=false") }),
     ]);
   });
 

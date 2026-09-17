@@ -1,0 +1,46 @@
+{
+  "version": "apr-premature-operator-question-emission-v1",
+  "recordedAt": "2026-09-09T21:02:30+02:00",
+  "status": "GENERAL_RULE_CANDIDATE_NOT_CORRECTED",
+  "defectFamily": "operator_question_emitted_before_terminal_evidence_and_not_retired",
+  "exactCause": "Il ramo Schermature pubblica la domanda per una misura mancante prima che tutti i rami applicabili abbiano concluso l'estrazione e la risoluzione del caso. Quando il ramo Infissi completa e salva la bozza, la domanda gia' pubblicata non viene ritirata o marcata auto_resolved.",
+  "risk": "Con un canale di risposta attivo, domande che si autorisolvono producono rumore e lavoro inutile per l'operatore.",
+  "observedCases": [
+    {
+      "customerKey": "santo-giuga",
+      "cohort": 5313,
+      "questionField": "screenings.1.dimensions",
+      "questionState": "open",
+      "terminalState": "saved",
+      "draftId": "479266",
+      "completedPages": 12,
+      "expectedPages": 12
+    },
+    {
+      "customerKey": "elena-depalma",
+      "cohort": 5326,
+      "questionField": "screenings.1.dimensions",
+      "questionState": "open",
+      "terminalState": "saved",
+      "draftId": "479544",
+      "completedPages": 12,
+      "expectedPages": 12
+    }
+  ],
+  "requiredGeneralBehavior": {
+    "emissionGate": "Pubblicare una domanda soltanto dopo la conclusione di tutti i rami applicabili e dopo la risoluzione terminale concordante del caso.",
+    "retirement": "Se una domanda gia' preparata viene superata da evidenza autorevole o da un esito SAVED verificato, marcarla auto_resolved e impedirne la consegna o ulteriori notifiche.",
+    "failClosed": "Una domanda ancora necessaria dopo il gate terminale resta open; una domanda non piu' necessaria non puo' essere inviata.",
+    "notificationPolicy": "La consegna deve consumare esclusivamente domande open confermate dal gate terminale corrente."
+  },
+  "todayPolicy": {
+    "fixAllowed": false,
+    "reason": "Difetto registrato durante il lotto; nessuna modifica durante l'esecuzione operativa lunga."
+  },
+  "evidence": [
+    "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5313-global-controller-santo-giuga/operator-questions/checkpoint.json",
+    "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5313-global-controller-santo-giuga/enea-draft-execution/checkpoint.json",
+    "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5326-global-controller-elena-depalma/operator-questions/checkpoint.json",
+    "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5326-global-controller-elena-depalma/enea-draft-execution/checkpoint.json"
+  ]
+}

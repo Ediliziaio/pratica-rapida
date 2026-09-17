@@ -1,0 +1,11 @@
+{
+  "version": "apr-user-decision-source-v1",
+  "messages": [
+    {
+      "threadId": "current-pratica-rapida",
+      "messageId": "chat-authoritative-economic-questions-r116",
+      "startedAt": "2026-09-12T00:00:00.000Z",
+      "text": "Correzioni generali autorizzate: unificare il calcolo economico in una sola decisione consumata da preflight, gate Infissi e bridge senza ricalcoli; una ricevuta di bonifico non e mai una fattura; un segmento con totale nullo non blocca il fascicolo se almeno un totale finale stampato e leggibile; il generatore di domande legge e persiste anche i blocker Infissi; eliminare il segnaposto 1x1 mm e verificare che non esistano altri valori sintetici analoghi. Gate completo, installazione solo a verde, poi mirato sulle 21 e giro completo sulle 76 solo con almeno 12 salvate, senza correzioni tra i due lotti."
+    }
+  ]
+}

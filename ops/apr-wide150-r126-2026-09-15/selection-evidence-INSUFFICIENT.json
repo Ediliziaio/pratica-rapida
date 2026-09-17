@@ -1,0 +1,69 @@
+{
+  "status": "insufficient_candidates",
+  "target": 150,
+  "maximumSelectable": 148,
+  "missing": 2,
+  "stageCounts": {
+    "combined": {
+      "pronte_da_fare": 21,
+      "recensione": 61,
+      "archiviate": 332
+    },
+    "separate": {
+      "pronte_da_fare": 21,
+      "recensione": 61,
+      "archiviate": 332
+    },
+    "unfiltered": {
+      "pronte_da_fare": 21,
+      "recensione": 61,
+      "archiviate": 332
+    }
+  },
+  "availableStageTotal": 414,
+  "eligible": 322,
+  "neverWorked": 66,
+  "neverWorkedGroups": {
+    "nuova_standard": 55,
+    "nuova_manoscritto": 11
+  },
+  "alreadyWorkedFromR125R126": 82,
+  "baselineUnavailable": [
+    {
+      "practiceId": "6a4147fe-4ca6-4ce1-af23-306c026fc705",
+      "customerKey": "andrea-celi",
+      "displayName": "Andrea Celi",
+      "currentStages": [
+        "pronte_da_fare"
+      ],
+      "reason": "permanent_supplier_exclusion_vans"
+    }
+  ],
+  "excludedCount": 92,
+  "excludedByReason": {
+    "permanent_customer_exclusion_beatrice_ciotta": 1,
+    "permanent_internal_exclusion_overthemol": 1,
+    "permanent_supplier_exclusion_vans": 42,
+    "unsupported_or_unclassified_product": 48
+  },
+  "seed": "apr-wide150-r126-20260915-selection-v1",
+  "seedSha256": "19305dfd3fc02593b2852f3026af893247e188980a70e7720da72eb85e143cfc",
+  "crmEvidence": {
+    "combinedResponseSha256": "b62d47407b0fbea8d2e35d93f8e44dffe5e30e018c14c3c63e1fbb5042c6dda1",
+    "separateResponseSha256": {
+      "pronte_da_fare": "a7a5906c7a69c537fca33411738f56ef614b8ace7857569eb17ae59bf96b1eb7",
+      "recensione": "6fb05316d32720e088b68730c081c8471d8d146fa41f0813ae12bd262102a625",
+      "archiviate": "045ec5d2dbd7f9df7d646ed06a1ab46a6d4628d4590b1e1d5c0f271920c8021f"
+    },
+    "unfilteredResponseSha256": "3cfbe0a1d1b30b71e29669f6fb36c2de2037a67dfcda6b74e467fed9f9b49b59",
+    "threeWayCountsConcordant": true
+  },
+  "historyDistinctPracticeIds": 305,
+  "historyEvidenceFileCount": 284,
+  "historyEvidenceFingerprint": "c5ed14b899b1d1e1dd58890ae03d138edda50e894c28e7e6139fd1888cd014e4",
+  "externalActionAllowed": false,
+  "crmMutationAllowed": false,
+  "eneaActionAllowed": false,
+  "reason": "Il vincolo utente richiede 150 casi: 66 mai lavorati più 82 eleggibili fra le 83 di r125/r126 producono al massimo 148 casi unici. Nessun manifest operativo è stato armato e nessun lotto è stato avviato."
+}
+

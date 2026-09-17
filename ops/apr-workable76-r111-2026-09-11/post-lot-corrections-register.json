@@ -1,0 +1,88 @@
+{
+  "version": "apr-r111-post-lot-corrections-register-v1",
+  "recordedAt": "2026-09-11T16:30:00+02:00",
+  "executionConstraint": "Non diagnosticare, correggere o installare durante il lotto r111 in corso.",
+  "status": "deferred_until_lot_terminal",
+  "items": [
+    {
+      "priority": 1,
+      "family": "printed_final_total_false_block",
+      "affectedCasesObserved": [
+        "Vincenzo Falconi",
+        "Lucia Droghetti",
+        "Loretta Riviera"
+      ],
+      "countObserved": 3,
+      "problem": "La regola permanente richiede di usare il solo totale finale stampato della fattura. Il runtime introduce invece invoice_final_printed_total_not_verified o infissi_final_printed_invoice_total_required e ferma la pratica.",
+      "requiredOutcome": "Il totale finale stampato fa fede e non deve essere verificato contro imponibile, IVA, aliquote, bonifici o altri importi intermedi. Eliminare il falso blocco senza indebolire l'obbligo di leggere un totale realmente presente.",
+      "state": "to_diagnose_after_lot"
+    },
+    {
+      "priority": 2,
+      "family": "certified_rule_present_but_not_invoked_shading_closures",
+      "affectedCasesObserved": [
+        "Andrea Trabucco",
+        "Luca Cigognetti"
+      ],
+      "countObserved": 2,
+      "problem": "Due regole già autorizzate e presenti non scattano nel percorso operativo: silenzio della fattura sulle chiusure = NO; zanzariera insieme agli infissi = chiusura aggiuntiva associata alla prima finestra.",
+      "requiredOutcome": "Individuare perché il percorso operativo non invoca le regole certificate e collegarle senza eccezioni basate sui nomi.",
+      "state": "to_diagnose_after_lot"
+    },
+    {
+      "priority": 3,
+      "family": "operator_question_not_persisted",
+      "affectedCasesObserved": [
+        "Matteo Capitanelli",
+        "Andrea Trabucco",
+        "Luca Cigognetti"
+      ],
+      "countObserved": 3,
+      "problem": "I blocker possono essere formulati nel preflight, ma operator-questions/checkpoint.json resta a revision 0 con questions vuoto.",
+      "requiredOutcome": "Ogni vero caso OPERATOR_REQUIRED deve persistere operatorQuestion, exactCause, missingDocumentType quando applicabile e onboardingGap, prima del rilascio della pratica; i falsi operator_required non devono generare domande.",
+      "state": "to_diagnose_after_lot"
+    },
+    {
+      "priority": 4,
+      "family": "crm_stable_id_lookup_over_frozen_stage",
+      "affectedCasesObserved": [
+        "Rossella Munafò",
+        "Patrizia Muzzi",
+        "Stefania Venturi",
+        "Angela Tuttolani"
+      ],
+      "countObserved": 4,
+      "problem": "Il lookup usa ID stabile e fase congelata; quando l'operatore sposta la pratica in un'altra pipeline, l'acquisizione pubblica crm_practice_exact_match_not_found.",
+      "requiredOutcome": "Se l'ID stabile è noto, cercare la pratica per ID attraverso tutte le pipeline ammesse e usare la fase come attributo corrente, non come parte dell'identità. Il caso resta localization_issue e non operatorQuestion.",
+      "state": "to_diagnose_after_lot"
+    },
+    {
+      "priority": 2,
+      "family": "ordered_shading_closure_allocation_without_document_mapping",
+      "decisionId": "user-2026-09-11-ordered-shading-closure-allocation-v1",
+      "supersedes": "La domanda operatore precedentemente ricostruita per Matteo Capitanelli.",
+      "affectedCasesObserved": [
+        "Matteo Capitanelli",
+        "Luca Cigognetti"
+      ],
+      "problem": "Il numero di chiusure oscuranti documentate può essere inferiore al numero degli infissi senza che i documenti forniscano un'associazione univoca finestra-chiusura.",
+      "requiredOutcome": "Quando manca l'associazione documentale, assegnare le chiusure ai primi infissi inseriti, in ordine, fino a esaurimento. Non tentare associazioni per somiglianza delle misure. Su Capitanelli le due chiusure vanno ai primi due dei sette infissi; nessuna domanda operatore.",
+      "ruleType": "general_rule_candidate",
+      "state": "candidate_deferred_until_lot_terminal"
+    },
+    {
+      "priority": 1,
+      "family": "crm_transient_transport_misclassified_operator_required",
+      "affectedCasesObserved": [
+        "Monica Ambra Fioravanti"
+      ],
+      "countObserved": 1,
+      "problem": "L'acquisizione CRM read-only ha ricevuto HTTP 504 Gateway Timeout e il finalizzatore ha pubblicato OPERATOR_REQUIRED senza una domanda persistita. Non esiste alcun dato che Giuliano possa fornire per risolvere un errore di trasporto.",
+      "requiredOutcome": "Un timeout o errore di rete CRM deve essere ritentato automaticamente secondo una policy limitata e auditata; se persiste, deve produrre TECHNICAL_BLOCK temporaneo. Non deve mai produrre OPERATOR_REQUIRED né spostare la pratica in Documenti mancanti con domanda vuota.",
+      "retryDisposition": "Non alterare il lotto corrente; riacquisire Monica Ambra Fioravanti nel prossimo giro.",
+      "ruleType": "general_rule_candidate",
+      "state": "to_diagnose_after_lot"
+    }
+  ],
+  "runtimeMutationPerformed": false
+}

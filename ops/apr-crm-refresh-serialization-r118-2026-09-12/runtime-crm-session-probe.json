@@ -1,0 +1,35 @@
+{
+  "version": "apr-crm-runtime-multiprocess-probe-v1",
+  "startedAt": "2026-09-12T19:04:08.303Z",
+  "completedAt": "2026-09-12T19:04:14.080Z",
+  "status": "PASS",
+  "guarantees": {
+    "separateProcesses": true,
+    "sharedRealKeychainSession": true,
+    "sharedGlobalRefreshLock": true,
+    "crmRequestsAreReadOnlyGet": true,
+    "secretsPersistedInReport": false,
+    "sessionPresentBefore": true,
+    "sessionPresentAfter": true,
+    "refreshTokenRotatedDuringProbe": true
+  },
+  "children": [
+    {
+      "pid": 35853,
+      "authStatus": "authenticated",
+      "authEvent": "session_refreshed",
+      "readMethod": "GET",
+      "readStatus": 200,
+      "readOk": true
+    },
+    {
+      "pid": 35854,
+      "authStatus": "authenticated",
+      "authEvent": "session_refreshed",
+      "readMethod": "GET",
+      "readStatus": 200,
+      "readOk": true
+    }
+  ],
+  "error": null
+}

@@ -1,0 +1,95 @@
+{
+  "generatedAt": "2026-09-10T22:37:51.365Z",
+  "status": "PASS",
+  "manifestPath": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-workable70-r110-2026-09-11/manifest.json",
+  "manifestSha256": "dc16fe1373645a33054cbf994fea1a647a5acd2bf7212341419e41070623a45d",
+  "sourceCount": 80,
+  "selectedCount": 70,
+  "removedCount": 10,
+  "uniquePracticeIds": 70,
+  "uniqueCustomerKeys": 70,
+  "supplierExclusionDistribution": {
+    "erre-emme-rm-legno": 2,
+    "linea-sole-potito": 4,
+    "ideal-sistem": 4
+  },
+  "removed": [
+    {
+      "practiceId": "55fdaf83-6b88-4f54-86d6-9fbfd629b966",
+      "customerKey": "stefania-spina",
+      "displayName": "STEFANIA SPINA",
+      "supplier": "rm legno",
+      "family": "erre-emme-rm-legno"
+    },
+    {
+      "practiceId": "8e15ae63-6a5c-42df-b2be-72ccb9a73cec",
+      "customerKey": "maria-sofia-tosatti",
+      "displayName": "MARIA SOFIA TOSATTI",
+      "supplier": "Linea sole potito",
+      "family": "linea-sole-potito"
+    },
+    {
+      "practiceId": "78ca7885-b996-46c2-86f1-085ca43e9ede",
+      "customerKey": "roberta-di-cesare",
+      "displayName": "roberta di cesare",
+      "supplier": "Linea sole potito",
+      "family": "linea-sole-potito"
+    },
+    {
+      "practiceId": "dc4484cd-c462-49c0-a734-3064dd6469a8",
+      "customerKey": "giovanna-atzeni",
+      "displayName": "GIOVANNA ATZENI",
+      "supplier": "Ideal sistem",
+      "family": "ideal-sistem"
+    },
+    {
+      "practiceId": "7f5b0c3c-3b37-4309-ac42-73f0c29d7f7f",
+      "customerKey": "giuseppe-d-adduzio",
+      "displayName": "GIUSEPPE D'ADDUZIO",
+      "supplier": "rm legno",
+      "family": "erre-emme-rm-legno"
+    },
+    {
+      "practiceId": "c1c4c938-3b64-462f-b571-db98c26765ef",
+      "customerKey": "gavina-emanuela-cannas",
+      "displayName": "GAVINA EMANUELA CANNAS",
+      "supplier": "Ideal sistem",
+      "family": "ideal-sistem"
+    },
+    {
+      "practiceId": "2329836b-3d7c-4e55-b5ba-f232515a2299",
+      "customerKey": "francesca-pisanu",
+      "displayName": "FRANCESCA PISANU",
+      "supplier": "Ideal sistem",
+      "family": "ideal-sistem"
+    },
+    {
+      "practiceId": "e94df373-f8f5-44b9-bd31-3e6c36025c13",
+      "customerKey": "giovanni-amadu",
+      "displayName": "GIOVANNI AMADU",
+      "supplier": "Ideal sistem",
+      "family": "ideal-sistem"
+    },
+    {
+      "practiceId": "30936ae1-80b0-46fd-813c-e1425ca33c7f",
+      "customerKey": "francesca-monti",
+      "displayName": "francesca monti",
+      "supplier": "Linea sole potito",
+      "family": "linea-sole-potito"
+    },
+    {
+      "practiceId": "1d5ac555-6ebd-4cb9-b718-c17ba8bccc3e",
+      "customerKey": "enrico-amos-maria-berneri",
+      "displayName": "Enrico Amos maria Berneri",
+      "supplier": "Linea sole potito",
+      "family": "linea-sole-potito"
+    }
+  ],
+  "safety": {
+    "draftOnly": true,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false,
+    "priorDraftPolicy": "preserve_and_ignore_for_new_test_draft"
+  }
+}

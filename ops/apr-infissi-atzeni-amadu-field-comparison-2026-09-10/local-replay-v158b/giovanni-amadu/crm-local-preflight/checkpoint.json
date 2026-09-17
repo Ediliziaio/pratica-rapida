@@ -1,0 +1,352 @@
+{
+  "version": "apr-crm-local-preflight-v1",
+  "revision": 4,
+  "status": "completed",
+  "sourceFingerprint": "10ad387e4440d71dce04b1c7dc755c8b43dd96f20c16699da95fe47968e89b95",
+  "currentCustomerKey": null,
+  "items": [
+    {
+      "customerKey": "giovanni-amadu",
+      "displayName": "GIOVANNI AMADU",
+      "practiceId": "e94df373-f8f5-44b9-bd31-3e6c36025c13",
+      "dossierPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5354-global-controller-giovanni-amadu/crm-acquisition/dossiers/giovanni-amadu.json",
+      "state": "blocked_case",
+      "attemptCount": 1,
+      "startedAt": "2026-09-10T08:00:03.000Z",
+      "endedAt": "2026-09-10T08:00:03.000Z",
+      "report": {
+        "outcome": "blocked_case",
+        "formAvailable": false,
+        "startDate": null,
+        "startDateSource": null,
+        "completionDate": null,
+        "completionDateSource": null,
+        "buildingQualification": null,
+        "buildingUnitCount": null,
+        "deductionRate": null,
+        "taxCodeStatus": "missing_or_invalid",
+        "resolvedTaxCode": null,
+        "taxCodeSourceIds": [
+          "giovanni-amadu"
+        ],
+        "primaryBeneficiaryResolution": {
+          "status": "not_found",
+          "identity": null,
+          "sourceIds": [],
+          "authority": null
+        },
+        "worksMunicipalityResolution": {
+          "status": "not_found",
+          "value": null,
+          "sourceIds": []
+        },
+        "coBeneficiaryResolution": {
+          "status": "not_declared",
+          "present": false,
+          "identity": null,
+          "sourceIds": []
+        },
+        "products": [],
+        "financial": {
+          "invoiceTotal": null,
+          "eligibleExpense": null,
+          "tripleReconciliationVerified": false,
+          "reconciledTotal": null,
+          "evidence": [],
+          "bankTransfers": [],
+          "bankTransferReconciliation": {
+            "status": "not_provided",
+            "principalTotal": null,
+            "feesTotal": null,
+            "debitedTotal": null,
+            "difference": null,
+            "referenceStatus": "not_provided",
+            "missingInvoiceReferences": [],
+            "taxReliefTypes": []
+          },
+          "methods": [
+            {
+              "method": "structured_extraction",
+              "ok": false,
+              "total": null,
+              "sources": [],
+              "reason": "fonti-assenti, nessuna-fattura-economica-valida"
+            },
+            {
+              "method": "accounting_reconciliation",
+              "ok": false,
+              "total": null,
+              "sources": [],
+              "reason": "fonti-assenti, nessuna-fattura-economica-valida"
+            },
+            {
+              "method": "intervention_cross_check",
+              "ok": false,
+              "total": null,
+              "sources": [],
+              "reason": "righe-intervento-non-dimostrate:"
+            }
+          ],
+          "discardedDuplicateSourceIds": [],
+          "supersededTechnicalSourceIds": [],
+          "appliedRuleIds": [
+            "user-2026-08-16-invoice-gross-total-vat-included",
+            "user-2026-09-06-gross-invoice-sum-supersedes-service-separation-v1",
+            "user-2026-08-18-mandatory-bank-transfer-invoice-expense-cross-check",
+            "core-gross-triple-reconciliation",
+            "user-2026-08-14-preserve-technical-product-cardinality",
+            "system-explicit-advance-invoice-reference-marker-v1",
+            "user-2026-09-07-invoice-gross-total-never-internally-verified-v1",
+            "user-2026-08-31-no-valid-economic-invoice-operator-v1"
+          ]
+        },
+        "warnings": [],
+        "blockers": [
+          {
+            "code": "customer_form_missing",
+            "field": "customer_form",
+            "reason": "Il dossier CRM non contiene un form cliente originario utilizzabile; documenti ENEA storici esclusi.",
+            "sourceIds": [
+              "a7c6441f69bf6a1fb4624466d5e9dc979caf0802b1e0d5e6ad69a7ef4dc3953c"
+            ],
+            "appliedRuleIds": [
+              "core-form-first",
+              "user-2026-09-03-structured-residual-case-question-v1"
+            ],
+            "exactCause": "Il dossier CRM non contiene un form cliente originario utilizzabile; documenti ENEA storici esclusi.",
+            "missingDocumentType": "modulo cliente originario",
+            "operatorQuestion": "Puoi inserire o indicare il modulo cliente originario richiesto per risolvere customer_form?",
+            "onboardingGap": "Rendere obbligatorio in onboarding: modulo cliente originario."
+          },
+          {
+            "code": "tax_code_missing_or_invalid",
+            "field": "beneficiary.taxCode",
+            "reason": "CF valido e coerente non disponibile nel form o nelle fatture originarie.",
+            "sourceIds": [
+              "giovanni-amadu"
+            ],
+            "appliedRuleIds": [
+              "core-form-first",
+              "user-2026-08-14-valid-original-document-cf-over-invalid-form",
+              "user-2026-08-16-fiscal-code-identity-cross-check",
+              "user-2026-09-03-structured-residual-case-question-v1"
+            ],
+            "exactCause": "CF valido e coerente non disponibile nel form o nelle fatture originarie.",
+            "missingDocumentType": "documento fiscale o ufficiale con codice fiscale",
+            "operatorQuestion": "Puoi inserire o indicare il documento fiscale o ufficiale con codice fiscale richiesto per risolvere beneficiary.taxCode?",
+            "onboardingGap": "Rendere obbligatorio in onboarding: documento fiscale o ufficiale con codice fiscale."
+          },
+          {
+            "code": "screenings_missing",
+            "field": "screenings",
+            "reason": "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+            "sourceIds": [
+              "a7c6441f69bf6a1fb4624466d5e9dc979caf0802b1e0d5e6ad69a7ef4dc3953c"
+            ],
+            "appliedRuleIds": [
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "system-specific-incomplete-screening-blocker-v1",
+              "user-2026-09-03-structured-residual-case-question-v1"
+            ],
+            "exactCause": "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+            "missingDocumentType": "documento tecnico con misure del prodotto",
+            "operatorQuestion": "Mancano le misure del prodotto in tutti i documenti originari verificati: puoi inserirle?",
+            "onboardingGap": "Rendere obbligatorio in onboarding: documento tecnico con misure del prodotto."
+          },
+          {
+            "code": "completion_date_missing",
+            "field": "dates.completion",
+            "reason": "Fine lavori assente e data fattura non ricavabile.",
+            "sourceIds": [
+              "a7c6441f69bf6a1fb4624466d5e9dc979caf0802b1e0d5e6ad69a7ef4dc3953c"
+            ],
+            "appliedRuleIds": [
+              "user-2026-08-14-missing-completion-use-latest-invoice",
+              "user-2026-09-03-structured-residual-case-question-v1"
+            ],
+            "exactCause": "Fine lavori assente e data fattura non ricavabile.",
+            "missingDocumentType": "documento originario con data di fine lavori",
+            "operatorQuestion": "Puoi inserire o indicare il documento originario con data di fine lavori richiesto per risolvere dates.completion?",
+            "onboardingGap": "Rendere obbligatorio in onboarding: documento originario con data di fine lavori."
+          },
+          {
+            "code": "gross_triple_reconciliation_failed",
+            "field": "economic_sources.total",
+            "reason": "Tripla riconciliazione non dimostrata: fonti-assenti, nessuna-fattura-economica-valida.",
+            "sourceIds": [
+              "a7c6441f69bf6a1fb4624466d5e9dc979caf0802b1e0d5e6ad69a7ef4dc3953c"
+            ],
+            "appliedRuleIds": [
+              "user-2026-08-16-invoice-gross-total-vat-included",
+              "core-gross-triple-reconciliation",
+              "user-2026-09-07-invoice-gross-total-never-internally-verified-v1",
+              "user-2026-08-31-no-valid-economic-invoice-operator-v1",
+              "user-2026-09-03-structured-residual-case-question-v1"
+            ],
+            "exactCause": "Tripla riconciliazione non dimostrata: fonti-assenti, nessuna-fattura-economica-valida.",
+            "missingDocumentType": null,
+            "operatorQuestion": "Confermi il valore corretto da usare per economic_sources.total, sulla base dei documenti originari?",
+            "onboardingGap": "Acquisire e validare in onboarding il dato economic_sources.total con la relativa fonte originaria."
+          }
+        ],
+        "sourceIds": [
+          "a7c6441f69bf6a1fb4624466d5e9dc979caf0802b1e0d5e6ad69a7ef4dc3953c"
+        ],
+        "eneaPayloadAudit": {
+          "status": "payload_incomplete",
+          "mappingFingerprint": null,
+          "fieldSummary": {
+            "ready": 0,
+            "review": 0,
+            "missing": 0
+          },
+          "requiredPortalFieldCount": 0,
+          "blockerCount": 2,
+          "blockers": [
+            {
+              "code": "crm-source-not-screening",
+              "fieldId": null,
+              "message": "Il dossier non è mappabile come pratica schermature."
+            },
+            {
+              "code": "screenings_missing",
+              "fieldId": "screenings",
+              "message": "Nessun prodotto fisico riconciliato dalle fatture originarie."
+            }
+          ],
+          "excludedUnverifiedFields": [],
+          "draftReady": false,
+          "officialSubmissionAllowed": false,
+          "portalGate": {
+            "status": "blocked",
+            "reason": "screening-component-blocked",
+            "workflowFingerprint": null,
+            "supportedPages": [],
+            "screeningItemCount": 0,
+            "saveAllowedOnlyBySeparateCapability": true,
+            "previewAllowed": false,
+            "submitAllowed": false
+          },
+          "externalActionAllowed": false,
+          "reason": "1 blocker della componente Schermature invalidano il payload della bozza TEST."
+        },
+        "eneaExecutablePlan": null,
+        "draftPlan": {
+          "status": "blocked",
+          "externalActionAllowed": false,
+          "previewAllowed": false,
+          "submitAllowed": false,
+          "communicationsAllowed": false,
+          "nextAction": "Risolvere i blocker con sole fonti originarie; la coda prosegue sugli altri casi."
+        }
+      },
+      "reason": "5 blocker per-pratica registrati; coda prosegue.",
+      "disposition": null
+    }
+  ],
+  "externalActionAllowed": false,
+  "reason": "Preflight locale concluso: 0 piani pronti, 1 casi bloccati, 0 accantonati; nessuna azione esterna.",
+  "nextAction": "Mostrare fonti e blocker in dashboard; ENEA resta chiusa.",
+  "validationRevisionsApplied": [],
+  "sourceRevisionsApplied": [],
+  "operatorMeasurementResolutions": [],
+  "audit": [
+    {
+      "revision": 0,
+      "at": "2026-09-10T08:00:01.000Z",
+      "type": "initialized",
+      "customerKey": null,
+      "reason": "Preflight CRM locale non preparato.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "core-mapping-complete",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume",
+        "system-preflight-upstream-terminal-propagation-v1",
+        "user-2026-08-16-ten-case-monday-restart"
+      ]
+    },
+    {
+      "revision": 1,
+      "at": "2026-09-10T08:00:01.000Z",
+      "type": "prepared",
+      "customerKey": null,
+      "reason": "1 dossier acquisiti preparati per preflight locale sequenziale; i casi bloccati a monte non fermano la coda.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "core-mapping-complete",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume",
+        "system-preflight-upstream-terminal-propagation-v1",
+        "user-2026-08-16-ten-case-monday-restart"
+      ]
+    },
+    {
+      "revision": 2,
+      "at": "2026-09-10T08:00:03.000Z",
+      "type": "claimed",
+      "customerKey": "giovanni-amadu",
+      "reason": "Preflight locale reclamato; ripresa idempotente dopo riavvio.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "core-mapping-complete",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume",
+        "system-preflight-upstream-terminal-propagation-v1",
+        "user-2026-08-16-ten-case-monday-restart"
+      ]
+    },
+    {
+      "revision": 3,
+      "at": "2026-09-10T08:00:03.000Z",
+      "type": "case_blocked",
+      "customerKey": "giovanni-amadu",
+      "reason": "5 blocker per-pratica registrati; coda prosegue.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "core-mapping-complete",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume",
+        "system-preflight-upstream-terminal-propagation-v1",
+        "user-2026-08-16-ten-case-monday-restart",
+        "user-2026-08-16-invoice-gross-total-vat-included",
+        "user-2026-09-06-gross-invoice-sum-supersedes-service-separation-v1",
+        "user-2026-08-18-mandatory-bank-transfer-invoice-expense-cross-check",
+        "user-2026-08-14-preserve-technical-product-cardinality",
+        "system-explicit-advance-invoice-reference-marker-v1",
+        "user-2026-09-07-invoice-gross-total-never-internally-verified-v1",
+        "user-2026-08-31-no-valid-economic-invoice-operator-v1",
+        "user-2026-09-03-structured-residual-case-question-v1",
+        "user-2026-08-14-valid-original-document-cf-over-invalid-form",
+        "user-2026-08-16-fiscal-code-identity-cross-check",
+        "system-specific-incomplete-screening-blocker-v1",
+        "user-2026-08-14-missing-completion-use-latest-invoice"
+      ]
+    },
+    {
+      "revision": 4,
+      "at": "2026-09-10T08:00:03.000Z",
+      "type": "completed",
+      "customerKey": null,
+      "reason": "Preflight locale concluso: 0 piani pronti, 1 casi bloccati, 0 accantonati; nessuna azione esterna.",
+      "appliedRuleIds": [
+        "core-form-first",
+        "core-economic-classification",
+        "core-gross-triple-reconciliation",
+        "core-mapping-complete",
+        "system-single-active-practice",
+        "system-atomic-checkpoint-resume",
+        "system-preflight-upstream-terminal-propagation-v1",
+        "user-2026-08-16-ten-case-monday-restart"
+      ]
+    }
+  ]
+}

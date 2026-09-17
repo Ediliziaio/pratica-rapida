@@ -1,0 +1,131 @@
+--- a/scripts/enea-shadow-runner/simple-independent-runner.mjs
++++ b/scripts/enea-shadow-runner/simple-independent-runner.mjs
+@@ -158,14 +158,29 @@
+     } : null,
+   }));
+ }
+-function externalCrmAuthenticationFailure(item) {
+-  const auth = readJson(path.join(customerCohortRoot(item), "crm-auth/checkpoint.json"));
++// Una sessione persa e una sessione mai stabilita non sono la stessa cosa.
++// La copia per coorte nasce sempre in login_required: e' contabilita' locale
++// creata da configure(), non una prova sulla sessione, che e' unica e vive
++// nel Portachiavi e nello stato globale. Un checkpoint che ha autenticato
++// almeno una volta conserva accountFingerprint e l'evento nell'audit;
++// recordLoginRequired non li cancella. Senza questa distinzione ogni coorte
++// nuova ferma l'intero lotto cinque secondi dopo essere nata.
++function lostCrmSession(auth) {
+   if (auth?.status !== "login_required") return null;
+-  const reason = typeof auth.reason === "string" && auth.reason.trim()
++  const audit = Array.isArray(auth.audit) ? auth.audit : [];
++  const everAuthenticated = Boolean(auth.accountFingerprint)
++    || audit.some((event) => event?.type === "authenticated" || event?.type === "session_refreshed");
++  if (!everAuthenticated) return null;
++  return typeof auth.reason === "string" && auth.reason.trim()
+     ? auth.reason.trim()
+     : "Sessione CRM/Supabase non disponibile.";
+-  return `external_crm_authentication_unavailable:${reason}`;
+ }
++function externalCrmAuthenticationFailure(item) {
++  const globalAuth = readJson(path.join(runtimeRoot, "state/crm-auth/checkpoint.json"));
++  const cohortAuth = readJson(path.join(customerCohortRoot(item), "crm-auth/checkpoint.json"));
++  const reason = lostCrmSession(globalAuth) ?? lostCrmSession(cohortAuth);
++  return reason ? `external_crm_authentication_unavailable:${reason}` : null;
++}
+ function writeStallTrace(item, reason, startedMs, lastProgressMs, fingerprint) {
+   atomicWrite(path.join(customerCohortRoot(item), "outer-watchdog-stall/checkpoint.json"), {
+     version: "apr-outer-watchdog-stall-state-v1",
+--- a/scripts/enea-shadow-runner/simpleIndependentRunnerAuthStop.test.ts
++++ b/scripts/enea-shadow-runner/simpleIndependentRunnerAuthStop.test.ts
+@@ -7,39 +7,75 @@
+ 
+ const loadAuthenticationGuard = (root: string) => {
+   const source = readFileSync(path.join(process.cwd(), "scripts/enea-shadow-runner/simple-independent-runner.mjs"), "utf8");
+-  const start = source.indexOf("function externalCrmAuthenticationFailure(item) {");
++  const start = source.indexOf("function lostCrmSession(auth) {");
+   const end = source.indexOf("\nfunction writeStallTrace", start);
+   if (start < 0 || end < 0) throw new Error("runner_authentication_guard_not_found");
+   const implementation = source.slice(start, end);
+-  const readJson = (target: string) => JSON.parse(readFileSync(target, "utf8"));
++  const readJson = (target: string) => { try { return JSON.parse(readFileSync(target, "utf8")); } catch { return null; } };
+   const customerCohortRoot = (item: { cohort: number }) => path.join(root, `cohort-${item.cohort}`);
+-  return Function("readJson", "path", "customerCohortRoot", `${implementation}; return externalCrmAuthenticationFailure;`)(readJson, path, customerCohortRoot) as (item: { cohort: number }) => string | null;
++  const runtimeRoot = path.join(root, "runtime");
++  return Function("readJson", "path", "customerCohortRoot", "runtimeRoot", `${implementation}; return externalCrmAuthenticationFailure;`)(readJson, path, customerCohortRoot, runtimeRoot) as (item: { cohort: number }) => string | null;
+ };
+ 
++const writeCheckpoint = (directory: string, value: unknown) => {
++  mkdirSync(directory, { recursive: true });
++  writeFileSync(path.join(directory, "checkpoint.json"), JSON.stringify(value));
++};
++
++const temporaryRoot = () => {
++  const root = mkdtempSync(path.join(os.tmpdir(), "apr-runner-auth-stop-"));
++  temporaryDirectories.push(root);
++  return root;
++};
++
++/** Un checkpoint che ha davvero autenticato conserva accountFingerprint e l'evento nell'audit. */
++const lostSessionCheckpoint = {
++  status: "login_required",
++  accountFingerprint: "c27774ae74d3f320df53b14565d517d6a52082f5af3e2159abecf97f3acb596e",
++  reason: "Il server CRM ha rifiutato definitivamente il refresh token APR corrente; nuovo login necessario.",
++  audit: [{ type: "authenticated", at: "2026-09-12T22:51:56.865Z" }, { type: "login_required", at: "2026-09-13T01:29:00.000Z" }],
++};
++
++/** Stato reale di una coorte appena creata da configure(): mai autenticata. */
++const newbornCohortCheckpoint = {
++  status: "login_required",
++  accountFingerprint: null,
++  tokenExpiresAt: null,
++  lastVerifiedAt: null,
++  reason: "Trasporto autenticato APR configurato; sessione utente dedicata ancora assente.",
++  audit: [{ type: "initialized", at: "2026-09-13T01:30:03.000Z" }, { type: "configured", at: "2026-09-13T01:30:03.000Z" }],
++};
++
+ afterEach(() => {
+   for (const directory of temporaryDirectories.splice(0)) rmSync(directory, { recursive: true, force: true });
+ });
+ 
+ describe("arresto immediato del lotto su login CRM richiesto", () => {
+-  it("arresta su qualunque login_required senza aspettare il timeout della pratica", () => {
+-    const root = mkdtempSync(path.join(os.tmpdir(), "apr-runner-auth-stop-"));
+-    temporaryDirectories.push(root);
+-    const checkpointDirectory = path.join(root, "cohort-6453", "crm-auth");
+-    mkdirSync(checkpointDirectory, { recursive: true });
+-    writeFileSync(path.join(checkpointDirectory, "checkpoint.json"), JSON.stringify({
+-      status: "login_required",
+-      reason: "Il server CRM ha rifiutato definitivamente il refresh token APR corrente; nuovo login necessario.",
+-    }));
++  it("arresta su una sessione perduta senza aspettare il timeout della pratica", () => {
++    const root = temporaryRoot();
++    writeCheckpoint(path.join(root, "cohort-6453", "crm-auth"), lostSessionCheckpoint);
+ 
+     expect(loadAuthenticationGuard(root)({ cohort: 6453 })).toContain("external_crm_authentication_unavailable:");
+   });
+ 
++  it("arresta anche quando la perdita e' registrata soltanto nello stato globale", () => {
++    const root = temporaryRoot();
++    writeCheckpoint(path.join(root, "runtime", "state", "crm-auth"), lostSessionCheckpoint);
++    writeCheckpoint(path.join(root, "cohort-6455", "crm-auth"), newbornCohortCheckpoint);
++
++    expect(loadAuthenticationGuard(root)({ cohort: 6455 })).toContain("external_crm_authentication_unavailable:");
++  });
++
++  it("non arresta per una coorte appena creata che non ha mai autenticato", () => {
++    const root = temporaryRoot();
++    writeCheckpoint(path.join(root, "cohort-6805", "crm-auth"), newbornCohortCheckpoint);
++
++    expect(loadAuthenticationGuard(root)({ cohort: 6805 })).toBeNull();
++  });
++
+   it("non arresta per uno stato CRM autenticato", () => {
+-    const root = mkdtempSync(path.join(os.tmpdir(), "apr-runner-auth-stop-"));
+-    temporaryDirectories.push(root);
+-    const checkpointDirectory = path.join(root, "cohort-6454", "crm-auth");
+-    mkdirSync(checkpointDirectory, { recursive: true });
+-    writeFileSync(path.join(checkpointDirectory, "checkpoint.json"), JSON.stringify({ status: "authenticated" }));
++    const root = temporaryRoot();
++    writeCheckpoint(path.join(root, "cohort-6454", "crm-auth"), { status: "authenticated" });
+ 
+     expect(loadAuthenticationGuard(root)({ cohort: 6454 })).toBeNull();
+   });

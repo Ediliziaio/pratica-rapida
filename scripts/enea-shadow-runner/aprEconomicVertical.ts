@@ -1,7 +1,6 @@
 import type { BankTransferEvidence } from "./bankTransferEvidence";
 import { reconcileBankTransfers } from "./bankTransferEvidence";
 import {
-  MONEY_TOLERANCE_EUR,
   reconcileFinancialEvidence,
   type FinancialDocumentEvidence,
 } from "../../src/features/enea-shadow-crm/financialReconciliation";
@@ -58,8 +57,8 @@ export interface AprEconomicDecisionResult {
 }
 
 const INVOICE_FIELDS = [
-  "supplierId", "supplierName", "documentNumber", "documentDate", "kind", "taxableAmount", "vatAmount", "grossTotal",
-  "referencedAdvanceIds", "interventionGrossAmount", "extractionConfidence", "extractionIssues", "internalAdjustmentNote",
+  "supplierId", "supplierName", "documentNumber", "documentDate", "kind", "grossTotal",
+  "referencedAdvanceIds", "extractionConfidence", "internalAdjustmentNote",
   "explicitDeductibleLines", "lineItems",
 ] as const;
 
@@ -145,13 +144,13 @@ function invoicesFromFacts(artifact: AprCanonicalFactsArtifact): FinancialDocume
       documentNumber: stringValue(fields, "documentNumber"),
       documentDate: stringValue(fields, "documentDate"),
       kind: stringValue(fields, "kind") as FinancialDocumentEvidence["kind"],
-      taxableAmount: nullableNumber(fields, "taxableAmount"),
-      vatAmount: nullableNumber(fields, "vatAmount"),
+      taxableAmount: null,
+      vatAmount: null,
       grossTotal: nullableNumber(fields, "grossTotal"),
       referencedAdvanceIds: arrayValue<string>(fields, "referencedAdvanceIds"),
-      interventionGrossAmount: nullableNumber(fields, "interventionGrossAmount"),
+      interventionGrossAmount: nullableNumber(fields, "grossTotal"),
       extractionConfidence: stringValue(fields, "extractionConfidence") as FinancialDocumentEvidence["extractionConfidence"],
-      extractionIssues: arrayValue<NonNullable<FinancialDocumentEvidence["extractionIssues"]>[number]>(fields, "extractionIssues"),
+      extractionIssues: [],
       internalAdjustmentNote: nullableString(fields, "internalAdjustmentNote"),
       explicitDeductibleLines: arrayValue<NonNullable<FinancialDocumentEvidence["explicitDeductibleLines"]>[number]>(fields, "explicitDeductibleLines"),
       lineItems: arrayValue<NonNullable<FinancialDocumentEvidence["lineItems"]>[number]>(fields, "lineItems"),
@@ -210,18 +209,17 @@ export function decideEconomicFacts(factsArtifact: AprCanonicalFactsArtifact): A
   const transfers = transfersFromFacts(factsArtifact);
   const invoiceReconciliation = reconcileFinancialEvidence(invoices, { mode: "test", scheme: "ecobonus" });
   const invoiceTotal = invoiceReconciliation.usable ? invoiceReconciliation.total : null;
-  // Il controllo bonifici resta informativo anche quando la tripla
-  // riconciliazione non rende ancora la spesa utilizzabile: se tutti i lordi
-  // fattura sono osservati, il capitale puo essere confrontato senza
-  // trasformare quel totale grezzo in una spesa ENEA risolta.
+  // Il controllo bonifici resta un audit separato. Non concorre a leggere o
+  // ricostruire il totale fattura, che deriva soltanto dal valore finale
+  // stampato dei documenti fiscali.
   const observedInvoiceGrossTotal = invoices.length > 0 && invoices.every((invoice) => invoice.grossTotal !== null)
     ? Math.round((invoices.reduce((sum, invoice) => sum + (invoice.grossTotal ?? 0), 0) + Number.EPSILON) * 100) / 100
     : null;
   const bankTransferReconciliation = reconcileBankTransfers(observedInvoiceGrossTotal, transfers, invoices.map((invoice) => invoice.documentNumber));
   const invoiceRuleIds = [
     "core-economic-classification",
-    USER_AUTHORIZED_RULE_IDS.invoiceGrossTotalVatIncluded,
-    "core-gross-triple-reconciliation",
+    USER_AUTHORIZED_RULE_IDS.invoiceFinalPrintedTotalRuntimeAuthority,
+    USER_AUTHORIZED_RULE_IDS.advanceBalanceFiscalInvoiceEquivalence,
     ...(replacements.length ? ["system-explicit-replacement-invoice-supersession"] : []),
     ...invoiceReconciliation.appliedRuleIds,
   ];
@@ -241,34 +239,35 @@ export function decideEconomicFacts(factsArtifact: AprCanonicalFactsArtifact): A
       inputFactIds: invoiceFactIds,
       appliedRuleIds: [...new Set(invoiceRuleIds)],
       sourcePrecedence: precedence(invoiceRuleIds),
-      reason: `Tripla riconciliazione conclusa entro EUR ${MONEY_TOLERANCE_EUR.toFixed(2)}; totale lordo fatture autorevole.`,
+      reason: "Totali finali stampati delle fatture uniche verificati; nessuna cifra contabile intermedia letta o riconciliata.",
     }
     : {
       field: "economic.eligibleExpense",
       status: "blocked" as const,
       resolvedValue: null,
-      blockerCode: "gross_triple_reconciliation_failed",
+      blockerCode: "invoice_final_printed_total_not_verified",
       inputFactIds: invoiceFactIds,
       appliedRuleIds: [...new Set(invoiceRuleIds)],
       sourcePrecedence: precedence(invoiceRuleIds),
-      reason: `Tripla riconciliazione non conclusa: ${invoiceReconciliation.blockers.join(", ") || invoiceReconciliation.methods.map((method) => method.reason).join(", ")}.`,
+      reason: `Totale finale stampato non verificato: ${invoiceReconciliation.blockers.join(", ") || "nessuna fattura fiscale con totale finale leggibile"}.`,
     };
-  const bankRequiresOperator = bankTransferReconciliation.status === "principal_exceeds_invoices" || bankTransferReconciliation.status === "unverified";
+  // Decisione permanente di Giuliano: i bonifici non concorrono al valore
+  // richiesto da ENEA e non possono rendere non lavorabile una pratica. Il
+  // confronto resta un audit diagnostico, mai una decisione o un blocker.
   const bankDecision = {
     field: "economic.bankTransferCheck",
-    status: bankRequiresOperator ? "operator_required" as const : "resolved" as const,
-    resolvedValue: bankRequiresOperator ? null : bankTransferReconciliation.status,
-    blockerCode: bankRequiresOperator ? `bank_transfer_${bankTransferReconciliation.status}` : null,
+    status: "resolved" as const,
+    resolvedValue: bankTransferReconciliation.status,
+    blockerCode: null,
     inputFactIds: transferFactIds.length ? transferFactIds : invoiceFactIds,
     appliedRuleIds: bankRuleIds,
     sourcePrecedence: precedence(bankRuleIds),
     reason: transfers.length
-      ? `Bonifici verificati separando capitale e commissioni: ${bankTransferReconciliation.status}.`
+      ? `Esito bonifici conservato soltanto in audit (${bankTransferReconciliation.status}); non modifica il totale finale fatture e non blocca.`
       : "Nessun bonifico originario fornito; controllo non applicabile.",
   };
   const decisionsArtifact = createBusinessDecisionsArtifact({ factsArtifact, decisions: [invoiceDecision, bankDecision] });
-  const outcome = !invoiceReconciliation.usable ? "BLOCKED"
-    : bankRequiresOperator ? "OPERATOR_REQUIRED" : "RESOLVED";
+  const outcome = !invoiceReconciliation.usable ? "BLOCKED" : "RESOLVED";
   return { factsArtifact, decisionsArtifact, outcome, eligibleExpense: outcome === "RESOLVED" ? invoiceTotal : null, invoiceReconciliation, bankTransferReconciliation };
 }
 

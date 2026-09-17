@@ -1,0 +1,32 @@
+{
+  "status": "PASS",
+  "tests": {
+    "total": 1992,
+    "passed": 1992,
+    "failed": 0
+  },
+  "matrixRules": 213,
+  "testedRules": 213,
+  "requiredRuntimeRuleIds": [
+    "system-preflight-upstream-terminal-propagation-v1",
+    "user-2026-09-10-explicit-invoice-product-evidence-recovery-v1",
+    "system-invoice-multi-document-fiscal-segmentation-v2",
+    "user-2026-09-10-infissi-invoice-authoritative-shading-closures-v1",
+    "user-2026-09-10-zanzariera-infissi-installation-context-v1",
+    "user-2026-09-10-infissi-tabular-abbreviated-thermal-evidence-v1",
+    "user-2026-09-10-ideal-sistem-manual-exclusion-v1"
+  ],
+  "stagedBundleSha256": {
+    "apr-supervisor.mjs": "540d241db093f2061d765a09ae774b9a24ebecd9e0b78e2a307c79a644c27142",
+    "apr-enea-worker.mjs": "5beccb73cd8ee89d2fb440a45bdd70a2b7c668052bd5161c37be95595a551d79",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0"
+  },
+  "historicalAudit": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-infissi-closure-authority-r110-gate-2026-09-11/historical-audit-report-r110.json",
+  "historicalAuditSha256": "db94c61245c24e53d0401fd36d2136cbb750ee18c645c09d0a96f7f8bcedb7f9",
+  "authorizedHistoricalGapOnly": [
+    "user-2026-08-06-portal-intermediary-physical-beneficiary-v1",
+    "user-2026-08-06-intervention-authoritative-sources-and-defaults-v1",
+    "user-2026-08-06-existing-plant-authoritative-mapping-v1",
+    "user-2026-08-06-portal-municipality-controlled-selection-v1"
+  ]
+}

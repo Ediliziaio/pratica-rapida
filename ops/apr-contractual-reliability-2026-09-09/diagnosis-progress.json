@@ -1,0 +1,211 @@
+{
+  "version": "apr-contractual-reliability-diagnosis-progress-v1",
+  "updatedAt": "2026-09-09T15:12:00+02:00",
+  "status": "r100_operationally_disproved_general_canonical_package_fix_under_test",
+  "scope": {
+    "sourceRun": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r99-governed-20260909",
+    "classifiedCases": 94,
+    "contractualWorkableDenominator": 80,
+    "percentageDenominatorPolicy": "Every contractual autonomy percentage is calculated over exactly 80 workable cases, never over 94.",
+    "upstreamExclusionsAddedByUser": [
+      "Riccardo Coda",
+      "Diego Mocenighi",
+      "Liliana Gloria",
+      "Elena Berti"
+    ],
+    "denominatorExclusions": {
+      "invoiceActuallyAbsent": 5,
+      "preExistingUpstreamExclusions": 2,
+      "completionOver90Days": 3,
+      "lineaSolePotitoUpstreamExclusions": 4,
+      "totalOutsideContractualDenominator": 14
+    }
+  },
+  "acceptedManualPrimaryTruth": {
+    "invoiceActuallyAbsent": [
+      "Filippo Bigalli",
+      "Alessandro Zaniboni",
+      "Rocco Giacotto",
+      "Paolino Bellini",
+      "Gabriele Girelli"
+    ],
+    "invoicePresentReadableCorrectlyUploaded": [
+      "Vera Buracchi",
+      "Marco Tocchetti",
+      "Loretta Riviera"
+    ],
+    "allRequiredInvoiceDataPresentReadable": [
+      "Stefania Venturi"
+    ],
+    "measurementsActuallyAbsent": [
+      "Roberta Di Cesare",
+      "Giulia Kasermann",
+      "Stefano Buosi"
+    ],
+    "measurementsHandwrittenOnLastPageProtectedWindowSpace": [
+      "Maria Sofia Tosatti"
+    ],
+    "closedCorrect": [
+      "Sarah Mondini",
+      "Caterina Claudia Garbato",
+      "Marco Maeschi"
+    ]
+  },
+  "provenRuntimeFindings": [
+    {
+      "case": "Vera Buracchi",
+      "cohort": 4825,
+      "runtimeBlocker": "original_invoice_missing_or_unavailable",
+      "reportedReference": "320/25",
+      "finding": "The original invoice was acquired and classified as invoice 1512 dated 2026-03-12 with printed document total EUR 6,426.92; all four window lines were extracted. The same source explicitly states 'Totale complessivo fornitura e posa in opera euro 9.010,00' before citing/deducting advance invoice 320. The missing-document label is therefore created only by the over-broad advance-reference gate, not by acquisition, classification or OCR.",
+      "pipelineFaultPoint": "resolveExplicitAdvanceInvoiceReferences treated every unmatched advance reference as a missing fiscal source even when the current invoice was self-contained by an explicit positive full-supply total.",
+      "classification": "proven_overbroad_advance_reference_gate_defect",
+      "checkpoint": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-4825-global-controller-vera-buracchi/crm-local-preflight/checkpoint.json"
+    },
+    {
+      "case": "Marco Tocchetti",
+      "cohort": 4866,
+      "runtimeBlocker": "original_invoice_missing_or_unavailable",
+      "reportedReference": "162/26",
+      "finding": "Two standalone fiscal PDFs are acquired, including invoice 162. A further composite image contains both invoices and is parsed as invoice 162 referencing itself; self-reference filtering hides the independently acquired match.",
+      "pipelineFaultPoint": "crmLocalPreflight builds advance-invoice references from raw invoiceSegments before reconcileLocalInvoiceSegments retires the composite OCR duplicate. The economic path already consumes uniqueFinancialSegments, but the missing-original gate does not.",
+      "classification": "proven_pre_deduplication_advance_reference_gate_defect",
+      "checkpoint": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-4866-global-controller-marco-tocchetti/crm-local-preflight/checkpoint.json"
+    },
+    {
+      "case": "Loretta Riviera",
+      "cohort": 4837,
+      "runtimeBlockers": [
+        "original_invoice_missing_or_unavailable",
+        "invoice_929a8665",
+        "invoice_schedule_amount_missing",
+        "gross_triple_reconciliation_failed"
+      ],
+      "finding": "The 90/270-degree invoice pages are recognized by Vision but their bounding boxes are serialized with the unrotated reading-order comparator. Number, date and gross total are therefore scrambled before parsing.",
+      "classification": "proven_orientation_aware_ocr_reading_order_defect",
+      "checkpoint": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-4837-global-controller-loretta-riviera/crm-local-preflight/checkpoint.json"
+    },
+    {
+      "case": "Stefania Venturi",
+      "cohort": 4889,
+      "runtimeBlocker": "draft_payload_mapping_incomplete",
+      "missingPayloadFieldsReported": [
+        "building.title",
+        "building.constructionYear",
+        "building.usefulArea",
+        "heating.systemType",
+        "heating.terminals",
+        "heating.generatorType",
+        "heating.generatorCount",
+        "heating.energyCarrier",
+        "heating.summerCooling"
+      ],
+      "finding": "The dossier contains a partial inline form plus a standard PraticaRapida paper form. crmLocalPreflight chooses the non-empty inline object wholesale and discards every field parsed from the paper form, instead of composing only absent fields. That leaves building/heating values empty even when the paper source carries them. Separately, checkbox marks whose position is lost by linear OCR still require a fail-closed positional reader before every value can be recovered.",
+      "pipelineFaultPoint": "crmLocalPreflight.ts selects `inlineForm` whenever it has any key (`const form = inlineForm ... ? inlineForm : parsedPaperForm`), so a partial source masks rather than complements the independent paper form.",
+      "classification": "proven_partial_inline_form_masks_paper_form_fields_with_positional_checkbox_gap",
+      "checkpoint": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-4889-global-controller-stefania-venturi/crm-local-preflight/checkpoint.json"
+    },
+    {
+      "pattern": "form_invoice_cardinality",
+      "runtimeInvocationCount": 10,
+      "finding": "The authoritative-invoice cardinality rule was invoked in all ten first-94 mismatch cases. It is not disconnected. The residual mismatches arise upstream because zero or ambiguous technical invoice items reach the resolver.",
+      "classification": "runtime_rule_invoked_upstream_extraction_defect_not_yet_fixed"
+    },
+    {
+      "case": "Vincenzo Falconi",
+      "cohort": 5201,
+      "runtimeError": "crm_enea_draft_package_fingerprint_mismatch",
+      "acceptedPreflightFingerprint": "vj5koz:61:2",
+      "legacyWorkerRebuildFingerprint": "1n74mmy:61:2",
+      "finding": "r100 froze the canonical package too late: worker startup first rebuilt it from mutable checkpoints while omitting the official beneficiary and works-municipality inputs used by preflight. The mismatch occurred before the canonical store could persist anything.",
+      "pipelineFaultPoint": "crmLocalPreflight.buildDraftExecutionPackage invoked by apr-enea-worker-cli before PersistentAprCanonicalDraftPackages.freeze",
+      "classification": "proven_operational_general_defect_canonical_freeze_too_late",
+      "evidence": "ops/apr-contractual-reliability-2026-09-09/falconi-operational-package-drift-diagnosis.json"
+    }
+  ],
+  "implementedGeneralCorrectionsPendingOperationalReplay": [
+    {
+      "pattern": "self_contained_advance_invoice_reference",
+      "ruleId": "user-2026-09-09-self-contained-advance-invoice-reference-v1",
+      "scope": "Suppress the missing-invoice assertion only when the same original invoice has the explicit semantic label Totale complessivo fornitura/commessa and a positive amount; generic document totals and deductions remain fail-closed.",
+      "positiveFixture": "Vera Buracchi invoice 1512",
+      "negativeFixture": "Ordinary balance invoice with only Totale documento and an unmatched advance reference"
+    },
+    {
+      "pattern": "deduplicated_fiscal_set_for_all_downstream_gates",
+      "scope": "The advance-reference gate now consumes uniqueFinancialSegments after reconciliation, never raw OCR duplicates.",
+      "positiveFixture": "Marco Tocchetti composite OCR plus standalone invoices"
+    },
+    {
+      "pattern": "orientation_aware_native_ocr_reading_order",
+      "ruleId": "system-document-ocr-orientation-normalization-v1",
+      "scope": "Vision bounding boxes are transformed into the selected 90/180/270-degree reading coordinate system before serialization.",
+      "realDocumentEvidence": "Riviera invoices 268, 608 and 641 re-OCRed locally with number, date and totals in semantic order"
+    },
+    {
+      "pattern": "partial_inline_form_completed_by_paper_form",
+      "scope": "A partial inline form keeps every present value but receives absent nested fields from the independently parsed original paper form; conflicts never overwrite the primary value.",
+      "positiveFixture": "Stefania Venturi partial inline plus original paper form"
+    },
+    {
+      "pattern": "canonical_immutable_executable_package",
+      "ruleId": "system-canonical-executable-draft-package-v1",
+      "scope": "The final post-bridge package is built once, persisted atomically with SHA-256 and then consumed byte-identically by the worker; no heartbeat rebuild is permitted."
+    },
+    {
+      "pattern": "upstream_linea_sole_potito_exclusion",
+      "ruleId": "user-2026-08-18-future-test-exclusions",
+      "scope": "All Linea Sole Potito practices are OPERATOR_REQUIRED before downloads and never TECHNICAL_BLOCK; historical paper-form fallbacks are superseded."
+    },
+    {
+      "pattern": "configurable_operator_question_delivery",
+      "ruleId": "system-operator-question-configurable-delivery-v1",
+      "scope": "Question recognition persists an outbox artifact before an idempotent ntfy delivery; CRM writes are absent. Tosatti receives an explicit protected-window measurement question."
+    }
+  ],
+  "installation": {
+    "versionId": "4ab39992-contractual-reliability-r100-20260909",
+    "installedAt": "2026-09-09T12:27:16.756Z",
+    "activationStatus": "active_tested_deployed",
+    "sourceFingerprint": "1daeedd863e48b0f87667a18a71b916723288d9f8a67c88204ca65f8aa1f0445",
+    "matrixRules": 203,
+    "serialSuite": {
+      "passed": 1949,
+      "failed": 0
+    },
+    "hashes": {
+      "apr-supervisor.mjs": "99fa535681ba020359d9eeb7ddbad63738085537f099ee81b6e1f7ae00441478",
+      "apr-enea-worker.mjs": "e5cf750c8da27d2005cdaa1c7e4daaef4a50c52d985824b967dd512378c0ba62",
+      "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0"
+    },
+    "historicalAudit": {
+      "path": "ops/apr-contractual-reliability-2026-09-09/historical-audit-report-r100.json",
+      "sha256": "1a86f33347231139dc04cb804671bdcb0bbda6794588f4639d7bbd6e042c3361",
+      "authorizedUnresolvedDecisionCount": 4,
+      "unexpectedUnresolvedDecisionCount": 0
+    },
+    "receipt": "ops/apr-install-contractual-reliability-r100-2026-09-09/install-receipt.json"
+  },
+  "operationalReplay": {
+    "manifest": "ops/apr-contractual-reliability-2026-09-09/manifest-targeted-r100.json",
+    "manifestSha256": "e6377a8e6d8ab3cec4b5146e51627453b5e58fab2f1e1ac2ae8374e0aa241e80",
+    "authorizedOriginalCases": 17,
+    "runRoot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r100-targeted-retry1-20260909",
+    "startedAt": "2026-09-09T12:57:58.135Z",
+    "stoppedAt": "2026-09-09T13:00:00.000Z",
+    "status": "stopped_after_first_case_operationally_disproved_r100_fingerprint_fix",
+    "processed": 1,
+    "currentCase": "VINCENZO FALCONI",
+    "crmAuthCheckpoint": "authenticated_read_only",
+    "crmAcquisitionCheckpoint": "completed",
+    "exactCause": "The worker rebuilt the already accepted preflight package and omitted official beneficiary and works-municipality inputs. Fingerprints diverged before canonical persistence; no ENEA draft was created.",
+    "formalVerdict": "INCONSISTENT because /api/case-truth terminal evidence was unavailable; operational stack, checkpoint and zero-draft state nevertheless prove the pre-external package failure.",
+    "resumeRequirement": "Install only after the package is captured during preflight and the worker no longer invokes any package builder; rerun Falconi first."
+  },
+  "claimsNotYetMade": [
+    "The r100 corrections are installed and locally certified, but no affected case is declared operationally resolved yet.",
+    "No case is declared operationally resolved before a real ENEA draft replay and triple-source verification.",
+    "No percentage is calculated before the final mutually-exclusive seven-category classification is signed.",
+    "Current-source CRM refresh remains unavailable while the persistent CRM session is login_required; no credentials were invented or substituted. The root cause above is independently proven from the preserved original document, analysis checkpoint and runtime preflight of cohort 4825."
+  ]
+}

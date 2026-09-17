@@ -1,0 +1,14 @@
+{
+  "schemaVersion": "apr-synthetic-placeholder-audit-v1",
+  "checkedAt": "2026-09-11T23:45:58.285Z",
+  "scope": [
+    "scripts/enea-shadow-runner",
+    "src/features/enea-shadow-crm",
+    "src/features/enea-lab"
+  ],
+  "prohibitedPattern": "dimensioni runtime hard-coded a 1x1 per soddisfare uno schema",
+  "result": "PASS",
+  "findings": [],
+  "test": "anti-segnaposto ENEA: nessun percorso runtime inserisce dimensioni sintetiche per soddisfare uno schema",
+  "ruleId": "user-2026-09-12-missing-measurement-null-payload-v1"
+}

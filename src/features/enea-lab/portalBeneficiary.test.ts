@@ -21,6 +21,52 @@ describe("compilazione pagina beneficiario ENEA", () => {
     })]));
   });
 
+  it("il comune di nascita viene dal codice fiscale anche se il form scrive la provincia per esteso (Bolzano)", () => {
+    const source = structuredClone(ENEA_LAB_MOCK_PRACTICES[0]);
+    source.form.richiedente.cf = "RNZRND49B18A952X";
+    source.form.richiedente.data_nascita = "1949-02-18";
+    source.form.richiedente.comune_nascita = "Bolzano";
+    source.form.richiedente.provincia_nascita = "Bolzano";
+    const preparation = buildEneaBeneficiaryPortalScript(mapSchermaturaPractice(source));
+    expect(preparation.runtime.fields).toEqual(expect.arrayContaining([expect.objectContaining({
+      portalId: "id-comune_nascita", value: "Bolzano", autocompleteQualifier: "BZ", autocompleteAuthoritativeIstatCode: "021008",
+    })]));
+  });
+
+  it("il codice fiscale corregge una grafia non ufficiale del comune (Reggio Calabria -> Reggio di Calabria)", () => {
+    const source = structuredClone(ENEA_LAB_MOCK_PRACTICES[0]);
+    source.form.richiedente.cf = "RNZRND49B18H224P";
+    source.form.richiedente.data_nascita = "1949-02-18";
+    source.form.richiedente.comune_nascita = "Reggio Calabria";
+    source.form.richiedente.provincia_nascita = "RC";
+    const preparation = buildEneaBeneficiaryPortalScript(mapSchermaturaPractice(source));
+    expect(preparation.runtime.fields).toEqual(expect.arrayContaining([expect.objectContaining({
+      portalId: "id-comune_nascita", value: "Reggio di Calabria", autocompleteQualifier: "RC", autocompleteAuthoritativeIstatCode: "080063",
+    })]));
+  });
+
+  it("il codice fiscale corregge una provincia sbagliata nel form (Napoli con provincia CO)", () => {
+    const source = structuredClone(ENEA_LAB_MOCK_PRACTICES[0]);
+    source.form.richiedente.cf = "RNZRND49B18F839O";
+    source.form.richiedente.data_nascita = "1949-02-18";
+    source.form.richiedente.comune_nascita = "Napoli";
+    source.form.richiedente.provincia_nascita = "CO";
+    const preparation = buildEneaBeneficiaryPortalScript(mapSchermaturaPractice(source));
+    expect(preparation.runtime.fields).toEqual(expect.arrayContaining([expect.objectContaining({
+      portalId: "id-comune_nascita", value: "Napoli", autocompleteQualifier: "NA", autocompleteAuthoritativeIstatCode: "063049",
+    })]));
+  });
+
+  it("la residenza in una provincia bilingue trova il comune anche con il nome in una sola lingua (Laives, Bolzano)", () => {
+    const source = structuredClone(ENEA_LAB_MOCK_PRACTICES[0]);
+    source.form.residenza.comune = "Laives";
+    source.form.residenza.provincia = "Bolzano";
+    const preparation = buildEneaBeneficiaryPortalScript(mapSchermaturaPractice(source));
+    expect(preparation.runtime.fields).toEqual(expect.arrayContaining([expect.objectContaining({
+      portalId: "id-comune_residenza", value: "Laives", autocompleteQualifier: "BZ",
+    })]));
+  });
+
   it("consegna al widget ENEA il nome corrente e la sigla ufficiale per Godiasco", () => {
     const source = structuredClone(ENEA_LAB_MOCK_PRACTICES[0]);
     source.form.richiedente.cf = "RNZRND49B18E072J";
@@ -91,7 +137,7 @@ describe("compilazione pagina beneficiario ENEA", () => {
     expect(preparation.script).toContain('"portalId":"id-nome"');
     expect(preparation.runtime.fields).toEqual(expect.arrayContaining([
       expect.objectContaining({ portalId: "id-nazione_nascita", value: "Italia", selectValue: "ita" }),
-      expect.objectContaining({ portalId: "id-comune_nascita", value: source.form.richiedente.comune_nascita, autocompleteQualifier: "RM" }),
+      expect.objectContaining({ portalId: "id-comune_nascita", value: "Roma", autocompleteQualifier: "RM", autocompleteAuthoritativeIstatCode: "058091" }),
       expect.objectContaining({ portalId: "id-nazione_residenza", value: "Italia", selectValue: "ita" }),
     ]));
     expect(preparation.script).not.toContain("Intervento umano richiesto");

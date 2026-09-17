@@ -1,0 +1,20 @@
+{
+  "version": "apr-install-bundle-cli-receipt-v1",
+  "installedAt": "2026-09-14T07:26:23.075Z",
+  "label": "patch-notte-r124",
+  "versionId": "f1812659-patch-notte-r124-20260914",
+  "previousTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/9720ac8c-certificate-measures-columnar-total-r123-20260913",
+  "currentTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/f1812659-patch-notte-r124-20260914",
+  "installedBundle": {
+    "apr-supervisor.mjs": "1772f98951851b7c84e18af53aed15efff4be79ea8f7a79a06ea24ababb6965f",
+    "apr-enea-worker.mjs": "3c5d11fbb9040189cf77202f359ebc47134031fe4af95cd116730c1d95ea71d4",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0"
+  },
+  "gateResultArtifactId": "245b7f1101f6e7a54b9a215e93163feba89fbb455b1d41fbfe9ac7564665cd7b",
+  "gateStatus": "PASS",
+  "governanceAttestation": null,
+  "legacyGovernanceDebtNoticed": [
+    "user-2026-09-05-co-beneficiary-trusted-enter-delivery-v2",
+    "user-2026-09-05-terminal-cohort-browser-quiescence-v1"
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "version": "apr-r122-pending-operator-responses-v1",
+  "runId": "apr-workable76-fault-recovery-lease-r122-20260913",
+  "responses": [
+    {
+      "customerKey": "patrizia-muzzi",
+      "displayName": "Patrizia Muzzi",
+      "practiceId": "99c19e81-7252-4325-afbd-1e7f2698b6df",
+      "questionId": "stop:patrizia-muzzi:33d63773fc6c38212d46a0df",
+      "status": "verified_pending_runtime_support",
+      "field": "economic.invoiceTotal",
+      "answer": {
+        "currency": "EUR",
+        "amount": 2587.62,
+        "authoritativeLabel": "TOTALE ORDINE",
+        "documentType": "Ordine di Vendita",
+        "documentNumber": "177"
+      },
+      "doNotUse": [
+        {
+          "label": "TOTALE MERCE / TOTALE IMPONIBILE",
+          "amount": 2121.00
+        },
+        {
+          "label": "TOTALE IMPOSTA",
+          "amount": 466.62
+        },
+        {
+          "label": "Acconto 50%",
+          "amount": 1293.81
+        }
+      ],
+      "evidence": [
+        {
+          "sourceId": "0d5736638c3f4c79ee9f9dd8dbedee1156f47f3003ccd4dcae390c2d002c018b",
+          "labelLine": 180,
+          "valueLine": 183
+        },
+        {
+          "sourceId": "3ce7545dd612687673898779dc9f17a21d70f827312b2d345169965bd43ada2d",
+          "labelLine": 242,
+          "valueLine": 245
+        }
+      ],
+      "instruction": "Usare direttamente 2587.62 come totale finale stampato; non ricalcolare da imponibile, IVA o acconto.",
+      "runtimeLimitation": "Il contratto apr-operator-response-ledger-v1 non espone un payload economic_invoice_total; non importare sotto un tipo diverso e non manomettere il checkpoint."
+    }
+  ]
+}

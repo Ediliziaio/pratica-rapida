@@ -1,0 +1,78 @@
+{
+  "version": "apr-operator-responses-runtime-r114-verification-v1",
+  "verifiedAt": "2026-09-11T20:23:53.596Z",
+  "status": "PASS",
+  "scope": "Persistenza globale e consumo runtime fail-closed delle risposte operatore; nessuna azione CRM o ENEA",
+  "installedBundle": {
+    "versionId": "8f1f1648-operator-responses-scope-r114-20260911",
+    "apr-supervisor.mjs": "f7943e49116ea811cc22a521715a7c3aa29437f0b5f94e761bcfdf0c71a99a4c",
+    "apr-enea-worker.mjs": "1c4649f78adf39d9fe908790accf95fd918846ebae76ac93176b7b150f2618ce",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "apr-rule-governance-attestation.json": "d635b9af9cae2c5b8712f1ce40493bce1d1d5753d0c10acdb9b9f7bceb369d8b"
+  },
+  "governance": {
+    "gateStatus": "PASS",
+    "registryVersion": "enea-operational-registry-v165",
+    "matrixVersion": "apr-enea-rule-test-matrix-v178",
+    "matrixRuleCount": 220,
+    "activeDecisionCount": 159,
+    "admittedExecutables": 3,
+    "authorizedHistoricalGapOnly": [
+      "user-2026-08-06-existing-plant-authoritative-mapping-v1",
+      "user-2026-08-06-intervention-authoritative-sources-and-defaults-v1",
+      "user-2026-08-06-portal-intermediary-physical-beneficiary-v1",
+      "user-2026-08-06-portal-municipality-controlled-selection-v1"
+    ],
+    "legacyUnwiredDebtNotIntroducedHere": [
+      "user-2026-09-05-co-beneficiary-trusted-enter-delivery-v2",
+      "user-2026-09-05-terminal-cohort-browser-quiescence-v1"
+    ]
+  },
+  "tests": {
+    "nonCdp": { "passed": 1930, "total": 1930, "sha256": "c5f0fd7e15d6e77b83dfb510d668e24459147c15386fb3789d103c9fbf5b9109" },
+    "cdpSocketOutsideSandbox": { "passed": 82, "total": 82, "sha256": "7a5fc45996cbeddeca8df44d4887476337c7d9c864a085110044be3dfe8899f3" },
+    "combined": { "passed": 2012, "total": 2012 }
+  },
+  "runtimeLedger": {
+    "path": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/state/operator-responses/checkpoint.json",
+    "version": "apr-operator-response-ledger-v1",
+    "revision": 1,
+    "responseCount": 34,
+    "activeResponseCount": 34,
+    "liveApplicationReceiptCountBeforeNextRun": 0,
+    "contentSha256": "53d25a6dc0c67418019a0156302d6fd534bbbb5a0613bc47b10a7ab4bf91de9b",
+    "importArtifactSha256": "72e1fa2e826abe114b8afcdf570e3bc0c913fab3ffa66195f9e598b9f7a02f1f",
+    "caseScopeFailClosed": true
+  },
+  "responseCountsByKind": {
+    "document_refresh": 7,
+    "case_disposition": 3,
+    "screening_products": 2,
+    "cadastral_identifiers": 1,
+    "old_window_characteristics": 1,
+    "physical_product_count": 1,
+    "operator_required": 2,
+    "general_rule_confirmation": 17
+  },
+  "realPersistedEvidenceReplay": {
+    "executionClass": "local_read_only_replay_from_real_persisted_crm_documents",
+    "externalActions": { "crmWrites": false, "eneaReads": false, "eneaWrites": false, "communications": false },
+    "directlyConsumed": [
+      { "name": "Sarah Mondini", "evidence": "1 pergotenda 5400 x 4000 mm presente in report.products e ricevuta applicativa" },
+      { "name": "Giulia Kasermann", "evidence": "1 tenda da sole 3000 x 2000 mm presente in report.products e ricevuta applicativa" },
+      { "name": "Alberto Maggi", "evidence": "foglio 9 e particella 6642 applicati al dossier e ricevuta applicativa" },
+      { "name": "Elena Depalma", "evidence": "metallo e vetro doppio consumati dal preflight Infissi per 5 righe e ricevuta applicativa" },
+      { "name": "Marian Maeschi", "evidence": "disposizione closed_externally consumata prima del preflight e ricevuta applicativa" }
+    ],
+    "persistedButCorrectlyPendingUpstreamPrecondition": [
+      { "name": "Marcella Capatti", "evidence": "conteggio 7 presente nel registro; la vecchia evidenza reale si ferma prima su infissi_automatic_source_conflict e infissi_dimensions_and_cardinality_missing, quindi nessuna ricevuta falsa" },
+      { "name": "Luca Cigognetti", "evidence": "regola first-window presente nel registro e nel bundle; il vecchio replay si ferma prima su infissi_invoice_evidence_incomplete_for_shading_closure_resolution, quindi nessuna ricevuta falsa" }
+    ],
+    "passed": true
+  },
+  "operationalVerification": {
+    "localReadOnly": "PASS",
+    "installedRuntime": "PASS",
+    "eneaPortalRun": "NOT_EXECUTED_NOT_AUTHORIZED_IN_THIS_TASK"
+  }
+}

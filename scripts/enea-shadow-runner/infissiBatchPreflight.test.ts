@@ -3,7 +3,11 @@ import { createHash } from "node:crypto";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { PersistentAprInfissiBatchPreflight } from "./infissiBatchPreflight";
+import { PersistentAprInfissiBatchPreflight, infissiCertificateMeasureFallback } from "./infissiBatchPreflight";
+import { USER_AUTHORIZED_RULE_IDS } from "../../src/features/enea-shadow-crm/operationalRegistry";
+import { OPERATOR_RESPONSE_RUNTIME_CONSUMPTION_RULE_ID, PersistentAprOperatorResponseLedger } from "./operatorResponseLedger";
+import { buildAprAuthoritativeEconomicDecision } from "../../src/features/enea-shadow-crm/authoritativeEconomicDecision";
+import { reconcileFinancialEvidence, type FinancialDocumentEvidence } from "../../src/features/enea-shadow-crm/financialReconciliation";
 
 const roots: string[] = [];
 function writeJson(target: string, value: unknown) { mkdirSync(path.dirname(target), { recursive: true }); writeFileSync(target, `${JSON.stringify(value, null, 2)}\n`); }
@@ -25,14 +29,129 @@ function fixtureRoot() {
     return { customerKey: item.key, documentKey: `${item.key}-doc`, kind: "invoice", textPath, state: "analyzed" };
   });
   writeJson(path.join(root, "crm-acquisition", "checkpoint.json"), { status: "completed", items: acquisitionItems });
+  writeJson(path.join(root, "crm-original-documents", "checkpoint.json"), {
+    status: "completed",
+    items: cases.map((item) => ({
+      customerKey: item.key,
+      documentKey: `${item.key}-doc`,
+      kind: "invoice",
+      state: "downloaded",
+      localPath: path.join(root, "crm-original-documents", "files", item.key, `${item.key}-doc.pdf`),
+    })),
+  });
   writeJson(path.join(root, "crm-document-analysis", "checkpoint.json"), { status: "completed", items: analysisItems });
-  writeJson(path.join(root, "crm-local-preflight", "checkpoint.json"), { status: "completed", items: cases.map((item) => ({ customerKey: item.key, report: { financial: { invoiceTotal: 1000, tripleReconciliationVerified: item.financial, evidence: [{ sourceId: `${item.key}-invoice` }] } } })) });
+  writeJson(path.join(root, "crm-local-preflight", "checkpoint.json"), { status: "completed", items: cases.map((item) => {
+    const evidence: FinancialDocumentEvidence = { sourceId: `${item.key}-doc:invoice:fixture`, supplierId: "supplier", documentNumber: "1", documentDate: "2026-01-01", kind: "invoice", taxableAmount: null, vatAmount: null, grossTotal: item.financial ? 1000 : null, referencedAdvanceIds: [], interventionGrossAmount: item.financial ? 1000 : null, extractionConfidence: item.financial ? "certain" : "uncertain", extractionIssues: [] };
+    const reconciliation = reconcileFinancialEvidence([evidence]);
+    return { customerKey: item.key, report: { blockers: [], financial: { invoiceTotal: 1000, eligibleExpense: 1000, finalPrintedTotalVerified: item.financial, tripleReconciliationVerified: item.financial, authoritativeDecision: buildAprAuthoritativeEconomicDecision({ reconciliation, eligibleExpense: item.financial ? 1000 : null }), evidence: [{ sourceId: evidence.sourceId, kind: "invoice", extractionConfidence: evidence.extractionConfidence, extractionIssues: [] }] } } };
+  }) });
   return root;
 }
 
 afterEach(() => { for (const root of roots.splice(0)) rmSync(root, { recursive: true, force: true }); });
 
 describe("APR Infissi · batch preflight persistente", () => {
+  it("APR Infissi: rifiuta un totale legacy privo della decisione economica canonica", () => {
+    const root = fixtureRoot();
+    const commonPath = path.join(root, "crm-local-preflight", "checkpoint.json");
+    const common = JSON.parse(readFileSync(commonPath, "utf8"));
+    delete common.items[0].report.financial.authoritativeDecision;
+    writeJson(commonPath, common);
+    const batch = new PersistentAprInfissiBatchPreflight(root);
+    batch.tick(new Date("2026-09-12T01:00:00Z"));
+    expect(batch.snapshot().items[0]).toMatchObject({
+      state: "blocked_case",
+      report: { blockers: expect.arrayContaining([expect.objectContaining({ code: "infissi_authoritative_economic_decision_required" })]) },
+    });
+  });
+  it("consuma dal registro condiviso la risposta sull'infisso vecchio e ne persiste la ricevuta runtime", () => {
+    const root = fixtureRoot();
+    const ledger = new PersistentAprOperatorResponseLedger(root);
+    ledger.importResponses([{
+      responseId: "response:ready:old-window:20260911",
+      customerKey: "ready",
+      displayName: "Caso Ready",
+      practiceId: "practice-ready",
+      receivedAt: "2026-09-11T08:00:00.000Z",
+      source: "giuliano_chat_decision",
+      question: "Quali sono materiale e vetro dei vecchi infissi?",
+      answer: "Metallo e vetro doppio.",
+      payload: { kind: "old_window_characteristics", material: "metal", glazing: "double", appliesToCount: 1 },
+      status: "active",
+      supersedesResponseId: null,
+      appliedRuleIds: [OPERATOR_RESPONSE_RUNTIME_CONSUMPTION_RULE_ID],
+    }]);
+
+    const batch = new PersistentAprInfissiBatchPreflight(root);
+    batch.tick(new Date("2026-09-11T08:05:00.000Z"));
+    expect(batch.snapshot().items[0].report?.oldWindowSourceResolution).toMatchObject({ material: "metallo", glazing: "vetro_doppio" });
+    expect(ledger.load().applications).toContainEqual(expect.objectContaining({
+      responseId: "response:ready:old-window:20260911",
+      outcome: "applied",
+      evidence: "dossier_override:old_window_characteristics",
+    }));
+  });
+
+  it("regressione Stricelli end-to-end: il fascicolo fatture completo e silente sovrascrive il SI del form con NO", () => {
+    const root = fixtureRoot();
+    const acquisitionPath = path.join(root, "crm-acquisition", "checkpoint.json");
+    const acquisition = JSON.parse(readFileSync(acquisitionPath, "utf8"));
+    const readyDossier = JSON.parse(readFileSync(acquisition.items[0].dossierPath, "utf8"));
+    readyDossier.row.dati_form.prodotto.zanzariere_tapparelle_persiane = true;
+    writeJson(acquisition.items[0].dossierPath, readyDossier);
+
+    const batch = new PersistentAprInfissiBatchPreflight(root);
+    batch.tick(new Date("2026-09-10T22:00:00Z"));
+    expect(batch.snapshot().items[0]).toMatchObject({
+      state: "ready_local_plan",
+      report: {
+        productRules: { status: "ready", eneaShadingClosuresChecked: false, audit: { shadingClosuresSource: "invoice_authoritative" } },
+        shadingClosureAllocation: { mode: "invoice_none", flags: [false], blocker: null, audit: { ignoredFormAlsoInstalledClosures: true } },
+        eneaDraftPayload: { windows: [{ shadingClosuresChecked: false }] },
+      },
+    });
+    expect(batch.snapshot().items[0].report?.appliedRuleIds).toContain(USER_AUTHORIZED_RULE_IDS.infissiInvoiceAuthoritativeShadingClosures);
+  });
+
+  it("non interpreta il silenzio come NO quando una fattura inventariata non e stata scaricata", () => {
+    const root = fixtureRoot();
+    const documentsPath = path.join(root, "crm-original-documents", "checkpoint.json");
+    const documents = JSON.parse(readFileSync(documentsPath, "utf8"));
+    documents.items.find((item: { customerKey: string }) => item.customerKey === "ready").state = "blocked_response";
+    writeJson(documentsPath, documents);
+
+    const batch = new PersistentAprInfissiBatchPreflight(root);
+    batch.tick(new Date("2026-09-10T22:00:00Z"));
+    expect(batch.snapshot().items[0]).toMatchObject({
+      state: "blocked_case",
+      report: { blockers: [{ code: "infissi_invoice_evidence_incomplete_for_shading_closure_resolution" }] },
+    });
+  });
+
+  it("risolve le chiusure prima delle domande anche se la confidence economica e incerta", () => {
+    const root = fixtureRoot();
+    const acquisitionPath = path.join(root, "crm-acquisition", "checkpoint.json");
+    const acquisition = JSON.parse(readFileSync(acquisitionPath, "utf8"));
+    const readyDossier = JSON.parse(readFileSync(acquisition.items[0].dossierPath, "utf8"));
+    readyDossier.row.dati_form.prodotto.zanzariere_tapparelle_persiane = true;
+    writeJson(acquisition.items[0].dossierPath, readyDossier);
+    const commonPath = path.join(root, "crm-local-preflight", "checkpoint.json");
+    const common = JSON.parse(readFileSync(commonPath, "utf8"));
+    common.items[0].report.financial.evidence[0].extractionConfidence = "uncertain";
+    writeJson(commonPath, common);
+
+    const batch = new PersistentAprInfissiBatchPreflight(root);
+    batch.tick(new Date("2026-09-11T10:00:00Z"));
+    expect(batch.snapshot().items[0]).toMatchObject({
+      state: "ready_local_plan",
+      report: {
+        blockers: [],
+        shadingClosureAllocation: { mode: "invoice_none", flags: [false], blocker: null },
+        productRules: { status: "ready", eneaShadingClosuresChecked: false },
+      },
+    });
+  });
+
   it("non elabora nel modulo Infissi una pratica già esclusa permanentemente dal preflight comune", () => {
     const root = fixtureRoot();
     const commonPath = path.join(root, "crm-local-preflight", "checkpoint.json");
@@ -199,6 +318,69 @@ describe("APR Infissi · batch preflight persistente", () => {
     expect(afterIdempotentTick.items).toHaveLength(2);
   });
 
+  it("consulta i certificati additional prima di dichiarare mancanti misure e cardinalita", () => {
+    const root = fixtureRoot();
+    const analysisPath = path.join(root, "crm-document-analysis", "checkpoint.json");
+    const analysis = JSON.parse(readFileSync(analysisPath, "utf8"));
+    const certificatePath = path.join(root, "crm-document-analysis", "text", "blocked", "dop.txt");
+    mkdirSync(path.dirname(certificatePath), { recursive: true });
+    writeFileSync(certificatePath, `DICHIARAZIONE DI PRESTAZIONE\nPos. 1 Q.tà 1 Finestra due ante\nda 1200 x 1500 mm.\nLuce passaggio: 1100 x 1400`);
+    analysis.items.push({
+      customerKey: "blocked",
+      documentKey: "blocked-dop",
+      kind: "additional",
+      semanticKind: "third_party_certificate",
+      textPath: certificatePath,
+      state: "analyzed",
+    });
+    writeJson(analysisPath, analysis);
+    const originalsPath = path.join(root, "crm-original-documents", "checkpoint.json");
+    const originals = JSON.parse(readFileSync(originalsPath, "utf8"));
+    originals.items.push({ customerKey: "blocked", documentKey: "blocked-dop", kind: "additional", state: "downloaded" });
+    writeJson(originalsPath, originals);
+
+    const batch = new PersistentAprInfissiBatchPreflight(root);
+    batch.tick(new Date("2026-09-13T20:00:00Z"));
+    batch.tick(new Date("2026-09-13T20:01:00Z"));
+    const item = batch.snapshot().items.find((candidate) => candidate.customerKey === "blocked");
+    expect(item).toMatchObject({
+      state: "ready_local_plan",
+      report: {
+        blockers: [],
+        physicalProductCount: 1,
+        automaticTechnicalEvidenceAudit: { selectedParser: "certificate-measures:dop_pos_quantita", selectedSourceId: "blocked-dop" },
+        technical: { rows: [{ sourceLineId: expect.stringContaining("blocked-dop:line:2:position:1:piece:1"), exactAreaM2: 1.8 }] },
+        eneaDraftPayload: { windows: [{ areaM2: 1.8 }] },
+      },
+    });
+  });
+
+  it("non inventa quote complessive quando una posizione certificata e composta", () => {
+    const root = fixtureRoot();
+    const analysisPath = path.join(root, "crm-document-analysis", "checkpoint.json");
+    const analysis = JSON.parse(readFileSync(analysisPath, "utf8"));
+    const certificatePath = path.join(root, "crm-document-analysis", "text", "blocked", "dop-composita.txt");
+    mkdirSync(path.dirname(certificatePath), { recursive: true });
+    writeFileSync(certificatePath, `DICHIARAZIONE DI PRESTAZIONE\nWEB/26/0103175 - 001\n1625 x 780\n680 x 684`);
+    analysis.items.push({ customerKey: "blocked", documentKey: "blocked-dop-composita", kind: "additional", semanticKind: "third_party_certificate", textPath: certificatePath, state: "analyzed" });
+    writeJson(analysisPath, analysis);
+    const originalsPath = path.join(root, "crm-original-documents", "checkpoint.json");
+    const originals = JSON.parse(readFileSync(originalsPath, "utf8"));
+    originals.items.push({ customerKey: "blocked", documentKey: "blocked-dop-composita", kind: "additional", state: "downloaded" });
+    writeJson(originalsPath, originals);
+
+    const batch = new PersistentAprInfissiBatchPreflight(root);
+    batch.tick(new Date("2026-09-13T20:00:00Z"));
+    batch.tick(new Date("2026-09-13T20:01:00Z"));
+    const item = batch.snapshot().items.find((candidate) => candidate.customerKey === "blocked");
+    expect(item?.report?.technical.rows).toEqual([expect.objectContaining({ exactAreaM2: 1.73 })]);
+    expect(item?.report?.technical.rows[0]).not.toHaveProperty("widthM");
+    expect(item?.report?.technical.rows[0]).not.toHaveProperty("heightM");
+    expect(item?.report?.eneaDraftPayload?.windows).toEqual([expect.objectContaining({ areaM2: 1.7 })]);
+    expect(item?.report?.eneaDraftPayload?.windows[0]).not.toHaveProperty("widthM");
+    expect(item?.report?.eneaDraftPayload?.windows[0]).not.toHaveProperty("heightM");
+  });
+
   it("riapplica una revisione senza perdere audit e senza duplicare la coda", () => {
     const root = fixtureRoot();
     const batch = new PersistentAprInfissiBatchPreflight(root);
@@ -218,7 +400,7 @@ describe("APR Infissi · batch preflight persistente", () => {
     expect(batch.applyValidationRevision("infissi-financial-layout-v1", new Date("2026-08-19T10:04:00Z")).revision).toBe(revised.revision);
   });
 
-  it("non perde un blocker economico del preflight comune anche se il payload tecnico e completo", () => {
+  it("non propaga come blocker un vecchio controllo bonifico sospeso", () => {
     const root = fixtureRoot();
     const commonPath = path.join(root, "crm-local-preflight", "checkpoint.json");
     const common = JSON.parse(readFileSync(commonPath, "utf8"));
@@ -233,13 +415,27 @@ describe("APR Infissi · batch preflight persistente", () => {
     const batch = new PersistentAprInfissiBatchPreflight(root);
     batch.tick(new Date("2026-08-19T10:00:00Z"));
     expect(batch.snapshot().items[0]).toMatchObject({
-      state: "blocked_case",
-      report: {
-        physicalProductCount: 1,
-        blockers: [{ code: "bank_transfer_invoice_cross_check_failed", field: "economic_sources.bankTransfers" }],
-      },
+      state: "ready_local_plan",
+      report: { physicalProductCount: 1, blockers: [] },
     });
-    expect(batch.snapshot().audit.at(-1)?.appliedRuleIds).toContain("user-2026-08-18-mandatory-bank-transfer-invoice-expense-cross-check");
+    expect(batch.snapshot().items[0].report?.appliedRuleIds).toContain(USER_AUTHORIZED_RULE_IDS.invoiceFinalPrintedTotalRuntimeAuthority);
+  });
+
+  it("Ranzoni: advance e balance valgono entrambe come evidenza fiscale completa", () => {
+    const root = fixtureRoot();
+    const commonPath = path.join(root, "crm-local-preflight", "checkpoint.json");
+    const common = JSON.parse(readFileSync(commonPath, "utf8"));
+    common.items[0].report.financial.finalPrintedTotalVerified = true;
+    common.items[0].report.financial.evidence = [
+      { sourceId: "ready-doc:invoice:advance", kind: "advance", grossTotal: 3_446.50, extractionConfidence: "certain", extractionIssues: [] },
+      { sourceId: "ready-doc:invoice:balance", kind: "balance", grossTotal: 3_446.50, extractionConfidence: "certain", extractionIssues: [] },
+    ];
+    writeJson(commonPath, common);
+
+    const batch = new PersistentAprInfissiBatchPreflight(root);
+    batch.tick(new Date("2026-09-11T09:00:00Z"));
+    expect(batch.snapshot().items[0]).toMatchObject({ state: "ready_local_plan", report: { blockers: [] } });
+    expect(batch.snapshot().items[0].report?.appliedRuleIds).toContain(USER_AUTHORIZED_RULE_IDS.advanceBalanceFiscalInvoiceEquivalence);
   });
 
   it("applica in modo generale la fattura sopra il form per vetro vecchio e trasmittanza", () => {
@@ -268,5 +464,42 @@ describe("APR Infissi · batch preflight persistente", () => {
         eneaDraftPayload: { windows: [{ oldWindowThermalTransmittanceWm2K: 3 }] },
       },
     });
+  });
+});
+
+describe("infissiCertificateMeasureFallback", () => {
+  const cappello = [
+    "DICHIARAZIONE DEL PRODUTTORE",
+    "Le caratteristiche dei nuovi serramenti di cui alla conferma 6653221 datata 24.04.2026 di Rotondi Infissi Srl",
+    "Pos. Quantitá Descrizione Valore Uw (calcolato)",
+    "100 1,00 Pezzi SALOTTO SX:",
+    "KF310 1-anta",
+    "Largh.: 1177, Alt.: 1497,",
+    "110 1,00 Pezzi CAMERA EMANUELE:",
+    "Largh.: 1177, Alt.: 1497,",
+  ].join("\n");
+
+  // Massimo Cappello, 13/09/2026: la dichiarazione era nello slot fattura del
+  // CRM e veniva saltata; le dodici misure erano li' e la pratica si fermava
+  // su misure mancanti.
+  it("legge una dichiarazione del produttore anche se il CRM l'ha caricata nello slot fattura", () => {
+    const result = infissiCertificateMeasureFallback([
+      { sourceId: "dop-rotondi", storageKind: "invoice", kind: "additional", text: cappello },
+    ]);
+    expect(result).not.toBeNull();
+    expect(result!.reading.pieces).toHaveLength(2);
+    expect(result!.evidence.rows.map((row) => row.surfaceM2)).toEqual([1.76, 1.76]);
+  });
+
+  it("una fattura vera nello slot fattura non viene letta come certificato", () => {
+    expect(infissiCertificateMeasureFallback([
+      { sourceId: "fattura", storageKind: "invoice", kind: "invoice", text: "Fattura n. 12 del 01/05/2026\nFornitura infissi PVC\nTotale documento 4.500,00" },
+    ])).toBeNull();
+  });
+
+  it("un allegato non dichiarativo nello slot additional resta escluso", () => {
+    expect(infissiCertificateMeasureFallback([
+      { sourceId: "manuale", storageKind: "additional", kind: "additional", text: "Manuali allegati alla fornitura. Leggere e conservare." },
+    ])).toBeNull();
   });
 });

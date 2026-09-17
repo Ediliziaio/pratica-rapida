@@ -78,10 +78,10 @@ describe("APR Slice 4 pure ENEA mapper", () => {
   });
 
   it("blocca senza default quando una decisione non e resolved", () => {
-    const vertical = runEconomicVertical({ ...economic(), invoices: [{ ...economic().invoices[0], interventionGrossAmount: 90 }] });
+    const vertical = runEconomicVertical({ ...economic(), invoices: [{ ...economic().invoices[0], grossTotal: null, interventionGrossAmount: null }] });
     const result = mapBusinessDecisionArtifactToEnea(vertical.decisionsArtifact);
     expect(result.payload).toMatchObject({ status: "blocked", portalFields: [], consumedDecisionIds: [] });
-    expect(result.payload.blockers).toContain("apr_l4_unresolved_decision:economic.eligibleExpense:gross_triple_reconciliation_failed");
+    expect(result.payload.blockers).toContain("apr_l4_unresolved_decision:economic.eligibleExpense:invoice_final_printed_total_not_verified");
   });
 
   it("blocca senza inventare valori quando il resolvedValue atteso e incompleto", () => {

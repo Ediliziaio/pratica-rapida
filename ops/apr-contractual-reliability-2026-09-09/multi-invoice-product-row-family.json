@@ -1,0 +1,68 @@
+{
+  "version": "apr-multi-invoice-product-row-family-v1",
+  "recordedAt": "2026-09-09T17:20:00+02:00",
+  "status": "GENERAL_RULE_CANDIDATE_NOT_CORRECTED",
+  "family": "multi_invoice_product_row_extraction",
+  "decision": "Riviera e i dieci casi product_cardinality_form_invoice_mismatch del perimetro osservato appartengono alla stessa famiglia a monte: una o più fatture raggiungono l'analisi, ma le righe prodotto non vengono estratte o associate con cardinalità utilizzabile.",
+  "scope": {
+    "riviera": "loretta-riviera",
+    "cardinalityCases": [
+      "sarah-mondini",
+      "filippo-bigalli",
+      "alessandro-zaniboni",
+      "giulia-kasermann",
+      "rossella-munafo",
+      "patrizia-muzzi",
+      "paolino-bellini",
+      "vito-fusillo",
+      "rocco-giacotto",
+      "caterina-claudia-garbato"
+    ],
+    "missingMeasureCasesObservedInLongRun": [
+      "santo-giuga",
+      "elena-depalma"
+    ]
+  },
+  "longRunObservation": {
+    "observedAt": "2026-09-09T20:33:46+02:00",
+    "longRunQuestionsGenerated": 2,
+    "cases": [
+      {
+        "customerKey": "santo-giuga",
+        "cohort": 5313,
+        "documentAnalysisResult": "Tutti gli otto documenti fiscali analizzati riportano 0 righe schermatura rilevate.",
+        "questionState": "open",
+        "terminalRunState": "saved",
+        "interpretation": "La domanda e' stata aperta dal ramo schermature ma non ritirata dopo la successiva conclusione della bozza nel ramo Infissi; non e' un blocker terminale valido. Il mancato riconoscimento delle righe schermatura e' lo stesso sintomo a monte della famiglia parser prodotti."
+      },
+      {
+        "customerKey": "elena-depalma",
+        "cohort": 5326,
+        "documentAnalysisResult": "Entrambi i documenti analizzati riportano 0 righe schermatura rilevate.",
+        "questionState": "open",
+        "terminalRunState": "working",
+        "interpretation": "Il ramo schermature non ha estratto righe prodotto e ha chiesto le misure; l'esito terminale della pratica non era ancora disponibile al momento dell'osservazione."
+      }
+    ],
+    "familySizeMinimumDistinctCases": 13,
+    "familySizeRationale": "Riviera + 10 cardinalita (Muzzi e Munafo incluse) + Giuga + Depalma."
+  },
+  "rivieraEvidence": {
+    "invoiceCount": 3,
+    "allValidNativePdf": true,
+    "allClassifiedAsInvoice": true,
+    "parsedProductItemCounts": [0, 0, 0],
+    "relatedButDistinctFromTocchetti": true,
+    "cause": "Le fatture 268 e 608 perdono identità fiscale e tutte e tre perdono le righe prodotto prima della riconciliazione dei richiami acconto/saldo."
+  },
+  "todayPolicy": {
+    "fixAllowed": false,
+    "reason": "Correzione rinviata per non aprire un nuovo gate completo durante il collaudo lungo.",
+    "rotationOcrRuleRetained": true,
+    "rotationOcrExplainsRiviera": false
+  },
+  "evidence": [
+    "ops/apr-canonical-preflight-package-r101-2026-09-09/riviera-multi-invoice-diagnosis.json",
+    "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r99-governed-20260909/report.json"
+  ]
+}

@@ -1,0 +1,81 @@
+{
+  "version": "apr-multi-invoice-parser-r105-targeted-three-manifest-v1",
+  "authorizationId": "user-2026-09-10-pronte-da-fare-plus-four-moved-draft-only",
+  "authorizedAt": "2026-09-10T10:34:53.236Z",
+  "mode": "real_enea_draft_only",
+  "selection": {
+    "total": 3,
+    "groups": {
+      "parser_family_targeted": 3
+    },
+    "allowedStages": [
+      "pronte_da_fare"
+    ],
+    "excludedCustomerKeys": [
+      "samuele-beretta"
+    ],
+    "selectionPolicy": "Exact authorized subset: Gianluca Bianco, Matia Bertarelli, Alberto Maggi; no other practice may enter the run."
+  },
+  "safety": {
+    "draftOnly": true,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false,
+    "priorDraftPolicy": "fresh_generation_only"
+  },
+  "source": {
+    "parentManifest": "ops/apr-pronte-da-fare-r104-2026-09-10/manifest.json",
+    "parentManifestSha256": "ce711c2f0806da7e347408aa992776f7fca52a5dea1fd6749f8c604749db8ffd",
+    "reason": "Operational verification of the general multi-invoice parser correction after the complete r105 gate."
+  },
+  "cases": [
+    {
+      "practiceId": "526f3361-70f8-4ee9-9d5d-2a38506b9610",
+      "customerKey": "gianluca-bianco",
+      "displayName": "GIANLUCA BIANCO",
+      "stage": "pronte_da_fare",
+      "stageName": "pronte_da_fare",
+      "module": "screening",
+      "productEvidence": "Schermature Solari",
+      "reseller": "praticarapida",
+      "invoiceCount": null,
+      "complexity": "multi_invoice_parser_regression",
+      "historicalRetest": true,
+      "expectedRouting": "standard",
+      "group": "parser_family_targeted",
+      "groupOrder": 1
+    },
+    {
+      "practiceId": "b8e33e49-1f0c-4103-ad0a-b0822362fa37",
+      "customerKey": "matia-bertarelli",
+      "displayName": "Matia Bertarelli",
+      "stage": "pronte_da_fare",
+      "stageName": "pronte_da_fare",
+      "module": "screening",
+      "productEvidence": "Schermature Solari",
+      "reseller": "zanzasol",
+      "invoiceCount": null,
+      "complexity": "multi_invoice_parser_regression",
+      "historicalRetest": true,
+      "expectedRouting": "standard",
+      "group": "parser_family_targeted",
+      "groupOrder": 2
+    },
+    {
+      "practiceId": "2233668f-d9e6-42e2-a7e4-3abed8de74ad",
+      "customerKey": "alberto-maggi",
+      "displayName": "Alberto Maggi",
+      "stage": "pronte_da_fare",
+      "stageName": "pronte_da_fare",
+      "module": "screening",
+      "productEvidence": "Schermature Solari",
+      "reseller": "zanellato tende",
+      "invoiceCount": null,
+      "complexity": "multi_invoice_parser_regression",
+      "historicalRetest": true,
+      "expectedRouting": "standard",
+      "group": "parser_family_targeted",
+      "groupOrder": 3
+    }
+  ]
+}

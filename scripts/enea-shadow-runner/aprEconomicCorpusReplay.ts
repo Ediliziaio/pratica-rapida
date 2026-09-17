@@ -3,7 +3,8 @@ import { existsSync, readFileSync, realpathSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { buildCrmLocalPreflightReport } from "./crmLocalPreflight";
-import { extractBankTransferEvidences } from "./bankTransferEvidence";
+import { extractBankTransferEvidences, firstBankTransferHeaderIndex } from "./bankTransferEvidence";
+import { parseScreeningInvoiceText } from "../../src/features/enea-lab/invoiceParser";
 import { extractLocalInvoiceFinancialEvidence } from "./localInvoiceFinancialEvidence";
 import { reconcileLocalInvoiceSegments, splitLocalInvoiceText } from "./localInvoiceSegmentation";
 import { canonicalSha256 } from "./aprMonotonicArtifacts";
@@ -74,7 +75,10 @@ const roundMoney = (value: number) => Math.round((value + Number.EPSILON) * 100)
 export function isFiscalInvoiceSegment(text: string) {
   const bankEvidence = extractBankTransferEvidences("probe", text);
   if (!bankEvidence.length) return true;
-  return /\b(?:iva|imponibile|tipo\s+documento|num\.\s*doc\.?|dati\s+generali\s+documento|riepilogh(?:i|o)\s+iva|calcolo\s+fattura)\b/i.test(text);
+  const headerIndex = firstBankTransferHeaderIndex(text);
+  const beforeBankReceipt = headerIndex === null ? "" : text.slice(0, headerIndex);
+  const parsed = parseScreeningInvoiceText(beforeBankReceipt, "economic-replay-before-bank-receipt").result;
+  return Boolean(parsed.documentNumber && parsed.documentDate && parsed.total !== null);
 }
 
 export function observedEconomicInput(item: ManifestCase, analysis: AnalysisCheckpoint): AprEconomicFactsInput {
@@ -228,13 +232,11 @@ export function runEconomicVerticalForCurrentCohort(stateDir: string, customerKe
 }
 
 function legacyFinancial(report: ReturnType<typeof buildCrmLocalPreflightReport>) {
-  const methods = report.financial.methods;
-  const totals = methods.map((method) => method.total);
-  const usable = methods.length === 3 && methods.every((method) => method.ok && method.total !== null)
-    && totals.every((total) => roundMoney(Math.abs((total ?? 0) - (totals[0] ?? 0))) <= 0.01);
+  const usable = report.financial.finalPrintedTotalVerified
+    && typeof report.financial.reconciledTotal === "number";
   return {
     usable,
-    total: usable ? totals[0] : null,
+    total: usable ? roundMoney(report.financial.reconciledTotal ?? 0) : null,
     bankStatus: report.financial.bankTransferReconciliation.status,
   };
 }

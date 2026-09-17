@@ -1,0 +1,45 @@
+{
+  "version": "apr-mauro-ballabio-r126-replay-manifest-v1",
+  "authorizationId": "user-2026-09-15-wide148-r126-fresh-draft-v1",
+  "authorizedAt": "2026-09-15T08:06:36.922Z",
+  "mode": "real_enea_draft_only",
+  "selection": {
+    "total": 1,
+    "allowedStages": [
+      "pronte_da_fare",
+      "recensione",
+      "archiviate"
+    ],
+    "excludedCustomerKeys": [],
+    "ordering": "Rilancio singolo gia autorizzato della pratica Mauro Ballabio.",
+    "groups": [
+      {
+        "id": "gia_lavorata",
+        "count": 1
+      }
+    ]
+  },
+  "safety": {
+    "draftOnly": true,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false,
+    "priorDraftPolicy": "fresh_generation_only"
+  },
+  "cases": [
+    {
+      "practiceId": "d3d11e50-d24e-4f38-b2c7-3a16480b007a",
+      "customerKey": "mauro-ballabio",
+      "displayName": "Mauro Ballabio",
+      "stage": "archiviate",
+      "stageName": "Archiviate",
+      "module": "screening",
+      "productEvidence": "Schermature Solari",
+      "reseller": "galbiati tendaggi",
+      "historicalRetest": true,
+      "reacquireBeforeReplay": true,
+      "expectedRouting": "standard",
+      "group": "gia_lavorata"
+    }
+  ]
+}

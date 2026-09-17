@@ -2,7 +2,7 @@ import { USER_AUTHORIZED_RULE_IDS } from "./operationalRegistry";
 import type { InfissiTechnicalEvidence, InfissiTechnicalEvidenceRow } from "./infissiTechnicalSources";
 import { applyAprInfissiOriginalSourcePolicy } from "./infissiOriginalSourcePolicy";
 
-export const APR_INFISSI_AUTOMATIC_DOCUMENT_EVIDENCE_VERSION = "apr-infissi-automatic-document-evidence-v5" as const;
+export const APR_INFISSI_AUTOMATIC_DOCUMENT_EVIDENCE_VERSION = "apr-infissi-automatic-document-evidence-v7" as const;
 
 export interface AprInfissiTextSource {
   sourceId: string;
@@ -24,6 +24,7 @@ export interface AprInfissiAutomaticEvidence {
     excludedSources: ReadonlyArray<{ sourceId: string; kind: string; reason: string }>;
     appliedRuleIds: readonly string[];
     selectedSourceBinding: AprInfissiTechnicalSourceBinding | null;
+    invoiceDimensionAuthorityApplied: boolean;
   }>;
 }
 
@@ -51,6 +52,12 @@ export interface AprInfissiTechnicalCandidateSet {
   candidates: readonly AprInfissiTechnicalCandidate[];
   excludedSources: ReadonlyArray<{ sourceId: string; kind: string; reason: string }>;
   appliedRuleIds: readonly string[];
+  blockers?: readonly string[];
+}
+
+interface StructuredThermalParseResult {
+  candidate: AprInfissiTechnicalCandidate | null;
+  blocker: string | null;
 }
 
 const RULE_IDS = Object.freeze([
@@ -61,6 +68,9 @@ const RULE_IDS = Object.freeze([
   USER_AUTHORIZED_RULE_IDS.testExNovoOriginalSourcesOnly,
   USER_AUTHORIZED_RULE_IDS.technicalDocumentPracticeBindingProductSignatureOnly,
   USER_AUTHORIZED_RULE_IDS.mixedInfissiScreeningDistinctInvoiceOrdersNotConflict,
+  USER_AUTHORIZED_RULE_IDS.infissiTabularAbbreviatedThermalEvidence,
+  USER_AUTHORIZED_RULE_IDS.infissiExplicitLineQuantityCardinality,
+  USER_AUTHORIZED_RULE_IDS.cassonettoExcludedFromEneaProducts,
 ] as const);
 
 function decimal(value: string | undefined): number | undefined {
@@ -94,6 +104,10 @@ function candidate(source: AprInfissiTextSource, parser: string, rows: InfissiTe
   return { sourceId: source.sourceId, sourceKind: source.kind ?? "unknown", parser, rows, explicitUwCount, declaredPerformancePageCount: declaredPerformancePageCount(source), sourceBinding: null };
 }
 
+function authoritativeSourceText(text: string): string {
+  return text.split(/\f/gu).map((page) => page.split(/\nAPR_(?:VISUAL|ROTATED_[A-Z_]+|DIAGRAM(?:_[A-Z_]+)?)_OCR:/u)[0] ?? page).join("\f");
+}
+
 function parseDimensionBlocks(source: AprInfissiTextSource): AprInfissiTechnicalCandidate | null {
   const scopedText = /(?:serrament|infiss|finestr)/iu.test(source.text)
     ? source.text.split(/\n\s*(?:Misure\s+)?(?:Cassonetti|Chiusure\s+oscuranti|Zanzariere)\b/iu)[0]
@@ -116,7 +130,11 @@ function parseDimensionBlocks(source: AprInfissiTextSource): AprInfissiTechnical
     // Alcune fatture indicano la quantita' come prefisso "N°<n>"/"N.<n>" davanti
     // a ciascuna misura, invece che con l'etichetta "Pezzi"/"Quantita'" a seguire.
     const precedingLine = scopedText.slice(Math.max(0, start - 40), start);
-    const quantityPrefix = precedingLine.match(/\bN\s*[°.]?\s*(\d{1,3})\s*$/iu)?.[1];
+    // La quantita puo precedere direttamente la quota (`N. 2 620 x 2300`)
+    // oppure l'etichetta di larghezza (`N. 2 L 620 X 2300 H`). In entrambi
+    // i casi e' la quantita fisica della stessa riga; non va confusa con il
+    // numero di righe del documento.
+    const quantityPrefix = precedingLine.match(/\bN\s*[°.]?\s*(\d{1,3})\s*(?:L(?:ARG(?:H(?:EZZA)?)?)?\.?\s*)?$/iu)?.[1];
     const quantity = quantityPrefix ? integer(quantityPrefix) : integer(block.match(/(?:Pezzi|Quantit[aà])\s*:?\s*(\d{1,3})/iu)?.[1]);
     const uw = decimal(block.match(/(?:\bUw\b\s*[:=]?|Trasmittanza\s+termica(?:\s+Uw)?(?:\s*\[[^\]]+\])?\s*[:=]?)\s*([0-9]+(?:[.,][0-9]+)?)/iu)?.[1]);
     if (uw) explicitUwCount += quantity;
@@ -409,6 +427,111 @@ function parseThermalTable(source: AprInfissiTextSource): AprInfissiTechnicalCan
   return normalizedRows.length ? candidate(source, "thermal-table", normalizedRows, normalizedRows.reduce((sum, item) => sum + item.quantity, 0)) : null;
 }
 
+/**
+ * Etichette prodotto native con un blocco per pagina, ad esempio
+ * `posizione: 01`, `numero: 2/3`, `L: ... H: ...` e `Trasm. termica:`.
+ * La forma abbreviata e' accettata soltanto quando ogni gruppo posizione ha
+ * tutte e sole le pagine 1..N dichiarate; un buco o un duplicato mantiene
+ * l'intero documento fail-closed.
+ */
+function parseAbbreviatedThermalProductLabels(source: AprInfissiTextSource): StructuredThermalParseResult {
+  if (source.kind !== "third_party_certificate" || source.certificateScope !== "installed_windows") return { candidate: null, blocker: null };
+  const authoritativeText = authoritativeSourceText(source.text);
+  const formatDetected = /\bTrasm\.?\s*termica\s*:/iu.test(authoritativeText)
+    && /\bposizione\s*:/iu.test(authoritativeText)
+    && /\bnumero\s*:\s*\d{1,3}\s*\/\s*\d{1,3}\b/iu.test(authoritativeText);
+  if (!formatDetected) return { candidate: null, blocker: null };
+  const rows: Array<InfissiTechnicalEvidenceRow & { position: number; page: number; total: number }> = [];
+  for (const pageText of authoritativeText.split(/\f/gu)) {
+    if (!/\bEN\s+14351-1\b/iu.test(pageText) || !/(?:finestr|porta[\s-]?finestr|serrament)/iu.test(pageText)) continue;
+    const identity = pageText.match(/\bposizione\s*:\s*(\d{1,3})\b[\s\S]{0,140}?\bnumero\s*:\s*(\d{1,3})\s*\/\s*(\d{1,3})\b/iu);
+    const dimensions = pageText.match(/\bL\s*:\s*(\d{3,4})\s*mm\s+H\s*:\s*(\d{3,4})\s*mm\b/iu);
+    const thermal = pageText.match(/\bTrasm\.?\s*termica\s*:\s*([0-9](?:[.,][0-9]{1,2})?)\s*W\s*\/\s*m(?:2|²)K\b/iu);
+    if (!identity || !dimensions || !thermal) continue;
+    const position = Number(identity[1]);
+    const page = Number(identity[2]);
+    const total = Number(identity[3]);
+    const width = Number(dimensions[1]);
+    const height = Number(dimensions[2]);
+    const uw = decimal(thermal[1]);
+    if (!Number.isInteger(position) || position < 1 || !Number.isInteger(page) || page < 1
+      || !Number.isInteger(total) || total < 1 || page > total || !plausibleMm(width, height) || !uw || uw > 6.5) {
+      return { candidate: null, blocker: "infissi_abbreviated_thermal_label_invalid" };
+    }
+    rows.push({ ...row(source.sourceId, "abbreviated-thermal-product-label", rows.length, width, height, 1, uw), position, page, total });
+  }
+  if (rows.length < 2) return { candidate: null, blocker: "infissi_abbreviated_thermal_label_incomplete" };
+  const grouped = new Map<number, typeof rows>();
+  for (const item of rows) grouped.set(item.position, [...(grouped.get(item.position) ?? []), item]);
+  const groupedRows: Array<InfissiTechnicalEvidenceRow & { position: number; page: number; total: number }> = [];
+  for (const [position, items] of grouped.entries()) {
+    const totals = [...new Set(items.map((item) => item.total))];
+    const pages = items.map((item) => item.page).sort((a, b) => a - b);
+    if (totals.length !== 1 || pages.length !== totals[0] || pages.some((value, index) => value !== index + 1)) {
+      return { candidate: null, blocker: "infissi_abbreviated_thermal_label_page_sequence_incomplete" };
+    }
+    const signatures = [...new Set(items.map((item) => `${item.widthM}x${item.heightM}:${item.thermalTransmittanceWm2K}`))];
+    if (signatures.length !== 1) return { candidate: null, blocker: "infissi_abbreviated_thermal_label_position_conflict" };
+    // `numero: n/N` identifica le N etichette/pagine della stessa posizione;
+    // la riga ENEA resta una per posizione, come nella dichiarazione tecnica
+    // e nella fattura. Duplicare le pagine come prodotti gonfierebbe la
+    // cardinalita. La sequenza completa resta comunque obbligatoria come
+    // controllo fail-closed sull'integrita del fascicolo.
+    const first = [...items].sort((left, right) => left.page - right.page)[0]!;
+    groupedRows.push({
+      ...first,
+      lineId: `${source.sourceId}:abbreviated-thermal-product-label:${position}`,
+      quantity: 1,
+    });
+  }
+  const ordered = groupedRows.sort((left, right) => left.lineId.localeCompare(right.lineId))
+    .map(({ position: _position, page: _page, total: _total, ...item }) => item);
+  return { candidate: candidate(source, "abbreviated-thermal-product-label", ordered, ordered.length), blocker: null };
+}
+
+/**
+ * DoP native con prestazioni in colonne numerate. Il numero della colonna e'
+ * utilizzabile soltanto se la legenda dello stesso documento lega
+ * esplicitamente `9.7` a `Trasmittanza termica`. Poiche' questa tabella non
+ * ripete le dimensioni, i valori vengono associati per posizione solo quando
+ * esiste una firma dimensionale di fattura unica e con identica cardinalita'.
+ */
+function parseNumberedDopThermalColumn(
+  source: AprInfissiTextSource,
+  invoiceCandidates: readonly AprInfissiTechnicalCandidate[],
+): StructuredThermalParseResult {
+  if (source.kind !== "third_party_certificate" || source.certificateScope !== "installed_windows") return { candidate: null, blocker: null };
+  const text = authoritativeSourceText(source.text);
+  const formatDetected = /\bDICHIARAZIONE\s+di\s+PRESTAZIONE\b/iu.test(text)
+    && (/\bprestazione\s+dichiarata\b/iu.test(text)
+      || /\bPOS\.\s+CODICE\b[^\n]*\b9[.,]7\b/iu.test(text)
+      || /\b9[.,]7\s+Trasmittanza\s+termica\b/iu.test(text));
+  const completeStructure = /\bDICHIARAZIONE\s+di\s+PRESTAZIONE\b/iu.test(text)
+    && /\bprestazione\s+dichiarata\b/iu.test(text)
+    && /\bPOS\.\s+CODICE\b[^\n]*\b9[.,]7\b/iu.test(text)
+    && /\b9[.,]7\s+Trasmittanza\s+termica\b/iu.test(text);
+  if (!formatDetected) return { candidate: null, blocker: null };
+  if (!completeStructure) return { candidate: null, blocker: "infissi_numbered_dop_thermal_column_structure_incomplete" };
+  const values = [...text.matchAll(/^\s*(\d{1,3})\s+[A-Z0-9_.\/-]+\b[^\n]*?\b([0-9](?:[.,][0-9]{1,2})?)\s*W\s*\/\s*m(?:2|²)K\b[^\n]*$/gimu)]
+    .map((match) => ({ position: Number(match[1]), uw: decimal(match[2]) }));
+  if (values.length < 1 || values.some((item, index) => item.position !== index + 1 || !item.uw || item.uw > 6.5)) {
+    return { candidate: null, blocker: "infissi_numbered_dop_thermal_column_rows_invalid" };
+  }
+  const eligible = invoiceCandidates.filter((item) => physicalCount(item) === values.length);
+  const signatures = [...new Set(eligible.map(signature))];
+  if (signatures.length !== 1) return { candidate: null, blocker: "infissi_numbered_dop_thermal_column_invoice_binding_unresolved" };
+  const invoice = [...eligible].sort((left, right) => left.sourceId.localeCompare(right.sourceId) || left.parser.localeCompare(right.parser))[0];
+  if (!invoice) return { candidate: null, blocker: "infissi_numbered_dop_thermal_column_invoice_binding_unresolved" };
+  const physicalInvoiceRows = invoice.rows.flatMap((item) => Array.from({ length: item.quantity }, () => item));
+  const rows = physicalInvoiceRows.map((item, index) => ({
+    ...item,
+    lineId: `${source.sourceId}:numbered-dop-thermal-column:${index + 1}`,
+    quantity: 1,
+    thermalTransmittanceWm2K: values[index]!.uw!,
+  }));
+  return { candidate: candidate(source, "numbered-dop-thermal-column", rows, rows.length), blocker: null };
+}
+
 function physicalCount(candidate: AprInfissiTechnicalCandidate): number {
   return candidate.rows.reduce((sum, item) => sum + item.quantity, 0);
 }
@@ -432,7 +555,7 @@ function collapseRepeatedStringSequence(values: readonly string[]): string[] {
 
 function invoiceProductSignature(source: AprInfissiTextSource, candidates: readonly AprInfissiTechnicalCandidate[]): string | null {
   const parsed = candidates.filter((candidate) => candidate.sourceId === source.sourceId).map(signature);
-  const inline = [...source.text.matchAll(/(?:\bn\.?\s*(\d{1,3})\s+)?[^\n]{0,100}?\bL\s*(\d{3,4})\s*[x×]\s*H\s*(\d{3,4})\b/giu)].flatMap((match) => {
+  const inline = [...source.text.matchAll(/(?:\bn\.?\s*(\d{1,3})\s+)?[^\n]{0,100}?\bL\s*(\d{3,4})\s*[x×]\s*(?:H\s*)?(\d{3,4})(?:\s*H\b)?/giu)].flatMap((match) => {
     const quantity = integer(match[1]);
     const width = Number(match[2]);
     const height = Number(match[3]);
@@ -497,7 +620,7 @@ export function observeAprInfissiTechnicalCandidates(sources: readonly AprInfiss
   const sourcePolicy = applyAprInfissiOriginalSourcePolicy(sources);
   const removedWindowCertificates = sourcePolicy.trusted.filter((source) => source.kind === "third_party_certificate" && source.certificateScope === "removed_windows");
   const trustedSources = sourcePolicy.trusted.filter((source) => !removedWindowCertificates.includes(source));
-  const rawCandidates = trustedSources.flatMap((source) => [
+  const directCandidates = trustedSources.flatMap((source) => [
     parseInvoicePhysicalWindowRows(source),
     parseFinestraItaliaPositionalDimensions(source),
     parseProductAssemblyPages(source),
@@ -510,13 +633,22 @@ export function observeAprInfissiTechnicalCandidates(sources: readonly AprInfiss
     parsePerformancePages(source),
     parseThermalTable(source),
   ].filter((item): item is AprInfissiTechnicalCandidate => Boolean(item)));
+  const invoiceProjectionCandidates = directCandidates.filter((item) => item.sourceKind === "invoice");
+  const abbreviatedParses = trustedSources.map(parseAbbreviatedThermalProductLabels);
+  const tabularParses = trustedSources.map((source) => parseNumberedDopThermalColumn(source, invoiceProjectionCandidates));
+  const rawCandidates = [
+    ...directCandidates,
+    ...abbreviatedParses.flatMap((item) => item.candidate ? [item.candidate] : []),
+    ...tabularParses.flatMap((item) => item.candidate ? [item.candidate] : []),
+  ];
+  const structuredBlockers = [...abbreviatedParses, ...tabularParses].flatMap((item) => item.blocker ? [item.blocker] : []);
   const sourcesWithAssemblyParser = new Set(rawCandidates
     .filter((candidate) => candidate.parser === "product-assembly-page")
     .map((candidate) => candidate.sourceId));
   const sourcesWithPerformanceDiagramParser = new Set(rawCandidates
     .filter((candidate) => candidate.parser === "performance-diagram-page")
     .map((candidate) => candidate.sourceId));
-  const strongParsers = new Set(["width-height-block", "producer-position-table", "formal-dop-position-block", "single-product-energy-declaration", "performance-diagram-page", "performance-page", "thermal-table"]);
+  const strongParsers = new Set(["width-height-block", "producer-position-table", "formal-dop-position-block", "single-product-energy-declaration", "performance-diagram-page", "performance-page", "thermal-table", "abbreviated-thermal-product-label", "numbered-dop-thermal-column"]);
   const sourcesWithStrongParser = new Set(rawCandidates.filter((candidate) => strongParsers.has(candidate.parser)).map((candidate) => candidate.sourceId));
   const filteredCandidates = rawCandidates.filter((candidate) =>
     (!sourcesWithAssemblyParser.has(candidate.sourceId) || candidate.parser === "product-assembly-page")
@@ -538,6 +670,7 @@ export function observeAprInfissiTechnicalCandidates(sources: readonly AprInfiss
       ...removedWindowCertificates.map((source) => Object.freeze({ sourceId: source.sourceId, kind: source.kind ?? "unclassified", reason: "removed_window_certificate_not_installed_product_source" })),
     ]),
     appliedRuleIds: RULE_IDS,
+    blockers: Object.freeze([...new Set(structuredBlockers)]),
   });
 }
 
@@ -546,14 +679,34 @@ export function resolveAprInfissiTechnicalCandidates(
   options: Readonly<{ requirePracticeBinding?: boolean; confirmedPracticeBinding?: { sourceId: string; evidenceId: string } }> = {},
 ): AprInfissiAutomaticEvidence {
   const candidates = [...observation.candidates];
+  const observationBlockers = [...(observation.blockers ?? [])];
   const groups = new Map<string, AprInfissiTechnicalCandidate[]>();
   for (const candidate of candidates) groups.set(signature(candidate), [...(groups.get(signature(candidate)) ?? []), candidate]);
-  const rankedGroups = [...groups.entries()].sort((left, right) =>
+  const rankedByEvidence = [...groups.entries()].sort((left, right) =>
     right[1].length - left[1].length
     || Math.max(...right[1].map((candidate) => candidate.explicitUwCount)) - Math.max(...left[1].map((candidate) => candidate.explicitUwCount))
     || physicalCount(right[1][0]) - physicalCount(left[1][0])
     || left[0].localeCompare(right[0]),
   );
+  const invoiceSignatureGroups = rankedByEvidence.filter(([, group]) => group.some((candidate) => candidate.sourceKind === "invoice"));
+  const soleInvoiceSignatureGroup = invoiceSignatureGroups.length === 1 ? invoiceSignatureGroups[0] : undefined;
+  const soleInvoiceSignature = soleInvoiceSignatureGroup?.[0];
+  const soleInvoicePhysicalCount = soleInvoiceSignatureGroup ? physicalCount(soleInvoiceSignatureGroup[1][0]!) : null;
+  // La fattura e' autoritativa per cardinalita e dimensioni quando ne esiste
+  // una sola firma fisica completa. Un certificato con lo stesso numero di
+  // pezzi ma misure diverse non puo sostituire silenziosamente le misure
+  // fatturate (caso generale emerso da Capatti); potra contribuire alla Uw
+  // soltanto se la firma prodotto coincide. Cardinalita diversa o piu firme
+  // fattura restano invece un conflitto fail-closed.
+  const invoiceDimensionAuthorityApplied = Boolean(soleInvoiceSignatureGroup
+    && soleInvoicePhysicalCount !== null
+    && soleInvoicePhysicalCount > 1
+    && rankedByEvidence.every(([groupSignature, group]) => groupSignature === soleInvoiceSignature
+      || (group.every((candidate) => candidate.sourceKind !== "invoice")
+        && physicalCount(group[0]!) === soleInvoicePhysicalCount)));
+  const rankedGroups = invoiceDimensionAuthorityApplied && soleInvoiceSignatureGroup
+    ? [soleInvoiceSignatureGroup, ...rankedByEvidence.filter(([groupSignature]) => groupSignature !== soleInvoiceSignature)]
+    : rankedByEvidence;
   const winningGroup = rankedGroups[0]?.[1] ?? [];
   const selected = [...winningGroup].sort((left, right) =>
     right.explicitUwCount - left.explicitUwCount
@@ -564,11 +717,11 @@ export function resolveAprInfissiTechnicalCandidates(
   const incompletePerformanceCardinality = Boolean(selected
     && declaredPageCount !== null
     && physicalCount(selected) !== declaredPageCount);
-  const conflictingTop = Boolean(rankedGroups[1]
+  const conflictingTop = !invoiceDimensionAuthorityApplied && Boolean(rankedGroups[1]
     && rankedGroups[1][1].length === winningGroup.length
     && Math.max(...rankedGroups[1][1].map((candidate) => candidate.explicitUwCount)) === Math.max(...winningGroup.map((candidate) => candidate.explicitUwCount))
     && physicalCount(rankedGroups[1][1][0]) === physicalCount(winningGroup[0]));
-  const unresolvedInvoiceTechnicalConflict = Boolean(selected
+  const unresolvedInvoiceTechnicalConflict = !invoiceDimensionAuthorityApplied && Boolean(selected
     && rankedGroups.slice(1).some(([, group]) =>
       group.some((candidate) => candidate.sourceKind === "invoice")
       && winningGroup.some((candidate) => candidate.sourceKind !== "invoice")
@@ -581,7 +734,9 @@ export function resolveAprInfissiTechnicalCandidates(
     && selected.sourceKind !== "invoice"
     && selected.sourceBinding?.status !== "verified"
     && !operatorConfirmedSelectedBinding);
-  const blockers = !selected
+  const blockers = observationBlockers.length
+    ? observationBlockers
+    : !selected
     ? ["infissi_dimensions_and_cardinality_missing"]
     : incompletePerformanceCardinality
       ? ["infissi_performance_page_cardinality_mismatch"]
@@ -603,6 +758,7 @@ export function resolveAprInfissiTechnicalCandidates(
       excludedSources: observation.excludedSources,
       appliedRuleIds: observation.appliedRuleIds,
       selectedSourceBinding: selected?.sourceBinding ?? null,
+      invoiceDimensionAuthorityApplied,
     }),
   });
 }

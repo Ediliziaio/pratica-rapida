@@ -1,0 +1,111 @@
+{
+  "version": "apr-multi-invoice-parser-r105-prep-report-v1",
+  "createdAt": "2026-09-10T11:49:21Z",
+  "scope": "local_diagnosis_and_correction_only",
+  "installationPerformed": false,
+  "operationalEneaReplayPerformed": false,
+  "batchStarted": false,
+  "chromeOrEneaSessionTouched": false,
+  "conclusion": {
+    "sharedParserDefectConfirmedCases": 3,
+    "upstreamSourceSetDefectCases": 2,
+    "ruleId": "user-2026-09-10-explicit-invoice-product-evidence-recovery-v1",
+    "registryVersion": "enea-operational-registry-v157",
+    "matrixVersion": "apr-rule-test-matrix-v169",
+    "status": "correction_ready_for_gate_not_installed"
+  },
+  "cause": {
+    "summary": "Il parser riconosceva i documenti fiscali ma non promuoveva tre forme esplicite di evidenza tecnica non tabellare: L/SP singolare, elenco di coppie sotto 'misura:' e LARGHEZZA/SPORGENZA con unita. Nel formato TD01 perdeva inoltre l'identita fiscale inline e sceglieva un importo narrativo invece del Totale documento ripetuto nella sezione fiscale.",
+    "pipelinePoint": "parseScreeningInvoiceText, dopo i parser specifici e prima del fallback generico",
+    "generalCorrection": "Recupero deterministico dell'evidenza tecnica solo quando famiglia prodotto, misure e unita sono esplicite; se esiste una quantita tabellare deve coincidere con il numero di coppie. Qualunque discordanza lascia zero righe e chiude il parsing in fail-closed. Il totale TD01 viene accettato solo se un unico importo positivo compare almeno due volte nella sezione Totale documento.",
+    "nameDependentLogic": false
+  },
+  "cases": [
+    {
+      "name": "Gianluca Bianco",
+      "cohort": 5702,
+      "classification": "parser_defect_confirmed_and_locally_corrected",
+      "oldRuntimeEvidence": {
+        "analysisCheckpoint": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5702-global-controller-gianluca-bianco/crm-document-analysis/checkpoint.json",
+        "documentSha256": "43cf88bd8380dd887ba5f45c268b16d8b5a7241d7cff1fd56c3f5e73c08c1015",
+        "oldResult": "documentType=invoice,total=1002.76,itemCount=0"
+      },
+      "originalDocumentEvidence": {
+        "pdf": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5702-global-controller-gianluca-bianco/crm-original-documents/files/gianluca-bianco/aed305b24bf1b7c1b10b2917fb71032ba9a41de9c03c57e1f45259d7db6f94f9.pdf",
+        "visibleData": "TD01 fattura 113 del 01-07-2026; tenda cassonata dimensioni L 350 x Sp 200; Totale documento 2.506,90; acconti 1.253,45 e 1.002,76, saldo 250,69"
+      },
+      "correctedLocalResult": "documentNumber=113,documentDate=2026-07-01,total=2506.90,itemCount=1,widthMm=3500,heightMm=2000"
+    },
+    {
+      "name": "Matia Bertarelli",
+      "cohort": 5710,
+      "classification": "parser_defect_confirmed_and_locally_corrected",
+      "oldRuntimeEvidence": {
+        "analysisCheckpoint": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5710-global-controller-matia-bertarelli/crm-document-analysis/checkpoint.json",
+        "documentSha256": "22110219135c0aea856b43617e5ede1eded44959ce853cc2cea28726bc9fee63",
+        "oldResult": "documentNumber=189,documentDate=2026-08-04,total=4270,itemCount=0"
+      },
+      "originalDocumentEvidence": {
+        "pdf": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5710-global-controller-matia-bertarelli/crm-original-documents/files/matia-bertarelli/2dcbf30ae623bb400e864cfcfc6146d841a2dbaf6e352792faae70d49a5ea390.pdf",
+        "visibleData": "Fattura 189 del 04-08-2026; fornitura e posa tende da sole; misure 400x225 e 300x225; quantita 2; gTot 0,16; totale 4.270,00"
+      },
+      "correctedLocalResult": "documentNumber=189,documentDate=2026-08-04,total=4270,itemCount=2,items=4000x2250@0.16|3000x2250@0.16",
+      "duplicateCheck": "Le due copie hanno identico sourceSha256; la segmentazione produce un solo segmento fiscale e un solo segmento tecnico, senza duplicare le due righe."
+    },
+    {
+      "name": "Alberto Maggi",
+      "cohort": 5712,
+      "classification": "parser_defect_confirmed_and_locally_corrected",
+      "oldRuntimeEvidence": {
+        "analysisCheckpoint": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5712-global-controller-alberto-maggi/crm-document-analysis/checkpoint.json",
+        "documentSha256": "380cb301c8a747ff12ab49f9783d774a58afa0b37e72e400aa4f721b570f0f19",
+        "oldResult": "documentNumber=20/2026,documentDate=2026-06-05,total=1890,itemCount=0"
+      },
+      "originalDocumentEvidence": {
+        "pdf": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5712-global-controller-alberto-maggi/crm-original-documents/files/alberto-maggi/11995e09bca28177b301ce0273a608daf6eda23c646e89de0ea9c07456e4e4e8.pdf",
+        "visibleData": "Fattura 20/2026 del 05/06/2026; schermatura solare a bracci estensibili; N.1; LARGHEZZA MT. 3,20 X SPORGENZA MT. 2,25; gTot 0,14; totale 1.890,00"
+      },
+      "correctedLocalResult": "documentNumber=20/2026,documentDate=2026-06-05,total=1890,itemCount=1,widthMm=3200,heightMm=2250,gTot=0.14",
+      "duplicateCheck": "Le due copie hanno testo estratto identico; la segmentazione produce un solo segmento fiscale e un solo segmento tecnico."
+    },
+    {
+      "name": "Silvia Lomartire",
+      "cohort": 5707,
+      "classification": "upstream_source_set_defect_not_parser_not_corrected",
+      "exactCause": "Le due sorgenti che il runtime etichetta invoice e additional sono byte-per-byte lo stesso modulo cliente di sei pagine (stesso responseSha256 cf4ff9f0..., stessa lunghezza 531840). Nel modulo compaiono soltanto i nomi attesi Fattura_495_LO_MARTIRE_SILVIA.pdf e Ordine_683_LO_MARTIRE_SILVIA.pdf; i due file reali non sono nel source set acquisito e il PDF non contiene allegati incorporati.",
+      "primaryEvidence": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5707-global-controller-silvia-lomartire/crm-original-documents/checkpoint.json",
+      "secondaryEvidence": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5707-global-controller-silvia-lomartire/crm-document-analysis/checkpoint.json",
+      "missingDocumentType": "fattura_e_ordine_originali_nel_pacchetto_runtime",
+      "operatorQuestion": "Confermi che Fattura_495_LO_MARTIRE_SILVIA.pdf e Ordine_683_LO_MARTIRE_SILVIA.pdf sono allegati CRM distinti e accessibili, e puoi indicare le loro chiavi storage effettive?",
+      "onboardingGap": "La relazione CRM fra slot fattura/modulo e oggetto storage deve essere validata per impedire che due slot diversi puntino agli stessi byte."
+    },
+    {
+      "name": "Marina Gerbaudo",
+      "cohort": 5719,
+      "classification": "upstream_source_set_defect_not_parser_not_corrected",
+      "exactCause": "Il PDF fornito nello slot fattura contiene visivamente solo il logo PraticaRapida e l'analisi termina pdf_text_insufficient. Le due immagini dinamiche sono copie byte-identiche dello stesso bonifico (stesso responseSha256 8af89830...), non fatture. Nessuna fattura reale raggiunge il parser.",
+      "primaryEvidence": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5719-global-controller-marina-gerbaudo/crm-original-documents/checkpoint.json",
+      "secondaryEvidence": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5719-global-controller-marina-gerbaudo/crm-document-analysis/checkpoint.json",
+      "missingDocumentType": "fattura_originale_nel_pacchetto_runtime",
+      "operatorQuestion": "Qual è il file fattura reale da associare alla pratica, dato che il PDF acquisito contiene solo il logo e le due immagini acquisite sono lo stesso bonifico?",
+      "onboardingGap": "Gli allegati caricati nello slot fattura devono essere validati semanticamente e le copie identiche non devono mascherare l'assenza del documento fiscale."
+    }
+  ],
+  "tests": {
+    "redBeforeCorrection": "invoiceParser.multiInvoiceReliability: 1/5 passed, 4/5 failed nei punti da correggere",
+    "targetedAfterCorrection": "5/5 passed",
+    "exactOriginalTextReplay": "Bianco, Bertarelli e Maggi producono identita, totale e righe tecniche attese sui testi estratti dai documenti originali",
+    "duplicateSegmentationReplay": "Bertarelli e Maggi: una sola fattura e un solo gruppo tecnico dopo deduplicazione delle copie",
+    "activationAndGovernance": "67/67 passed",
+    "typecheck": "root e runner passed",
+    "fullAprSandbox": "1922/1922 passed con maxWorkers=4; il primo run concorrente aveva 2 soli timeout CPU nel test ruleMatrixEvidence, entrambi passati isolatamente e nel rerun completo limitato"
+  },
+  "safety": {
+    "noInstallation": true,
+    "noGateExecution": true,
+    "noEneaAction": true,
+    "noDraftCreationOrSave": true,
+    "noPreviewOrSubmit": true,
+    "noBatch": true
+  }
+}

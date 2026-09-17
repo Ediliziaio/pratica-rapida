@@ -1,0 +1,240 @@
+Subject: [PATCH] feat(apr): chiusure nominate senza numero valgono una per infisso (regola Biagioni)
+
+Regola generale di Giuliano, 14/09/2026: «se in fattura non e' specificato,
+e se in documenti diversi non e' specificato diversamente, il numero delle
+chiusure oscuranti — tapparelle, zanzariere, persiane — e' uguale al numero
+degli infissi». Nata su Nicla Biagioni: form 'si'', fattura 'serramenti in
+PVC e zanzariere', nessun numero da nessuna parte, e la pratica chiedeva
+all'operatore se le chiusure c'erano.
+
+Nuova modalita' invoice_mention_all: menzione reale, nessuna quantita' in
+nessun documento, nessuna dichiarazione tecnica 'senza schermo' -> un flag
+per infisso. Una quantita' scritta prevale sempre (Cigognetti, Giuga);
+senza alcuna menzione non si deducono chiusure; un 'senza schermo' esplicito
+contro una menzione in fattura resta fail-closed.
+
+Regola user-2026-09-14-closure-mention-without-count-equals-windows-v1,
+registro v175, matrice v189, allocazione v8. Sostituito un test che fissava
+il comportamento vecchio (due tipi di chiusura senza numero -> domanda).
+Verificato sui documenti reali di Biagioni: invoice_mention_all, flags
+[true,true], nessun blocker. 431/431, typecheck puliti, gate provato verde.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+---
+--- a/src/features/enea-shadow-crm/infissiShadingClosureAllocation.ts
++++ b/src/features/enea-shadow-crm/infissiShadingClosureAllocation.ts
+@@ -1,13 +1,13 @@
+ import { parseScreeningInvoiceText } from "../enea-lab/invoiceParser";
+ import { USER_AUTHORIZED_RULE_IDS } from "./operationalRegistry";
+ 
+-export const APR_INFISSI_SHADING_CLOSURE_ALLOCATION_VERSION = "apr-infissi-shading-closure-allocation-v7" as const;
++export const APR_INFISSI_SHADING_CLOSURE_ALLOCATION_VERSION = "apr-infissi-shading-closure-allocation-v8" as const;
+ 
+ export interface AprInfissiInvoiceTextSource { sourceId: string; text: string }
+ 
+ export interface AprInfissiShadingClosureAllocation {
+   version: typeof APR_INFISSI_SHADING_CLOSURE_ALLOCATION_VERSION;
+-  mode: "portal_order_partial" | "invoice_first_window_zanzariera" | "invoice_all" | "invoice_none" | "technical_explicit_none" | "unresolved";
++  mode: "portal_order_partial" | "invoice_first_window_zanzariera" | "invoice_all" | "invoice_mention_all" | "invoice_none" | "technical_explicit_none" | "unresolved";
+   flags: readonly boolean[];
+   documentedClosureCount: number;
+   sourceIds: readonly string[];
+@@ -180,10 +180,25 @@
+     && documented.count <= 1
+     && singleZanzarieraFirstWindowSourceIds.length > 0
+     && singleZanzarieraFirstWindowSourceIds.length === invoiceClosureMentionSourceIds.length;
++  // Regola generale di Giuliano (2026-09-14, Nicla Biagioni): se i documenti
++  // nominano le chiusure — zanzariere, tapparelle, persiane — ma nessuno ne
++  // scrive il numero, le chiusure sono tante quanti gli infissi. «Cambio tot
++  // finestre, metto le zanzariere sulle finestre che ho cambiato»: e' il caso
++  // tipico, e chiedere «quante?» a documenti muti produceva sempre la stessa
++  // risposta. Vale solo con menzione reale e nessuna quantita' in nessun
++  // documento; un numero scritto vince sempre (Cigognetti 7/7, Giuga 1).
++  // Se pero' un documento tecnico dichiara esplicitamente "senza schermo",
++  // i documenti si contraddicono e la regola non si applica: resta la domanda.
++  const invoiceMentionWithoutCount = input.invoiceEvidenceComplete
++    && documented.count === 0
++    && invoiceClosureMentionSourceIds.length > 0
++    && explicitNegative.count === 0
++    && !invoiceFirstWindowBySingleZanzariera;
+   const mode = !input.invoiceEvidenceComplete || excessive ? "unresolved"
+     : invoiceFirstWindowBySingleZanzariera ? "invoice_first_window_zanzariera"
+     : partial ? "portal_order_partial"
+     : invoiceAllByCount ? "invoice_all"
++    : invoiceMentionWithoutCount ? "invoice_mention_all"
+     : technicalExplicitNone ? "technical_explicit_none"
+     : invoiceSilence ? "invoice_none"
+     : "unresolved";
+@@ -191,26 +206,29 @@
+     ? Array.from({ length: input.physicalWindowCount }, (_, index) => index < documented.count)
+     : mode === "invoice_first_window_zanzariera"
+       ? Array.from({ length: input.physicalWindowCount }, (_, index) => index === 0)
+-    : mode === "invoice_all" ? Array.from({ length: input.physicalWindowCount }, () => true)
++    : mode === "invoice_all" || mode === "invoice_mention_all" ? Array.from({ length: input.physicalWindowCount }, () => true)
+     : mode === "invoice_none" || mode === "technical_explicit_none"
+       ? Array.from({ length: input.physicalWindowCount }, () => false) : [];
+   const sourceIds = mode === "invoice_none" || mode === "technical_explicit_none"
+     ? input.invoiceSources.map((source) => source.sourceId)
+     : mode === "invoice_first_window_zanzariera"
+       ? singleZanzarieraFirstWindowSourceIds
+-      : documented.sourceIds;
++      : mode === "invoice_mention_all"
++        ? invoiceClosureMentionSourceIds
++        : documented.sourceIds;
+   const appliedRuleIds = [
+     USER_AUTHORIZED_RULE_IDS.infissiInvoiceAuthoritativeShadingClosures,
+     USER_AUTHORIZED_RULE_IDS.infissiClosureMentionNotSuppliedEvidence,
+     ...(documented.count > 0 || mode === "invoice_first_window_zanzariera" ? [USER_AUTHORIZED_RULE_IDS.infissiClosureMeasurementsNotApplicable] : []),
+     ...(mode === "technical_explicit_none" ? [USER_AUTHORIZED_RULE_IDS.infissiExplicitNoScreenNegativeClosureEvidence] : []),
++    ...(mode === "invoice_mention_all" ? [USER_AUTHORIZED_RULE_IDS.closureMentionWithoutCountEqualsWindows, USER_AUTHORIZED_RULE_IDS.infissiClosureMeasurementsNotApplicable] : []),
+     ...(mode === "invoice_first_window_zanzariera" ? [USER_AUTHORIZED_RULE_IDS.zanzarieraInfissiInstallationContext, USER_AUTHORIZED_RULE_IDS.zanzarieraFirstWindowAllocation] : []),
+   ];
+   return Object.freeze({
+     version: APR_INFISSI_SHADING_CLOSURE_ALLOCATION_VERSION,
+     mode,
+     flags: Object.freeze(flags),
+-    documentedClosureCount: mode === "invoice_first_window_zanzariera" ? 1 : documented.count,
++    documentedClosureCount: mode === "invoice_first_window_zanzariera" ? 1 : mode === "invoice_mention_all" ? input.physicalWindowCount : documented.count,
+     sourceIds: Object.freeze(sourceIds),
+     blocker: !input.invoiceEvidenceComplete
+       ? "infissi_invoice_evidence_incomplete_for_shading_closure_resolution"
+--- a/src/features/enea-shadow-crm/infissiShadingClosureAllocation.test.ts
++++ b/src/features/enea-shadow-crm/infissiShadingClosureAllocation.test.ts
+@@ -18,6 +18,44 @@
+     expect(result.audit.appliedRuleIds).toContain(USER_AUTHORIZED_RULE_IDS.infissiClosureMeasurementsNotApplicable);
+   });
+ 
++  // Regola generale di Giuliano, 14/09/2026, nata su Nicla Biagioni: fattura
++  // "serramenti in PVC e zanzariere", form "si'", nessun numero da nessuna
++  // parte. «Cambio tot finestre, metto le zanzariere sulle finestre che ho
++  // cambiato.»
++  it("regola Biagioni: chiusure nominate senza numero valgono una per infisso", () => {
++    const result = resolveAprInfissiShadingClosureAllocation({
++      physicalWindowCount: 2,
++      invoiceSources: [invoice("fattura", "Fornitura e posa serramenti in PVC e zanzariere\nTotale documento 4.120,00")],
++      technicalRowSourceKind: "invoice",
++      formAlsoInstalledClosures: true,
++      invoiceEvidenceComplete: true,
++    });
++    expect(result).toMatchObject({ mode: "invoice_mention_all", documentedClosureCount: 2, flags: [true, true], blocker: null });
++    expect(result.audit.appliedRuleIds).toContain(USER_AUTHORIZED_RULE_IDS.closureMentionWithoutCountEqualsWindows);
++  });
++
++  it("regola Biagioni: una quantita scritta in un documento prevale sulla menzione senza numero", () => {
++    const result = resolveAprInfissiShadingClosureAllocation({
++      physicalWindowCount: 3,
++      invoiceSources: [invoice("fattura", "Serramenti in PVC e zanzariere"), invoice("ordine", "N. 1 zanzariera 700 x 1200 mm")],
++      technicalRowSourceKind: "invoice",
++      invoiceEvidenceComplete: true,
++    });
++    expect(result.mode).not.toBe("invoice_mention_all");
++    expect(result.documentedClosureCount).toBe(1);
++  });
++
++  it("regola Biagioni: senza alcuna menzione non si deducono chiusure", () => {
++    const result = resolveAprInfissiShadingClosureAllocation({
++      physicalWindowCount: 2,
++      invoiceSources: [invoice("fattura", "Fornitura e posa serramenti in PVC\nTotale documento 4.120,00")],
++      technicalRowSourceKind: "invoice",
++      formAlsoInstalledClosures: true,
++      invoiceEvidenceComplete: true,
++    });
++    expect(result).toMatchObject({ mode: "invoice_none", flags: [false, false] });
++  });
++
+   it("non applica la regola parziale quando le chiusure non sono meno degli infissi", () => {
+     const result = resolveAprInfissiShadingClosureAllocation({
+       physicalWindowCount: 2,
+@@ -266,7 +304,11 @@
+     expect(result.flags).toEqual([true, false, false, false, false]);
+   });
+ 
+-  it("resta fail-closed se accanto alla zanzariera singola una fonte nomina un'altra chiusura fornita", () => {
++  // Fino al 14/09/2026 questo caso restava fail-closed. Con la regola
++  // Biagioni due chiusure nominate senza numero — zanzariera e persiane — non
++  // sono un'ambiguita': sono chiusure sui serramenti, una per infisso, e i
++  // tipi non si sommano perche' il flag ENEA e' uno per finestra.
++  it("con la regola Biagioni due chiusure di tipo diverso nominate senza numero valgono una per infisso, senza sommarsi", () => {
+     const result = resolveAprInfissiShadingClosureAllocation({
+       physicalWindowCount: 5,
+       invoiceSources: [
+@@ -276,7 +318,8 @@
+       technicalRowSourceKind: "technical_document",
+       invoiceEvidenceComplete: true,
+     });
+-    expect(result).toMatchObject({ mode: "unresolved", blocker: "infissi_shading_closures_form_answer_missing_or_ambiguous" });
++    expect(result).toMatchObject({ mode: "invoice_mention_all", documentedClosureCount: 5, blocker: null });
++    expect(result.flags).toEqual([true, true, true, true, true]);
+   });
+ 
+   it("conta la chiusura realmente fornita anche quando il documento contiene altrove note a cura di terzi", () => {
+--- a/src/features/enea-shadow-crm/operationalRegistry.ts
++++ b/src/features/enea-shadow-crm/operationalRegistry.ts
+@@ -1,7 +1,7 @@
+ import crypto from "node:crypto";
+ import { OPERATIONAL_RULES } from "./operationalRules";
+ 
+-export const ENEA_OPERATIONAL_REGISTRY_VERSION = "enea-operational-registry-v174" as const;
++export const ENEA_OPERATIONAL_REGISTRY_VERSION = "enea-operational-registry-v175" as const;
+ export const ENEA_GLOBAL_PREREQUISITE = Object.freeze({
+   id: "browser-session-contract-v1",
+   scope: "global_not_practice",
+@@ -197,6 +197,7 @@
+   infissiInvoiceAuthoritativeShadingClosures: "user-2026-09-10-infissi-invoice-authoritative-shading-closures-v1",
+   zanzarieraInfissiInstallationContext: "user-2026-09-10-zanzariera-infissi-installation-context-v1",
+   infissiClosureMentionNotSuppliedEvidence: "user-2026-09-13-infissi-closure-mention-not-supplied-evidence-v1",
++  closureMentionWithoutCountEqualsWindows: "user-2026-09-14-closure-mention-without-count-equals-windows-v1",
+   salesOrderInInvoiceSlotIsFiscalDocument: "user-2026-09-13-sales-order-in-invoice-slot-is-fiscal-document-v1",
+   infissiTransmittanceFallback: "user-2026-08-19-infissi-transmittance-1-3-fallback-v1",
+   infissiPortalTransmittance131To13: "user-2026-08-22-infissi-portal-transmittance-1-31-to-1-3-v1",
+@@ -929,6 +930,18 @@
+     provenance: { authority: "user", receivedAt: "2026-09-13", source: "delegated_user_instruction" },
+   },
+   {
++    id: USER_AUTHORIZED_RULE_IDS.closureMentionWithoutCountEqualsWindows,
++    step: "enea_mapping",
++    kind: "business",
++    condition: "Pratica Infissi con fascicolo fatture completo: almeno un documento nomina una chiusura oscurante fornita (zanzariera, tapparella, persiana, avvolgibile) e nessun documento ne indica una quantita.",
++    sourcePrecedence: ["fatture originarie", "ordine/conferma d'ordine", "documenti tecnici", "modulo cliente"],
++    deterministicAction: "Assegnare una chiusura a ogni infisso fisico (numero chiusure = numero infissi) come flag ENEA, senza campi dimensionali. Una quantita scritta in qualunque documento prevale sempre; senza alcuna menzione non si deducono chiusure; una quantita superiore agli infissi resta fail-closed.",
++    audit: "fonti che nominano la chiusura, numero infissi, flag assegnati e ID regola.",
++    outcome: "continue",
++    priority: 1_312,
++    provenance: USER_RULE_PROVENANCE_2026_09_14,
++  },
++  {
+     id: USER_AUTHORIZED_RULE_IDS.infissiClosureMentionNotSuppliedEvidence,
+     step: "enea_mapping",
+     kind: "business",
+--- a/src/features/enea-shadow-crm/operationalRegistry.test.ts
++++ b/src/features/enea-shadow-crm/operationalRegistry.test.ts
+@@ -12,7 +12,7 @@
+   });
+   it("rende reperibili le regole solo per id",()=>expect(registryRule("core-form-first")?.step).toBe("customer_form"));
+   it("registra le nuove regole utente con provenienza, precedenza e audit",()=>{
+-    expect(ENEA_OPERATIONAL_REGISTRY_VERSION).toBe("enea-operational-registry-v174");
++    expect(ENEA_OPERATIONAL_REGISTRY_VERSION).toBe("enea-operational-registry-v175");
+     expect(registryRule("system-operator-response-ledger-concurrency-v1")).toMatchObject({
+       step: "checkpoint_persistence",
+       kind: "system",
+--- a/src/features/enea-shadow-crm/ruleTestMatrix.ts
++++ b/src/features/enea-shadow-crm/ruleTestMatrix.ts
+@@ -2,7 +2,7 @@
+ import { ENEA_OPERATIONAL_REGISTRY, ENEA_OPERATIONAL_REGISTRY_VERSION, USER_AUTHORIZED_RULE_IDS } from "./operationalRegistry";
+ import { APR_BUSINESS_DECISION_LEDGER_FINGERPRINT, APR_BUSINESS_DECISION_LEDGER_VERSION } from "./businessDecisionLedger";
+ 
+-export const APR_RULE_TEST_MATRIX_VERSION = "apr-enea-rule-test-matrix-v190" as const;
++export const APR_RULE_TEST_MATRIX_VERSION = "apr-enea-rule-test-matrix-v191" as const;
+ export interface AprRuleTestEntry {
+   key: string;
+   rule: string;
+@@ -123,7 +123,8 @@
+   { key: "infissi-invoice-authoritative-shading-closures", rule: "Sulle chiusure oscuranti la fattura comanda anche quando tace: completezza significa tutti gli slot fattura scaricati e analizzati, indipendentemente da totale e confidence economica; una chiusura documentata produce SI, il silenzio produce NO e l'acquisizione incompleta resta fail-closed. La riconciliazione precede sempre le domande.", registryRuleIds: [USER_AUTHORIZED_RULE_IDS.infissiInvoiceAuthoritativeShadingClosures, USER_AUTHORIZED_RULE_IDS.infissiClosureMeasurementsNotApplicable], automaticTests: ["regressione Stricelli end-to-end: il fascicolo fatture completo e silente sovrascrive il SI del form con NO", "non interpreta il silenzio come NO quando una fattura inventariata non e stata scaricata", "risolve le chiusure prima delle domande anche se la confidence economica e incerta"] },
+   { key: "zanzariera-infissi-installation-context", rule: "La zanzariera fatturata insieme agli infissi e una chiusura oscurante aggiuntiva nel percorso Infissi; la zanzariera senza infissi resta una schermatura solare autonoma.", registryRuleIds: [USER_AUTHORIZED_RULE_IDS.zanzarieraInfissiInstallationContext, USER_AUTHORIZED_RULE_IDS.zanzarieraScreening, USER_AUTHORIZED_RULE_IDS.infissiWithAdditionalScreeningCombinedPractice], automaticTests: ["regressione Giuga: la zanzariera fatturata nella pratica Infissi vale come chiusura aggiuntiva anche se il form dice NO", "regola Giuga: zanzariera con infissi resta Infissi (la zanzariera e' una spunta), zanzariera da sola resta Schermature", "Santo Giuga, documenti reali del 13/09/2026: infissi in PVC su sei fonti e 'produzione e posa zanzariera' su due, la pratica e' Infissi", "una tenda da sole insieme ai serramenti resta una fornitura mista: la regola vale solo per la zanzariera"] },
+   { key: "sales-order-in-invoice-slot-is-fiscal-document", rule: "Un ordine di vendita strutturato caricato nello slot fattura vale come documento fiscale: identita', numero, data e righe valgono come quelle di una fattura. Il totale resta quello finale stampato e non si ricalcola; se manca, la pratica si ferma sul dato mancante e non sul tipo di documento. Preventivi, offerte e proforma restano esclusi e il riconoscimento e' strutturale, non per parola isolata.", registryRuleIds: [USER_AUTHORIZED_RULE_IDS.salesOrderInInvoiceSlotIsFiscalDocument, USER_AUTHORIZED_RULE_IDS.invoiceFinalPrintedTotalOnlyNeverInternalRecalculation], automaticTests: ["parseScreeningInvoiceText: decisione Muzzi (2026-09-13): un ordine di vendita caricato nello slot fattura vale come documento fiscale", "parseScreeningInvoiceText: non accetta come documento fiscale un preventivo, anche con la struttura di un ordine", "parseScreeningInvoiceText: non accetta come documento fiscale una proforma", "parseScreeningInvoiceText: non accetta un documento che nomina un ordine senza esserne uno strutturato"] },
+-  { key: "infissi-closure-mention-not-supplied-evidence", rule: "Una parola di chiusura non prova una fornitura quando compare nella ragione sociale del fornitore, in un consiglio di posa, in un'ipotesi, in una sostituzione o in una lavorazione a cura di terzi: la riga non conta ne come menzione ne come blocco, e il silenzio del fascicolo completo conclude NO. La quantita scritta dopo la descrizione vale quanto quella scritta prima, e tipi diversi di chiusura sulle stesse finestre non si sommano. La stessa unica zanzariera ripetuta su acconto e saldo resta una sola chiusura.", registryRuleIds: [USER_AUTHORIZED_RULE_IDS.infissiClosureMentionNotSuppliedEvidence, USER_AUTHORIZED_RULE_IDS.infissiInvoiceAuthoritativeShadingClosures, USER_AUTHORIZED_RULE_IDS.zanzarieraFirstWindowAllocation], automaticTests: ["allocazione chiusure oscuranti Infissi in ordine fattura: regressione Cigognetti: legge la quantita scritta dopo la descrizione e non somma tipi diversi sulle stesse finestre", "allocazione chiusure oscuranti Infissi in ordine fattura: non conta come chiusura fornita una menzione consigliata, ipotetica, sostituita o a cura di terzi", "allocazione chiusure oscuranti Infissi in ordine fattura: non conta come chiusura fornita la ragione sociale del fornitore", "allocazione chiusure oscuranti Infissi in ordine fattura: regressione Giuga: la stessa unica zanzariera su acconto e saldo resta una sola chiusura sulla prima finestra", "allocazione chiusure oscuranti Infissi in ordine fattura: resta fail-closed se accanto alla zanzariera singola una fonte nomina un'altra chiusura fornita", "allocazione chiusure oscuranti Infissi in ordine fattura: conta la chiusura realmente fornita anche quando il documento contiene altrove note a cura di terzi"] },
++  { key: "closure-mention-without-count-equals-windows", rule: "Se i documenti nominano una chiusura oscuranta fornita ma nessuno ne scrive il numero, le chiusure sono tante quanti gli infissi; una quantita scritta prevale sempre e senza menzione non si deducono chiusure.", registryRuleIds: [USER_AUTHORIZED_RULE_IDS.closureMentionWithoutCountEqualsWindows, USER_AUTHORIZED_RULE_IDS.infissiInvoiceAuthoritativeShadingClosures], automaticTests: ["allocazione chiusure oscuranti Infissi in ordine fattura: regola Biagioni: chiusure nominate senza numero valgono una per infisso", "allocazione chiusure oscuranti Infissi in ordine fattura: regola Biagioni: una quantita scritta in un documento prevale sulla menzione senza numero", "allocazione chiusure oscuranti Infissi in ordine fattura: regola Biagioni: senza alcuna menzione non si deducono chiusure"] },
++  { key: "infissi-closure-mention-not-supplied-evidence", rule: "Una parola di chiusura non prova una fornitura quando compare nella ragione sociale del fornitore, in un consiglio di posa, in un'ipotesi, in una sostituzione o in una lavorazione a cura di terzi: la riga non conta ne come menzione ne come blocco, e il silenzio del fascicolo completo conclude NO. La quantita scritta dopo la descrizione vale quanto quella scritta prima, e tipi diversi di chiusura sulle stesse finestre non si sommano. La stessa unica zanzariera ripetuta su acconto e saldo resta una sola chiusura.", registryRuleIds: [USER_AUTHORIZED_RULE_IDS.infissiClosureMentionNotSuppliedEvidence, USER_AUTHORIZED_RULE_IDS.infissiInvoiceAuthoritativeShadingClosures, USER_AUTHORIZED_RULE_IDS.zanzarieraFirstWindowAllocation], automaticTests: ["allocazione chiusure oscuranti Infissi in ordine fattura: regressione Cigognetti: legge la quantita scritta dopo la descrizione e non somma tipi diversi sulle stesse finestre", "allocazione chiusure oscuranti Infissi in ordine fattura: non conta come chiusura fornita una menzione consigliata, ipotetica, sostituita o a cura di terzi", "allocazione chiusure oscuranti Infissi in ordine fattura: non conta come chiusura fornita la ragione sociale del fornitore", "allocazione chiusure oscuranti Infissi in ordine fattura: regressione Giuga: la stessa unica zanzariera su acconto e saldo resta una sola chiusura sulla prima finestra", "allocazione chiusure oscuranti Infissi in ordine fattura: con la regola Biagioni due chiusure di tipo diverso nominate senza numero valgono una per infisso, senza sommarsi", "allocazione chiusure oscuranti Infissi in ordine fattura: conta la chiusura realmente fornita anche quando il documento contiene altrove note a cura di terzi"] },
+   { key: "infissi-closure-flag-no-measurements-portal-order", rule: "Le chiusure oscuranti della pratica Infissi sono soltanto flag senza misure: M chiusure vengono associate ai primi M infissi nell'ordine del payload ENEA; solo quantita o fascicolo non verificabili restano fail-closed.", registryRuleIds: [USER_AUTHORIZED_RULE_IDS.infissiClosureMeasurementsNotApplicable, USER_AUTHORIZED_RULE_IDS.technicalProductCardinality], automaticTests: ["infissiShadingClosureAllocation: assegna le chiusure ai primi infissi nell'ordine portale anche se le righe tecniche provengono dal certificato", "infissiShadingClosureAllocation: resta fail-closed sulla quantita, non sulle misure, se le chiusure superano gli infissi", "infissiEneaDraftPayload: propaga l'allocazione parziale in ordine portale senza misure della chiusura nel payload e nell'audit per riga", "PersistentAprOperatorQuestions: non genera e ritira domande dimensionali per chiusure della pratica Infissi ma conserva la domanda per una schermatura autonoma"] },
+   { key: "infissi-explicit-no-screen-negative-closure-evidence", rule: "La copertura completa 'Schermatura: Senza schermo' corrobora il NO gia determinato dal fascicolo fatture completo; copertura parziale non invalida il silenzio fiscale completo, mentre una chiusura fatturata prevale.", registryRuleIds: [USER_AUTHORIZED_RULE_IDS.infissiExplicitNoScreenNegativeClosureEvidence, USER_AUTHORIZED_RULE_IDS.infissiInvoiceAuthoritativeShadingClosures], automaticTests: ["usa NO documentale quando ogni infisso dichiara Senza schermo e la fattura non contiene chiusure", "usa il silenzio della fattura completa anche con Senza schermo parziale, ma non contro una chiusura fatturata"] },
+   { key: "vepa-bonus-casa-routing-and-anagraphic-contract", rule: "VEPA e vetrate scorrevoli appartengono esclusivamente a Bonus Casa, mai Ecobonus. Beneficiario, cointestatari, CF, residenza e immobile riusano le regole condivise; i campi specifici Bonus Casa restano bloccati finche il portale non viene osservato e testato.", registryRuleIds: [USER_AUTHORIZED_RULE_IDS.vepaBonusCasaRouting, USER_AUTHORIZED_RULE_IDS.invoiceIdentityOverCustomerForm, USER_AUTHORIZED_RULE_IDS.invoiceCoBeneficiaryPortalFlow, USER_AUTHORIZED_RULE_IDS.fiscalCodeIdentityCrossCheck], automaticTests: ["vepaModule: routing Bonus Casa ed Ecobonus vietato", "vepaModule: contratto anagrafico condiviso", "operationalRegistry: mapping portale Bonus Casa fail-closed"] },

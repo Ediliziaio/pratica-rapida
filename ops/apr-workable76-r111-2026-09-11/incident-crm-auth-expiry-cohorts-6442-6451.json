@@ -1,0 +1,51 @@
+{
+  "version": "apr-r117-crm-auth-expiry-incident-v1",
+  "recordedAt": "2026-09-12T15:13:00+02:00",
+  "runRoot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-workable76-canonical-runner-r117-20260912",
+  "lastConcordantSaved": {
+    "cohort": 6441,
+    "customerKey": "romeo-ropa",
+    "displayName": "Romeo Ropa",
+    "crmAuthStatus": "authenticated",
+    "outcome": "SAVED",
+    "draftId": "489860"
+  },
+  "rootCause": {
+    "family": "crm_dedicated_session_expired_or_refresh_rejected",
+    "firstObservedCohort": 6442,
+    "firstObservedCustomer": "Claudia Sellati",
+    "primaryEvidence": "crm-auth/checkpoint.json: login_required; Il server CRM ha rifiutato il rinnovo della sessione APR; nuovo login necessario.",
+    "downstreamEvidence": "crm-acquisition/checkpoint.json resta waiting_auth; crm-document-analysis, crm-local-preflight e infissi-batch-preflight restano unprepared.",
+    "controllerDefect": "Il runner non termina o sospende il lotto su login_required: attende sette minuti, marca il caso come technical_block nel report aggregato e lascia report/checkpoint individuali working con snapshot non terminale.",
+    "eneaInvolvement": "none: i casi non hanno superato l'acquisizione CRM e non hanno raggiunto il portale ENEA.",
+    "ruledOut": [
+      "scadenza SPID/ENEA come causa della sequenza",
+      "rate limit HTTP 429 ENEA",
+      "cambio di layout o endpoint ENEA"
+    ]
+  },
+  "affectedTerminalAttempts": [
+    { "cohort": 6442, "displayName": "Claudia Sellati", "verifiedStatus": "INCONSISTENT" },
+    { "cohort": 6443, "displayName": "Elena Depalma", "verifiedStatus": "INCONSISTENT" },
+    { "cohort": 6444, "displayName": "Mauro Ballabio", "verifiedStatus": "INCONSISTENT" },
+    { "cohort": 6445, "displayName": "Flavia Cipriani", "verifiedStatus": "INCONSISTENT" },
+    { "cohort": 6446, "displayName": "Rosa Toscano", "verifiedStatus": "INCONSISTENT" },
+    { "cohort": 6447, "displayName": "Luigi Carfora", "verifiedStatus": "INCONSISTENT" },
+    { "cohort": 6448, "displayName": "Zeno Righetti", "verifiedStatus": "INCONSISTENT" },
+    { "cohort": 6449, "displayName": "Guido Calvacchi", "verifiedStatus": "INCONSISTENT" },
+    { "cohort": 6450, "displayName": "Sarah Mondini", "verifiedStatus": "INCONSISTENT" }
+  ],
+  "interruptedBeforeVerdict": {
+    "cohort": 6451,
+    "displayName": "Andreea Ioana Olteanu",
+    "stateAtInterruption": "waiting_auth",
+    "verdict": null
+  },
+  "safety": {
+    "runnerStoppedAfterVerifiedMilestone": 50,
+    "chromePreserved": true,
+    "eneaKeepalivePreserved": true,
+    "codeModified": false,
+    "casesRelaunched": false
+  }
+}

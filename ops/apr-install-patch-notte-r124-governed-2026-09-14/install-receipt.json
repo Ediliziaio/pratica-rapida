@@ -1,0 +1,26 @@
+{
+  "version": "apr-install-bundle-cli-receipt-v1",
+  "installedAt": "2026-09-14T07:32:02.397Z",
+  "label": "patch-notte-r124-governed",
+  "versionId": "c58ba2b3-patch-notte-r124-governed-20260914",
+  "previousTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/f1812659-patch-notte-r124-20260914",
+  "currentTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/c58ba2b3-patch-notte-r124-governed-20260914",
+  "installedBundle": {
+    "apr-supervisor.mjs": "1772f98951851b7c84e18af53aed15efff4be79ea8f7a79a06ea24ababb6965f",
+    "apr-enea-worker.mjs": "3c5d11fbb9040189cf77202f359ebc47134031fe4af95cd116730c1d95ea71d4",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "apr-rule-governance-attestation.json": "c3fab0d66cfd8658c50218f3542d7d8793473410384878d5d25484c25982b6c0"
+  },
+  "gateResultArtifactId": "4003f8747945d28394aab850896f0bb095184daae15f1a06964e10496431791c",
+  "gateStatus": "PASS",
+  "governanceAttestation": {
+    "path": "apr-rule-governance-attestation.json",
+    "sha256": "c3fab0d66cfd8658c50218f3542d7d8793473410384878d5d25484c25982b6c0",
+    "historicalAuditReport": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-install-patch-notte-r124-governed-2026-09-14/historical-audit-report-r124.json",
+    "authorizedHistoricalGap": true
+  },
+  "legacyGovernanceDebtNoticed": [
+    "user-2026-09-05-co-beneficiary-trusted-enter-delivery-v2",
+    "user-2026-09-05-terminal-cohort-browser-quiescence-v1"
+  ]
+}

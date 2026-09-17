@@ -1,0 +1,63 @@
+{
+  "version": "apr-crm-ombra-ready-three-v1",
+  "authorizationId": "user-2026-09-17-crm-ombra-ready-three-draft-only-v1",
+  "authorizedAt": "2026-09-17T00:00:00.000Z",
+  "mode": "real_enea_draft_only",
+  "selection": {
+    "total": 3,
+    "allowedStages": ["pronte_da_fare"],
+    "excludedCustomerKeys": [],
+    "groups": [{ "id": "crm_ombra_ready_three", "count": 3 }]
+  },
+  "safety": {
+    "draftOnly": true,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false,
+    "priorDraftPolicy": "fresh_generation_only"
+  },
+  "cases": [
+    {
+      "practiceId": "5bd45fbe-1700-4d13-b545-ecd9a48b7e27",
+      "customerKey": "daniele-miracapillo",
+      "displayName": "DANIELE MIRACAPILLO",
+      "stage": "pronte_da_fare",
+      "stageName": "Pronte da fare",
+      "module": "infissi",
+      "productEvidence": "Infissi / Serramenti",
+      "reseller": null,
+      "historicalRetest": false,
+      "reacquireBeforeReplay": true,
+      "expectedRouting": "standard",
+      "group": "crm_ombra_ready_three"
+    },
+    {
+      "practiceId": "2c8fd0ba-d51f-4a53-b58c-e50c30a4922b",
+      "customerKey": "alessandro-mantelli",
+      "displayName": "Alessandro Mantelli",
+      "stage": "pronte_da_fare",
+      "stageName": "Pronte da fare",
+      "module": "screening",
+      "productEvidence": "Schermature Solari",
+      "reseller": null,
+      "historicalRetest": false,
+      "reacquireBeforeReplay": true,
+      "expectedRouting": "standard",
+      "group": "crm_ombra_ready_three"
+    },
+    {
+      "practiceId": "34572044-6e01-465a-ab01-f937d3ec4b87",
+      "customerKey": "marco-zambella",
+      "displayName": "Marco Zambella",
+      "stage": "pronte_da_fare",
+      "stageName": "Pronte da fare",
+      "module": "screening",
+      "productEvidence": "Schermature Solari",
+      "reseller": null,
+      "historicalRetest": false,
+      "reacquireBeforeReplay": true,
+      "expectedRouting": "standard",
+      "group": "crm_ombra_ready_three"
+    }
+  ]
+}

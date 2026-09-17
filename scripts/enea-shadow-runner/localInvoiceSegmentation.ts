@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { parseScreeningInvoiceText, stripHistoricalEneaAppendix } from "../../src/features/enea-lab/invoiceParser";
+import { isNonFiscalBankTransferReceipt, isNonFiscalIdentityDocument, isNonFiscalVatRateDeclaration, parseScreeningInvoiceText, stripHistoricalEneaAppendix } from "../../src/features/enea-lab/invoiceParser";
 
 export const EXPLICIT_ADVANCE_INVOICE_REFERENCE_MARKER_RULE_ID = "system-explicit-advance-invoice-reference-marker-v1" as const;
 export const EXPLICIT_PERCENTAGE_CAUSAL_TECHNICAL_SUPERSESSION_RULE_ID = "system-explicit-percentage-causal-technical-supersession-v1" as const;
@@ -261,24 +261,33 @@ const isNonFiscalTechnicalWorksheet = (segment: LocalInvoiceSegment): boolean =>
 // riconciliazione economica al posto di essere semplicemente escluse come
 // documenti di supporto non fiscali (stesso trattamento gia' riservato ai
 // moduli tecnici di posa).
-// Formati diversi (ricevuta di bonifico, esportazione movimenti di home
-// banking, disposizione di bonifico) usano frasi diverse: nessuna di queste
-// e' mai presente in una fattura di vendita reale, quindi ciascuna basta da
-// sola come prova, senza richiedere che compaiano tutte insieme.
-const BANK_TRANSFER_DOCUMENT_MARKERS = /\b(?:Ricevuta\s+bonifico|Codice\s+identificativo\s+dell['’]operazione|Disposizione\s+di\s+bonifico\s+effettuata|Dettaglio\s+(?:singolo\s+)?movimento|Desc\.\s+movimento|Sezione\s+(?:Ordinante|Beneficiario)|DATI\s+DI\s+PAGAMENTO\b[\s\S]{0,80}?\bTRN\b)\b/i;
-const isNonFiscalBankTransferReceipt = (segment: LocalInvoiceSegment): boolean => BANK_TRANSFER_DOCUMENT_MARKERS.test(segment.text)
-  && !/\bFATTURA\s+(?:DI\s+VENDIT[AI]|N[°º.]?\s*\d)/i.test(segment.text);
-const isNonFiscalVatRateDeclaration = (segment: LocalInvoiceSegment): boolean => /\bDICHIARA\b/i.test(segment.text)
-  && /\baliquota\s+I\.?\s*V\.?\s*A\.?\s+(?:nella\s+misura\s+)?agevolat[ao]\b/i.test(segment.text)
-  && !/\bFATTURA\s+(?:DI\s+VENDIT[AI]|N[°º.]?\s*\d)/i.test(segment.text);
-// Tessere sanitarie e documenti d'identita' scansionati insieme al resto del
-// dossier non sono mai documenti fiscali, indipendentemente dal totale.
-const isNonFiscalIdentityDocument = (segment: LocalInvoiceSegment): boolean => /\bTESSERA\s+SANITARIA\b|\bCARTA\s+DI\s+IDENTIT[AÀ]\b|\bIDENTITY\s+CARD\b|\bCARTA\s+REGIONALE\s+DEI\s+SERVIZI\b|\bTESSERA\s+EUROPEA\s+DI\s+ASSICURAZIONE\s+MALATTIA\b/i.test(segment.text)
-  && !/\bFATTURA\s+(?:DI\s+VENDIT[AI]|N[°º.]?\s*\d)/i.test(segment.text);
+// Regressione Tiraboschi (2026-09-08): il riconoscimento di ricevuta
+// bonifico, dichiarazione IVA agevolata e documento d'identita' e' ora
+// condiviso con invoiceParser.ts (unica fonte di verita'), cosi' che il
+// classificatore di tipo documento e la segmentazione locale non divergano
+// mai piu' su quali documenti non sono fatture reali.
 const isNonFiscalSupportingDocument = (segment: LocalInvoiceSegment): boolean => isNonFiscalTechnicalWorksheet(segment)
-  || isNonFiscalBankTransferReceipt(segment)
-  || isNonFiscalVatRateDeclaration(segment)
-  || isNonFiscalIdentityDocument(segment);
+  || isNonFiscalBankTransferReceipt(segment.text)
+  || isNonFiscalVatRateDeclaration(segment.text)
+  || isNonFiscalIdentityDocument(segment.text);
+
+/**
+ * Fra due copie dello stesso documento con lo stesso modo di estrazione, si
+ * tiene quella che ha letto piu' dati della terna fiscale (numero, data,
+ * totale). Fino al 13/09/2026 vinceva la prima incontrata: su Patrizia Muzzi
+ * l'ordine n. 177 era allegato due volte, la prima copia non aveva ne'
+ * numero ne' data leggibili e la seconda li aveva entrambi (177, 15-07-26);
+ * la prima vinceva per ordine, la seconda veniva scartata come duplicato, e
+ * la pratica si fermava per "data fattura non ricavabile" — con la data
+ * stampata in chiaro sulla copia buttata via. A parita' resta la prima, per
+ * non cambiare esito dove non c'e' motivo.
+ */
+function fiscalTripleCompleteness(segment: LocalInvoiceSegment): number {
+  return (segment.documentNumber ? 1 : 0) + (segment.documentDate ? 1 : 0) + (segment.total !== null ? 1 : 0);
+}
+function preferMoreCompleteFiscalTriple(current: LocalInvoiceSegment, candidate: LocalInvoiceSegment): LocalInvoiceSegment {
+  return fiscalTripleCompleteness(candidate) > fiscalTripleCompleteness(current) ? candidate : current;
+}
 
 export function reconcileLocalInvoiceSegments(segments: readonly LocalInvoiceSegment[]) {
   const byIdentity = new Map<string, LocalInvoiceSegment>();
@@ -307,7 +316,9 @@ export function reconcileLocalInvoiceSegments(segments: readonly LocalInvoiceSeg
     const key = invoiceIdentity(segment);
     const current = byIdentity.get(key);
     if (!current) { byIdentity.set(key, segment); continue; }
-    const preferred = current.extractionMode === "native_text" ? current : segment.extractionMode === "native_text" ? segment : current;
+    const preferred = current.extractionMode === "native_text" && segment.extractionMode !== "native_text" ? current
+      : segment.extractionMode === "native_text" && current.extractionMode !== "native_text" ? segment
+        : preferMoreCompleteFiscalTriple(current, segment);
     const discarded = preferred === current ? segment : current;
     byIdentity.set(key, preferred); discardedDuplicateSourceIds.push(discarded.sourceId);
   }
@@ -321,6 +332,23 @@ export function reconcileLocalInvoiceSegments(segments: readonly LocalInvoiceSeg
     // autorevole. Due candidati nativi compatibili restano ambigui e chiudono
     // il gate senza scegliere per posizione o ordine.
     if (nativeMatches.length !== 1) continue;
+    // Il PDF nativo e' autorevole sul testo, non per principio sulla terna
+    // fiscale: se il suo strato di testo e' impaginato a colonne, il parser
+    // puo' non trovare ne' numero ne' data, mentre la stessa pagina letta in
+    // OCR li trova. Su Patrizia Muzzi (13/09/2026) la copia nativa
+    // dell'ordine n. 177 non aveva ne' numero ne' data, la copia OCR aveva
+    // entrambi (177, 15-07-26): questa regola ritirava la copia OCR, la
+    // pratica restava senza data fattura e si fermava per
+    // "data fattura non ricavabile" con la data stampata in chiaro sulla
+    // copia buttata via. Se la copia OCR ha letto piu' terna, e' lei a
+    // restare e la nativa viene ritirata al suo posto.
+    const native = nativeMatches[0];
+    if (fiscalTripleCompleteness(segment) > fiscalTripleCompleteness(native)) {
+      conflictingOcrDuplicates.add(native.sourceId);
+      discardedDuplicateSourceIds.push(native.sourceId);
+      discardedConflictingOcrDuplicateSourceIds.push(native.sourceId);
+      continue;
+    }
     conflictingOcrDuplicates.add(segment.sourceId);
     discardedDuplicateSourceIds.push(segment.sourceId);
     discardedConflictingOcrDuplicateSourceIds.push(segment.sourceId);

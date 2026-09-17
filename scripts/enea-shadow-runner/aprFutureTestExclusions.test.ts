@@ -10,6 +10,30 @@ describe("esclusioni permanenti APR per relazione", () => {
   it("non estende gli alias a nomi solo parzialmente simili", () => {
     expect(aprAutomationExclusion({ customerKey: "cliente-test", companies: { ragione_sociale: "Evans Serramenti" } })).toBeNull();
     expect(aprAutomationExclusion({ customerKey: "cliente-test", companies: { ragione_sociale: "R.M. Falegnameria" } })).toBeNull();
+    expect(aprAutomationExclusion({ customerKey: "cliente-test", companies: { ragione_sociale: "Linea Soleggiata Potito" } })).toBeNull();
+  });
+
+  it("instrada Linea Sole Potito come esclusione fornitore prima dell'elaborazione", () => {
+    expect(aprAutomationExclusion({ customerKey: "cliente-linea", companies: { ragione_sociale: "LINEA SOLE POTITO" } })).toMatchObject({
+      kind: "supplier",
+      canonicalKey: "linea-sole-potito",
+      sourceField: "row.companies.ragione_sociale",
+    });
+  });
+
+  it("instrada Ideal Sistem alla lavorazione manuale e fuori dal denominatore prima dell'elaborazione", () => {
+    expect(aprAutomationExclusion({ customerKey: "cliente-ideal", companies: { ragione_sociale: "IDEAL SISTEM" } })).toMatchObject({
+      kind: "supplier",
+      canonicalKey: "ideal-sistem",
+      ruleId: "user-2026-09-10-ideal-sistem-manual-exclusion-v1",
+      denominatorDisposition: "excluded_upstream",
+      sourceField: "row.companies.ragione_sociale",
+    });
+  });
+
+  it("non estende l'esclusione Ideal Sistem a societa dal nome simile", () => {
+    expect(aprAutomationExclusion({ customerKey: "cliente-test", companies: { ragione_sociale: "Ideale Sistemi S.r.l." } })).toBeNull();
+    expect(aprAutomationExclusion({ customerKey: "cliente-test", fornitore: "Ideal Serramenti" })).toBeNull();
   });
 
   it("mantiene esclusa la pratica interna Overthemol per chiave cliente", () => {

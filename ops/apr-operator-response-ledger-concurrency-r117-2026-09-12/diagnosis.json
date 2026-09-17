@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "apr-operator-response-ledger-concurrency-diagnosis-v1",
+  "status": "PROVED",
+  "ruleId": "system-operator-response-ledger-concurrency-v1",
+  "affectedCases": [
+    {
+      "customerKey": "elena-depalma",
+      "cohort": 6310,
+      "error": "apr_operator_response_ledger_busy"
+    },
+    {
+      "customerKey": "marcella-capatti",
+      "cohort": 6312,
+      "error": "apr_operator_response_ledger_busy"
+    }
+  ],
+  "rootCause": "Il worker persistente della coorte e la CLI Infissi avviata dal sequencer scrivono sul medesimo ledger globale. Il lock precedente trasformava qualunque EEXIST transitorio in errore terminale senza attendere il rilascio, benché il secondo scrittore potesse rileggere e applicare idempotentemente la mutazione pochi millisecondi dopo.",
+  "scope": "Concorrenza del ledger; nessuna modifica alla logica o alla precedenza delle risposte operatore.",
+  "positiveProof": "Un processo trattiene temporaneamente il lock, lo rilascia, il secondo attende, rilegge e conserva entrambe le scritture.",
+  "negativeProof": "Se il lock non si libera entro il budget configurato, il ledger resta immutato e viene emesso apr_operator_response_ledger_busy.",
+  "operationalReplay": "NOT_RUN_USER_FORBIDS_LOTS_PENDING_FAMILY_PRIORITY"
+}

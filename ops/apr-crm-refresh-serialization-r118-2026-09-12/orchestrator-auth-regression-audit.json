@@ -1,0 +1,40 @@
+{
+  "version": "apr-orchestrator-auth-regression-audit-v1",
+  "recordedAt": "2026-09-12T20:47:29+02:00",
+  "status": "structural_gap_proven_provider_event_ambiguous",
+  "sources": [
+    {
+      "kind": "tracked_history",
+      "detail": "All six pre-consolidation simple-independent-runner.mjs files were searched at the parent of commit 19fd3d6. Only r67 set APR_SESSION_PROCESS_MODE=1; none contained externalCrmAuthenticationFailure or read crm-auth/checkpoint.json."
+    },
+    {
+      "kind": "installed_bundles",
+      "detail": "Installed r67 and r117 worker/supervisor bundles contain per-process crmAuthRefreshInFlight guards but no interprocess refresh lock. Any crm_auth_server_rejected event was handled as login_required with shared-secret deletion."
+    },
+    {
+      "kind": "runtime_evidence",
+      "detail": "The canonical runner was self-attested in both affected runs with sha256 00fb38a8cca229066b376740a9d5758267275f69c6f040fff79dd419dbd06419. A login at 15:29:24Z was followed by rejection at 15:30:07Z; after login at 15:31:53Z cohort 6452 refreshed at 15:38:51Z and cohort 6453 was rejected at 15:40:07Z."
+    }
+  ],
+  "findings": {
+    "canonicalRunnerCredentialTransportChanged": false,
+    "canonicalRunnerMatchesR67SessionProcessMode": true,
+    "canonicalRunnerStandardizedR67ProcessLifecycle": true,
+    "priorSerializationScope": "single dashboard or supervisor process only",
+    "priorInterprocessSerialization": false,
+    "fixedExpiryRuledOut": true,
+    "exactProviderRejectionCause": "not_provable_from_old_logs",
+    "remainingCandidates": [
+      "refresh-token rotation race between independent APR processes",
+      "known intermittent Supabase authentication incident"
+    ]
+  },
+  "correctionAssessment": {
+    "targetedToProvenGap": true,
+    "requiredBeforeResume": [
+      "full monotonic gate green",
+      "runtime multiprocess refresh validation green",
+      "immediate lot stop on any login_required"
+    ]
+  }
+}

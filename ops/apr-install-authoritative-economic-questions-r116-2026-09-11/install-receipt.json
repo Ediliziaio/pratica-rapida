@@ -1,0 +1,26 @@
+{
+  "version": "apr-install-bundle-cli-receipt-v1",
+  "installedAt": "2026-09-11T23:46:18.384Z",
+  "label": "authoritative-economic-questions-r116",
+  "versionId": "e5c6096c-authoritative-economic-questions-r116-20260911",
+  "previousTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/0ae77c33-runtime-decisions-r115-20260911",
+  "currentTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/e5c6096c-authoritative-economic-questions-r116-20260911",
+  "installedBundle": {
+    "apr-supervisor.mjs": "61743f5fe85ae9f765a9a52ddb4b3657529e76f48b58d17eb9f9d408faf683b4",
+    "apr-enea-worker.mjs": "75c629d7e69dd934a10c5d196b2a8e99a39a3709ed7ada2dea8e4766c0785a82",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "apr-rule-governance-attestation.json": "e92e8bc99fa25d1a9b6aecb804f9aef741eaa5d96120cde9597ab8b244dd6d65"
+  },
+  "gateResultArtifactId": "3cc5071c874dc8056e626e1a19dce52296ad7e7eb5c553d122cf4d7dd19c58a8",
+  "gateStatus": "PASS",
+  "governanceAttestation": {
+    "path": "apr-rule-governance-attestation.json",
+    "sha256": "e92e8bc99fa25d1a9b6aecb804f9aef741eaa5d96120cde9597ab8b244dd6d65",
+    "historicalAuditReport": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-authoritative-economic-questions-r116-2026-09-12/historical-audit-report-r116.json",
+    "authorizedHistoricalGap": true
+  },
+  "legacyGovernanceDebtNoticed": [
+    "user-2026-09-05-co-beneficiary-trusted-enter-delivery-v2",
+    "user-2026-09-05-terminal-cohort-browser-quiescence-v1"
+  ]
+}

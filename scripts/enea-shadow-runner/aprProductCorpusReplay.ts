@@ -11,7 +11,8 @@ import {
 import { resolveInfissiTechnicalSources } from "../../src/features/enea-shadow-crm/infissiTechnicalSources";
 import { canonicalSha256 } from "./aprMonotonicArtifacts";
 import { runProductVertical, type AprProductFactsInput, type AprScreeningObservation } from "./aprProductVertical";
-import { extractBankTransferEvidences } from "./bankTransferEvidence";
+import { extractBankTransferEvidences, firstBankTransferHeaderIndex } from "./bankTransferEvidence";
+import { parseScreeningInvoiceText } from "../../src/features/enea-lab/invoiceParser";
 import { resolveFormScreeningMappings } from "./crmLocalPreflight";
 import { reconcileLocalInvoiceSegments, splitLocalInvoiceText } from "./localInvoiceSegmentation";
 
@@ -48,7 +49,11 @@ const text = (value: unknown) => typeof value === "string" ? value.trim() : "";
 
 function fiscalSegment(value: string) {
   const bankEvidence = extractBankTransferEvidences("probe", value);
-  return bankEvidence.length === 0 || /\b(?:totale\s+(?:documento|fattura|imponibile|iva)|riepilogo\s+iva|calcolo\s+fattura|imponibile\s+(?:iva|aliquota))\b/i.test(value);
+  if (bankEvidence.length === 0) return true;
+  const headerIndex = firstBankTransferHeaderIndex(value);
+  const beforeBankReceipt = headerIndex === null ? "" : value.slice(0, headerIndex);
+  const parsed = parseScreeningInvoiceText(beforeBankReceipt, "product-replay-before-bank-receipt").result;
+  return Boolean(parsed.documentNumber && parsed.documentDate && parsed.total !== null);
 }
 
 function sourceTexts(customerKey: string, analysis: AnalysisCheckpoint) {

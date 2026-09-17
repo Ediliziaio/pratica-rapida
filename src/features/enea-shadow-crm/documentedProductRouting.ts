@@ -9,6 +9,11 @@ export interface AprDocumentedProductRouting {
   source: "form_declared" | "original_documents" | "declared_label" | "unresolved";
   screeningEvidence: string[];
   infissiEvidence: string[];
+  /**
+   * Zanzariere documentate insieme a serramenti: non sono prodotti
+   * Schermature, sono chiusure associate agli Infissi (spunta ENEA).
+   */
+  zanzarieraClosureEvidence: string[];
   appliedRuleIds: string[];
 }
 
@@ -38,6 +43,7 @@ function evidence(sourceId: string, value: string) {
   const normalized = compact(value);
   const screening = [
     /fornitura(?:\s+e\s+posa)?(?:\s+in\s+opera)?(?:\s+di)?(?:\s+n[.°º]?\s*\d+)?\s+(?:persian|avvolgibil|tapparell|tend[ae]\s+da\s+sole|zanzarier)\w*/g,
+    /\b(?:fornitura|produzione|posa|installazione)\b[^.\n]{0,240}\bzanzarier\w*/g,
     /scheda\s+ordine\s+(?:persian|avvolgibil|tapparell)\w*/g,
     /\b(?:persian|avvolgibil|tapparell)\w*\s+in\s+alluminio\b/g,
   ].flatMap((pattern) => [...normalized.matchAll(pattern)].map((match) => `${sourceId}:${match[0]}`));
@@ -71,8 +77,27 @@ export function resolveAprDocumentedProductRouting(input: {
     screeningEvidence.push(...found.screening);
     infissiEvidence.push(...found.infissi);
   }
-  const documented = screeningEvidence.length && infissiEvidence.length ? "mixed"
-    : screeningEvidence.length ? "screening"
+  // Regola generale di Giuliano (2026-09-10, confermata l'11/09 e di nuovo il
+  // 13/09 su Santo Giuga): una zanzariera fornita insieme a dei serramenti
+  // e' una chiusura associata agli Infissi — una spunta ENEA — non un
+  // prodotto Schermature con misure proprie. Fino al 13/09/2026 la regola
+  // esisteva solo come identificativo aggiunto ad appliedRuleIds: veniva
+  // dichiarata applicata e non cambiava la decisione, che restava "mixed"
+  // perche' l'evidenza della zanzariera era gia' stata contata come
+  // schermatura. Risultato: Giuga, cinque finestre certificate con misure,
+  // fermo da settimane su "misure della schermatura mancanti", e Giuliano
+  // costretto a rispondere ogni volta che sono infissi.
+  //
+  // Qui la zanzariera viene tolta dall'evidenza di schermatura quando ci sono
+  // infissi documentati: la pratica resta Infissi e la zanzariera resta
+  // visibile a parte, per la spunta. Una zanzariera senza serramenti resta
+  // un prodotto Schermature, come prima.
+  const zanzarieraEvidence = screeningEvidence.filter((item) => /\bzanzarier[ae]\b/iu.test(item));
+  const effectiveScreeningEvidence = infissiEvidence.length
+    ? screeningEvidence.filter((item) => !/\bzanzarier[ae]\b/iu.test(item))
+    : screeningEvidence;
+  const documented = effectiveScreeningEvidence.length && infissiEvidence.length ? "mixed"
+    : effectiveScreeningEvidence.length ? "screening"
       : infissiEvidence.length ? "infissi" : null;
   const declaredModule = input.declaredModule ?? null;
   const formDeclaredModule = input.formDeclaredModule ?? null;
@@ -89,17 +114,20 @@ export function resolveAprDocumentedProductRouting(input: {
   // l'etichetta di coda per quella pratica.
   const module = documented ?? declaredModule ?? formDeclaredModule ?? "unresolved";
   const source = documented ? "original_documents" as const : declaredModule ? "declared_label" as const : formDeclaredModule ? "form_declared" as const : "unresolved" as const;
+  const hasDocumentedZanzariera = screeningEvidence.some((item) => /\bzanzarier[ae]\b/iu.test(item));
   return {
     module,
     declaredModule,
     formDeclaredModule,
     source,
-    screeningEvidence: [...new Set(screeningEvidence)],
+    screeningEvidence: [...new Set(effectiveScreeningEvidence)],
     infissiEvidence: [...new Set(infissiEvidence)],
+    zanzarieraClosureEvidence: [...new Set(infissiEvidence.length ? zanzarieraEvidence : [])],
     appliedRuleIds: [
       USER_AUTHORIZED_RULE_IDS.documentedProductModuleOverLabel,
       ...(source === "form_declared" ? [USER_AUTHORIZED_RULE_IDS.formDeclaredProductModulePriority] : []),
       ...(infissiEvidence.some((item) => /portoncin|porta\s*(?:blindat|d['’]ingress)/iu.test(item)) ? [USER_AUTHORIZED_RULE_IDS.portoncinoRecognizedAsInfisso] : []),
+      ...(hasDocumentedZanzariera ? [USER_AUTHORIZED_RULE_IDS.zanzarieraInfissiInstallationContext] : []),
       // Regola generale definitiva di Giuliano (2026-09-08): infissi e
       // chiusura oscurante restano modulo misto anche quando l'evidenza
       // proviene da fonti/fornitori distinti, perche' l'accumulo qui sopra

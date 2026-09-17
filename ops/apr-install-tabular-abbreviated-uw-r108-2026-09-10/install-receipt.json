@@ -1,0 +1,26 @@
+{
+  "version": "apr-install-bundle-cli-receipt-v1",
+  "installedAt": "2026-09-10T18:39:15.811Z",
+  "label": "tabular-abbreviated-uw-r108",
+  "versionId": "c20ee338-tabular-abbreviated-uw-r108-20260910",
+  "previousTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/4c1e381b-ideal-sistem-manual-exclusion-r107-20260910",
+  "currentTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/c20ee338-tabular-abbreviated-uw-r108-20260910",
+  "installedBundle": {
+    "apr-supervisor.mjs": "bc48952262c83e07bebcc8bc2f6f31c5a982a086e205bc15b359a033580d5284",
+    "apr-enea-worker.mjs": "122d4164858a3136fa705b24c1af8a84bea18eff4f3b361966fe6f8f3f7be7fd",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "apr-rule-governance-attestation.json": "563170f2f27366945d5d5ea7e600eb14b7050e76bc4ebc3ddc02c65c6cbf679c"
+  },
+  "gateResultArtifactId": "d84aadfa3df040a6be5418f0a08095857a8592f02ed4f902003bc3bd5385abf8",
+  "gateStatus": "PASS",
+  "governanceAttestation": {
+    "path": "apr-rule-governance-attestation.json",
+    "sha256": "563170f2f27366945d5d5ea7e600eb14b7050e76bc4ebc3ddc02c65c6cbf679c",
+    "historicalAuditReport": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-tabular-abbreviated-uw-r108-gate-2026-09-10/historical-audit-report-r108.json",
+    "authorizedHistoricalGap": true
+  },
+  "legacyGovernanceDebtNoticed": [
+    "user-2026-09-05-co-beneficiary-trusted-enter-delivery-v2",
+    "user-2026-09-05-terminal-cohort-browser-quiescence-v1"
+  ]
+}

@@ -1,4 +1,7 @@
+import { isValidCodiceFiscale } from "@/components/form-cliente/validation-utils";
 import { OFFICIAL_MUNICIPALITIES, OFFICIAL_MUNICIPALITIES_SOURCE } from "./officialMunicipalities.generated";
+
+export const OFFICIAL_MUNICIPALITY_FROM_FISCAL_CODE_RULE_ID = "user-2026-09-14-birth-municipality-from-fiscal-code-v1" as const;
 
 export const OFFICIAL_MUNICIPALITY_CANONICAL_IDENTITY_RULE_ID = "user-2026-09-05-official-municipality-canonical-identity-v1" as const;
 
@@ -35,6 +38,11 @@ function normalizedProvince(value: string): string {
   return fold(value).replace(/[^a-z0-9]+/g, "");
 }
 
+function provinceNameMatches(officialProvinceName: string, provinceKey: string): boolean {
+  if (normalizedProvince(officialProvinceName) === provinceKey) return true;
+  return officialProvinceName.split("/").some((part) => normalizedProvince(part) === provinceKey);
+}
+
 function splitInlineProvince(name: string): { name: string; province: string | null } {
   const match = name.trim().match(/^(.*?)\s*\(\s*([A-Za-z]{2})\s*\)\s*$/);
   return match ? { name: match[1].trim(), province: match[2].toUpperCase() } : { name: name.trim(), province: null };
@@ -56,7 +64,7 @@ export function resolveOfficialMunicipalityCanonicalIdentity(input: { name: stri
   const matches = OFFICIAL_MUNICIPALITIES.filter((entry) => {
     if (compactMunicipality(entry.name) !== municipalityKey) return false;
     if (!provinceKey) return true;
-    return normalizedProvince(entry.provinceCode) === provinceKey || normalizedProvince(entry.provinceName) === provinceKey;
+    return normalizedProvince(entry.provinceCode) === provinceKey || provinceNameMatches(entry.provinceName, provinceKey);
   });
   if (matches.length !== 1) return null;
   const [match] = matches;
@@ -77,4 +85,35 @@ export function resolveOfficialMunicipalityCanonicalIdentity(input: { name: stri
 
 export function officialMunicipalityCatalogSize(): number {
   return OFFICIAL_MUNICIPALITIES.length;
+}
+
+export interface OfficialMunicipalityFromFiscalCode {
+  ruleId: typeof OFFICIAL_MUNICIPALITY_FROM_FISCAL_CODE_RULE_ID;
+  cadastralCode: string;
+  canonicalName: string;
+  provinceName: string;
+  provinceCode: string;
+  istatCode: string;
+}
+
+export function resolveOfficialMunicipalityFromCadastralCode(cadastralCode: string | null | undefined): OfficialMunicipalityFromFiscalCode | null {
+  const code = (cadastralCode ?? "").trim().toUpperCase();
+  if (!/^[A-Z]\d{3}$/.test(code)) return null;
+  const matches = OFFICIAL_MUNICIPALITIES.filter((entry) => entry.cadastralCode === code);
+  if (matches.length !== 1) return null;
+  const [match] = matches;
+  return {
+    ruleId: OFFICIAL_MUNICIPALITY_FROM_FISCAL_CODE_RULE_ID,
+    cadastralCode: code,
+    canonicalName: match.name,
+    provinceName: match.provinceName,
+    provinceCode: match.provinceCode,
+    istatCode: match.istatCode,
+  };
+}
+
+export function resolveOfficialMunicipalityFromFiscalCode(fiscalCode: string | null | undefined): OfficialMunicipalityFromFiscalCode | null {
+  const clean = (fiscalCode ?? "").replace(/\s+/g, "").toUpperCase();
+  if (!isValidCodiceFiscale(clean)) return null;
+  return resolveOfficialMunicipalityFromCadastralCode(clean.slice(11, 15));
 }

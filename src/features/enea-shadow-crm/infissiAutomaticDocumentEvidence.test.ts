@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { extractAprInfissiAutomaticTechnicalEvidence } from "./infissiAutomaticDocumentEvidence";
+import { classifyAprInfissiTechnicalDocument } from "./infissiTechnicalDocumentClassifier";
+import { USER_AUTHORIZED_RULE_IDS } from "./operationalRegistry";
 
 describe("APR Infissi · estrazione automatica documenti reali", () => {
   it("preserva tre infissi fisici identici nell'ordine della fattura", () => {
@@ -114,6 +116,97 @@ describe("APR Infissi · estrazione automatica documenti reali", () => {
     ` }]);
     expect(result.evidence?.rows).toHaveLength(1);
     expect(result.evidence?.rows[0]).toMatchObject({ widthM: 0.665, heightM: 1.435 });
+  });
+
+  it("DoP tabellare associa gli Uw solo a una firma fattura univoca", () => {
+    const dopText = `
+      DICHIARAZIONE di PRESTAZIONE
+      Scopo utilizzo: serramento in pvc per uso esterno.
+      Produttore e fabbricante: Finestra Esempio s.r.l. - FIRMA
+      Normativa armonizzata: EN 14351-1:2016
+      9. prestazione dichiarata:
+      POS. CODICE 9.1 9.2 9.3 9.4 9.5 9.6 9.7 9.8 a 9.9
+      1 6K_F2_006 8A - C5/B5 - - - 1,28W/m2K - 4
+      2 6K_P2_010 8A - C5/B5 - - - 1,22W/m2K - 4
+      Legenda: 9.1 Tenuta all'acqua, 9.7 Trasmittanza termica, 9.9 Permeabilità all'aria
+    `;
+    const classification = classifyAprInfissiTechnicalDocument({ storageKind: "additional", text: dopText });
+    expect(classification).toMatchObject({ verifiedKind: "third_party_certificate", certificateScope: "installed_windows" });
+    const result = extractAprInfissiAutomaticTechnicalEvidence([
+      { sourceId: "fattura-codognato", kind: "invoice", text: `
+        Finestra 2 ante (L=2.235;A=1.435;)
+        Portafinestra 2 ante (L=2.695;A=2.405;)
+      ` },
+      { sourceId: "dop-tabellare-codognato", kind: classification.verifiedKind, certificateScope: classification.certificateScope, text: dopText },
+    ]);
+    expect(result).toMatchObject({ status: "ready", blockers: [], audit: { selectedSourceId: "dop-tabellare-codognato", selectedParser: "numbered-dop-thermal-column" } });
+    expect(result.evidence?.rows).toEqual([
+      expect.objectContaining({ quantity: 1, widthM: 2.235, heightM: 1.435, thermalTransmittanceWm2K: 1.28 }),
+      expect.objectContaining({ quantity: 1, widthM: 2.695, heightM: 2.405, thermalTransmittanceWm2K: 1.22 }),
+    ]);
+  });
+
+  it("DoP tabellare con cardinalita non coincidente resta fail-closed", () => {
+    const result = extractAprInfissiAutomaticTechnicalEvidence([
+      { sourceId: "fattura-due-infissi", kind: "invoice", text: `
+        Finestra 2 ante (L=1200;A=1400;)
+        Portafinestra 2 ante (L=1000;A=2200;)
+      ` },
+      { sourceId: "dop-tre-posizioni", kind: "third_party_certificate", certificateScope: "installed_windows", text: `
+        DICHIARAZIONE di PRESTAZIONE
+        9. prestazione dichiarata:
+        POS. CODICE 9.1 9.2 9.3 9.4 9.5 9.6 9.7 9.8 a 9.9
+        1 F_A 8A - C5/B5 - - - 1,28W/m2K - 4
+        2 F_B 8A - C5/B5 - - - 1,22W/m2K - 4
+        3 F_C 8A - C5/B5 - - - 1,20W/m2K - 4
+        Legenda: 9.1 Tenuta all'acqua, 9.7 Trasmittanza termica, 9.9 Permeabilità all'aria
+      ` },
+    ]);
+    expect(result).toMatchObject({ status: "operator_required", evidence: null, blockers: ["infissi_numbered_dop_thermal_column_invoice_binding_unresolved"] });
+  });
+
+  it("etichette abbreviate complete estratte", () => {
+    const result = extractAprInfissiAutomaticTechnicalEvidence([{ sourceId: "etichette-uw", kind: "third_party_certificate", certificateScope: "installed_windows", text: `
+EN 14351-1:2016
+posizione: 01 numero: 1/2
+Portafinestra 2 ante L: 1485 mm H: 2434 mm
+Trasm. termica: 1,2 W/m²K
+\fEN 14351-1:2016
+posizione: 01 numero: 2/2
+Portafinestra 2 ante L: 1485 mm H: 2434 mm
+Trasm. termica: 1,2 W/m²K
+    ` }]);
+    expect(result).toMatchObject({ status: "ready", blockers: [], audit: { selectedParser: "abbreviated-thermal-product-label" } });
+    expect(result.evidence?.rows).toHaveLength(1);
+    expect(result.evidence?.rows.every((item) => item.thermalTransmittanceWm2K === 1.2)).toBe(true);
+  });
+
+  it("etichette abbreviate discordanti nella stessa posizione restano fail-closed", () => {
+    const result = extractAprInfissiAutomaticTechnicalEvidence([{ sourceId: "etichette-conflict", kind: "third_party_certificate", certificateScope: "installed_windows", text: `
+EN 14351-1:2016
+posizione: 01 numero: 1/2
+Portafinestra 2 ante L: 1485 mm H: 2434 mm
+Trasm. termica: 1,2 W/m²K
+\fEN 14351-1:2016
+posizione: 01 numero: 2/2
+Portafinestra 2 ante L: 1485 mm H: 2434 mm
+Trasm. termica: 1,3 W/m²K
+    ` }]);
+    expect(result).toMatchObject({ status: "operator_required", evidence: null, blockers: ["infissi_abbreviated_thermal_label_position_conflict"] });
+  });
+
+  it("etichette abbreviate con pagina mancante restano fail-closed", () => {
+    const result = extractAprInfissiAutomaticTechnicalEvidence([{ sourceId: "etichette-incomplete", kind: "third_party_certificate", certificateScope: "installed_windows", text: `
+EN 14351-1:2016
+posizione: 01 numero: 1/3
+Portafinestra 2 ante L: 1485 mm H: 2434 mm
+Trasm. termica: 1,2 W/m²K
+\fEN 14351-1:2016
+posizione: 01 numero: 3/3
+Portafinestra 2 ante L: 1485 mm H: 2434 mm
+Trasm. termica: 1,2 W/m²K
+    ` }]);
+    expect(result).toMatchObject({ status: "operator_required", evidence: null, blockers: ["infissi_abbreviated_thermal_label_page_sequence_incomplete"] });
   });
 
   it("il prefisso 'N°<n>' cattura anche quantita' maggiori di 1 per riga, non solo il default", () => {
@@ -550,5 +643,64 @@ Vista interna
     ]);
     expect(result).toMatchObject({ status: "ready", evidence: { sourceIds: ["fattura"] } });
     expect(result.audit.excludedSources).toContainEqual(expect.objectContaining({ sourceId: "certificato-rimossi", reason: "removed_window_certificate_not_installed_product_source" }));
+  });
+
+  it("regressione Capatti: somma i pezzi espliciti N. q davanti a L/H invece di contare le righe", () => {
+    const result = extractAprInfissiAutomaticTechnicalEvidence([{ sourceId: "fattura-capatti", kind: "invoice", text: `
+      Fornitura e posa di serramenti.
+      N. 01 L 1400 X 2300 H
+      N. 01 L 1180 X 1410 H
+      N. 02 L 620 X 2300 H
+      N. 02 L 1180 X 1260 H
+      N. 01 L 680 X 1420 H
+    ` }]);
+    expect(result.status).toBe("ready");
+    expect(result.evidence?.rows.map((item) => item.quantity)).toEqual([1, 1, 2, 2, 1]);
+    expect(result.evidence?.rows.reduce((sum, item) => sum + item.quantity, 0)).toBe(7);
+    expect(result.audit.appliedRuleIds).toContain(USER_AUTHORIZED_RULE_IDS.infissiExplicitLineQuantityCardinality);
+  });
+
+  it("regressione Capatti end-to-end: la firma unica di fattura con sette pezzi prevale sulle misure diverse del certificato", () => {
+    const result = extractAprInfissiAutomaticTechnicalEvidence([
+      { sourceId: "fattura-capatti", kind: "invoice", text: `
+        Fornitura e posa di serramenti.
+        N. 01 L 1400 X 2300 H
+        N. 01 L 1180 X 1410 H
+        N. 02 L 620 X 2300 H
+        N. 02 L 1180 X 1260 H
+        N. 01 L 680 X 1420 H
+      ` },
+      { sourceId: "certificato-capatti", kind: "third_party_certificate", certificateScope: "installed_windows", text: `
+        Finestra dimensioni: 1410 x 2310, Pezzi: 1, Trasmittanza termica 1,20 W/m2K
+        Finestra dimensioni: 1190 x 1420, Pezzi: 1, Trasmittanza termica 1,21 W/m2K
+        Finestra dimensioni: 630 x 2310, Pezzi: 1, Trasmittanza termica 1,22 W/m2K
+        Finestra dimensioni: 640 x 2320, Pezzi: 1, Trasmittanza termica 1,23 W/m2K
+        Finestra dimensioni: 1190 x 1270, Pezzi: 1, Trasmittanza termica 1,24 W/m2K
+        Finestra dimensioni: 1200 x 1280, Pezzi: 1, Trasmittanza termica 1,25 W/m2K
+        Finestra dimensioni: 690 x 1430, Pezzi: 1, Trasmittanza termica 1,26 W/m2K
+      ` },
+    ], { requirePracticeBinding: true });
+
+    expect(result).toMatchObject({
+      status: "ready",
+      evidence: { kind: "invoice", sourceIds: ["fattura-capatti"] },
+      blockers: [],
+      audit: { selectedSourceId: "fattura-capatti", invoiceDimensionAuthorityApplied: true },
+    });
+    expect(result.evidence?.rows.reduce((sum, item) => sum + item.quantity, 0)).toBe(7);
+  });
+
+  it("resta fail-closed se fattura e certificato discordano sulla cardinalita fisica", () => {
+    const result = extractAprInfissiAutomaticTechnicalEvidence([
+      { sourceId: "fattura", kind: "invoice", text: "Finestra dimensioni: 1000 x 1200, Pezzi: 1" },
+      { sourceId: "certificato", kind: "third_party_certificate", certificateScope: "installed_windows", text: "Finestra dimensioni: 1000 x 1200, Pezzi: 2, Trasmittanza termica 1,2 W/m2K" },
+    ], { requirePracticeBinding: true });
+
+    expect(result).toMatchObject({
+      status: "operator_required",
+      evidence: null,
+      blockers: ["infissi_automatic_source_conflict"],
+      audit: { invoiceDimensionAuthorityApplied: false },
+    });
   });
 });

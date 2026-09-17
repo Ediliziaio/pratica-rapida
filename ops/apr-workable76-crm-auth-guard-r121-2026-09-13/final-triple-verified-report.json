@@ -1,0 +1,107 @@
+{
+  "version": "apr-workable76-r121-final-triple-verified-v1",
+  "runId": "apr-workable76-crm-auth-guard-r121-20260913",
+  "startedAt": "2026-09-13T08:39:20.188Z",
+  "endedAt": "2026-09-13T12:32:32.574Z",
+  "durationSeconds": 13992.386,
+  "processed": 76,
+  "total": 76,
+  "rawRunnerCounts": {
+    "saved": 48,
+    "operatorRequired": 7,
+    "technicalBlock": 14,
+    "inconsistent": 7
+  },
+  "tripleVerifiedCounts": {
+    "saved": 47,
+    "operatorRequired": 7,
+    "technicalBlock": 12,
+    "inconsistent": 10
+  },
+  "verificationRule": "checkpoint persistente + report/blocker persistente + dashboard /api/case-truth; ogni divergenza e classificata esclusivamente INCONSISTENT",
+  "runnerCountAdjustments": [
+    {
+      "customerKey": "milena-albertoni",
+      "runnerState": "saved",
+      "verifiedState": "inconsistent",
+      "reason": "Runner e checkpoint dichiarano SAVED, dashboard dichiara BLOCKED per impianto termico esistente."
+    },
+    {
+      "customerKey": "gemma-minore",
+      "runnerState": "technical_block",
+      "verifiedState": "inconsistent",
+      "reason": "Controller esterno registra timeout, report individuale resta WORKING e dashboard attribuisce un diverso errore alla revisione trasmittanze."
+    },
+    {
+      "customerKey": "danila-serpa",
+      "runnerState": "technical_block",
+      "verifiedState": "inconsistent",
+      "reason": "Runner registra il rifiuto del comune di nascita, dashboard pubblica blocker distinti su dimensioni/cardinalita e chiusure oscuranti."
+    }
+  ],
+  "lastSix": [
+    {
+      "index": 71,
+      "customerKey": "filippo-bigalli",
+      "displayName": "Filippo Bigalli",
+      "verifiedState": "saved",
+      "draftId": "490867",
+      "statement": "Nessun problema: bozza TEST completa e dashboard READY."
+    },
+    {
+      "index": 72,
+      "customerKey": "alessandro-zaniboni",
+      "displayName": "Alessandro Zaniboni",
+      "verifiedState": "saved",
+      "draftId": "490872",
+      "statement": "Nessun problema: bozza TEST completa e dashboard READY."
+    },
+    {
+      "index": 73,
+      "customerKey": "rocco-giacotto",
+      "displayName": "Rocco Giacotto",
+      "verifiedState": "saved",
+      "draftId": "490873",
+      "statement": "Nessun problema: bozza TEST completa e dashboard READY."
+    },
+    {
+      "index": 74,
+      "customerKey": "paolino-bellini",
+      "displayName": "Paolino Bellini",
+      "verifiedState": "inconsistent",
+      "draftId": "490875",
+      "statement": "Esito non dimostrabile dopo l'unico recupero autorizzato cdp-server-22-082d82bbd4cbc72538d1."
+    },
+    {
+      "index": 75,
+      "customerKey": "gabriele-girelli",
+      "displayName": "Gabriele Girelli",
+      "verifiedState": "inconsistent",
+      "draftId": null,
+      "statement": "Le fonti non concordano sulla risposta relativa alle chiusure oscuranti."
+    },
+    {
+      "index": 76,
+      "customerKey": "silvia-lomartire",
+      "displayName": "Silvia Lomartire",
+      "verifiedState": "operator_required",
+      "draftId": null,
+      "statement": "Form cliente originario assente e misure primarie della schermatura mancanti; dashboard registra inoltre CF non valido, nessun prodotto riconciliato e totale di un documento fiscale non riconosciuto.",
+      "missingDocumentType": "form cliente originario e documento primario con misure della schermatura",
+      "operatorQuestion": "Puoi inserire il form cliente originario e un documento del fornitore che riporti le misure fisiche della schermatura?"
+    }
+  ],
+  "safety": {
+    "previewAttempted": false,
+    "submitAttempted": false,
+    "communicationsAttempted": false
+  },
+  "sourceArtifacts": {
+    "runReport": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-workable76-crm-auth-guard-r121-20260913/report.json",
+    "runReportSha256": "ce9479586d540f6c6d261a700b662563ad5d8068fd004ded461a551a27870e73",
+    "checkpoint": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-workable76-crm-auth-guard-r121-20260913/checkpoint.json",
+    "checkpointSha256": "a8d689e6f1c0838391947ce661182f58a9aec18092e8cd7cb62a4adf4b413450",
+    "manifest": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-workable76-r111-2026-09-11/manifest.json",
+    "manifestSha256": "4be8287c7ec661404fc5d2b13b5e8bd1f492d876c6f6793ed3b374e8d2a54210"
+  }
+}

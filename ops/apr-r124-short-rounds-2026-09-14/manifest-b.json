@@ -1,0 +1,35 @@
+{
+  "version": "apr-r124-short-round-b-manifest-v1",
+  "generatedAt": "2026-09-14T09:41:05.588Z",
+  "authorizationId": "user-2026-09-14-two-short-rounds-a-and-b-v1",
+  "selection": {
+    "total": 7,
+    "description": "Le sette pratiche nominate da Giuliano, verificate con GET autenticato e univoco nella pipeline Pronte da fare.",
+    "allowedStages": ["pronte_da_fare"],
+    "excludedCustomerKeys": ["beatrice-ciotta", "samuele-beretta"]
+  },
+  "safety": {
+    "draftOnly": true,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false,
+    "priorDraftPolicy": "preserve_and_ignore_for_new_test_draft"
+  },
+  "sourceEvidence": {
+    "type": "crm_named_selection_readonly",
+    "sourceEvidenceId": "crm-named-selection-45ccc32a8cf1e67a8dde",
+    "responseSha256": "e22a537887ad4ffe1076d0105433e57c2e54c0b89e01a0af8bc3a3bbfa975acc",
+    "observedAt": "2026-09-14T09:41:05.588Z",
+    "externalActionAllowed": false,
+    "mutationAllowed": false
+  },
+  "cases": [
+    {"cohort":1,"practiceId":"79e9b61d-deab-4e5e-84c0-f3a113298f94","customerKey":"fabio-benvenuti","displayName":"Fabio Benvenuti","stage":"pronte_da_fare","stageName":"Pronte da fare","module":"screening","productEvidence":"Schermature Solari","historicalRetest":false,"sourceGroup":"giuliano_new_seven","reacquireBeforeReplay":true},
+    {"cohort":2,"practiceId":"2154ab7b-f179-4c05-bfb6-cc5af6a77c43","customerKey":"gianfranco-zanetti","displayName":"Gianfranco Zanetti","stage":"pronte_da_fare","stageName":"Pronte da fare","module":"screening","productEvidence":"Schermature Solari","historicalRetest":false,"sourceGroup":"giuliano_new_seven","reacquireBeforeReplay":true},
+    {"cohort":3,"practiceId":"a314dde6-527c-46a5-8d0c-a2c89c0a0569","customerKey":"daniele-formentini","displayName":"Daniele Formentini","stage":"pronte_da_fare","stageName":"Pronte da fare","module":"screening","productEvidence":"Schermature Solari","historicalRetest":false,"sourceGroup":"giuliano_new_seven","reacquireBeforeReplay":true},
+    {"cohort":4,"practiceId":"6a4147fe-4ca6-4ce1-af23-306c026fc705","customerKey":"andrea-celi","displayName":"Andrea Celi","stage":"pronte_da_fare","stageName":"Pronte da fare","module":"screening","productEvidence":"Schermature Solari","historicalRetest":false,"sourceGroup":"giuliano_new_seven","reacquireBeforeReplay":true},
+    {"cohort":5,"practiceId":"c9ab421e-adc7-4b72-8c43-237869fdadbc","customerKey":"gabriele-malossi","displayName":"GABRIELE MALOSSI","stage":"pronte_da_fare","stageName":"Pronte da fare","module":"screening","productEvidence":"Schermature Solari","historicalRetest":false,"sourceGroup":"giuliano_new_seven","reacquireBeforeReplay":true},
+    {"cohort":6,"practiceId":"272f370a-aba5-48b5-8e9f-6cebad5639f3","customerKey":"anthony-pool-juscamaita-fuertes","displayName":"Anthony Pool Juscamaita Fuertes","stage":"pronte_da_fare","stageName":"Pronte da fare","module":"infissi","productEvidence":"Infissi / Serramenti","historicalRetest":true,"sourceGroup":"giuliano_new_seven","reacquireBeforeReplay":true},
+    {"cohort":7,"practiceId":"6f94e990-e371-4128-88ac-9b0cbdf1b09a","customerKey":"mario-spano","displayName":"Mario Spano","stage":"pronte_da_fare","stageName":"Pronte da fare","module":"infissi","productEvidence":"Infissi / Serramenti","historicalRetest":true,"sourceGroup":"giuliano_new_seven","reacquireBeforeReplay":true}
+  ]
+}

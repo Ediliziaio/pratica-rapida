@@ -56,6 +56,7 @@ export interface EneaLabDocumentResult {
   itemCount: number;
   documentNumber?: string;
   documentDate?: string;
+  documentTypeRuleId?: string;
   message?: string;
 }
 

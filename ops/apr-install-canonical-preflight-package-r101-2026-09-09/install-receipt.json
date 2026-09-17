@@ -1,0 +1,26 @@
+{
+  "version": "apr-install-bundle-cli-receipt-v1",
+  "installedAt": "2026-09-09T14:15:40.697Z",
+  "label": "canonical-preflight-package-r101",
+  "versionId": "49cddcde-canonical-preflight-package-r101-20260909",
+  "previousTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/4ab39992-contractual-reliability-r100-20260909",
+  "currentTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/49cddcde-canonical-preflight-package-r101-20260909",
+  "installedBundle": {
+    "apr-supervisor.mjs": "4c7fdba4eb4d46592586f8cfd1f8cf2bbb101c4a42cdd70ab298be1a8ff0f08c",
+    "apr-enea-worker.mjs": "0293dd267b0d2c73ab93575a22866ff2e71dd09ca220418b647877b054fcd589",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "apr-rule-governance-attestation.json": "476810888ee71f915ad67198042b8d020af5ae91c2ae9117ea4d25d2bd679e21"
+  },
+  "gateResultArtifactId": "c7e2df84d535bed948f65ea4851bed0f5bb219d4ce78a9e3cc54655af00fec88",
+  "gateStatus": "PASS",
+  "governanceAttestation": {
+    "path": "apr-rule-governance-attestation.json",
+    "sha256": "476810888ee71f915ad67198042b8d020af5ae91c2ae9117ea4d25d2bd679e21",
+    "historicalAuditReport": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-canonical-preflight-package-r101-2026-09-09/historical-audit-report-r101.json",
+    "authorizedHistoricalGap": true
+  },
+  "legacyGovernanceDebtNoticed": [
+    "user-2026-09-05-co-beneficiary-trusted-enter-delivery-v2",
+    "user-2026-09-05-terminal-cohort-browser-quiescence-v1"
+  ]
+}

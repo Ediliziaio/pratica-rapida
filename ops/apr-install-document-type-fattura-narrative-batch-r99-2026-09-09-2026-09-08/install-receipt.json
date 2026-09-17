@@ -1,0 +1,20 @@
+{
+  "version": "apr-install-bundle-cli-receipt-v1",
+  "installedAt": "2026-09-08T23:57:25.451Z",
+  "label": "document-type-fattura-narrative-batch-r99-2026-09-09",
+  "versionId": "e7587c94-document-type-fattura-narrative-batch-r99-2026-09-09-20260908",
+  "previousTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/58161914-historical-gap-governance-r98-20260908",
+  "currentTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/e7587c94-document-type-fattura-narrative-batch-r99-2026-09-09-20260908",
+  "installedBundle": {
+    "apr-supervisor.mjs": "5d3d32f389030b0a9893610dc67ad8c7c33fd17c5dd1241ce1ec7ae3f542c684",
+    "apr-enea-worker.mjs": "84b19a9055a5d8d621a9c50735fb32acee69b216c9a27aab4dbdf141a6bdecfb",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0"
+  },
+  "gateResultArtifactId": "fe18dfe92a7883b612646d1489fd4ecd8059cdc2659dd91c9697e20027999fa6",
+  "gateStatus": "PASS",
+  "governanceAttestation": null,
+  "legacyGovernanceDebtNoticed": [
+    "user-2026-09-05-co-beneficiary-trusted-enter-delivery-v2",
+    "user-2026-09-05-terminal-cohort-browser-quiescence-v1"
+  ]
+}

@@ -6,13 +6,16 @@ import { registryRule } from "../../src/features/enea-shadow-crm/operationalRegi
 // Incrementare la versione quando cambia la classificazione dei blocker: il
 // checkpoint precedente deve essere rigiocato, non riusato con una semantica
 // ormai superata.
-export const APR_DEEP_CASE_REVIEW_VERSION = "apr-deep-case-review-v4" as const;
+export const APR_DEEP_CASE_REVIEW_VERSION = "apr-deep-case-review-v5" as const;
 export const APR_DEEP_REVIEW_RULE_IDS = Object.freeze([
   "system-apr-deep-review-before-operator",
   "system-apr-technical-repair-queue",
   "system-apr-learning-closure-gate",
   "system-atomic-checkpoint-resume",
+  "system-preflight-upstream-terminal-propagation-v1",
 ] as const);
+
+const UPSTREAM_PREFLIGHT_TERMINALIZATION_RULE_ID = "system-preflight-upstream-terminal-propagation-v1";
 
 export type DeepReviewClassification = "AUTO_RESOLVED" | "TECHNICAL_REPAIR" | "OPERATOR_REQUIRED" | "BUSINESS_RULE_REQUIRED";
 export type DeepReviewItemState = "queued" | "reviewing" | "auto_resolved" | "technical_repair" | "operator_required" | "business_rule_required";
@@ -30,6 +33,7 @@ export const TECHNICAL_REPAIR_BLOCKER_CODES = new Set([
   "completion_date_missing",
   "draft_payload_mapping_incomplete",
   "gross_triple_reconciliation_failed",
+  "invoice_final_printed_total_not_verified",
   "infissi_dimensions_and_cardinality_missing",
   "infissi_financial_triple_reconciliation_required",
   "screenings_missing",
@@ -52,6 +56,11 @@ export const OPERATOR_EVIDENCE_BLOCKER_CODES = new Set([
   "original_invoice_missing_or_unavailable",
   "screening_primary_measurements_missing",
   "product_cardinality_form_invoice_mismatch",
+  "crm_practice_exact_match_not_found",
+  "crm_practice_identity_ambiguous",
+  "crm_readonly_acquisition_invalid_response",
+  "permanent_supplier_automation_exclusion",
+  "permanent_customer_automation_exclusion",
 ]);
 
 function normalizedCode(code: string) {
@@ -147,6 +156,15 @@ function blockerRows(report: Json | null) {
   return array(report?.blockers).map((value) => object(value)).filter(Boolean) as Json[];
 }
 
+function isUpstreamTerminalReport(report: Json | null) {
+  const blockers = blockerRows(report);
+  return blockers.length > 0 && blockers.every((blocker) => array(blocker.appliedRuleIds).map(text).includes(UPSTREAM_PREFLIGHT_TERMINALIZATION_RULE_ID));
+}
+
+function isUpstreamTerminalSource(source: Json | null | undefined) {
+  return Boolean(source?.state === "blocked_case" && isUpstreamTerminalReport(object(source.report)));
+}
+
 function commonReportDocumentsScreening(report: Json | null) {
   return blockerRows(report).some((blocker) => text(blocker.code).startsWith("screening_") || /^screenings(?:\.|$)/.test(text(blocker.field)));
 }
@@ -206,9 +224,10 @@ function buildEvidencePasses(item: DeepReviewItem, documentState: Json | null, r
   const extractionModes = [...new Set(analyzed.map((document) => text(document.extractionMode)).filter(Boolean))];
   const multipage = analyzed.filter((document) => Number(document.pageCount) > 1).length;
   const rules = matchedRules(report);
+  const upstreamTerminal = isUpstreamTerminalReport(report);
   return [
     { id: "source_inventory", ok: existsSync(item.dossierPath) && sourceIds.length > 0, detail: `${sourceIds.length} fonti referenziate; dossier ${existsSync(item.dossierPath) ? "presente" : "assente"}.`, sourceIds },
-    { id: "document_extraction", ok: analyzed.length > 0, detail: `${analyzed.length}/${documents.length} documenti analizzati; metodi=${extractionModes.join(",") || "nessuno"}; multipagina=${multipage}.`, sourceIds: analyzed.map((document) => text(document.documentKey)).filter(Boolean) },
+    { id: "document_extraction", ok: analyzed.length > 0 || (upstreamTerminal && documents.length === 0), detail: upstreamTerminal && documents.length === 0 ? "Assenza di documenti attestata a monte prima dell'estrazione; nessuna analisi documentale applicabile." : `${analyzed.length}/${documents.length} documenti analizzati; metodi=${extractionModes.join(",") || "nessuno"}; multipagina=${multipage}.`, sourceIds: analyzed.map((document) => text(document.documentKey)).filter(Boolean) },
     { id: "rule_replay", ok: rules.length > 0, detail: `${rules.length} regole registrate abbinate al report; nessuna nuova regola business inventata.`, sourceIds: rules },
   ];
 }
@@ -238,12 +257,14 @@ export class PersistentAprDeepCaseReview {
     const seed = readJson(path.join(this.rootDirectory, "cohort-seed", "checkpoint.json"));
     const common = readJson(path.join(this.rootDirectory, "crm-local-preflight", "checkpoint.json"));
     const infissi = readJson(path.join(this.rootDirectory, "infissi-batch-preflight", "checkpoint.json"));
-    if (!seed || common?.status !== "completed" || (infissi && infissi.status !== "completed") || !array(seed.candidates).length) return current;
+    if (!seed || common?.status !== "completed" || !array(seed.candidates).length) return current;
     const commonByKey = new Map(array(common.items).map((value) => object(value)).filter(Boolean).map((item) => [text(item!.customerKey), item!]));
     const infissiByKey = new Map(array(infissi?.items).map((value) => object(value)).filter(Boolean).map((item) => [text(item!.customerKey), item!]));
     const replay = readJson(path.join(this.rootDirectory, "learning-replay", "checkpoint.json"));
     const routedModuleByKey = new Map(array(replay?.cases).map((value) => object(value)).filter(Boolean).map((item) => [text(item!.customerKey), text(item!.productModule)]));
     const candidates = array(seed.candidates).map((value) => object(value)).filter(Boolean) as Json[];
+    const allCandidatesUpstreamTerminal = candidates.every((candidate) => isUpstreamTerminalSource(commonByKey.get(text(candidate.customerKey))));
+    if (infissi && infissi.status !== "completed" && !allCandidatesUpstreamTerminal) return current;
     const blocked = candidates.flatMap((candidate) => {
       const customerKey = text(candidate.customerKey);
       const routedModule = routedModuleByKey.get(customerKey);
@@ -255,7 +276,9 @@ export class PersistentAprDeepCaseReview {
           : infissiSource ? "infissi"
             : commonReportDocumentsScreening(commonReport) ? "screening"
               : candidate.productModule === "infissi" ? "infissi" : "screening";
-      const sources = module === "mixed" ? [commonSource, infissiSource] : module === "infissi" ? [infissiSource] : [commonSource];
+      const sources = isUpstreamTerminalSource(commonSource)
+        ? [commonSource]
+        : module === "mixed" ? [commonSource, infissiSource] : module === "infissi" ? [infissiSource] : [commonSource];
       const blockedSources = sources.filter((source): source is Json => Boolean(source && source.state === "blocked_case" && object(source.report)));
       if (!blockedSources.length) return [];
       const source = blockedSources[0]; const report = mergedReports(blockedSources.map((item) => object(item.report)))!;
@@ -287,7 +310,9 @@ export class PersistentAprDeepCaseReview {
     const documents = readJson(path.join(this.rootDirectory, "crm-document-analysis", "checkpoint.json"));
     const commonSource = array(common?.items).map((value) => object(value)).find((value) => text(value?.customerKey) === reviewing.customerKey) ?? null;
     const infissiSource = array(infissi?.items).map((value) => object(value)).find((value) => text(value?.customerKey) === reviewing.customerKey) ?? null;
-    const sources = reviewing.productModule === "mixed" ? [commonSource, infissiSource] : reviewing.productModule === "infissi" ? [infissiSource] : [commonSource];
+    const sources = isUpstreamTerminalSource(commonSource)
+      ? [commonSource]
+      : reviewing.productModule === "mixed" ? [commonSource, infissiSource] : reviewing.productModule === "infissi" ? [infissiSource] : [commonSource];
     const report = mergedReports(sources.filter((source) => source?.state === "blocked_case").map((source) => object(source?.report)));
     const technical = reviewing.blockerCodes.filter((code) => codeKind(code) === "technical");
     const operator = reviewing.blockerCodes.filter((code) => codeKind(code) === "operator");
@@ -295,7 +320,9 @@ export class PersistentAprDeepCaseReview {
     const classification: DeepReviewClassification = operator.length ? "OPERATOR_REQUIRED" : business.length ? "BUSINESS_RULE_REQUIRED" : technical.length ? "TECHNICAL_REPAIR" : "AUTO_RESOLVED";
     const next = structuredClone(current); const item = next.items.find((candidate) => candidate.customerKey === reviewing.customerKey)!; next.revision += 1; next.currentCustomerKey = null; item.classification = classification; item.state = classification.toLowerCase() as DeepReviewItemState; item.technicalRepairCodes = technical; item.operatorCodes = operator; item.businessRuleCodes = business; item.matchedRuleIds = matchedRules(report); item.evidencePasses = buildEvidencePasses(item, documents, report); item.endedAt = now.toISOString();
     item.reason = classification === "TECHNICAL_REPAIR" ? `Le fonti sono presenti ma ${technical.join(", ")} richiede una correzione generale di estrazione/riconciliazione.` : classification === "OPERATOR_REQUIRED" ? `Resta necessaria una prova primaria o decisione operatore: ${operator.join(", ")}.` : classification === "BUSINESS_RULE_REQUIRED" ? `Manca una regola business autorizzata per: ${business.join(", ")}.` : "Le regole esistenti risolvono tutti i blocker senza nuovo valore.";
-    item.nextAction = classification === "TECHNICAL_REPAIR" ? "Accodare la riparazione tecnica generale; testare, installare e rieseguire lo stesso dossier." : classification === "OPERATOR_REQUIRED" ? questionFor(operator[0]) : classification === "BUSINESS_RULE_REQUIRED" ? `Richiedere una policy esplicita per ${business[0]}.` : "Riaccodare il preflight con la medesima fonte e una nuova revisione validata.";
+    const primaryOperatorBlocker = blockerRows(report).find((blocker) => text(blocker.code) === operator[0]);
+    const persistedOperatorQuestion = text(primaryOperatorBlocker?.operatorQuestion) || text(primaryOperatorBlocker?.question);
+    item.nextAction = classification === "TECHNICAL_REPAIR" ? "Accodare la riparazione tecnica generale; testare, installare e rieseguire lo stesso dossier." : classification === "OPERATOR_REQUIRED" ? persistedOperatorQuestion || questionFor(operator[0]) : classification === "BUSINESS_RULE_REQUIRED" ? `Richiedere una policy esplicita per ${business[0]}.` : "Riaccodare il preflight con la medesima fonte e una nuova revisione validata.";
     next.progress = progress(next.items); next.reason = `${item.displayName}: ${classification}.`; next.nextAction = next.items.some((candidate) => candidate.state === "queued" || candidate.state === "reviewing") ? "Proseguire con il caso successivo." : "Finalizzare il report di revisione profonda."; next.audit.push({ revision: next.revision, at: now.toISOString(), type: "classified", customerKey: item.customerKey, reason: `${classification}: ${item.reason}`, appliedRuleIds: [...new Set([...APR_DEEP_REVIEW_RULE_IDS, ...item.matchedRuleIds])] }); this.write(next);
     return next.items.some((candidate) => candidate.state === "queued" || candidate.state === "reviewing") ? next : this.complete(now);
   }

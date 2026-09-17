@@ -13,8 +13,11 @@ export interface AprInfissiEneaDraftPayload {
   physicalWindowCount: number;
   windows: ReadonlyArray<{
     physicalRowId: string;
-    widthM: number;
-    heightM: number;
+    /** Quote documentali, quando il certificato espone una coppia LxH.
+     * ENEA riceve la superficie; un serramento composto puo avere soltanto
+     * la superficie documentata, senza quote sintetiche inventate. */
+    widthM?: number;
+    heightM?: number;
     areaM2: number;
     sourceNewWindowThermalTransmittanceWm2K: number;
     newWindowThermalTransmittanceWm2K: number;
@@ -82,7 +85,7 @@ export function buildAprInfissiEneaDraftPayload(input: {
   if (!Number.isFinite(input.invoiceGrossTotal) || input.invoiceGrossTotal < 0) {
     throw new Error("infissi_invoice_total_invalid");
   }
-  if (input.productRules.eneaShadingClosuresChecked === null) {
+  if (!input.shadingClosureAllocation && input.productRules.eneaShadingClosuresChecked === null) {
     throw new Error("infissi_shading_closures_unresolved");
   }
   if (input.shadingClosureAllocation?.blocker) throw new Error("infissi_shading_closures_unresolved");
@@ -102,14 +105,34 @@ export function buildAprInfissiEneaDraftPayload(input: {
     addEvidence("oldWindowThermalTransmittanceWm2K", input.productRules.audit.oldWindowThermalTransmittance.source, USER_AUTHORIZED_RULE_IDS.infissiOldWindowTransmittanceMatrix);
     addEvidence("frameMaterial", input.productRules.audit.newFrameMaterialSource, USER_AUTHORIZED_RULE_IDS.infissiMaterialGlassFallbacks);
     addEvidence("glassType", input.productRules.audit.glassTypeSource, USER_AUTHORIZED_RULE_IDS.infissiMaterialGlassFallbacks);
-    const allocatedByInvoice = input.shadingClosureAllocation?.mode === "invoice_order_partial";
+    const allocatedByPortalOrder = input.shadingClosureAllocation?.mode === "portal_order_partial";
+    const firstWindowZanzariera = input.shadingClosureAllocation?.mode === "invoice_first_window_zanzariera";
+    const invoiceAuthoritative = input.shadingClosureAllocation?.mode === "invoice_all"
+      || input.shadingClosureAllocation?.mode === "invoice_none";
+    const documentedExplicitNo = input.shadingClosureAllocation?.mode === "technical_explicit_none";
     const shadingClosuresChecked = input.shadingClosureAllocation?.flags[index] ?? input.productRules.eneaShadingClosuresChecked!;
     addEvidence(
       "shadingClosuresChecked",
-      allocatedByInvoice
-        ? `invoice_order:${input.shadingClosureAllocation!.sourceIds.join(",")};closureCount=${input.shadingClosureAllocation!.documentedClosureCount};position=${index + 1}`
-        : input.productRules.audit.formSourceId ?? "form_source_missing",
-      allocatedByInvoice ? USER_AUTHORIZED_RULE_IDS.infissiShadingClosureInvoiceOrderAllocation : USER_AUTHORIZED_RULE_IDS.infissiShadingClosuresFromForm,
+      allocatedByPortalOrder
+        ? `portal_order:${input.shadingClosureAllocation!.sourceIds.join(",")};closureCount=${input.shadingClosureAllocation!.documentedClosureCount};position=${index + 1};closureMeasurements=not_applicable`
+        : firstWindowZanzariera
+          ? `invoice_first_window_zanzariera:${input.shadingClosureAllocation!.sourceIds.join(",")};position=${index + 1};checked=${shadingClosuresChecked}`
+        : invoiceAuthoritative
+          ? `invoice_authoritative:${input.shadingClosureAllocation!.sourceIds.join(",")};mode=${input.shadingClosureAllocation!.mode};closureCount=${input.shadingClosureAllocation!.documentedClosureCount};invoiceEvidenceComplete=${input.shadingClosureAllocation!.audit.invoiceEvidenceComplete}`
+        : documentedExplicitNo
+          ? `technical_explicit_none:${input.shadingClosureAllocation!.audit.explicitNoScreenSourceIds.join(",")};count=${input.shadingClosureAllocation!.audit.explicitNoScreenCount};invoiceClosureMentions=0`
+          : input.productRules.audit.formSourceId ?? "form_source_missing",
+      allocatedByPortalOrder
+        ? USER_AUTHORIZED_RULE_IDS.infissiClosureMeasurementsNotApplicable
+        : firstWindowZanzariera
+          ? USER_AUTHORIZED_RULE_IDS.zanzarieraFirstWindowAllocation
+        : invoiceAuthoritative
+          ? input.shadingClosureAllocation!.audit.appliedRuleIds.includes(USER_AUTHORIZED_RULE_IDS.zanzarieraInfissiInstallationContext)
+            ? USER_AUTHORIZED_RULE_IDS.zanzarieraInfissiInstallationContext
+            : USER_AUTHORIZED_RULE_IDS.infissiInvoiceAuthoritativeShadingClosures
+        : documentedExplicitNo
+          ? USER_AUTHORIZED_RULE_IDS.infissiExplicitNoScreenNegativeClosureEvidence
+          : USER_AUTHORIZED_RULE_IDS.infissiShadingClosuresFromForm,
     );
     return Object.freeze({
       physicalRowId: row.physicalRowId,
@@ -148,8 +171,9 @@ export function buildAprInfissiEneaDraftPayload(input: {
         USER_AUTHORIZED_RULE_IDS.infissiPortalTransmittanceOverMaxTo13,
         USER_AUTHORIZED_RULE_IDS.infissiOldWindowTransmittanceMatrix,
         USER_AUTHORIZED_RULE_IDS.infissiMaterialGlassFallbacks,
-        USER_AUTHORIZED_RULE_IDS.infissiShadingClosuresFromForm,
-        ...(input.shadingClosureAllocation?.mode === "invoice_order_partial" ? [USER_AUTHORIZED_RULE_IDS.infissiShadingClosureInvoiceOrderAllocation] : []),
+        ...(input.shadingClosureAllocation
+          ? input.shadingClosureAllocation.audit.appliedRuleIds
+          : [USER_AUTHORIZED_RULE_IDS.infissiShadingClosuresFromForm]),
         USER_AUTHORIZED_RULE_IDS.infissiPortalManagedEnergySavings,
       ]),
       fieldEvidence: Object.freeze(fieldEvidence),

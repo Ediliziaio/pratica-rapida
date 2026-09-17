@@ -1,0 +1,74 @@
+{
+  "version": "apr-resume-manifest-validation-v1",
+  "generatedAt": "2026-09-12T15:35:53.879Z",
+  "status": "PASS",
+  "source": {
+    "path": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-workable76-r111-2026-09-11/manifest.json",
+    "sha256": "4be8287c7ec661404fc5d2b13b5e8bd1f492d876c6f6793ed3b374e8d2a54210",
+    "count": 76
+  },
+  "output": {
+    "path": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-workable76-r111-2026-09-11/manifest-resume-26-plus-fioravanti.json",
+    "sha256": "f55dcffc73c8ece46f03bd2751e463a207fd43f93e292a926d656dc928252405",
+    "count": 27
+  },
+  "preservedCompletedSourceOrdinals": {
+    "first": 1,
+    "last": 41,
+    "retried": false
+  },
+  "groups": [
+    {
+      "id": "crm_session_expiry_replay",
+      "count": 9,
+      "sourceOrdinals": [
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50
+      ]
+    },
+    {
+      "id": "authorized_remaining_olteanu_plus_16",
+      "count": 17,
+      "sourceOrdinals": [
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63,
+        64,
+        65,
+        66,
+        67
+      ]
+    },
+    {
+      "id": "fioravanti_504_retry",
+      "count": 1,
+      "sourceOrdinals": [
+        35
+      ]
+    }
+  ],
+  "safety": {
+    "draftOnly": true,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false,
+    "priorDraftPolicy": "preserve_and_ignore_for_new_test_draft"
+  }
+}

@@ -1,0 +1,11 @@
+
+set timeout 15
+log_user 0
+if {[gets stdin secret] < 0} { exit 2 }
+spawn /usr/bin/security add-generic-password -U -a apr-crm-refresh-session -s it.praticarapida.apr.crm.session -w
+expect {
+  "password data for new item:" { send -- "$secret\r"; exp_continue }
+  "retype password for new item:" { send -- "$secret\r"; exp_continue }
+  eof { set result [wait]; exit [lindex $result 3] }
+  timeout { exit 3 }
+}

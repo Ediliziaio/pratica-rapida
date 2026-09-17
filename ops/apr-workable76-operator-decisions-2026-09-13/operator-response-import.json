@@ -1,0 +1,107 @@
+{
+  "version": "apr-operator-response-import-v1",
+  "responses": [
+    {
+      "responseId": "response:rule:gemma-minore:invoice-co-beneficiary-authority:20260913",
+      "customerKey": "gemma-minore",
+      "displayName": "Gemma Minore",
+      "practiceId": "51ec4e1a-2600-482b-9fde-6b3976bbdbc2",
+      "receivedAt": "2026-09-12T22:49:47.000Z",
+      "source": "giuliano_chat_decision",
+      "question": "Il cointestatario indicato soltanto nel form va riportato quando non compare nelle fatture?",
+      "answer": "No. La fattura comanda anche sul cointestatario: se nessuna fattura riporta un cointestatario, il cointestatario non esiste.",
+      "payload": {
+        "kind": "general_rule_confirmation",
+        "ruleIds": [
+          "user-2026-08-16-invoice-identity-over-customer-form"
+        ]
+      },
+      "status": "active",
+      "supersedesResponseId": null,
+      "appliedRuleIds": [
+        "user-2026-09-11-operator-response-runtime-consumption-v1",
+        "user-2026-08-16-invoice-identity-over-customer-form"
+      ]
+    },
+    {
+      "responseId": "response:disposition:maurizia-coreggioli:unreadable-manual-documents:20260913",
+      "customerKey": "maurizia-coreggioli",
+      "displayName": "Maurizia Coreggioli",
+      "practiceId": "81b4934a-3d6a-49ff-8f08-8d1400d55dff",
+      "receivedAt": "2026-09-12T22:49:47.000Z",
+      "source": "giuliano_chat_decision",
+      "question": "La pratica puo essere completata automaticamente dai documenti disponibili?",
+      "answer": "No. Il modulo cliente esiste, ma e scritto a mano ed e illeggibile per l'OCR; la pratica va lavorata manualmente.",
+      "payload": {
+        "kind": "case_disposition",
+        "disposition": "not_workable",
+        "reason": "Documenti presenti ma non leggibili automaticamente: il modulo cliente manoscritto e illeggibile per l'OCR. Richiesto intervento operatore per lavorazione manuale."
+      },
+      "status": "active",
+      "supersedesResponseId": null,
+      "appliedRuleIds": [
+        "user-2026-09-11-operator-response-runtime-consumption-v1"
+      ]
+    },
+    {
+      "responseId": "response:disposition:sabrina-eustomi:customer-withdrew:20260913",
+      "customerKey": "sabrina-eustomi",
+      "displayName": "Sabrina Eustomi",
+      "practiceId": "72e6b344-ce0c-4b50-83b6-113d38c31b11",
+      "receivedAt": "2026-09-12T22:49:47.000Z",
+      "source": "giuliano_chat_decision",
+      "question": "La pratica deve ancora essere lavorata da APR?",
+      "answer": "No. Dalle note risulta che la cliente ha rinunciato; la pratica resta nel CRM soltanto per memoria.",
+      "payload": {
+        "kind": "case_disposition",
+        "disposition": "not_workable",
+        "reason": "Cliente rinunciataria: dalle note CRM risulta che non vuole la pratica. Conservare la pratica per memoria e non elaborarla automaticamente."
+      },
+      "status": "active",
+      "supersedesResponseId": null,
+      "appliedRuleIds": [
+        "user-2026-09-11-operator-response-runtime-consumption-v1"
+      ]
+    },
+    {
+      "responseId": "response:disposition:andreea-ioana-olteanu:over-90-days:20260913",
+      "customerKey": "andreea-ioana-olteanu",
+      "displayName": "Andreea Ioana Olteanu",
+      "practiceId": "98e93993-e6ce-4fcc-9103-0362331feb4f",
+      "receivedAt": "2026-09-12T22:49:47.000Z",
+      "source": "giuliano_chat_decision",
+      "question": "La pratica e ancora procedibile entro il termine di legge?",
+      "answer": "No. La fine lavori supera i 90 giorni; la pratica non e lavorabile neppure manualmente e il rivenditore va avvisato.",
+      "payload": {
+        "kind": "case_disposition",
+        "disposition": "not_workable",
+        "reason": "Fine lavori oltre il termine legale di 90 giorni. Richiesto intervento operatore per informare il rivenditore; pratica esclusa dal denominatore di autonomia."
+      },
+      "status": "active",
+      "supersedesResponseId": null,
+      "appliedRuleIds": [
+        "user-2026-09-11-operator-response-runtime-consumption-v1"
+      ]
+    },
+    {
+      "responseId": "response:disposition:marco-de-marinis:over-90-days:20260913",
+      "customerKey": "marco-de-marinis",
+      "displayName": "Marco De Marinis",
+      "practiceId": "0e6c3b0f-f4d0-45f9-921a-6f3a23f713ee",
+      "receivedAt": "2026-09-12T22:49:47.000Z",
+      "source": "giuliano_chat_decision",
+      "question": "La pratica e ancora procedibile entro il termine di legge?",
+      "answer": "No. La fine lavori supera i 90 giorni; la pratica non e lavorabile neppure manualmente e il rivenditore va avvisato.",
+      "payload": {
+        "kind": "case_disposition",
+        "disposition": "not_workable",
+        "reason": "Fine lavori oltre il termine legale di 90 giorni. Richiesto intervento operatore per informare il rivenditore; pratica esclusa dal denominatore di autonomia."
+      },
+      "status": "active",
+      "supersedesResponseId": null,
+      "appliedRuleIds": [
+        "user-2026-09-11-operator-response-runtime-consumption-v1"
+      ]
+    }
+  ]
+}

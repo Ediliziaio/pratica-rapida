@@ -1,0 +1,12 @@
+{
+  "version": "apr-chat-question-delivery-ledger-v1",
+  "updatedAt": "2026-09-11T12:53:00.000Z",
+  "deliveredQuestionIds": [
+    "453599b00be3636e27ba9f371bbc6657467e6063371f031f9765bb12b5e74e93",
+    "21f5ed938bfc835f6d93d3cc8fd1c0893a83439a21017094d4ce3b49dfed4178"
+  ],
+  "reclassifiedAsLocalizationIssue": [
+    "453599b00be3636e27ba9f371bbc6657467e6063371f031f9765bb12b5e74e93",
+    "21f5ed938bfc835f6d93d3cc8fd1c0893a83439a21017094d4ce3b49dfed4178"
+  ]
+}

@@ -1,6 +1,6 @@
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http";
 import { createHash } from "node:crypto";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import type { AddressInfo } from "node:net";
 import path from "node:path";
 import { deriveDashboardOperationalStatus, renderDashboardHtml, writeLocalDashboard, writeStoppedAprOperationalDashboard } from "./dashboard";
@@ -21,11 +21,12 @@ import { constantTimeTokenMatch, PersistentAprCrmAuth } from "./crmAuth";
 import { aprDocumentProcessingDossiers, PersistentAprCrmAuthenticatedReadOnly } from "./crmAuthenticatedReadOnly";
 import { PersistentAprCrmOriginalDocuments } from "./crmOriginalDocuments";
 import { PersistentAprCrmDocumentAnalysis } from "./crmDocumentAnalysis";
-import { PersistentAprCrmLocalPreflight } from "./crmLocalPreflight";
+import { acquisitionCanTerminalizeWithoutDocuments, PersistentAprCrmLocalPreflight } from "./crmLocalPreflight";
 import { PersistentAprEneaDraftExecution } from "./eneaDraftExecution";
 import { PersistentAprEneaWorkerService } from "./aprEneaBrowserWorkerService";
 import { PersistentAprWatchdog } from "./aprWatchdog";
 import { PersistentAprOperatorQuestions, type OperatorAnswerValue } from "./operatorQuestions";
+import { PersistentAprOperatorQuestionDelivery } from "./operatorQuestionDelivery";
 import { PersistentAprOperatorUnlockRegistry } from "./operatorUnlockRegistry";
 import { PersistentAprUserDecisionRegistry } from "./userDecisionRegistry";
 import { PersistentAprCrmIntegrationWorkflow } from "./crmIntegrationWorkflow";
@@ -44,7 +45,7 @@ import { resolveAprCaseStatusTruth } from "./aprCaseStatusResolver";
 import { resolveAprCaseTruthMode, type AprCaseTruthMode } from "./aprCaseTruthMode";
 import { PersistentAprCheckpointMigrationTransaction, type AprCheckpointMigrationTransaction } from "./checkpointMigrationTransaction";
 import { supervise } from "./supervisor";
-import { PersistentAprTerminalObservability, sequencerTerminalIsCurrent } from "./aprTerminalObservability";
+import { PersistentAprTerminalObservability, sequencerTerminalIsCurrent, type AprTerminalObservabilitySnapshot } from "./aprTerminalObservability";
 import {
   SupervisorRuntimeStore,
   type SupervisorRuntimeState,
@@ -61,6 +62,7 @@ export interface LocalDashboardSupervisorOptions {
   caseTruthMode?: string;
   caseTruthComparisonScheduler?: (task: () => void) => void;
   checkpointMode?: AprCheckpointMode;
+  observerOnly?: boolean;
 }
 
 export type AprCheckpointMode = "resume" | "migrate";
@@ -75,6 +77,42 @@ export function resolveAprCheckpointMode(value: string | undefined): AprCheckpoi
 
 export function shouldRunCheckpointMigration(mode: AprCheckpointMode) {
   return mode === "migrate";
+}
+
+export function resolveDashboardTerminalObservabilityRoot(rootDirectory: string) {
+  const resolved = path.resolve(rootDirectory);
+  return path.basename(resolved) === "state" ? path.dirname(resolved) : resolved;
+}
+
+export function terminalSnapshotCustomerKey(snapshot: AprTerminalObservabilitySnapshot) {
+  if (snapshot.caseTruth?.customerKey) return snapshot.caseTruth.customerKey;
+  if (snapshot.aprStatus.currentCustomerKey) return snapshot.aprStatus.currentCustomerKey;
+  const seedPath = path.join(snapshot.cohortRoot, "cohort-seed", "checkpoint.json");
+  if (!existsSync(seedPath)) return null;
+  try {
+    const seed = JSON.parse(readFileSync(seedPath, "utf8")) as { candidates?: Array<{ customerKey?: string }> };
+    const keys = [...new Set((seed.candidates ?? []).map((candidate) => candidate.customerKey?.trim()).filter((key): key is string => Boolean(key)))];
+    return keys.length === 1 ? keys[0] : null;
+  } catch {
+    return null;
+  }
+}
+
+function terminalCaseTruthForCustomer(snapshot: AprTerminalObservabilitySnapshot | null, customerKey: string) {
+  if (!snapshot || terminalSnapshotCustomerKey(snapshot) !== customerKey) return null;
+  if (snapshot.caseTruth?.customerKey === customerKey) return snapshot.caseTruth;
+  return {
+    customerKey,
+    status: "INCONSISTENT" as const,
+    hasProblem: null,
+    blockerCount: 0,
+    blockerCodes: [] as string[],
+    statement: snapshot.aprStatus.consistency === "INCONSISTENT"
+      ? snapshot.aprStatus.reason
+      : "Snapshot terminale presente ma privo della verita caso strutturata; nessun verdetto attribuibile.",
+    reportBlockers: [] as Array<{ code: string; message?: string; question?: string }>,
+    terminalSnapshotId: snapshot.snapshotId,
+  };
 }
 
 interface AprCaseTruthRequestSnapshot {
@@ -219,6 +257,7 @@ export class LocalDashboardSupervisor {
   readonly eneaBrowserWorker: PersistentAprEneaWorkerService;
   readonly watchdog: PersistentAprWatchdog;
   readonly operatorQuestions: PersistentAprOperatorQuestions;
+  readonly operatorQuestionDelivery: PersistentAprOperatorQuestionDelivery;
   readonly operatorUnlockRegistry: PersistentAprOperatorUnlockRegistry;
   readonly userDecisionRegistry: PersistentAprUserDecisionRegistry;
   readonly crmIntegrationWorkflow: PersistentAprCrmIntegrationWorkflow;
@@ -231,6 +270,7 @@ export class LocalDashboardSupervisor {
   readonly deepCaseReview: PersistentAprDeepCaseReview;
   readonly caseTruthMode: AprCaseTruthMode;
   readonly checkpointMode: AprCheckpointMode;
+  readonly observerOnly: boolean;
   readonly caseTruthComparisonScheduler: (task: () => void) => void;
   readonly checkpointMigration: PersistentAprCheckpointMigrationTransaction;
   readonly terminalObservability: PersistentAprTerminalObservability;
@@ -246,6 +286,7 @@ export class LocalDashboardSupervisor {
   private crmDocumentAnalysisInFlight = false;
   private crmIncomingReadOnlyInFlight = false;
   private crmLiveProcessingInFlight = false;
+  private operatorQuestionDeliveryInFlight = false;
   private checkpointMigrationPending: boolean;
   private activeCheckpointMigration: AprCheckpointMigrationTransaction | null = null;
 
@@ -259,6 +300,7 @@ export class LocalDashboardSupervisor {
     this.now = options.now ?? (() => new Date());
     this.caseTruthMode = resolveAprCaseTruthMode(options.caseTruthMode ?? process.env.APR_CASE_TRUTH_MODE);
     this.checkpointMode = resolveAprCheckpointMode(options.checkpointMode ?? process.env.APR_CHECKPOINT_MODE);
+    this.observerOnly = options.observerOnly ?? false;
     this.checkpointMigrationPending = shouldRunCheckpointMigration(this.checkpointMode);
     this.caseTruthComparisonScheduler = options.caseTruthComparisonScheduler ?? ((task) => setImmediate(task));
     this.journal = new JournalStore(rootDirectory);
@@ -278,6 +320,8 @@ export class LocalDashboardSupervisor {
     this.eneaBrowserWorker = new PersistentAprEneaWorkerService(rootDirectory);
     this.watchdog = new PersistentAprWatchdog(rootDirectory, { instanceId: "dashboard-readonly-watchdog", processPid: process.pid, now: this.now });
     this.operatorQuestions = new PersistentAprOperatorQuestions(rootDirectory);
+    const testQuestionSink = process.env.NODE_ENV === "test" ? { deliver: async () => undefined } : undefined;
+    this.operatorQuestionDelivery = new PersistentAprOperatorQuestionDelivery(rootDirectory, { sink: testQuestionSink });
     this.operatorUnlockRegistry = new PersistentAprOperatorUnlockRegistry(rootDirectory);
     this.userDecisionRegistry = new PersistentAprUserDecisionRegistry(rootDirectory);
     this.crmIntegrationWorkflow = new PersistentAprCrmIntegrationWorkflow(rootDirectory);
@@ -289,7 +333,73 @@ export class LocalDashboardSupervisor {
     this.infissiBatchPreflight = new PersistentAprInfissiBatchPreflight(rootDirectory);
     this.deepCaseReview = new PersistentAprDeepCaseReview(rootDirectory);
     this.checkpointMigration = new PersistentAprCheckpointMigrationTransaction(rootDirectory);
-    this.terminalObservability = new PersistentAprTerminalObservability(rootDirectory);
+    this.terminalObservability = new PersistentAprTerminalObservability(resolveDashboardTerminalObservabilityRoot(rootDirectory));
+  }
+
+  private deliverOperatorQuestions(now: Date) {
+    if (this.operatorQuestionDeliveryInFlight) return;
+    this.operatorQuestionDeliveryInFlight = true;
+    void this.operatorQuestionDelivery.deliverOpen(this.operatorQuestions.snapshot(now), now)
+      .catch((error) => process.stderr.write(`OPERATOR_QUESTION_DELIVERY_ERROR: ${error instanceof Error ? error.message : String(error)}\n`))
+      .finally(() => { this.operatorQuestionDeliveryInFlight = false; });
+  }
+
+  private persistTerminalStoppedCaseQuestions(now: Date) {
+    const common = this.crmLocalPreflight.snapshot(now);
+    const infissi = this.infissiBatchPreflight.snapshot(now);
+    const deep = this.deepCaseReview.snapshot(now);
+    const execution = this.eneaDraftExecution.snapshot(now);
+    const analysis = this.crmDocumentAnalysis.snapshot(now);
+    const customerKeys = new Set([
+      ...common.items.map((item) => item.customerKey),
+      ...infissi.items.map((item) => item.customerKey),
+      ...deep.items.map((item) => item.customerKey),
+      ...execution.items.map((item) => item.customerKey),
+    ]);
+
+    for (const customerKey of customerKeys) {
+      const commonItem = common.items.find((item) => item.customerKey === customerKey);
+      const infissiItem = infissi.items.find((item) => item.customerKey === customerKey);
+      const deepItem = deep.items.find((item) => item.customerKey === customerKey);
+      const executionItem = execution.items.find((item) => item.customerKey === customerKey);
+      if (commonItem?.state === "deferred_operator" || executionItem?.state === "deferred_operator" || executionItem?.state === "saved") continue;
+
+      const deepTerminal = Boolean(deepItem && ["technical_repair", "operator_required", "business_rule_required"].includes(deepItem.state));
+      const executionTerminal = executionItem?.state === "operator_intervention";
+      if (!deepTerminal && !executionTerminal) continue;
+
+      const blockerCodes = new Set<string>();
+      const blockerReasons: Record<string, string> = {};
+      const sourceIds = new Set<string>();
+      const recordBlocker = (blocker: { code: string; reason?: string; exactCause?: string; sourceIds?: readonly string[] }) => {
+        if (!blocker.code) return;
+        blockerCodes.add(blocker.code);
+        const reason = blocker.reason?.trim() || blocker.exactCause?.trim();
+        if (reason && !blockerReasons[blocker.code]) blockerReasons[blocker.code] = reason;
+        for (const sourceId of blocker.sourceIds ?? []) if (sourceId.trim()) sourceIds.add(sourceId.trim());
+      };
+      if (commonItem?.state === "blocked_case") for (const blocker of commonItem.report?.blockers ?? []) recordBlocker(blocker);
+      if (infissiItem?.state === "blocked_case") for (const blocker of infissiItem.report?.blockers ?? []) recordBlocker(blocker);
+      for (const blocker of executionItem?.operatorGateBlockers ?? []) recordBlocker(blocker);
+      for (const code of deepItem?.blockerCodes ?? []) blockerCodes.add(code);
+
+      const acquiredDocuments = analysis.items.filter((item) => item.customerKey === customerKey);
+      for (const document of acquiredDocuments) sourceIds.add(document.documentKey);
+      const displayName = commonItem?.displayName ?? infissiItem?.displayName ?? deepItem?.displayName ?? executionItem?.displayName ?? customerKey;
+      this.operatorQuestions.persistStoppedCaseDisposition({
+        customerKey,
+        practiceId: commonItem?.practiceId ?? infissiItem?.practiceId ?? deepItem?.practiceId ?? executionItem?.practiceId ?? null,
+        displayName,
+        state: deepItem?.classification ?? executionItem?.state ?? commonItem?.state ?? infissiItem?.state ?? "unknown",
+        blockerCodes: [...blockerCodes],
+        blockerReasons,
+        executionState: executionItem?.state ?? null,
+        executionReason: executionItem?.reason ?? null,
+        persistedQuestionCount: 0,
+        documentsAcquired: acquiredDocuments.length > 0,
+        sourceIds: [...sourceIds],
+      }, now);
+    }
   }
 
   private captureCaseTruthRequestSnapshot(): AprCaseTruthRequestSnapshot {
@@ -375,7 +485,7 @@ export class LocalDashboardSupervisor {
     const eneaDraftExecution = this.eneaDraftExecution.snapshot(this.now());
     const eneaBrowserWorker = this.eneaBrowserWorker.snapshot(this.now());
     const watchdog = this.watchdog.load(this.now());
-    this.operatorUnlockRegistry.syncFromCrmWorkflow(this.crmIntegrationWorkflow.snapshot(this.now()), this.now());
+    if (!this.observerOnly) this.operatorUnlockRegistry.syncFromCrmWorkflow(this.crmIntegrationWorkflow.snapshot(this.now()), this.now());
     const operationalStatus = deriveDashboardOperationalStatus(snapshot, this.now(), eneaBrowserWorker, watchdog, eneaDraftExecution, crmLocalPreflight);
     const executionWorkerConsistent = executionWorkerObservationIsConsistent(eneaDraftExecution, eneaBrowserWorker.service.status);
     const preflightObservation = resolveTerminalPreflightObservation(eneaDraftExecution, crmLocalPreflight);
@@ -462,15 +572,17 @@ export class LocalDashboardSupervisor {
         workflows: state.queue.filter((job) => job.workflowTiming).map((job) => ({ practiceId: job.practice.id, displayName: job.practice.displayName, executionState: job.executionState, timing: job.workflowTiming })),
       },
     };
-    this.terminalObservability.publish({
-      observedAt: this.now().toISOString(),
-      terminal: lifecycleState !== "active",
-      lifecycleState,
-      aprStatus,
-      sourceRevisions: { journal: snapshot.revision, execution: eneaDraftExecution.revision, worker: eneaBrowserWorker.service.revision },
-      sourceFingerprints: { execution: eneaDraftExecution.sourceFingerprint, workerIdentity: eneaBrowserWorker.service.instanceId ?? null },
-      safety: { previewAllowed: false, submitAllowed: false, communicationsAllowed: false },
-    });
+    if (!this.observerOnly) {
+      this.terminalObservability.publish({
+        observedAt: this.now().toISOString(),
+        terminal: lifecycleState !== "active",
+        lifecycleState,
+        aprStatus,
+        sourceRevisions: { journal: snapshot.revision, execution: eneaDraftExecution.revision, worker: eneaBrowserWorker.service.revision },
+        sourceFingerprints: { execution: eneaDraftExecution.sourceFingerprint, workerIdentity: eneaBrowserWorker.service.instanceId ?? null },
+        safety: { previewAllowed: false, submitAllowed: false, communicationsAllowed: false },
+      });
+    }
     return payload;
   }
 
@@ -555,7 +667,9 @@ export class LocalDashboardSupervisor {
           source: { kind: "operator_answer", sourceId: questionId, observedAt: now.toISOString() },
           caseEvidence: { practiceId: null, customerKey: question.customerKey, generationId: null },
         }, now);
-        if (value !== "cannot_determine") {
+        if (value !== "cannot_determine" && question.kind !== "case_decision") {
+          if (question.payload.rawWidth === null || question.payload.rawHeight === null
+            || (value !== "millimeters" && value !== "centimeters")) throw new Error("operator_answer_measurement_not_resolved");
           this.crmLocalPreflight.applyOperatorMeasurementResolution({ questionId, customerKey: question.customerKey, sourceId: question.sourceIds[0], description: question.payload.description, rawWidth: question.payload.rawWidth, rawHeight: question.payload.rawHeight, unit: value, note: question.answer?.note ?? "", operatorId: question.answer?.operatorId ?? "dashboard-local-operator", commandId, answeredAt: question.answer?.answeredAt ?? now.toISOString() }, now);
           questions = this.operatorQuestions.markApplied(questionId, now);
         }
@@ -704,12 +818,13 @@ export class LocalDashboardSupervisor {
         const sequencerTerminal = sequencerTerminalIsCurrent(persistedTerminal, captured?.sources.execution, currentWorker)
           ? persistedTerminal
           : null;
-        const terminalCaseTruth = customerKey
+        const terminalSnapshot = customerKey
           ? this.terminalObservability.list()
-            .filter((snapshot) => snapshot.terminal && snapshot.aprStatus.source === "sequencer_finalizer" && snapshot.caseTruth?.customerKey === customerKey)
+            .filter((snapshot) => snapshot.terminal && terminalSnapshotCustomerKey(snapshot) === customerKey)
             .sort((left, right) => left.observedAt.localeCompare(right.observedAt))
-            .at(-1)?.caseTruth ?? null
+            .at(-1) ?? null
           : null;
+        const terminalCaseTruth = terminalCaseTruthForCustomer(terminalSnapshot, customerKey);
         // Il supervisore osservatore ha una root propria e non possiede i
         // checkpoint della coorte quiescente. In quel caso serve direttamente
         // la verita caso inclusa nello snapshot atomico del finalizzatore.
@@ -724,11 +839,11 @@ export class LocalDashboardSupervisor {
         }
         else if (this.caseTruthMode === "legacy") {
           sendJson(response, 200, legacyTruth);
-          this.scheduleCaseTruthComparison(customerKey, legacyTruth, captured!);
+          if (!this.observerOnly) this.scheduleCaseTruthComparison(customerKey, legacyTruth, captured!);
         } else {
           const unified = this.unifiedCaseTruth(customerKey, captured!);
           sendJson(response, 200, unified.truth);
-          this.scheduleCaseTruthComparison(customerKey, legacyTruth, captured!, unified);
+          if (!this.observerOnly) this.scheduleCaseTruthComparison(customerKey, legacyTruth, captured!, unified);
         }
       } else if (requestUrl.pathname === "/api/case-truth-comparison") {
         const store = new PersistentAprCaseTruthComparisonStore(this.rootDirectory);
@@ -761,7 +876,7 @@ export class LocalDashboardSupervisor {
       } else if (requestUrl.pathname === "/api/operator-questions") {
         sendJson(response, 200, this.operatorQuestions.snapshot(this.now()));
       } else if (requestUrl.pathname === "/api/operator-unlocks") {
-        this.operatorUnlockRegistry.syncFromCrmWorkflow(this.crmIntegrationWorkflow.snapshot(this.now()), this.now());
+        if (!this.observerOnly) this.operatorUnlockRegistry.syncFromCrmWorkflow(this.crmIntegrationWorkflow.snapshot(this.now()), this.now());
         sendJson(response, 200, this.operatorUnlockRegistry.snapshot(this.now(), requestUrl.searchParams.get("customerKey")?.trim() || undefined));
       } else if (requestUrl.pathname === "/api/crm-integration-workflow") {
         sendJson(response, 200, this.crmIntegrationWorkflow.snapshot(this.now()));
@@ -805,7 +920,28 @@ export class LocalDashboardSupervisor {
     }
   }
 
+  private writeObservedDashboard(state: ReturnType<JournalStore["load"]>, now: Date) {
+    const executionPlan = new PersistentExecutionPlanStore(this.rootDirectory).load();
+    const pilotSample = this.pilotSampleStore.snapshot(now);
+    writeLocalDashboard(this.rootDirectory, state, now, this.runtime, this.readinessStore.snapshot(now), this.adapterStore.snapshot(now),
+      executionPlan, localDossierDashboardSnapshot(this.rootDirectory),
+      new PersistentLocalDossierBatch(this.rootDirectory).report(), new PersistentRuleMatrixEvidence(this.rootDirectory).snapshot(),
+      this.crmReadOnlyAdapterStore.snapshot(now), pilotSample, this.notifications.snapshot(), this.crmAuth.snapshot(now), this.crmAcquisition.snapshot(now), this.crmDocuments.snapshot(now), this.crmDocumentAnalysis.snapshot(now), this.crmLocalPreflight.snapshot(now), this.eneaDraftExecution.snapshot(now), this.eneaBrowserWorker.snapshot(now), this.watchdog.load(now), this.operatorQuestions.snapshot(now), this.csrfToken, this.crmIntegrationWorkflow.snapshot(now), this.crmIncomingReadOnly.snapshot(now), this.crmLiveProcessing.snapshot(now), this.shadowComparison.snapshot(now), this.shadowControl.snapshot(now), this.infissiLocalMapping.snapshot(now), this.infissiBatchPreflight.snapshot(now), this.deepCaseReview.snapshot(now), this.operatorUnlockRegistry.snapshot(now), this.terminalObservability.load());
+  }
+
+  private observerPulse() {
+    const state = this.journal.load();
+    const now = this.now();
+    const snapshot = supervise(state, now);
+    this.runtime = this.runtimeStore.heartbeat(this.instanceId, state.revision, snapshot.health, now);
+    this.writeObservedDashboard(state, now);
+  }
+
   private pulse() {
+    if (this.observerOnly) {
+      this.observerPulse();
+      return;
+    }
     const state = this.journal.load();
     const now = this.now();
     this.operatorUnlockRegistry.syncFromCrmWorkflow(this.crmIntegrationWorkflow.snapshot(now), now);
@@ -821,7 +957,15 @@ export class LocalDashboardSupervisor {
     }
     this.crmAcquisition.applyRecordedOperatorResolutions(now);
     const acquired = this.crmAcquisition.snapshot(now);
-    if (acquired.status === "completed" && acquired.progress.acquired > 0) {
+    const terminalAcquisitionWithoutDocuments = acquired.status === "completed" && acquisitionCanTerminalizeWithoutDocuments(acquired.items);
+    if (terminalAcquisitionWithoutDocuments && !this.crmLocalPreflight.snapshot(now).sourceFingerprint) {
+      const terminalFingerprint = createHash("sha256").update(JSON.stringify({
+        candidateFingerprint: acquired.candidateFingerprint,
+        items: acquired.items.map((item) => ({ customerKey: item.customerKey, state: item.state, practiceId: item.practiceId, responseSha256: item.responseSha256, sourceDocumentCount: item.sourceDocumentCount, automationExclusion: item.automationExclusion ?? null })),
+      })).digest("hex");
+      this.crmLocalPreflight.prepareFromTerminalAcquisition(acquired.items, terminalFingerprint, now);
+    }
+    if (!terminalAcquisitionWithoutDocuments && acquired.status === "completed" && acquired.progress.acquired > 0) {
       const dossierInputs = aprDocumentProcessingDossiers(acquired.items);
       const documentsBefore = this.crmDocuments.snapshot(now);
       if (!documentsBefore.sourceSetFingerprint) this.crmDocuments.prepare(dossierInputs, now);
@@ -937,10 +1081,6 @@ export class LocalDashboardSupervisor {
       this.crmLocalPreflight.applyValidationRevision(AUTO_CURRENT_VALIDATION_REVISION, now);
       const completedPreflight = this.crmLocalPreflight.snapshot(now);
       if (completedPreflight.status === "completed" && completedPreflight.items.some((item) => item.customerKey === "beatrice-ciotta" && item.state !== "deferred_operator")) this.crmLocalPreflight.deferCiottaForPilot("user-2026-08-15-ciotta-leave-aside", "Accantonata dal pilot su istruzione utente; report e fonti conservati, nessuna azione CRM o ENEA.", now);
-      this.operatorQuestions.discoverMeasurementUnitAmbiguities(this.crmLocalPreflight.snapshot(now), analyzed, now);
-      this.operatorQuestions.discoverAmbiguousDualDimensionQuestions(this.crmLocalPreflight.snapshot(now), analyzed, now);
-      this.operatorQuestions.discoverComplexMultiVendorQuestions(this.crmLocalPreflight.snapshot(now), analyzed, now);
-      this.operatorQuestions.discoverMissingMeasurementQuestions(this.crmLocalPreflight.snapshot(now), analyzed, now);
       this.infissiBatchPreflight.reconcileDocumentedProductRouting("migrate", now);
       this.infissiBatchPreflight.applyValidationRevision("infissi-vertical-totals-and-table-identity-v1", now);
       this.infissiBatchPreflight.applyValidationRevision("infissi-bank-transfer-invoice-authority-v12", now);
@@ -949,10 +1089,20 @@ export class LocalDashboardSupervisor {
       this.infissiBatchPreflight.tick(now);
       const infissiSnapshot = this.infissiBatchPreflight.snapshot(now);
       if (infissiExecutionGateReady(infissiSnapshot)) this.crmLocalPreflight.reconcileAuthoritativeInfissiApplicability(infissiSnapshot, undefined, now);
+      this.operatorQuestions.retireResolvedQuestions(infissiSnapshot, this.eneaDraftExecution.snapshot(now).items.filter((item) => item.state === "saved").map((item) => item.customerKey), now);
+      this.operatorQuestions.retireInfissiClosureMeasurementQuestions(infissiSnapshot, now);
+      this.operatorQuestions.discoverMeasurementUnitAmbiguities(this.crmLocalPreflight.snapshot(now), analyzed, now);
+      this.operatorQuestions.discoverAmbiguousDualDimensionQuestions(this.crmLocalPreflight.snapshot(now), analyzed, now);
+      this.operatorQuestions.discoverComplexMultiVendorQuestions(this.crmLocalPreflight.snapshot(now), analyzed, now);
+      this.operatorQuestions.discoverMissingMeasurementQuestions(this.crmLocalPreflight.snapshot(now), analyzed, now, infissiSnapshot);
+      this.operatorQuestions.discoverInfissiBlockerQuestions(infissiSnapshot, now);
+      this.deliverOperatorQuestions(now);
     }
     this.deepCaseReview.prepareFromCurrentCheckpoints(now);
     this.deepCaseReview.tick(now);
     prepareEneaDraftExecutionIfAbsent(this.eneaDraftExecution, this.crmLocalPreflight.snapshot(now), now, this.infissiBatchPreflight);
+    this.persistTerminalStoppedCaseQuestions(now);
+    this.deliverOperatorQuestions(now);
     this.synchronizeCrmReadOnlyEvidence(now);
     void this.notifications.observe(executionPlan, pilotSample, now);
     if (!this.crmAuthRefreshInFlight) {
@@ -1017,6 +1167,25 @@ export class LocalDashboardSupervisor {
     try {
       const state = this.journal.load();
       const now = this.now();
+      if (this.observerOnly) {
+        const snapshot = supervise(state, now);
+        this.runtime = this.runtimeStore.start({
+          instanceId: this.instanceId,
+          pid: process.pid,
+          url: this.currentUrl,
+          runnerRevision: state.revision,
+          health: snapshot.health,
+          now,
+        });
+        this.server = server;
+        this.observerPulse();
+        this.livePayload();
+        this.heartbeatTimer = setInterval(() => {
+          try { this.pulse(); }
+          catch (error) { process.stderr.write(`DASHBOARD_OBSERVER_HEARTBEAT_ERROR: ${error instanceof Error ? error.message : String(error)}\n`); }
+        }, this.heartbeatIntervalMs);
+        return this.currentUrl;
+      }
       this.readinessStore.initialize(now);
       this.readinessStore.repairSpuriousTimeoutLoginRequired("repair:spurious-timeout-login-required:v14", now);
       this.adapterStore.initialize(now);
@@ -1058,7 +1227,15 @@ export class LocalDashboardSupervisor {
       }
       this.crmAcquisition.applyRecordedOperatorResolutions(now);
       const acquired = this.crmAcquisition.snapshot(now);
-      if (acquired.status === "completed" && acquired.progress.acquired > 0) {
+      const terminalAcquisitionWithoutDocuments = acquired.status === "completed" && acquisitionCanTerminalizeWithoutDocuments(acquired.items);
+      if (terminalAcquisitionWithoutDocuments && !this.crmLocalPreflight.snapshot(now).sourceFingerprint) {
+        const terminalFingerprint = createHash("sha256").update(JSON.stringify({
+          candidateFingerprint: acquired.candidateFingerprint,
+          items: acquired.items.map((item) => ({ customerKey: item.customerKey, state: item.state, practiceId: item.practiceId, responseSha256: item.responseSha256, sourceDocumentCount: item.sourceDocumentCount, automationExclusion: item.automationExclusion ?? null })),
+        })).digest("hex");
+        this.crmLocalPreflight.prepareFromTerminalAcquisition(acquired.items, terminalFingerprint, now);
+      }
+      if (!terminalAcquisitionWithoutDocuments && acquired.status === "completed" && acquired.progress.acquired > 0) {
         this.crmDocuments.prepare(aprDocumentProcessingDossiers(acquired.items), now);
       }
       const documents = this.crmDocuments.snapshot(now);
@@ -1080,6 +1257,8 @@ export class LocalDashboardSupervisor {
       }
       this.infissiBatchPreflight.tick(now);
       prepareEneaDraftExecutionIfAbsent(this.eneaDraftExecution, this.crmLocalPreflight.snapshot(now), now, this.infissiBatchPreflight);
+      this.persistTerminalStoppedCaseQuestions(now);
+      this.deliverOperatorQuestions(now);
       if (this.checkpointMigrationPending) this.activeCheckpointMigration = this.checkpointMigration.begin(now);
       if (this.checkpointMigrationPending) this.crmDocumentAnalysis.applyOcrOrientationRevision("document-ocr-orientation-normalization-v1", now);
       if (this.checkpointMigrationPending) this.crmDocumentAnalysis.applyParserRevision("invoice-parser-v3-ciotta-and-historical-exclusion", now);
@@ -1150,10 +1329,15 @@ export class LocalDashboardSupervisor {
         if (this.checkpointMigrationPending) this.crmLocalPreflight.applyValidationRevision("invoice-header-identity-over-body-reference-v35", now);
         if (this.checkpointMigrationPending) this.crmLocalPreflight.applyValidationRevision("enea-2026-june25-deadline-window-v36", now);
         if (this.checkpointMigrationPending) this.crmLocalPreflight.applyValidationRevision("documented-product-module-over-label-v65", now);
+        const infissiQuestionContext = this.infissiBatchPreflight.snapshot(now);
+        this.operatorQuestions.retireResolvedQuestions(infissiQuestionContext, this.eneaDraftExecution.snapshot(now).items.filter((item) => item.state === "saved").map((item) => item.customerKey), now);
+        this.operatorQuestions.retireInfissiClosureMeasurementQuestions(infissiQuestionContext, now);
         this.operatorQuestions.discoverMeasurementUnitAmbiguities(this.crmLocalPreflight.snapshot(now), analyzed, now);
         this.operatorQuestions.discoverAmbiguousDualDimensionQuestions(this.crmLocalPreflight.snapshot(now), analyzed, now);
         this.operatorQuestions.discoverComplexMultiVendorQuestions(this.crmLocalPreflight.snapshot(now), analyzed, now);
-        this.operatorQuestions.discoverMissingMeasurementQuestions(this.crmLocalPreflight.snapshot(now), analyzed, now);
+        this.operatorQuestions.discoverMissingMeasurementQuestions(this.crmLocalPreflight.snapshot(now), analyzed, now, infissiQuestionContext);
+        this.operatorQuestions.discoverInfissiBlockerQuestions(infissiQuestionContext, now);
+        this.deliverOperatorQuestions(now);
         if (this.checkpointMigrationPending) this.infissiBatchPreflight.reconcileDocumentedProductRouting("migrate", now);
         if (this.checkpointMigrationPending) this.infissiBatchPreflight.applyValidationRevision("infissi-vertical-totals-and-table-identity-v1", now);
         if (this.checkpointMigrationPending) this.infissiBatchPreflight.applyValidationRevision("infissi-bank-transfer-invoice-authority-v12", now);

@@ -1,0 +1,34 @@
+{
+  "status": "PASS",
+  "tests": {
+    "total": 2012,
+    "passed": 2012,
+    "failed": 0,
+    "pending": 0,
+    "nonCdp": 1930,
+    "socket": 82
+  },
+  "matrixRules": 220,
+  "testedRules": 220,
+  "requiredRuntimeRules": {
+    "apr-supervisor.mjs": [
+      "user-2026-09-11-operator-response-runtime-consumption-v1"
+    ],
+    "apr-enea-worker.mjs": [
+      "user-2026-09-11-operator-response-runtime-consumption-v1"
+    ]
+  },
+  "stagedBundleSha256": {
+    "apr-supervisor.mjs": "61e3e28f91acce4059f12450ca20c9c6f95a88d27149330048640036b809fa23",
+    "apr-enea-worker.mjs": "3bd16c24c8fe958b51ddee98ded1eae78d06890cde708302c4d51b23fa9018df",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0"
+  },
+  "historicalAudit": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-operator-responses-runtime-r113-2026-09-11/historical-audit-report-r113.json",
+  "historicalAuditSha256": "c0e6f437e7b857b3de5fd3c10f0e3b52c9ce51ebac398bdcee49439b2e0dde02",
+  "authorizedHistoricalGapOnly": [
+    "user-2026-08-06-portal-intermediary-physical-beneficiary-v1",
+    "user-2026-08-06-intervention-authoritative-sources-and-defaults-v1",
+    "user-2026-08-06-existing-plant-authoritative-mapping-v1",
+    "user-2026-08-06-portal-municipality-controlled-selection-v1"
+  ]
+}

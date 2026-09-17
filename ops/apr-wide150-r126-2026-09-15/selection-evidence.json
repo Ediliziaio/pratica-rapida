@@ -1,0 +1,54 @@
+{
+  "version": "apr-wide148-r126-selection-evidence-v1",
+  "observedAt": "2026-09-15T08:06:36.922Z",
+  "status": "selected",
+  "crmReadOnly": true,
+  "mutationAllowed": false,
+  "stageCounts": {
+    "combined": {
+      "pronte_da_fare": 21,
+      "recensione": 61,
+      "archiviate": 332
+    },
+    "separate": {
+      "pronte_da_fare": 21,
+      "recensione": 61,
+      "archiviate": 332
+    },
+    "unfiltered": {
+      "pronte_da_fare": 21,
+      "recensione": 61,
+      "archiviate": 332
+    },
+    "total": 414
+  },
+  "candidateCounts": {
+    "eligible": 322,
+    "neverWorked": 66,
+    "alreadyWorkedFromR125R126": 82,
+    "excluded": 92
+  },
+  "selectedCounts": {
+    "total": 148,
+    "nuova_standard": 55,
+    "nuova_manoscritto": 11,
+    "gia_lavorata": 82
+  },
+  "seed": "apr-wide150-r126-20260915-selection-v1",
+  "seedSha256": "19305dfd3fc02593b2852f3026af893247e188980a70e7720da72eb85e143cfc",
+  "historyDistinctPracticeIds": 305,
+  "historyEvidenceFileCount": 284,
+  "historyEvidenceFingerprint": "c5ed14b899b1d1e1dd58890ae03d138edda50e894c28e7e6139fd1888cd014e4",
+  "crmEvidence": {
+    "combinedResponseSha256": "b62d47407b0fbea8d2e35d93f8e44dffe5e30e018c14c3c63e1fbb5042c6dda1",
+    "separateResponseSha256": {
+      "pronte_da_fare": "a7a5906c7a69c537fca33411738f56ef614b8ace7857569eb17ae59bf96b1eb7",
+      "recensione": "6fb05316d32720e088b68730c081c8471d8d146fa41f0813ae12bd262102a625",
+      "archiviate": "045ec5d2dbd7f9df7d646ed06a1ab46a6d4628d4590b1e1d5c0f271920c8021f"
+    },
+    "unfilteredResponseSha256": "3cfbe0a1d1b30b71e29669f6fb36c2de2037a67dfcda6b74e467fed9f9b49b59",
+    "threeWayCountsConcordant": true
+  },
+  "selectedPracticeIdsSha256": "4f87eebcf69162dd4caebf4da5285425faf3bfcf62af0923a466a5bca679c514"
+}
+

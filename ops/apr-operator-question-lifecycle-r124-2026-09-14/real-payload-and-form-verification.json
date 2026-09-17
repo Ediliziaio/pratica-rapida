@@ -1,0 +1,31 @@
+{
+  "version": "apr-real-payload-and-form-verification-v1",
+  "verifiedAt": "2026-09-14T11:30:00.000Z",
+  "mode": "real_dossier_read_only",
+  "externalActions": false,
+  "cases": [
+    {
+      "customerKey": "eugenio-codognato",
+      "dossierSha256": "1071e089c57a3fc58091d70d74040f4af7c44afde875020648cf36ded3d2538f",
+      "invoiceTotal": 18997,
+      "outcome": "ready_local_plan",
+      "totalMappingBlockers": []
+    },
+    {
+      "customerKey": "patrizia-muzzi",
+      "dossierSha256": "abc6f9382a252fe7c5b7ff6350c4a4d1456cd029613e9fa95731fa5103c6f614",
+      "invoiceTotal": 2587.62,
+      "outcome": "ready_local_plan",
+      "totalMappingBlockers": []
+    },
+    {
+      "customerKey": "stefania-venturi",
+      "dossierSha256": "c68b80dcd07d5efe22ca19981c886dfdc6ae2944ac8d5540118ad5463f65c4fc",
+      "outcome": "blocked_case",
+      "blockerCode": "customer_form_required_sections_missing",
+      "classification": "domanda_operatore",
+      "exactCause": "Sezioni obbligatorie completamente assenti: edificio, impianto.",
+      "operatorQuestion": "Il form del cliente non è completo: mancano i dati dell'edificio e dell'impianto. Puoi completare queste sezioni?"
+    }
+  ]
+}

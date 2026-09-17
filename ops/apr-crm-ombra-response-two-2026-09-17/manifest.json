@@ -1,0 +1,49 @@
+{
+  "version": "apr-crm-ombra-response-two-v1",
+  "authorizationId": "user-2026-09-17-crm-ombra-response-two-draft-only-v1",
+  "authorizedAt": "2026-09-17T00:00:00.000Z",
+  "mode": "real_enea_draft_only",
+  "selection": {
+    "total": 2,
+    "allowedStages": ["pronte_da_fare"],
+    "excludedCustomerKeys": [],
+    "groups": [{ "id": "crm_ombra_response_two", "count": 2 }]
+  },
+  "safety": {
+    "draftOnly": true,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false,
+    "priorDraftPolicy": "fresh_generation_only"
+  },
+  "cases": [
+    {
+      "practiceId": "5bd45fbe-1700-4d13-b545-ecd9a48b7e27",
+      "customerKey": "daniele-miracapillo",
+      "displayName": "DANIELE MIRACAPILLO",
+      "stage": "pronte_da_fare",
+      "stageName": "Pronte da fare",
+      "module": "infissi",
+      "productEvidence": "Infissi / Serramenti",
+      "reseller": null,
+      "historicalRetest": true,
+      "reacquireBeforeReplay": true,
+      "expectedRouting": "standard",
+      "group": "crm_ombra_response_two"
+    },
+    {
+      "practiceId": "34572044-6e01-465a-ab01-f937d3ec4b87",
+      "customerKey": "marco-zambella",
+      "displayName": "Marco Zambella",
+      "stage": "pronte_da_fare",
+      "stageName": "Pronte da fare",
+      "module": "screening",
+      "productEvidence": "Schermature Solari",
+      "reseller": null,
+      "historicalRetest": true,
+      "reacquireBeforeReplay": true,
+      "expectedRouting": "standard",
+      "group": "crm_ombra_response_two"
+    }
+  ]
+}

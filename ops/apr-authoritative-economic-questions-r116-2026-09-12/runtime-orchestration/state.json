@@ -1,0 +1,5 @@
+{
+  "phase": "stopped_below_threshold",
+  "targetedSaved": 8,
+  "threshold": 12
+}

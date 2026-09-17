@@ -1,7 +1,7 @@
 import type { EneaLabMappedPractice } from "./types";
 import { resolveOfficialMunicipalityIdentity } from "@/features/enea-shadow-crm/officialMunicipalityChanges";
 import { resolveOfficialMunicipalityProvinceChange } from "@/features/enea-shadow-crm/officialMunicipalityProvinceChanges";
-import { resolveOfficialMunicipalityCanonicalIdentity } from "@/features/enea-shadow-crm/officialMunicipalities";
+import { resolveOfficialMunicipalityCanonicalIdentity, resolveOfficialMunicipalityFromFiscalCode } from "@/features/enea-shadow-crm/officialMunicipalities";
 import { resolveForeignBirthCountryFromFiscalCode } from "@/features/enea-shadow-crm/operationalRules";
 import {
   buildEneaPortalRuntimeScript,
@@ -71,6 +71,9 @@ export function buildEneaBeneficiaryPortalScript(
   const verifiedForeignBirth = resolveForeignBirthCountryFromFiscalCode(fieldsById.get("beneficiario.cf")?.value);
   const nationIsItaly = (fieldId: string) =>
     fieldsById.get(fieldId)?.value.trim().toLocaleLowerCase("it") === "italia";
+  const birthMunicipalityFromFiscalCode = nationIsItaly("beneficiario.nazione_nascita") && !verifiedForeignBirth
+    ? resolveOfficialMunicipalityFromFiscalCode(fieldsById.get("beneficiario.cf")?.value)
+    : null;
   const readyFields = ENEA_BENEFICIARY_PORTAL_FIELDS.flatMap((definition) => {
     const field = fieldsById.get(definition.fieldId);
     if (!field || field.status !== "ready" || field.testOnly || isInternalPlaceholder(field.value)) return [];
@@ -115,7 +118,12 @@ export function buildEneaBeneficiaryPortalScript(
         province: officialProvinceChange?.currentProvinceCode ?? officialMunicipality?.provinceCode ?? supportingProvince,
       })
       : null;
-    const autocompleteQualifier = officialCanonical?.provinceCode ?? officialProvinceChange?.currentProvinceCode ?? officialMunicipality?.provinceCode ?? (isBirthMunicipality
+    const authoritativeMunicipality = officialCanonical
+      ? { canonicalName: officialCanonical.canonicalName, provinceCode: officialCanonical.provinceCode, istatCode: officialCanonical.istatCode }
+      : isBirthMunicipality && birthMunicipalityFromFiscalCode
+        ? { canonicalName: birthMunicipalityFromFiscalCode.canonicalName, provinceCode: birthMunicipalityFromFiscalCode.provinceCode, istatCode: birthMunicipalityFromFiscalCode.istatCode }
+        : null;
+    const autocompleteQualifier = authoritativeMunicipality?.provinceCode ?? officialProvinceChange?.currentProvinceCode ?? officialMunicipality?.provinceCode ?? (isBirthMunicipality
       && nationIsItaly("beneficiario.nazione_nascita")
       && fieldsById.get("beneficiario.provincia_nascita")?.status === "ready"
       ? fieldsById.get("beneficiario.provincia_nascita")!.value.trim().toUpperCase()
@@ -123,10 +131,10 @@ export function buildEneaBeneficiaryPortalScript(
     return [{
       ...definition,
       control,
-      value: officialCanonical?.canonicalName ?? field.value,
+      value: authoritativeMunicipality?.canonicalName ?? field.value,
       ...(selectValue ? { selectValue } : {}),
       ...(autocompleteQualifier ? { autocompleteQualifier } : {}),
-      ...(officialCanonical ? { autocompleteAuthoritativeIstatCode: officialCanonical.istatCode } : officialProvinceChange ? { autocompleteAuthoritativeIstatCode: officialProvinceChange.currentIstatCode } : {}),
+      ...(authoritativeMunicipality ? { autocompleteAuthoritativeIstatCode: authoritativeMunicipality.istatCode } : officialProvinceChange ? { autocompleteAuthoritativeIstatCode: officialProvinceChange.currentIstatCode } : {}),
     }];
   });
   const readyFieldIds = readyFields.map(({ fieldId }) => fieldId);

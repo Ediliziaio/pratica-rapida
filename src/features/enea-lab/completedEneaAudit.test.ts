@@ -61,6 +61,40 @@ SS. Schermature solari
 Spese congrue sostenute [€] 13924
 `;
 
+it("riconosce il modulo Infissi comma 345A nel riferimento umano", () => {
+  const snapshot = parseCompletedEneaText("CPID TEST del 01/01/2026 Comma 345A - Interventi sull'involucro");
+  expect(snapshot.fields["intervento.tipo"]).toBe("Comma 345A - Interventi sull'involucro");
+});
+
+it("estrae dal riferimento Infissi anche catasto, unita, generatore e valori di riepilogo", () => {
+  const snapshot = parseCompletedEneaText(`
+    CPID TEST del 01/01/2026 Comma 345A - Interventi sull'involucro
+    Codice nazionale del Comune: I452 Sezione: Foglio: 89 Particella: 321 Subalterno: 23 2. Anno di costruzione 1970
+    Numero totale delle unità immobiliari dell'edificio alla fine dei lavori 12
+    Caldaia a gas a condensazione 1 ƞ = 97 % 206
+    Scheda intervento IN. Serramenti e infissi
+    1 Legno Singolo 5 1.73 PVC A bassa emissione 1.4 Verso esterno No
+    Spese congrue sostenute [€] 7900
+    1. Detrazione totale calcolata [€] 2844
+    2. Detrazione massima ammissibile [€] 60000
+    3. Detrazione ammissibile [€] 2844
+    2. Risparmio stimato di energia primaria non rinnovabile [kWh/anno] Il calcolo del risparmio energetico è a cura degli utenti. In alcuni casi semplici la valutazione del risparmio energetico è eseguita automaticamente. 1680
+  `);
+  expect(snapshot.fields).toMatchObject({
+    "immobile.codice_catastale": "I452",
+    "intervento.unita_totali": "12",
+    "impianto.generatore": "Caldaia a gas a condensazione",
+    "impianto.numero_generatori": "1",
+    "impianto.rendimento": "97",
+    "impianto.potenza": "206",
+    "infissi.0.vetro_nuovo": "A bassa emissione",
+    "infissi.0.trasmittanza_nuovo": "1.4",
+    "infissi.0.chiusura_oscurante": "No",
+    "riepilogo.detrazione_totale": "2844",
+    "riepilogo.risparmio_energia_primaria": "1680",
+  });
+});
+
 function mappedScreeningCount(mapped: ReturnType<typeof mapSchermaturaPractice>): number {
   const field = mapped.sections
     .flatMap((section) => section.fields)
@@ -100,8 +134,8 @@ describe("audit storico PDF ENEA conclusivo", () => {
     expect(snapshot.fields["schermature.0.rsupp"]).toBeUndefined();
     expect(snapshot.fields["immobile.zona_climatica"]).toBeUndefined();
     expect(snapshot.fields["immobile.gradi_giorno"]).toBeUndefined();
-    expect(snapshot.fields["intervento.unita_totali"]).toBeUndefined();
-    expect(snapshot.fields["impianto.generatore"]).toBeUndefined();
+    expect(snapshot.fields["intervento.unita_totali"]).toBe("1");
+    expect(snapshot.fields["impianto.generatore"]).toBe("Altro (energia elettrica)");
     expect(snapshot.screeningCount).toBe(5);
   });
 

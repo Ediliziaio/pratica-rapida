@@ -1,0 +1,30 @@
+{
+  "version": "apr-rule-governance-attestation-v2",
+  "status": "certified_deployed_with_authorized_historical_gap",
+  "attestedAt": "2026-09-11T18:48:40.528Z",
+  "registryVersion": "enea-operational-registry-v164",
+  "matrixVersion": "apr-enea-rule-test-matrix-v177",
+  "ruleSourceFingerprint": "491e6c5a3b4821f64b5f1b41f3621474958f394ab89eeb8b13d3fe829a298f69",
+  "decisionLedgerVersion": "apr-business-decision-ledger-v1",
+  "decisionLedgerFingerprint": "16917d9c8ccb23f872284422b2be38c75b7feb6d496d24fbdc329da330f48d9f",
+  "activeDecisionCount": 158,
+  "matrixRuleCount": 219,
+  "historicalAudit": {
+    "status": "authorized_historical_gap",
+    "unresolvedDocumentedDecisionCount": 4,
+    "unresolvedDecisionIds": [
+      "user-2026-08-06-existing-plant-authoritative-mapping-v1",
+      "user-2026-08-06-intervention-authoritative-sources-and-defaults-v1",
+      "user-2026-08-06-portal-intermediary-physical-beneficiary-v1",
+      "user-2026-08-06-portal-municipality-controlled-selection-v1"
+    ],
+    "authorizationId": "user-2026-09-08-r98-four-unrecoverable-august-6-decisions-v1",
+    "authorizationEvidenceSha256": "f5656a1de3c12ac1be1ca3a11670fd3be12f54b07e3827806fededbfbd1da24a",
+    "reportSha256": "c672752ff668de0998e1f7554a6ade0a1f1d271289a086489c75186063c360a2"
+  },
+  "bundleSha256": {
+    "apr-supervisor.mjs": "e7de03484be07f1b7b3a49c8e1746d2ccc7f38d1467e571b943853771b106f81",
+    "apr-enea-worker.mjs": "9018aeb38189f529f0f7aa17189d663813dea5611d264088b16719d9c03a086f",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0"
+  }
+}

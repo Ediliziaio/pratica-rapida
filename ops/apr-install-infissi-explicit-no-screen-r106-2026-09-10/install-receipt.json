@@ -1,0 +1,26 @@
+{
+  "version": "apr-install-bundle-cli-receipt-v1",
+  "installedAt": "2026-09-10T16:09:07.591Z",
+  "label": "infissi-explicit-no-screen-r106",
+  "versionId": "742f23d6-infissi-explicit-no-screen-r106-20260910",
+  "previousTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/c0826cfe-multi-invoice-parser-r105-20260910",
+  "currentTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/742f23d6-infissi-explicit-no-screen-r106-20260910",
+  "installedBundle": {
+    "apr-supervisor.mjs": "08174a4484fcf4b1d98ea1076439967df505d91ac10ada0b010873b0015af737",
+    "apr-enea-worker.mjs": "ba7d1243fe03b31061cecfebd9b56a34dffcbd9f681c24e8d6f007b793ca7403",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "apr-rule-governance-attestation.json": "0c00e3dc545b28d7a8cf9ae99d309e996b8ba8e504c57293f806be86d6375210"
+  },
+  "gateResultArtifactId": "d9707d68814610d0bf7bb4334b3ac31eae114009b364b69d609bd772f03ad161",
+  "gateStatus": "PASS",
+  "governanceAttestation": {
+    "path": "apr-rule-governance-attestation.json",
+    "sha256": "0c00e3dc545b28d7a8cf9ae99d309e996b8ba8e504c57293f806be86d6375210",
+    "historicalAuditReport": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-infissi-no-screen-r106-gate-2026-09-10/historical-audit-report-r106.json",
+    "authorizedHistoricalGap": true
+  },
+  "legacyGovernanceDebtNoticed": [
+    "user-2026-09-05-co-beneficiary-trusted-enter-delivery-v2",
+    "user-2026-09-05-terminal-cohort-browser-quiescence-v1"
+  ]
+}

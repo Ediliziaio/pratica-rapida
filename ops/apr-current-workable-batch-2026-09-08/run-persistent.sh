@@ -11,4 +11,4 @@ export APR_BATCH_BUNDLE="/Users/giulianolavoro/Library/Application Support/Prati
 export APR_BATCH_WORKER_SHA256="fbf41cdd351262848387183d76323769f7c2cd06de73dc370363d96cda491ce0"
 export APR_BATCH_COHORT_OFFSET="3426"
 
-exec /usr/local/bin/node "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-wide100-final-r67-2026-09-06/simple-independent-runner.mjs"
+exec /usr/local/bin/node "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/scripts/enea-shadow-runner/simple-independent-runner.mjs"

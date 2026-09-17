@@ -1,0 +1,69 @@
+{
+  "version": "apr-workable76-r111-manifest-validation-v1",
+  "generatedAt": "2026-09-11T12:04:01.833Z",
+  "status": "PASS",
+  "manifestPath": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-workable76-r111-2026-09-11/manifest.json",
+  "manifestSha256": "4be8287c7ec661404fc5d2b13b5e8bd1f492d876c6f6793ed3b374e8d2a54210",
+  "selectedCount": 76,
+  "baselineComparableCount": 70,
+  "reactivatedCount": 6,
+  "uniquePracticeIds": 76,
+  "uniqueCustomerKeys": 76,
+  "reactivated": [
+    {
+      "practiceId": "e5a0905b-446b-49f5-9b25-a7d10819d831",
+      "customerKey": "filippo-bigalli",
+      "displayName": "Filippo Bigalli",
+      "stage": "archiviate",
+      "sourceGroup": "reactivated_after_invoice_upload",
+      "reacquireBeforeReplay": true
+    },
+    {
+      "practiceId": "20325492-9c01-4ccc-af20-961882bb010a",
+      "customerKey": "alessandro-zaniboni",
+      "displayName": "Alessandro Zaniboni",
+      "stage": "archiviate",
+      "sourceGroup": "reactivated_after_invoice_upload",
+      "reacquireBeforeReplay": true
+    },
+    {
+      "practiceId": "f06f17bc-aeab-4975-a2bd-54b3c023162d",
+      "customerKey": "rocco-giacotto",
+      "displayName": "Rocco Giacotto",
+      "stage": "archiviate",
+      "sourceGroup": "reactivated_after_invoice_upload",
+      "reacquireBeforeReplay": true
+    },
+    {
+      "practiceId": "b02daf33-b4e5-4ba5-90e1-85ebb3578fe9",
+      "customerKey": "paolino-bellini",
+      "displayName": "Paolino Bellini",
+      "stage": "archiviate",
+      "sourceGroup": "reactivated_after_invoice_upload",
+      "reacquireBeforeReplay": true
+    },
+    {
+      "practiceId": "b35fc3d3-d441-48d0-99f0-1d1e967ab6e7",
+      "customerKey": "gabriele-girelli",
+      "displayName": "Gabriele Girelli",
+      "stage": "archiviate",
+      "sourceGroup": "reactivated_after_invoice_upload",
+      "reacquireBeforeReplay": true
+    },
+    {
+      "practiceId": "84688adb-14d8-4a0a-957b-67626c27a886",
+      "customerKey": "silvia-lomartire",
+      "displayName": "silvia lomartire",
+      "stage": "pronte_da_fare",
+      "sourceGroup": "reactivated_after_invoice_upload",
+      "reacquireBeforeReplay": true
+    }
+  ],
+  "safety": {
+    "draftOnly": true,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false,
+    "priorDraftPolicy": "preserve_and_ignore_for_new_test_draft"
+  }
+}

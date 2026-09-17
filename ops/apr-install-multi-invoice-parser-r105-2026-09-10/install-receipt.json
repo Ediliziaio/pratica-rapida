@@ -1,0 +1,26 @@
+{
+  "version": "apr-install-bundle-cli-receipt-v1",
+  "installedAt": "2026-09-10T12:40:54.468Z",
+  "label": "multi-invoice-parser-r105",
+  "versionId": "c0826cfe-multi-invoice-parser-r105-20260910",
+  "previousTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/0b183b6e-preflight-deep-review-propagation-r104-20260910",
+  "currentTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/c0826cfe-multi-invoice-parser-r105-20260910",
+  "installedBundle": {
+    "apr-supervisor.mjs": "303aa3b39bf3c7d7ca6a1dcb99c01b21d11cbae2554013dff0727c44073ee154",
+    "apr-enea-worker.mjs": "e25c11a9a1052b161a26908f44a83910205912431e375aceca0a0786ee2f6545",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "apr-rule-governance-attestation.json": "aabbd2ecb0056e04fc8af37769cb8d92d4f11b23f675af98cc7b72ba80d8f04f"
+  },
+  "gateResultArtifactId": "933070c8770d203737d5c5fa01e1b975b4ceb0eb1bd3a3731eb0334c80a1a8e6",
+  "gateStatus": "PASS",
+  "governanceAttestation": {
+    "path": "apr-rule-governance-attestation.json",
+    "sha256": "aabbd2ecb0056e04fc8af37769cb8d92d4f11b23f675af98cc7b72ba80d8f04f",
+    "historicalAuditReport": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-multi-invoice-parser-r105-gate-2026-09-10/historical-audit-report-r105.json",
+    "authorizedHistoricalGap": true
+  },
+  "legacyGovernanceDebtNoticed": [
+    "user-2026-09-05-co-beneficiary-trusted-enter-delivery-v2",
+    "user-2026-09-05-terminal-cohort-browser-quiescence-v1"
+  ]
+}

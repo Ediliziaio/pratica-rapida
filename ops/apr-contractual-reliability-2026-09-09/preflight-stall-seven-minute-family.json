@@ -1,0 +1,41 @@
+{
+  "version": "apr-preflight-stall-seven-minute-family-v1",
+  "recordedAt": "2026-09-09T22:24:30+02:00",
+  "status": "GENERAL_RULE_CANDIDATE_NOT_CORRECTED",
+  "priorityForNextWork": 2,
+  "precededBy": "multi_invoice_product_row_extraction",
+  "family": "preflight_no_material_progress_until_outer_timeout",
+  "exactObservedBehavior": "La pratica entra nel preflight, non produce piu' avanzamenti materiali, non crea alcuna bozza e viene isolata dal controller esterno dopo sette minuti.",
+  "reproducibility": "Lo stesso comportamento ricorre sugli stessi nomi gia' osservati nei timeout del lotto precedente; non e' trattato come evento casuale.",
+  "observedCasesInCurrentLongRun": [
+    {"customerKey": "armando-ranzoni", "cohort": 5317},
+    {"customerKey": "stefania-spina", "cohort": 5334},
+    {"customerKey": "andreea-ioana-olteanu", "cohort": 5335},
+    {"customerKey": "maria-sofia-tosatti", "cohort": 5336},
+    {"customerKey": "roberta-di-cesare", "cohort": 5337},
+    {"customerKey": "marco-de-marinis", "cohort": 5338},
+    {"customerKey": "giuseppe-d-adduzio", "cohort": 5343},
+    {"customerKey": "sabrina-eustomi", "cohort": 5345},
+    {"customerKey": "francesca-monti", "cohort": 5355},
+    {"customerKey": "gemma-minore", "cohort": 5357},
+    {"customerKey": "enrico-amos-maria-berneri", "cohort": 5358}
+  ],
+  "operatorQuestionRoutingImpact": [
+    {
+      "customerKey": "maria-sofia-tosatti",
+      "expectedRoute": "Domanda operatore sulle misure mancanti o manoscritte.",
+      "observedRoute": "Nessuna domanda prodotta prima del timeout."
+    },
+    {
+      "customerKey": "roberta-di-cesare",
+      "expectedRoute": "Domanda operatore sulle misure mancanti.",
+      "observedRoute": "Nessuna domanda prodotta prima del timeout."
+    }
+  ],
+  "classificationCaveat": "Il controller esterno pubblica TECHNICAL_BLOCK; finche' checkpoint interno, report.blockers e case-truth o snapshot terminale non concordano, il verdetto formale resta INCONSISTENT.",
+  "todayPolicy": {
+    "fixAllowed": false,
+    "reason": "Famiglia registrata durante il lotto lungo; nessuna diagnosi o correzione nel mezzo."
+  },
+  "requiredNextDiagnosis": "Individuare il punto del preflight che impedisce sia l'avanzamento sia la successiva formulazione della domanda operatore, confrontando le pratiche riproducibili con un caso che attraversa correttamente lo stesso ramo."
+}

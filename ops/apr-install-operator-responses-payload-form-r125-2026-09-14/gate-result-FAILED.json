@@ -1,0 +1,38 @@
+{
+  "version": "apr-correction-activation-gate-v1",
+  "checkedAt": "2026-09-14T11:24:18.895Z",
+  "status": "FAIL",
+  "reasons": [
+    "missing_declared_tests:draft-payload-mapping-completeness::crmLocalPreflight: Lucia con fonti economiche verdi ma payload incompleto resta blocked|draft-payload-mapping-completeness::deepCaseReview: mapping incompleto classificato technical repair"
+  ],
+  "ruleCoverage": {
+    "totalDeclaredRules": 184,
+    "missingMatrixCoverage": []
+  },
+  "ruleWiring": {
+    "totalRuleIds": 186,
+    "unwiredRuleIds": [],
+    "legacyUnwiredRuleIds": [
+      "user-2026-09-05-co-beneficiary-trusted-enter-delivery-v2",
+      "user-2026-09-05-terminal-cohort-browser-quiescence-v1"
+    ]
+  },
+  "testExistence": {
+    "totalDeclaredTests": 711,
+    "missingTests": [
+      {
+        "matrixKey": "draft-payload-mapping-completeness",
+        "testLabel": "crmLocalPreflight: Lucia con fonti economiche verdi ma payload incompleto resta blocked"
+      },
+      {
+        "matrixKey": "draft-payload-mapping-completeness",
+        "testLabel": "deepCaseReview: mapping incompleto classificato technical repair"
+      }
+    ]
+  },
+  "bundleFreshness": {
+    "checked": true,
+    "matched": true,
+    "mismatchedFiles": []
+  }
+}

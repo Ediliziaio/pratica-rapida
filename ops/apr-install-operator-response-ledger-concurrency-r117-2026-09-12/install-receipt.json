@@ -1,0 +1,26 @@
+{
+  "version": "apr-install-bundle-cli-receipt-v1",
+  "installedAt": "2026-09-12T08:49:25.012Z",
+  "label": "operator-response-ledger-concurrency-r117",
+  "versionId": "16bbdf1b-operator-response-ledger-concurrency-r117-20260912",
+  "previousTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/e5c6096c-authoritative-economic-questions-r116-20260911",
+  "currentTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/16bbdf1b-operator-response-ledger-concurrency-r117-20260912",
+  "installedBundle": {
+    "apr-supervisor.mjs": "f6d3ca51055ceae1976807eb3a2ed3fbb05c5522eee855ae757699338de227cf",
+    "apr-enea-worker.mjs": "2ba02d4bfd2a157fee8bd92efac23a7af6a4164fb523b4a05b8ae90590d432b0",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "apr-rule-governance-attestation.json": "4ba2fd915edab673d42849f9f7b6f49a39e61a820c8542dbc287e3a2e527004c"
+  },
+  "gateResultArtifactId": "e0e3ff543d58ceea120a121f7e461a06d065940e4fcffefdb21554f371376fe1",
+  "gateStatus": "PASS",
+  "governanceAttestation": {
+    "path": "apr-rule-governance-attestation.json",
+    "sha256": "4ba2fd915edab673d42849f9f7b6f49a39e61a820c8542dbc287e3a2e527004c",
+    "historicalAuditReport": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-operator-response-ledger-concurrency-r117-2026-09-12/historical-audit-report-r117.json",
+    "authorizedHistoricalGap": true
+  },
+  "legacyGovernanceDebtNoticed": [
+    "user-2026-09-05-co-beneficiary-trusted-enter-delivery-v2",
+    "user-2026-09-05-terminal-cohort-browser-quiescence-v1"
+  ]
+}

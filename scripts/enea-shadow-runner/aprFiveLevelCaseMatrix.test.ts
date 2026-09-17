@@ -56,11 +56,11 @@ describe("APR Slice 5 five-level case matrix", () => {
       customerKey: input.acquisitionArtifact.payload.customerKey,
       practiceId: input.acquisitionArtifact.payload.practiceId,
       sourceFingerprint: canonicalSha256("blocked-economic"), replacements: [], bankTransfers: [],
-      invoices: [{ sourceId: "invoice", supplierId: "supplier", supplierName: null, documentNumber: "2", documentDate: "2026-01-01", kind: "invoice", taxableAmount: 100, vatAmount: 10, grossTotal: 110, referencedAdvanceIds: [], interventionGrossAmount: 90, extractionConfidence: "certain", extractionIssues: [], internalAdjustmentNote: null, explicitDeductibleLines: [], lineItems: [], locator: locator("invoice") }],
+      invoices: [{ sourceId: "invoice", supplierId: "supplier", supplierName: null, documentNumber: "2", documentDate: "2026-01-01", kind: "invoice", taxableAmount: null, vatAmount: null, grossTotal: null, referencedAdvanceIds: [], interventionGrossAmount: null, extractionConfidence: "uncertain", extractionIssues: [], internalAdjustmentNote: null, explicitDeductibleLines: [], lineItems: [], locator: locator("invoice") }],
     });
     const matrix = buildFiveLevelCaseMatrix({ ...input, factsArtifacts: [economic.factsArtifact], decisionArtifacts: [economic.decisionsArtifact], mappingArtifacts: [] });
     expect(matrix.payload.status).toBe("blocked");
-    expect(matrix.payload.levels[2]).toMatchObject({ level: "L3", status: "blocked", blockerCodes: ["gross_triple_reconciliation_failed"] });
+    expect(matrix.payload.levels[2]).toMatchObject({ level: "L3", status: "blocked", blockerCodes: ["invoice_final_printed_total_not_verified"] });
     expect(matrix.payload.levels[3]).toEqual({ level: "L4", status: "not_applicable", artifactIds: [], blockerCodes: [] });
     expect(matrix.payload.matrixBlockers).toEqual([]);
   });

@@ -5,15 +5,263 @@ import path from "node:path";
 import { afterEach, describe, expect, expectTypeOf, it } from "vitest";
 import { USER_AUTHORIZED_RULE_IDS } from "../../src/features/enea-shadow-crm/operationalRegistry";
 import { PersistentAprCrmDocumentAnalysis } from "./crmDocumentAnalysis";
-import { CASE_SPECIFIC_FINANCIAL_RESOLUTIONS, EXPLICIT_ORIGINAL_COMPLETION_DATE_RULE_ID, INVOICE_CUSTOMER_BLOCK_CRM_CF_RULE_ID, PersistentAprCrmLocalPreflight, RESOLVED_NON_ECONOMIC_TOTAL_BLOCKER_RETIREMENT_RULE_ID, SPECIFIC_INCOMPLETE_SCREENING_BLOCKER_RULE_ID, asScreeningDraftPackage, assessEnea2026SubmissionDeadline, buildCrmLocalPreflightReport, completionDateOperatorBlockers, invalidateCrmEneaPayloadAuditForScreeningBlockers, invoiceAddressedToDifferentCompanyThanBeneficiary, isPersianaDimensionPlausible, isResolvedNonEconomicTotalBlocker, missingExplicitAdvanceInvoiceReferences, reconcileCommonReportWithAuthoritativeInfissiGate, resolveBundledProfessionalExpense, resolveCoBeneficiaryFromOriginalInvoices, resolveCrmFiscalCodeFromOriginalInvoiceCustomerBlock, resolveExplicitAdvanceInvoiceReferences, resolveExplicitOriginalCompletionDate, resolveFormScreeningMappings, resolveInvoiceWorkDates, resolveOriginalDocumentFiscalCode, resolvePrimaryBeneficiaryFromOfficialDocuments, resolvePrimaryBeneficiaryFromOriginalInvoices, resolveProductTechnicalAttributes, resolveWorksMunicipalityFromOriginalInvoices, screeningFallbackMaterialCategoryBlocker, screeningProductMeasurementEvidenceStatus } from "./crmLocalPreflight";
+import { CASE_SPECIFIC_FINANCIAL_RESOLUTIONS, EXPLICIT_ORIGINAL_COMPLETION_DATE_RULE_ID, INVOICE_CUSTOMER_BLOCK_CRM_CF_RULE_ID, PersistentAprCrmLocalPreflight, RESOLVED_NON_ECONOMIC_TOTAL_BLOCKER_RETIREMENT_RULE_ID, SPECIFIC_INCOMPLETE_SCREENING_BLOCKER_RULE_ID, UPSTREAM_PREFLIGHT_TERMINALIZATION_RULE_ID, acquisitionCanTerminalizeWithoutDocuments, applyPrintedDocumentTotalFallback, asScreeningDraftPackage, assessEnea2026SubmissionDeadline, buildCrmLocalPreflightReport, completionDateOperatorBlockers, invalidateCrmEneaPayloadAuditForScreeningBlockers, invoiceAddressedToDifferentCompanyThanBeneficiary, isPersianaDimensionPlausible, isResolvedNonEconomicTotalBlocker, mergeOriginalFormSourcesPreferPrimary, missingExplicitAdvanceInvoiceReferences, reconcileCommonReportWithAuthoritativeInfissiGate, resolveBundledProfessionalExpense, resolveCoBeneficiaryFromOriginalInvoices, resolveCrmFiscalCodeFromOriginalInvoiceCustomerBlock, resolveExplicitAdvanceInvoiceReferences, resolveExplicitOriginalCompletionDate, resolveFormScreeningMappings, resolveInvoiceWorkDates, resolveOriginalDocumentFiscalCode, resolvePrimaryBeneficiaryFromOfficialDocuments, resolvePrimaryBeneficiaryFromOriginalInvoices, resolveProductTechnicalAttributes, resolveWorksMunicipalityFromOriginalInvoices, screeningFallbackMaterialCategoryBlocker, screeningProductMeasurementEvidenceStatus } from "./crmLocalPreflight";
 import type { CrmEneaPayloadAuditResult } from "./crmEneaPayloadAudit";
 import type { AprEneaDraftPackage } from "./aprEneaBrowserWorker";
 import { nestedUncertainPageSaveProbeAllowed } from "./infissiUncertainSavePolicy";
+import { OPERATOR_RESPONSE_RUNTIME_CONSUMPTION_RULE_ID, PersistentAprOperatorResponseLedger } from "./operatorResponseLedger";
+import type { LocalInvoiceSegment } from "./localInvoiceSegmentation";
+import { disposeAprStoppedCase } from "./aprStopDisposition";
 
 const directories: string[] = [];
 afterEach(() => { for (const directory of directories.splice(0)) rmSync(directory, { recursive: true, force: true }); });
 
 describe("preflight locale durevole fino a quindici dossier CRM", () => {
+  it("classifica il form privo di edificio e impianto come domanda operatore esplicita", () => {
+    const report = buildCrmLocalPreflightReport({
+      row: {
+        id: "practice-venturi",
+        form_compilato_at: null,
+        dati_form: {
+          richiedente: { nome: "Stefania", cognome: "Venturi" },
+          residenza: { comune: "Roma" },
+          catastali: { foglio: "1", mappale: "2" },
+        },
+      },
+    }, "stefania-venturi", { items: [] } as never, new Date("2026-09-14T10:00:00Z"));
+    const blocker = report.blockers.find((item) => item.code === "customer_form_required_sections_missing");
+    expect(blocker).toMatchObject({
+      field: "customer_form.required_sections",
+      operatorQuestion: expect.stringMatching(/dati dell'edificio e dell'impianto/i),
+    });
+    expect(disposeAprStoppedCase({
+      customerKey: "stefania-venturi",
+      state: "blocked_case",
+      blockerCodes: [blocker!.code],
+      blockerReasons: { [blocker!.code]: blocker!.reason },
+      executionState: null,
+      executionReason: null,
+      persistedQuestionCount: 0,
+      documentsAcquired: true,
+    })).toMatchObject({ kind: "domanda_operatore", blockerCode: "customer_form_required_sections_missing" });
+  });
+
+  it("propaga il totale finale stampato a colonne prima di generare blocker economici", () => {
+    const sourceId = "ordine-177:invoice:fixture";
+    const segment = {
+      sourceId,
+      parentDocumentKey: "ordine-177",
+      index: 0,
+      text: "ORDINE DI VENDITA N. 177 DATA 15/07/2026\nTOTALE MERCE\nTOTALE IMPOSTA\nSPESE IMBALLO TOTALE ORDINE\n2.121,00\n466,62\n2.587,62",
+      documentNumber: "177",
+      documentDate: "2026-07-15",
+      total: null,
+      result: { path: sourceId, status: "parsed", documentType: "invoice", total: null, itemCount: 0, documentNumber: "177", documentDate: "2026-07-15" },
+      items: [],
+      extractionMode: "native_text",
+      referencedInvoiceNumbers: [],
+      replacedInvoiceNumbers: [],
+      technicalSignature: "",
+    } as LocalInvoiceSegment;
+    const applied = applyPrintedDocumentTotalFallback([segment]);
+    expect(applied.segments[0]).toMatchObject({ total: 2587.62, result: { total: 2587.62 } });
+    expect(applied.recovered[0]).toMatchObject({ sourceId, reading: { amount: 2587.62, labelLine: 4, valueLine: 7, layout: "colonna" } });
+  });
+
+  it("non ricalcola un totale privo di etichetta", () => {
+    const sourceId = "senza-totale:invoice:fixture";
+    const segment = {
+      sourceId,
+      parentDocumentKey: "senza-totale",
+      index: 0,
+      text: "FATTURA 1 DEL 01/01/2026\nIMPONIBILE 1.000,00\nIVA 100,00\n1.100,00",
+      documentNumber: "1",
+      documentDate: "2026-01-01",
+      total: null,
+      result: { path: sourceId, status: "parsed", documentType: "invoice", total: null, itemCount: 0, documentNumber: "1", documentDate: "2026-01-01" },
+      items: [],
+      extractionMode: "native_text",
+      referencedInvoiceNumbers: [],
+      replacedInvoiceNumbers: [],
+      technicalSignature: "",
+    } as LocalInvoiceSegment;
+    const applied = applyPrintedDocumentTotalFallback([segment]);
+    expect(applied.segments[0].total).toBeNull();
+    expect(applied.recovered).toEqual([]);
+  });
+
+  it("consuma realmente una risposta strutturata sulle misure in una nuova generazione", () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "apr-runtime-response-consumption-")); directories.push(root);
+    const dossierPath = path.join(root, "dossier.json");
+    writeFileSync(dossierPath, JSON.stringify({ acquiredAt: "2026-09-11T08:01:00.000Z", row: { id: "practice-mondini", dati_form: { prodotto: { schermature: [] } } } }));
+    const analysis = new PersistentAprCrmDocumentAnalysis(root, async () => { throw new Error("not used"); }); analysis.initialize();
+    const ledger = new PersistentAprOperatorResponseLedger(root);
+    ledger.importResponses([{
+      responseId: "response:mondini:dimensions:runtime-test", customerKey: "sarah-mondini", displayName: "Sarah Mondini", practiceId: "practice-mondini",
+      receivedAt: "2026-09-11T08:00:00.000Z", source: "giuliano_chat_decision", question: "Quali sono quantita e misure?", answer: "Una pergotenda 540 x 400 cm.",
+      payload: { kind: "screening_products", products: [{ description: "Pergotenda", quantity: 1, widthMm: 5400, heightMm: 4000 }] }, status: "active", supersedesResponseId: null,
+      appliedRuleIds: [OPERATOR_RESPONSE_RUNTIME_CONSUMPTION_RULE_ID],
+    }]);
+    const store = new PersistentAprCrmLocalPreflight(root, analysis);
+    store.prepare([{ customerKey: "sarah-mondini", displayName: "Sarah Mondini", state: "acquired", requestId: "req-mondini", attemptCount: 1, practiceId: "practice-mondini", dossierPath, responseSha256: "a".repeat(64), sourceDocumentCount: 0, reason: "ok", startedAt: null, endedAt: null }] as never, "b".repeat(64));
+    const completed = store.runToCompletion(new Date("2026-09-11T08:02:00.000Z"));
+    expect(completed.items[0].report?.products).toContainEqual(expect.objectContaining({ description: "Pergotenda", widthMm: 5400, heightMm: 4000 }));
+    expect(ledger.load().applications).toContainEqual(expect.objectContaining({ responseId: "response:mondini:dimensions:runtime-test", outcome: "applied" }));
+  });
+
+  // Rossella Munafo, 11-14/09/2026: richiesta "dato in attesa" e misure
+  // arrivate dopo, entrambe attive. Le misure venivano applicate e la
+  // richiesta continuava a bloccare la pratica, per quattro giri.
+  it("vince la risposta piu' recente: una richiesta di dato seguita dalle misure non blocca piu' la pratica (Munafo)", () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "apr-runtime-response-latest-wins-")); directories.push(root);
+    const dossierPath = path.join(root, "dossier.json");
+    writeFileSync(dossierPath, JSON.stringify({ acquiredAt: "2026-09-14T08:01:00.000Z", row: { id: "practice-munafo", dati_form: { prodotto: { schermature: [] } } } }));
+    const analysis = new PersistentAprCrmDocumentAnalysis(root, async () => { throw new Error("not used"); }); analysis.initialize();
+    const ledger = new PersistentAprOperatorResponseLedger(root);
+    ledger.importResponses([{
+      responseId: "response:munafo:pending:20260911", customerKey: "rossella-munafo", displayName: "Rossella Munafo", practiceId: "practice-munafo",
+      receivedAt: "2026-09-11T09:37:00.000Z", source: "giuliano_chat_decision", question: "Indica le misure della bioclimatica riportate nel foglio manoscritto.", answer: "Le misure non sono nella fattura.",
+      payload: { kind: "operator_required", operatorQuestion: "Indica le misure della bioclimatica riportate nel foglio manoscritto.", missingDocumentType: null }, status: "active", supersedesResponseId: null,
+      appliedRuleIds: [OPERATOR_RESPONSE_RUNTIME_CONSUMPTION_RULE_ID],
+    }, {
+      responseId: "response:munafo:dimensions:20260912", customerKey: "rossella-munafo", displayName: "Rossella Munafo", practiceId: "practice-munafo",
+      receivedAt: "2026-09-12T11:53:00.000Z", source: "giuliano_chat_decision", question: "Quali sono le misure?", answer: "Una bioclimatica 400 x 300 cm.",
+      payload: { kind: "screening_products", products: [{ description: "Bioclimatica", quantity: 1, widthMm: 4000, heightMm: 3000 }] }, status: "active", supersedesResponseId: null,
+      appliedRuleIds: [OPERATOR_RESPONSE_RUNTIME_CONSUMPTION_RULE_ID],
+    }]);
+    const store = new PersistentAprCrmLocalPreflight(root, analysis);
+    store.prepare([{ customerKey: "rossella-munafo", displayName: "Rossella Munafo", state: "acquired", requestId: "req-munafo", attemptCount: 1, practiceId: "practice-munafo", dossierPath, responseSha256: "e".repeat(64), sourceDocumentCount: 0, reason: "ok", startedAt: null, endedAt: null }] as never, "f".repeat(64));
+    const completed = store.runToCompletion(new Date("2026-09-14T08:02:00.000Z"));
+    // Le misure del 12/09 vengono applicate...
+    expect(completed.items[0].report?.warnings).toContainEqual(expect.objectContaining({ code: "operator_response_screening_products_applied" }));
+    // ...e la richiesta dell'11/09, superata, non blocca piu' la pratica.
+    expect(completed.items[0].report?.blockers).not.toContainEqual(expect.objectContaining({ code: "operator_response_pending_external_data" }));
+  });
+
+  it("una richiesta di dato che e' davvero l'ultima risposta resta pendente", () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "apr-runtime-response-latest-pending-")); directories.push(root);
+    const dossierPath = path.join(root, "dossier.json");
+    writeFileSync(dossierPath, JSON.stringify({ acquiredAt: "2026-09-14T08:01:00.000Z", row: { id: "practice-x", dati_form: {} } }));
+    const analysis = new PersistentAprCrmDocumentAnalysis(root, async () => { throw new Error("not used"); }); analysis.initialize();
+    const ledger = new PersistentAprOperatorResponseLedger(root);
+    ledger.importResponses([{
+      responseId: "response:x:pending:20260913", customerKey: "cliente-x", displayName: "Cliente X", practiceId: "practice-x",
+      receivedAt: "2026-09-13T09:00:00.000Z", source: "giuliano_chat_decision", question: "Serve il certificato del produttore.", answer: "Lo chiedo al fornitore.",
+      payload: { kind: "operator_required", operatorQuestion: "Serve il certificato del produttore.", missingDocumentType: "certificato" }, status: "active", supersedesResponseId: null,
+      appliedRuleIds: [OPERATOR_RESPONSE_RUNTIME_CONSUMPTION_RULE_ID],
+    }]);
+    const store = new PersistentAprCrmLocalPreflight(root, analysis);
+    store.prepare([{ customerKey: "cliente-x", displayName: "Cliente X", state: "acquired", requestId: "req-x", attemptCount: 1, practiceId: "practice-x", dossierPath, responseSha256: "1".repeat(64), sourceDocumentCount: 0, reason: "ok", startedAt: null, endedAt: null }] as never, "2".repeat(64));
+    const completed = store.runToCompletion(new Date("2026-09-14T08:02:00.000Z"));
+    expect(completed.items[0].report?.blockers).toContainEqual(expect.objectContaining({ code: "operator_response_pending_external_data" }));
+  });
+
+  it("non considera applicata una risposta su nuovi documenti prima della riacquisizione", () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "apr-runtime-response-refresh-")); directories.push(root);
+    const dossierPath = path.join(root, "dossier.json");
+    writeFileSync(dossierPath, JSON.stringify({ acquiredAt: "2026-09-11T08:00:00.000Z", row: { id: "practice-refresh", dati_form: {} } }));
+    const analysis = new PersistentAprCrmDocumentAnalysis(root, async () => { throw new Error("not used"); }); analysis.initialize();
+    const ledger = new PersistentAprOperatorResponseLedger(root);
+    ledger.importResponses([{
+      responseId: "response:documents:refresh:runtime-test", customerKey: "fixture-refresh", displayName: "Fixture Refresh", practiceId: "practice-refresh",
+      receivedAt: "2026-09-11T09:00:00.000Z", source: "giuliano_chat_decision", question: "La fattura e stata caricata?", answer: "Si.",
+      payload: { kind: "document_refresh", documentTypes: ["fattura"] }, status: "active", supersedesResponseId: null,
+      appliedRuleIds: [OPERATOR_RESPONSE_RUNTIME_CONSUMPTION_RULE_ID],
+    }]);
+    const store = new PersistentAprCrmLocalPreflight(root, analysis);
+    store.prepare([{ customerKey: "fixture-refresh", displayName: "Fixture Refresh", state: "acquired", requestId: "req-refresh", attemptCount: 1, practiceId: "practice-refresh", dossierPath, responseSha256: "c".repeat(64), sourceDocumentCount: 0, reason: "ok", startedAt: null, endedAt: null }] as never, "d".repeat(64));
+    const completed = store.runToCompletion(new Date("2026-09-11T09:01:00.000Z"));
+    expect(completed.items[0].report?.blockers).toContainEqual(expect.objectContaining({ code: "operator_response_source_refresh_pending" }));
+    expect(ledger.load().applications).toContainEqual(expect.objectContaining({ responseId: "response:documents:refresh:runtime-test", outcome: "pending_source_refresh" }));
+  });
+
+  it("applica una disposizione di rimozione anche quando la nuova acquisizione non trova piu la pratica", () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "apr-runtime-response-disposition-")); directories.push(root);
+    const analysis = new PersistentAprCrmDocumentAnalysis(root, async () => { throw new Error("not used"); }); analysis.initialize();
+    const ledger = new PersistentAprOperatorResponseLedger(root);
+    ledger.importResponses([{
+      responseId: "response:formisano:removed:runtime-test", customerKey: "antonino-formisabo", displayName: "Antonino Formisano", practiceId: "practice-formisano",
+      receivedAt: "2026-09-11T09:00:00.000Z", source: "giuliano_chat_decision", question: "La pratica e ancora nel CRM?", answer: "No.",
+      payload: { kind: "case_disposition", disposition: "removed_from_crm", reason: "Pratica rimossa dal perimetro corrente." }, status: "active", supersedesResponseId: null,
+      appliedRuleIds: [OPERATOR_RESPONSE_RUNTIME_CONSUMPTION_RULE_ID],
+    }]);
+    const store = new PersistentAprCrmLocalPreflight(root, analysis);
+    const state = store.prepareFromTerminalAcquisition([{
+      customerKey: "antonino-formisabo", displayName: "Antonino Formisano", expectedPracticeId: "practice-formisano", state: "blocked_not_found", requestId: "request-formisano", attemptCount: 1,
+      practiceId: null, dossierPath: null, responseSha256: "e".repeat(64), sourceDocumentCount: 0, reason: "Non trovata", startedAt: null, endedAt: "2026-09-11T09:01:00.000Z",
+    }] as never, "f".repeat(64), new Date("2026-09-11T09:02:00.000Z"));
+    expect(state.items[0]).toMatchObject({ state: "deferred_operator", report: null, disposition: { commandId: "response:formisano:removed:runtime-test" } });
+    expect(state.audit.at(-2)).toMatchObject({ type: "case_deferred", appliedRuleIds: expect.arrayContaining([OPERATOR_RESPONSE_RUNTIME_CONSUMPTION_RULE_ID]) });
+    expect(ledger.load().applications).toContainEqual(expect.objectContaining({ responseId: "response:formisano:removed:runtime-test", outcome: "disposition_applied" }));
+  });
+
+  it("propaga subito pratica CRM non trovata, esclusione fornitore e zero allegati come terminali con blocker e domanda operatore", () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "apr-upstream-terminal-")); directories.push(root);
+    const dossierPath = path.join(root, "linea-sole.json");
+    writeFileSync(dossierPath, JSON.stringify({ row: { id: "00000000-0000-4000-8000-000000000091", cliente_nome: "Mario", cliente_cognome: "Manuale", fornitore: "Linea Sole Potito", fatture_urls: ["a", "b"] } }));
+    const emptyDossierPath = path.join(root, "senza-allegati.json");
+    writeFileSync(emptyDossierPath, JSON.stringify({ row: { id: "00000000-0000-4000-8000-000000000093", cliente_nome: "Nessun", cliente_cognome: "Allegato", fatture_urls: [], documenti_aggiuntivi_urls: [] } }));
+    const terminalItems = [{
+      customerKey: "cliente-non-trovato", displayName: "Cliente Non Trovato", expectedPracticeId: "00000000-0000-4000-8000-000000000090",
+      state: "blocked_not_found" as const, requestId: "crm-readonly-cliente-non-trovato", attemptCount: 1, practiceId: null, dossierPath: null,
+      responseSha256: "a".repeat(64), sourceDocumentCount: 0, reason: "Nessuna pratica ENEA corrispondente trovata con identita esatta.", startedAt: "2026-09-10T08:00:00.000Z", endedAt: "2026-09-10T08:00:03.000Z",
+    }, {
+      customerKey: "mario-manuale", displayName: "Mario Manuale", state: "acquired" as const, requestId: "crm-readonly-mario-manuale", attemptCount: 1,
+      practiceId: "00000000-0000-4000-8000-000000000091", dossierPath, responseSha256: "b".repeat(64), sourceDocumentCount: 2,
+      reason: "Esclusione automatica Linea Sole Potito.", startedAt: "2026-09-10T08:00:00.000Z", endedAt: "2026-09-10T08:00:04.000Z",
+      automationExclusion: { kind: "supplier" as const, ruleId: "user-2026-08-18-future-test-exclusions" as const, canonicalKey: "linea-sole-potito", displayName: "Linea Sole Potito", reason: "Lavorazione manuale.", sourceField: "row.fornitore", sourceValue: "Linea Sole Potito", denominatorDisposition: "excluded_upstream" as const },
+    }, {
+      customerKey: "nessun-allegato", displayName: "Nessun Allegato", state: "acquired" as const, requestId: "crm-readonly-nessun-allegato", attemptCount: 1,
+      practiceId: "00000000-0000-4000-8000-000000000093", dossierPath: emptyDossierPath, responseSha256: "f".repeat(64), sourceDocumentCount: 0,
+      reason: "Dossier acquisito senza fonti originarie.", startedAt: "2026-09-10T08:00:00.000Z", endedAt: "2026-09-10T08:00:04.000Z", automationExclusion: null,
+    }];
+    expect(acquisitionCanTerminalizeWithoutDocuments(terminalItems)).toBe(true);
+    const preflight = new PersistentAprCrmLocalPreflight(root, new PersistentAprCrmDocumentAnalysis(root));
+    const state = preflight.prepareFromTerminalAcquisition(terminalItems, "c".repeat(64), new Date("2026-09-10T08:00:05.000Z"));
+    expect(state.status).toBe("completed");
+    expect(state.items).toHaveLength(3);
+    expect(state.items[0]).toMatchObject({ state: "blocked_case", report: { outcome: "blocked_case", blockers: [expect.objectContaining({ code: "crm_practice_exact_match_not_found", operatorQuestion: expect.stringContaining("ID esatto") })] } });
+    expect(state.items[1]).toMatchObject({ state: "blocked_case", report: { outcome: "blocked_case", blockers: [expect.objectContaining({ code: "permanent_supplier_automation_exclusion", reportingCategory: "excluded_upstream", operatorQuestion: expect.any(String) })] } });
+    expect(state.items[2]).toMatchObject({ state: "blocked_case", report: { outcome: "blocked_case", blockers: expect.arrayContaining([expect.objectContaining({ code: "original_invoice_missing_or_unavailable", operatorQuestion: expect.any(String) })]) } });
+    expect(state.audit.at(-1)?.appliedRuleIds).toContain(UPSTREAM_PREFLIGHT_TERMINALIZATION_RULE_ID);
+  });
+
+  it("non terminalizza a monte un dossier normale con allegati: deve attraversare download e analisi", () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "apr-upstream-terminal-negative-")); directories.push(root);
+    const dossierPath = path.join(root, "normale.json");
+    writeFileSync(dossierPath, JSON.stringify({ row: { id: "00000000-0000-4000-8000-000000000092", fatture_urls: ["fattura.pdf"] } }));
+    const normalItems = [{
+      customerKey: "cliente-normale", displayName: "Cliente Normale", state: "acquired" as const, requestId: "crm-readonly-cliente-normale", attemptCount: 1,
+      practiceId: "00000000-0000-4000-8000-000000000092", dossierPath, responseSha256: "d".repeat(64), sourceDocumentCount: 1,
+      reason: "Dossier acquisito.", startedAt: "2026-09-10T08:00:00.000Z", endedAt: "2026-09-10T08:00:04.000Z", automationExclusion: null,
+    }];
+    expect(acquisitionCanTerminalizeWithoutDocuments(normalItems)).toBe(false);
+    const preflight = new PersistentAprCrmLocalPreflight(root, new PersistentAprCrmDocumentAnalysis(root));
+    expect(() => preflight.prepareFromTerminalAcquisition(normalItems, "e".repeat(64), new Date("2026-09-10T08:00:05.000Z"))).toThrow("crm_local_preflight_upstream_terminal_source_invalid");
+    expect(preflight.snapshot().status).toBe("unprepared");
+  });
+
+  it("regressione Venturi: completa un form inline parziale con le sole sezioni esplicite del modulo cartaceo", () => {
+    expect(mergeOriginalFormSourcesPreferPrimary({
+      richiedente: { nome: "Stefania", cognome: "Venturi", cf: "VNTSTF70A41H501A" },
+      edificio: { anno_costruzione: "" },
+    }, {
+      richiedente: { nome: "OCR ERRATO", cognome: "Venturi", cf: "" },
+      edificio: { anno_costruzione: "1970", superficie_mq: "110" },
+      impianto: { tipo: "autonomo" },
+    })).toEqual({
+      richiedente: { nome: "Stefania", cognome: "Venturi", cf: "VNTSTF70A41H501A" },
+      edificio: { anno_costruzione: "1970", superficie_mq: "110" },
+      impianto: { tipo: "autonomo" },
+    });
+  });
+
+  it("resta fail-closed sui conflitti: il modulo cartaceo non sovrascrive valori inline presenti", () => {
+    expect(mergeOriginalFormSourcesPreferPrimary({ edificio: { anno_costruzione: "1985" }, prodotto: { schermature: [{ tipo_prodotto: "persiana" }] } }, {
+      edificio: { anno_costruzione: "1970", superficie_mq: "110" }, prodotto: { schermature: [{ tipo_prodotto: "tenda_da_sole" }] },
+    })).toEqual({ edificio: { anno_costruzione: "1985", superficie_mq: "110" }, prodotto: { schermature: [{ tipo_prodotto: "persiana" }] } });
+  });
+
   it("applica alla tenda fisica riconosciuta il fallback generale gTot 0,13", () => {
     const root = mkdtempSync(path.join(os.tmpdir(), "apr-specific-screening-blocker-")); directories.push(root);
     const invoicePath = path.join(root, "fattura.txt");
@@ -321,8 +569,19 @@ Totale documento 5.000,00 €`);
     expect(screeningProductMeasurementEvidenceStatus(["Fattura: tenda da sole dimensioni 300 x 250 cm"])).toBe("present");
     expect(screeningProductMeasurementEvidenceStatus(["Fattura: posa e trasporto"])).toBe("not_applicable");
   });
-  it("richiede la fattura di acconto citata e sottratta quando non e presente fra le fonti fiscali", () => {
-    const balance = { sourceId: "saldo-1512", documentNumber: "1512", referencedInvoiceNumbers: ["320"], text: "Totale complessivo fornitura e posa 9.010,00 - Fatt.acconto nr. 320 del 30/11/2025" };
+  it("regressione Buracchi, fattura auto-contenuta con Totale complessivo fornitura non fabbrica un documento mancante", () => {
+    const balance = { sourceId: "saldo-1512", documentNumber: "1512", referencedInvoiceNumbers: ["320"], text: "Totale complessivo fornitura e posa in opera euro 9.010,00 - Fatt.acconto nr. 320 del 30/11/2025 - TOTALE DOCUMENTO 6.426,92" };
+    expect(resolveExplicitAdvanceInvoiceReferences([balance])).toEqual({
+      missing: [], uniqueBaseMatches: [], selfContainedReferences: [{
+        sourceId: "saldo-1512", reference: "320", declaredSupplyTotal: 9010,
+        evidence: "Totale complessivo fornitura e posa in opera euro 9.010,00",
+      }],
+    });
+    expect(missingExplicitAdvanceInvoiceReferences([balance])).toEqual([]);
+  });
+
+  it("mantiene fail-closed un acconto citato quando esiste soltanto il Totale documento generico", () => {
+    const balance = { sourceId: "saldo-1512", documentNumber: "1512", referencedInvoiceNumbers: ["320"], text: "Fornitura e posa in opera - Fatt.acconto nr. 320 del 30/11/2025 - TOTALE DOCUMENTO 6.426,92" };
     expect(missingExplicitAdvanceInvoiceReferences([balance])).toEqual([{ sourceId: "saldo-1512", reference: "320" }]);
     expect(missingExplicitAdvanceInvoiceReferences([balance, { sourceId: "acconto-320", documentNumber: "320", referencedInvoiceNumbers: [], text: "Fattura di acconto" }])).toEqual([]);
     expect(missingExplicitAdvanceInvoiceReferences([{ ...balance, referencedInvoiceNumbers: [], text: "Totale documento 9.010,00" }])).toEqual([]);
@@ -333,6 +592,7 @@ Totale documento 5.000,00 €`);
     expect(resolveExplicitAdvanceInvoiceReferences([saldo, { sourceId: "acconto-162", documentNumber: "162", referencedInvoiceNumbers: [], text: "Fattura di acconto" }])).toEqual({
       missing: [],
       uniqueBaseMatches: [{ sourceId: "saldo-223", reference: "162/26", matchedDocumentNumber: "162" }],
+      selfContainedReferences: [],
     });
     expect(missingExplicitAdvanceInvoiceReferences([
       { ...saldo, referencedInvoiceNumbers: ["59"], text: "Fattura di acconto n. 59" },
@@ -346,7 +606,7 @@ Totale documento 5.000,00 €`);
       saldo,
       { sourceId: "acconto-59-a", documentNumber: "59/A", referencedInvoiceNumbers: [], text: "Fattura di acconto" },
       { sourceId: "acconto-59-b", documentNumber: "59/B", referencedInvoiceNumbers: [], text: "Fattura di acconto" },
-    ])).toEqual({ missing: [{ sourceId: "saldo-92-a", reference: "59" }], uniqueBaseMatches: [] });
+    ])).toEqual({ missing: [{ sourceId: "saldo-92-a", reference: "59" }], uniqueBaseMatches: [], selfContainedReferences: [] });
   });
 
   it("non usa la stessa fattura di saldo per soddisfare il proprio riferimento acconto", () => {
@@ -354,7 +614,24 @@ Totale documento 5.000,00 €`);
     expect(resolveExplicitAdvanceInvoiceReferences([saldo, { ...saldo, sourceId: "copia-saldo-161" }])).toEqual({
       missing: [{ sourceId: "saldo-161", reference: "161/26" }, { sourceId: "copia-saldo-161", reference: "161/26" }],
       uniqueBaseMatches: [],
+      selfContainedReferences: [],
     });
+  });
+
+  it("regressione Tocchetti end-to-end: ritira la copia OCR duplicata prima del gate sui riferimenti di acconto", () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "apr-tocchetti-reference-after-dedup-")); directories.push(root);
+    const acconto = path.join(root, "acconto-162.txt"); const saldo = path.join(root, "saldo-223.txt"); const composite = path.join(root, "composite-162.txt");
+    writeFileSync(acconto, "Fattura n. 162 del 14/05/2026\nTotale fattura 1.230,00");
+    writeFileSync(saldo, "Fattura n. 223 del 30/06/2026\nACCONTO RICEVUTO RIF. NS. FATTURA N.162 DEL 14/05/2026\nTotale fattura 1.680,33");
+    writeFileSync(composite, "Fattura n. 162 del 14/05/2026\nACCONTO RICEVUTO RIF. NS. FATTURA N.162 DEL 14/05/2026\nTotale fattura 1.680,33");
+    const report = buildCrmLocalPreflightReport({ row: { id: "tocchetti-fixture", fatture_urls: ["acconto", "saldo", "composite"], dati_form: {} } }, "tocchetti-fixture", { items: [
+      { documentKey: "acconto-162", customerKey: "tocchetti-fixture", kind: "invoice", state: "analyzed", textPath: acconto, extractionMode: "native_text", invoiceResult: { documentType: "invoice" }, screeningItems: [] },
+      { documentKey: "saldo-223", customerKey: "tocchetti-fixture", kind: "invoice", state: "analyzed", textPath: saldo, extractionMode: "native_text", invoiceResult: { documentType: "invoice" }, screeningItems: [] },
+      { documentKey: "composite-162", customerKey: "tocchetti-fixture", kind: "invoice", state: "analyzed", textPath: composite, extractionMode: "macos_vision_ocr", invoiceResult: { documentType: "invoice" }, screeningItems: [] },
+    ] } as never, new Date("2026-09-09T10:00:00Z"));
+    expect(report.blockers).not.toContainEqual(expect.objectContaining({ code: "original_invoice_missing_or_unavailable" }));
+    expect(report.financial.discardedDuplicateSourceIds).toHaveLength(1);
+    expect(report.financial.discardedDuplicateSourceIds.some((sourceId) => sourceId.startsWith("composite-162"))).toBe(true);
   });
 
   it("manda all'operatore fine lavori oltre 90 giorni e anno portale incompatibile senza inventare date", () => {
@@ -403,6 +680,27 @@ Totale documento 5.000,00 €`);
     expect(resolveExplicitOriginalCompletionDate(analysis, "cliente")).toEqual({
       status: "verified", value: "2026-02-12", sourceIds: ["verbale-collaudo"], evidenceKinds: ["final_installation_commissioning"],
     });
+  });
+  it("regressione Cigognetti: usa la data etichettata del verbale di collaudo e consegna prima della fattura", () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "apr-dated-commissioning-report-")); directories.push(root);
+    const declarationPath = path.join(root, "verbale-collaudo-consegna.txt");
+    writeFileSync(declarationPath, "Verbale di collaudo e consegna\nIl committente accetta le opere descritte.\ndata09/07/2026 Firma del committente");
+    const analysis = { items: [{ documentKey: "verbale-collaudo-consegna", customerKey: "cliente", kind: "additional", state: "analyzed", textPath: declarationPath }] } as never;
+    expect(resolveExplicitOriginalCompletionDate(analysis, "cliente")).toEqual({
+      status: "verified", value: "2026-07-09", sourceIds: ["verbale-collaudo-consegna"], evidenceKinds: ["dated_commissioning_report"],
+    });
+  });
+  it("non confonde righe fiscali di collaudo o verbali di prova prodotto con un verbale di collaudo della pratica", () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "apr-non-commissioning-report-")); directories.push(root);
+    const invoicePath = path.join(root, "fattura.txt");
+    const certificatePath = path.join(root, "certificato.txt");
+    writeFileSync(invoicePath, "FATTURA 7 del 24/03/2026\nFornitura, posa e collaudo serramenti\nData scadenza 24/03/2026");
+    writeFileSync(certificatePath, "CERTIFICATO DI PRODOTTO\nDocumentazione: Verbale di prova n. 353/19\nData di rilascio: 06/01/2020");
+    const analysis = { items: [
+      { documentKey: "fattura", customerKey: "cliente", kind: "invoice", state: "analyzed", textPath: invoicePath },
+      { documentKey: "certificato", customerKey: "cliente", kind: "additional", state: "analyzed", textPath: certificatePath },
+    ] } as never;
+    expect(resolveExplicitOriginalCompletionDate(analysis, "cliente")).toEqual({ status: "not_found", value: null, sourceIds: [], evidenceKinds: [] });
   });
   it("non trasforma date di fattura, pagamento o posa descrittiva in fine lavori e fallisce chiuso sui conflitti", () => {
     const root = mkdtempSync(path.join(os.tmpdir(), "apr-explicit-completion-negative-")); directories.push(root);
@@ -700,7 +998,7 @@ Totale documento 5.000,00 €`);
     expect(completed.items).toHaveLength(15);
     expect(completed.items.every((item) => item.state === "blocked_case")).toBe(true);
   });
-  it("accetta il modulo cartaceo Linea Sole Potito e applica fallback solo alle righe senza dati espliciti", () => {
+  it("instrada Linea Sole Potito a esclusione prima di applicare i fallback cartacei storici", () => {
     const root = mkdtempSync(path.join(os.tmpdir(), "apr-linea-sole-paper-")); directories.push(root);
     const invoicePath = path.join(root, "fattura.txt"); const formPath = path.join(root, "modulo.txt"); const transferPath = path.join(root, "bonifici.txt");
     writeFileSync(invoicePath, `Fattura n. 252 del 30/06/2026
@@ -746,14 +1044,13 @@ Totale operazione
       { documentKey: "paper-form-linea", customerKey: "mario-rossi", kind: "additional", state: "analyzed", textPath: formPath, extractionMode: "native_text", invoiceResult: null, screeningItems: [] },
       { documentKey: "bank-composite-linea", customerKey: "mario-rossi", kind: "invoice", state: "analyzed", textPath: transferPath, extractionMode: "native_text", invoiceResult: { documentType: "invoice" }, screeningItems: [] },
     ] } as never, new Date("2026-08-17T10:00:00Z"));
-    expect(report.formAvailable).toBe(true);
-    expect(report.blockers.map((item) => item.code)).not.toContain("customer_form_missing");
-    expect(report.products).toHaveLength(2);
-    expect(report.products.every((product) => product.exposure === "sud" && product.exposureSource === "linea_sole_potito_fallback")).toBe(true);
-    expect(report.products.every((product) => (product.protectedWindowSurfaceM2 ?? 0) >= 2 && (product.protectedWindowSurfaceM2 ?? 0) <= 2.9)).toBe(true);
-    expect(report.products.every((product) => product.appliedRuleIds.includes(USER_AUTHORIZED_RULE_IDS.lineaSolePotitoPaperForm))).toBe(true);
-    expect(report.warnings).toContainEqual(expect.objectContaining({ code: "linea_sole_potito_paper_form_accepted" }));
-    expect(report.financial).toMatchObject({ invoiceTotal: 3663, bankTransferReconciliation: { status: "reconciled", principalTotal: 3663, difference: 0 } });
+    expect(report).toMatchObject({
+      outcome: "blocked_case",
+      formAvailable: false,
+      blockers: [{ code: "permanent_supplier_automation_exclusion", field: "supplier" }],
+      products: [],
+      financial: { invoiceTotal: null, evidence: [] },
+    });
   });
   it("accetta i soli valori espliciti del modulo cartaceo PraticaRapida anche per un altro rivenditore", () => {
     const root = mkdtempSync(path.join(os.tmpdir(), "apr-generic-paper-form-")); directories.push(root);
@@ -930,7 +1227,7 @@ Totale documento 660,00 €`);
       status: "not_found", value: null, sourceIds: [], usedCfDestinatarioAnchor: false,
     });
   });
-  it("non scarta le fatture quando lo stesso PDF composito contiene anche il bonifico", () => {
+  it("non analizza il PDF composito Linea Sole Potito dopo l'esclusione a monte", () => {
     const root = mkdtempSync(path.join(os.tmpdir(), "apr-composite-invoice-transfer-")); directories.push(root);
     const documentPath = path.join(root, "fattura-e-bonifico.txt"); const formPath = path.join(root, "modulo.txt");
     writeFileSync(documentPath, `LINEA SOLE POTITO SRL
@@ -957,10 +1254,12 @@ Pag. 2/5`);
       { documentKey: "composite-copy", customerKey: "alice-molinaris", kind: "invoice", state: "analyzed", textPath: documentPath, textSha256: "same-content", extractionMode: "macos_vision_ocr", invoiceResult: { documentType: "invoice" }, screeningItems: [] },
       { documentKey: "paper-form", customerKey: "alice-molinaris", kind: "additional", state: "analyzed", textPath: formPath, extractionMode: "macos_vision_ocr", invoiceResult: null, screeningItems: [] },
     ] } as never, new Date("2026-08-23T12:00:00Z"));
-    expect(report.formAvailable).toBe(true);
-    expect(report.products).toEqual([expect.objectContaining({ widthMm: 3600, heightMm: 2750, gTot: 0.12 })]);
-    expect(report.blockers).not.toContainEqual(expect.objectContaining({ code: "original_invoice_missing_or_unavailable" }));
-    expect(report.financial.invoiceTotal).toBe(1265);
+    expect(report).toMatchObject({
+      outcome: "blocked_case",
+      blockers: [{ code: "permanent_supplier_automation_exclusion" }],
+      products: [],
+      financial: { invoiceTotal: null, evidence: [] },
+    });
   });
   it("somma acconto e saldo economici ma conserva una sola riga tecnica", () => {
     const root = mkdtempSync(path.join(os.tmpdir(), "apr-crm-preflight-acconto-saldo-")); directories.push(root);
@@ -982,7 +1281,7 @@ Totale imponibile 1.061,48\nImporto Iva 233,53\nTotale Fattura 1.295,01\nNetto a
     expect(report).toMatchObject({ completionDate: "2026-07-09", financial: { invoiceTotal: 1850.01, eligibleExpense: 1850.01, reconciledTotal: 1850.01, tripleReconciliationVerified: true } });
     expect(report.financial.appliedRuleIds).toContain(USER_AUTHORIZED_RULE_IDS.distinctInvoiceNumbersSameCustomerSum);
   });
-  it("rende lavorabile Lucia Lagrasta usando il lordo IVA incluso della seconda pagina", () => {
+  it("mantiene Lucia Lagrasta nel gate di mapping quando la seconda pagina etichetta esplicitamente il totale finale", () => {
     const root = mkdtempSync(path.join(os.tmpdir(), "apr-crm-preflight-lagrasta-")); directories.push(root);
     const textPath = path.join(root, "fattura-161.txt");
     writeFileSync(textPath, `FATTURA nr. 161/2026 del 12/06/2026
@@ -997,6 +1296,7 @@ RIEPILOGO IVA IMPORTO LORDO IMPOSTE
 Imponibile € 2.672,13
 Totale IVA € 467,87
 € 3.140,00
+Totale fattura € 3.140,00
 Fattura nr. 161/2026 del 12/06/2026 - 2 / 2`);
     const report = buildCrmLocalPreflightReport({ row: { cliente_cf: "LGRLCU90T52B149V", dati_form: {
       richiedente: { nome: "Lucia", cognome: "Lagrasta", data_nascita: "1990-12-12", cf: "LGRLCU90T52B149V", abitazione_principale: true },
@@ -1083,6 +1383,51 @@ Totale documento 915,00 €`);
       mainDocumentFiscalCode: { status: "not_found", value: null, sourceIds: [], candidates: [] },
       analysis: { items: [{ documentKey: "invoice-mario", customerKey: "mario-rossi", kind: "invoice", state: "analyzed", textPath: invoice }] } as never,
     })).toEqual({ status: "unresolved", present: true, identity: null, sourceIds: ["invoice-mario"] });
+  });
+
+  // Gemma Minore, 13/09/2026: il CF era stampato in chiaro sulla fattura
+  // Cisam come "Cod. Fisc. MNRGMM95H42G273W", un'etichetta che lo schema non
+  // conosceva. APR concludeva che il beneficiario non fosse verificabile su
+  // documento e finiva nel ramo che chiedeva all'operatore il cointestatario,
+  // a ogni giro, nonostante la risposta fosse gia' registrata e attiva.
+  it("riconosce il codice fiscale anche quando l'etichetta e' 'Cod. Fisc.' (Gemma Minore)", () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "apr-crm-preflight-cod-fisc-label-")); directories.push(root);
+    const invoice = path.join(root, "fattura.txt");
+    writeFileSync(invoice, [
+      "Cisam Infissi Srl",
+      "C.F./P.Iva 04332691205",
+      "Gemma Minore",
+      "Via G. Marconi, 12A",
+      "Cod. Fisc. MNRGMM95H42G273W",
+      "Tot. documento € 1.190,00",
+    ].join("\n"));
+    const analysis = { items: [{ documentKey: "invoice-minore", customerKey: "gemma-minore", kind: "invoice", state: "analyzed", textPath: invoice }] } as never;
+    const resolved = resolveOriginalDocumentFiscalCode({
+      customerKey: "gemma-minore",
+      requester: { nome: "Gemma", cognome: "Minore", data_nascita: "1995-06-02" },
+      analysis,
+    });
+    expect(resolved).toMatchObject({ status: "verified", value: "MNRGMM95H42G273W", sourceIds: ["invoice-minore"] });
+
+    // Con il beneficiario verificato, il cointestatario dichiarato solo nel
+    // form viene escluso dalla fattura invece di fermare la pratica.
+    expect(resolveCoBeneficiaryFromOriginalInvoices({
+      customerKey: "gemma-minore",
+      coOwnership: { presente: true, nome: "Luigi", cognome: "Bianchi", cf: "BNCLGU80A01H501X" },
+      mainDocumentFiscalCode: resolved,
+      analysis,
+    })).toEqual({ status: "excluded_by_invoice", present: false, identity: null, sourceIds: ["invoice-minore"] });
+  });
+
+  it("l'etichetta condivisa con la partita IVA non produce un falso codice fiscale", () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "apr-crm-preflight-cf-vs-piva-")); directories.push(root);
+    const invoice = path.join(root, "fattura.txt");
+    writeFileSync(invoice, "Cisam Infissi Srl\nC.F./P.Iva 04332691205\nGemma Minore\nTot. documento € 1.190,00");
+    expect(resolveOriginalDocumentFiscalCode({
+      customerKey: "gemma-minore",
+      requester: { nome: "Gemma", cognome: "Minore", data_nascita: "1995-06-02" },
+      analysis: { items: [{ documentKey: "invoice-minore", customerKey: "gemma-minore", kind: "invoice", state: "analyzed", textPath: invoice }] } as never,
+    })).toMatchObject({ status: "not_found", value: null });
   });
 
   it("non duplica il beneficiario principale quando il form lo ripete come cointestatario", () => {
@@ -1180,7 +1525,7 @@ Totale documento 915,00 €`);
       { documentKey: "invoice", customerKey: "antonino-formisabo", kind: "invoice", state: "analyzed", textPath: invoice },
       { documentKey: "identity-card", customerKey: "antonino-formisabo", kind: "additional", state: "analyzed", textPath: identityCard },
     ] } as never });
-    expect(result).toEqual({ status: "verified_document", identity: { name: "Antonino", surname: "Formisano", taxCode: "FRMNNN66P27L259X", birthDate: null, sex: "M" }, sourceIds: ["identity-card"], authority: "official_identity_document" });
+    expect(result).toMatchObject({ status: "verified_document", identity: { name: "Antonino", surname: "Formisano", taxCode: "FRMNNN66P27L259X", birthDate: null, sex: "M" }, sourceIds: ["identity-card"], authority: "official_identity_document" });
   });
 
   it("resta fail-closed se due documenti ufficiali coerenti col CF discordano sul cognome", () => {
@@ -1202,7 +1547,7 @@ Totale documento 915,00 €`);
     expect(resolvePrimaryBeneficiaryFromOfficialDocuments({ customerKey: "gregorio-fusco", taxCode: "FSCGGR80B08L845D", analysis: { items: [
       { documentKey: "card", customerKey: "gregorio-fusco", kind: "additional", state: "analyzed", textPath: card },
       { documentKey: "invoice", customerKey: "gregorio-fusco", kind: "invoice", state: "analyzed", textPath: invoice },
-    ] } as never })).toEqual({ status: "verified_document", identity: { name: "Gregorio", surname: "Fusco", taxCode: "FSCGGR80B08L845D", birthDate: null, sex: "M" }, sourceIds: ["card"], authority: "official_identity_document" });
+    ] } as never })).toMatchObject({ status: "verified_document", identity: { name: "Gregorio", surname: "Fusco", taxCode: "FSCGGR80B08L845D", birthDate: null, sex: "M" }, sourceIds: ["card"], authority: "official_identity_document" });
   });
 
   it("fa prevalere giorno, mese e sesso del CF documentale usando solo il secolo concordante del form", () => {
@@ -1212,21 +1557,78 @@ Totale documento 915,00 €`);
     expect(resolvePrimaryBeneficiaryFromOfficialDocuments({
       customerKey: "riccardo-coda", taxCode: "CDORCR50A30A859R", requesterBirthDate: "1950-09-30",
       analysis: { items: [{ documentKey: "invoice", customerKey: "riccardo-coda", kind: "invoice", state: "analyzed", textPath: invoice }] } as never,
-    })).toEqual({
+    })).toMatchObject({
       status: "verified_document",
       identity: { name: "Riccardo", surname: "Coda", taxCode: "CDORCR50A30A859R", birthDate: "1950-01-30", sex: "M" },
-      sourceIds: ["invoice"], authority: "fiscal_document",
+      sourceIds: ["invoice"], authority: "fiscal_document", birthDateSource: "form_century_with_fiscal_code",
     });
   });
 
-  it("resta fail-closed se il secolo non e ricavabile senza contraddire l'anno del form", () => {
-    const root = mkdtempSync(path.join(os.tmpdir(), "apr-official-demographics-century-")); directories.push(root);
+  // Regola del titolare, 16/09/2026 (Giancarlo Della Vedova): il CF scritto nel
+  // modulo coincide con quello stampato in fattura, quindi e' provato da un
+  // documento ufficiale; se la data digitata contraddice solo l'anno, vale il
+  // CF. Sostituisce il vecchio comportamento fail-closed sul secolo.
+  it("la data di nascita viene dal CF verificato quando il form sbaglia l'anno (Della Vedova)", () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "apr-birth-date-from-cf-")); directories.push(root);
+    const invoice = path.join(root, "fattura.txt");
+    writeFileSync(invoice, "CLIENTE Giancarlo Della Vedova C.F.: DLLGCR63P16F205G Via Montale 1 20017 - Rho (MI) - IT\nTOTALE DOCUMENTO 1.000,00");
+    const result = resolvePrimaryBeneficiaryFromOfficialDocuments({
+      customerKey: "giancarlo-della-vedova", taxCode: "DLLGCR63P16F205G", requesterBirthDate: "1976-09-16",
+      requesterIdentity: { name: "Giancarlo", surname: "Della Vedova" }, now: new Date("2026-09-16T12:00:00Z"),
+      analysis: { items: [{ documentKey: "invoice", customerKey: "giancarlo-della-vedova", kind: "invoice", state: "analyzed", textPath: invoice }] } as never,
+    });
+    expect(result).toMatchObject({
+      status: "verified_document",
+      identity: { name: "Giancarlo", surname: "Della Vedova", taxCode: "DLLGCR63P16F205G", birthDate: "1963-09-16", sex: "M" },
+      sourceIds: ["invoice"], authority: "fiscal_document", birthDateSource: "fiscal_code_over_form",
+    });
+  });
+
+  it("giorno o mese del form discordi dal CF restano fail-closed", () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "apr-birth-date-cf-day-mismatch-")); directories.push(root);
     const invoice = path.join(root, "fattura.txt");
     writeFileSync(invoice, "CLIENTE\nRICCARDO CODA\nC.F. CDORCR50A30A859R\nTOTALE DOCUMENTO 1.000,00");
+    // CF: 30 gennaio (A30); il form dice 30 settembre 1949: mese diverso, non solo l'anno.
     expect(resolvePrimaryBeneficiaryFromOfficialDocuments({
-      customerKey: "riccardo-coda", taxCode: "CDORCR50A30A859R", requesterBirthDate: "1949-09-30",
+      customerKey: "riccardo-coda", taxCode: "CDORCR50A30A859R", requesterBirthDate: "1949-09-30", now: new Date("2026-09-16T12:00:00Z"),
       analysis: { items: [{ documentKey: "invoice", customerKey: "riccardo-coda", kind: "invoice", state: "analyzed", textPath: invoice }] } as never,
-    })).toMatchObject({ status: "conflict", identity: null, sourceIds: ["invoice"], authority: null });
+    })).toMatchObject({ status: "conflict", conflictKind: "birth_date", identity: null, sourceIds: ["invoice"], authority: null });
+  });
+
+  it("un cognome composto stampato in fattura viene tagliato come nel form (Della Vedova)", () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "apr-composite-surname-")); directories.push(root);
+    const invoice = path.join(root, "fattura.txt");
+    writeFileSync(invoice, "CLIENTE Giancarlo Della Vedova C.F.: DLLGCR63P16F205G Via Montale 1 20017 - Rho (MI) - IT\nTOTALE DOCUMENTO 1.000,00");
+    const analysis = { items: [{ documentKey: "invoice", customerKey: "giancarlo-della-vedova", kind: "invoice", state: "analyzed", textPath: invoice }] } as never;
+    expect(resolvePrimaryBeneficiaryFromOfficialDocuments({
+      customerKey: "giancarlo-della-vedova", taxCode: "DLLGCR63P16F205G", requesterIdentity: { name: "Giancarlo", surname: "Della Vedova" }, analysis,
+    }).identity).toMatchObject({ name: "Giancarlo", surname: "Della Vedova" });
+  });
+
+  it("senza suggerimento del form resta il taglio piu corto coerente col CF", () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "apr-composite-surname-no-hint-")); directories.push(root);
+    const invoice = path.join(root, "fattura.txt");
+    writeFileSync(invoice, "CLIENTE Giancarlo Della Vedova C.F.: DLLGCR63P16F205G Via Montale 1 20017 - Rho (MI) - IT\nTOTALE DOCUMENTO 1.000,00");
+    const analysis = { items: [{ documentKey: "invoice", customerKey: "giancarlo-della-vedova", kind: "invoice", state: "analyzed", textPath: invoice }] } as never;
+    expect(resolvePrimaryBeneficiaryFromOfficialDocuments({ customerKey: "giancarlo-della-vedova", taxCode: "DLLGCR63P16F205G", analysis }).identity)
+      .toMatchObject({ name: "Giancarlo", surname: "Della" });
+  });
+
+  it("il preflight consegna la data del CF e non blocca la pratica quando il form sbaglia l'anno", () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "apr-birth-date-cf-report-")); directories.push(root);
+    const invoicePath = path.join(root, "fattura.txt");
+    writeFileSync(invoicePath, "FATTURA 12 del 01/07/2026\nCLIENTE Giancarlo Della Vedova C.F.: DLLGCR63P16F205G Via Montale 1 20017 - Rho (MI) - IT\nTOTALE DOCUMENTO 1.000,00 €");
+    const report = buildCrmLocalPreflightReport({ row: {
+      id: "fixture-della-vedova", cliente_nome: "Giancarlo", cliente_cognome: "Della Vedova", cliente_cf: "DLLGCR63P16F205G",
+      dati_form: { richiedente: { nome: "Giancarlo", cognome: "Della Vedova", cf: "DLLGCR63P16F205G", data_nascita: "1976-09-16" } },
+    } }, "fixture-della-vedova", { items: [{
+      documentKey: "fattura-12", customerKey: "fixture-della-vedova", kind: "invoice", state: "analyzed", textPath: invoicePath,
+      extractionMode: "native_text", invoiceResult: { documentType: "invoice", documentNumber: "12", documentDate: "2026-07-01", total: 1000 }, screeningItems: [],
+    }] } as never, new Date("2026-09-16T12:00:00Z"));
+    expect(report.blockers).not.toContainEqual(expect.objectContaining({ code: "primary_beneficiary_invoice_identity_conflict" }));
+    expect(report.blockers).not.toContainEqual(expect.objectContaining({ code: "primary_beneficiary_birth_date_conflict" }));
+    expect(report.warnings).toContainEqual(expect.objectContaining({ code: "birth_date_taken_from_verified_fiscal_code" }));
+    expect(report.primaryBeneficiaryResolution).toMatchObject({ status: "verified_document", identity: { surname: "Della Vedova", birthDate: "1963-09-16" } });
   });
 
   it("estrae il Comune lavori dal blocco CLIENTE di una fattura originaria", () => {
@@ -1396,6 +1798,27 @@ TOTALE DOCUMENTO 1.000,00`);
   it("instrada RM Legno direttamente a blocked_case senza analizzare prodotti o fatture", () => {
     const report = buildCrmLocalPreflightReport({ row: { cliente_nome: "Massimiliano", cliente_cognome: "Montemorra", companies: { ragione_sociale: "rm legno" }, dati_form: {} } }, "massimiliano-montemorra", { items: [] } as never, new Date("2026-09-03T12:00:00Z"));
     expect(report).toMatchObject({ outcome: "blocked_case", blockers: [{ code: "permanent_supplier_automation_exclusion", field: "supplier", operatorQuestion: expect.stringContaining("Erre Emme / RM Legno") }], products: [], financial: { evidence: [] }, eneaPayloadAudit: { draftReady: false, externalActionAllowed: false } });
+  });
+
+  it("instrada Linea Sole Potito direttamente a esclusione prevista prima di analizzare allegati", () => {
+    const report = buildCrmLocalPreflightReport({ row: { cliente_nome: "Cliente", cliente_cognome: "Linea", companies: { ragione_sociale: "Linea Sole Potito" }, dati_form: {} } }, "cliente-linea", { items: [] } as never, new Date("2026-09-09T12:00:00Z"));
+    expect(report).toMatchObject({ outcome: "blocked_case", blockers: [{ code: "permanent_supplier_automation_exclusion", field: "supplier", exactCause: expect.stringContaining("Linea Sole Potito") }], products: [], financial: { evidence: [] } });
+  });
+
+  it("instrada Ideal Sistem a esclusione prevista con reportingCategory excluded_upstream prima di analizzare allegati", () => {
+    const report = buildCrmLocalPreflightReport({ row: { cliente_nome: "Cliente", cliente_cognome: "Ideal", companies: { ragione_sociale: "Ideal Sistem" }, dati_form: {} } }, "cliente-ideal", { items: [] } as never, new Date("2026-09-10T12:00:00Z"));
+    expect(report).toMatchObject({
+      outcome: "blocked_case",
+      blockers: [{
+        code: "permanent_supplier_automation_exclusion",
+        field: "supplier",
+        reportingCategory: "excluded_upstream",
+        appliedRuleIds: expect.arrayContaining(["user-2026-09-10-ideal-sistem-manual-exclusion-v1"]),
+        exactCause: expect.stringContaining("Ideal Sistem"),
+      }],
+      products: [],
+      financial: { evidence: [] },
+    });
   });
 
   it("instrada una pratica interna esclusa direttamente a blocked_case anche se già presente nella coda", () => {
@@ -2079,5 +2502,42 @@ Totale documento 1.200,00 €`);
     restarted.applyOperatorMeasurementResolution(resolutionInput, new Date("2026-09-08T10:02:00Z"));
     expect(restarted.snapshot().revision).toBe(revisionBeforeRetry);
     expect(restarted.snapshot().operatorMeasurementResolutions).toHaveLength(1);
+  });
+
+  it("usa la data fine lavori esplicita del form rivenditore prima della cronologia fatture", () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "apr-reseller-completion-date-")); directories.push(root);
+    const invoicePath = path.join(root, "fattura.txt");
+    writeFileSync(invoicePath, "FATTURA 1 del 01/03/2026\nTenda da sole 1 da 300 x 200 cm Gtot 0,13\nTOTALE DOCUMENTO 1.000,00");
+    const report = buildCrmLocalPreflightReport({ row: { id: "fixture-form-date", data_fine_lavori: "2026-07-15" } }, "fixture-form-date", { items: [{
+      documentKey: "fattura", customerKey: "fixture-form-date", kind: "invoice", state: "analyzed", textPath: invoicePath,
+      extractionMode: "native_text", invoiceResult: { documentType: "invoice", documentNumber: "1", documentDate: "2026-03-01", total: 1000 },
+      screeningItems: [{ widthMm: 3000, heightMm: 2000, surfaceM2: 6, gTot: 0.13, description: "Tenda da sole", sourcePath: "fattura" }],
+    }] } as never, new Date("2026-09-11T08:00:00Z"));
+    expect(report.completionDate).toBe("2026-07-15");
+    expect(report.warnings).toContainEqual(expect.objectContaining({
+      code: "reseller_form_completion_date_over_invoice_applied",
+      appliedRuleIds: expect.arrayContaining([USER_AUTHORIZED_RULE_IDS.resellerFormCompletionDateOverInvoice]),
+    }));
+  });
+
+  it("mantiene fail-closed il conflitto tra data form rivenditore e collaudo originario", () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "apr-reseller-completion-conflict-")); directories.push(root);
+    const invoicePath = path.join(root, "fattura.txt");
+    const commissioningPath = path.join(root, "verbale-collaudo.txt");
+    writeFileSync(invoicePath, "FATTURA 1 del 01/03/2026\nTenda da sole 1 da 300 x 200 cm Gtot 0,13\nTOTALE DOCUMENTO 1.000,00");
+    writeFileSync(commissioningPath, "Verbale di collaudo e consegna\ndata09/07/2026 Firma del committente");
+    const report = buildCrmLocalPreflightReport({ row: { id: "fixture-form-date-conflict", data_fine_lavori: "2026-07-15" } }, "fixture-form-date-conflict", { items: [
+      {
+        documentKey: "fattura", customerKey: "fixture-form-date-conflict", kind: "invoice", state: "analyzed", textPath: invoicePath,
+        extractionMode: "native_text", invoiceResult: { documentType: "invoice", documentNumber: "1", documentDate: "2026-03-01", total: 1000 },
+        screeningItems: [{ widthMm: 3000, heightMm: 2000, surfaceM2: 6, gTot: 0.13, description: "Tenda da sole", sourcePath: "fattura" }],
+      },
+      { documentKey: "verbale-collaudo", customerKey: "fixture-form-date-conflict", kind: "additional", state: "analyzed", textPath: commissioningPath, screeningItems: [], invoiceResult: { documentType: "other" } },
+    ] } as never, new Date("2026-09-11T08:00:00Z"));
+    expect(report.completionDate).toBe("2026-07-15");
+    expect(report.blockers).toContainEqual(expect.objectContaining({
+      code: "completion_date_source_conflict",
+      appliedRuleIds: expect.arrayContaining([USER_AUTHORIZED_RULE_IDS.datedCommissioningReportCompletionPrecedence]),
+    }));
   });
 });

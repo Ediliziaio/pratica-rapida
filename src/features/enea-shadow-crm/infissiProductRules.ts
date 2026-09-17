@@ -4,7 +4,7 @@ import {
   type AprInfissiOldWindowTransmittanceResolution,
 } from "./infissiOldWindowTransmittance";
 
-export const APR_INFISSI_PRODUCT_RULES_VERSION = "apr-infissi-product-rules-v2" as const;
+export const APR_INFISSI_PRODUCT_RULES_VERSION = "apr-infissi-product-rules-v3" as const;
 export const APR_INFISSI_DEFAULT_FRAME_MATERIAL = "PVC" as const;
 export const APR_INFISSI_DEFAULT_GLASS_TYPE = "Bassa emissivita" as const;
 
@@ -20,6 +20,11 @@ export interface InfissiProductRulesInput {
   oldWindowSourceKind?: "customer_form" | "invoice_over_form" | "conflicting_invoices";
   formAlsoInstalledClosures?: boolean;
   formSourceId?: string;
+  documentedNoAdditionalClosures?: boolean;
+  documentedNoAdditionalClosureSourceIds?: readonly string[];
+  documentedClosureAllocationResolved?: boolean;
+  documentedClosureAllocationUniformValue?: boolean;
+  documentedClosureAllocationSourceIds?: readonly string[];
 }
 
 export interface InfissiProductRulesResolution {
@@ -37,13 +42,14 @@ export interface InfissiProductRulesResolution {
     oldWindowThermalTransmittance: AprInfissiOldWindowTransmittanceResolution;
     formSourceId: string | null;
     formAlsoInstalledClosures: boolean | null;
+    shadingClosuresSource: "customer_form" | "explicit_no_screen_evidence" | "invoice_authoritative" | null;
+    documentedNoAdditionalClosureSourceIds: readonly string[];
     appliedRuleIds: readonly string[];
   }>;
 }
 
 const RULE_IDS = Object.freeze([
   USER_AUTHORIZED_RULE_IDS.infissiMaterialGlassFallbacks,
-  USER_AUTHORIZED_RULE_IDS.infissiShadingClosuresFromForm,
   USER_AUTHORIZED_RULE_IDS.infissiOldWindowTransmittanceMatrix,
 ] as const);
 
@@ -66,7 +72,10 @@ export function resolveInfissiProductRules(input: InfissiProductRulesInput): Inf
     hasDoubt: input.oldWindowDataHasDoubt,
   });
   const formAnswerKnown = typeof input.formAlsoInstalledClosures === "boolean";
-  const blockers = formAnswerKnown ? [] : ["infissi_shading_closures_form_answer_missing_or_ambiguous"];
+  const documentedNoAdditionalClosures = input.documentedNoAdditionalClosures === true;
+  const documentedClosureAllocationResolved = input.documentedClosureAllocationResolved === true;
+  const closureAnswerKnown = documentedClosureAllocationResolved || formAnswerKnown || documentedNoAdditionalClosures;
+  const blockers = closureAnswerKnown ? [] : ["infissi_shading_closures_form_answer_missing_or_ambiguous"];
 
   return Object.freeze({
     version: APR_INFISSI_PRODUCT_RULES_VERSION,
@@ -74,7 +83,9 @@ export function resolveInfissiProductRules(input: InfissiProductRulesInput): Inf
     newFrameMaterial: explicitMaterial ?? APR_INFISSI_DEFAULT_FRAME_MATERIAL,
     glassType: explicitGlassType ?? APR_INFISSI_DEFAULT_GLASS_TYPE,
     oldWindowThermalTransmittanceWm2K: oldWindowThermalTransmittance.thermalTransmittanceWm2K,
-    eneaShadingClosuresChecked: formAnswerKnown ? input.formAlsoInstalledClosures! : null,
+    eneaShadingClosuresChecked: documentedClosureAllocationResolved
+      ? typeof input.documentedClosureAllocationUniformValue === "boolean" ? input.documentedClosureAllocationUniformValue : null
+      : formAnswerKnown ? input.formAlsoInstalledClosures! : documentedNoAdditionalClosures ? false : null,
     blockers: Object.freeze(blockers),
     audit: Object.freeze({
       physicalRowId: nonEmpty(input.physicalRowId) ?? null,
@@ -83,7 +94,19 @@ export function resolveInfissiProductRules(input: InfissiProductRulesInput): Inf
       oldWindowThermalTransmittance,
       formSourceId: nonEmpty(input.formSourceId) ?? null,
       formAlsoInstalledClosures: formAnswerKnown ? input.formAlsoInstalledClosures! : null,
-      appliedRuleIds: RULE_IDS,
+      shadingClosuresSource: documentedClosureAllocationResolved
+        ? "invoice_authoritative"
+        : formAnswerKnown ? "customer_form" : documentedNoAdditionalClosures ? "explicit_no_screen_evidence" : null,
+      documentedNoAdditionalClosureSourceIds: Object.freeze([
+        ...(documentedClosureAllocationResolved
+          ? input.documentedClosureAllocationSourceIds ?? []
+          : input.documentedNoAdditionalClosureSourceIds ?? []),
+      ]),
+      appliedRuleIds: Object.freeze(documentedClosureAllocationResolved
+        ? [...RULE_IDS, USER_AUTHORIZED_RULE_IDS.infissiInvoiceAuthoritativeShadingClosures]
+        : documentedNoAdditionalClosures && !formAnswerKnown
+          ? [...RULE_IDS, USER_AUTHORIZED_RULE_IDS.infissiExplicitNoScreenNegativeClosureEvidence]
+          : [...RULE_IDS, USER_AUTHORIZED_RULE_IDS.infissiShadingClosuresFromForm]),
     }),
   });
 }

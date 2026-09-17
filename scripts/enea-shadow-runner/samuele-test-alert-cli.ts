@@ -28,7 +28,7 @@ const evidence = Object.fromEntries(ENEA_PREFLIGHT_STEPS.map((step) => [step, {
   ruleVersion: ENEA_OPERATIONAL_REGISTRY_VERSION,
   reason: step === "dates" ? "Fine lavori 19/03/2026; 148 giorni prima della lavorazione. Alert auditato non bloccante per la sola modalità TEST; produzione/reale esclusa."
     : step === "economic_sources" ? "Fattura 48/001 classificata saldo; seconda copia semanticamente identica esclusa dal calcolo."
-      : step === "gross_reconciliation" ? "Totale lordo IVA incluso €17.529,60 verificato da imponibile €15.936,00 + IVA €1.593,60 e totale documento; duplicato escluso."
+      : step === "gross_reconciliation" ? "Totale finale stampato €17.529,60 acquisito dalla fattura unica; imponibile, IVA e cifre intermedie ignorati; duplicato escluso."
         : step === "screenings" ? "Tre schermature mobili riconciliate: 6200×2470, 4230×2190, 6080×2437 mm; gTot esplicito 0,13; esposizioni sud-est, sud, est; meccanismo Manuale."
           : step === "enea_mapping" ? "Matrice tecnica completa con provenienza: tende da sole esterne, materiale Tessuto e meccanismo Manuale."
             : "Fonte originaria verificata in sola lettura.",
@@ -47,7 +47,7 @@ runner.recordAuthorizedReadOnlyPreflight("samuele-test-alert", PRACTICE_ID, {
     USER_AUTHORIZED_RULE_IDS.testOnlyOver90DaysAlert, USER_AUTHORIZED_RULE_IDS.missingCompletionDate,
     USER_AUTHORIZED_RULE_IDS.testStopAtSavedDraft, USER_AUTHORIZED_RULE_IDS.greenPreflightDraft,
     "system-single-active-practice", "system-readonly-adapter-contract", "system-atomic-checkpoint-resume",
-    "core-form-first", "core-economic-classification", "core-gross-triple-reconciliation", "core-mapping-complete",
+    "core-form-first", "core-economic-classification", USER_AUTHORIZED_RULE_IDS.invoiceFinalPrintedTotalRuntimeAuthority, "core-mapping-complete",
     "authorized-05-beneficiario-cf", "authorized-10-intervento-data-fine-lavori", "authorized-15-schermature-superficie-finestrata",
     "authorized-16-schermature-meccanismo", "authorized-22-schermature-materiale", "authorized-23-schermature-esposizione",
   ],

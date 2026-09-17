@@ -1,0 +1,20 @@
+{
+  "version": "apr-install-bundle-cli-receipt-v1",
+  "installedAt": "2026-09-16T16:50:24.241Z",
+  "label": "patch-cf-sequencer-20260916",
+  "versionId": "5b7c230f-patch-cf-sequencer-20260916-20260916",
+  "previousTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/53d58e3c-post-wide148-portal-rejection-r127-20260915",
+  "currentTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/5b7c230f-patch-cf-sequencer-20260916-20260916",
+  "installedBundle": {
+    "apr-supervisor.mjs": "760231c180ce75a8e5354ef6b9ad41dd662f98dc6f3714fe2597956c7c1afb1b",
+    "apr-enea-worker.mjs": "be8d0d57304209335d0f99205e41e4aa12a3eb0f8f0d76a27768e78f61b96fd9",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0"
+  },
+  "gateResultArtifactId": "3a440cb23ef81ca942b6351f86f4bb44a4d8b88941d8c23c298d280c21aa6396",
+  "gateStatus": "PASS",
+  "governanceAttestation": null,
+  "legacyGovernanceDebtNoticed": [
+    "user-2026-09-05-co-beneficiary-trusted-enter-delivery-v2",
+    "user-2026-09-05-terminal-cohort-browser-quiescence-v1"
+  ]
+}

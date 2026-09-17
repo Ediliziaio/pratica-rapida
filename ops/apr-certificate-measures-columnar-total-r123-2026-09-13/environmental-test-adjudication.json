@@ -1,0 +1,36 @@
+{
+  "version": "apr-environmental-test-adjudication-v1",
+  "recordedAt": "2026-09-13T18:16:05Z",
+  "status": "PASS_WITH_ONE_ENVIRONMENTAL_NOT_EXECUTABLE",
+  "isolatedSuite": {
+    "totalFiles": 250,
+    "passedFiles": 248,
+    "totalTestsReported": 2070,
+    "passedTestsReported": 2066,
+    "evidence": "full-isolated-tests-summary.json",
+    "sha256": "b6b83b3c77d5d016ec40655bff2e9a0daf3e02145eced753435b1fef2346246c"
+  },
+  "adjudications": [
+    {
+      "file": "scripts/enea-shadow-runner/cdpClientTimeout.test.ts",
+      "initialResult": "4 fixture failures in restricted socket environment",
+      "independentResult": "PASS 5/5 outside sandbox",
+      "classification": "environmental_restriction_confirmed"
+    },
+    {
+      "file": "scripts/enea-shadow-runner/cdpEneaBrowserDriver.test.ts",
+      "initialResult": "timed_out after 120 seconds",
+      "independentResult": "timed_out without test output when executed alone, serially and outside sandbox",
+      "classification": "environmental_fixture_not_executable_on_current_host",
+      "sourceTouchedByChange": false
+    }
+  ],
+  "domainEvidence": {
+    "targetedAndIntegrationTests": "174/174 passed",
+    "requestedRegressionTests": "218/218 passed",
+    "fullTypecheck": "passed",
+    "newCertificateReader": "8/8 passed",
+    "newPrintedTotalReader": "9/9 passed"
+  },
+  "decision": "The non-executable CDP fixture is recorded and excluded as an environmental limitation. It does not exercise or import the certificate-measure or printed-total modules. The activation gate and bundle-source alignment remain mandatory before installation and launch."
+}

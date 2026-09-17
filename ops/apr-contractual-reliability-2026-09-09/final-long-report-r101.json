@@ -1,0 +1,2169 @@
+{
+  "version": "apr-contractual-reliability-r101-long-final-v1",
+  "generatedAt": "2026-09-09T21:18:32.571Z",
+  "status": "FINAL",
+  "scope": {
+    "runRoot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909",
+    "manifestPath": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-contractual-reliability-2026-09-09/manifest-long-r101.json",
+    "manifestSha256": "431e895aa96b21ed9d702f5e959f740794b6569f2e0836189c3b6504422d0763",
+    "cases": 63,
+    "note": "Questo lotto e un sottoinsieme operativo di 63 pratiche; non viene usato da solo per ricalcolare la percentuale contrattuale sul denominatore complessivo di 80."
+  },
+  "bundle": {
+    "path": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/49cddcde-canonical-preflight-package-r101-20260909",
+    "workerSha256": "0293dd267b0d2c73ab93575a22866ff2e71dd09ca220418b647877b054fcd589"
+  },
+  "execution": {
+    "startedAt": "2026-09-09T15:34:07.277Z",
+    "endedAt": "2026-09-09T21:07:39.105Z",
+    "status": "completed",
+    "sequential": true,
+    "freshGeneration": true,
+    "safety": {
+      "previewAttempted": false,
+      "submitAttempted": false,
+      "communicationsAttempted": false,
+      "operatorProgressNotificationsOnly": false
+    }
+  },
+  "taxonomy": [
+    "SALVATA",
+    "FALLITA_TECNICA",
+    "BLOCCO_DOCUMENTALE_REALE",
+    "BLOCCO_DATI_O_CONFLITTO_FONTI",
+    "NON_PROCEDIBILE_PER_REGOLA",
+    "ESCLUSA_A_MONTE",
+    "INCONSISTENT_DA_VERIFICARE"
+  ],
+  "counts": {
+    "SALVATA": 31,
+    "FALLITA_TECNICA": 9,
+    "BLOCCO_DOCUMENTALE_REALE": 0,
+    "BLOCCO_DATI_O_CONFLITTO_FONTI": 3,
+    "NON_PROCEDIBILE_PER_REGOLA": 0,
+    "ESCLUSA_A_MONTE": 0,
+    "INCONSISTENT_DA_VERIFICARE": 20
+  },
+  "publishedSystemCounts": {
+    "saved": 31,
+    "operatorRequired": 3,
+    "technicalBlock": 20,
+    "inconsistent": 9
+  },
+  "importantInterpretation": {
+    "historicalSavedRegression": {
+      "total": 31,
+      "saved": 30,
+      "inconsistentDueToPreflightStall": 1,
+      "failedName": "Armando Ranzoni"
+    },
+    "remainingContractual": {
+      "total": 32,
+      "saved": 1,
+      "notSaved": 31
+    },
+    "noRealDocumentBlocksObservedInThisSubset": true,
+    "timeoutPolicy": "Gli 11 timeout pubblicati dal controller come TECHNICAL_BLOCK restano INCONSISTENT_DA_VERIFICARE perche il report/checkpoint interno resta working e il case-truth terminale manca."
+  },
+  "savedTotalComparison": {
+    "sourcePath": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-contractual-reliability-2026-09-09/saved-total-comparison-r101.json",
+    "status": "completed",
+    "counts": {
+      "savedObserved": 41,
+      "compared": 41,
+      "concordant": 40,
+      "discordant": 1,
+      "notComparable": 0
+    },
+    "discordant": [
+      {
+        "customerKey": "santo-giuga",
+        "displayName": "Santo Giuga",
+        "aprTotalEuros": 10953.08,
+        "humanTotalEuros": 10678.08,
+        "deltaEuros": 275
+      }
+    ],
+    "scopeNote": "Il confronto include 10 SAVED del mirato precedente piu tutte le 31 SAVED del lotto lungo: 41 osservazioni complessive."
+  },
+  "tomorrowPriorities": [
+    {
+      "priority": 1,
+      "family": "multi_invoice_product_row_extraction",
+      "evidencePath": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-contractual-reliability-2026-09-09/multi-invoice-product-row-family.json",
+      "actionTonight": "NOT_TOUCHED"
+    },
+    {
+      "priority": 2,
+      "family": "preflight_no_material_progress_until_outer_timeout",
+      "evidencePath": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-contractual-reliability-2026-09-09/preflight-stall-seven-minute-family.json",
+      "actionTonight": "NOT_TOUCHED"
+    },
+    {
+      "priority": 3,
+      "family": "premature_operator_question_emission_and_non_retirement",
+      "evidencePath": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-contractual-reliability-2026-09-09/premature-operator-question-emission.json",
+      "actionTonight": "NOT_TOUCHED"
+    }
+  ],
+  "cases": [
+    {
+      "cohort": 5301,
+      "customerKey": "lucia-droghetti",
+      "displayName": "LUCIA DROGHETTI",
+      "practiceId": "652f820b-9d49-4706-a8bc-87931bec5148",
+      "group": "historical_saved_regression",
+      "category": "SALVATA",
+      "systemVerdict": "saved",
+      "draftId": "478948",
+      "completedPages": 8,
+      "expectedPages": 8,
+      "exactCause": "nessuna_causa_registrata",
+      "missingDocumentType": null,
+      "operatorQuestion": null,
+      "onboardingGap": null,
+      "acceptedManualTruthNote": null,
+      "tripleVerification": {
+        "outerReportState": "saved",
+        "checkpointState": "saved",
+        "reportState": "saved",
+        "reportBlockers": [],
+        "caseTruthStatus": "READY",
+        "caseTruthBlockerCount": 0,
+        "sourcesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5301-lucia-droghetti/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5301-lucia-droghetti/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5301-global-controller-lucia-droghetti.json"
+      }
+    },
+    {
+      "cohort": 5302,
+      "customerKey": "angela-tuttolani",
+      "displayName": "Angela Tuttolani",
+      "practiceId": "8e011a14-60b7-43f4-8b35-04626b35bc91",
+      "group": "historical_saved_regression",
+      "category": "SALVATA",
+      "systemVerdict": "saved",
+      "draftId": "478967",
+      "completedPages": 8,
+      "expectedPages": 8,
+      "exactCause": "nessuna_causa_registrata",
+      "missingDocumentType": null,
+      "operatorQuestion": null,
+      "onboardingGap": null,
+      "acceptedManualTruthNote": null,
+      "tripleVerification": {
+        "outerReportState": "saved",
+        "checkpointState": "saved",
+        "reportState": "saved",
+        "reportBlockers": [],
+        "caseTruthStatus": "READY",
+        "caseTruthBlockerCount": 0,
+        "sourcesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5302-angela-tuttolani/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5302-angela-tuttolani/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5302-global-controller-angela-tuttolani.json"
+      }
+    },
+    {
+      "cohort": 5303,
+      "customerKey": "gianfranco-lavezzi",
+      "displayName": "gianfranco lavezzi",
+      "practiceId": "49f0a3c1-698c-44c4-ae31-d09ad994196d",
+      "group": "historical_saved_regression",
+      "category": "SALVATA",
+      "systemVerdict": "saved",
+      "draftId": "478986",
+      "completedPages": 9,
+      "expectedPages": 9,
+      "exactCause": "nessuna_causa_registrata",
+      "missingDocumentType": null,
+      "operatorQuestion": null,
+      "onboardingGap": null,
+      "acceptedManualTruthNote": null,
+      "tripleVerification": {
+        "outerReportState": "saved",
+        "checkpointState": "saved",
+        "reportState": "saved",
+        "reportBlockers": [],
+        "caseTruthStatus": "READY",
+        "caseTruthBlockerCount": 0,
+        "sourcesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5303-gianfranco-lavezzi/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5303-gianfranco-lavezzi/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5303-global-controller-gianfranco-lavezzi.json"
+      }
+    },
+    {
+      "cohort": 5304,
+      "customerKey": "matteo-capitanelli",
+      "displayName": "MATTEO CAPITANELLI",
+      "practiceId": "61b0dc51-4959-46e7-bd6d-37c8f1981c52",
+      "group": "historical_saved_regression",
+      "category": "SALVATA",
+      "systemVerdict": "saved",
+      "draftId": "479032",
+      "completedPages": 14,
+      "expectedPages": 14,
+      "exactCause": "nessuna_causa_registrata",
+      "missingDocumentType": null,
+      "operatorQuestion": null,
+      "onboardingGap": null,
+      "acceptedManualTruthNote": null,
+      "tripleVerification": {
+        "outerReportState": "saved",
+        "checkpointState": "saved",
+        "reportState": "saved",
+        "reportBlockers": [],
+        "caseTruthStatus": "READY",
+        "caseTruthBlockerCount": 0,
+        "sourcesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5304-matteo-capitanelli/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5304-matteo-capitanelli/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5304-global-controller-matteo-capitanelli.json"
+      }
+    },
+    {
+      "cohort": 5305,
+      "customerKey": "eugenio-codognato",
+      "displayName": "EUGENIO CODOGNATO",
+      "practiceId": "5f669e8b-9ef1-45f6-b00d-12449d741314",
+      "group": "historical_saved_regression",
+      "category": "SALVATA",
+      "systemVerdict": "saved",
+      "draftId": "479069",
+      "completedPages": 15,
+      "expectedPages": 15,
+      "exactCause": "nessuna_causa_registrata",
+      "missingDocumentType": null,
+      "operatorQuestion": null,
+      "onboardingGap": null,
+      "acceptedManualTruthNote": null,
+      "tripleVerification": {
+        "outerReportState": "saved",
+        "checkpointState": "saved",
+        "reportState": "saved",
+        "reportBlockers": [],
+        "caseTruthStatus": "READY",
+        "caseTruthBlockerCount": 0,
+        "sourcesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5305-eugenio-codognato/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5305-eugenio-codognato/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5305-global-controller-eugenio-codognato.json"
+      }
+    },
+    {
+      "cohort": 5306,
+      "customerKey": "gregorio-fusco",
+      "displayName": "gregorio fusco",
+      "practiceId": "7b8fa856-36d9-471b-82f5-a0ae194469b2",
+      "group": "historical_saved_regression",
+      "category": "SALVATA",
+      "systemVerdict": "saved",
+      "draftId": "479120",
+      "completedPages": 13,
+      "expectedPages": 13,
+      "exactCause": "nessuna_causa_registrata",
+      "missingDocumentType": null,
+      "operatorQuestion": null,
+      "onboardingGap": null,
+      "acceptedManualTruthNote": null,
+      "tripleVerification": {
+        "outerReportState": "saved",
+        "checkpointState": "saved",
+        "reportState": "saved",
+        "reportBlockers": [],
+        "caseTruthStatus": "READY",
+        "caseTruthBlockerCount": 0,
+        "sourcesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5306-gregorio-fusco/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5306-gregorio-fusco/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5306-global-controller-gregorio-fusco.json"
+      }
+    },
+    {
+      "cohort": 5307,
+      "customerKey": "luca-ronconi",
+      "displayName": "Luca Ronconi",
+      "practiceId": "98d44d99-86af-4fec-ba55-ffe24d208e83",
+      "group": "historical_saved_regression",
+      "category": "SALVATA",
+      "systemVerdict": "saved",
+      "draftId": "479148",
+      "completedPages": 8,
+      "expectedPages": 8,
+      "exactCause": "nessuna_causa_registrata",
+      "missingDocumentType": null,
+      "operatorQuestion": null,
+      "onboardingGap": null,
+      "acceptedManualTruthNote": null,
+      "tripleVerification": {
+        "outerReportState": "saved",
+        "checkpointState": "saved",
+        "reportState": "saved",
+        "reportBlockers": [],
+        "caseTruthStatus": "READY",
+        "caseTruthBlockerCount": 0,
+        "sourcesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5307-luca-ronconi/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5307-luca-ronconi/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5307-global-controller-luca-ronconi.json"
+      }
+    },
+    {
+      "cohort": 5308,
+      "customerKey": "andrea-trabucco",
+      "displayName": "Andrea Trabucco",
+      "practiceId": "fe20bff9-ded6-4380-9452-e20c4410a0c7",
+      "group": "historical_saved_regression",
+      "category": "SALVATA",
+      "systemVerdict": "saved",
+      "draftId": "479168",
+      "completedPages": 8,
+      "expectedPages": 8,
+      "exactCause": "nessuna_causa_registrata",
+      "missingDocumentType": null,
+      "operatorQuestion": null,
+      "onboardingGap": null,
+      "acceptedManualTruthNote": null,
+      "tripleVerification": {
+        "outerReportState": "saved",
+        "checkpointState": "saved",
+        "reportState": "saved",
+        "reportBlockers": [],
+        "caseTruthStatus": "READY",
+        "caseTruthBlockerCount": 0,
+        "sourcesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5308-andrea-trabucco/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5308-andrea-trabucco/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5308-global-controller-andrea-trabucco.json"
+      }
+    },
+    {
+      "cohort": 5309,
+      "customerKey": "antonella-ferletic",
+      "displayName": "Antonella Ferletic",
+      "practiceId": "3e7d38d2-e40d-4304-850c-e128698be78e",
+      "group": "historical_saved_regression",
+      "category": "SALVATA",
+      "systemVerdict": "saved",
+      "draftId": "479185",
+      "completedPages": 9,
+      "expectedPages": 9,
+      "exactCause": "nessuna_causa_registrata",
+      "missingDocumentType": null,
+      "operatorQuestion": null,
+      "onboardingGap": null,
+      "acceptedManualTruthNote": null,
+      "tripleVerification": {
+        "outerReportState": "saved",
+        "checkpointState": "saved",
+        "reportState": "saved",
+        "reportBlockers": [],
+        "caseTruthStatus": "READY",
+        "caseTruthBlockerCount": 0,
+        "sourcesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5309-antonella-ferletic/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5309-antonella-ferletic/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5309-global-controller-antonella-ferletic.json"
+      }
+    },
+    {
+      "cohort": 5310,
+      "customerKey": "luca-cigognetti",
+      "displayName": "Luca Cigognetti",
+      "practiceId": "77c5e8b6-34f8-4f1b-830a-526addefdd7d",
+      "group": "historical_saved_regression",
+      "category": "SALVATA",
+      "systemVerdict": "saved",
+      "draftId": "479202",
+      "completedPages": 14,
+      "expectedPages": 14,
+      "exactCause": "nessuna_causa_registrata",
+      "missingDocumentType": null,
+      "operatorQuestion": null,
+      "onboardingGap": null,
+      "acceptedManualTruthNote": null,
+      "tripleVerification": {
+        "outerReportState": "saved",
+        "checkpointState": "saved",
+        "reportState": "saved",
+        "reportBlockers": [],
+        "caseTruthStatus": "READY",
+        "caseTruthBlockerCount": 0,
+        "sourcesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5310-luca-cigognetti/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5310-luca-cigognetti/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5310-global-controller-luca-cigognetti.json"
+      }
+    },
+    {
+      "cohort": 5311,
+      "customerKey": "lia-chiericati",
+      "displayName": "Lia Chiericati",
+      "practiceId": "2cef7991-a654-4cd6-b2b8-623cefce596b",
+      "group": "historical_saved_regression",
+      "category": "SALVATA",
+      "systemVerdict": "saved",
+      "draftId": "479236",
+      "completedPages": 8,
+      "expectedPages": 8,
+      "exactCause": "nessuna_causa_registrata",
+      "missingDocumentType": null,
+      "operatorQuestion": null,
+      "onboardingGap": null,
+      "acceptedManualTruthNote": null,
+      "tripleVerification": {
+        "outerReportState": "saved",
+        "checkpointState": "saved",
+        "reportState": "saved",
+        "reportBlockers": [],
+        "caseTruthStatus": "READY",
+        "caseTruthBlockerCount": 0,
+        "sourcesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5311-lia-chiericati/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5311-lia-chiericati/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5311-global-controller-lia-chiericati.json"
+      }
+    },
+    {
+      "cohort": 5312,
+      "customerKey": "monica-molteni",
+      "displayName": "Monica Molteni",
+      "practiceId": "aa8d417f-8450-4283-b328-dc8c9cb573ba",
+      "group": "historical_saved_regression",
+      "category": "SALVATA",
+      "systemVerdict": "saved",
+      "draftId": "479254",
+      "completedPages": 9,
+      "expectedPages": 9,
+      "exactCause": "nessuna_causa_registrata",
+      "missingDocumentType": null,
+      "operatorQuestion": null,
+      "onboardingGap": null,
+      "acceptedManualTruthNote": null,
+      "tripleVerification": {
+        "outerReportState": "saved",
+        "checkpointState": "saved",
+        "reportState": "saved",
+        "reportBlockers": [],
+        "caseTruthStatus": "READY",
+        "caseTruthBlockerCount": 0,
+        "sourcesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5312-monica-molteni/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5312-monica-molteni/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5312-global-controller-monica-molteni.json"
+      }
+    },
+    {
+      "cohort": 5313,
+      "customerKey": "santo-giuga",
+      "displayName": "Santo Giuga",
+      "practiceId": "5323d52a-6473-46f1-a5aa-faf5568ae3fc",
+      "group": "historical_saved_regression",
+      "category": "SALVATA",
+      "systemVerdict": "saved",
+      "draftId": "479266",
+      "completedPages": 12,
+      "expectedPages": 12,
+      "exactCause": "nessuna_causa_registrata",
+      "missingDocumentType": null,
+      "operatorQuestion": null,
+      "onboardingGap": null,
+      "acceptedManualTruthNote": null,
+      "tripleVerification": {
+        "outerReportState": "saved",
+        "checkpointState": "saved",
+        "reportState": "saved",
+        "reportBlockers": [],
+        "caseTruthStatus": "READY",
+        "caseTruthBlockerCount": 0,
+        "sourcesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5313-santo-giuga/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5313-santo-giuga/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5313-global-controller-santo-giuga.json"
+      }
+    },
+    {
+      "cohort": 5314,
+      "customerKey": "claudia-campagna",
+      "displayName": "Claudia Campagna",
+      "practiceId": "eed0922f-b5ec-4e8f-b860-d746ed93528e",
+      "group": "historical_saved_regression",
+      "category": "SALVATA",
+      "systemVerdict": "saved",
+      "draftId": "479311",
+      "completedPages": 8,
+      "expectedPages": 8,
+      "exactCause": "nessuna_causa_registrata",
+      "missingDocumentType": null,
+      "operatorQuestion": null,
+      "onboardingGap": null,
+      "acceptedManualTruthNote": null,
+      "tripleVerification": {
+        "outerReportState": "saved",
+        "checkpointState": "saved",
+        "reportState": "saved",
+        "reportBlockers": [],
+        "caseTruthStatus": "READY",
+        "caseTruthBlockerCount": 0,
+        "sourcesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5314-claudia-campagna/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5314-claudia-campagna/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5314-global-controller-claudia-campagna.json"
+      }
+    },
+    {
+      "cohort": 5315,
+      "customerKey": "fabio-sartori",
+      "displayName": "Fabio Sartori",
+      "practiceId": "9b996147-82e1-4438-affe-9fcec062c003",
+      "group": "historical_saved_regression",
+      "category": "SALVATA",
+      "systemVerdict": "saved",
+      "draftId": "479342",
+      "completedPages": 8,
+      "expectedPages": 8,
+      "exactCause": "nessuna_causa_registrata",
+      "missingDocumentType": null,
+      "operatorQuestion": null,
+      "onboardingGap": null,
+      "acceptedManualTruthNote": null,
+      "tripleVerification": {
+        "outerReportState": "saved",
+        "checkpointState": "saved",
+        "reportState": "saved",
+        "reportBlockers": [],
+        "caseTruthStatus": "READY",
+        "caseTruthBlockerCount": 0,
+        "sourcesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5315-fabio-sartori/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5315-fabio-sartori/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5315-global-controller-fabio-sartori.json"
+      }
+    },
+    {
+      "cohort": 5316,
+      "customerKey": "annalisa-lanzo",
+      "displayName": "ANNALISA LANZO",
+      "practiceId": "b51df57d-dae2-4ddc-bf99-904673ebe50d",
+      "group": "historical_saved_regression",
+      "category": "SALVATA",
+      "systemVerdict": "saved",
+      "draftId": "479363",
+      "completedPages": 8,
+      "expectedPages": 8,
+      "exactCause": "nessuna_causa_registrata",
+      "missingDocumentType": null,
+      "operatorQuestion": null,
+      "onboardingGap": null,
+      "acceptedManualTruthNote": null,
+      "tripleVerification": {
+        "outerReportState": "saved",
+        "checkpointState": "saved",
+        "reportState": "saved",
+        "reportBlockers": [],
+        "caseTruthStatus": "READY",
+        "caseTruthBlockerCount": 0,
+        "sourcesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5316-annalisa-lanzo/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5316-annalisa-lanzo/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5316-global-controller-annalisa-lanzo.json"
+      }
+    },
+    {
+      "cohort": 5317,
+      "customerKey": "armando-ranzoni",
+      "displayName": "Armando Ranzoni",
+      "practiceId": "54fdcf5f-3092-4f43-a741-ff510c25f51f",
+      "group": "historical_saved_regression",
+      "category": "INCONSISTENT_DA_VERIFICARE",
+      "systemVerdict": "technical_block",
+      "draftId": null,
+      "completedPages": 0,
+      "expectedPages": 0,
+      "exactCause": "preflight_no_material_progress_for_7_minutes",
+      "missingDocumentType": null,
+      "operatorQuestion": "Dopo la correzione generale dello stallo preflight, vuoi includere questa pratica nel replay di regressione?",
+      "onboardingGap": null,
+      "acceptedManualTruthNote": null,
+      "tripleVerification": {
+        "outerReportState": "technical_block",
+        "checkpointState": null,
+        "reportState": "working",
+        "reportBlockers": [],
+        "caseTruthStatus": null,
+        "caseTruthBlockerCount": null,
+        "sourcesAgree": false,
+        "conclusion": "INCONSISTENT"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5317-armando-ranzoni/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5317-armando-ranzoni/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5317-global-controller-armando-ranzoni.json"
+      }
+    },
+    {
+      "cohort": 5318,
+      "customerKey": "monica-ambra-fioravanti",
+      "displayName": "MONICA AMBRA FIORAVANTI",
+      "practiceId": "b8eb5a0a-21f8-4400-bd8c-ed1c39751b10",
+      "group": "historical_saved_regression",
+      "category": "SALVATA",
+      "systemVerdict": "saved",
+      "draftId": "479410",
+      "completedPages": 9,
+      "expectedPages": 9,
+      "exactCause": "nessuna_causa_registrata",
+      "missingDocumentType": null,
+      "operatorQuestion": null,
+      "onboardingGap": null,
+      "acceptedManualTruthNote": null,
+      "tripleVerification": {
+        "outerReportState": "saved",
+        "checkpointState": "saved",
+        "reportState": "saved",
+        "reportBlockers": [],
+        "caseTruthStatus": "READY",
+        "caseTruthBlockerCount": 0,
+        "sourcesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5318-monica-ambra-fioravanti/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5318-monica-ambra-fioravanti/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5318-global-controller-monica-ambra-fioravanti.json"
+      }
+    },
+    {
+      "cohort": 5319,
+      "customerKey": "adelfio-pietro-spinelli",
+      "displayName": "Adelfio Pietro Spinelli",
+      "practiceId": "81c6ec6a-ab2e-4214-a018-5f769c0cf61b",
+      "group": "historical_saved_regression",
+      "category": "SALVATA",
+      "systemVerdict": "saved",
+      "draftId": "479426",
+      "completedPages": 8,
+      "expectedPages": 8,
+      "exactCause": "nessuna_causa_registrata",
+      "missingDocumentType": null,
+      "operatorQuestion": null,
+      "onboardingGap": null,
+      "acceptedManualTruthNote": null,
+      "tripleVerification": {
+        "outerReportState": "saved",
+        "checkpointState": "saved",
+        "reportState": "saved",
+        "reportBlockers": [],
+        "caseTruthStatus": "READY",
+        "caseTruthBlockerCount": 0,
+        "sourcesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5319-adelfio-pietro-spinelli/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5319-adelfio-pietro-spinelli/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5319-global-controller-adelfio-pietro-spinelli.json"
+      }
+    },
+    {
+      "cohort": 5320,
+      "customerKey": "massimo-cappello",
+      "displayName": "massimo cappello",
+      "practiceId": "0a92f92c-22ed-4a43-b47e-6abe1d74282a",
+      "group": "historical_saved_regression",
+      "category": "SALVATA",
+      "systemVerdict": "saved",
+      "draftId": "479442",
+      "completedPages": 19,
+      "expectedPages": 19,
+      "exactCause": "nessuna_causa_registrata",
+      "missingDocumentType": null,
+      "operatorQuestion": null,
+      "onboardingGap": null,
+      "acceptedManualTruthNote": null,
+      "tripleVerification": {
+        "outerReportState": "saved",
+        "checkpointState": "saved",
+        "reportState": "saved",
+        "reportBlockers": [],
+        "caseTruthStatus": "READY",
+        "caseTruthBlockerCount": 0,
+        "sourcesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5320-massimo-cappello/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5320-massimo-cappello/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5320-global-controller-massimo-cappello.json"
+      }
+    },
+    {
+      "cohort": 5321,
+      "customerKey": "lucia-lagrasta",
+      "displayName": "Lucia Lagrasta",
+      "practiceId": "0f468582-9698-4589-b2d8-a103acced455",
+      "group": "historical_saved_regression",
+      "category": "SALVATA",
+      "systemVerdict": "saved",
+      "draftId": "479476",
+      "completedPages": 11,
+      "expectedPages": 11,
+      "exactCause": "nessuna_causa_registrata",
+      "missingDocumentType": null,
+      "operatorQuestion": null,
+      "onboardingGap": null,
+      "acceptedManualTruthNote": null,
+      "tripleVerification": {
+        "outerReportState": "saved",
+        "checkpointState": "saved",
+        "reportState": "saved",
+        "reportBlockers": [],
+        "caseTruthStatus": "READY",
+        "caseTruthBlockerCount": 0,
+        "sourcesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5321-lucia-lagrasta/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5321-lucia-lagrasta/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5321-global-controller-lucia-lagrasta.json"
+      }
+    },
+    {
+      "cohort": 5322,
+      "customerKey": "angelina-stricelli",
+      "displayName": "Angelina Stricelli",
+      "practiceId": "ae88aed9-0b83-42c7-87fb-a03c76a46113",
+      "group": "historical_saved_regression",
+      "category": "SALVATA",
+      "systemVerdict": "saved",
+      "draftId": "479495",
+      "completedPages": 14,
+      "expectedPages": 14,
+      "exactCause": "nessuna_causa_registrata",
+      "missingDocumentType": null,
+      "operatorQuestion": null,
+      "onboardingGap": null,
+      "acceptedManualTruthNote": null,
+      "tripleVerification": {
+        "outerReportState": "saved",
+        "checkpointState": "saved",
+        "reportState": "saved",
+        "reportBlockers": [],
+        "caseTruthStatus": "READY",
+        "caseTruthBlockerCount": 0,
+        "sourcesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5322-angelina-stricelli/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5322-angelina-stricelli/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5322-global-controller-angelina-stricelli.json"
+      }
+    },
+    {
+      "cohort": 5323,
+      "customerKey": "nadia-ragni",
+      "displayName": "Nadia Ragni",
+      "practiceId": "47ef4b16-d334-4acf-8c1f-c7c341281771",
+      "group": "historical_saved_regression",
+      "category": "SALVATA",
+      "systemVerdict": "saved",
+      "draftId": "479516",
+      "completedPages": 9,
+      "expectedPages": 9,
+      "exactCause": "nessuna_causa_registrata",
+      "missingDocumentType": null,
+      "operatorQuestion": null,
+      "onboardingGap": null,
+      "acceptedManualTruthNote": null,
+      "tripleVerification": {
+        "outerReportState": "saved",
+        "checkpointState": "saved",
+        "reportState": "saved",
+        "reportBlockers": [],
+        "caseTruthStatus": "READY",
+        "caseTruthBlockerCount": 0,
+        "sourcesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5323-nadia-ragni/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5323-nadia-ragni/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5323-global-controller-nadia-ragni.json"
+      }
+    },
+    {
+      "cohort": 5324,
+      "customerKey": "romeo-ropa",
+      "displayName": "Romeo Ropa",
+      "practiceId": "adff093a-ef0d-4013-aa23-5f71dec4234b",
+      "group": "historical_saved_regression",
+      "category": "SALVATA",
+      "systemVerdict": "saved",
+      "draftId": "479526",
+      "completedPages": 8,
+      "expectedPages": 8,
+      "exactCause": "nessuna_causa_registrata",
+      "missingDocumentType": null,
+      "operatorQuestion": null,
+      "onboardingGap": null,
+      "acceptedManualTruthNote": null,
+      "tripleVerification": {
+        "outerReportState": "saved",
+        "checkpointState": "saved",
+        "reportState": "saved",
+        "reportBlockers": [],
+        "caseTruthStatus": "READY",
+        "caseTruthBlockerCount": 0,
+        "sourcesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5324-romeo-ropa/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5324-romeo-ropa/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5324-global-controller-romeo-ropa.json"
+      }
+    },
+    {
+      "cohort": 5325,
+      "customerKey": "claudia-sellati",
+      "displayName": "CLAUDIA SELLATI",
+      "practiceId": "58f03680-c716-42e7-ad7d-e3ceaee5573d",
+      "group": "historical_saved_regression",
+      "category": "SALVATA",
+      "systemVerdict": "saved",
+      "draftId": "479533",
+      "completedPages": 13,
+      "expectedPages": 13,
+      "exactCause": "nessuna_causa_registrata",
+      "missingDocumentType": null,
+      "operatorQuestion": null,
+      "onboardingGap": null,
+      "acceptedManualTruthNote": null,
+      "tripleVerification": {
+        "outerReportState": "saved",
+        "checkpointState": "saved",
+        "reportState": "saved",
+        "reportBlockers": [],
+        "caseTruthStatus": "READY",
+        "caseTruthBlockerCount": 0,
+        "sourcesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5325-claudia-sellati/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5325-claudia-sellati/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5325-global-controller-claudia-sellati.json"
+      }
+    },
+    {
+      "cohort": 5326,
+      "customerKey": "elena-depalma",
+      "displayName": "ELENA DEPALMA",
+      "practiceId": "af39159b-62d9-4c0d-8056-d2462e4b7727",
+      "group": "historical_saved_regression",
+      "category": "SALVATA",
+      "systemVerdict": "saved",
+      "draftId": "479544",
+      "completedPages": 12,
+      "expectedPages": 12,
+      "exactCause": "nessuna_causa_registrata",
+      "missingDocumentType": null,
+      "operatorQuestion": null,
+      "onboardingGap": null,
+      "acceptedManualTruthNote": null,
+      "tripleVerification": {
+        "outerReportState": "saved",
+        "checkpointState": "saved",
+        "reportState": "saved",
+        "reportBlockers": [],
+        "caseTruthStatus": "READY",
+        "caseTruthBlockerCount": 0,
+        "sourcesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5326-elena-depalma/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5326-elena-depalma/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5326-global-controller-elena-depalma.json"
+      }
+    },
+    {
+      "cohort": 5327,
+      "customerKey": "mauro-ballabio",
+      "displayName": "Mauro Ballabio",
+      "practiceId": "d3d11e50-d24e-4f38-b2c7-3a16480b007a",
+      "group": "historical_saved_regression",
+      "category": "SALVATA",
+      "systemVerdict": "saved",
+      "draftId": "479556",
+      "completedPages": 10,
+      "expectedPages": 10,
+      "exactCause": "nessuna_causa_registrata",
+      "missingDocumentType": null,
+      "operatorQuestion": null,
+      "onboardingGap": null,
+      "acceptedManualTruthNote": null,
+      "tripleVerification": {
+        "outerReportState": "saved",
+        "checkpointState": "saved",
+        "reportState": "saved",
+        "reportBlockers": [],
+        "caseTruthStatus": "READY",
+        "caseTruthBlockerCount": 0,
+        "sourcesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5327-mauro-ballabio/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5327-mauro-ballabio/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5327-global-controller-mauro-ballabio.json"
+      }
+    },
+    {
+      "cohort": 5328,
+      "customerKey": "flavia-cipriani",
+      "displayName": "Flavia Cipriani",
+      "practiceId": "9f785f33-491a-4954-8423-4316d6842dbb",
+      "group": "historical_saved_regression",
+      "category": "SALVATA",
+      "systemVerdict": "saved",
+      "draftId": "479571",
+      "completedPages": 13,
+      "expectedPages": 13,
+      "exactCause": "nessuna_causa_registrata",
+      "missingDocumentType": null,
+      "operatorQuestion": null,
+      "onboardingGap": null,
+      "acceptedManualTruthNote": null,
+      "tripleVerification": {
+        "outerReportState": "saved",
+        "checkpointState": "saved",
+        "reportState": "saved",
+        "reportBlockers": [],
+        "caseTruthStatus": "READY",
+        "caseTruthBlockerCount": 0,
+        "sourcesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5328-flavia-cipriani/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5328-flavia-cipriani/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5328-global-controller-flavia-cipriani.json"
+      }
+    },
+    {
+      "cohort": 5329,
+      "customerKey": "rosa-toscano",
+      "displayName": "rosa toscano",
+      "practiceId": "48098402-2621-40d9-92ae-eb3d5befe380",
+      "group": "historical_saved_regression",
+      "category": "SALVATA",
+      "systemVerdict": "saved",
+      "draftId": "479582",
+      "completedPages": 9,
+      "expectedPages": 9,
+      "exactCause": "nessuna_causa_registrata",
+      "missingDocumentType": null,
+      "operatorQuestion": null,
+      "onboardingGap": null,
+      "acceptedManualTruthNote": null,
+      "tripleVerification": {
+        "outerReportState": "saved",
+        "checkpointState": "saved",
+        "reportState": "saved",
+        "reportBlockers": [],
+        "caseTruthStatus": "READY",
+        "caseTruthBlockerCount": 0,
+        "sourcesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5329-rosa-toscano/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5329-rosa-toscano/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5329-global-controller-rosa-toscano.json"
+      }
+    },
+    {
+      "cohort": 5330,
+      "customerKey": "luigi-carfora",
+      "displayName": "Luigi Carfora",
+      "practiceId": "0572b6a4-a44d-4f13-8fad-d8e91fc5c91d",
+      "group": "historical_saved_regression",
+      "category": "SALVATA",
+      "systemVerdict": "saved",
+      "draftId": "479592",
+      "completedPages": 8,
+      "expectedPages": 8,
+      "exactCause": "nessuna_causa_registrata",
+      "missingDocumentType": null,
+      "operatorQuestion": null,
+      "onboardingGap": null,
+      "acceptedManualTruthNote": null,
+      "tripleVerification": {
+        "outerReportState": "saved",
+        "checkpointState": "saved",
+        "reportState": "saved",
+        "reportBlockers": [],
+        "caseTruthStatus": "READY",
+        "caseTruthBlockerCount": 0,
+        "sourcesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5330-luigi-carfora/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5330-luigi-carfora/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5330-global-controller-luigi-carfora.json"
+      }
+    },
+    {
+      "cohort": 5331,
+      "customerKey": "zeno-righetti",
+      "displayName": "Zeno Righetti",
+      "practiceId": "513b7f1e-d79f-4efc-86f0-20e4018c9155",
+      "group": "historical_saved_regression",
+      "category": "SALVATA",
+      "systemVerdict": "saved",
+      "draftId": "479603",
+      "completedPages": 19,
+      "expectedPages": 19,
+      "exactCause": "nessuna_causa_registrata",
+      "missingDocumentType": null,
+      "operatorQuestion": null,
+      "onboardingGap": null,
+      "acceptedManualTruthNote": null,
+      "tripleVerification": {
+        "outerReportState": "saved",
+        "checkpointState": "saved",
+        "reportState": "saved",
+        "reportBlockers": [],
+        "caseTruthStatus": "READY",
+        "caseTruthBlockerCount": 0,
+        "sourcesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5331-zeno-righetti/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5331-zeno-righetti/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5331-global-controller-zeno-righetti.json"
+      }
+    },
+    {
+      "cohort": 5332,
+      "customerKey": "guido-calvacchi",
+      "displayName": "GUIDO CALVACCHI",
+      "practiceId": "7ebb9a52-2196-4ddc-9dc8-f431ff40e1b5",
+      "group": "remaining_contractual",
+      "category": "INCONSISTENT_DA_VERIFICARE",
+      "systemVerdict": "inconsistent",
+      "draftId": null,
+      "completedPages": 0,
+      "expectedPages": 0,
+      "exactCause": "gross_triple_reconciliation_failed, infissi_dimensions_and_cardinality_missing, infissi_financial_triple_reconciliation_required",
+      "missingDocumentType": null,
+      "operatorQuestion": "Confermi di mantenere la pratica congelata finche checkpoint, blocker e case-truth non producono un verdetto concordante?",
+      "onboardingGap": null,
+      "acceptedManualTruthNote": null,
+      "tripleVerification": {
+        "outerReportState": "inconsistent",
+        "checkpointState": "inconsistent",
+        "reportState": "inconsistent",
+        "reportBlockers": [],
+        "caseTruthStatus": "INCONSISTENT",
+        "caseTruthBlockerCount": 0,
+        "sourcesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5332-guido-calvacchi/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5332-guido-calvacchi/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5332-global-controller-guido-calvacchi.json"
+      }
+    },
+    {
+      "cohort": 5333,
+      "customerKey": "sarah-mondini",
+      "displayName": "Sarah Mondini",
+      "practiceId": "36a9a1ab-0a3d-47d7-8671-e0654167ccb1",
+      "group": "remaining_contractual",
+      "category": "FALLITA_TECNICA",
+      "systemVerdict": "operator_required",
+      "draftId": null,
+      "completedPages": 0,
+      "expectedPages": 0,
+      "exactCause": "product_cardinality_form_invoice_mismatch, screening_primary_measurements_missing",
+      "missingDocumentType": null,
+      "operatorQuestion": "Dopo la correzione generale del parser multi-fattura, vuoi includere Sarah Mondini nel replay di regressione?",
+      "onboardingGap": null,
+      "acceptedManualTruthNote": "Verifica manuale primaria gia accettata: pratica chiusa come corretta; il blocco corrente su zero prodotti/misure appartiene alla famiglia parser multi-fattura, non a un dato realmente assente.",
+      "tripleVerification": {
+        "outerReportState": "operator_required",
+        "checkpointState": "operator_required",
+        "reportState": "operator_required",
+        "reportBlockers": [
+          {
+            "code": "product_cardinality_form_invoice_mismatch",
+            "message": "Controllo incrociato ripetuto: il form descrive 3 righe e le fatture 0 prodotti fisici non riconciliabili in modo univoco per famiglia. Richiesto intervento operatore: confermare la cardinalita fisica e l'assegnazione degli attributi form."
+          },
+          {
+            "code": "screenings_missing",
+            "message": "Nessun prodotto fisico riconciliato dalle fatture originarie."
+          },
+          {
+            "code": "screening_primary_measurements_missing",
+            "message": "La fattura descrive la schermatura ma nessuna fonte primaria riporta le misure fisiche del prodotto. APR non usa le misure della finestra protetta come misure del prodotto: acquisire o confermare le misure e rimettere la pratica in Pronte da fare."
+          }
+        ],
+        "caseTruthStatus": "blocked_case",
+        "caseTruthBlockerCount": 3,
+        "sourcesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5333-sarah-mondini/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5333-sarah-mondini/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5333-global-controller-sarah-mondini.json"
+      }
+    },
+    {
+      "cohort": 5334,
+      "customerKey": "stefania-spina",
+      "displayName": "STEFANIA SPINA",
+      "practiceId": "55fdaf83-6b88-4f54-86d6-9fbfd629b966",
+      "group": "remaining_contractual",
+      "category": "INCONSISTENT_DA_VERIFICARE",
+      "systemVerdict": "technical_block",
+      "draftId": null,
+      "completedPages": 0,
+      "expectedPages": 0,
+      "exactCause": "preflight_no_material_progress_for_7_minutes",
+      "missingDocumentType": null,
+      "operatorQuestion": "Dopo la correzione generale dello stallo preflight, vuoi includere questa pratica nel replay di regressione?",
+      "onboardingGap": null,
+      "acceptedManualTruthNote": null,
+      "tripleVerification": {
+        "outerReportState": "technical_block",
+        "checkpointState": null,
+        "reportState": "working",
+        "reportBlockers": [],
+        "caseTruthStatus": null,
+        "caseTruthBlockerCount": null,
+        "sourcesAgree": false,
+        "conclusion": "INCONSISTENT"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5334-stefania-spina/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5334-stefania-spina/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5334-global-controller-stefania-spina.json"
+      }
+    },
+    {
+      "cohort": 5335,
+      "customerKey": "andreea-ioana-olteanu",
+      "displayName": "Andreea Ioana Olteanu",
+      "practiceId": "98e93993-e6ce-4fcc-9103-0362331feb4f",
+      "group": "remaining_contractual",
+      "category": "INCONSISTENT_DA_VERIFICARE",
+      "systemVerdict": "technical_block",
+      "draftId": null,
+      "completedPages": 0,
+      "expectedPages": 0,
+      "exactCause": "preflight_no_material_progress_for_7_minutes",
+      "missingDocumentType": null,
+      "operatorQuestion": "Dopo la correzione generale dello stallo preflight, vuoi includere questa pratica nel replay di regressione?",
+      "onboardingGap": null,
+      "acceptedManualTruthNote": null,
+      "tripleVerification": {
+        "outerReportState": "technical_block",
+        "checkpointState": null,
+        "reportState": "working",
+        "reportBlockers": [],
+        "caseTruthStatus": null,
+        "caseTruthBlockerCount": null,
+        "sourcesAgree": false,
+        "conclusion": "INCONSISTENT"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5335-andreea-ioana-olteanu/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5335-andreea-ioana-olteanu/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5335-global-controller-andreea-ioana-olteanu.json"
+      }
+    },
+    {
+      "cohort": 5336,
+      "customerKey": "maria-sofia-tosatti",
+      "displayName": "MARIA SOFIA TOSATTI",
+      "practiceId": "8e15ae63-6a5c-42df-b2be-72ccb9a73cec",
+      "group": "remaining_contractual",
+      "category": "INCONSISTENT_DA_VERIFICARE",
+      "systemVerdict": "technical_block",
+      "draftId": null,
+      "completedPages": 0,
+      "expectedPages": 0,
+      "exactCause": "preflight_no_material_progress_for_7_minutes",
+      "missingDocumentType": null,
+      "operatorQuestion": "Confermi che vanno usate le misure manoscritte nello spazio 'finestra protetta' dell'ultima pagina?",
+      "onboardingGap": null,
+      "acceptedManualTruthNote": "Verifica manuale primaria gia accettata: le misure esistono, manoscritte nello spazio finestra protetta; il preflight si arresta prima di formulare la domanda operatore.",
+      "tripleVerification": {
+        "outerReportState": "technical_block",
+        "checkpointState": null,
+        "reportState": "working",
+        "reportBlockers": [],
+        "caseTruthStatus": null,
+        "caseTruthBlockerCount": null,
+        "sourcesAgree": false,
+        "conclusion": "INCONSISTENT"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5336-maria-sofia-tosatti/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5336-maria-sofia-tosatti/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5336-global-controller-maria-sofia-tosatti.json"
+      }
+    },
+    {
+      "cohort": 5337,
+      "customerKey": "roberta-di-cesare",
+      "displayName": "roberta di cesare",
+      "practiceId": "78ca7885-b996-46c2-86f1-085ca43e9ede",
+      "group": "remaining_contractual",
+      "category": "INCONSISTENT_DA_VERIFICARE",
+      "systemVerdict": "technical_block",
+      "draftId": null,
+      "completedPages": 0,
+      "expectedPages": 0,
+      "exactCause": "preflight_no_material_progress_for_7_minutes",
+      "missingDocumentType": null,
+      "operatorQuestion": "Inserisci larghezza e altezza mancanti per ciascuna schermatura della pratica.",
+      "onboardingGap": null,
+      "acceptedManualTruthNote": "Verifica manuale primaria gia accettata: le misure sono realmente assenti; il preflight si arresta prima di formulare la domanda operatore.",
+      "tripleVerification": {
+        "outerReportState": "technical_block",
+        "checkpointState": null,
+        "reportState": "working",
+        "reportBlockers": [],
+        "caseTruthStatus": null,
+        "caseTruthBlockerCount": null,
+        "sourcesAgree": false,
+        "conclusion": "INCONSISTENT"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5337-roberta-di-cesare/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5337-roberta-di-cesare/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5337-global-controller-roberta-di-cesare.json"
+      }
+    },
+    {
+      "cohort": 5338,
+      "customerKey": "marco-de-marinis",
+      "displayName": "MARCO DE MARINIS",
+      "practiceId": "0e6c3b0f-f4d0-45f9-921a-6f3a23f713ee",
+      "group": "remaining_contractual",
+      "category": "INCONSISTENT_DA_VERIFICARE",
+      "systemVerdict": "technical_block",
+      "draftId": null,
+      "completedPages": 0,
+      "expectedPages": 0,
+      "exactCause": "preflight_no_material_progress_for_7_minutes",
+      "missingDocumentType": null,
+      "operatorQuestion": "Dopo la correzione generale dello stallo preflight, vuoi includere questa pratica nel replay di regressione?",
+      "onboardingGap": null,
+      "acceptedManualTruthNote": null,
+      "tripleVerification": {
+        "outerReportState": "technical_block",
+        "checkpointState": null,
+        "reportState": "working",
+        "reportBlockers": [],
+        "caseTruthStatus": null,
+        "caseTruthBlockerCount": null,
+        "sourcesAgree": false,
+        "conclusion": "INCONSISTENT"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5338-marco-de-marinis/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5338-marco-de-marinis/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5338-global-controller-marco-de-marinis.json"
+      }
+    },
+    {
+      "cohort": 5339,
+      "customerKey": "marcella-capatti",
+      "displayName": "Marcella Capatti",
+      "practiceId": "e5c4f390-461b-43ea-ada7-d44cec4b91fb",
+      "group": "remaining_contractual",
+      "category": "BLOCCO_DATI_O_CONFLITTO_FONTI",
+      "systemVerdict": "operator_required",
+      "draftId": null,
+      "completedPages": 0,
+      "expectedPages": 0,
+      "exactCause": "infissi_automatic_source_conflict",
+      "missingDocumentType": null,
+      "operatorQuestion": "Quale fonte Infissi deve essere considerata corretta per risolvere il conflitto automatico rilevato nella pratica?",
+      "onboardingGap": "Rendere esplicita nel form la fonte autoritativa quando due fonti Infissi riportano dati incompatibili.",
+      "acceptedManualTruthNote": null,
+      "tripleVerification": {
+        "outerReportState": "operator_required",
+        "checkpointState": "operator_required",
+        "reportState": "operator_required",
+        "reportBlockers": [
+          {
+            "code": "infissi_automatic_source_conflict"
+          },
+          {
+            "code": "infissi_dimensions_and_cardinality_missing"
+          }
+        ],
+        "caseTruthStatus": "blocked_case",
+        "caseTruthBlockerCount": 2,
+        "sourcesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5339-marcella-capatti/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5339-marcella-capatti/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5339-global-controller-marcella-capatti.json"
+      }
+    },
+    {
+      "cohort": 5340,
+      "customerKey": "nicla-biagioni",
+      "displayName": "Nicla Biagioni",
+      "practiceId": "2803d6c1-f867-44a9-bff2-e67fcc230f7e",
+      "group": "remaining_contractual",
+      "category": "INCONSISTENT_DA_VERIFICARE",
+      "systemVerdict": "inconsistent",
+      "draftId": null,
+      "completedPages": 0,
+      "expectedPages": 0,
+      "exactCause": "infissi_dimensions_and_cardinality_missing, infissi_financial_triple_reconciliation_required, gross_triple_reconciliation_failed",
+      "missingDocumentType": null,
+      "operatorQuestion": "Confermi di mantenere la pratica congelata finche checkpoint, blocker e case-truth non producono un verdetto concordante?",
+      "onboardingGap": null,
+      "acceptedManualTruthNote": null,
+      "tripleVerification": {
+        "outerReportState": "inconsistent",
+        "checkpointState": "inconsistent",
+        "reportState": "inconsistent",
+        "reportBlockers": [],
+        "caseTruthStatus": "INCONSISTENT",
+        "caseTruthBlockerCount": 0,
+        "sourcesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5340-nicla-biagioni/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5340-nicla-biagioni/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5340-global-controller-nicla-biagioni.json"
+      }
+    },
+    {
+      "cohort": 5341,
+      "customerKey": "giulia-kasermann",
+      "displayName": "Giulia Kasermann",
+      "practiceId": "b9ecef3e-0431-4f11-9eec-afabea5d5532",
+      "group": "remaining_contractual",
+      "category": "BLOCCO_DATI_O_CONFLITTO_FONTI",
+      "systemVerdict": "operator_required",
+      "draftId": null,
+      "completedPages": 0,
+      "expectedPages": 0,
+      "exactCause": "product_cardinality_form_invoice_mismatch, screening_primary_measurements_missing",
+      "missingDocumentType": null,
+      "operatorQuestion": "Inserisci il numero esatto dei prodotti e, per ogni schermatura, larghezza e altezza mancanti.",
+      "onboardingGap": "Richiedere nel form iniziale misure fisiche standardizzate per ogni prodotto, con larghezza, altezza e cardinalita obbligatorie.",
+      "acceptedManualTruthNote": "Verifica manuale primaria gia accettata: le misure sono realmente assenti.",
+      "tripleVerification": {
+        "outerReportState": "operator_required",
+        "checkpointState": "operator_required",
+        "reportState": "operator_required",
+        "reportBlockers": [
+          {
+            "code": "product_cardinality_form_invoice_mismatch",
+            "message": "Controllo incrociato ripetuto: il form descrive 1 righe e le fatture 0 prodotti fisici non riconciliabili in modo univoco per famiglia. Richiesto intervento operatore: confermare la cardinalita fisica e l'assegnazione degli attributi form."
+          },
+          {
+            "code": "screenings_missing",
+            "message": "Nessun prodotto fisico riconciliato dalle fatture originarie."
+          },
+          {
+            "code": "screening_primary_measurements_missing",
+            "message": "La fattura descrive la schermatura ma nessuna fonte primaria riporta le misure fisiche del prodotto. APR non usa le misure della finestra protetta come misure del prodotto: acquisire o confermare le misure e rimettere la pratica in Pronte da fare."
+          }
+        ],
+        "caseTruthStatus": "blocked_case",
+        "caseTruthBlockerCount": 3,
+        "sourcesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5341-giulia-kasermann/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5341-giulia-kasermann/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5341-global-controller-giulia-kasermann.json"
+      }
+    },
+    {
+      "cohort": 5342,
+      "customerKey": "giovanna-atzeni",
+      "displayName": "GIOVANNA ATZENI",
+      "practiceId": "dc4484cd-c462-49c0-a734-3064dd6469a8",
+      "group": "remaining_contractual",
+      "category": "INCONSISTENT_DA_VERIFICARE",
+      "systemVerdict": "inconsistent",
+      "draftId": null,
+      "completedPages": 0,
+      "expectedPages": 0,
+      "exactCause": "infissi_shading_closures_form_answer_missing_or_ambiguous",
+      "missingDocumentType": null,
+      "operatorQuestion": "Confermi di mantenere la pratica congelata finche checkpoint, blocker e case-truth non producono un verdetto concordante?",
+      "onboardingGap": null,
+      "acceptedManualTruthNote": null,
+      "tripleVerification": {
+        "outerReportState": "inconsistent",
+        "checkpointState": "inconsistent",
+        "reportState": "inconsistent",
+        "reportBlockers": [],
+        "caseTruthStatus": "INCONSISTENT",
+        "caseTruthBlockerCount": 0,
+        "sourcesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5342-giovanna-atzeni/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5342-giovanna-atzeni/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5342-global-controller-giovanna-atzeni.json"
+      }
+    },
+    {
+      "cohort": 5343,
+      "customerKey": "giuseppe-d-adduzio",
+      "displayName": "GIUSEPPE D'ADDUZIO",
+      "practiceId": "7f5b0c3c-3b37-4309-ac42-73f0c29d7f7f",
+      "group": "remaining_contractual",
+      "category": "INCONSISTENT_DA_VERIFICARE",
+      "systemVerdict": "technical_block",
+      "draftId": null,
+      "completedPages": 0,
+      "expectedPages": 0,
+      "exactCause": "preflight_no_material_progress_for_7_minutes",
+      "missingDocumentType": null,
+      "operatorQuestion": "Dopo la correzione generale dello stallo preflight, vuoi includere questa pratica nel replay di regressione?",
+      "onboardingGap": null,
+      "acceptedManualTruthNote": null,
+      "tripleVerification": {
+        "outerReportState": "technical_block",
+        "checkpointState": null,
+        "reportState": "working",
+        "reportBlockers": [],
+        "caseTruthStatus": null,
+        "caseTruthBlockerCount": null,
+        "sourcesAgree": false,
+        "conclusion": "INCONSISTENT"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5343-giuseppe-d-adduzio/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5343-giuseppe-d-adduzio/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5343-global-controller-giuseppe-d-adduzio.json"
+      }
+    },
+    {
+      "cohort": 5344,
+      "customerKey": "gabriello-manso",
+      "displayName": "GABRIELLO MANSO",
+      "practiceId": "a62eb4d2-a0e8-4d25-81d1-0a3c91f716e2",
+      "group": "remaining_contractual",
+      "category": "FALLITA_TECNICA",
+      "systemVerdict": "technical_block",
+      "draftId": null,
+      "completedPages": 0,
+      "expectedPages": 8,
+      "exactCause": "apr_enea_bridge_prepare_economic_unresolved",
+      "missingDocumentType": null,
+      "operatorQuestion": "Dopo la correzione generale della causa tecnica indicata, vuoi includere questa pratica nel replay operativo di regressione?",
+      "onboardingGap": null,
+      "acceptedManualTruthNote": null,
+      "tripleVerification": {
+        "outerReportState": "technical_block",
+        "checkpointState": "technical_block",
+        "reportState": "technical_block",
+        "reportBlockers": [],
+        "caseTruthStatus": "TECHNICAL_BLOCK",
+        "caseTruthBlockerCount": 0,
+        "sourcesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5344-gabriello-manso/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5344-gabriello-manso/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5344-global-controller-gabriello-manso.json"
+      }
+    },
+    {
+      "cohort": 5345,
+      "customerKey": "sabrina-eustomi",
+      "displayName": "Sabrina Eustomi",
+      "practiceId": "72e6b344-ce0c-4b50-83b6-113d38c31b11",
+      "group": "remaining_contractual",
+      "category": "INCONSISTENT_DA_VERIFICARE",
+      "systemVerdict": "technical_block",
+      "draftId": null,
+      "completedPages": 0,
+      "expectedPages": 0,
+      "exactCause": "preflight_no_material_progress_for_7_minutes",
+      "missingDocumentType": null,
+      "operatorQuestion": "Dopo la correzione generale dello stallo preflight, vuoi includere questa pratica nel replay di regressione?",
+      "onboardingGap": null,
+      "acceptedManualTruthNote": null,
+      "tripleVerification": {
+        "outerReportState": "technical_block",
+        "checkpointState": null,
+        "reportState": "working",
+        "reportBlockers": [],
+        "caseTruthStatus": null,
+        "caseTruthBlockerCount": null,
+        "sourcesAgree": false,
+        "conclusion": "INCONSISTENT"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5345-sabrina-eustomi/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5345-sabrina-eustomi/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5345-global-controller-sabrina-eustomi.json"
+      }
+    },
+    {
+      "cohort": 5346,
+      "customerKey": "cesare-imperiali",
+      "displayName": "Cesare Imperiali",
+      "practiceId": "752e4dd5-604c-495d-92ff-8d0f89be7531",
+      "group": "remaining_contractual",
+      "category": "FALLITA_TECNICA",
+      "systemVerdict": "technical_block",
+      "draftId": null,
+      "completedPages": 0,
+      "expectedPages": 0,
+      "exactCause": "infissi_dimensions_and_cardinality_missing",
+      "missingDocumentType": null,
+      "operatorQuestion": "Dopo la correzione generale della causa tecnica indicata, vuoi includere questa pratica nel replay operativo di regressione?",
+      "onboardingGap": null,
+      "acceptedManualTruthNote": null,
+      "tripleVerification": {
+        "outerReportState": "technical_block",
+        "checkpointState": "technical_block",
+        "reportState": "technical_block",
+        "reportBlockers": [],
+        "caseTruthStatus": "TECHNICAL_BLOCK",
+        "caseTruthBlockerCount": 0,
+        "sourcesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5346-cesare-imperiali/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5346-cesare-imperiali/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5346-global-controller-cesare-imperiali.json"
+      }
+    },
+    {
+      "cohort": 5347,
+      "customerKey": "gavina-emanuela-cannas",
+      "displayName": "GAVINA EMANUELA CANNAS",
+      "practiceId": "c1c4c938-3b64-462f-b571-db98c26765ef",
+      "group": "remaining_contractual",
+      "category": "INCONSISTENT_DA_VERIFICARE",
+      "systemVerdict": "inconsistent",
+      "draftId": null,
+      "completedPages": 0,
+      "expectedPages": 0,
+      "exactCause": "infissi_shading_closures_form_answer_missing_or_ambiguous",
+      "missingDocumentType": null,
+      "operatorQuestion": "Confermi di mantenere la pratica congelata finche checkpoint, blocker e case-truth non producono un verdetto concordante?",
+      "onboardingGap": null,
+      "acceptedManualTruthNote": null,
+      "tripleVerification": {
+        "outerReportState": "inconsistent",
+        "checkpointState": "inconsistent",
+        "reportState": "inconsistent",
+        "reportBlockers": [],
+        "caseTruthStatus": "INCONSISTENT",
+        "caseTruthBlockerCount": 0,
+        "sourcesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5347-gavina-emanuela-cannas/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5347-gavina-emanuela-cannas/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5347-global-controller-gavina-emanuela-cannas.json"
+      }
+    },
+    {
+      "cohort": 5348,
+      "customerKey": "stefano-buosi",
+      "displayName": "Stefano Buosi",
+      "practiceId": "3a393231-4cb9-4bf6-93f0-99da9a2a2972",
+      "group": "remaining_contractual",
+      "category": "BLOCCO_DATI_O_CONFLITTO_FONTI",
+      "systemVerdict": "technical_block",
+      "draftId": null,
+      "completedPages": 0,
+      "expectedPages": 0,
+      "exactCause": "infissi_dimensions_and_cardinality_missing",
+      "missingDocumentType": null,
+      "operatorQuestion": "Inserisci larghezza e altezza mancanti per ciascun infisso/prodotto della pratica.",
+      "onboardingGap": "Richiedere nel form iniziale misure fisiche standardizzate per ogni prodotto, con larghezza, altezza e cardinalita obbligatorie.",
+      "acceptedManualTruthNote": "Verifica manuale primaria gia accettata: le misure sono realmente assenti; il sistema le ha pubblicate impropriamente come TECHNICAL_BLOCK.",
+      "tripleVerification": {
+        "outerReportState": "technical_block",
+        "checkpointState": "technical_block",
+        "reportState": "technical_block",
+        "reportBlockers": [],
+        "caseTruthStatus": "TECHNICAL_BLOCK",
+        "caseTruthBlockerCount": 0,
+        "sourcesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5348-stefano-buosi/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5348-stefano-buosi/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5348-global-controller-stefano-buosi.json"
+      }
+    },
+    {
+      "cohort": 5349,
+      "customerKey": "ivana-mastrangelo",
+      "displayName": "Ivana Mastrangelo",
+      "practiceId": "a8531d2c-05f2-489c-a5df-972b09216acf",
+      "group": "remaining_contractual",
+      "category": "FALLITA_TECNICA",
+      "systemVerdict": "technical_block",
+      "draftId": null,
+      "completedPages": 0,
+      "expectedPages": 11,
+      "exactCause": "apr_enea_bridge_prepare_economic_unresolved",
+      "missingDocumentType": null,
+      "operatorQuestion": "Dopo la correzione generale della causa tecnica indicata, vuoi includere questa pratica nel replay operativo di regressione?",
+      "onboardingGap": null,
+      "acceptedManualTruthNote": null,
+      "tripleVerification": {
+        "outerReportState": "technical_block",
+        "checkpointState": "technical_block",
+        "reportState": "technical_block",
+        "reportBlockers": [],
+        "caseTruthStatus": "TECHNICAL_BLOCK",
+        "caseTruthBlockerCount": 0,
+        "sourcesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5349-ivana-mastrangelo/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5349-ivana-mastrangelo/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5349-global-controller-ivana-mastrangelo.json"
+      }
+    },
+    {
+      "cohort": 5350,
+      "customerKey": "gloria-padoani",
+      "displayName": "Gloria Padoani",
+      "practiceId": "1778bb92-4090-499f-92e6-85599118399f",
+      "group": "remaining_contractual",
+      "category": "FALLITA_TECNICA",
+      "systemVerdict": "technical_block",
+      "draftId": "479701",
+      "completedPages": 0,
+      "expectedPages": 9,
+      "exactCause": "apr_cdp_enea_field_verification_failed:id-comune_nascita,id-comune_residenza",
+      "missingDocumentType": null,
+      "operatorQuestion": "Dopo la correzione generale della causa tecnica indicata, vuoi includere questa pratica nel replay operativo di regressione?",
+      "onboardingGap": null,
+      "acceptedManualTruthNote": null,
+      "tripleVerification": {
+        "outerReportState": "technical_block",
+        "checkpointState": "technical_block",
+        "reportState": "technical_block",
+        "reportBlockers": [],
+        "caseTruthStatus": "TECHNICAL_BLOCK",
+        "caseTruthBlockerCount": 0,
+        "sourcesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5350-gloria-padoani/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5350-gloria-padoani/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5350-global-controller-gloria-padoani.json"
+      }
+    },
+    {
+      "cohort": 5351,
+      "customerKey": "maurizia-coreggioli",
+      "displayName": "MAURIZIA COREGGIOLI",
+      "practiceId": "81b4934a-3d6a-49ff-8f08-8d1400d55dff",
+      "group": "remaining_contractual",
+      "category": "INCONSISTENT_DA_VERIFICARE",
+      "systemVerdict": "inconsistent",
+      "draftId": null,
+      "completedPages": 0,
+      "expectedPages": 0,
+      "exactCause": "infissi_shading_closures_form_answer_missing_or_ambiguous",
+      "missingDocumentType": null,
+      "operatorQuestion": "Confermi di mantenere la pratica congelata finche checkpoint, blocker e case-truth non producono un verdetto concordante?",
+      "onboardingGap": null,
+      "acceptedManualTruthNote": null,
+      "tripleVerification": {
+        "outerReportState": "inconsistent",
+        "checkpointState": "inconsistent",
+        "reportState": "inconsistent",
+        "reportBlockers": [],
+        "caseTruthStatus": "INCONSISTENT",
+        "caseTruthBlockerCount": 0,
+        "sourcesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5351-maurizia-coreggioli/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5351-maurizia-coreggioli/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5351-global-controller-maurizia-coreggioli.json"
+      }
+    },
+    {
+      "cohort": 5352,
+      "customerKey": "francesca-pisanu",
+      "displayName": "FRANCESCA PISANU",
+      "practiceId": "2329836b-3d7c-4e55-b5ba-f232515a2299",
+      "group": "remaining_contractual",
+      "category": "INCONSISTENT_DA_VERIFICARE",
+      "systemVerdict": "inconsistent",
+      "draftId": null,
+      "completedPages": 0,
+      "expectedPages": 0,
+      "exactCause": "infissi_shading_closures_form_answer_missing_or_ambiguous",
+      "missingDocumentType": null,
+      "operatorQuestion": "Confermi di mantenere la pratica congelata finche checkpoint, blocker e case-truth non producono un verdetto concordante?",
+      "onboardingGap": null,
+      "acceptedManualTruthNote": null,
+      "tripleVerification": {
+        "outerReportState": "inconsistent",
+        "checkpointState": "inconsistent",
+        "reportState": "inconsistent",
+        "reportBlockers": [],
+        "caseTruthStatus": "INCONSISTENT",
+        "caseTruthBlockerCount": 0,
+        "sourcesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5352-francesca-pisanu/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5352-francesca-pisanu/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5352-global-controller-francesca-pisanu.json"
+      }
+    },
+    {
+      "cohort": 5353,
+      "customerKey": "mauro-leonardi",
+      "displayName": "Mauro Leonardi",
+      "practiceId": "491cf101-c6cd-4f48-9cf0-78c096d95c0e",
+      "group": "remaining_contractual",
+      "category": "INCONSISTENT_DA_VERIFICARE",
+      "systemVerdict": "inconsistent",
+      "draftId": null,
+      "completedPages": 0,
+      "expectedPages": 0,
+      "exactCause": "completion_date_portal_year_mismatch, completion_over_90_days_operator_required, screening_primary_measurements_missing",
+      "missingDocumentType": null,
+      "operatorQuestion": "Confermi di mantenere la pratica congelata finche checkpoint, blocker e case-truth non producono un verdetto concordante?",
+      "onboardingGap": null,
+      "acceptedManualTruthNote": null,
+      "tripleVerification": {
+        "outerReportState": "inconsistent",
+        "checkpointState": "inconsistent",
+        "reportState": "inconsistent",
+        "reportBlockers": [],
+        "caseTruthStatus": "INCONSISTENT",
+        "caseTruthBlockerCount": 0,
+        "sourcesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5353-mauro-leonardi/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5353-mauro-leonardi/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5353-global-controller-mauro-leonardi.json"
+      }
+    },
+    {
+      "cohort": 5354,
+      "customerKey": "giovanni-amadu",
+      "displayName": "GIOVANNI AMADU",
+      "practiceId": "e94df373-f8f5-44b9-bd31-3e6c36025c13",
+      "group": "remaining_contractual",
+      "category": "INCONSISTENT_DA_VERIFICARE",
+      "systemVerdict": "inconsistent",
+      "draftId": null,
+      "completedPages": 0,
+      "expectedPages": 0,
+      "exactCause": "infissi_shading_closures_form_answer_missing_or_ambiguous",
+      "missingDocumentType": null,
+      "operatorQuestion": "Confermi di mantenere la pratica congelata finche checkpoint, blocker e case-truth non producono un verdetto concordante?",
+      "onboardingGap": null,
+      "acceptedManualTruthNote": null,
+      "tripleVerification": {
+        "outerReportState": "inconsistent",
+        "checkpointState": "inconsistent",
+        "reportState": "inconsistent",
+        "reportBlockers": [],
+        "caseTruthStatus": "INCONSISTENT",
+        "caseTruthBlockerCount": 0,
+        "sourcesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5354-giovanni-amadu/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5354-giovanni-amadu/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5354-global-controller-giovanni-amadu.json"
+      }
+    },
+    {
+      "cohort": 5355,
+      "customerKey": "francesca-monti",
+      "displayName": "francesca monti",
+      "practiceId": "30936ae1-80b0-46fd-813c-e1425ca33c7f",
+      "group": "remaining_contractual",
+      "category": "INCONSISTENT_DA_VERIFICARE",
+      "systemVerdict": "technical_block",
+      "draftId": null,
+      "completedPages": 0,
+      "expectedPages": 0,
+      "exactCause": "preflight_no_material_progress_for_7_minutes",
+      "missingDocumentType": null,
+      "operatorQuestion": "Dopo la correzione generale dello stallo preflight, vuoi includere questa pratica nel replay di regressione?",
+      "onboardingGap": null,
+      "acceptedManualTruthNote": null,
+      "tripleVerification": {
+        "outerReportState": "technical_block",
+        "checkpointState": null,
+        "reportState": "working",
+        "reportBlockers": [],
+        "caseTruthStatus": null,
+        "caseTruthBlockerCount": null,
+        "sourcesAgree": false,
+        "conclusion": "INCONSISTENT"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5355-francesca-monti/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5355-francesca-monti/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5355-global-controller-francesca-monti.json"
+      }
+    },
+    {
+      "cohort": 5356,
+      "customerKey": "marian-maeschi",
+      "displayName": "Marian Maeschi",
+      "practiceId": "775bd8e8-f71f-4c00-b93a-eeea9ade948d",
+      "group": "remaining_contractual",
+      "category": "INCONSISTENT_DA_VERIFICARE",
+      "systemVerdict": "inconsistent",
+      "draftId": null,
+      "completedPages": 0,
+      "expectedPages": 0,
+      "exactCause": "screening_primary_measurements_missing",
+      "missingDocumentType": null,
+      "operatorQuestion": "Confermi di mantenere la pratica congelata finche checkpoint, blocker e case-truth non producono un verdetto concordante?",
+      "onboardingGap": null,
+      "acceptedManualTruthNote": "Verifica manuale primaria gia accettata: pratica chiusa come corretta; l'attuale segnalazione di misure mancanti non e una prova di assenza del dato.",
+      "tripleVerification": {
+        "outerReportState": "inconsistent",
+        "checkpointState": "inconsistent",
+        "reportState": "inconsistent",
+        "reportBlockers": [],
+        "caseTruthStatus": "INCONSISTENT",
+        "caseTruthBlockerCount": 0,
+        "sourcesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5356-marian-maeschi/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5356-marian-maeschi/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5356-global-controller-marian-maeschi.json"
+      }
+    },
+    {
+      "cohort": 5357,
+      "customerKey": "gemma-minore",
+      "displayName": "Gemma Minore",
+      "practiceId": "51ec4e1a-2600-482b-9fde-6b3976bbdbc2",
+      "group": "remaining_contractual",
+      "category": "INCONSISTENT_DA_VERIFICARE",
+      "systemVerdict": "technical_block",
+      "draftId": null,
+      "completedPages": 0,
+      "expectedPages": 0,
+      "exactCause": "preflight_no_material_progress_for_7_minutes",
+      "missingDocumentType": null,
+      "operatorQuestion": "Dopo la correzione generale dello stallo preflight, vuoi includere questa pratica nel replay di regressione?",
+      "onboardingGap": null,
+      "acceptedManualTruthNote": null,
+      "tripleVerification": {
+        "outerReportState": "technical_block",
+        "checkpointState": null,
+        "reportState": "working",
+        "reportBlockers": [],
+        "caseTruthStatus": null,
+        "caseTruthBlockerCount": null,
+        "sourcesAgree": false,
+        "conclusion": "INCONSISTENT"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5357-gemma-minore/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5357-gemma-minore/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5357-global-controller-gemma-minore.json"
+      }
+    },
+    {
+      "cohort": 5358,
+      "customerKey": "enrico-amos-maria-berneri",
+      "displayName": "Enrico Amos maria Berneri",
+      "practiceId": "1d5ac555-6ebd-4cb9-b718-c17ba8bccc3e",
+      "group": "remaining_contractual",
+      "category": "INCONSISTENT_DA_VERIFICARE",
+      "systemVerdict": "technical_block",
+      "draftId": null,
+      "completedPages": 0,
+      "expectedPages": 0,
+      "exactCause": "preflight_no_material_progress_for_7_minutes",
+      "missingDocumentType": null,
+      "operatorQuestion": "Dopo la correzione generale dello stallo preflight, vuoi includere questa pratica nel replay di regressione?",
+      "onboardingGap": null,
+      "acceptedManualTruthNote": null,
+      "tripleVerification": {
+        "outerReportState": "technical_block",
+        "checkpointState": null,
+        "reportState": "working",
+        "reportBlockers": [],
+        "caseTruthStatus": null,
+        "caseTruthBlockerCount": null,
+        "sourcesAgree": false,
+        "conclusion": "INCONSISTENT"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5358-enrico-amos-maria-berneri/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5358-enrico-amos-maria-berneri/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5358-global-controller-enrico-amos-maria-berneri.json"
+      }
+    },
+    {
+      "cohort": 5359,
+      "customerKey": "francesco-laurelli",
+      "displayName": "FRANCESCO LAURELLI",
+      "practiceId": "12c830b8-1d49-406a-b938-a37cfc68569e",
+      "group": "remaining_contractual",
+      "category": "FALLITA_TECNICA",
+      "systemVerdict": "technical_block",
+      "draftId": null,
+      "completedPages": 0,
+      "expectedPages": 0,
+      "exactCause": "gross_triple_reconciliation_failed",
+      "missingDocumentType": null,
+      "operatorQuestion": "Dopo la correzione generale della causa tecnica indicata, vuoi includere questa pratica nel replay operativo di regressione?",
+      "onboardingGap": null,
+      "acceptedManualTruthNote": null,
+      "tripleVerification": {
+        "outerReportState": "technical_block",
+        "checkpointState": "technical_block",
+        "reportState": "technical_block",
+        "reportBlockers": [],
+        "caseTruthStatus": "TECHNICAL_BLOCK",
+        "caseTruthBlockerCount": 0,
+        "sourcesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5359-francesco-laurelli/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5359-francesco-laurelli/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5359-global-controller-francesco-laurelli.json"
+      }
+    },
+    {
+      "cohort": 5360,
+      "customerKey": "fausta-de-filippo",
+      "displayName": "Fausta De Filippo",
+      "practiceId": "6f274566-2fc3-4e49-a40d-64538988f540",
+      "group": "remaining_contractual",
+      "category": "FALLITA_TECNICA",
+      "systemVerdict": "technical_block",
+      "draftId": "479723",
+      "completedPages": 0,
+      "expectedPages": 9,
+      "exactCause": "apr_cdp_enea_field_verification_failed:id-comune_nascita",
+      "missingDocumentType": null,
+      "operatorQuestion": "Dopo la correzione generale della causa tecnica indicata, vuoi includere questa pratica nel replay operativo di regressione?",
+      "onboardingGap": null,
+      "acceptedManualTruthNote": null,
+      "tripleVerification": {
+        "outerReportState": "technical_block",
+        "checkpointState": "technical_block",
+        "reportState": "technical_block",
+        "reportBlockers": [],
+        "caseTruthStatus": "TECHNICAL_BLOCK",
+        "caseTruthBlockerCount": 0,
+        "sourcesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5360-fausta-de-filippo/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5360-fausta-de-filippo/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5360-global-controller-fausta-de-filippo.json"
+      }
+    },
+    {
+      "cohort": 5361,
+      "customerKey": "danila-serpa",
+      "displayName": "Danila Serpa",
+      "practiceId": "faed1722-65d5-4527-8aca-9928e1ea6f1e",
+      "group": "remaining_contractual",
+      "category": "FALLITA_TECNICA",
+      "systemVerdict": "technical_block",
+      "draftId": "479725",
+      "completedPages": 0,
+      "expectedPages": 8,
+      "exactCause": "apr_cdp_enea_field_verification_failed:id-comune_nascita",
+      "missingDocumentType": null,
+      "operatorQuestion": "Dopo la correzione generale della causa tecnica indicata, vuoi includere questa pratica nel replay operativo di regressione?",
+      "onboardingGap": null,
+      "acceptedManualTruthNote": null,
+      "tripleVerification": {
+        "outerReportState": "technical_block",
+        "checkpointState": "technical_block",
+        "reportState": "technical_block",
+        "reportBlockers": [],
+        "caseTruthStatus": "TECHNICAL_BLOCK",
+        "caseTruthBlockerCount": 0,
+        "sourcesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5361-danila-serpa/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5361-danila-serpa/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5361-global-controller-danila-serpa.json"
+      }
+    },
+    {
+      "cohort": 5362,
+      "customerKey": "antonio-scaparrotta",
+      "displayName": "Antonio Scaparrotta",
+      "practiceId": "c62c3f57-ab7d-400b-9ef6-edf1bb79e387",
+      "group": "remaining_contractual",
+      "category": "FALLITA_TECNICA",
+      "systemVerdict": "technical_block",
+      "draftId": null,
+      "completedPages": 0,
+      "expectedPages": 15,
+      "exactCause": "apr_enea_bridge_prepare_economic_unresolved",
+      "missingDocumentType": null,
+      "operatorQuestion": "Dopo la correzione generale della causa tecnica indicata, vuoi includere questa pratica nel replay operativo di regressione?",
+      "onboardingGap": null,
+      "acceptedManualTruthNote": null,
+      "tripleVerification": {
+        "outerReportState": "technical_block",
+        "checkpointState": "technical_block",
+        "reportState": "technical_block",
+        "reportBlockers": [],
+        "caseTruthStatus": "TECHNICAL_BLOCK",
+        "caseTruthBlockerCount": 0,
+        "sourcesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5362-antonio-scaparrotta/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5362-antonio-scaparrotta/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5362-global-controller-antonio-scaparrotta.json"
+      }
+    },
+    {
+      "cohort": 5363,
+      "customerKey": "fabrizio-pelizzari",
+      "displayName": "Fabrizio Pelizzari",
+      "practiceId": "7ff69610-c6d5-4436-9eb5-01883efe08db",
+      "group": "remaining_contractual",
+      "category": "SALVATA",
+      "systemVerdict": "saved",
+      "draftId": "479733",
+      "completedPages": 9,
+      "expectedPages": 9,
+      "exactCause": "nessuna_causa_registrata",
+      "missingDocumentType": null,
+      "operatorQuestion": null,
+      "onboardingGap": null,
+      "acceptedManualTruthNote": null,
+      "tripleVerification": {
+        "outerReportState": "saved",
+        "checkpointState": "saved",
+        "reportState": "saved",
+        "reportBlockers": [],
+        "caseTruthStatus": "READY",
+        "caseTruthBlockerCount": 0,
+        "sourcesAgree": true,
+        "conclusion": "VERIFIED"
+      },
+      "evidence": {
+        "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5363-fabrizio-pelizzari/checkpoint.json",
+        "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/case-5363-fabrizio-pelizzari/report.json",
+        "terminalSnapshotPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability/apr-pilot-5363-global-controller-fabrizio-pelizzari.json"
+      }
+    }
+  ],
+  "integrity": {
+    "sourceHashes": {
+      "mainReportSha256": "25265924d21f7105c0616515bc9bc53c168ea037a1a61d7d61432b93f89da502",
+      "mainCheckpointSha256": "1dea81e9078b1072e9f5a547763e9a6adad8b08d4f8cf5f793e98ea64b1c570e",
+      "journalSha256": "d71781f865d8b98b89679f0ad1dff9a487bbdf2dafce0c5c5925d9226953057a",
+      "manifestSha256": "431e895aa96b21ed9d702f5e959f740794b6569f2e0836189c3b6504422d0763",
+      "savedTotalComparisonSha256": "5ad627223d79d13e43ea5e532b38dce8274e129ad23093eaac5ccedaf7730b44"
+    }
+  }
+}

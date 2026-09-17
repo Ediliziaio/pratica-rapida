@@ -1,0 +1,66 @@
+{
+  "version": "apr-r122-deferred-defects-v1",
+  "runId": "apr-workable76-fault-recovery-lease-r122-20260913",
+  "entries": [
+    {
+      "id": "operator-answer-must-close-originating-question",
+      "priority": "highest_after_current_lot",
+      "status": "open",
+      "classification": "runtime_operator_channel_defect",
+      "observedCustomerKey": "rossella-munafo",
+      "exactCause": "Una risposta operatore gia applicata non chiude la domanda che l'ha originata; la richiesta viene riaperta nei lotti successivi.",
+      "existingAnswer": {
+        "product": "bioclimatica",
+        "widthCm": 400,
+        "heightCm": 300,
+        "surfaceSquareMeters": 12.3
+      },
+      "requiredBehavior": [
+        "L'applicazione della risposta deve chiudere atomicamente la domanda originaria.",
+        "Una domanda chiusa non deve essere ricreata a parita di pratica, blocker e risposta applicata.",
+        "Il testo della domanda deve nominare esplicitamente il prodotto, la misura, il documento o il dato richiesto."
+      ],
+      "currentLotAction": "Nessuna risposta duplicata e nessuna correzione durante il lotto; proseguire l'esecuzione."
+    },
+    {
+      "id": "operator-response-ledger-missing-economic-total-payload",
+      "priority": "highest_after_current_lot",
+      "status": "open",
+      "classification": "runtime_operator_channel_defect",
+      "observedCustomerKey": "patrizia-muzzi",
+      "exactCause": "Il ledger runtime delle risposte non rappresenta un totale economico autorizzato; i payload ammessi non includono economic_invoice_total.",
+      "requiredBehavior": [
+        "Persistire importo, valuta, etichetta autorevole, documento e prove di riga.",
+        "Consumare il valore nel preflight economico senza ricalcolarlo.",
+        "Chiudere la domanda originaria quando il valore viene applicato."
+      ],
+      "currentLotAction": "Risposta conservata in pending-operator-responses.json; nessuna modifica al runtime durante il lotto."
+    },
+    {
+      "id": "columnar-final-total-label-value-separated",
+      "priority": "after_current_lot",
+      "status": "open",
+      "classification": "document_extraction_defect",
+      "observedCustomerKey": "patrizia-muzzi",
+      "exactCause": "Nel testo estratto tabellare l'etichetta TOTALE ORDINE e il valore 2.587,62 sono su righe diverse; il parser richiede etichetta e numero sulla stessa riga.",
+      "requiredBehavior": [
+        "Riconciliare deterministicamente etichette e valori nelle colonne preservando ordine e struttura.",
+        "Non usare imponibile, IVA o acconto come sostituti del totale finale stampato."
+      ],
+      "currentLotAction": "Nessuna correzione durante il lotto."
+    },
+    {
+      "id": "muzzi-cross-source-verdict-disagreement",
+      "priority": "after_current_lot",
+      "status": "open",
+      "classification": "observability_consistency_defect",
+      "observedCustomerKey": "patrizia-muzzi",
+      "exactCause": "Il registro domande pubblica una richiesta operatore mentre deep review e case-truth pubblicano un blocco tecnico sulla stessa evidenza.",
+      "requiredBehavior": [
+        "Un solo verdetto autorevole deve alimentare registro domande, review e case-truth.",
+        "Se le fonti divergono, pubblicare INCONSISTENT senza attribuire un verdetto operativo."
+      ],
+      "currentLotAction": "Conservare INCONSISTENT; nessuna correzione durante il lotto."
+    }
+  ]
+}

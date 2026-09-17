@@ -1,0 +1,34 @@
+{
+  "version": "apr-run-interruption-record-v1",
+  "recordedAt": "2026-09-15T21:34:43Z",
+  "runId": "apr-wide148-post-portal-rejection-r127-20260915",
+  "classification": "interrupted_global_enea_session_expired",
+  "ratchetEligible": false,
+  "reason": "La sessione ENEA era scaduta e il runner esterno ha pubblicato single_case_runner_exited_without_terminal_result senza arrestare il lotto. Il titolare ha richiesto l'interruzione e un nuovo giro fresco dopo il login.",
+  "originalRunRoot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide148-post-portal-rejection-r127-20260915",
+  "archiveRunRoot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/archived-runs/session-expired/apr-wide148-post-portal-rejection-r127-20260915",
+  "checkpointAtStop": {
+    "status": "running",
+    "recordedResults": 7,
+    "currentCustomerKey": "ugo-caselli",
+    "sha256": "c3d49aff8805bb9e17d3dfb7a0a4f3dc0086811cd34dfdb9b4ca5d8584b9fd33"
+  },
+  "cleanBoundaryEvidence": {
+    "cohort": 10302,
+    "customerKey": "ugo-caselli",
+    "workerStatus": "stopped",
+    "workerCurrentCustomerKey": null,
+    "draftId": "501023",
+    "completedPages": 8,
+    "expectedPages": 8,
+    "childReportSha256": "19f87b0d3132d656cedf6eafbeef9f4f59142127d5ea6b9813fc621285cd269c"
+  },
+  "safety": {
+    "previewAttempted": false,
+    "submitAttempted": false,
+    "communicationsAttempted": false,
+    "chromeStopped": false,
+    "keepaliveStopped": false,
+    "dashboardStopped": false
+  }
+}

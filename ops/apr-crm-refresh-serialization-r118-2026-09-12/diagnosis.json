@@ -1,0 +1,23 @@
+{
+  "version": "apr-crm-refresh-serialization-diagnosis-v1",
+  "status": "cause_proven_with_provider_event_ambiguous",
+  "observations": {
+    "firstSuccessfulRefreshAt": "2026-09-12T15:38:51.965Z",
+    "secondRejectedRefreshAt": "2026-09-12T15:40:07.190Z",
+    "elapsedSeconds": 75,
+    "sharedSecretStore": "macOS Keychain",
+    "previousSerialization": false,
+    "previousRejectionHandling": "all server rejections deleted the shared refresh session",
+    "exactRejectedHttpResponsePersisted": false
+  },
+  "conclusion": {
+    "provenStructuralDefect": "Each APR process could rotate the same refresh token without an interprocess lock, and any rejected refresh could delete the shared session.",
+    "lastProviderEventClassification": "The exact last event cannot be distinguished between stale-token rotation and the known intermittent Supabase incident because its HTTP response was not persisted.",
+    "scope": "CRM authentication only; no ENEA mutation and no business-rule change."
+  },
+  "requiredRules": [
+    "system-apr-crm-refresh-serialization-v1",
+    "system-apr-crm-dedicated-auth",
+    "system-atomic-checkpoint-resume"
+  ]
+}

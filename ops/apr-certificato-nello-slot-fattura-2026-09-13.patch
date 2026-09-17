@@ -1,0 +1,92 @@
+Subject: [PATCH] fix(apr): il certificato vale per cio' che e', non per lo slot CRM in cui e' stato caricato
+
+Massimo Cappello, 13/09/2026, giro r123. La 'Dichiarazione del
+produttore' Rotondi/Internorm — dodici serramenti con quote Largh./Alt.
+— era caricata nello slot fattura del CRM (kind=invoice). L'analisi la
+classificava correttamente come additional (semanticKind), ma il
+fallback dei certificati guardava solo lo slot e la saltava: la pratica
+si fermava su infissi_dimensions_and_cardinality_missing con le dodici
+misure nel fascicolo, e chiedeva all'operatore quanti serramenti fossero.
+
+Ora il fallback accetta un documento se lo slot O la classificazione
+semantica dicono additional; resta il requisito dell'intestazione
+dichiarativa formale, quindi una fattura vera nello slot fattura non
+viene mai letta come certificato.
+
+Verificato sui documenti reali della coorte 8137: 12 pezzi, formato
+dichiarazione_largh_alt, 1,76 1,76 1,87 1,87 1,87 2,66 2,68 1,72 1,07
+1,76 1,87 0,89. Tre test nuovi sul fallback (prima non ne aveva).
+20/20, typecheck pulito.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+---
+--- a/scripts/enea-shadow-runner/infissiBatchPreflight.ts
++++ b/scripts/enea-shadow-runner/infissiBatchPreflight.ts
+@@ -61,7 +61,14 @@
+   sources: readonly InfissiCertificateTextSource[],
+ ): { evidence: InfissiTechnicalEvidence; sourceId: string; reading: InfissiCertificateReading } | null {
+   const readings = sources.flatMap((source) => {
+-    if (source.storageKind !== "additional") return [];
++    // Conta cosa il documento E', non lo slot del CRM in cui e' stato
++    // caricato. Massimo Cappello (13/09/2026): la "Dichiarazione del
++    // produttore" Rotondi/Internorm, dodici serramenti con quote, era nello
++    // slot fattura del CRM (storageKind "invoice") e l'analisi la
++    // classificava correttamente come "additional"; guardando solo lo slot
++    // veniva saltata e la pratica si fermava su misure mancanti con le
++    // misure nel fascicolo.
++    if (source.storageKind !== "additional" && source.kind !== "additional") return [];
+     const formallyDeclared = /\bDICHIARAZIONE\s+(?:DI\s+PRESTAZIONE|DEL\s+PRODUTTORE|DI\s+CERTIFICAZIONE\s+ENERGETICA\s+DI\s+PRODOTTO)\b/i.test(source.text);
+     if (source.kind !== "third_party_certificate" && !formallyDeclared) return [];
+     const reading = readInfissiCertificateMeasures(source.text);
+--- a/scripts/enea-shadow-runner/infissiBatchPreflight.test.ts
++++ b/scripts/enea-shadow-runner/infissiBatchPreflight.test.ts
+@@ -3,7 +3,7 @@
+ import os from "node:os";
+ import path from "node:path";
+ import { afterEach, describe, expect, it } from "vitest";
+-import { PersistentAprInfissiBatchPreflight } from "./infissiBatchPreflight";
++import { PersistentAprInfissiBatchPreflight, infissiCertificateMeasureFallback } from "./infissiBatchPreflight";
+ import { USER_AUTHORIZED_RULE_IDS } from "../../src/features/enea-shadow-crm/operationalRegistry";
+ import { OPERATOR_RESPONSE_RUNTIME_CONSUMPTION_RULE_ID, PersistentAprOperatorResponseLedger } from "./operatorResponseLedger";
+ import { buildAprAuthoritativeEconomicDecision } from "../../src/features/enea-shadow-crm/authoritativeEconomicDecision";
+@@ -466,3 +466,40 @@
+     });
+   });
+ });
++
++describe("infissiCertificateMeasureFallback", () => {
++  const cappello = [
++    "DICHIARAZIONE DEL PRODUTTORE",
++    "Le caratteristiche dei nuovi serramenti di cui alla conferma 6653221 datata 24.04.2026 di Rotondi Infissi Srl",
++    "Pos. Quantitá Descrizione Valore Uw (calcolato)",
++    "100 1,00 Pezzi SALOTTO SX:",
++    "KF310 1-anta",
++    "Largh.: 1177, Alt.: 1497,",
++    "110 1,00 Pezzi CAMERA EMANUELE:",
++    "Largh.: 1177, Alt.: 1497,",
++  ].join("\n");
++
++  // Massimo Cappello, 13/09/2026: la dichiarazione era nello slot fattura del
++  // CRM e veniva saltata; le dodici misure erano li' e la pratica si fermava
++  // su misure mancanti.
++  it("legge una dichiarazione del produttore anche se il CRM l'ha caricata nello slot fattura", () => {
++    const result = infissiCertificateMeasureFallback([
++      { sourceId: "dop-rotondi", storageKind: "invoice", kind: "additional", text: cappello },
++    ]);
++    expect(result).not.toBeNull();
++    expect(result!.reading.pieces).toHaveLength(2);
++    expect(result!.evidence.rows.map((row) => row.surfaceM2)).toEqual([1.76, 1.76]);
++  });
++
++  it("una fattura vera nello slot fattura non viene letta come certificato", () => {
++    expect(infissiCertificateMeasureFallback([
++      { sourceId: "fattura", storageKind: "invoice", kind: "invoice", text: "Fattura n. 12 del 01/05/2026\nFornitura infissi PVC\nTotale documento 4.500,00" },
++    ])).toBeNull();
++  });
++
++  it("un allegato non dichiarativo nello slot additional resta escluso", () => {
++    expect(infissiCertificateMeasureFallback([
++      { sourceId: "manuale", storageKind: "additional", kind: "additional", text: "Manuali allegati alla fornitura. Leggere e conservare." },
++    ])).toBeNull();
++  });
++});

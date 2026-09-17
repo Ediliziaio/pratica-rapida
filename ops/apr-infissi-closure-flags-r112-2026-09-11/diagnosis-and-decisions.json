@@ -1,0 +1,60 @@
+{
+  "version": "apr-infissi-closure-flags-diagnosis-v1",
+  "recordedAt": "2026-09-11T18:29:29.000Z",
+  "source": "Decisione esplicita di Giuliano del 2026-09-11 e verifica del percorso runtime r111",
+  "scope": "locale; nessuna esecuzione o mutazione ENEA/CRM",
+  "verdict": {
+    "previousRulePresent": true,
+    "previousRuleComplete": false,
+    "exactCause": "La regola preesistente user-2026-08-25-infissi-shading-closure-invoice-order-allocation-v1 regolava soltanto l'ordine di allocazione di chiusure gia riconosciute e pretendeva ancora una prova di ordine dalle righe tecniche. Non dichiarava che le chiusure associate agli Infissi sono flag ENEA privi di misure. Il generatore generico delle domande Schermature veniva inoltre eseguito prima della riconciliazione Infissi e interpretava persiane, zanzariere, avvolgibili e tapparelle come prodotti dimensionali autonomi.",
+    "newGeneralRuleId": "user-2026-09-11-infissi-closure-measurements-not-applicable-v1",
+    "newGeneralRule": "In una pratica Infissi o mista, una chiusura oscurante e solo un flag ENEA: l'assenza di larghezza o altezza non blocca e non genera domande. Se le chiusure sono M e gli infissi N, con M minore o uguale a N, le chiusure sono associate ai primi M infissi nell'ordine del payload ENEA. Non si usa la somiglianza delle misure. Restano fail-closed soltanto quantita non determinabile, M maggiore di N o fascicolo fatture non completo. Una schermatura autonoma resta invece un prodotto misurabile.",
+    "runtimeCorrection": [
+      "La riconciliazione Infissi precede ora la generazione delle domande dimensionali.",
+      "Il generatore non apre domande di misura per chiusure in pratiche Infissi/miste.",
+      "Le domande dimensionali gia aperte per tali chiusure vengono ritirate con audit persistente.",
+      "L'allocazione usa i primi M infissi in ordine portale e non richiede le misure della chiusura."
+    ]
+  },
+  "affectedFixtures": [
+    "flavia-cipriani",
+    "marco-de-marinis",
+    "ivana-mastrangelo",
+    "antonio-scaparrotta",
+    "elena-depalma",
+    "nicla-biagioni"
+  ],
+  "priorAnswers": {
+    "maeschi": {
+      "customerKey": "marian-maeschi",
+      "decision": "closed",
+      "scope": "case_only",
+      "runtimeApplication": "not_required_for_the_general_closure_rule"
+    },
+    "mondini": {
+      "customerKey": "sarah-mondini",
+      "quantity": 1,
+      "product": "pergotenda",
+      "widthCm": 540,
+      "heightCm": 400,
+      "persistedIn": "ops/apr-final-total-only-r111-2026-09-11/operator-responses-2026-09-11.json",
+      "runtimeApplication": "not_applied",
+      "exactCause": "Il file apr-operator-responses-v1 e un registro di audit passivo: nessun componente runtime lo importa nel checkpoint PersistentAprOperatorQuestions o nel preflight della coorte successiva."
+    },
+    "kasermann": {
+      "customerKey": "giulia-kasermann",
+      "quantity": 1,
+      "product": "tenda da sole",
+      "widthCm": 300,
+      "heightCm": 200,
+      "persistedIn": "ops/apr-final-total-only-r111-2026-09-11/operator-responses-2026-09-11.json",
+      "runtimeApplication": "not_applied",
+      "exactCause": "Il file apr-operator-responses-v1 e un registro di audit passivo: nessun componente runtime lo importa nel checkpoint PersistentAprOperatorQuestions o nel preflight della coorte successiva."
+    }
+  },
+  "safety": {
+    "eneaActionsPerformed": false,
+    "crmMutationsPerformed": false,
+    "communicationsSent": false
+  }
+}

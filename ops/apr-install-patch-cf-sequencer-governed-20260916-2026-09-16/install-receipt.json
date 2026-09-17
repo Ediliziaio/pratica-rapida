@@ -1,0 +1,26 @@
+{
+  "version": "apr-install-bundle-cli-receipt-v1",
+  "installedAt": "2026-09-16T16:54:30.105Z",
+  "label": "patch-cf-sequencer-governed-20260916",
+  "versionId": "855b3373-patch-cf-sequencer-governed-20260916-20260916",
+  "previousTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/5b7c230f-patch-cf-sequencer-20260916-20260916",
+  "currentTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/855b3373-patch-cf-sequencer-governed-20260916-20260916",
+  "installedBundle": {
+    "apr-supervisor.mjs": "760231c180ce75a8e5354ef6b9ad41dd662f98dc6f3714fe2597956c7c1afb1b",
+    "apr-enea-worker.mjs": "be8d0d57304209335d0f99205e41e4aa12a3eb0f8f0d76a27768e78f61b96fd9",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "apr-rule-governance-attestation.json": "8a11c37e16282f0d524bc46cb44acb8e57915216e0865400685826d213d640e6"
+  },
+  "gateResultArtifactId": "6e1778b760e37f9a968ac46b332062d97c621a352dbfa97ec40833c16bfd7b51",
+  "gateStatus": "PASS",
+  "governanceAttestation": {
+    "path": "apr-rule-governance-attestation.json",
+    "sha256": "8a11c37e16282f0d524bc46cb44acb8e57915216e0865400685826d213d640e6",
+    "historicalAuditReport": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-install-patch-cf-sequencer-20260916-2026-09-16/historical-audit-report.json",
+    "authorizedHistoricalGap": true
+  },
+  "legacyGovernanceDebtNoticed": [
+    "user-2026-09-05-co-beneficiary-trusted-enter-delivery-v2",
+    "user-2026-09-05-terminal-cohort-browser-quiescence-v1"
+  ]
+}

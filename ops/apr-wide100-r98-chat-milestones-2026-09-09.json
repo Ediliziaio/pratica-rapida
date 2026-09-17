@@ -1,0 +1,14 @@
+{
+  "version": "apr-chat-milestone-state-v1",
+  "runId": "apr-wide100-r98-retry2-20260908",
+  "reported": {
+    "50": {
+      "processed": 50,
+      "snapshotUpdatedAt": "2026-09-08T23:24:13.085Z",
+      "saved": 20,
+      "operatorRequired": 12,
+      "technicalBlock": 13,
+      "inconsistent": 5
+    }
+  }
+}

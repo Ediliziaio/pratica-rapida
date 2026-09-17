@@ -1,0 +1,16 @@
+{
+  "notificationChannel": "ntfy",
+  "requestedTopic": "apr-giuliano-x7q2m9",
+  "deliveryStatus": "not_sent",
+  "reason": "outbound_execution_policy_rejected_delivery",
+  "containsPersonalData": false,
+  "requestedPayloadSummary": {
+    "saved": 1,
+    "failed": 2,
+    "causes": [
+      "gross_triple_reconciliation_failed",
+      "draft_payload_mapping_incomplete"
+    ]
+  },
+  "note": "No notification was delivered; the execution environment rejected both the detailed and aggregate outbound payloads."
+}

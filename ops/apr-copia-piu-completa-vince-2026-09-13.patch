@@ -1,0 +1,110 @@
+Subject: [PATCH] fix(apr): fra due copie dello stesso documento resta quella che ha letto di piu'
+
+Patrizia Muzzi, 13/09/2026. L'ordine n. 177 era allegato due volte: una copia
+PDF nativa e una scansione OCR. Il testo nativo e' impaginato a colonne e il
+parser non vi trova ne' numero ne' data; la scansione OCR li legge entrambi
+(177, 15-07-26). La regola 'nativo batte OCR' ritirava la copia OCR, la
+pratica restava senza data fattura e si fermava per 'data fattura non
+ricavabile' — con la data stampata in chiaro sulla copia buttata via.
+
+Ora fra due copie riconosciute come lo stesso documento resta quella con la
+terna fiscale piu' completa (numero, data, totale). A parita' vale l'ordine
+di prima. Verificato sui file reali della coorte 8105: resta la copia con
+177 / 2026-07-15 / 2587,62. 49/49 verdi, typecheck pulito.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+---
+--- a/scripts/enea-shadow-runner/localInvoiceSegmentation.ts
++++ b/scripts/enea-shadow-runner/localInvoiceSegmentation.ts
+@@ -271,6 +271,24 @@
+   || isNonFiscalVatRateDeclaration(segment.text)
+   || isNonFiscalIdentityDocument(segment.text);
+ 
++/**
++ * Fra due copie dello stesso documento con lo stesso modo di estrazione, si
++ * tiene quella che ha letto piu' dati della terna fiscale (numero, data,
++ * totale). Fino al 13/09/2026 vinceva la prima incontrata: su Patrizia Muzzi
++ * l'ordine n. 177 era allegato due volte, la prima copia non aveva ne'
++ * numero ne' data leggibili e la seconda li aveva entrambi (177, 15-07-26);
++ * la prima vinceva per ordine, la seconda veniva scartata come duplicato, e
++ * la pratica si fermava per "data fattura non ricavabile" — con la data
++ * stampata in chiaro sulla copia buttata via. A parita' resta la prima, per
++ * non cambiare esito dove non c'e' motivo.
++ */
++function fiscalTripleCompleteness(segment: LocalInvoiceSegment): number {
++  return (segment.documentNumber ? 1 : 0) + (segment.documentDate ? 1 : 0) + (segment.total !== null ? 1 : 0);
++}
++function preferMoreCompleteFiscalTriple(current: LocalInvoiceSegment, candidate: LocalInvoiceSegment): LocalInvoiceSegment {
++  return fiscalTripleCompleteness(candidate) > fiscalTripleCompleteness(current) ? candidate : current;
++}
++
+ export function reconcileLocalInvoiceSegments(segments: readonly LocalInvoiceSegment[]) {
+   const byIdentity = new Map<string, LocalInvoiceSegment>();
+   const discardedDuplicateSourceIds: string[] = [];
+@@ -298,7 +316,9 @@
+     const key = invoiceIdentity(segment);
+     const current = byIdentity.get(key);
+     if (!current) { byIdentity.set(key, segment); continue; }
+-    const preferred = current.extractionMode === "native_text" ? current : segment.extractionMode === "native_text" ? segment : current;
++    const preferred = current.extractionMode === "native_text" && segment.extractionMode !== "native_text" ? current
++      : segment.extractionMode === "native_text" && current.extractionMode !== "native_text" ? segment
++        : preferMoreCompleteFiscalTriple(current, segment);
+     const discarded = preferred === current ? segment : current;
+     byIdentity.set(key, preferred); discardedDuplicateSourceIds.push(discarded.sourceId);
+   }
+@@ -312,6 +332,23 @@
+     // autorevole. Due candidati nativi compatibili restano ambigui e chiudono
+     // il gate senza scegliere per posizione o ordine.
+     if (nativeMatches.length !== 1) continue;
++    // Il PDF nativo e' autorevole sul testo, non per principio sulla terna
++    // fiscale: se il suo strato di testo e' impaginato a colonne, il parser
++    // puo' non trovare ne' numero ne' data, mentre la stessa pagina letta in
++    // OCR li trova. Su Patrizia Muzzi (13/09/2026) la copia nativa
++    // dell'ordine n. 177 non aveva ne' numero ne' data, la copia OCR aveva
++    // entrambi (177, 15-07-26): questa regola ritirava la copia OCR, la
++    // pratica restava senza data fattura e si fermava per
++    // "data fattura non ricavabile" con la data stampata in chiaro sulla
++    // copia buttata via. Se la copia OCR ha letto piu' terna, e' lei a
++    // restare e la nativa viene ritirata al suo posto.
++    const native = nativeMatches[0];
++    if (fiscalTripleCompleteness(segment) > fiscalTripleCompleteness(native)) {
++      conflictingOcrDuplicates.add(native.sourceId);
++      discardedDuplicateSourceIds.push(native.sourceId);
++      discardedConflictingOcrDuplicateSourceIds.push(native.sourceId);
++      continue;
++    }
+     conflictingOcrDuplicates.add(segment.sourceId);
+     discardedDuplicateSourceIds.push(segment.sourceId);
+     discardedConflictingOcrDuplicateSourceIds.push(segment.sourceId);
+--- a/scripts/enea-shadow-runner/localInvoiceSegmentation.test.ts
++++ b/scripts/enea-shadow-runner/localInvoiceSegmentation.test.ts
+@@ -135,6 +135,29 @@
+     expect(reconciled.discardedConflictingOcrDuplicateSourceIds).toEqual([ocr.sourceId]);
+   });
+ 
++  // Patrizia Muzzi, 13/09/2026: l'ordine n. 177 era allegato due volte. La
++  // copia nativa aveva il testo impaginato a colonne e il parser non vi
++  // trovava ne' numero ne' data; la copia OCR li leggeva entrambi. La regola
++  // "nativo batte OCR" ritirava la copia OCR, la pratica restava senza data
++  // fattura e si fermava per "data fattura non ricavabile", con la data
++  // stampata in chiaro sulla copia buttata via.
++  it("se la copia OCR ha letto piu' terna fiscale della nativa, resta lei e la nativa viene ritirata (Muzzi)", () => {
++    const nativeScrambled = splitLocalInvoiceText({ documentKey: "native-177", extractionMode: "native_text", text: `Fattura
++N° DOCUMENTO DATA DOCUMENTO
++P.IVA 02487960920
++TENDA A BRACCI ESTENSIBILI DIM.L.CM 260 X SP.CM 225 GTOT 0,13
++Totale documento 2.587,62` })[0];
++    const ocrComplete = splitLocalInvoiceText({ documentKey: "ocr-177", extractionMode: "macos_vision_ocr", text: `Fattura n. 177 del 15/07/2026
++P.IVA 02487960920
++TENDA A BRACCI ESTENSIBILI DIM.L.CM 260 X SP.CM 225 GTOT 0,13
++Totale documento 2.587,62` })[0];
++    expect(nativeScrambled).toMatchObject({ documentNumber: undefined, documentDate: undefined, total: 2587.62 });
++    expect(ocrComplete).toMatchObject({ documentNumber: "177", documentDate: "2026-07-15", total: 2587.62 });
++    const reconciled = reconcileLocalInvoiceSegments([nativeScrambled, ocrComplete]);
++    expect(reconciled.uniqueFinancialSegments).toEqual([ocrComplete]);
++    expect(reconciled.discardedConflictingOcrDuplicateSourceIds).toEqual([nativeScrambled.sourceId]);
++  });
++
+   it("mantiene fail-closed copie native OCR se data, soggetti fiscali o prodotto non concordano", () => {
+     const native = splitLocalInvoiceText({ documentKey: "native-safe", extractionMode: "native_text", text: `Fattura Accompagnatoria n. 869/26 del 05/08/2026
+ P.IVA 03030671204 Cod. Fisc. CMPCLD62T52A944A

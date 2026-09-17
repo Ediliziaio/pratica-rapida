@@ -1,0 +1,57 @@
+{
+  "version": "apr-tabular-abbreviated-uw-r108-operational-two-manifest-v1",
+  "authorizationId": "user-2026-09-02-wide-infissi-screening-single-run-v2",
+  "authorizedAt": "2026-09-02T00:00:00.000Z",
+  "mode": "real_enea_draft_only",
+  "selection": {
+    "total": 2,
+    "allowedStages": [
+      "archiviate",
+      "recensione"
+    ],
+    "excludedCustomerKeys": [
+      "beatrice-ciotta",
+      "nicoletta-garbarino",
+      "vittorio-paolinelli",
+      "samuele-beretta"
+    ],
+    "reason": "Rilancio operativo gia autorizzato degli stessi due casi del campione wide100 per verificare la regola generale tabular/abbreviated thermal evidence r108."
+  },
+  "cases": [
+    {
+      "cohort": 16,
+      "practiceId": "5f669e8b-9ef1-45f6-b00d-12449d741314",
+      "customerKey": "eugenio-codognato",
+      "displayName": "EUGENIO CODOGNATO",
+      "stage": "archiviate",
+      "stageName": "Archiviate",
+      "module": "infissi",
+      "productEvidence": "Infissi / Serramenti",
+      "reseller": "Finestra Italia",
+      "invoiceCount": 6,
+      "complexity": "complex",
+      "historicalRetest": true
+    },
+    {
+      "cohort": 25,
+      "practiceId": "36978c5f-f8fb-43b0-8bd9-26665bf553ad",
+      "customerKey": "vera-buracchi",
+      "displayName": "VERA BURACCHI",
+      "stage": "archiviate",
+      "stageName": "Archiviate",
+      "module": "infissi",
+      "productEvidence": "Infissi / Serramenti",
+      "reseller": "Euroinfissi snc di Valdambrini Nico e Cristian",
+      "invoiceCount": 1,
+      "complexity": "simple",
+      "historicalRetest": true
+    }
+  ],
+  "safety": {
+    "draftOnly": true,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false,
+    "priorDraftPolicy": "fresh_generation_only"
+  }
+}

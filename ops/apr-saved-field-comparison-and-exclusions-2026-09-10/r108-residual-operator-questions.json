@@ -1,0 +1,170 @@
+{
+  "version": "apr-r108-residual-operator-questions-v3",
+  "generatedAt": "2026-09-11T00:05:00Z",
+  "scope": "Chiusure oscuranti, date e trasmittanza vecchio infisso residue dopo r108",
+  "communicationsSent": false,
+  "items": [
+    {
+      "displayName": "Angelina Stricelli",
+      "fieldFamily": "shading_closures",
+      "classification": "GENERAL_RULE_CORRECTION_IMPLEMENTED_LOCALLY",
+      "exactCause": "Decisione di Giuliano acquisita: il fascicolo completo delle cinque fatture descrive soltanto serramenti e non fattura alcuna chiusura aggiuntiva. La fattura prevale sul flag form anche quando tace; il valore corretto e NO per tutte le 7 righe. Le DoP sono prova corroborante ma non necessaria.",
+      "missingDocumentType": null,
+      "operatorQuestion": null,
+      "onboardingGap": "Separare nel form zanzariere, tapparelle, persiane e chiusure oscuranti per singola riga prodotto e spiegare che il dato sara verificato sulle fatture."
+    },
+    {
+      "displayName": "Santo Giuga",
+      "fieldFamily": "shading_closures",
+      "classification": "GENERAL_RULE_CORRECTION_IMPLEMENTED_LOCALLY",
+      "exactCause": "Decisione di Giuliano acquisita: la fattura 297/FE documenta la zanzariera installata nella stessa pratica degli infissi; in questo contesto vale come chiusura oscurante aggiuntiva e il valore corretto e SI. La zanzariera senza infissi resta invece una schermatura solare autonoma.",
+      "missingDocumentType": null,
+      "operatorQuestion": null,
+      "onboardingGap": "Separare nel form la zanzariera installata insieme agli infissi dalla zanzariera autonoma, collegandola alla fattura e alla pratica tecnica corretta."
+    },
+    {
+      "displayName": "Angela Tuttolani",
+      "fieldFamily": "completion_date",
+      "classification": "OPERATOR_DATE_SOURCE_UNDOCUMENTED",
+      "exactCause": "APR usa la fattura 217/2026 del 27/07/2026; il benchmark umano usa 28/07/2026, data assente dai documenti originari disponibili.",
+      "missingDocumentType": "prova datata di fine lavori o collaudo",
+      "operatorQuestion": "Confermi che la fine lavori reale è 28/07/2026, distinta dalla fattura del 27/07/2026?",
+      "onboardingGap": "Raccogliere obbligatoriamente la data di fine lavori e la relativa prova."
+    },
+    {
+      "displayName": "Antonella Ferletic",
+      "fieldFamily": "start_date",
+      "classification": "OPERATOR_DATE_SOURCE_UNDOCUMENTED",
+      "exactCause": "APR usa la fattura 25/2026 del 16/06/2026; il benchmark umano usa 03/02/2026, data assente dai documenti originari disponibili.",
+      "missingDocumentType": "prova datata di inizio lavori",
+      "operatorQuestion": "Qual è la data reale di inizio lavori: 03/02/2026 o 16/06/2026?",
+      "onboardingGap": "Raccogliere obbligatoriamente la data di inizio lavori e la relativa prova."
+    },
+    {
+      "displayName": "CLAUDIA SELLATI",
+      "fieldFamily": "start_date",
+      "classification": "SOURCE_SEMANTICS_DECISION_REQUIRED",
+      "exactCause": "APR usa la prima fattura del 07/02/2026; il benchmark umano usa 30/01/2026, presente nei documenti soltanto come data ordine 18174.",
+      "missingDocumentType": null,
+      "operatorQuestion": "Confermi che l'ordine del 30/01/2026 coincide con l'effettivo inizio lavori?",
+      "onboardingGap": "Chiedere separatamente data ordine e data effettiva di inizio lavori."
+    },
+    {
+      "displayName": "Claudio Beghini",
+      "fieldFamily": "completion_date",
+      "classification": "OPERATOR_DATE_SOURCE_UNDOCUMENTED",
+      "exactCause": "APR usa la fattura 182 del 30/07/2026; il benchmark umano usa 31/07/2026, data assente dai documenti originari disponibili.",
+      "missingDocumentType": "prova datata di fine lavori o collaudo",
+      "operatorQuestion": "Confermi che la fine lavori reale è 31/07/2026, il giorno dopo la fattura?",
+      "onboardingGap": "Raccogliere obbligatoriamente la data di fine lavori e la relativa prova."
+    },
+    {
+      "displayName": "Fabio Sartori",
+      "fieldFamily": "completion_date",
+      "classification": "OPERATOR_DATE_SOURCE_UNDOCUMENTED",
+      "exactCause": "APR usa la fattura 55/001 del 23/03/2026; il benchmark umano usa 04/08/2026, data assente dai documenti originari disponibili.",
+      "missingDocumentType": "prova datata di fine lavori o collaudo",
+      "operatorQuestion": "Confermi che la fine lavori reale è 04/08/2026 e indica quale documento la prova?",
+      "onboardingGap": "Raccogliere obbligatoriamente la data di fine lavori e la relativa prova."
+    },
+    {
+      "displayName": "Fabrizio Pelizzari",
+      "fieldFamily": "start_date",
+      "classification": "OPERATOR_DATE_SOURCE_UNDOCUMENTED",
+      "exactCause": "APR usa la fattura 129 del 15/06/2026; il benchmark umano usa 03/02/2026, data assente dai documenti originari disponibili.",
+      "missingDocumentType": "prova datata di inizio lavori",
+      "operatorQuestion": "Qual è la data reale di inizio lavori: 03/02/2026 o 15/06/2026?",
+      "onboardingGap": "Raccogliere obbligatoriamente la data di inizio lavori e la relativa prova."
+    },
+    {
+      "displayName": "Giovanni Pescatori",
+      "fieldFamily": "completion_date",
+      "classification": "OPERATOR_DATE_SOURCE_UNDOCUMENTED",
+      "exactCause": "APR usa la fattura 18/2026 del 14/05/2026; il benchmark umano usa 15/05/2026, data assente dai documenti originari disponibili.",
+      "missingDocumentType": "prova datata di fine lavori o collaudo",
+      "operatorQuestion": "Confermi che la fine lavori reale è 15/05/2026, il giorno dopo la fattura?",
+      "onboardingGap": "Raccogliere obbligatoriamente la data di fine lavori e la relativa prova."
+    },
+    {
+      "displayName": "Luca Cigognetti",
+      "fieldFamily": "completion_date",
+      "classification": "GENERAL_RULE_CORRECTION_AUTHORIZED",
+      "exactCause": "APR usa la fattura 10 del 24/03/2026 nonostante un verbale originario di collaudo e consegna datato e firmato 09/07/2026. Giuliano ha stabilito la regola generale: un verbale di collaudo datato prevale; la fattura vale soltanto in sua assenza. La correzione è implementata e testata localmente, ma non ancora installata né verificata sul portale.",
+      "missingDocumentType": null,
+      "operatorQuestion": "Nessuna domanda residua: usare il 09/07/2026 del verbale di collaudo, come già deciso da Giuliano.",
+      "onboardingGap": "Classificare separatamente i verbali di collaudo e richiederne data e firma in campi strutturati."
+    },
+    {
+      "displayName": "Lucia Lagrasta",
+      "fieldFamily": "completion_date",
+      "classification": "OPERATOR_DATE_SOURCE_UNDOCUMENTED",
+      "exactCause": "APR usa la fattura 161/2026 del 12/06/2026; il benchmark umano usa 13/06/2026, data assente dai documenti originari disponibili.",
+      "missingDocumentType": "prova datata di fine lavori o collaudo",
+      "operatorQuestion": "Confermi che la fine lavori reale è 13/06/2026, il giorno dopo la fattura?",
+      "onboardingGap": "Raccogliere obbligatoriamente la data di fine lavori e la relativa prova."
+    },
+    {
+      "displayName": "Luigi Carfora",
+      "fieldFamily": "completion_date",
+      "classification": "OPERATOR_DATE_SOURCE_UNDOCUMENTED",
+      "exactCause": "APR usa la fattura 69/001 del 09/04/2026; il benchmark umano usa 08/07/2026, data assente dai documenti originari disponibili.",
+      "missingDocumentType": "prova datata di fine lavori o collaudo",
+      "operatorQuestion": "Confermi che la fine lavori reale è 08/07/2026 e indica quale documento la prova?",
+      "onboardingGap": "Raccogliere obbligatoriamente la data di fine lavori e la relativa prova."
+    },
+    {
+      "displayName": "MATTEO CAPITANELLI",
+      "fieldFamily": "start_date",
+      "classification": "OPERATOR_DATE_SOURCE_UNDOCUMENTED",
+      "exactCause": "APR usa le prime fatture 91/2026 e 92/2026 del 14/03/2026; il benchmark umano usa 03/02/2026, data assente dai documenti originari disponibili.",
+      "missingDocumentType": "prova datata di inizio lavori",
+      "operatorQuestion": "Qual è la data reale di inizio lavori: 03/02/2026 o 14/03/2026?",
+      "onboardingGap": "Raccogliere obbligatoriamente la data di inizio lavori e la relativa prova."
+    },
+    {
+      "displayName": "Natale Tiraboschi",
+      "fieldFamily": "start_date",
+      "classification": "OPERATOR_DATE_SOURCE_UNDOCUMENTED",
+      "exactCause": "APR usa la fattura 84 del 22/05/2026; il benchmark umano usa 03/02/2026, data assente dai documenti originari disponibili.",
+      "missingDocumentType": "prova datata di inizio lavori",
+      "operatorQuestion": "Qual è la data reale di inizio lavori: 03/02/2026 o 22/05/2026?",
+      "onboardingGap": "Raccogliere obbligatoriamente la data di inizio lavori e la relativa prova."
+    },
+    {
+      "displayName": "Rosa Toscano",
+      "fieldFamily": "start_date",
+      "classification": "OPERATOR_DATE_SOURCE_UNDOCUMENTED",
+      "exactCause": "APR usa la prima fattura 4 del 11/05/2026; il benchmark umano usa 03/02/2026, data assente dai documenti originari disponibili.",
+      "missingDocumentType": "prova datata di inizio lavori",
+      "operatorQuestion": "Qual è la data reale di inizio lavori: 03/02/2026 o 11/05/2026?",
+      "onboardingGap": "Raccogliere obbligatoriamente la data di inizio lavori e la relativa prova."
+    },
+    {
+      "displayName": "Santo Giuga",
+      "fieldFamily": "completion_date",
+      "classification": "APR_DATE_DOCUMENTALLY_SUPPORTED_OPERATOR_SOURCE_UNDOCUMENTED",
+      "exactCause": "APR usa 09/07/2026 dalla fattura 297/FE e dal bonifico, entrambi con causale 'saldo fine lavori'; il benchmark umano usa 01/09/2026, data assente dal dossier.",
+      "missingDocumentType": null,
+      "operatorQuestion": "Confermi che la fine lavori è 09/07/2026, come indicato da fattura e bonifico, e non 01/09/2026?",
+      "onboardingGap": "Raccogliere esplicitamente la data di fine lavori anche quando la causale della fattura la indica."
+    },
+    {
+      "displayName": "VERA BURACCHI",
+      "fieldFamily": "completion_date",
+      "classification": "OPERATOR_DATE_SOURCE_UNDOCUMENTED",
+      "exactCause": "APR usa la fattura 1512 del 12/03/2026; il benchmark umano usa 07/07/2026, data assente dai documenti originari disponibili.",
+      "missingDocumentType": "prova datata di fine lavori o collaudo",
+      "operatorQuestion": "Confermi che la fine lavori reale è 07/07/2026 e indica quale documento la prova?",
+      "onboardingGap": "Raccogliere obbligatoriamente la data di fine lavori e la relativa prova."
+    },
+    {
+      "displayName": "ELENA DEPALMA",
+      "fieldFamily": "old_window_transmittance",
+      "classification": "OPERATOR_REQUIRED",
+      "exactCause": "La descrizione dei 5 vecchi infissi non identifica univocamente materiale del telaio e tipo di vetro; non è possibile scegliere in modo fail-closed una riga della tabella autorizzata.",
+      "missingDocumentType": null,
+      "operatorQuestion": "Indica per ciascuno dei 5 infissi esistenti il materiale del telaio e il tipo di vetro (singolo, doppio o triplo), oppure conferma un unico abbinamento valido per tutti.",
+      "onboardingGap": "Rendere obbligatori materiale telaio e tipo vetro del vecchio infisso per ogni riga o come valore comune dichiarato."
+    }
+  ]
+}

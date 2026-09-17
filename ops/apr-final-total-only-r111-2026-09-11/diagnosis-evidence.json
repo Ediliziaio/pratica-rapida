@@ -1,0 +1,99 @@
+{
+  "version": "apr-final-total-only-r111-diagnosis-evidence-v1",
+  "preparedAt": "2026-09-11T10:53:00+02:00",
+  "scope": "local_preparation_only",
+  "runtimeBatchUntouched": true,
+  "rules": [
+    {
+      "ruleId": "user-2026-09-11-invoice-final-printed-total-runtime-authority-v1",
+      "decision": "Il valore economico ENEA usa esclusivamente il totale finale stampato delle fatture uniche; cifre contabili intermedie non generano controlli o blocker.",
+      "status": "prepared_not_installed"
+    },
+    {
+      "ruleId": "user-2026-09-11-advance-balance-fiscal-invoice-equivalence-v1",
+      "decision": "I ruoli invoice, advance e balance sono tutti fatture fiscali in ogni filtro e gate documentale.",
+      "status": "prepared_not_installed",
+      "proofCase": "Armando Ranzoni",
+      "proofCohort": 5834
+    },
+    {
+      "ruleId": "user-2026-09-11-invoice-slot-content-authority-v1",
+      "decision": "Il contenuto originario prevale sullo slot CRM per la classificazione semantica; l'incertezza non declassa una possibile fattura.",
+      "status": "prepared_not_installed"
+    }
+  ],
+  "scannedAttachmentFindings": [
+    {
+      "practice": "Gregorio Fusco",
+      "sourceSha256": "663cafe44632e83f31394b66720c46c614a8784ca382082ccde3a4c401093f21",
+      "actualType": "technical_certificate",
+      "visibleTitle": "DICHIARAZIONE DI PRESTAZIONE",
+      "diagnosis": "classification_error_not_ocr_failure"
+    },
+    {
+      "practice": "Gregorio Fusco",
+      "sourceSha256": "64498604ab78d52c2548c06f90b783dd78295fee8679f6599e598a196ed417a6",
+      "actualType": "identity_document",
+      "visibleTitle": "tessera sanitaria / carta regionale dei servizi",
+      "diagnosis": "classification_error_not_ocr_failure"
+    },
+    {
+      "practice": "Andrea Trabucco",
+      "sourceSha256": "95aa3d315e1954a3df0a846998faa690ba6b093ec5cb92b81a69c33f3ae4dc72",
+      "actualType": "technical_certificate",
+      "visibleTitle": "DICHIARAZIONE DI PRESTAZIONE",
+      "diagnosis": "classification_error_not_ocr_failure"
+    },
+    {
+      "practice": "Andrea Trabucco",
+      "sourceSha256": "9eb7c36547b9d9871742e069fda7cb8d442f0dc36a9dbf916e7cb6c26e9c8057",
+      "actualType": "identity_document",
+      "visibleTitle": "carta d'identita / tessera sanitaria",
+      "diagnosis": "classification_error_not_ocr_failure"
+    },
+    {
+      "practice": "Massimo Cappello",
+      "sourceSha256": "dc3d59054e4cce732424e6e1bd38bd9a8a81ae030c461ecd27bbecc32ac12ada",
+      "actualType": "technical_certificate",
+      "visibleTitle": "DICHIARAZIONE DEL PRODUTTORE",
+      "diagnosis": "classification_error_not_ocr_failure"
+    },
+    {
+      "practice": "Matteo Capitanelli",
+      "sourceSha256": "a3ea1ec853f37aaa7a299b5478086e354703233ed5d3916178d92efd6c1c573b",
+      "actualType": "identity_document",
+      "visibleTitle": "carta d'identita",
+      "diagnosis": "classification_error_not_ocr_failure"
+    },
+    {
+      "practice": "Matteo Capitanelli",
+      "sourceSha256": "9fbfea9769c6c2353293e28d90d882f1d887baa5027e7c1077d04dd16389e7b1",
+      "actualType": "technical_certificate",
+      "visibleTitle": "dichiarazione/marcatura CE e documento di accompagnamento",
+      "diagnosis": "classification_error_not_ocr_failure"
+    },
+    {
+      "practice": "Matteo Capitanelli",
+      "sourceSha256": "7600255dab4124a3c9d3e909626c310c8adb3f859ab995879b90804c80fbbafb",
+      "actualType": "technical_test_report",
+      "visibleTitle": "RAPPORTO DI PROVA N. 325261",
+      "diagnosis": "classification_error_not_ocr_failure"
+    }
+  ],
+  "operatorRequired": [
+    {
+      "practice": "Luca Cigognetti",
+      "classification": "operator_required",
+      "exactCause": "La zanzariera e documentata ma non associabile univocamente a una finestra fisica.",
+      "missingDocumentType": null,
+      "operatorQuestion": "A quale finestra specifica va associata la zanzariera documentata? Indica posizione o misure della finestra.",
+      "onboardingGap": "Richiedere nel form l'associazione tra ogni chiusura aggiuntiva e la finestra o posizione corrispondente."
+    }
+  ],
+  "localVerification": {
+    "targetedTests": { "passed": 74, "total": 74 },
+    "integrationTests": { "passed": 279, "total": 279 },
+    "typecheck": "pass",
+    "operationalPortalVerification": "not_run"
+  }
+}

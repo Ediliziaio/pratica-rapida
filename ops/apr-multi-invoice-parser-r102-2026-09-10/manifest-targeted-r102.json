@@ -1,0 +1,36 @@
+{
+  "version": "apr-multi-invoice-parser-r102-targeted-v1",
+  "authorizationId": "user-2026-09-02-wide-infissi-screening-single-run-v2",
+  "authorizedAt": "2026-09-02T00:00:00.000Z",
+  "mode": "real_enea_draft_only",
+  "selection": {
+    "total": 13,
+    "allowedStages": ["archiviate", "recensione"],
+    "excludedCustomerKeys": ["beatrice-ciotta", "nicoletta-garbarino", "vittorio-paolinelli", "samuele-beretta"],
+    "sourceManifest": "ops/apr-wide100-province-lineage-2026-09-02/manifest.json",
+    "sourceManifestSha256": "51842252f71cabb6714f78923fe59ec9789ad06739393f61a553bb4bdb9154e0",
+    "reason": "Replay operativo mirato gia autorizzato del corpus originale: Riviera, tutti i casi cardinalita e i due casi misure osservati nella famiglia parser; nessuna pratica nuova."
+  },
+  "cases": [
+    {"cohort":37,"practiceId":"1d6b08fa-7120-4eab-a118-ce3a263ce001","customerKey":"loretta-riviera","displayName":"Loretta Riviera","stage":"archiviate","stageName":"Archiviate","module":"infissi","productEvidence":"Infissi / Serramenti","reseller":"Finestra Italia","invoiceCount":3,"complexity":"medium","historicalRetest":true},
+    {"cohort":2,"practiceId":"36a9a1ab-0a3d-47d7-8671-e0654167ccb1","customerKey":"sarah-mondini","displayName":"Sarah Mondini","stage":"archiviate","stageName":"Archiviate","module":"screening","productEvidence":"Schermature Solari","reseller":"FV tende","invoiceCount":2,"complexity":"medium","historicalRetest":true},
+    {"cohort":6,"practiceId":"e5a0905b-446b-49f5-9b25-a7d10819d831","customerKey":"filippo-bigalli","displayName":"Filippo Bigalli","stage":"archiviate","stageName":"Archiviate","module":"screening","productEvidence":"Schermature Solari","reseller":"Rinaldi Lab","invoiceCount":1,"complexity":"simple","historicalRetest":true},
+    {"cohort":9,"practiceId":"20325492-9c01-4ccc-af20-961882bb010a","customerKey":"alessandro-zaniboni","displayName":"Alessandro Zaniboni","stage":"archiviate","stageName":"Archiviate","module":"screening","productEvidence":"Schermature Solari","reseller":"Rinaldi Lab","invoiceCount":1,"complexity":"simple","historicalRetest":true},
+    {"cohort":17,"practiceId":"b9ecef3e-0431-4f11-9eec-afabea5d5532","customerKey":"giulia-kasermann","displayName":"Giulia Kasermann","stage":"archiviate","stageName":"Archiviate","module":"screening","productEvidence":"Schermature Solari","reseller":"idea tende cuneo","invoiceCount":1,"complexity":"simple","historicalRetest":true},
+    {"cohort":21,"practiceId":"92f0a811-6199-494e-bc12-dafefe1a37b2","customerKey":"rossella-munafo","displayName":"Rossella Munafò","stage":"recensione","stageName":"Recensione","module":"screening","productEvidence":"Schermature Solari","reseller":"Brianza serramenti","invoiceCount":2,"complexity":"medium","historicalRetest":true},
+    {"cohort":34,"practiceId":"99c19e81-7252-4325-afbd-1e7f2698b6df","customerKey":"patrizia-muzzi","displayName":"Patrizia Muzzi","stage":"recensione","stageName":"Recensione","module":"screening","productEvidence":"Schermature Solari","reseller":"⚠️ Da abbinare — richieste sito","invoiceCount":1,"complexity":"simple","historicalRetest":true},
+    {"cohort":47,"practiceId":"b02daf33-b4e5-4ba5-90e1-85ebb3578fe9","customerKey":"paolino-bellini","displayName":"Paolino Bellini","stage":"archiviate","stageName":"Archiviate","module":"screening","productEvidence":"Schermature Solari","reseller":"Rinaldi Lab","invoiceCount":1,"complexity":"simple","historicalRetest":true},
+    {"cohort":56,"practiceId":"368cde18-63fc-409c-91bd-5d6a861519a0","customerKey":"vito-fusillo","displayName":"VITO FUSILLO","stage":"archiviate","stageName":"Archiviate","module":"screening","productEvidence":"Schermature Solari","reseller":"Brianza serramenti","invoiceCount":1,"complexity":"simple","historicalRetest":true},
+    {"cohort":69,"practiceId":"f06f17bc-aeab-4975-a2bd-54b3c023162d","customerKey":"rocco-giacotto","displayName":"Rocco Giacotto","stage":"archiviate","stageName":"Archiviate","module":"screening","productEvidence":"Schermature Solari","reseller":"Rinaldi Lab","invoiceCount":1,"complexity":"simple","historicalRetest":true},
+    {"cohort":77,"practiceId":"9f44491c-30f7-44ef-84db-14877259d716","customerKey":"caterina-claudia-garbato","displayName":"caterina Claudia garbato","stage":"archiviate","stageName":"Archiviate","module":"screening","productEvidence":"Schermature Solari","reseller":"Brianza serramenti","invoiceCount":2,"complexity":"medium","historicalRetest":true},
+    {"cohort":33,"practiceId":"5323d52a-6473-46f1-a5aa-faf5568ae3fc","customerKey":"santo-giuga","displayName":"Santo Giuga","stage":"recensione","stageName":"Recensione","module":"infissi","productEvidence":"Infissi / Serramenti","reseller":"Innova Serramenti","invoiceCount":8,"complexity":"complex","historicalRetest":true},
+    {"cohort":73,"practiceId":"af39159b-62d9-4c0d-8056-d2462e4b7727","customerKey":"elena-depalma","displayName":"ELENA DEPALMA","stage":"archiviate","stageName":"Archiviate","module":"infissi","productEvidence":"Infissi / Serramenti","reseller":"lm tende","invoiceCount":2,"complexity":"medium","historicalRetest":true}
+  ],
+  "safety": {
+    "draftOnly": true,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false,
+    "priorDraftPolicy": "preserve_and_ignore_for_new_test_draft"
+  }
+}

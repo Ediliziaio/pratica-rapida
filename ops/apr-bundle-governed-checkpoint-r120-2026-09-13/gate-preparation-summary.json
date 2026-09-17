@@ -1,0 +1,34 @@
+{
+  "status": "PASS",
+  "tests": {
+    "effectiveTotal": 2059,
+    "initial": {
+      "passed": 2050,
+      "failed": 9,
+      "pending": 0,
+      "reportSha256": "bce3d71bb1dd8c28d6a1ef55e7d576f9404040af0b467289f83f1be370cdefb3"
+    },
+    "sequentialRerun": {
+      "total": 128,
+      "passed": 128,
+      "failed": 0,
+      "pending": 0,
+      "reportSha256": "78104703923011f7c0223170b9ff329395de112db44f78f0c33e0719b7dfae83"
+    },
+    "effectiveFailed": 0
+  },
+  "matrixRules": 228,
+  "stagedBundleSha256": {
+    "apr-supervisor.mjs": "a2a64b8918b4e13fd255dfa7c83aad152129d65fce5ea33fbc9368b4f50c77d4",
+    "apr-enea-worker.mjs": "7388baca752e57d3a321bddbffd288fa64f600846203716ebfc7e4ddb2538453",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0"
+  },
+  "historicalAudit": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-bundle-governed-checkpoint-r120-2026-09-13/historical-audit-report-r120.json",
+  "historicalAuditSha256": "3af80a80f1349a8bc21d08e11b73c9c28bcae8aad460767c57fb9c7761af6b12",
+  "authorizedHistoricalGapOnly": [
+    "user-2026-08-06-portal-intermediary-physical-beneficiary-v1",
+    "user-2026-08-06-intervention-authoritative-sources-and-defaults-v1",
+    "user-2026-08-06-existing-plant-authoritative-mapping-v1",
+    "user-2026-08-06-portal-municipality-controlled-selection-v1"
+  ]
+}

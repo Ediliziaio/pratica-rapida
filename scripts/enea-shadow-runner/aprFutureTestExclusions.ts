@@ -1,6 +1,7 @@
-export const APR_FUTURE_TEST_EXCLUSIONS_VERSION = "apr-future-test-exclusions-v7" as const;
+export const APR_FUTURE_TEST_EXCLUSIONS_VERSION = "apr-future-test-exclusions-v9" as const;
 
 export const APR_FUTURE_TEST_EXCLUSION_RULE_ID = "user-2026-08-18-future-test-exclusions" as const;
+export const APR_IDEAL_SISTEM_MANUAL_EXCLUSION_RULE_ID = "user-2026-09-10-ideal-sistem-manual-exclusion-v1" as const;
 
 export interface AprFutureTestExclusion {
   customerKey: string;
@@ -11,25 +12,43 @@ export interface AprFutureTestExclusion {
 
 export interface AprAutomationExclusion {
   kind: "customer" | "supplier";
+  ruleId: typeof APR_FUTURE_TEST_EXCLUSION_RULE_ID | typeof APR_IDEAL_SISTEM_MANUAL_EXCLUSION_RULE_ID;
   canonicalKey: string;
   displayName: string;
   reason: string;
   sourceField: string;
   sourceValue: string;
+  denominatorDisposition: "excluded_upstream";
 }
 
 const APR_EXCLUDED_SUPPLIERS = Object.freeze([
   Object.freeze({
     canonicalKey: "erre-emme-rm-legno",
+    ruleId: APR_FUTURE_TEST_EXCLUSION_RULE_ID,
     displayName: "Erre Emme / RM Legno",
     aliases: ["erre emme", "erremme", "rm legno"],
     reason: "Fornitore escluso dall'elaborazione automatica per decisione permanente dell'utente.",
   }),
   Object.freeze({
     canonicalKey: "vans",
+    ruleId: APR_FUTURE_TEST_EXCLUSION_RULE_ID,
     displayName: "Vans",
     aliases: ["vans", "vans tappezzeria"],
     reason: "Fornitore escluso dall'elaborazione automatica per decisione permanente dell'utente.",
+  }),
+  Object.freeze({
+    canonicalKey: "linea-sole-potito",
+    ruleId: APR_FUTURE_TEST_EXCLUSION_RULE_ID,
+    displayName: "Linea Sole Potito",
+    aliases: ["linea sole potito"],
+    reason: "Fornitore con modulo cartaceo e fatture scansionate destinato alla lavorazione manuale per decisione permanente dell'utente.",
+  }),
+  Object.freeze({
+    canonicalKey: "ideal-sistem",
+    ruleId: APR_IDEAL_SISTEM_MANUAL_EXCLUSION_RULE_ID,
+    displayName: "Ideal Sistem",
+    aliases: ["ideal sistem"],
+    reason: "Fornitore con allegati cartacei al posto del form digitale destinato alla lavorazione manuale per decisione permanente dell'utente.",
   }),
 ]);
 
@@ -115,8 +134,8 @@ export function aprAutomationExclusion(input: {
   const customerKey = normalizedCustomerKey(typeof input.customerKey === "string" ? input.customerKey : String(input.displayName ?? ""));
   const customer = aprFutureTestExclusion(customerKey);
   if (customer) return {
-    kind: "customer", canonicalKey: customer.customerKey, displayName: customer.displayName,
-    reason: customer.reason, sourceField: "customerKey", sourceValue: customerKey,
+    kind: "customer", ruleId: APR_FUTURE_TEST_EXCLUSION_RULE_ID, canonicalKey: customer.customerKey, displayName: customer.displayName,
+    reason: customer.reason, sourceField: "customerKey", sourceValue: customerKey, denominatorDisposition: "excluded_upstream",
   };
   const company = input.companies && typeof input.companies === "object" && !Array.isArray(input.companies)
     ? (input.companies as { ragione_sociale?: unknown }).ragione_sociale
@@ -131,8 +150,8 @@ export function aprAutomationExclusion(input: {
     for (const supplier of APR_EXCLUDED_SUPPLIERS) {
       const alias = supplier.aliases.find((candidate) => normalized === candidate || normalized.startsWith(`${candidate} `) || normalized.endsWith(` ${candidate}`));
       if (alias) return {
-        kind: "supplier", canonicalKey: supplier.canonicalKey, displayName: supplier.displayName,
-        reason: supplier.reason, sourceField: source.field, sourceValue: String(source.value),
+        kind: "supplier", ruleId: supplier.ruleId, canonicalKey: supplier.canonicalKey, displayName: supplier.displayName,
+        reason: supplier.reason, sourceField: source.field, sourceValue: String(source.value), denominatorDisposition: "excluded_upstream",
       };
     }
   }

@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "apr-falconi-package-drift-diagnosis-v1",
+  "generatedAt": "2026-09-09T13:06:23.088Z",
+  "sourceCohort": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5201-global-controller-vincenzo-falconi",
+  "operationalStartAt": "2026-09-09T12:57:58.135Z",
+  "acceptedPreflight": {
+    "mappingFingerprint": "vj5koz",
+    "workflowFingerprint": "vj5koz:61:2"
+  },
+  "legacyWorkerRebuild": {
+    "mappingFingerprint": "1n74mmy",
+    "workflowFingerprint": "1n74mmy:61:2"
+  },
+  "exactPreflightInputs": {
+    "mappingFingerprint": "vj5koz",
+    "workflowFingerprint": "vj5koz:61:2"
+  },
+  "provenOmissionsInLegacyWorkerRebuild": [
+    "resolvedPrimaryBeneficiary",
+    "resolvedPrimaryBeneficiarySourceIds",
+    "resolvedWorksMunicipality",
+    "resolvedWorksMunicipalitySourceIds"
+  ],
+  "changedMappedFacts": {
+    "beneficiaryAuthority": "Fattura in preflight; Modulo cliente in worker rebuild",
+    "worksMunicipalityAuthority": "Fattura in preflight; Regola controllata/CRM in worker rebuild",
+    "worksProvince": "BG ready in preflight; BERGAMO missing in worker rebuild"
+  },
+  "pipelineFaultPoint": "apr-enea-worker-cli attempted to freeze a canonical package only after calling crmLocalPreflight.buildDraftExecutionPackage, which rebuilt the package from mutable checkpoints and omitted four authoritative preflight inputs. The mismatch therefore occurred before canonical persistence could protect the execution path.",
+  "classification": "proven_operational_general_defect_canonical_freeze_too_late",
+  "diagnosisSha256": "8edb70d466b2fc316c041bf16b9fa07b74f46eebd3936dcf50efb64f9857e3ad",
+  "safetyObservation": {
+    "draftCreated": false,
+    "completedPages": 0,
+    "previewAttempted": false,
+    "submitAttempted": false
+  }
+}

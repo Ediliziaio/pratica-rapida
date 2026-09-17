@@ -115,20 +115,23 @@ describe("APR Slice 2 economic vertical", () => {
     }))).toThrow("apr_economic_invalid_replacement_link");
   });
 
-  it("richiede operatore soltanto quando il capitale bonificato supera le fatture", () => {
+  it("audita senza bloccare quando il capitale bonificato supera le fatture", () => {
     const result = runEconomicVertical(input({ bankTransfers: [transfer("transfer-1", 110.06, 1)] }));
-    expect(result.outcome).toBe("OPERATOR_REQUIRED");
+    expect(result.outcome).toBe("RESOLVED");
+    expect(result.eligibleExpense).toBe(110);
     expect(result.bankTransferReconciliation.status).toBe("principal_exceeds_invoices");
+    expect(result.decisionsArtifact.payload.decisions.find((item) => item.field === "economic.bankTransferCheck"))
+      .toMatchObject({ status: "resolved", blockerCode: null });
   });
 
-  it("mantiene il controllo capitale/lordi indipendente dalla riconciliazione dei soli lordi fattura", () => {
+  it("mantiene l'audit capitale/lordi separato e non bloccante dal totale finale fattura", () => {
     const result = runEconomicVertical(input({
       invoices: [invoice("invoice-1", "1", 110, { taxableAmount: 1, vatAmount: 1, interventionGrossAmount: 110 })],
       bankTransfers: [transfer("transfer-1", 120, 1)],
     }));
     expect(result.invoiceReconciliation.usable).toBe(true);
-    expect(result.outcome).toBe("OPERATOR_REQUIRED");
-    expect(result.eligibleExpense).toBeNull();
+    expect(result.outcome).toBe("RESOLVED");
+    expect(result.eligibleExpense).toBe(110);
     expect(result.bankTransferReconciliation.status).toBe("principal_exceeds_invoices");
   });
 

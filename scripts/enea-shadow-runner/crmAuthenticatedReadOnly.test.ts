@@ -28,10 +28,25 @@ const row = (firstName: string, lastName: string, suffix: string) => ({
 afterEach(() => { vi.restoreAllMocks(); for (const directory of directories.splice(0)) rmSync(directory, { recursive: true, force: true }); });
 
 describe("acquisizione CRM autenticata e read-only APR", () => {
+  it("persiste l'origine reale del trasporto ombra invece di attribuire il dossier alla produzione", async () => {
+    const directory = temporaryDirectory();
+    const practiceId = "5aa5410c-f849-4dfc-b55a-ddccf911303e";
+    const candidate = { customerKey: "federico-marino", displayName: "Federico Marino", practiceId, expectedStageType: "pronte_da_fare" as const, productModule: "screening" as const };
+    const get = vi.fn(async () => new Response(JSON.stringify([{ ...row("Federico", "Marino", "03"), id: practiceId, pipeline_stages: { stage_type: "pronte_da_fare" } }]), { status: 200, headers: { "Content-Type": "application/json" } }));
+    const reader = new PersistentAprCrmAuthenticatedReadOnly(directory, {
+      sourceOrigin: "https://boxvncaqpszeqpofazzr.supabase.co",
+      snapshot: () => ({ status: "authenticated" }),
+      readOnlyGet: get,
+    });
+    reader.prepare([candidate], createHash("sha256").update(JSON.stringify([candidate])).digest("hex"), new Date("2026-09-16T18:00:00.000Z"), 1);
+    await reader.tick(new Date("2026-09-16T18:00:01.000Z"));
+    const dossierPath = reader.snapshot().items[0].dossierPath!;
+    expect(JSON.parse(readFileSync(dossierPath, "utf8")).source.origin).toBe("https://boxvncaqpszeqpofazzr.supabase.co");
+  });
   it("non ammette mai un dossier escluso al download documenti", () => {
     const base = { state: "acquired", practiceId: "p-1", dossierPath: "/tmp/dossier.json" };
     expect(aprDocumentProcessingDossiers([
-      { ...base, customerKey: "massimiliano-montemorra", automationExclusion: { kind: "supplier", canonicalKey: "erre-emme-rm-legno", displayName: "Erre Emme / RM Legno", reason: "excluded", sourceField: "row.companies.ragione_sociale", sourceValue: "RM Legno" } },
+      { ...base, customerKey: "massimiliano-montemorra", automationExclusion: { kind: "supplier", ruleId: "user-2026-08-18-future-test-exclusions", canonicalKey: "erre-emme-rm-legno", displayName: "Erre Emme / RM Legno", reason: "excluded", sourceField: "row.companies.ragione_sociale", sourceValue: "RM Legno", denominatorDisposition: "excluded_upstream" } },
       { ...base, customerKey: "mario-rossi", practiceId: "p-2", automationExclusion: null },
     ] as never)).toEqual([{ customerKey: "mario-rossi", practiceId: "p-2", dossierPath: "/tmp/dossier.json" }]);
   });
@@ -53,7 +68,7 @@ describe("acquisizione CRM autenticata e read-only APR", () => {
     ];
     const get = vi.fn(async (_pathname: string, params: URLSearchParams) => {
       expect(params.has("cliente_nome")).toBe(false);
-      expect(params.get("pipeline_stages.stage_type")).toBe("eq.archiviate");
+      expect(params.has("pipeline_stages.stage_type")).toBe(false);
       const id = params.get("id")?.replace("eq.", "") ?? "";
       const candidate = archivedCandidates.find((item) => item.practiceId === id)!;
       const [firstName, lastName] = candidate.displayName.split(" ");
@@ -69,6 +84,36 @@ describe("acquisizione CRM autenticata e read-only APR", () => {
     expect(get).toHaveBeenCalledTimes(2);
   });
 
+  it("riacquisisce per ID la stessa pratica anche se e stata spostata di fase", async () => {
+    const practiceId = "00000000-0000-4000-8000-000000000096";
+    const get = vi.fn(async (_pathname: string, params: URLSearchParams) => {
+      expect(params.get("id")).toBe(`eq.${practiceId}`);
+      expect(params.has("pipeline_stages.stage_type")).toBe(false);
+      return new Response(JSON.stringify([{ ...row("Angela", "Tuttolani", "96"), id: practiceId, pipeline_stages: { stage_type: "recensione" } }]), { status: 200, headers: { "Content-Type": "application/json" } });
+    });
+    const reader = new PersistentAprCrmAuthenticatedReadOnly(temporaryDirectory(), { snapshot: () => ({ status: "authenticated" }), readOnlyGet: get });
+    reader.prepare([{ customerKey: "angela-tuttolani", displayName: "Angela Tuttolani", practiceId, expectedStageType: "pronte_da_fare" }], "7".repeat(64), new Date("2026-09-11T11:59:00Z"), 1);
+
+    await reader.tick(new Date("2026-09-11T12:00:00Z"));
+
+    expect(reader.snapshot().items[0]).toMatchObject({
+      state: "acquired",
+      practiceId,
+      reason: expect.stringContaining("attesa pronte_da_fare, corrente recensione"),
+    });
+  });
+
+  it("resta fail-closed se l'ID esatto appartiene a un'identita diversa", async () => {
+    const practiceId = "00000000-0000-4000-8000-000000000095";
+    const get = vi.fn(async () => new Response(JSON.stringify([{ ...row("Persona", "Diversa", "95"), id: practiceId, pipeline_stages: { stage_type: "recensione" } }]), { status: 200, headers: { "Content-Type": "application/json" } }));
+    const reader = new PersistentAprCrmAuthenticatedReadOnly(temporaryDirectory(), { snapshot: () => ({ status: "authenticated" }), readOnlyGet: get });
+    reader.prepare([{ customerKey: "cliente-atteso", displayName: "Cliente Atteso", practiceId, expectedStageType: "pronte_da_fare" }], "6".repeat(64), new Date("2026-09-11T11:59:00Z"), 1);
+
+    await reader.tick(new Date("2026-09-11T12:01:00Z"));
+
+    expect(reader.snapshot().items[0]).toMatchObject({ state: "blocked_not_found" });
+  });
+
   it("acquisisce eventi reali per ID esatto, uno alla volta, e riprende senza duplicare", async () => {
     const incoming = [
       { eventId: "crm-ready:event-1", practiceId: "00000000-0000-4000-8000-000000000071", displayName: "Mario Rossi" },
@@ -80,7 +125,7 @@ describe("acquisizione CRM autenticata e read-only APR", () => {
     ]);
     const get = vi.fn(async (_pathname: string, params: URLSearchParams) => {
       expect(params.has("cliente_nome")).toBe(false);
-      expect(params.get("pipeline_stages.stage_type")).toBe("eq.pronte_da_fare");
+      expect(params.has("pipeline_stages.stage_type")).toBe(false);
       const id = params.get("id")?.replace("eq.", "") ?? "";
       return new Response(JSON.stringify(byId.has(id) ? [byId.get(id)] : []), { status: 200, headers: { "Content-Type": "application/json" } });
     });

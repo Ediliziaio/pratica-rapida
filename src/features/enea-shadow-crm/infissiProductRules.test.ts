@@ -76,4 +76,53 @@ describe("APR Infissi · materiale, vetro e chiusure oscuranti", () => {
     expect(result.eneaShadingClosuresChecked).toBeNull();
     expect(result.blockers).toEqual(["infissi_shading_closures_form_answer_missing_or_ambiguous"]);
   });
+
+  it("accetta NO soltanto dalla prova documentale completa gia validata", () => {
+    const result = resolveInfissiProductRules({
+      practiceId: "senza-form-con-prova",
+      documentedNoAdditionalClosures: true,
+      documentedNoAdditionalClosureSourceIds: ["schede-tecniche", "fattura"],
+    });
+    expect(result).toMatchObject({
+      status: "ready",
+      eneaShadingClosuresChecked: false,
+      blockers: [],
+      audit: {
+        shadingClosuresSource: "explicit_no_screen_evidence",
+        documentedNoAdditionalClosureSourceIds: ["schede-tecniche", "fattura"],
+      },
+    });
+    expect(result.audit.appliedRuleIds).toContain(USER_AUTHORIZED_RULE_IDS.infissiExplicitNoScreenNegativeClosureEvidence);
+  });
+
+  it("fa prevalere l'allocazione fattura sul flag form e ammette anche una decisione parziale per riga", () => {
+    const invoiceNo = resolveInfissiProductRules({
+      practiceId: "fattura-silente",
+      formAlsoInstalledClosures: true,
+      documentedClosureAllocationResolved: true,
+      documentedClosureAllocationUniformValue: false,
+      documentedClosureAllocationSourceIds: ["fattura-1", "fattura-2"],
+    });
+    const partial = resolveInfissiProductRules({
+      practiceId: "fattura-parziale",
+      documentedClosureAllocationResolved: true,
+      documentedClosureAllocationSourceIds: ["fattura-3"],
+    });
+    expect(invoiceNo).toMatchObject({
+      status: "ready",
+      eneaShadingClosuresChecked: false,
+      audit: {
+        formAlsoInstalledClosures: true,
+        shadingClosuresSource: "invoice_authoritative",
+        documentedNoAdditionalClosureSourceIds: ["fattura-1", "fattura-2"],
+      },
+    });
+    expect(partial).toMatchObject({
+      status: "ready",
+      eneaShadingClosuresChecked: null,
+      blockers: [],
+      audit: { shadingClosuresSource: "invoice_authoritative" },
+    });
+    expect(invoiceNo.audit.appliedRuleIds).toContain(USER_AUTHORIZED_RULE_IDS.infissiInvoiceAuthoritativeShadingClosures);
+  });
 });

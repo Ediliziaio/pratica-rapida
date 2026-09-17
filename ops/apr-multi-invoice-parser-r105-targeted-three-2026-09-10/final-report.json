@@ -1,0 +1,132 @@
+{
+  "schemaVersion": "apr-r105-targeted-parser-final-report-v1",
+  "verifiedAt": "2026-09-10T12:50:07.887Z",
+  "status": "completed_verified",
+  "scope": {
+    "total": 3,
+    "names": [
+      "Gianluca Bianco",
+      "Matia Bertarelli",
+      "Alberto Maggi"
+    ],
+    "noOtherPracticesProcessed": true,
+    "manifestSha256": "b624c372879434c22942cccee09f2d4b18fa4112656e6cb046db000826d1c341"
+  },
+  "runtime": {
+    "bundleVersion": "c0826cfe-multi-invoice-parser-r105-20260910",
+    "workerSha256": "e25c11a9a1052b161a26908f44a83910205912431e375aceca0a0786ee2f6545",
+    "freshGeneration": true,
+    "draftOnly": true,
+    "previewAttempted": false,
+    "submitAttempted": false,
+    "communicationsAttempted": false
+  },
+  "counts": {
+    "saved": 1,
+    "failed": 2,
+    "operatorRequired": 0,
+    "technicalBlock": 2,
+    "inconsistent": 0
+  },
+  "cases": [
+    {
+      "name": "Gianluca Bianco",
+      "customerKey": "gianluca-bianco",
+      "practiceId": "526f3361-70f8-4ee9-9d5d-2a38506b9610",
+      "cohort": 5720,
+      "classification": "TECHNICAL_BLOCK",
+      "saved": false,
+      "draftId": null,
+      "parserCorrectionObserved": true,
+      "parserResult": {
+        "productCount": 1,
+        "description": "Tenda da sole cassonata",
+        "widthMm": 3500,
+        "heightMm": 2000,
+        "gTot": 0.13
+      },
+      "exactCause": "La correzione prodotto r105 ha ricostruito la tenda, ma la tripla riconciliazione economica resta rossa: structured_extraction e accounting_reconciliation confermano entrambi EUR 2506.90, mentre intervention_cross_check non riesce a dimostrare che le righe dell'intervento coprano l'intero totale della fattura n. 113.",
+      "blockerCodes": [
+        "gross_triple_reconciliation_failed"
+      ],
+      "missingDocumentType": null,
+      "operatorQuestion": "Confermi che l'intero totale lordo di EUR 2506.90 della fattura n. 113 riguarda la schermatura e va usato come spesa ENEA?",
+      "onboardingGap": "Rendere esplicito nel documento o nel form il totale economico riferito al solo intervento agevolato quando la fattura contiene acconti o righe non riconciliate.",
+      "threeWayVerification": {
+        "runReport": "technical_block",
+        "persistentCheckpoint": "deep-case-review completed / TECHNICAL_REPAIR",
+        "reportBlockers": [
+          "gross_triple_reconciliation_failed"
+        ],
+        "terminalCaseTruth": "TECHNICAL_BLOCK",
+        "concordant": true
+      }
+    },
+    {
+      "name": "Matia Bertarelli",
+      "customerKey": "matia-bertarelli",
+      "practiceId": "b8e33e49-1f0c-4103-ad0a-b0822362fa37",
+      "cohort": 5721,
+      "classification": "SAVED",
+      "saved": true,
+      "draftId": "482279",
+      "completedPages": 9,
+      "expectedPages": 9,
+      "exactCause": null,
+      "blockerCodes": [],
+      "missingDocumentType": null,
+      "operatorQuestion": null,
+      "onboardingGap": null,
+      "threeWayVerification": {
+        "runReport": "saved",
+        "persistentCheckpoint": "enea-draft-execution completed / saved / 9 of 9 pages",
+        "reportBlockers": [],
+        "terminalCaseTruth": "READY",
+        "terminalStatement": "Nessun problema: bozza TEST completa e verificata read-only.",
+        "concordant": true
+      }
+    },
+    {
+      "name": "Alberto Maggi",
+      "customerKey": "alberto-maggi",
+      "practiceId": "2233668f-d9e6-42e2-a7e4-3abed8de74ad",
+      "cohort": 5722,
+      "classification": "TECHNICAL_BLOCK",
+      "saved": false,
+      "draftId": null,
+      "parserCorrectionObserved": true,
+      "parserResult": {
+        "productCount": 1,
+        "description": "Tenda da sole a bracci estensibili",
+        "widthMm": 3200,
+        "heightMm": 2250,
+        "gTot": 0.14,
+        "grossTripleReconciliationVerified": true,
+        "invoiceTotal": 1890
+      },
+      "exactCause": "La correzione prodotto r105 ha ricostruito correttamente prodotto, misure, gTot e totale, ma il payload ENEA resta incompleto per due campi catastali: Foglio e Particella/mappale non sono valorizzati.",
+      "blockerCodes": [
+        "draft_payload_mapping_incomplete",
+        "missing-immobile.foglio",
+        "missing-immobile.mappale"
+      ],
+      "missingDocumentType": null,
+      "operatorQuestion": "Indica il Foglio e la Particella/mappale dell'immobile di Valmadrera da inserire nella bozza ENEA.",
+      "onboardingGap": "Raccogliere e validare sempre Foglio e Particella/mappale catastali nel modulo iniziale o in un documento catastale strutturato.",
+      "threeWayVerification": {
+        "runReport": "technical_block",
+        "persistentCheckpoint": "deep-case-review completed / TECHNICAL_REPAIR",
+        "reportBlockers": [
+          "draft_payload_mapping_incomplete"
+        ],
+        "terminalCaseTruth": "TECHNICAL_BLOCK",
+        "concordant": true
+      }
+    }
+  ],
+  "evidence": {
+    "lotReport": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-multi-invoice-parser-r105-targeted-three-20260910/report.json",
+    "terminalSnapshotsRoot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/terminal-observability",
+    "cohortsRoot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts"
+  }
+}

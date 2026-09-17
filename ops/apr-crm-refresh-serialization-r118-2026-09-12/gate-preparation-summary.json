@@ -1,0 +1,30 @@
+{
+  "status": "PASS",
+  "tests": {
+    "files": 238,
+    "total": 2039,
+    "passed": 2039,
+    "failed": 0,
+    "pending": 0
+  },
+  "matrixRules": 227,
+  "testedRules": 227,
+  "requiredRuntimeRule": "system-apr-crm-refresh-serialization-v1",
+  "runner": {
+    "path": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/scripts/enea-shadow-runner/simple-independent-runner.mjs",
+    "sha256": "89254c6afd808056e8d5a35a19a0fda1ed3d7bfc5def1eba83cac107280790dd"
+  },
+  "stagedBundleSha256": {
+    "apr-supervisor.mjs": "eb87ebe9dc9e909de92471dba9aedc9660ef302c131018092e28bbf2fe4a671b",
+    "apr-enea-worker.mjs": "295b9fe0083f82243b7435c775ea02d3c5f0ab5f0aabf8ec820167bd899822ad",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0"
+  },
+  "historicalAudit": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-crm-refresh-serialization-r118-2026-09-12/historical-audit-report-r118.json",
+  "historicalAuditSha256": "6791d2903370b48100fdb998648146ae51f79b49555de154f96ae9e74b70bb37",
+  "authorizedHistoricalGapOnly": [
+    "user-2026-08-06-portal-intermediary-physical-beneficiary-v1",
+    "user-2026-08-06-intervention-authoritative-sources-and-defaults-v1",
+    "user-2026-08-06-existing-plant-authoritative-mapping-v1",
+    "user-2026-08-06-portal-municipality-controlled-selection-v1"
+  ]
+}

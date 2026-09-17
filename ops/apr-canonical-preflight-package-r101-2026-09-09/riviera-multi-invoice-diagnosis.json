@@ -1,0 +1,30 @@
+{
+  "version": "apr-riviera-multi-invoice-diagnosis-v1",
+  "recordedAt": "2026-09-09T16:38:00+02:00",
+  "practice": {
+    "customerKey": "loretta-riviera",
+    "practiceId": "1d6b08fa-7120-4eab-a118-ce3a263ce001",
+    "cohort": 5224
+  },
+  "retractedDiagnosis": "rotated_scan_or_rotated_ocr",
+  "verifiedFacts": {
+    "originalInvoiceFiles": 3,
+    "allDownloadedAsValidPdf": true,
+    "allClassifiedAsInvoice": true,
+    "documentNumbersVisibleInExtractedText": ["268", "608", "641"],
+    "documentDatesVisibleInExtractedText": ["13-03-26", "17-06-26", "25-06-26"],
+    "printedGrossTotalsVisible": [2411.2, 3014.0, 602.8],
+    "balanceInvoiceReferences": ["268", "608"],
+    "aprParsedDocumentNumbers": [null, null, "641"],
+    "aprParsedGrossTotals": [2192.0, null, 602.8],
+    "aprParsedItemCounts": [0, 0, 0]
+  },
+  "pipelineLocation": "invoice header/label extraction before advance-invoice reference reconciliation",
+  "relationshipToTocchetti": "Related multi-invoice family, but not the same proven mechanism. No Riviera invoice was lost during acquisition or classified away; all three reach segmentation. The two advance PDFs lose their fiscal identity (and one loses its total) in label extraction, so the balance reference resolver cannot match 268 and 608 and fabricates original_invoice_missing_or_unavailable. Tocchetti was a duplicate-retirement error after competing extractions.",
+  "classification": "GENERAL_PARSER_DEFECT_PROVEN_NOT_YET_CORRECTED",
+  "evidencePaths": [
+    "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5224-global-controller-loretta-riviera/crm-original-documents/checkpoint.json",
+    "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5224-global-controller-loretta-riviera/crm-document-analysis/checkpoint.json",
+    "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5224-global-controller-loretta-riviera/crm-local-preflight/checkpoint.json"
+  ]
+}

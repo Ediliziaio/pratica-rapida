@@ -1,0 +1,28 @@
+{
+  "version": "apr-workable83-operator-responses-payload-form-r125-manifest-validation-v1",
+  "validatedAt": "2026-09-14T11:59:21.521Z",
+  "manifestPath": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-workable83-operator-responses-payload-form-r125-2026-09-14/manifest.json",
+  "manifestSha256": "119dee5097a7c015e79246194bf5ba0797aef13d6d554ea40b668e33c7880a5f",
+  "total": 83,
+  "uniquePracticeIds": 83,
+  "uniqueCustomerKeys": 83,
+  "core76": 76,
+  "new7": 7,
+  "exactNewSeven": [
+    "fabio-benvenuti",
+    "gianfranco-zanetti",
+    "daniele-formentini",
+    "andrea-celi",
+    "gabriele-malossi",
+    "anthony-pool-juscamaita-fuertes",
+    "mario-spano"
+  ],
+  "safety": {
+    "draftOnly": true,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false,
+    "priorDraftPolicy": "preserve_and_ignore_for_new_test_draft"
+  },
+  "status": "passed"
+}

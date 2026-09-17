@@ -1,0 +1,3442 @@
+{
+  "version": "apr-three-supplier-exclusion-denominator-audit-v1",
+  "generatedAt": "2026-09-10T16:43:26.376Z",
+  "scope": "All persisted APR run reports, deduplicated by practice within each run. Families: Linea Sole Potito, Erre Emme/RM Legno, Ideal Sistem.",
+  "safety": {
+    "crmMethod": "GET",
+    "crmWrites": false,
+    "eneaOpened": false,
+    "eneaWrites": false
+  },
+  "permanentRuleIds": [
+    "user-2026-08-18-future-test-exclusions",
+    "user-2026-09-10-ideal-sistem-manual-exclusion-v1"
+  ],
+  "overallReportedBatches": {
+    "runReportCount": 121,
+    "uniquePracticesBeforeExclusions": 197,
+    "excludedUniquePractices": 20,
+    "workableDenominatorAfterExclusions": 177,
+    "excludedByFamily": {
+      "linea-sole-potito": 12,
+      "erre-emme-rm-legno": 4,
+      "ideal-sistem": 4
+    }
+  },
+  "overallPersistedCohortBatches": {
+    "cohortCheckpointCount": 1731,
+    "uniquePracticesBeforeExclusions": 287,
+    "excludedUniquePractices": 23,
+    "workableDenominatorAfterExclusions": 264,
+    "excludedByFamily": {
+      "linea-sole-potito": 13,
+      "erre-emme-rm-legno": 5,
+      "ideal-sistem": 5
+    }
+  },
+  "currentKnownExcludedPractices": {
+    "total": 23,
+    "nonConcordant": 0,
+    "practices": [
+      {
+        "practiceId": "42eb24fa-9d6f-4cea-b7a3-d29a28f1880a",
+        "customerKey": "alice-molinaris",
+        "displayName": "ALICE MOLINARIS",
+        "supplier": "Linea sole potito",
+        "family": "linea-sole-potito",
+        "localDossierPaths": [
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-57-mixed-forty-reliability/crm-acquisition/dossiers/alice-molinaris.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-58-mixed-forty-routing-fixed/crm-acquisition/dossiers/alice-molinaris.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-59-mixed-forty-final-gates/crm-acquisition/dossiers/alice-molinaris.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-60-mixed-repeat-rules/crm-acquisition/dossiers/alice-molinaris.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-61-learning-replay/crm-acquisition/dossiers/alice-molinaris.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-62-learning-replay-routing/crm-acquisition/dossiers/alice-molinaris.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-63-learning-replay-routing-financial/crm-acquisition/dossiers/alice-molinaris.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-64-learning-replay-product-over-label/crm-acquisition/dossiers/alice-molinaris.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-65-learning-replay-reconciled-products/crm-acquisition/dossiers/alice-molinaris.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-66-learning-replay-product-contract/crm-acquisition/dossiers/alice-molinaris.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-67-learning-replay-label-independent/crm-acquisition/dossiers/alice-molinaris.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-68-mixed-repeat-post-resume-fix/crm-acquisition/dossiers/alice-molinaris.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-85-fifteen-alice/crm-acquisition/dossiers/alice-molinaris.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-86-fifteen-selection/crm-acquisition/dossiers/alice-molinaris.json"
+        ],
+        "cohortRefs": [
+          {
+            "cohort": "apr-pilot-57-mixed-forty-reliability",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-57-mixed-forty-reliability/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-58-mixed-forty-routing-fixed",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-58-mixed-forty-routing-fixed/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-59-mixed-forty-final-gates",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-59-mixed-forty-final-gates/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-60-mixed-repeat-rules",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-60-mixed-repeat-rules/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-61-learning-replay",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-61-learning-replay/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-62-learning-replay-routing",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-62-learning-replay-routing/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-63-learning-replay-routing-financial",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-63-learning-replay-routing-financial/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-64-learning-replay-product-over-label",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-64-learning-replay-product-over-label/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-65-learning-replay-reconciled-products",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-65-learning-replay-reconciled-products/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-66-learning-replay-product-contract",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-66-learning-replay-product-contract/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-67-learning-replay-label-independent",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-67-learning-replay-label-independent/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-68-mixed-repeat-post-resume-fix",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-68-mixed-repeat-post-resume-fix/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-85-fifteen-alice",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-85-fifteen-alice/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-86-fifteen-selection",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-86-fifteen-selection/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          }
+        ],
+        "runRefs": [],
+        "liveCrm": {
+          "displayName": "ALICE MOLINARIS",
+          "supplier": "Linea sole potito",
+          "family": "linea-sole-potito",
+          "ruleId": "user-2026-08-18-future-test-exclusions",
+          "method": "GET"
+        },
+        "tripleVerification": {
+          "localDossierVerified": true,
+          "reportedBatchMembershipVerified": true,
+          "liveCrmGetVerified": true,
+          "concordant": true
+        }
+      },
+      {
+        "practiceId": "d88895ce-3b15-4b3f-800a-7cbfe0139246",
+        "customerKey": "antonio-sacco",
+        "displayName": "ANTONIO SACCO",
+        "supplier": "rm legno",
+        "family": "erre-emme-rm-legno",
+        "localDossierPaths": [
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3414-global-controller-antonio-sacco/crm-acquisition/dossiers/antonio-sacco.json"
+        ],
+        "cohortRefs": [],
+        "runRefs": [
+          {
+            "run": "apr-targeted-excel-ready-r70-20260906",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-targeted-excel-ready-r70-20260906/report.json",
+            "state": "technical_block"
+          },
+          {
+            "run": "apr-targeted-excel-ready-r70-retry1-20260906",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-targeted-excel-ready-r70-retry1-20260906/report.json",
+            "state": "technical_block"
+          }
+        ],
+        "liveCrm": {
+          "displayName": "ANTONIO SACCO",
+          "supplier": "rm legno",
+          "family": "erre-emme-rm-legno",
+          "ruleId": "user-2026-08-18-future-test-exclusions",
+          "method": "GET"
+        },
+        "tripleVerification": {
+          "localDossierVerified": true,
+          "reportedBatchMembershipVerified": true,
+          "liveCrmGetVerified": true,
+          "concordant": true
+        }
+      },
+      {
+        "practiceId": "b991b415-9a05-4ebf-83a0-c314465fe151",
+        "customerKey": "antonio-solinas",
+        "displayName": "antonio solinas",
+        "supplier": "Ideal sistem",
+        "family": "ideal-sistem",
+        "localDossierPaths": [
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-76-night-new-balanced-10/crm-acquisition/dossiers/antonio-solinas.json"
+        ],
+        "cohortRefs": [
+          {
+            "cohort": "apr-pilot-76-night-new-balanced-10",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-76-night-new-balanced-10/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          }
+        ],
+        "runRefs": [],
+        "liveCrm": {
+          "displayName": "antonio solinas",
+          "supplier": "Ideal sistem",
+          "family": "ideal-sistem",
+          "ruleId": "user-2026-09-10-ideal-sistem-manual-exclusion-v1",
+          "method": "GET"
+        },
+        "tripleVerification": {
+          "localDossierVerified": true,
+          "reportedBatchMembershipVerified": true,
+          "liveCrmGetVerified": true,
+          "concordant": true
+        }
+      },
+      {
+        "practiceId": "11b99b30-2a58-40dd-96f5-5ef1a06e65d0",
+        "customerKey": "diego-mario-mocenighi",
+        "displayName": "diego mario mocenighi",
+        "supplier": "Linea sole potito",
+        "family": "linea-sole-potito",
+        "localDossierPaths": [
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2973-global-controller-diego-mario-mocenighi/crm-acquisition/dossiers/diego-mario-mocenighi.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3223-global-controller-diego-mario-mocenighi/crm-acquisition/dossiers/diego-mario-mocenighi.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3461-global-controller-diego-mario-mocenighi/crm-acquisition/dossiers/diego-mario-mocenighi.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-4453-global-controller-diego-mario-mocenighi/crm-acquisition/dossiers/diego-mario-mocenighi.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-4853-global-controller-diego-mario-mocenighi/crm-acquisition/dossiers/diego-mario-mocenighi.json"
+        ],
+        "cohortRefs": [
+          {
+            "cohort": "apr-pilot-2973-global-controller-diego-mario-mocenighi",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2973-global-controller-diego-mario-mocenighi/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-3223-global-controller-diego-mario-mocenighi",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3223-global-controller-diego-mario-mocenighi/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-3461-global-controller-diego-mario-mocenighi",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3461-global-controller-diego-mario-mocenighi/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-4453-global-controller-diego-mario-mocenighi",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-4453-global-controller-diego-mario-mocenighi/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-4853-global-controller-diego-mario-mocenighi",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-4853-global-controller-diego-mario-mocenighi/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          }
+        ],
+        "runRefs": [
+          {
+            "run": "apr-current-workable-batch-r86-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-current-workable-batch-r86-20260908/report.json",
+            "state": "technical_block"
+          },
+          {
+            "run": "apr-wide100-current-cohort-bridge-r25",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-current-cohort-bridge-r25/report.json",
+            "state": "operator_required"
+          },
+          {
+            "run": "apr-wide100-final-r67-20260906",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-final-r67-20260906/report.json",
+            "state": "operator_required"
+          },
+          {
+            "run": "apr-wide100-final-r68-20260906",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-final-r68-20260906/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-province-lineage-r24",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-province-lineage-r24/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r97-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r97-20260908/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r98-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r98-20260908/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r98-retry1-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r98-retry1-20260908/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r98-retry2-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r98-retry2-20260908/report.json",
+            "state": "technical_block"
+          },
+          {
+            "run": "apr-wide100-r99-20260909",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r99-20260909/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r99-governed-20260909",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r99-governed-20260909/report.json",
+            "state": "technical_block"
+          },
+          {
+            "run": "apr-wide99-post-r46",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide99-post-r46/report.json",
+            "state": "queued"
+          }
+        ],
+        "liveCrm": {
+          "displayName": "diego mario mocenighi",
+          "supplier": "Linea sole potito",
+          "family": "linea-sole-potito",
+          "ruleId": "user-2026-08-18-future-test-exclusions",
+          "method": "GET"
+        },
+        "tripleVerification": {
+          "localDossierVerified": true,
+          "reportedBatchMembershipVerified": true,
+          "liveCrmGetVerified": true,
+          "concordant": true
+        }
+      },
+      {
+        "practiceId": "4e251174-6b43-4c76-98ff-6f00c1caede9",
+        "customerKey": "elena-marcella-berti",
+        "displayName": "ELENA MARCELLA BERTI",
+        "supplier": "Linea sole potito",
+        "family": "linea-sole-potito",
+        "localDossierPaths": [
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2992-global-controller-elena-marcella-berti/crm-acquisition/dossiers/elena-marcella-berti.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3022-global-controller-elena-marcella-berti/crm-acquisition/dossiers/elena-marcella-berti.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3039-global-controller-elena-marcella-berti/crm-acquisition/dossiers/elena-marcella-berti.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3242-global-controller-elena-marcella-berti/crm-acquisition/dossiers/elena-marcella-berti.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3425-global-controller-elena-marcella-berti/crm-acquisition/dossiers/elena-marcella-berti.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3426-global-controller-elena-marcella-berti/crm-acquisition/dossiers/elena-marcella-berti.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3475-global-controller-elena-marcella-berti/crm-acquisition/dossiers/elena-marcella-berti.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-4872-global-controller-elena-marcella-berti/crm-acquisition/dossiers/elena-marcella-berti.json"
+        ],
+        "cohortRefs": [
+          {
+            "cohort": "apr-pilot-2992-global-controller-elena-marcella-berti",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2992-global-controller-elena-marcella-berti/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-3022-global-controller-elena-marcella-berti",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3022-global-controller-elena-marcella-berti/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-3039-global-controller-elena-marcella-berti",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3039-global-controller-elena-marcella-berti/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-3242-global-controller-elena-marcella-berti",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3242-global-controller-elena-marcella-berti/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-3425-global-controller-elena-marcella-berti",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3425-global-controller-elena-marcella-berti/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-3426-global-controller-elena-marcella-berti",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3426-global-controller-elena-marcella-berti/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-3475-global-controller-elena-marcella-berti",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3475-global-controller-elena-marcella-berti/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-4872-global-controller-elena-marcella-berti",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-4872-global-controller-elena-marcella-berti/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          }
+        ],
+        "runRefs": [
+          {
+            "run": "apr-current-workable-batch-r86-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-current-workable-batch-r86-20260908/report.json",
+            "state": "technical_block"
+          },
+          {
+            "run": "apr-financial-parser-r29-reviewed-eight",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-financial-parser-r29-reviewed-eight/report.json",
+            "state": "operator_required"
+          },
+          {
+            "run": "apr-financial-parser-r30-reviewed-eight",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-financial-parser-r30-reviewed-eight/report.json",
+            "state": "operator_required"
+          },
+          {
+            "run": "apr-r85-berti-operational-proof-20260907",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-r85-berti-operational-proof-20260907/report.json",
+            "state": "operator_required"
+          },
+          {
+            "run": "apr-r86-berti-deep-review-terminal-proof-20260907",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-r86-berti-deep-review-terminal-proof-20260907/report.json",
+            "state": "technical_block"
+          },
+          {
+            "run": "apr-wide100-current-cohort-bridge-r25",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-current-cohort-bridge-r25/report.json",
+            "state": "operator_required"
+          },
+          {
+            "run": "apr-wide100-final-r67-20260906",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-final-r67-20260906/report.json",
+            "state": "operator_required"
+          },
+          {
+            "run": "apr-wide100-final-r68-20260906",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-final-r68-20260906/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-province-lineage-r24",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-province-lineage-r24/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r97-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r97-20260908/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r98-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r98-20260908/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r98-retry1-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r98-retry1-20260908/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r98-retry2-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r98-retry2-20260908/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r99-20260909",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r99-20260909/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r99-governed-20260909",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r99-governed-20260909/report.json",
+            "state": "technical_block"
+          },
+          {
+            "run": "apr-wide99-post-r46",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide99-post-r46/report.json",
+            "state": "queued"
+          }
+        ],
+        "liveCrm": {
+          "displayName": "ELENA MARCELLA BERTI",
+          "supplier": "Linea sole potito",
+          "family": "linea-sole-potito",
+          "ruleId": "user-2026-08-18-future-test-exclusions",
+          "method": "GET"
+        },
+        "tripleVerification": {
+          "localDossierVerified": true,
+          "reportedBatchMembershipVerified": true,
+          "liveCrmGetVerified": true,
+          "concordant": true
+        }
+      },
+      {
+        "practiceId": "1d5ac555-6ebd-4cb9-b718-c17ba8bccc3e",
+        "customerKey": "enrico-amos-maria-berneri",
+        "displayName": "Enrico Amos maria Berneri",
+        "supplier": "Linea sole potito",
+        "family": "linea-sole-potito",
+        "localDossierPaths": [
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3006-global-controller-enrico-amos-maria-berneri/crm-acquisition/dossiers/enrico-amos-maria-berneri.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3256-global-controller-enrico-amos-maria-berneri/crm-acquisition/dossiers/enrico-amos-maria-berneri.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3484-global-controller-enrico-amos-maria-berneri/crm-acquisition/dossiers/enrico-amos-maria-berneri.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-4886-global-controller-enrico-amos-maria-berneri/crm-acquisition/dossiers/enrico-amos-maria-berneri.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5358-global-controller-enrico-amos-maria-berneri/crm-acquisition/dossiers/enrico-amos-maria-berneri.json"
+        ],
+        "cohortRefs": [
+          {
+            "cohort": "apr-pilot-3006-global-controller-enrico-amos-maria-berneri",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3006-global-controller-enrico-amos-maria-berneri/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-3256-global-controller-enrico-amos-maria-berneri",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3256-global-controller-enrico-amos-maria-berneri/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-3484-global-controller-enrico-amos-maria-berneri",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3484-global-controller-enrico-amos-maria-berneri/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-4886-global-controller-enrico-amos-maria-berneri",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-4886-global-controller-enrico-amos-maria-berneri/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          }
+        ],
+        "runRefs": [
+          {
+            "run": "apr-contractual-reliability-r101-long-20260909",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/report.json",
+            "state": "technical_block"
+          },
+          {
+            "run": "apr-current-workable-batch-r86-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-current-workable-batch-r86-20260908/report.json",
+            "state": "technical_block"
+          },
+          {
+            "run": "apr-wide100-current-cohort-bridge-r25",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-current-cohort-bridge-r25/report.json",
+            "state": "operator_required"
+          },
+          {
+            "run": "apr-wide100-final-r67-20260906",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-final-r67-20260906/report.json",
+            "state": "operator_required"
+          },
+          {
+            "run": "apr-wide100-final-r68-20260906",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-final-r68-20260906/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-province-lineage-r24",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-province-lineage-r24/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r97-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r97-20260908/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r98-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r98-20260908/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r98-retry1-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r98-retry1-20260908/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r98-retry2-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r98-retry2-20260908/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r99-20260909",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r99-20260909/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r99-governed-20260909",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r99-governed-20260909/report.json",
+            "state": "technical_block"
+          },
+          {
+            "run": "apr-wide99-post-r46",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide99-post-r46/report.json",
+            "state": "queued"
+          }
+        ],
+        "liveCrm": {
+          "displayName": "Enrico Amos maria Berneri",
+          "supplier": "Linea sole potito",
+          "family": "linea-sole-potito",
+          "ruleId": "user-2026-08-18-future-test-exclusions",
+          "method": "GET"
+        },
+        "tripleVerification": {
+          "localDossierVerified": true,
+          "reportedBatchMembershipVerified": true,
+          "liveCrmGetVerified": true,
+          "concordant": true
+        }
+      },
+      {
+        "practiceId": "30936ae1-80b0-46fd-813c-e1425ca33c7f",
+        "customerKey": "francesca-monti",
+        "displayName": "francesca monti",
+        "supplier": "Linea sole potito",
+        "family": "linea-sole-potito",
+        "localDossierPaths": [
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3000-global-controller-francesca-monti/crm-acquisition/dossiers/francesca-monti.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3250-global-controller-francesca-monti/crm-acquisition/dossiers/francesca-monti.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3479-global-controller-francesca-monti/crm-acquisition/dossiers/francesca-monti.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-4880-global-controller-francesca-monti/crm-acquisition/dossiers/francesca-monti.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5355-global-controller-francesca-monti/crm-acquisition/dossiers/francesca-monti.json"
+        ],
+        "cohortRefs": [
+          {
+            "cohort": "apr-pilot-3000-global-controller-francesca-monti",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3000-global-controller-francesca-monti/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-3250-global-controller-francesca-monti",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3250-global-controller-francesca-monti/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-3479-global-controller-francesca-monti",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3479-global-controller-francesca-monti/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-4880-global-controller-francesca-monti",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-4880-global-controller-francesca-monti/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          }
+        ],
+        "runRefs": [
+          {
+            "run": "apr-contractual-reliability-r101-long-20260909",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/report.json",
+            "state": "technical_block"
+          },
+          {
+            "run": "apr-current-workable-batch-r86-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-current-workable-batch-r86-20260908/report.json",
+            "state": "operator_required"
+          },
+          {
+            "run": "apr-wide100-current-cohort-bridge-r25",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-current-cohort-bridge-r25/report.json",
+            "state": "operator_required"
+          },
+          {
+            "run": "apr-wide100-final-r67-20260906",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-final-r67-20260906/report.json",
+            "state": "operator_required"
+          },
+          {
+            "run": "apr-wide100-final-r68-20260906",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-final-r68-20260906/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-province-lineage-r24",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-province-lineage-r24/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r97-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r97-20260908/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r98-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r98-20260908/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r98-retry1-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r98-retry1-20260908/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r98-retry2-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r98-retry2-20260908/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r99-20260909",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r99-20260909/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r99-governed-20260909",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r99-governed-20260909/report.json",
+            "state": "operator_required"
+          },
+          {
+            "run": "apr-wide99-post-r46",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide99-post-r46/report.json",
+            "state": "queued"
+          }
+        ],
+        "liveCrm": {
+          "displayName": "francesca monti",
+          "supplier": "Linea sole potito",
+          "family": "linea-sole-potito",
+          "ruleId": "user-2026-08-18-future-test-exclusions",
+          "method": "GET"
+        },
+        "tripleVerification": {
+          "localDossierVerified": true,
+          "reportedBatchMembershipVerified": true,
+          "liveCrmGetVerified": true,
+          "concordant": true
+        }
+      },
+      {
+        "practiceId": "2329836b-3d7c-4e55-b5ba-f232515a2299",
+        "customerKey": "francesca-pisanu",
+        "displayName": "FRANCESCA PISANU",
+        "supplier": "Ideal sistem",
+        "family": "ideal-sistem",
+        "localDossierPaths": [
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2995-global-controller-francesca-pisanu/crm-acquisition/dossiers/francesca-pisanu.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3023-global-controller-francesca-pisanu/crm-acquisition/dossiers/francesca-pisanu.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3040-global-controller-francesca-pisanu/crm-acquisition/dossiers/francesca-pisanu.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3245-global-controller-francesca-pisanu/crm-acquisition/dossiers/francesca-pisanu.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-4875-global-controller-francesca-pisanu/crm-acquisition/dossiers/francesca-pisanu.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5352-global-controller-francesca-pisanu/crm-acquisition/dossiers/francesca-pisanu.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-57-mixed-forty-reliability/crm-acquisition/dossiers/francesca-pisanu.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-58-mixed-forty-routing-fixed/crm-acquisition/dossiers/francesca-pisanu.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-59-mixed-forty-final-gates/crm-acquisition/dossiers/francesca-pisanu.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-60-mixed-repeat-rules/crm-acquisition/dossiers/francesca-pisanu.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-61-learning-replay/crm-acquisition/dossiers/francesca-pisanu.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-62-learning-replay-routing/crm-acquisition/dossiers/francesca-pisanu.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-63-learning-replay-routing-financial/crm-acquisition/dossiers/francesca-pisanu.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-64-learning-replay-product-over-label/crm-acquisition/dossiers/francesca-pisanu.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-65-learning-replay-reconciled-products/crm-acquisition/dossiers/francesca-pisanu.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-66-learning-replay-product-contract/crm-acquisition/dossiers/francesca-pisanu.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-67-learning-replay-label-independent/crm-acquisition/dossiers/francesca-pisanu.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-68-mixed-repeat-post-resume-fix/crm-acquisition/dossiers/francesca-pisanu.json"
+        ],
+        "cohortRefs": [
+          {
+            "cohort": "apr-pilot-2995-global-controller-francesca-pisanu",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2995-global-controller-francesca-pisanu/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-3023-global-controller-francesca-pisanu",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3023-global-controller-francesca-pisanu/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-3040-global-controller-francesca-pisanu",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3040-global-controller-francesca-pisanu/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-3245-global-controller-francesca-pisanu",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3245-global-controller-francesca-pisanu/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-4875-global-controller-francesca-pisanu",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-4875-global-controller-francesca-pisanu/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-5352-global-controller-francesca-pisanu",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5352-global-controller-francesca-pisanu/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-57-mixed-forty-reliability",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-57-mixed-forty-reliability/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-58-mixed-forty-routing-fixed",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-58-mixed-forty-routing-fixed/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-59-mixed-forty-final-gates",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-59-mixed-forty-final-gates/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-60-mixed-repeat-rules",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-60-mixed-repeat-rules/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-61-learning-replay",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-61-learning-replay/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-62-learning-replay-routing",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-62-learning-replay-routing/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-63-learning-replay-routing-financial",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-63-learning-replay-routing-financial/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-64-learning-replay-product-over-label",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-64-learning-replay-product-over-label/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-65-learning-replay-reconciled-products",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-65-learning-replay-reconciled-products/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-66-learning-replay-product-contract",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-66-learning-replay-product-contract/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-67-learning-replay-label-independent",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-67-learning-replay-label-independent/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-68-mixed-repeat-post-resume-fix",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-68-mixed-repeat-post-resume-fix/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          }
+        ],
+        "runRefs": [
+          {
+            "run": "apr-contractual-reliability-r101-long-20260909",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/report.json",
+            "state": "inconsistent"
+          },
+          {
+            "run": "apr-financial-parser-r29-reviewed-eight",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-financial-parser-r29-reviewed-eight/report.json",
+            "state": "operator_required"
+          },
+          {
+            "run": "apr-financial-parser-r30-reviewed-eight",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-financial-parser-r30-reviewed-eight/report.json",
+            "state": "operator_required"
+          },
+          {
+            "run": "apr-wide100-current-cohort-bridge-r25",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-current-cohort-bridge-r25/report.json",
+            "state": "operator_required"
+          },
+          {
+            "run": "apr-wide100-final-r67-20260906",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-final-r67-20260906/report.json",
+            "state": "operator_required"
+          },
+          {
+            "run": "apr-wide100-final-r68-20260906",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-final-r68-20260906/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-province-lineage-r24",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-province-lineage-r24/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r97-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r97-20260908/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r98-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r98-20260908/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r98-retry1-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r98-retry1-20260908/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r98-retry2-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r98-retry2-20260908/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r99-20260909",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r99-20260909/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r99-governed-20260909",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r99-governed-20260909/report.json",
+            "state": "inconsistent"
+          },
+          {
+            "run": "apr-wide99-post-r46",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide99-post-r46/report.json",
+            "state": "queued"
+          }
+        ],
+        "liveCrm": {
+          "displayName": "FRANCESCA PISANU",
+          "supplier": "Ideal sistem",
+          "family": "ideal-sistem",
+          "ruleId": "user-2026-09-10-ideal-sistem-manual-exclusion-v1",
+          "method": "GET"
+        },
+        "tripleVerification": {
+          "localDossierVerified": true,
+          "reportedBatchMembershipVerified": true,
+          "liveCrmGetVerified": true,
+          "concordant": true
+        }
+      },
+      {
+        "practiceId": "c1c4c938-3b64-462f-b571-db98c26765ef",
+        "customerKey": "gavina-emanuela-cannas",
+        "displayName": "GAVINA EMANUELA CANNAS",
+        "supplier": "Ideal sistem",
+        "family": "ideal-sistem",
+        "localDossierPaths": [
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2972-global-controller-gavina-emanuela-cannas/crm-acquisition/dossiers/gavina-emanuela-cannas.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3222-global-controller-gavina-emanuela-cannas/crm-acquisition/dossiers/gavina-emanuela-cannas.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-4452-global-controller-gavina-emanuela-cannas/crm-acquisition/dossiers/gavina-emanuela-cannas.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-4852-global-controller-gavina-emanuela-cannas/crm-acquisition/dossiers/gavina-emanuela-cannas.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5347-global-controller-gavina-emanuela-cannas/crm-acquisition/dossiers/gavina-emanuela-cannas.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-57-mixed-forty-reliability/crm-acquisition/dossiers/gavina-emanuela-cannas.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-58-mixed-forty-routing-fixed/crm-acquisition/dossiers/gavina-emanuela-cannas.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-59-mixed-forty-final-gates/crm-acquisition/dossiers/gavina-emanuela-cannas.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-60-mixed-repeat-rules/crm-acquisition/dossiers/gavina-emanuela-cannas.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-61-learning-replay/crm-acquisition/dossiers/gavina-emanuela-cannas.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-62-learning-replay-routing/crm-acquisition/dossiers/gavina-emanuela-cannas.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-63-learning-replay-routing-financial/crm-acquisition/dossiers/gavina-emanuela-cannas.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-64-learning-replay-product-over-label/crm-acquisition/dossiers/gavina-emanuela-cannas.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-65-learning-replay-reconciled-products/crm-acquisition/dossiers/gavina-emanuela-cannas.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-66-learning-replay-product-contract/crm-acquisition/dossiers/gavina-emanuela-cannas.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-67-learning-replay-label-independent/crm-acquisition/dossiers/gavina-emanuela-cannas.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-68-mixed-repeat-post-resume-fix/crm-acquisition/dossiers/gavina-emanuela-cannas.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-87-fifteen-selection-infissi/crm-acquisition/dossiers/gavina-emanuela-cannas.json"
+        ],
+        "cohortRefs": [
+          {
+            "cohort": "apr-pilot-2972-global-controller-gavina-emanuela-cannas",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2972-global-controller-gavina-emanuela-cannas/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-3222-global-controller-gavina-emanuela-cannas",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3222-global-controller-gavina-emanuela-cannas/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-4452-global-controller-gavina-emanuela-cannas",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-4452-global-controller-gavina-emanuela-cannas/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-4852-global-controller-gavina-emanuela-cannas",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-4852-global-controller-gavina-emanuela-cannas/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-5347-global-controller-gavina-emanuela-cannas",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5347-global-controller-gavina-emanuela-cannas/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-57-mixed-forty-reliability",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-57-mixed-forty-reliability/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-58-mixed-forty-routing-fixed",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-58-mixed-forty-routing-fixed/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-59-mixed-forty-final-gates",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-59-mixed-forty-final-gates/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-60-mixed-repeat-rules",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-60-mixed-repeat-rules/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-61-learning-replay",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-61-learning-replay/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-62-learning-replay-routing",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-62-learning-replay-routing/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-63-learning-replay-routing-financial",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-63-learning-replay-routing-financial/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-64-learning-replay-product-over-label",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-64-learning-replay-product-over-label/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-65-learning-replay-reconciled-products",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-65-learning-replay-reconciled-products/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-66-learning-replay-product-contract",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-66-learning-replay-product-contract/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-67-learning-replay-label-independent",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-67-learning-replay-label-independent/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-68-mixed-repeat-post-resume-fix",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-68-mixed-repeat-post-resume-fix/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-87-fifteen-selection-infissi",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-87-fifteen-selection-infissi/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          }
+        ],
+        "runRefs": [
+          {
+            "run": "apr-contractual-reliability-r101-long-20260909",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/report.json",
+            "state": "inconsistent"
+          },
+          {
+            "run": "apr-wide100-current-cohort-bridge-r25",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-current-cohort-bridge-r25/report.json",
+            "state": "operator_required"
+          },
+          {
+            "run": "apr-wide100-final-r67-20260906",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-final-r67-20260906/report.json",
+            "state": "operator_required"
+          },
+          {
+            "run": "apr-wide100-final-r68-20260906",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-final-r68-20260906/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-province-lineage-r24",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-province-lineage-r24/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r97-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r97-20260908/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r98-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r98-20260908/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r98-retry1-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r98-retry1-20260908/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r98-retry2-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r98-retry2-20260908/report.json",
+            "state": "inconsistent"
+          },
+          {
+            "run": "apr-wide100-r99-20260909",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r99-20260909/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r99-governed-20260909",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r99-governed-20260909/report.json",
+            "state": "inconsistent"
+          },
+          {
+            "run": "apr-wide99-post-r46",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide99-post-r46/report.json",
+            "state": "queued"
+          }
+        ],
+        "liveCrm": {
+          "displayName": "GAVINA EMANUELA CANNAS",
+          "supplier": "Ideal sistem",
+          "family": "ideal-sistem",
+          "ruleId": "user-2026-09-10-ideal-sistem-manual-exclusion-v1",
+          "method": "GET"
+        },
+        "tripleVerification": {
+          "localDossierVerified": true,
+          "reportedBatchMembershipVerified": true,
+          "liveCrmGetVerified": true,
+          "concordant": true
+        }
+      },
+      {
+        "practiceId": "dc4484cd-c462-49c0-a734-3064dd6469a8",
+        "customerKey": "giovanna-atzeni",
+        "displayName": "GIOVANNA ATZENI",
+        "supplier": "Ideal sistem",
+        "family": "ideal-sistem",
+        "localDossierPaths": [
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2943-global-controller-giovanna-atzeni/crm-acquisition/dossiers/giovanna-atzeni.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3021-global-controller-giovanna-atzeni/crm-acquisition/dossiers/giovanna-atzeni.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3038-global-controller-giovanna-atzeni/crm-acquisition/dossiers/giovanna-atzeni.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3088-global-controller-giovanna-atzeni/crm-acquisition/dossiers/giovanna-atzeni.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3103-global-controller-giovanna-atzeni/crm-acquisition/dossiers/giovanna-atzeni.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3193-global-controller-giovanna-atzeni/crm-acquisition/dossiers/giovanna-atzeni.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3293-global-controller-giovanna-atzeni/crm-acquisition/dossiers/giovanna-atzeni.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-4423-global-controller-giovanna-atzeni/crm-acquisition/dossiers/giovanna-atzeni.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-4823-global-controller-giovanna-atzeni/crm-acquisition/dossiers/giovanna-atzeni.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5342-global-controller-giovanna-atzeni/crm-acquisition/dossiers/giovanna-atzeni.json"
+        ],
+        "cohortRefs": [
+          {
+            "cohort": "apr-pilot-2943-global-controller-giovanna-atzeni",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2943-global-controller-giovanna-atzeni/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-3021-global-controller-giovanna-atzeni",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3021-global-controller-giovanna-atzeni/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-3038-global-controller-giovanna-atzeni",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3038-global-controller-giovanna-atzeni/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-3088-global-controller-giovanna-atzeni",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3088-global-controller-giovanna-atzeni/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-3103-global-controller-giovanna-atzeni",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3103-global-controller-giovanna-atzeni/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-3193-global-controller-giovanna-atzeni",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3193-global-controller-giovanna-atzeni/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-3293-global-controller-giovanna-atzeni",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3293-global-controller-giovanna-atzeni/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-4423-global-controller-giovanna-atzeni",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-4423-global-controller-giovanna-atzeni/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-4823-global-controller-giovanna-atzeni",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-4823-global-controller-giovanna-atzeni/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-5342-global-controller-giovanna-atzeni",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5342-global-controller-giovanna-atzeni/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          }
+        ],
+        "runRefs": [
+          {
+            "run": "apr-contractual-reliability-r101-long-20260909",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/report.json",
+            "state": "inconsistent"
+          },
+          {
+            "run": "apr-expanded-natural-r55",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-expanded-natural-r55/report.json",
+            "state": "operator_required"
+          },
+          {
+            "run": "apr-financial-parser-r29-reviewed-eight",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-financial-parser-r29-reviewed-eight/report.json",
+            "state": "operator_required"
+          },
+          {
+            "run": "apr-financial-parser-r30-reviewed-eight",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-financial-parser-r30-reviewed-eight/report.json",
+            "state": "operator_required"
+          },
+          {
+            "run": "apr-natural-autonomy11-simple-r53",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-natural-autonomy11-simple-r53/report.json",
+            "state": "operator_required"
+          },
+          {
+            "run": "apr-natural-autonomy12-r52",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-natural-autonomy12-r52/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-natural-autonomy12-r52-retry1",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-natural-autonomy12-r52-retry1/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-current-cohort-bridge-r25",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-current-cohort-bridge-r25/report.json",
+            "state": "operator_required"
+          },
+          {
+            "run": "apr-wide100-final-r67-20260906",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-final-r67-20260906/report.json",
+            "state": "operator_required"
+          },
+          {
+            "run": "apr-wide100-final-r68-20260906",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-final-r68-20260906/report.json",
+            "state": "operator_required"
+          },
+          {
+            "run": "apr-wide100-province-lineage-r24",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-province-lineage-r24/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r97-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r97-20260908/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r98-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r98-20260908/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r98-retry1-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r98-retry1-20260908/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r98-retry2-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r98-retry2-20260908/report.json",
+            "state": "inconsistent"
+          },
+          {
+            "run": "apr-wide100-r99-20260909",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r99-20260909/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r99-governed-20260909",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r99-governed-20260909/report.json",
+            "state": "inconsistent"
+          },
+          {
+            "run": "apr-wide99-post-r46",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide99-post-r46/report.json",
+            "state": "queued"
+          }
+        ],
+        "liveCrm": {
+          "displayName": "GIOVANNA ATZENI",
+          "supplier": "Ideal sistem",
+          "family": "ideal-sistem",
+          "ruleId": "user-2026-09-10-ideal-sistem-manual-exclusion-v1",
+          "method": "GET"
+        },
+        "tripleVerification": {
+          "localDossierVerified": true,
+          "reportedBatchMembershipVerified": true,
+          "liveCrmGetVerified": true,
+          "concordant": true
+        }
+      },
+      {
+        "practiceId": "e94df373-f8f5-44b9-bd31-3e6c36025c13",
+        "customerKey": "giovanni-amadu",
+        "displayName": "GIOVANNI AMADU",
+        "supplier": "Ideal sistem",
+        "family": "ideal-sistem",
+        "localDossierPaths": [
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2999-global-controller-giovanni-amadu/crm-acquisition/dossiers/giovanni-amadu.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3042-global-controller-giovanni-amadu/crm-acquisition/dossiers/giovanni-amadu.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3249-global-controller-giovanni-amadu/crm-acquisition/dossiers/giovanni-amadu.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-4879-global-controller-giovanni-amadu/crm-acquisition/dossiers/giovanni-amadu.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5354-global-controller-giovanni-amadu/crm-acquisition/dossiers/giovanni-amadu.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-76-night-new-balanced-10/crm-acquisition/dossiers/giovanni-amadu.json"
+        ],
+        "cohortRefs": [
+          {
+            "cohort": "apr-pilot-2999-global-controller-giovanni-amadu",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2999-global-controller-giovanni-amadu/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-3042-global-controller-giovanni-amadu",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3042-global-controller-giovanni-amadu/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-3249-global-controller-giovanni-amadu",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3249-global-controller-giovanni-amadu/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-4879-global-controller-giovanni-amadu",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-4879-global-controller-giovanni-amadu/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-5354-global-controller-giovanni-amadu",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5354-global-controller-giovanni-amadu/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-76-night-new-balanced-10",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-76-night-new-balanced-10/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          }
+        ],
+        "runRefs": [
+          {
+            "run": "apr-contractual-reliability-r101-long-20260909",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/report.json",
+            "state": "inconsistent"
+          },
+          {
+            "run": "apr-financial-parser-r29-reviewed-eight",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-financial-parser-r29-reviewed-eight/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-financial-parser-r30-reviewed-eight",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-financial-parser-r30-reviewed-eight/report.json",
+            "state": "operator_required"
+          },
+          {
+            "run": "apr-wide100-current-cohort-bridge-r25",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-current-cohort-bridge-r25/report.json",
+            "state": "operator_required"
+          },
+          {
+            "run": "apr-wide100-final-r67-20260906",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-final-r67-20260906/report.json",
+            "state": "operator_required"
+          },
+          {
+            "run": "apr-wide100-final-r68-20260906",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-final-r68-20260906/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-province-lineage-r24",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-province-lineage-r24/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r97-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r97-20260908/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r98-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r98-20260908/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r98-retry1-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r98-retry1-20260908/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r98-retry2-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r98-retry2-20260908/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r99-20260909",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r99-20260909/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r99-governed-20260909",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r99-governed-20260909/report.json",
+            "state": "inconsistent"
+          },
+          {
+            "run": "apr-wide99-post-r46",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide99-post-r46/report.json",
+            "state": "queued"
+          }
+        ],
+        "liveCrm": {
+          "displayName": "GIOVANNI AMADU",
+          "supplier": "Ideal sistem",
+          "family": "ideal-sistem",
+          "ruleId": "user-2026-09-10-ideal-sistem-manual-exclusion-v1",
+          "method": "GET"
+        },
+        "tripleVerification": {
+          "localDossierVerified": true,
+          "reportedBatchMembershipVerified": true,
+          "liveCrmGetVerified": true,
+          "concordant": true
+        }
+      },
+      {
+        "practiceId": "7f5b0c3c-3b37-4309-ac42-73f0c29d7f7f",
+        "customerKey": "giuseppe-d-adduzio",
+        "displayName": "GIUSEPPE D'ADDUZIO",
+        "supplier": "rm legno",
+        "family": "erre-emme-rm-legno",
+        "localDossierPaths": [
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2948-global-controller-giuseppe-d-adduzio/crm-acquisition/dossiers/giuseppe-d-adduzio.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3050-global-controller-giuseppe-d-adduzio/crm-acquisition/dossiers/giuseppe-d-adduzio.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3198-global-controller-giuseppe-d-adduzio/crm-acquisition/dossiers/giuseppe-d-adduzio.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3298-global-controller-giuseppe-d-adduzio/crm-acquisition/dossiers/giuseppe-d-adduzio.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-4428-global-controller-giuseppe-d-adduzio/crm-acquisition/dossiers/giuseppe-d-adduzio.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-4828-global-controller-giuseppe-d-adduzio/crm-acquisition/dossiers/giuseppe-d-adduzio.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5343-global-controller-giuseppe-d-adduzio/crm-acquisition/dossiers/giuseppe-d-adduzio.json"
+        ],
+        "cohortRefs": [
+          {
+            "cohort": "apr-pilot-2948-global-controller-giuseppe-d-adduzio",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2948-global-controller-giuseppe-d-adduzio/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-3050-global-controller-giuseppe-d-adduzio",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3050-global-controller-giuseppe-d-adduzio/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          }
+        ],
+        "runRefs": [
+          {
+            "run": "apr-contractual-reliability-r101-long-20260909",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/report.json",
+            "state": "technical_block"
+          },
+          {
+            "run": "apr-financial-parser-r31-remaining-nine",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-financial-parser-r31-remaining-nine/report.json",
+            "state": "operator_required"
+          },
+          {
+            "run": "apr-wide100-current-cohort-bridge-r25",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-current-cohort-bridge-r25/report.json",
+            "state": "operator_required"
+          },
+          {
+            "run": "apr-wide100-final-r67-20260906",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-final-r67-20260906/report.json",
+            "state": "technical_block"
+          },
+          {
+            "run": "apr-wide100-final-r68-20260906",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-final-r68-20260906/report.json",
+            "state": "technical_block"
+          },
+          {
+            "run": "apr-wide100-province-lineage-r24",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-province-lineage-r24/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r97-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r97-20260908/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r98-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r98-20260908/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r98-retry1-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r98-retry1-20260908/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r98-retry2-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r98-retry2-20260908/report.json",
+            "state": "technical_block"
+          },
+          {
+            "run": "apr-wide100-r99-20260909",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r99-20260909/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r99-governed-20260909",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r99-governed-20260909/report.json",
+            "state": "technical_block"
+          },
+          {
+            "run": "apr-wide99-post-r46",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide99-post-r46/report.json",
+            "state": "queued"
+          }
+        ],
+        "liveCrm": {
+          "displayName": "GIUSEPPE D'ADDUZIO",
+          "supplier": "rm legno",
+          "family": "erre-emme-rm-legno",
+          "ruleId": "user-2026-08-18-future-test-exclusions",
+          "method": "GET"
+        },
+        "tripleVerification": {
+          "localDossierVerified": true,
+          "reportedBatchMembershipVerified": true,
+          "liveCrmGetVerified": true,
+          "concordant": true
+        }
+      },
+      {
+        "practiceId": "226564d6-44d1-45a2-944e-61ba4c1450f3",
+        "customerKey": "liliana-gloria",
+        "displayName": "liliana gloria",
+        "supplier": "Linea sole potito",
+        "family": "linea-sole-potito",
+        "localDossierPaths": [
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2979-global-controller-liliana-gloria/crm-acquisition/dossiers/liliana-gloria.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3229-global-controller-liliana-gloria/crm-acquisition/dossiers/liliana-gloria.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3465-global-controller-liliana-gloria/crm-acquisition/dossiers/liliana-gloria.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-40/crm-acquisition/dossiers/liliana-gloria.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-4459-global-controller-liliana-gloria/crm-acquisition/dossiers/liliana-gloria.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-4859-global-controller-liliana-gloria/crm-acquisition/dossiers/liliana-gloria.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-86-fifteen-selection/crm-acquisition/dossiers/liliana-gloria.json"
+        ],
+        "cohortRefs": [
+          {
+            "cohort": "apr-pilot-2979-global-controller-liliana-gloria",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2979-global-controller-liliana-gloria/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-3229-global-controller-liliana-gloria",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3229-global-controller-liliana-gloria/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-3465-global-controller-liliana-gloria",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3465-global-controller-liliana-gloria/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-40",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-40/crm-local-preflight/checkpoint.json",
+            "state": "ready_local_plan"
+          },
+          {
+            "cohort": "apr-pilot-4459-global-controller-liliana-gloria",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-4459-global-controller-liliana-gloria/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-4859-global-controller-liliana-gloria",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-4859-global-controller-liliana-gloria/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-86-fifteen-selection",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-86-fifteen-selection/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          }
+        ],
+        "runRefs": [
+          {
+            "run": "apr-current-workable-batch-r86-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-current-workable-batch-r86-20260908/report.json",
+            "state": "technical_block"
+          },
+          {
+            "run": "apr-wide100-current-cohort-bridge-r25",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-current-cohort-bridge-r25/report.json",
+            "state": "operator_required"
+          },
+          {
+            "run": "apr-wide100-final-r67-20260906",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-final-r67-20260906/report.json",
+            "state": "operator_required"
+          },
+          {
+            "run": "apr-wide100-final-r68-20260906",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-final-r68-20260906/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-province-lineage-r24",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-province-lineage-r24/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r97-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r97-20260908/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r98-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r98-20260908/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r98-retry1-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r98-retry1-20260908/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r98-retry2-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r98-retry2-20260908/report.json",
+            "state": "technical_block"
+          },
+          {
+            "run": "apr-wide100-r99-20260909",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r99-20260909/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r99-governed-20260909",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r99-governed-20260909/report.json",
+            "state": "technical_block"
+          },
+          {
+            "run": "apr-wide99-post-r46",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide99-post-r46/report.json",
+            "state": "queued"
+          }
+        ],
+        "liveCrm": {
+          "displayName": "liliana gloria",
+          "supplier": "Linea sole potito",
+          "family": "linea-sole-potito",
+          "ruleId": "user-2026-08-18-future-test-exclusions",
+          "method": "GET"
+        },
+        "tripleVerification": {
+          "localDossierVerified": true,
+          "reportedBatchMembershipVerified": true,
+          "liveCrmGetVerified": true,
+          "concordant": true
+        }
+      },
+      {
+        "practiceId": "3e6022b2-f04c-4d3a-a6a3-40a63b85a4fc",
+        "customerKey": "maria-piccinino",
+        "displayName": "Maria Piccinino",
+        "supplier": "rm legno",
+        "family": "erre-emme-rm-legno",
+        "localDossierPaths": [
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-12/crm-acquisition/dossiers/maria-piccinino.json"
+        ],
+        "cohortRefs": [
+          {
+            "cohort": "apr-pilot-12",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-12/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          }
+        ],
+        "runRefs": [],
+        "liveCrm": {
+          "displayName": "Maria Piccinino",
+          "supplier": "rm legno",
+          "family": "erre-emme-rm-legno",
+          "ruleId": "user-2026-08-18-future-test-exclusions",
+          "method": "GET"
+        },
+        "tripleVerification": {
+          "localDossierVerified": true,
+          "reportedBatchMembershipVerified": true,
+          "liveCrmGetVerified": true,
+          "concordant": true
+        }
+      },
+      {
+        "practiceId": "8e15ae63-6a5c-42df-b2be-72ccb9a73cec",
+        "customerKey": "maria-sofia-tosatti",
+        "displayName": "MARIA SOFIA TOSATTI",
+        "supplier": "Linea sole potito",
+        "family": "linea-sole-potito",
+        "localDossierPaths": [
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-151-night50-maria-sofia-tosatti/crm-acquisition/dossiers/maria-sofia-tosatti.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-186-test35-history-maria-sofia-tosatti/crm-acquisition/dossiers/maria-sofia-tosatti.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-217-global-controller-maria-sofia-tosatti/crm-acquisition/dossiers/maria-sofia-tosatti.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2928-global-controller-maria-sofia-tosatti/crm-acquisition/dossiers/maria-sofia-tosatti.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3091-global-controller-maria-sofia-tosatti/crm-acquisition/dossiers/maria-sofia-tosatti.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3106-global-controller-maria-sofia-tosatti/crm-acquisition/dossiers/maria-sofia-tosatti.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3178-global-controller-maria-sofia-tosatti/crm-acquisition/dossiers/maria-sofia-tosatti.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3278-global-controller-maria-sofia-tosatti/crm-acquisition/dossiers/maria-sofia-tosatti.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-4408-global-controller-maria-sofia-tosatti/crm-acquisition/dossiers/maria-sofia-tosatti.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-4808-global-controller-maria-sofia-tosatti/crm-acquisition/dossiers/maria-sofia-tosatti.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5336-global-controller-maria-sofia-tosatti/crm-acquisition/dossiers/maria-sofia-tosatti.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-57-mixed-forty-reliability/crm-acquisition/dossiers/maria-sofia-tosatti.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-58-mixed-forty-routing-fixed/crm-acquisition/dossiers/maria-sofia-tosatti.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-59-mixed-forty-final-gates/crm-acquisition/dossiers/maria-sofia-tosatti.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-60-mixed-repeat-rules/crm-acquisition/dossiers/maria-sofia-tosatti.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-61-learning-replay/crm-acquisition/dossiers/maria-sofia-tosatti.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-62-learning-replay-routing/crm-acquisition/dossiers/maria-sofia-tosatti.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-63-learning-replay-routing-financial/crm-acquisition/dossiers/maria-sofia-tosatti.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-64-learning-replay-product-over-label/crm-acquisition/dossiers/maria-sofia-tosatti.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-65-learning-replay-reconciled-products/crm-acquisition/dossiers/maria-sofia-tosatti.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-66-learning-replay-product-contract/crm-acquisition/dossiers/maria-sofia-tosatti.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-67-learning-replay-label-independent/crm-acquisition/dossiers/maria-sofia-tosatti.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-68-mixed-repeat-post-resume-fix/crm-acquisition/dossiers/maria-sofia-tosatti.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-86-fifteen-selection/crm-acquisition/dossiers/maria-sofia-tosatti.json"
+        ],
+        "cohortRefs": [
+          {
+            "cohort": "apr-pilot-151-night50-maria-sofia-tosatti",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-151-night50-maria-sofia-tosatti/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-186-test35-history-maria-sofia-tosatti",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-186-test35-history-maria-sofia-tosatti/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-217-global-controller-maria-sofia-tosatti",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-217-global-controller-maria-sofia-tosatti/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-2928-global-controller-maria-sofia-tosatti",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2928-global-controller-maria-sofia-tosatti/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-3091-global-controller-maria-sofia-tosatti",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3091-global-controller-maria-sofia-tosatti/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-3106-global-controller-maria-sofia-tosatti",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3106-global-controller-maria-sofia-tosatti/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-3178-global-controller-maria-sofia-tosatti",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3178-global-controller-maria-sofia-tosatti/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-3278-global-controller-maria-sofia-tosatti",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3278-global-controller-maria-sofia-tosatti/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-4408-global-controller-maria-sofia-tosatti",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-4408-global-controller-maria-sofia-tosatti/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-4808-global-controller-maria-sofia-tosatti",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-4808-global-controller-maria-sofia-tosatti/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-57-mixed-forty-reliability",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-57-mixed-forty-reliability/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-58-mixed-forty-routing-fixed",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-58-mixed-forty-routing-fixed/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-59-mixed-forty-final-gates",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-59-mixed-forty-final-gates/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-60-mixed-repeat-rules",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-60-mixed-repeat-rules/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-61-learning-replay",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-61-learning-replay/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-62-learning-replay-routing",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-62-learning-replay-routing/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-63-learning-replay-routing-financial",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-63-learning-replay-routing-financial/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-64-learning-replay-product-over-label",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-64-learning-replay-product-over-label/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-65-learning-replay-reconciled-products",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-65-learning-replay-reconciled-products/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-66-learning-replay-product-contract",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-66-learning-replay-product-contract/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-67-learning-replay-label-independent",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-67-learning-replay-label-independent/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-68-mixed-repeat-post-resume-fix",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-68-mixed-repeat-post-resume-fix/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-86-fifteen-selection",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-86-fifteen-selection/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          }
+        ],
+        "runRefs": [
+          {
+            "run": "apr-contractual-reliability-r101-long-20260909",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/report.json",
+            "state": "technical_block"
+          },
+          {
+            "run": "apr-expanded-natural-r55",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-expanded-natural-r55/report.json",
+            "state": "operator_required"
+          },
+          {
+            "run": "apr-global-controller-test10-2026-08-29",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-global-controller-test10-2026-08-29/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-global-controller-test10-certified-rerun-2026-08-29",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-global-controller-test10-certified-rerun-2026-08-29/report.json",
+            "state": "operator_required"
+          },
+          {
+            "run": "apr-global-controller-test10-rerun-2026-08-29",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-global-controller-test10-rerun-2026-08-29/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-natural-autonomy11-simple-r53",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-natural-autonomy11-simple-r53/report.json",
+            "state": "operator_required"
+          },
+          {
+            "run": "apr-natural-autonomy12-r52",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-natural-autonomy12-r52/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-natural-autonomy12-r52-retry1",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-natural-autonomy12-r52-retry1/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-current-cohort-bridge-r25",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-current-cohort-bridge-r25/report.json",
+            "state": "operator_required"
+          },
+          {
+            "run": "apr-wide100-final-r67-20260906",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-final-r67-20260906/report.json",
+            "state": "operator_required"
+          },
+          {
+            "run": "apr-wide100-final-r68-20260906",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-final-r68-20260906/report.json",
+            "state": "operator_required"
+          },
+          {
+            "run": "apr-wide100-province-lineage-r24",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-province-lineage-r24/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r97-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r97-20260908/report.json",
+            "state": "technical_block"
+          },
+          {
+            "run": "apr-wide100-r98-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r98-20260908/report.json",
+            "state": "technical_block"
+          },
+          {
+            "run": "apr-wide100-r98-retry1-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r98-retry1-20260908/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r98-retry2-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r98-retry2-20260908/report.json",
+            "state": "operator_required"
+          },
+          {
+            "run": "apr-wide100-r99-20260909",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r99-20260909/report.json",
+            "state": "technical_block"
+          },
+          {
+            "run": "apr-wide100-r99-governed-20260909",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r99-governed-20260909/report.json",
+            "state": "operator_required"
+          },
+          {
+            "run": "apr-wide99-post-r46",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide99-post-r46/report.json",
+            "state": "queued"
+          }
+        ],
+        "liveCrm": {
+          "displayName": "MARIA SOFIA TOSATTI",
+          "supplier": "Linea sole potito",
+          "family": "linea-sole-potito",
+          "ruleId": "user-2026-08-18-future-test-exclusions",
+          "method": "GET"
+        },
+        "tripleVerification": {
+          "localDossierVerified": true,
+          "reportedBatchMembershipVerified": true,
+          "liveCrmGetVerified": true,
+          "concordant": true
+        }
+      },
+      {
+        "practiceId": "eabc194f-5206-4eea-a97a-8a3521a48280",
+        "customerKey": "mario-martegani",
+        "displayName": "Mario Martegani",
+        "supplier": "Linea sole potito",
+        "family": "linea-sole-potito",
+        "localDossierPaths": [
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3529-global-controller-mario-martegani/crm-acquisition/dossiers/mario-martegani.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5004-global-controller-mario-martegani/crm-acquisition/dossiers/mario-martegani.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5504-global-controller-mario-martegani/crm-acquisition/dossiers/mario-martegani.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5625-global-controller-mario-martegani/crm-acquisition/dossiers/mario-martegani.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5701-global-controller-mario-martegani/crm-acquisition/dossiers/mario-martegani.json"
+        ],
+        "cohortRefs": [
+          {
+            "cohort": "apr-pilot-3529-global-controller-mario-martegani",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3529-global-controller-mario-martegani/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-5004-global-controller-mario-martegani",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5004-global-controller-mario-martegani/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-5625-global-controller-mario-martegani",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5625-global-controller-mario-martegani/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-5701-global-controller-mario-martegani",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5701-global-controller-mario-martegani/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          }
+        ],
+        "runRefs": [
+          {
+            "run": "apr-current-workable-batch-r86-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-current-workable-batch-r86-20260908/report.json",
+            "state": "operator_required"
+          },
+          {
+            "run": "apr-preflight-deep-review-propagation-r104-operational-six-20260910",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-preflight-deep-review-propagation-r104-operational-six-20260910/report.json",
+            "state": "operator_required"
+          },
+          {
+            "run": "apr-preflight-terminal-propagation-r103-operational-six-20260910",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-preflight-terminal-propagation-r103-operational-six-20260910/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-preflight-terminal-propagation-r103-operational-six-v2-20260910",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-preflight-terminal-propagation-r103-operational-six-v2-20260910/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-pronte-da-fare-r102-current-flow-20260910",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-pronte-da-fare-r102-current-flow-20260910/report.json",
+            "state": "technical_block"
+          },
+          {
+            "run": "apr-pronte-da-fare-r104-current-flow-20260910",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-pronte-da-fare-r104-current-flow-20260910/report.json",
+            "state": "operator_required"
+          },
+          {
+            "run": "apr-pronte-da-fare-r99-governed-20260909",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-pronte-da-fare-r99-governed-20260909/report.json",
+            "state": "operator_required"
+          }
+        ],
+        "liveCrm": {
+          "displayName": "Mario Martegani",
+          "supplier": "Linea sole potito",
+          "family": "linea-sole-potito",
+          "ruleId": "user-2026-08-18-future-test-exclusions",
+          "method": "GET"
+        },
+        "tripleVerification": {
+          "localDossierVerified": true,
+          "reportedBatchMembershipVerified": true,
+          "liveCrmGetVerified": true,
+          "concordant": true
+        }
+      },
+      {
+        "practiceId": "b99df64d-259b-4469-baff-f50bfa4a3184",
+        "customerKey": "marzia-bellotti",
+        "displayName": "Marzia Bellotti",
+        "supplier": "Linea sole potito",
+        "family": "linea-sole-potito",
+        "localDossierPaths": [
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3531-global-controller-marzia-bellotti/crm-acquisition/dossiers/marzia-bellotti.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5009-global-controller-marzia-bellotti/crm-acquisition/dossiers/marzia-bellotti.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5509-global-controller-marzia-bellotti/crm-acquisition/dossiers/marzia-bellotti.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5626-global-controller-marzia-bellotti/crm-acquisition/dossiers/marzia-bellotti.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5703-global-controller-marzia-bellotti/crm-acquisition/dossiers/marzia-bellotti.json"
+        ],
+        "cohortRefs": [
+          {
+            "cohort": "apr-pilot-3531-global-controller-marzia-bellotti",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3531-global-controller-marzia-bellotti/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-5009-global-controller-marzia-bellotti",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5009-global-controller-marzia-bellotti/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-5626-global-controller-marzia-bellotti",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5626-global-controller-marzia-bellotti/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-5703-global-controller-marzia-bellotti",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5703-global-controller-marzia-bellotti/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          }
+        ],
+        "runRefs": [
+          {
+            "run": "apr-current-workable-batch-r86-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-current-workable-batch-r86-20260908/report.json",
+            "state": "technical_block"
+          },
+          {
+            "run": "apr-preflight-deep-review-propagation-r104-operational-six-20260910",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-preflight-deep-review-propagation-r104-operational-six-20260910/report.json",
+            "state": "operator_required"
+          },
+          {
+            "run": "apr-preflight-terminal-propagation-r103-operational-six-20260910",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-preflight-terminal-propagation-r103-operational-six-20260910/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-preflight-terminal-propagation-r103-operational-six-v2-20260910",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-preflight-terminal-propagation-r103-operational-six-v2-20260910/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-pronte-da-fare-r102-current-flow-20260910",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-pronte-da-fare-r102-current-flow-20260910/report.json",
+            "state": "technical_block"
+          },
+          {
+            "run": "apr-pronte-da-fare-r104-current-flow-20260910",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-pronte-da-fare-r104-current-flow-20260910/report.json",
+            "state": "operator_required"
+          },
+          {
+            "run": "apr-pronte-da-fare-r99-governed-20260909",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-pronte-da-fare-r99-governed-20260909/report.json",
+            "state": "technical_block"
+          }
+        ],
+        "liveCrm": {
+          "displayName": "Marzia Bellotti",
+          "supplier": "Linea sole potito",
+          "family": "linea-sole-potito",
+          "ruleId": "user-2026-08-18-future-test-exclusions",
+          "method": "GET"
+        },
+        "tripleVerification": {
+          "localDossierVerified": true,
+          "reportedBatchMembershipVerified": true,
+          "liveCrmGetVerified": true,
+          "concordant": true
+        }
+      },
+      {
+        "practiceId": "e7850fe5-dd96-4589-bbcb-50c0529e538d",
+        "customerKey": "massimiliano-montemorra",
+        "displayName": "MASSIMILIANO MONTEMORRA",
+        "supplier": "rm legno",
+        "family": "erre-emme-rm-legno",
+        "localDossierPaths": [
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2962-global-controller-massimiliano-montemorra/crm-acquisition/dossiers/massimiliano-montemorra.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3212-global-controller-massimiliano-montemorra/crm-acquisition/dossiers/massimiliano-montemorra.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3312-global-controller-massimiliano-montemorra/crm-acquisition/dossiers/massimiliano-montemorra.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-4442-global-controller-massimiliano-montemorra/crm-acquisition/dossiers/massimiliano-montemorra.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-4842-global-controller-massimiliano-montemorra/crm-acquisition/dossiers/massimiliano-montemorra.json"
+        ],
+        "cohortRefs": [
+          {
+            "cohort": "apr-pilot-2962-global-controller-massimiliano-montemorra",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2962-global-controller-massimiliano-montemorra/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          }
+        ],
+        "runRefs": [
+          {
+            "run": "apr-wide100-current-cohort-bridge-r25",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-current-cohort-bridge-r25/report.json",
+            "state": "operator_required"
+          },
+          {
+            "run": "apr-wide100-final-r67-20260906",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-final-r67-20260906/report.json",
+            "state": "technical_block"
+          },
+          {
+            "run": "apr-wide100-final-r68-20260906",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-final-r68-20260906/report.json",
+            "state": "technical_block"
+          },
+          {
+            "run": "apr-wide100-province-lineage-r24",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-province-lineage-r24/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r97-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r97-20260908/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r98-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r98-20260908/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r98-retry1-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r98-retry1-20260908/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r98-retry2-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r98-retry2-20260908/report.json",
+            "state": "technical_block"
+          },
+          {
+            "run": "apr-wide100-r99-20260909",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r99-20260909/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r99-governed-20260909",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r99-governed-20260909/report.json",
+            "state": "technical_block"
+          },
+          {
+            "run": "apr-wide99-post-r46",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide99-post-r46/report.json",
+            "state": "queued"
+          }
+        ],
+        "liveCrm": {
+          "displayName": "MASSIMILIANO MONTEMORRA",
+          "supplier": "rm legno",
+          "family": "erre-emme-rm-legno",
+          "ruleId": "user-2026-08-18-future-test-exclusions",
+          "method": "GET"
+        },
+        "tripleVerification": {
+          "localDossierVerified": true,
+          "reportedBatchMembershipVerified": true,
+          "liveCrmGetVerified": true,
+          "concordant": true
+        }
+      },
+      {
+        "practiceId": "a29f9183-1e31-4295-b5c7-aa3f02803d79",
+        "customerKey": "riccardo-coda",
+        "displayName": "RICCARDO CODA",
+        "supplier": "Linea sole potito",
+        "family": "linea-sole-potito",
+        "localDossierPaths": [
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2969-global-controller-riccardo-coda/crm-acquisition/dossiers/riccardo-coda.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3219-global-controller-riccardo-coda/crm-acquisition/dossiers/riccardo-coda.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3458-global-controller-riccardo-coda/crm-acquisition/dossiers/riccardo-coda.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-4449-global-controller-riccardo-coda/crm-acquisition/dossiers/riccardo-coda.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-4849-global-controller-riccardo-coda/crm-acquisition/dossiers/riccardo-coda.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-76-night-new-balanced-10/crm-acquisition/dossiers/riccardo-coda.json"
+        ],
+        "cohortRefs": [
+          {
+            "cohort": "apr-pilot-2969-global-controller-riccardo-coda",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2969-global-controller-riccardo-coda/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-3219-global-controller-riccardo-coda",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3219-global-controller-riccardo-coda/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-3458-global-controller-riccardo-coda",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3458-global-controller-riccardo-coda/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-4449-global-controller-riccardo-coda",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-4449-global-controller-riccardo-coda/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-4849-global-controller-riccardo-coda",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-4849-global-controller-riccardo-coda/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-76-night-new-balanced-10",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-76-night-new-balanced-10/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          }
+        ],
+        "runRefs": [
+          {
+            "run": "apr-current-workable-batch-r86-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-current-workable-batch-r86-20260908/report.json",
+            "state": "technical_block"
+          },
+          {
+            "run": "apr-wide100-current-cohort-bridge-r25",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-current-cohort-bridge-r25/report.json",
+            "state": "operator_required"
+          },
+          {
+            "run": "apr-wide100-final-r67-20260906",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-final-r67-20260906/report.json",
+            "state": "operator_required"
+          },
+          {
+            "run": "apr-wide100-final-r68-20260906",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-final-r68-20260906/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-province-lineage-r24",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-province-lineage-r24/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r97-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r97-20260908/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r98-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r98-20260908/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r98-retry1-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r98-retry1-20260908/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r98-retry2-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r98-retry2-20260908/report.json",
+            "state": "technical_block"
+          },
+          {
+            "run": "apr-wide100-r99-20260909",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r99-20260909/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r99-governed-20260909",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r99-governed-20260909/report.json",
+            "state": "technical_block"
+          },
+          {
+            "run": "apr-wide99-post-r46",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide99-post-r46/report.json",
+            "state": "queued"
+          }
+        ],
+        "liveCrm": {
+          "displayName": "RICCARDO CODA",
+          "supplier": "Linea sole potito",
+          "family": "linea-sole-potito",
+          "ruleId": "user-2026-08-18-future-test-exclusions",
+          "method": "GET"
+        },
+        "tripleVerification": {
+          "localDossierVerified": true,
+          "reportedBatchMembershipVerified": true,
+          "liveCrmGetVerified": true,
+          "concordant": true
+        }
+      },
+      {
+        "practiceId": "78ca7885-b996-46c2-86f1-085ca43e9ede",
+        "customerKey": "roberta-di-cesare",
+        "displayName": "roberta di cesare",
+        "supplier": "Linea sole potito",
+        "family": "linea-sole-potito",
+        "localDossierPaths": [
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2931-global-controller-roberta-di-cesare/crm-acquisition/dossiers/roberta-di-cesare.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3181-global-controller-roberta-di-cesare/crm-acquisition/dossiers/roberta-di-cesare.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3281-global-controller-roberta-di-cesare/crm-acquisition/dossiers/roberta-di-cesare.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3431-global-controller-roberta-di-cesare/crm-acquisition/dossiers/roberta-di-cesare.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-4411-global-controller-roberta-di-cesare/crm-acquisition/dossiers/roberta-di-cesare.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-4811-global-controller-roberta-di-cesare/crm-acquisition/dossiers/roberta-di-cesare.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5337-global-controller-roberta-di-cesare/crm-acquisition/dossiers/roberta-di-cesare.json"
+        ],
+        "cohortRefs": [
+          {
+            "cohort": "apr-pilot-2931-global-controller-roberta-di-cesare",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2931-global-controller-roberta-di-cesare/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-3181-global-controller-roberta-di-cesare",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3181-global-controller-roberta-di-cesare/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-3281-global-controller-roberta-di-cesare",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3281-global-controller-roberta-di-cesare/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-3431-global-controller-roberta-di-cesare",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3431-global-controller-roberta-di-cesare/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-4411-global-controller-roberta-di-cesare",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-4411-global-controller-roberta-di-cesare/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-4811-global-controller-roberta-di-cesare",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-4811-global-controller-roberta-di-cesare/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          }
+        ],
+        "runRefs": [
+          {
+            "run": "apr-contractual-reliability-r101-long-20260909",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/report.json",
+            "state": "technical_block"
+          },
+          {
+            "run": "apr-current-workable-batch-r86-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-current-workable-batch-r86-20260908/report.json",
+            "state": "operator_required"
+          },
+          {
+            "run": "apr-wide100-current-cohort-bridge-r25",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-current-cohort-bridge-r25/report.json",
+            "state": "operator_required"
+          },
+          {
+            "run": "apr-wide100-final-r67-20260906",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-final-r67-20260906/report.json",
+            "state": "operator_required"
+          },
+          {
+            "run": "apr-wide100-final-r68-20260906",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-final-r68-20260906/report.json",
+            "state": "operator_required"
+          },
+          {
+            "run": "apr-wide100-province-lineage-r24",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-province-lineage-r24/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r97-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r97-20260908/report.json",
+            "state": "technical_block"
+          },
+          {
+            "run": "apr-wide100-r98-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r98-20260908/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r98-retry1-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r98-retry1-20260908/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r98-retry2-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r98-retry2-20260908/report.json",
+            "state": "operator_required"
+          },
+          {
+            "run": "apr-wide100-r99-20260909",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r99-20260909/report.json",
+            "state": "technical_block"
+          },
+          {
+            "run": "apr-wide100-r99-governed-20260909",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r99-governed-20260909/report.json",
+            "state": "operator_required"
+          },
+          {
+            "run": "apr-wide99-post-r46",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide99-post-r46/report.json",
+            "state": "queued"
+          }
+        ],
+        "liveCrm": {
+          "displayName": "roberta di cesare",
+          "supplier": "Linea sole potito",
+          "family": "linea-sole-potito",
+          "ruleId": "user-2026-08-18-future-test-exclusions",
+          "method": "GET"
+        },
+        "tripleVerification": {
+          "localDossierVerified": true,
+          "reportedBatchMembershipVerified": true,
+          "liveCrmGetVerified": true,
+          "concordant": true
+        }
+      },
+      {
+        "practiceId": "abe740b8-890f-4a2a-bc5d-12ef87b1f7ec",
+        "customerKey": "salvatore-di-bello",
+        "displayName": "SALVATORE DI BELLO",
+        "supplier": "Linea sole potito",
+        "family": "linea-sole-potito",
+        "localDossierPaths": [
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3528-global-controller-salvatore-di-bello/crm-acquisition/dossiers/salvatore-di-bello.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5003-global-controller-salvatore-di-bello/crm-acquisition/dossiers/salvatore-di-bello.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5715-global-controller-salvatore-di-bello/crm-acquisition/dossiers/salvatore-di-bello.json"
+        ],
+        "cohortRefs": [
+          {
+            "cohort": "apr-pilot-3528-global-controller-salvatore-di-bello",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3528-global-controller-salvatore-di-bello/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-5003-global-controller-salvatore-di-bello",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5003-global-controller-salvatore-di-bello/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-5611-global-controller-salvatore-di-bello",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5611-global-controller-salvatore-di-bello/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-5621-global-controller-salvatore-di-bello",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5621-global-controller-salvatore-di-bello/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-5715-global-controller-salvatore-di-bello",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5715-global-controller-salvatore-di-bello/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          }
+        ],
+        "runRefs": [
+          {
+            "run": "apr-current-workable-batch-r86-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-current-workable-batch-r86-20260908/report.json",
+            "state": "technical_block"
+          },
+          {
+            "run": "apr-preflight-deep-review-propagation-r104-operational-six-20260910",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-preflight-deep-review-propagation-r104-operational-six-20260910/report.json",
+            "state": "operator_required"
+          },
+          {
+            "run": "apr-preflight-terminal-propagation-r103-operational-six-20260910",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-preflight-terminal-propagation-r103-operational-six-20260910/report.json",
+            "state": "working"
+          },
+          {
+            "run": "apr-preflight-terminal-propagation-r103-operational-six-v2-20260910",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-preflight-terminal-propagation-r103-operational-six-v2-20260910/report.json",
+            "state": "working"
+          },
+          {
+            "run": "apr-pronte-da-fare-r102-current-flow-20260910",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-pronte-da-fare-r102-current-flow-20260910/report.json",
+            "state": "technical_block"
+          },
+          {
+            "run": "apr-pronte-da-fare-r104-current-flow-20260910",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-pronte-da-fare-r104-current-flow-20260910/report.json",
+            "state": "operator_required"
+          },
+          {
+            "run": "apr-pronte-da-fare-r99-governed-20260909",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-pronte-da-fare-r99-governed-20260909/report.json",
+            "state": "technical_block"
+          }
+        ],
+        "liveCrm": {
+          "displayName": "SALVATORE DI BELLO",
+          "supplier": "Linea sole potito",
+          "family": "linea-sole-potito",
+          "ruleId": "user-2026-08-18-future-test-exclusions",
+          "method": "GET"
+        },
+        "tripleVerification": {
+          "localDossierVerified": true,
+          "reportedBatchMembershipVerified": true,
+          "liveCrmGetVerified": true,
+          "concordant": true
+        }
+      },
+      {
+        "practiceId": "55fdaf83-6b88-4f54-86d6-9fbfd629b966",
+        "customerKey": "stefania-spina",
+        "displayName": "STEFANIA SPINA",
+        "supplier": "rm legno",
+        "family": "erre-emme-rm-legno",
+        "localDossierPaths": [
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2824-global-controller-stefania-spina/crm-acquisition/dossiers/stefania-spina.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2924-global-controller-stefania-spina/crm-acquisition/dossiers/stefania-spina.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3071-global-controller-stefania-spina/crm-acquisition/dossiers/stefania-spina.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3174-global-controller-stefania-spina/crm-acquisition/dossiers/stefania-spina.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3274-global-controller-stefania-spina/crm-acquisition/dossiers/stefania-spina.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-4404-global-controller-stefania-spina/crm-acquisition/dossiers/stefania-spina.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-4804-global-controller-stefania-spina/crm-acquisition/dossiers/stefania-spina.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5334-global-controller-stefania-spina/crm-acquisition/dossiers/stefania-spina.json"
+        ],
+        "cohortRefs": [
+          {
+            "cohort": "apr-pilot-2824-global-controller-stefania-spina",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2824-global-controller-stefania-spina/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-2924-global-controller-stefania-spina",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-2924-global-controller-stefania-spina/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          }
+        ],
+        "runRefs": [
+          {
+            "run": "apr-contractual-reliability-r101-long-20260909",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/report.json",
+            "state": "technical_block"
+          },
+          {
+            "run": "apr-wide100-current-cohort-bridge-r25",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-current-cohort-bridge-r25/report.json",
+            "state": "operator_required"
+          },
+          {
+            "run": "apr-wide100-final-r67-20260906",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-final-r67-20260906/report.json",
+            "state": "technical_block"
+          },
+          {
+            "run": "apr-wide100-final-r68-20260906",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-final-r68-20260906/report.json",
+            "state": "technical_block"
+          },
+          {
+            "run": "apr-wide100-province-lineage-r24",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-province-lineage-r24/report.json",
+            "state": "operator_required"
+          },
+          {
+            "run": "apr-wide100-r97-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r97-20260908/report.json",
+            "state": "technical_block"
+          },
+          {
+            "run": "apr-wide100-r98-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r98-20260908/report.json",
+            "state": "technical_block"
+          },
+          {
+            "run": "apr-wide100-r98-retry1-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r98-retry1-20260908/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-wide100-r98-retry2-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r98-retry2-20260908/report.json",
+            "state": "technical_block"
+          },
+          {
+            "run": "apr-wide100-r99-20260909",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r99-20260909/report.json",
+            "state": "technical_block"
+          },
+          {
+            "run": "apr-wide100-r99-governed-20260909",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r99-governed-20260909/report.json",
+            "state": "technical_block"
+          },
+          {
+            "run": "apr-wide99-post-r46",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide99-post-r46/report.json",
+            "state": "working"
+          }
+        ],
+        "liveCrm": {
+          "displayName": "STEFANIA SPINA",
+          "supplier": "rm legno",
+          "family": "erre-emme-rm-legno",
+          "ruleId": "user-2026-08-18-future-test-exclusions",
+          "method": "GET"
+        },
+        "tripleVerification": {
+          "localDossierVerified": true,
+          "reportedBatchMembershipVerified": true,
+          "liveCrmGetVerified": true,
+          "concordant": true
+        }
+      },
+      {
+        "practiceId": "4db26f2b-33ec-4b73-97dc-38bad15e401b",
+        "customerKey": "virginia-madia",
+        "displayName": "VIRGINIA MADIA",
+        "supplier": "Linea sole potito",
+        "family": "linea-sole-potito",
+        "localDossierPaths": [
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3530-global-controller-virginia-madia/crm-acquisition/dossiers/virginia-madia.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5005-global-controller-virginia-madia/crm-acquisition/dossiers/virginia-madia.json",
+          "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5714-global-controller-virginia-madia/crm-acquisition/dossiers/virginia-madia.json"
+        ],
+        "cohortRefs": [
+          {
+            "cohort": "apr-pilot-3530-global-controller-virginia-madia",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-3530-global-controller-virginia-madia/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-5005-global-controller-virginia-madia",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5005-global-controller-virginia-madia/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-5622-global-controller-virginia-madia",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5622-global-controller-virginia-madia/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          },
+          {
+            "cohort": "apr-pilot-5714-global-controller-virginia-madia",
+            "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5714-global-controller-virginia-madia/crm-local-preflight/checkpoint.json",
+            "state": "blocked_case"
+          }
+        ],
+        "runRefs": [
+          {
+            "run": "apr-current-workable-batch-r86-20260908",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-current-workable-batch-r86-20260908/report.json",
+            "state": "technical_block"
+          },
+          {
+            "run": "apr-preflight-deep-review-propagation-r104-operational-six-20260910",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-preflight-deep-review-propagation-r104-operational-six-20260910/report.json",
+            "state": "operator_required"
+          },
+          {
+            "run": "apr-preflight-terminal-propagation-r103-operational-six-20260910",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-preflight-terminal-propagation-r103-operational-six-20260910/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-preflight-terminal-propagation-r103-operational-six-v2-20260910",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-preflight-terminal-propagation-r103-operational-six-v2-20260910/report.json",
+            "state": "queued"
+          },
+          {
+            "run": "apr-pronte-da-fare-r102-current-flow-20260910",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-pronte-da-fare-r102-current-flow-20260910/report.json",
+            "state": "technical_block"
+          },
+          {
+            "run": "apr-pronte-da-fare-r104-current-flow-20260910",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-pronte-da-fare-r104-current-flow-20260910/report.json",
+            "state": "operator_required"
+          },
+          {
+            "run": "apr-pronte-da-fare-r99-governed-20260909",
+            "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-pronte-da-fare-r99-governed-20260909/report.json",
+            "state": "technical_block"
+          }
+        ],
+        "liveCrm": {
+          "displayName": "VIRGINIA MADIA",
+          "supplier": "Linea sole potito",
+          "family": "linea-sole-potito",
+          "ruleId": "user-2026-08-18-future-test-exclusions",
+          "method": "GET"
+        },
+        "tripleVerification": {
+          "localDossierVerified": true,
+          "reportedBatchMembershipVerified": true,
+          "liveCrmGetVerified": true,
+          "concordant": true
+        }
+      }
+    ]
+  },
+  "affectedRuns": [
+    {
+      "run": "apr-contractual-reliability-r101-long-20260909",
+      "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-contractual-reliability-r101-long-20260909/report.json",
+      "before": 63,
+      "excluded": 10,
+      "after": 53,
+      "excludedByFamily": {
+        "linea-sole-potito": 4,
+        "erre-emme-rm-legno": 2,
+        "ideal-sistem": 4
+      },
+      "excludedPractices": [
+        "Enrico Amos maria Berneri",
+        "francesca monti",
+        "FRANCESCA PISANU",
+        "GAVINA EMANUELA CANNAS",
+        "GIOVANNA ATZENI",
+        "GIOVANNI AMADU",
+        "GIUSEPPE D'ADDUZIO",
+        "MARIA SOFIA TOSATTI",
+        "roberta di cesare",
+        "STEFANIA SPINA"
+      ]
+    },
+    {
+      "run": "apr-current-workable-batch-r86-20260908",
+      "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-current-workable-batch-r86-20260908/report.json",
+      "before": 105,
+      "excluded": 11,
+      "after": 94,
+      "excludedByFamily": {
+        "linea-sole-potito": 11,
+        "erre-emme-rm-legno": 0,
+        "ideal-sistem": 0
+      },
+      "excludedPractices": [
+        "diego mario mocenighi",
+        "ELENA MARCELLA BERTI",
+        "Enrico Amos maria Berneri",
+        "francesca monti",
+        "liliana gloria",
+        "Mario Martegani",
+        "Marzia Bellotti",
+        "RICCARDO CODA",
+        "roberta di cesare",
+        "SALVATORE DI BELLO",
+        "VIRGINIA MADIA"
+      ]
+    },
+    {
+      "run": "apr-expanded-natural-r55",
+      "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-expanded-natural-r55/report.json",
+      "before": 28,
+      "excluded": 2,
+      "after": 26,
+      "excludedByFamily": {
+        "linea-sole-potito": 1,
+        "erre-emme-rm-legno": 0,
+        "ideal-sistem": 1
+      },
+      "excludedPractices": [
+        "GIOVANNA ATZENI",
+        "MARIA SOFIA TOSATTI"
+      ]
+    },
+    {
+      "run": "apr-financial-parser-r29-reviewed-eight",
+      "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-financial-parser-r29-reviewed-eight/report.json",
+      "before": 8,
+      "excluded": 4,
+      "after": 4,
+      "excludedByFamily": {
+        "linea-sole-potito": 1,
+        "erre-emme-rm-legno": 0,
+        "ideal-sistem": 3
+      },
+      "excludedPractices": [
+        "ELENA MARCELLA BERTI",
+        "FRANCESCA PISANU",
+        "GIOVANNA ATZENI",
+        "GIOVANNI AMADU"
+      ]
+    },
+    {
+      "run": "apr-financial-parser-r30-reviewed-eight",
+      "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-financial-parser-r30-reviewed-eight/report.json",
+      "before": 8,
+      "excluded": 4,
+      "after": 4,
+      "excludedByFamily": {
+        "linea-sole-potito": 1,
+        "erre-emme-rm-legno": 0,
+        "ideal-sistem": 3
+      },
+      "excludedPractices": [
+        "ELENA MARCELLA BERTI",
+        "FRANCESCA PISANU",
+        "GIOVANNA ATZENI",
+        "GIOVANNI AMADU"
+      ]
+    },
+    {
+      "run": "apr-financial-parser-r31-remaining-nine",
+      "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-financial-parser-r31-remaining-nine/report.json",
+      "before": 9,
+      "excluded": 1,
+      "after": 8,
+      "excludedByFamily": {
+        "linea-sole-potito": 0,
+        "erre-emme-rm-legno": 1,
+        "ideal-sistem": 0
+      },
+      "excludedPractices": [
+        "GIUSEPPE D'ADDUZIO"
+      ]
+    },
+    {
+      "run": "apr-global-controller-test10-2026-08-29",
+      "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-global-controller-test10-2026-08-29/report.json",
+      "before": 10,
+      "excluded": 1,
+      "after": 9,
+      "excludedByFamily": {
+        "linea-sole-potito": 1,
+        "erre-emme-rm-legno": 0,
+        "ideal-sistem": 0
+      },
+      "excludedPractices": [
+        "MARIA SOFIA TOSATTI"
+      ]
+    },
+    {
+      "run": "apr-global-controller-test10-certified-rerun-2026-08-29",
+      "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-global-controller-test10-certified-rerun-2026-08-29/report.json",
+      "before": 10,
+      "excluded": 1,
+      "after": 9,
+      "excludedByFamily": {
+        "linea-sole-potito": 1,
+        "erre-emme-rm-legno": 0,
+        "ideal-sistem": 0
+      },
+      "excludedPractices": [
+        "MARIA SOFIA TOSATTI"
+      ]
+    },
+    {
+      "run": "apr-global-controller-test10-rerun-2026-08-29",
+      "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-global-controller-test10-rerun-2026-08-29/report.json",
+      "before": 10,
+      "excluded": 1,
+      "after": 9,
+      "excludedByFamily": {
+        "linea-sole-potito": 1,
+        "erre-emme-rm-legno": 0,
+        "ideal-sistem": 0
+      },
+      "excludedPractices": [
+        "MARIA SOFIA TOSATTI"
+      ]
+    },
+    {
+      "run": "apr-natural-autonomy11-simple-r53",
+      "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-natural-autonomy11-simple-r53/report.json",
+      "before": 11,
+      "excluded": 2,
+      "after": 9,
+      "excludedByFamily": {
+        "linea-sole-potito": 1,
+        "erre-emme-rm-legno": 0,
+        "ideal-sistem": 1
+      },
+      "excludedPractices": [
+        "GIOVANNA ATZENI",
+        "MARIA SOFIA TOSATTI"
+      ]
+    },
+    {
+      "run": "apr-natural-autonomy12-r52",
+      "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-natural-autonomy12-r52/report.json",
+      "before": 12,
+      "excluded": 2,
+      "after": 10,
+      "excludedByFamily": {
+        "linea-sole-potito": 1,
+        "erre-emme-rm-legno": 0,
+        "ideal-sistem": 1
+      },
+      "excludedPractices": [
+        "GIOVANNA ATZENI",
+        "MARIA SOFIA TOSATTI"
+      ]
+    },
+    {
+      "run": "apr-natural-autonomy12-r52-retry1",
+      "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-natural-autonomy12-r52-retry1/report.json",
+      "before": 12,
+      "excluded": 2,
+      "after": 10,
+      "excludedByFamily": {
+        "linea-sole-potito": 1,
+        "erre-emme-rm-legno": 0,
+        "ideal-sistem": 1
+      },
+      "excludedPractices": [
+        "GIOVANNA ATZENI",
+        "MARIA SOFIA TOSATTI"
+      ]
+    },
+    {
+      "run": "apr-preflight-deep-review-propagation-r104-operational-six-20260910",
+      "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-preflight-deep-review-propagation-r104-operational-six-20260910/report.json",
+      "before": 6,
+      "excluded": 4,
+      "after": 2,
+      "excludedByFamily": {
+        "linea-sole-potito": 4,
+        "erre-emme-rm-legno": 0,
+        "ideal-sistem": 0
+      },
+      "excludedPractices": [
+        "Mario Martegani",
+        "Marzia Bellotti",
+        "SALVATORE DI BELLO",
+        "VIRGINIA MADIA"
+      ]
+    },
+    {
+      "run": "apr-preflight-terminal-propagation-r103-operational-six-20260910",
+      "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-preflight-terminal-propagation-r103-operational-six-20260910/report.json",
+      "before": 6,
+      "excluded": 4,
+      "after": 2,
+      "excludedByFamily": {
+        "linea-sole-potito": 4,
+        "erre-emme-rm-legno": 0,
+        "ideal-sistem": 0
+      },
+      "excludedPractices": [
+        "Mario Martegani",
+        "Marzia Bellotti",
+        "SALVATORE DI BELLO",
+        "VIRGINIA MADIA"
+      ]
+    },
+    {
+      "run": "apr-preflight-terminal-propagation-r103-operational-six-v2-20260910",
+      "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-preflight-terminal-propagation-r103-operational-six-v2-20260910/report.json",
+      "before": 6,
+      "excluded": 4,
+      "after": 2,
+      "excludedByFamily": {
+        "linea-sole-potito": 4,
+        "erre-emme-rm-legno": 0,
+        "ideal-sistem": 0
+      },
+      "excludedPractices": [
+        "Mario Martegani",
+        "Marzia Bellotti",
+        "SALVATORE DI BELLO",
+        "VIRGINIA MADIA"
+      ]
+    },
+    {
+      "run": "apr-pronte-da-fare-r102-current-flow-20260910",
+      "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-pronte-da-fare-r102-current-flow-20260910/report.json",
+      "before": 31,
+      "excluded": 4,
+      "after": 27,
+      "excludedByFamily": {
+        "linea-sole-potito": 4,
+        "erre-emme-rm-legno": 0,
+        "ideal-sistem": 0
+      },
+      "excludedPractices": [
+        "Mario Martegani",
+        "Marzia Bellotti",
+        "SALVATORE DI BELLO",
+        "VIRGINIA MADIA"
+      ]
+    },
+    {
+      "run": "apr-pronte-da-fare-r104-current-flow-20260910",
+      "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-pronte-da-fare-r104-current-flow-20260910/report.json",
+      "before": 19,
+      "excluded": 4,
+      "after": 15,
+      "excludedByFamily": {
+        "linea-sole-potito": 4,
+        "erre-emme-rm-legno": 0,
+        "ideal-sistem": 0
+      },
+      "excludedPractices": [
+        "Mario Martegani",
+        "Marzia Bellotti",
+        "SALVATORE DI BELLO",
+        "VIRGINIA MADIA"
+      ]
+    },
+    {
+      "run": "apr-pronte-da-fare-r99-governed-20260909",
+      "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-pronte-da-fare-r99-governed-20260909/report.json",
+      "before": 31,
+      "excluded": 4,
+      "after": 27,
+      "excludedByFamily": {
+        "linea-sole-potito": 4,
+        "erre-emme-rm-legno": 0,
+        "ideal-sistem": 0
+      },
+      "excludedPractices": [
+        "Mario Martegani",
+        "Marzia Bellotti",
+        "SALVATORE DI BELLO",
+        "VIRGINIA MADIA"
+      ]
+    },
+    {
+      "run": "apr-r85-berti-operational-proof-20260907",
+      "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-r85-berti-operational-proof-20260907/report.json",
+      "before": 1,
+      "excluded": 1,
+      "after": 0,
+      "excludedByFamily": {
+        "linea-sole-potito": 1,
+        "erre-emme-rm-legno": 0,
+        "ideal-sistem": 0
+      },
+      "excludedPractices": [
+        "ELENA MARCELLA BERTI"
+      ]
+    },
+    {
+      "run": "apr-r86-berti-deep-review-terminal-proof-20260907",
+      "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-r86-berti-deep-review-terminal-proof-20260907/report.json",
+      "before": 1,
+      "excluded": 1,
+      "after": 0,
+      "excludedByFamily": {
+        "linea-sole-potito": 1,
+        "erre-emme-rm-legno": 0,
+        "ideal-sistem": 0
+      },
+      "excludedPractices": [
+        "ELENA MARCELLA BERTI"
+      ]
+    },
+    {
+      "run": "apr-targeted-excel-ready-r70-20260906",
+      "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-targeted-excel-ready-r70-20260906/report.json",
+      "before": 12,
+      "excluded": 1,
+      "after": 11,
+      "excludedByFamily": {
+        "linea-sole-potito": 0,
+        "erre-emme-rm-legno": 1,
+        "ideal-sistem": 0
+      },
+      "excludedPractices": [
+        "ANTONIO SACCO"
+      ]
+    },
+    {
+      "run": "apr-targeted-excel-ready-r70-retry1-20260906",
+      "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-targeted-excel-ready-r70-retry1-20260906/report.json",
+      "before": 12,
+      "excluded": 1,
+      "after": 11,
+      "excludedByFamily": {
+        "linea-sole-potito": 0,
+        "erre-emme-rm-legno": 1,
+        "ideal-sistem": 0
+      },
+      "excludedPractices": [
+        "ANTONIO SACCO"
+      ]
+    },
+    {
+      "run": "apr-wide100-current-cohort-bridge-r25",
+      "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-current-cohort-bridge-r25/report.json",
+      "before": 100,
+      "excluded": 15,
+      "after": 85,
+      "excludedByFamily": {
+        "linea-sole-potito": 8,
+        "erre-emme-rm-legno": 3,
+        "ideal-sistem": 4
+      },
+      "excludedPractices": [
+        "diego mario mocenighi",
+        "ELENA MARCELLA BERTI",
+        "Enrico Amos maria Berneri",
+        "francesca monti",
+        "FRANCESCA PISANU",
+        "GAVINA EMANUELA CANNAS",
+        "GIOVANNA ATZENI",
+        "GIOVANNI AMADU",
+        "GIUSEPPE D'ADDUZIO",
+        "liliana gloria",
+        "MARIA SOFIA TOSATTI",
+        "MASSIMILIANO MONTEMORRA",
+        "RICCARDO CODA",
+        "roberta di cesare",
+        "STEFANIA SPINA"
+      ]
+    },
+    {
+      "run": "apr-wide100-final-r67-20260906",
+      "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-final-r67-20260906/report.json",
+      "before": 100,
+      "excluded": 15,
+      "after": 85,
+      "excludedByFamily": {
+        "linea-sole-potito": 8,
+        "erre-emme-rm-legno": 3,
+        "ideal-sistem": 4
+      },
+      "excludedPractices": [
+        "diego mario mocenighi",
+        "ELENA MARCELLA BERTI",
+        "Enrico Amos maria Berneri",
+        "francesca monti",
+        "FRANCESCA PISANU",
+        "GAVINA EMANUELA CANNAS",
+        "GIOVANNA ATZENI",
+        "GIOVANNI AMADU",
+        "GIUSEPPE D'ADDUZIO",
+        "liliana gloria",
+        "MARIA SOFIA TOSATTI",
+        "MASSIMILIANO MONTEMORRA",
+        "RICCARDO CODA",
+        "roberta di cesare",
+        "STEFANIA SPINA"
+      ]
+    },
+    {
+      "run": "apr-wide100-final-r68-20260906",
+      "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-final-r68-20260906/report.json",
+      "before": 100,
+      "excluded": 15,
+      "after": 85,
+      "excludedByFamily": {
+        "linea-sole-potito": 8,
+        "erre-emme-rm-legno": 3,
+        "ideal-sistem": 4
+      },
+      "excludedPractices": [
+        "diego mario mocenighi",
+        "ELENA MARCELLA BERTI",
+        "Enrico Amos maria Berneri",
+        "francesca monti",
+        "FRANCESCA PISANU",
+        "GAVINA EMANUELA CANNAS",
+        "GIOVANNA ATZENI",
+        "GIOVANNI AMADU",
+        "GIUSEPPE D'ADDUZIO",
+        "liliana gloria",
+        "MARIA SOFIA TOSATTI",
+        "MASSIMILIANO MONTEMORRA",
+        "RICCARDO CODA",
+        "roberta di cesare",
+        "STEFANIA SPINA"
+      ]
+    },
+    {
+      "run": "apr-wide100-province-lineage-r24",
+      "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-province-lineage-r24/report.json",
+      "before": 100,
+      "excluded": 15,
+      "after": 85,
+      "excludedByFamily": {
+        "linea-sole-potito": 8,
+        "erre-emme-rm-legno": 3,
+        "ideal-sistem": 4
+      },
+      "excludedPractices": [
+        "diego mario mocenighi",
+        "ELENA MARCELLA BERTI",
+        "Enrico Amos maria Berneri",
+        "francesca monti",
+        "FRANCESCA PISANU",
+        "GAVINA EMANUELA CANNAS",
+        "GIOVANNA ATZENI",
+        "GIOVANNI AMADU",
+        "GIUSEPPE D'ADDUZIO",
+        "liliana gloria",
+        "MARIA SOFIA TOSATTI",
+        "MASSIMILIANO MONTEMORRA",
+        "RICCARDO CODA",
+        "roberta di cesare",
+        "STEFANIA SPINA"
+      ]
+    },
+    {
+      "run": "apr-wide100-r97-20260908",
+      "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r97-20260908/report.json",
+      "before": 100,
+      "excluded": 15,
+      "after": 85,
+      "excludedByFamily": {
+        "linea-sole-potito": 8,
+        "erre-emme-rm-legno": 3,
+        "ideal-sistem": 4
+      },
+      "excludedPractices": [
+        "diego mario mocenighi",
+        "ELENA MARCELLA BERTI",
+        "Enrico Amos maria Berneri",
+        "francesca monti",
+        "FRANCESCA PISANU",
+        "GAVINA EMANUELA CANNAS",
+        "GIOVANNA ATZENI",
+        "GIOVANNI AMADU",
+        "GIUSEPPE D'ADDUZIO",
+        "liliana gloria",
+        "MARIA SOFIA TOSATTI",
+        "MASSIMILIANO MONTEMORRA",
+        "RICCARDO CODA",
+        "roberta di cesare",
+        "STEFANIA SPINA"
+      ]
+    },
+    {
+      "run": "apr-wide100-r98-20260908",
+      "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r98-20260908/report.json",
+      "before": 100,
+      "excluded": 15,
+      "after": 85,
+      "excludedByFamily": {
+        "linea-sole-potito": 8,
+        "erre-emme-rm-legno": 3,
+        "ideal-sistem": 4
+      },
+      "excludedPractices": [
+        "diego mario mocenighi",
+        "ELENA MARCELLA BERTI",
+        "Enrico Amos maria Berneri",
+        "francesca monti",
+        "FRANCESCA PISANU",
+        "GAVINA EMANUELA CANNAS",
+        "GIOVANNA ATZENI",
+        "GIOVANNI AMADU",
+        "GIUSEPPE D'ADDUZIO",
+        "liliana gloria",
+        "MARIA SOFIA TOSATTI",
+        "MASSIMILIANO MONTEMORRA",
+        "RICCARDO CODA",
+        "roberta di cesare",
+        "STEFANIA SPINA"
+      ]
+    },
+    {
+      "run": "apr-wide100-r98-retry1-20260908",
+      "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r98-retry1-20260908/report.json",
+      "before": 100,
+      "excluded": 15,
+      "after": 85,
+      "excludedByFamily": {
+        "linea-sole-potito": 8,
+        "erre-emme-rm-legno": 3,
+        "ideal-sistem": 4
+      },
+      "excludedPractices": [
+        "diego mario mocenighi",
+        "ELENA MARCELLA BERTI",
+        "Enrico Amos maria Berneri",
+        "francesca monti",
+        "FRANCESCA PISANU",
+        "GAVINA EMANUELA CANNAS",
+        "GIOVANNA ATZENI",
+        "GIOVANNI AMADU",
+        "GIUSEPPE D'ADDUZIO",
+        "liliana gloria",
+        "MARIA SOFIA TOSATTI",
+        "MASSIMILIANO MONTEMORRA",
+        "RICCARDO CODA",
+        "roberta di cesare",
+        "STEFANIA SPINA"
+      ]
+    },
+    {
+      "run": "apr-wide100-r98-retry2-20260908",
+      "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r98-retry2-20260908/report.json",
+      "before": 100,
+      "excluded": 15,
+      "after": 85,
+      "excludedByFamily": {
+        "linea-sole-potito": 8,
+        "erre-emme-rm-legno": 3,
+        "ideal-sistem": 4
+      },
+      "excludedPractices": [
+        "diego mario mocenighi",
+        "ELENA MARCELLA BERTI",
+        "Enrico Amos maria Berneri",
+        "francesca monti",
+        "FRANCESCA PISANU",
+        "GAVINA EMANUELA CANNAS",
+        "GIOVANNA ATZENI",
+        "GIOVANNI AMADU",
+        "GIUSEPPE D'ADDUZIO",
+        "liliana gloria",
+        "MARIA SOFIA TOSATTI",
+        "MASSIMILIANO MONTEMORRA",
+        "RICCARDO CODA",
+        "roberta di cesare",
+        "STEFANIA SPINA"
+      ]
+    },
+    {
+      "run": "apr-wide100-r99-20260909",
+      "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r99-20260909/report.json",
+      "before": 100,
+      "excluded": 15,
+      "after": 85,
+      "excludedByFamily": {
+        "linea-sole-potito": 8,
+        "erre-emme-rm-legno": 3,
+        "ideal-sistem": 4
+      },
+      "excludedPractices": [
+        "diego mario mocenighi",
+        "ELENA MARCELLA BERTI",
+        "Enrico Amos maria Berneri",
+        "francesca monti",
+        "FRANCESCA PISANU",
+        "GAVINA EMANUELA CANNAS",
+        "GIOVANNA ATZENI",
+        "GIOVANNI AMADU",
+        "GIUSEPPE D'ADDUZIO",
+        "liliana gloria",
+        "MARIA SOFIA TOSATTI",
+        "MASSIMILIANO MONTEMORRA",
+        "RICCARDO CODA",
+        "roberta di cesare",
+        "STEFANIA SPINA"
+      ]
+    },
+    {
+      "run": "apr-wide100-r99-governed-20260909",
+      "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide100-r99-governed-20260909/report.json",
+      "before": 100,
+      "excluded": 15,
+      "after": 85,
+      "excludedByFamily": {
+        "linea-sole-potito": 8,
+        "erre-emme-rm-legno": 3,
+        "ideal-sistem": 4
+      },
+      "excludedPractices": [
+        "diego mario mocenighi",
+        "ELENA MARCELLA BERTI",
+        "Enrico Amos maria Berneri",
+        "francesca monti",
+        "FRANCESCA PISANU",
+        "GAVINA EMANUELA CANNAS",
+        "GIOVANNA ATZENI",
+        "GIOVANNI AMADU",
+        "GIUSEPPE D'ADDUZIO",
+        "liliana gloria",
+        "MARIA SOFIA TOSATTI",
+        "MASSIMILIANO MONTEMORRA",
+        "RICCARDO CODA",
+        "roberta di cesare",
+        "STEFANIA SPINA"
+      ]
+    },
+    {
+      "run": "apr-wide99-post-r46",
+      "reportPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-wide99-post-r46/report.json",
+      "before": 99,
+      "excluded": 15,
+      "after": 84,
+      "excludedByFamily": {
+        "linea-sole-potito": 8,
+        "erre-emme-rm-legno": 3,
+        "ideal-sistem": 4
+      },
+      "excludedPractices": [
+        "diego mario mocenighi",
+        "ELENA MARCELLA BERTI",
+        "Enrico Amos maria Berneri",
+        "francesca monti",
+        "FRANCESCA PISANU",
+        "GAVINA EMANUELA CANNAS",
+        "GIOVANNA ATZENI",
+        "GIOVANNI AMADU",
+        "GIUSEPPE D'ADDUZIO",
+        "liliana gloria",
+        "MARIA SOFIA TOSATTI",
+        "MASSIMILIANO MONTEMORRA",
+        "RICCARDO CODA",
+        "roberta di cesare",
+        "STEFANIA SPINA"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "version": "apr-post-lot-family-priority-v1",
+  "recordedAt": "2026-09-12T20:36:00.000Z",
+  "status": "diagnose_after_active_lot",
+  "priority": "highest",
+  "family": "infissi_shading_closures_rules_not_applied_at_runtime",
+  "summary": "Tre pratiche osservate oggi hanno prodotto un falso arresto sulle chiusure oscuranti nonostante evidenza presente e regole gia registrate/installate. Non trattare i casi come richieste isolate: verificare con Claude Code il collegamento architetturale delle regole al percorso runtime dopo la conclusione del lotto.",
+  "doNotChangeDuringActiveLot": true,
+  "knownCases": [
+    {
+      "customerKey": "luca-cigognetti",
+      "displayName": "Luca Cigognetti",
+      "userConfirmedAnswer": "Si: sono state installate 7 zanzariere, una per ciascuno dei 7 infissi.",
+      "documentEvidence": "Il form dichiara SI e l'allegato riporta esplicitamente 'installazione zanzariera 7 pz'; il modulo runtime ha ricostruito zero chiusure.",
+      "classification": "false_operator_required_runtime_rule_not_applied"
+    },
+    {
+      "customerKey": "santo-giuga",
+      "displayName": "Santo Giuga",
+      "userConfirmedAnswer": "Si: la zanzariera montata insieme agli infissi e una chiusura oscurante aggiuntiva.",
+      "documentEvidence": "Form e fattura concordano sulla presenza della zanzariera insieme agli infissi.",
+      "classification": "false_operator_required_runtime_rule_not_applied"
+    },
+    {
+      "customerKey": "elena-depalma",
+      "displayName": "Elena Depalma",
+      "practiceId": "af39159b-62d9-4c0d-8056-d2462e4b7727",
+      "userConfirmedAnswer": "Si: sono state installate chiusure oscuranti.",
+      "documentEvidence": "La risposta e presente nel form cliente; Giuliano aveva gia confermato anche i dati dei vecchi infissi: metallo e vetro doppio per tutti e cinque.",
+      "observedRuntimeBlocker": "infissi_shading_closures_form_answer_missing_or_ambiguous",
+      "classification": "false_operator_required_runtime_rule_not_applied"
+    }
+  ],
+  "finalReportRequirement": "Contare tutte le pratiche fermate oggi da questa famiglia, distinguendo falsi OPERATOR_REQUIRED, TECHNICAL_BLOCK e INCONSISTENT e verificando ciascun verdetto con checkpoint, report.blockers e case-truth/snapshot terminale.",
+  "nextAction": "Dopo il lotto, aprire una diagnosi architetturale con Claude Code sul percorso runtime delle regole chiusure oscuranti; nessuna correzione mirata per nome."
+}

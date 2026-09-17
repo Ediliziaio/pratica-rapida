@@ -1,0 +1,49 @@
+{
+  "version": "apr-batch-stop-incident-v1",
+  "runId": "apr-workable76-dashboard-observer-r119-20260913",
+  "stoppedAt": "2026-09-13T00:41:00Z",
+  "processedAtStop": 12,
+  "reason": "Un caso documentalmente e proceduralmente verde e stato ucciso dal watchdog per contesa del marcatore di convergenza fra registro congelato nel bundle e registro del sorgente.",
+  "triggerCase": {
+    "customerKey": "vera-buracchi",
+    "reportedState": "technical_block",
+    "outerReason": "no_material_progress_for_7_minutes",
+    "commonPreflight": {
+      "status": "completed",
+      "itemState": "ready_local_plan",
+      "blockers": []
+    },
+    "infissiPreflight": {
+      "status": "completed",
+      "itemState": "ready_local_plan",
+      "blockers": []
+    },
+    "draftExecution": {
+      "revision": 0,
+      "status": "blocked_preflight",
+      "itemCount": 0
+    }
+  },
+  "technicalBlocksInFirstTen": {
+    "total": 5,
+    "sameSevenMinuteGreenPreflightSignature": 1,
+    "otherCauses": [
+      "apr_cdp_enea_create_result_not_identifiable",
+      "completion_date_missing_and_invoice_final_printed_total_not_verified",
+      "apr_cdp_enea_screening_react_contract_not_ready"
+    ]
+  },
+  "preCorrectionAlignment": {
+    "bundleRuleFingerprint": "e4e8df74b56f53ea1223b007a4f0fc9ea86432db7a640a42bbb57d1d63af1345",
+    "sourceRuleFingerprint": "80b4b42698a49fb6fa03c4a7ceb5f534d6a045e6699091c94458cfb3501ca8db",
+    "aligned": false
+  },
+  "safety": {
+    "chromeStopped": false,
+    "keepaliveStopped": false,
+    "dashboardStopped": false,
+    "previewAttempted": false,
+    "submitAttempted": false,
+    "communicationsAttempted": false
+  }
+}

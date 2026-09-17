@@ -95,6 +95,19 @@ export interface AprEneaBrowserDriver {
   probePageSaveReadOnly?(draftPackage: AprEneaDraftPackage, draftId: string, pageId: string): Promise<AprEneaPageSaveProbeEvidence[]>;
   verifyDraftSaved(draftPackage: AprEneaDraftPackage, draftId: string): Promise<AprEneaDriverEvidence | null>;
   pendingCreationBarrier?(): { customerKey: string; evidenceId: string } | null;
+  /**
+   * Cosa ha detto il portale dopo l'ultimo Salva di questa pagina: i campi
+   * marcati non validi e i messaggi di validazione. Il driver CDP lo
+   * registra a ogni tentativo (postClick.invalidControlIds); fino al
+   * 15/09/2026 nessuno lo leggeva.
+   */
+  lastPageSaveRejection?(draftPackage: AprEneaDraftPackage, draftId: string, pageId: string): AprEneaPortalPageRejection | null;
+}
+
+export interface AprEneaPortalPageRejection {
+  evidenceId: string;
+  invalidControlIds: string[];
+  messages: string[];
 }
 
 export type AprEneaDraftPackageProvider = (customerKey: string) => AprEneaDraftPackage | Promise<AprEneaDraftPackage>;
@@ -624,6 +637,22 @@ export class PersistentAprEneaBrowserWorker {
         // blind second click if this read is uncertain or the process restarts.
         const verifiedEvidence = await this.driver.verifyPageSaved(draftPackage, current.draftId, unresolvedPage.pageId);
         if (!verifiedEvidence) {
+          // Se il portale ha marcato un campo come non valido, la pagina non
+          // e' stata salvata per QUEL motivo, e riprovare identica non serve:
+          // si isola subito nominando il campo. Nel giro r125 (14/09/2026)
+          // Bellini (id-telefono, "Inserire solo numeri"), Fiorini (id-gtot
+          // vuoto) e De Filippo (id-gg vuoto) sono finite in "esito non
+          // dimostrabile" dopo un recupero inutile, con la causa gia' scritta
+          // nelle diagnostiche del driver.
+          const rejection = this.driver.lastPageSaveRejection?.(draftPackage, current.draftId, unresolvedPage.pageId) ?? null;
+          if (rejection && rejection.invalidControlIds.length > 0) {
+            const detail = rejection.messages.length ? ` (${rejection.messages.join("; ")})` : "";
+            return this.isolateCase(
+              current.customerKey,
+              `Il portale ENEA rifiuta la pagina ${unresolvedPage.pageId}: campo ${rejection.invalidControlIds.join(", ")}${detail}. Nessun recupero: riprovare con lo stesso valore non cambia l'esito.`,
+              `portal-field-rejected-${digest(`${execution.revision}:${unresolvedPage.pageId}:${rejection.invalidControlIds.join(",")}`).slice(0, 16)}`,
+            );
+          }
           const afterIntent = this.execution.snapshot(this.now()).items.find((item) => item.customerKey === current.customerKey);
           const afterIntentPage = afterIntent?.pageCheckpoints.find((page) => page.pageId === unresolvedPage.pageId);
           // Le righe schermatura recuperate dopo una prova server vuota sono

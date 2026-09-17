@@ -1,0 +1,48 @@
+{
+  "version": "apr-crm-cross-stage-localization-verification-v1",
+  "checkedAt": "2026-09-11T12:57:30.000Z",
+  "status": "PASS",
+  "access": {
+    "relation": "enea_practices_public",
+    "method": "GET",
+    "readOnly": true,
+    "crmMutationAllowed": false,
+    "documentAccessed": false
+  },
+  "classification": "localization_issue",
+  "operatorQuestion": false,
+  "cases": [
+    {
+      "displayName": "Rossella Munafò",
+      "practiceId": "92f0a811-6199-494e-bc12-dafefe1a37b2",
+      "manifestStage": "recensione",
+      "locatedStage": "archiviate",
+      "product": "Schermature Solari",
+      "identityMatch": "exact",
+      "practiceIdMatchesManifest": true,
+      "checks": [
+        "query per cognome senza filtro di fase",
+        "query per nome senza filtro di fase",
+        "lookup operativo per ID con fase recensione restituito vuoto"
+      ],
+      "exactCause": "La pratica esiste con lo stesso ID del manifest, ma è passata da recensione ad archiviate; il lookup operativo ha imposto la fase storica recensione."
+    },
+    {
+      "displayName": "Patrizia Muzzi",
+      "practiceId": "99c19e81-7252-4325-afbd-1e7f2698b6df",
+      "manifestStage": "recensione",
+      "locatedStage": "archiviate",
+      "product": "Schermature Solari",
+      "identityMatch": "exact",
+      "practiceIdMatchesManifest": true,
+      "checks": [
+        "query per cognome senza filtro di fase",
+        "query per nome senza filtro di fase",
+        "lookup operativo per ID con fase recensione restituito vuoto"
+      ],
+      "exactCause": "La pratica esiste con lo stesso ID del manifest, ma è passata da recensione ad archiviate; il lookup operativo ha imposto la fase storica recensione."
+    }
+  ],
+  "sharedCause": "Il manifest congelato conserva la fase al momento della selezione, ma l'acquisizione CRM tratta tale fase come vincolo di identità anziché localizzare prima l'ID stabile in tutte le pipeline ammesse.",
+  "reportingDisposition": "Non conteggiare come domanda operatore o mancanza documentale; mantenere separato come problema di localizzazione durante questo lotto."
+}

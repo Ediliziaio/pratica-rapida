@@ -1,0 +1,1262 @@
+{
+  "version": "apr-pronte-da-fare-r104-manifest-v1",
+  "authorizationId": "user-2026-09-10-pronte-da-fare-plus-four-moved-draft-only",
+  "authorizedAt": "2026-09-10T10:34:53.236Z",
+  "mode": "real_enea_draft_only",
+  "source": {
+    "crmResponseSha256": "637396e48b269ae62c8b8a74539074dcd2071536a12c3896de6d2e9a99c4d644",
+    "queriedStages": [
+      "pronte_da_fare",
+      "recensione"
+    ],
+    "totalRows": 109
+  },
+  "selection": {
+    "total": 19,
+    "groups": {
+      "pronte_da_fare": 15,
+      "moved_to_recensione": 4
+    },
+    "allowedStages": [
+      "pronte_da_fare",
+      "recensione"
+    ],
+    "excludedCustomerKeys": [
+      "samuele-beretta"
+    ],
+    "exclusionPolicy": [
+      "unsupported_product",
+      "synthetic_test_name",
+      "permanent_customer_exclusion"
+    ],
+    "inBatchEarlyRoutingPolicy": [
+      "permanent_supplier_exclusion"
+    ],
+    "excluded": [
+      {
+        "practiceId": "7ebb9a52-2196-4ddc-9dc8-f431ff40e1b5",
+        "displayName": "GUIDO CALVACCHI",
+        "stage": "recensione",
+        "productEvidence": "Infissi / Serramenti",
+        "reseller": "ikona srl",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "6941b943-ead4-45b5-93ef-1db9cb482baa",
+        "displayName": "Mario D'errico",
+        "stage": "recensione",
+        "productEvidence": "Schermature Solari",
+        "reseller": "lm tende",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "1b28c35b-d8d8-454e-94b4-06032001606a",
+        "displayName": "Paolo Costanzo",
+        "stage": "recensione",
+        "productEvidence": "Schermature Solari",
+        "reseller": "lm tende",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "6225b43c-0376-4c51-bc51-845ad249b26b",
+        "displayName": "Franca Grassilli",
+        "stage": "recensione",
+        "productEvidence": "Schermature Solari",
+        "reseller": "lm tende",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "7099d3ee-6eef-4152-b1c2-f28f3581fed7",
+        "displayName": "Saimir Ajdini",
+        "stage": "recensione",
+        "productEvidence": "Infissi / Serramenti",
+        "reseller": "cmb infissi",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "20ed4acf-ca9c-4b43-af29-db22535eac7a",
+        "displayName": "Valter Moretto",
+        "stage": "pronte_da_fare",
+        "productEvidence": "Pompe di Calore / Climatizzazione",
+        "reseller": "praticarapida",
+        "reasons": [
+          "unsupported_or_unclassified_product"
+        ]
+      },
+      {
+        "practiceId": "51ec4e1a-2600-482b-9fde-6b3976bbdbc2",
+        "displayName": "Gemma Minore",
+        "stage": "recensione",
+        "productEvidence": "Infissi / Serramenti",
+        "reseller": "cisam infissi srl",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "bc0f01c0-b016-496c-989e-85e9f795c390",
+        "displayName": "FILIPPA CARMELA RITA FINOCCHIARO",
+        "stage": "recensione",
+        "productEvidence": "Pompe di Calore / Climatizzazione",
+        "reseller": "studio vigano dr patrizia",
+        "reasons": [
+          "wrong_stage",
+          "unsupported_or_unclassified_product"
+        ]
+      },
+      {
+        "practiceId": "491cf101-c6cd-4f48-9cf0-78c096d95c0e",
+        "displayName": "Mauro Leonardi",
+        "stage": "recensione",
+        "productEvidence": "Infissi / Serramenti",
+        "reseller": "brianza serramenti",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "7e1aa416-d53c-431e-bfc3-843e5f8b4df9",
+        "displayName": "Mimosa Freni",
+        "stage": "recensione",
+        "productEvidence": "Schermature Solari",
+        "reseller": "brianza serramenti",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "be623c28-dac8-425c-9213-e79eae95ee57",
+        "displayName": "Ida Gigliotti",
+        "stage": "recensione",
+        "productEvidence": "Schermature Solari",
+        "reseller": "brianza serramenti",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "899c1c42-acb9-49b9-93ec-0411b6e09355",
+        "displayName": "Mario Ruggeri",
+        "stage": "recensione",
+        "productEvidence": "Infissi / Serramenti",
+        "reseller": "brianza serramenti",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "c63b6489-d003-4865-9c9d-5a5d560a8346",
+        "displayName": "Carlo Grassi",
+        "stage": "recensione",
+        "productEvidence": "Infissi / Serramenti",
+        "reseller": "brianza serramenti",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "d4d1dbec-29fa-4d0a-9a4b-e844627e7089",
+        "displayName": "Guido Beretta",
+        "stage": "recensione",
+        "productEvidence": "Infissi / Serramenti",
+        "reseller": "brianza serramenti",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "0965e184-7115-40f8-aa2b-37b40de09a2b",
+        "displayName": "Clarissa Bovo",
+        "stage": "recensione",
+        "productEvidence": "Infissi / Serramenti",
+        "reseller": "homnium",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "7b8fa856-36d9-471b-82f5-a0ae194469b2",
+        "displayName": "gregorio fusco",
+        "stage": "recensione",
+        "productEvidence": "Infissi / Serramenti",
+        "reseller": "homnium",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "99e7dbad-3455-44d7-900a-04e95ed67f55",
+        "displayName": "Francesco De Vallier",
+        "stage": "recensione",
+        "productEvidence": "Infissi / Serramenti",
+        "reseller": "homnium",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "0d8e5e87-3865-4d43-88f0-fad15432e041",
+        "displayName": "Elena Pittau",
+        "stage": "recensione",
+        "productEvidence": "Infissi / Serramenti",
+        "reseller": "homnium",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "ab15e125-f8b0-4edc-b98b-1d0de7ab1b25",
+        "displayName": "ANGELO RIVOLTA",
+        "stage": "recensione",
+        "productEvidence": "Pompe di Calore / Climatizzazione",
+        "reseller": "g a servizi di adushaj xhulio",
+        "reasons": [
+          "wrong_stage",
+          "unsupported_or_unclassified_product"
+        ]
+      },
+      {
+        "practiceId": "8e011a14-60b7-43f4-8b35-04626b35bc91",
+        "displayName": "Angela Tuttolani",
+        "stage": "recensione",
+        "productEvidence": "Schermature Solari",
+        "reseller": "sa montaggi",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "468069ad-6665-48c6-86ca-09d9b98dc133",
+        "displayName": "Luciano Javier Martinez",
+        "stage": "recensione",
+        "productEvidence": "Schermature Solari",
+        "reseller": "clienti privati sito",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "da8e73a3-132b-4a4d-ade0-ad282d98655c",
+        "displayName": "Carlotta Ceniti",
+        "stage": "recensione",
+        "productEvidence": "Schermature Solari",
+        "reseller": "clienti privati sito",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "6f274566-2fc3-4e49-a40d-64538988f540",
+        "displayName": "Fausta De Filippo",
+        "stage": "recensione",
+        "productEvidence": "Schermature Solari",
+        "reseller": "vetratex",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "5cd25dcf-9d4c-4bf4-9c15-2ee253b30046",
+        "displayName": "NELLO FARINELLI",
+        "stage": "recensione",
+        "productEvidence": "Schermature Solari",
+        "reseller": "sa montaggi",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "92f0a811-6199-494e-bc12-dafefe1a37b2",
+        "displayName": "Rossella Munafò",
+        "stage": "recensione",
+        "productEvidence": "Schermature Solari",
+        "reseller": "brianza serramenti",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "466f8ae2-e6a4-44a8-8668-a298c54b9c99",
+        "displayName": "Stefano Roveda",
+        "stage": "recensione",
+        "productEvidence": "Schermature Solari",
+        "reseller": "lm tende",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "d7aedc6e-d886-44b7-8925-25202ca90877",
+        "displayName": "Elisa Moro",
+        "stage": "recensione",
+        "productEvidence": "Schermature Solari",
+        "reseller": "vans tappezzeria",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "a64d899d-d3fb-47ce-841e-ceb0a7367a75",
+        "displayName": "Valter Migliori",
+        "stage": "recensione",
+        "productEvidence": "Schermature Solari",
+        "reseller": "vans tappezzeria",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "5323d52a-6473-46f1-a5aa-faf5568ae3fc",
+        "displayName": "Santo Giuga",
+        "stage": "recensione",
+        "productEvidence": "Infissi / Serramenti",
+        "reseller": "innova serramenti",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "83a5df7f-b780-4f46-b695-0a649a403cd7",
+        "displayName": "Valter Moretto",
+        "stage": "recensione",
+        "productEvidence": "Schermature Solari",
+        "reseller": "cor tende",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "86cd01ef-18c0-4c0e-b5f1-9e2883663c25",
+        "displayName": "SGALBAZZI E CREMASCHI SAS",
+        "stage": "recensione",
+        "productEvidence": "Infissi / Serramenti",
+        "reseller": "brianza serramenti",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "30347865-f198-4271-969e-7d9d1dd1c5d0",
+        "displayName": "Denny Negrini",
+        "stage": "recensione",
+        "productEvidence": "Schermature Solari",
+        "reseller": "cisam infissi srl",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "4dabc002-5431-4f0a-8ff0-edf611bf4b84",
+        "displayName": "Serena Marini",
+        "stage": "recensione",
+        "productEvidence": "Infissi / Serramenti",
+        "reseller": "homnium",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "a1eeb367-15dd-4ce1-b1fe-8b4496c1e921",
+        "displayName": "Aldo Cavicchia",
+        "stage": "recensione",
+        "productEvidence": "Schermature Solari",
+        "reseller": "idea tende cuneo",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "a96beaec-08bd-4db6-8f05-57d6f694d30c",
+        "displayName": "Silvano Aldino Macchi",
+        "stage": "recensione",
+        "productEvidence": "Pompe di Calore / Climatizzazione",
+        "reseller": "g a servizi di adushaj xhulio",
+        "reasons": [
+          "wrong_stage",
+          "unsupported_or_unclassified_product"
+        ]
+      },
+      {
+        "practiceId": "72032802-fb40-458a-b92f-5c52dd683ba7",
+        "displayName": "Devis Gazzotti",
+        "stage": "recensione",
+        "productEvidence": "Pompe di Calore / Climatizzazione",
+        "reseller": "g a servizi di adushaj xhulio",
+        "reasons": [
+          "wrong_stage",
+          "unsupported_or_unclassified_product"
+        ]
+      },
+      {
+        "practiceId": "9a6f4de7-d8c4-47fc-a1bf-a4fad1163655",
+        "displayName": "Nicolae Laiu",
+        "stage": "recensione",
+        "productEvidence": "Infissi / Serramenti",
+        "reseller": "homnium",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "1222a67a-5893-4d52-a203-82ea2868b8cf",
+        "displayName": "AIPING CHEN",
+        "stage": "recensione",
+        "productEvidence": "Infissi / Serramenti",
+        "reseller": "homnium",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "75ce41e1-7bda-444f-9e91-7fc41240565f",
+        "displayName": "Rita Serra",
+        "stage": "recensione",
+        "productEvidence": "Infissi / Serramenti",
+        "reseller": "brianza serramenti",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "f4d2eb7d-8a29-4949-9f74-427e3a3319c0",
+        "displayName": "Davide Papetti",
+        "stage": "recensione",
+        "productEvidence": "Schermature Solari",
+        "reseller": "brianza serramenti",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "37914dcc-7bcf-4bc4-85bc-ca73bb357c6c",
+        "displayName": "Rosaria Bucceri",
+        "stage": "recensione",
+        "productEvidence": "Schermature Solari",
+        "reseller": "brianza serramenti",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "2bd6ccd3-0fa5-4fdd-bc29-fbe3c87f1de4",
+        "displayName": "Floriana Genova",
+        "stage": "recensione",
+        "productEvidence": "Schermature Solari",
+        "reseller": "vetratex",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "881ee536-59af-4606-8718-7501391954e6",
+        "displayName": "MILENA SABATINI",
+        "stage": "recensione",
+        "productEvidence": "Schermature Solari",
+        "reseller": "rinaldi lab",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "9b4de63a-ad1b-4de4-9626-5989ebe19ffe",
+        "displayName": "Mauro Manente",
+        "stage": "recensione",
+        "productEvidence": "Infissi / Serramenti",
+        "reseller": "homnium",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "b24e5957-97b8-483d-bb84-f05477af9e0d",
+        "displayName": "Flaviano Vitulli",
+        "stage": "recensione",
+        "productEvidence": "Schermature Solari",
+        "reseller": "brianza serramenti",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "e51021fc-bb79-4c16-a1a2-f5c717c3a5d5",
+        "displayName": "Nelson Malagoli",
+        "stage": "recensione",
+        "productEvidence": "Schermature Solari",
+        "reseller": "rinaldi lab",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "6471e17a-5951-4a74-82d8-3298d0b56ba7",
+        "displayName": "GIOVANNA CONTI",
+        "stage": "recensione",
+        "productEvidence": "Infissi / Serramenti",
+        "reseller": "tecnoestense srl",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "8be58e61-262c-457d-b52f-f73dd6993050",
+        "displayName": "Milena Malavolta",
+        "stage": "recensione",
+        "productEvidence": "Infissi / Serramenti",
+        "reseller": "passione serramenti",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "c532a65b-221b-4576-976a-75fe0211ea73",
+        "displayName": "FRANCESCO FUMAGALLI",
+        "stage": "recensione",
+        "productEvidence": "Pompe di Calore / Climatizzazione",
+        "reseller": "clienti privati sito",
+        "reasons": [
+          "wrong_stage",
+          "unsupported_or_unclassified_product"
+        ]
+      },
+      {
+        "practiceId": "9ca7a38e-f01c-42b0-9f40-0f64db592954",
+        "displayName": "Francesca Fornaro",
+        "stage": "recensione",
+        "productEvidence": "Infissi / Serramenti",
+        "reseller": "homnium",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "e2081cd8-fe73-4354-ac3a-e4be095ec607",
+        "displayName": "Renza Mariella Marin",
+        "stage": "recensione",
+        "productEvidence": "Infissi / Serramenti",
+        "reseller": "caminotto serramenti",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "2716f644-2e35-419f-a93b-55b59e00f408",
+        "displayName": "Claudio De Lucia",
+        "stage": "recensione",
+        "productEvidence": "VEPA – Vetrate Panoramiche",
+        "reseller": "new live srl",
+        "reasons": [
+          "wrong_stage",
+          "unsupported_or_unclassified_product"
+        ]
+      },
+      {
+        "practiceId": "64d1ab0c-7633-4f03-992b-2fe430584a4e",
+        "displayName": "Stefania Venturi",
+        "stage": "recensione",
+        "productEvidence": "Schermature Solari",
+        "reseller": "sa montaggi",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "6526242e-76d4-4343-ad76-97ea3ae8ca17",
+        "displayName": "luca ortensi",
+        "stage": "recensione",
+        "productEvidence": "Schermature Solari",
+        "reseller": "vans tappezzeria",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "5521aae6-8259-42cb-91ea-260def04a8b6",
+        "displayName": "Rina Generosa Serafini",
+        "stage": "recensione",
+        "productEvidence": "Schermature Solari",
+        "reseller": "lm tende",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "fd24c40d-3237-4986-abe8-cf37552a2746",
+        "displayName": "Chiara Chierichetti",
+        "stage": "recensione",
+        "productEvidence": "Infissi / Serramenti",
+        "reseller": "brianza serramenti",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "f1ca7270-9fac-4d90-ae94-cefe47853858",
+        "displayName": "Sabrina Di Palma",
+        "stage": "recensione",
+        "productEvidence": "Schermature Solari",
+        "reseller": "vans tappezzeria",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "2b3d17a0-c176-4e7c-9be5-5b84200b281d",
+        "displayName": "Daniele Buoncompagni",
+        "stage": "recensione",
+        "productEvidence": "Infissi / Serramenti",
+        "reseller": "sa montaggi",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "0d2892cd-b5e0-4d34-b46e-9a5ef34df998",
+        "displayName": "Chiara Longo",
+        "stage": "recensione",
+        "productEvidence": "Schermature Solari",
+        "reseller": "rinaldi lab",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "98deb6d7-8cd4-4354-871b-45e8b13d2325",
+        "displayName": "luca dragotta",
+        "stage": "recensione",
+        "productEvidence": "Schermature Solari",
+        "reseller": "rinaldi lab",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "8de255c1-5897-405f-82f4-36dc646688c4",
+        "displayName": "MASSIMO COTTA",
+        "stage": "recensione",
+        "productEvidence": "Schermature Solari",
+        "reseller": "zanellato tende",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "3dc3cd09-f5b8-4b73-b86c-c1886aa0ab2d",
+        "displayName": "Francesca Scalia",
+        "stage": "recensione",
+        "productEvidence": "Schermature Solari",
+        "reseller": "lm tende",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "e3d7cbed-1f70-40e3-aeb6-58a2fd0e8683",
+        "displayName": "LIDIA MARCHISIO",
+        "stage": "recensione",
+        "productEvidence": "Schermature Solari",
+        "reseller": "idea tende cuneo",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "d88895ce-3b15-4b3f-800a-7cbfe0139246",
+        "displayName": "ANTONIO SACCO",
+        "stage": "recensione",
+        "productEvidence": "Infissi / Serramenti",
+        "reseller": "rm legno",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "45cfd987-4ac3-4cd8-be37-dc0442bdb330",
+        "displayName": "massimo grimaldi",
+        "stage": "recensione",
+        "productEvidence": "Schermature Solari",
+        "reseller": "rinaldi lab",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "8952c672-b155-48d4-9182-d35c66cb302d",
+        "displayName": "ANNALISA ANSALONI",
+        "stage": "recensione",
+        "productEvidence": "Schermature Solari",
+        "reseller": "vans tappezzeria",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "562ef10a-2ced-43bd-9eaf-59aeedba7f3d",
+        "displayName": "Giovanni Pietro Sanvito",
+        "stage": "recensione",
+        "productEvidence": "Schermature Solari",
+        "reseller": "cor tende",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "a35a615c-0fb0-46df-bdf8-a35d34fbd974",
+        "displayName": "Aldo Gebbia",
+        "stage": "recensione",
+        "productEvidence": "Infissi / Serramenti",
+        "reseller": "homnium",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "14b65405-1a32-4c3b-8f64-2afd2fb3f4e1",
+        "displayName": "DONATA ZANGROSSI",
+        "stage": "recensione",
+        "productEvidence": "Pompe di Calore / Climatizzazione",
+        "reseller": "homnium",
+        "reasons": [
+          "wrong_stage",
+          "unsupported_or_unclassified_product"
+        ]
+      },
+      {
+        "practiceId": "6ff95940-9371-4ad1-b5ad-bf3c06b5a807",
+        "displayName": "Tanbir Awal",
+        "stage": "recensione",
+        "productEvidence": "Infissi / Serramenti",
+        "reseller": "sa montaggi",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "9f795d41-52bf-4fa2-85c6-27117d7c048d",
+        "displayName": "Roberto Virive’",
+        "stage": "recensione",
+        "productEvidence": "Schermature Solari",
+        "reseller": "ghitti tende",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "fd645fb9-190c-48e0-9050-4466f0af8df6",
+        "displayName": "Antonella Arrigoni",
+        "stage": "recensione",
+        "productEvidence": "Schermature Solari",
+        "reseller": "rivenditore eliminato",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "8a1edd54-21e8-4145-9add-45a36ade3902",
+        "displayName": "Test6 UITest",
+        "stage": "pronte_da_fare",
+        "productEvidence": "Infissi / Serramenti",
+        "reseller": "rivenditore eliminato",
+        "reasons": [
+          "synthetic_test_name"
+        ]
+      },
+      {
+        "practiceId": "16cca18c-6718-4128-9de5-e6474a3d8cd8",
+        "displayName": "Test PagamentoCF",
+        "stage": "pronte_da_fare",
+        "productEvidence": "Infissi / Serramenti",
+        "reseller": "rivenditore eliminato",
+        "reasons": [
+          "synthetic_test_name"
+        ]
+      },
+      {
+        "practiceId": "17899d43-3d1a-4c00-bae0-6953c3ca3e9f",
+        "displayName": "Test5 SubmitNormale",
+        "stage": "pronte_da_fare",
+        "productEvidence": "Infissi / Serramenti",
+        "reseller": "rivenditore eliminato",
+        "reasons": [
+          "synthetic_test_name"
+        ]
+      },
+      {
+        "practiceId": "99c19e81-7252-4325-afbd-1e7f2698b6df",
+        "displayName": "Patrizia Muzzi",
+        "stage": "recensione",
+        "productEvidence": "Schermature Solari",
+        "reseller": "rivenditore eliminato",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "7a4178c6-33e8-42af-a972-c7afe2311df8",
+        "displayName": "samuele beretta",
+        "stage": "recensione",
+        "productEvidence": "",
+        "reseller": "rivenditore eliminato",
+        "reasons": [
+          "wrong_stage",
+          "unsupported_or_unclassified_product",
+          "permanent_customer_exclusion"
+        ]
+      },
+      {
+        "practiceId": "e55219a3-9d98-400c-b4ef-9164430330de",
+        "displayName": "Vito Fariello",
+        "stage": "recensione",
+        "productEvidence": "Schermature Solari",
+        "reseller": "tecnoestense srl",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "553b9843-9e46-496a-815e-41420f87e28e",
+        "displayName": "Maria Carmela Anna Ventura",
+        "stage": "recensione",
+        "productEvidence": "Schermature Solari",
+        "reseller": "vans tappezzeria",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "6e17c2ba-a327-408b-a14b-092e0e38e178",
+        "displayName": "GIUSEPPE MINISSALE",
+        "stage": "recensione",
+        "productEvidence": "Schermature Solari",
+        "reseller": "vans tappezzeria",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "156714b6-68f3-408d-9782-0bdca234063e",
+        "displayName": "Luciano Tario",
+        "stage": "recensione",
+        "productEvidence": "Schermature Solari",
+        "reseller": "vans tappezzeria",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "dedbacc9-01a1-4d5c-8e69-7f57a4029574",
+        "displayName": "Antonio Renzo",
+        "stage": "recensione",
+        "productEvidence": "Infissi / Serramenti",
+        "reseller": "grk serramenti",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "bd23d2b8-edb7-4ae4-95c0-923a5819bcbd",
+        "displayName": "NICOLETTA BRIGHETTI",
+        "stage": "recensione",
+        "productEvidence": "Schermature Solari",
+        "reseller": "rinaldi lab",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "4a48fb2d-558d-4a8d-8cff-02f14150a572",
+        "displayName": "Valentina Cirillo",
+        "stage": "recensione",
+        "productEvidence": "Infissi / Serramenti",
+        "reseller": "homnium",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "5221bfc5-960f-4e35-a291-3880de849bdf",
+        "displayName": "Luigi Pasinato",
+        "stage": "recensione",
+        "productEvidence": "Schermature Solari",
+        "reseller": "brianza serramenti",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "d68877e8-e150-488a-aed2-7db05854918e",
+        "displayName": "Elena Sarpa",
+        "stage": "recensione",
+        "productEvidence": "Infissi / Serramenti",
+        "reseller": "homnium",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "c18a8045-b97f-4dee-ac29-c0d14fcb2f52",
+        "displayName": "Gianfranco Sacchi",
+        "stage": "recensione",
+        "productEvidence": "Schermature Solari",
+        "reseller": "sa montaggi",
+        "reasons": [
+          "wrong_stage"
+        ]
+      },
+      {
+        "practiceId": "326f0adb-c870-4177-b33a-f545639c5675",
+        "displayName": "Riccardo Giuseppe Camboni",
+        "stage": "recensione",
+        "productEvidence": "VEPA – Vetrate Panoramiche",
+        "reseller": "di iorio group",
+        "reasons": [
+          "wrong_stage",
+          "unsupported_or_unclassified_product"
+        ]
+      },
+      {
+        "practiceId": "1219a254-5af0-4546-83d5-6774a0aaa2fd",
+        "displayName": "Luca Aspesani",
+        "stage": "recensione",
+        "productEvidence": "Pompe di Calore / Climatizzazione",
+        "reseller": "g a servizi di adushaj xhulio",
+        "reasons": [
+          "wrong_stage",
+          "unsupported_or_unclassified_product"
+        ]
+      },
+      {
+        "practiceId": "adae1e4d-e94c-4c6d-b305-020d804db676",
+        "displayName": "Fiorenzo Burattini",
+        "stage": "recensione",
+        "productEvidence": "Schermature Solari",
+        "reseller": "sa montaggi",
+        "reasons": [
+          "wrong_stage"
+        ]
+      }
+    ]
+  },
+  "safety": {
+    "draftOnly": true,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false,
+    "priorDraftPolicy": "fresh_generation_only"
+  },
+  "cases": [
+    {
+      "practiceId": "eabc194f-5206-4eea-a97a-8a3521a48280",
+      "customerKey": "mario-martegani",
+      "displayName": "Mario Martegani",
+      "stage": "pronte_da_fare",
+      "stageName": "pronte_da_fare",
+      "module": "screening",
+      "productEvidence": "Schermature Solari",
+      "reseller": "linea sole potito",
+      "invoiceCount": null,
+      "complexity": "current_pipeline_unobserved",
+      "historicalRetest": null,
+      "expectedRouting": "standard",
+      "group": "pronte_da_fare",
+      "groupOrder": 1
+    },
+    {
+      "practiceId": "526f3361-70f8-4ee9-9d5d-2a38506b9610",
+      "customerKey": "gianluca-bianco",
+      "displayName": "GIANLUCA BIANCO",
+      "stage": "pronte_da_fare",
+      "stageName": "pronte_da_fare",
+      "module": "screening",
+      "productEvidence": "Schermature Solari",
+      "reseller": "praticarapida",
+      "invoiceCount": null,
+      "complexity": "current_pipeline_unobserved",
+      "historicalRetest": null,
+      "expectedRouting": "standard",
+      "group": "pronte_da_fare",
+      "groupOrder": 1
+    },
+    {
+      "practiceId": "b99df64d-259b-4469-baff-f50bfa4a3184",
+      "customerKey": "marzia-bellotti",
+      "displayName": "Marzia Bellotti",
+      "stage": "pronte_da_fare",
+      "stageName": "pronte_da_fare",
+      "module": "screening",
+      "productEvidence": "Schermature Solari",
+      "reseller": "linea sole potito",
+      "invoiceCount": null,
+      "complexity": "current_pipeline_unobserved",
+      "historicalRetest": null,
+      "expectedRouting": "standard",
+      "group": "pronte_da_fare",
+      "groupOrder": 1
+    },
+    {
+      "practiceId": "3c595968-9ef9-4ee8-a350-f9bf42e9f3f6",
+      "customerKey": "luca-ballori",
+      "displayName": "Luca Ballori",
+      "stage": "pronte_da_fare",
+      "stageName": "pronte_da_fare",
+      "module": "infissi",
+      "productEvidence": "Infissi / Serramenti",
+      "reseller": "grk serramenti",
+      "invoiceCount": null,
+      "complexity": "current_pipeline_unobserved",
+      "historicalRetest": null,
+      "expectedRouting": "standard",
+      "group": "pronte_da_fare",
+      "groupOrder": 1
+    },
+    {
+      "practiceId": "1bee7587-bd5d-45ba-93b2-c2700e408cbf",
+      "customerKey": "odoardo-lotto",
+      "displayName": "Odoardo Lotto",
+      "stage": "pronte_da_fare",
+      "stageName": "pronte_da_fare",
+      "module": "infissi",
+      "productEvidence": "Infissi / Serramenti",
+      "reseller": "a a investment solutions",
+      "invoiceCount": null,
+      "complexity": "current_pipeline_unobserved",
+      "historicalRetest": null,
+      "expectedRouting": "standard",
+      "group": "pronte_da_fare",
+      "groupOrder": 1
+    },
+    {
+      "practiceId": "4e170ee5-dc57-4660-9392-40c697bf076d",
+      "customerKey": "domenico-tranquillo",
+      "displayName": "DOMENICO TRANQUILLO",
+      "stage": "pronte_da_fare",
+      "stageName": "pronte_da_fare",
+      "module": "infissi",
+      "productEvidence": "Infissi / Serramenti",
+      "reseller": "passione serramenti",
+      "invoiceCount": null,
+      "complexity": "current_pipeline_unobserved",
+      "historicalRetest": null,
+      "expectedRouting": "standard",
+      "group": "pronte_da_fare",
+      "groupOrder": 1
+    },
+    {
+      "practiceId": "84688adb-14d8-4a0a-957b-67626c27a886",
+      "customerKey": "silvia-lomartire",
+      "displayName": "silvia lomartire",
+      "stage": "pronte_da_fare",
+      "stageName": "pronte_da_fare",
+      "module": "screening",
+      "productEvidence": "Schermature Solari",
+      "reseller": "rinaldi lab",
+      "invoiceCount": null,
+      "complexity": "current_pipeline_unobserved",
+      "historicalRetest": null,
+      "expectedRouting": "standard",
+      "group": "pronte_da_fare",
+      "groupOrder": 1
+    },
+    {
+      "practiceId": "272f370a-aba5-48b5-8e9f-6cebad5639f3",
+      "customerKey": "anthony-pool-juscamaita-fuertes",
+      "displayName": "Anthony Pool Juscamaita Fuertes",
+      "stage": "pronte_da_fare",
+      "stageName": "pronte_da_fare",
+      "module": "infissi",
+      "productEvidence": "Infissi / Serramenti",
+      "reseller": "grk serramenti",
+      "invoiceCount": null,
+      "complexity": "current_pipeline_unobserved",
+      "historicalRetest": null,
+      "expectedRouting": "standard",
+      "group": "pronte_da_fare",
+      "groupOrder": 1
+    },
+    {
+      "practiceId": "6f94e990-e371-4128-88ac-9b0cbdf1b09a",
+      "customerKey": "mario-spano",
+      "displayName": "Mario Spano",
+      "stage": "pronte_da_fare",
+      "stageName": "pronte_da_fare",
+      "module": "infissi",
+      "productEvidence": "Infissi / Serramenti",
+      "reseller": "grk serramenti",
+      "invoiceCount": null,
+      "complexity": "current_pipeline_unobserved",
+      "historicalRetest": null,
+      "expectedRouting": "standard",
+      "group": "pronte_da_fare",
+      "groupOrder": 1
+    },
+    {
+      "practiceId": "b8e33e49-1f0c-4103-ad0a-b0822362fa37",
+      "customerKey": "matia-bertarelli",
+      "displayName": "Matia Bertarelli",
+      "stage": "pronte_da_fare",
+      "stageName": "pronte_da_fare",
+      "module": "screening",
+      "productEvidence": "Schermature Solari",
+      "reseller": "zanzasol",
+      "invoiceCount": null,
+      "complexity": "current_pipeline_unobserved",
+      "historicalRetest": null,
+      "expectedRouting": "standard",
+      "group": "pronte_da_fare",
+      "groupOrder": 1
+    },
+    {
+      "practiceId": "bf710ed1-36e1-4560-b1a2-7a1fbec06390",
+      "customerKey": "lorenzo-sarpa",
+      "displayName": "Lorenzo Sarpa",
+      "stage": "pronte_da_fare",
+      "stageName": "pronte_da_fare",
+      "module": "infissi",
+      "productEvidence": "Infissi / Serramenti",
+      "reseller": "homnium",
+      "invoiceCount": null,
+      "complexity": "current_pipeline_unobserved",
+      "historicalRetest": null,
+      "expectedRouting": "standard",
+      "group": "pronte_da_fare",
+      "groupOrder": 1
+    },
+    {
+      "practiceId": "2233668f-d9e6-42e2-a7e4-3abed8de74ad",
+      "customerKey": "alberto-maggi",
+      "displayName": "Alberto Maggi",
+      "stage": "pronte_da_fare",
+      "stageName": "pronte_da_fare",
+      "module": "screening",
+      "productEvidence": "Schermature Solari",
+      "reseller": "zanellato tende",
+      "invoiceCount": null,
+      "complexity": "current_pipeline_unobserved",
+      "historicalRetest": null,
+      "expectedRouting": "standard",
+      "group": "pronte_da_fare",
+      "groupOrder": 1
+    },
+    {
+      "practiceId": "d02ed702-d4b9-4613-a14e-6eaee4f1d1ea",
+      "customerKey": "mattia-albini",
+      "displayName": "Mattia Albini",
+      "stage": "pronte_da_fare",
+      "stageName": "pronte_da_fare",
+      "module": "screening",
+      "productEvidence": "Schermature Solari",
+      "reseller": "cor tende",
+      "invoiceCount": null,
+      "complexity": "current_pipeline_unobserved",
+      "historicalRetest": null,
+      "expectedRouting": "standard",
+      "group": "pronte_da_fare",
+      "groupOrder": 1
+    },
+    {
+      "practiceId": "4db26f2b-33ec-4b73-97dc-38bad15e401b",
+      "customerKey": "virginia-madia",
+      "displayName": "VIRGINIA MADIA",
+      "stage": "recensione",
+      "stageName": "recensione",
+      "module": "screening",
+      "productEvidence": "Schermature Solari",
+      "reseller": "linea sole potito",
+      "invoiceCount": null,
+      "complexity": "current_pipeline_unobserved",
+      "historicalRetest": null,
+      "expectedRouting": "standard",
+      "group": "moved_to_recensione",
+      "groupOrder": 2
+    },
+    {
+      "practiceId": "abe740b8-890f-4a2a-bc5d-12ef87b1f7ec",
+      "customerKey": "salvatore-di-bello",
+      "displayName": "SALVATORE DI BELLO",
+      "stage": "recensione",
+      "stageName": "recensione",
+      "module": "screening",
+      "productEvidence": "Schermature Solari",
+      "reseller": "linea sole potito",
+      "invoiceCount": null,
+      "complexity": "current_pipeline_unobserved",
+      "historicalRetest": null,
+      "expectedRouting": "standard",
+      "group": "moved_to_recensione",
+      "groupOrder": 2
+    },
+    {
+      "practiceId": "d5edef9f-2b12-459f-a226-5d92fa069767",
+      "customerKey": "ernestina-avalli",
+      "displayName": "ERNESTINA AVALLI",
+      "stage": "recensione",
+      "stageName": "recensione",
+      "module": "screening",
+      "productEvidence": "Schermature Solari",
+      "reseller": "lm tende",
+      "invoiceCount": null,
+      "complexity": "current_pipeline_unobserved",
+      "historicalRetest": null,
+      "expectedRouting": "standard",
+      "group": "moved_to_recensione",
+      "groupOrder": 2
+    },
+    {
+      "practiceId": "8921b07b-b618-4fc8-ade0-11f06c5177fe",
+      "customerKey": "maddalena-giovanna-pezzani",
+      "displayName": "Maddalena Giovanna Pezzani",
+      "stage": "recensione",
+      "stageName": "recensione",
+      "module": "screening",
+      "productEvidence": "Schermature Solari",
+      "reseller": "lm tende",
+      "invoiceCount": null,
+      "complexity": "current_pipeline_unobserved",
+      "historicalRetest": null,
+      "expectedRouting": "standard",
+      "group": "moved_to_recensione",
+      "groupOrder": 2
+    },
+    {
+      "practiceId": "1467453f-2964-45b1-98a1-30e71d2c8c15",
+      "customerKey": "sanjaya-wickramarathna-thammita-arachchige",
+      "displayName": "Sanjaya wickramarathna Thammita arachchige",
+      "stage": "pronte_da_fare",
+      "stageName": "pronte_da_fare",
+      "module": "infissi",
+      "productEvidence": "Infissi / Serramenti",
+      "reseller": "homnium",
+      "invoiceCount": null,
+      "complexity": "current_pipeline_unobserved",
+      "historicalRetest": null,
+      "expectedRouting": "standard",
+      "group": "pronte_da_fare",
+      "groupOrder": 1
+    },
+    {
+      "practiceId": "f077d241-79ca-4acf-b84c-e056ead877c1",
+      "customerKey": "marina-gerbaudo",
+      "displayName": "Marina Gerbaudo",
+      "stage": "pronte_da_fare",
+      "stageName": "pronte_da_fare",
+      "module": "screening",
+      "productEvidence": "Schermature Solari",
+      "reseller": "idea tende cuneo",
+      "invoiceCount": null,
+      "complexity": "current_pipeline_unobserved",
+      "historicalRetest": null,
+      "expectedRouting": "standard",
+      "group": "pronte_da_fare",
+      "groupOrder": 1
+    }
+  ]
+}

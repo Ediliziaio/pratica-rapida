@@ -1,0 +1,24 @@
+{
+  "version": "apr-enea-server-readonly-proof-v1",
+  "observedAt": "2026-09-17T12:07:31.635Z",
+  "evidence": {
+    "version": "apr-enea-server-readonly-probe-v1",
+    "observedAt": "2026-09-17T12:07:31.635Z",
+    "serviceHeartbeatAt": "2026-09-17T12:07:29.544Z",
+    "sessionEvidenceId": "cdp-server-6937-ca078ec73ed9e248752a",
+    "profileFingerprint": "0ffd88dd3d6c108727f75fdea9df20f642bcfd92afbde077ce27e6cf7ce4bc9b",
+    "contractObservedAt": "2026-09-17T12:07:23.216Z",
+    "contractEvidenceId": "cdp-server-6937-ca078ec73ed9e248752a",
+    "getEvidenceId": "cdp-server-6936-ca078ec73ed9e248752a",
+    "targetId": "5A80C5AA22DAECA06C12BC1E09EABA5C",
+    "operationalUrl": "https://bonusfiscali.enea.it/dashboard",
+    "contractDomSha256": "ca078ec73ed9e248752a57f650c39c3f5272a99209b16cf8709f1fc382c433a0",
+    "getDomSha256": "ca078ec73ed9e248752a57f650c39c3f5272a99209b16cf8709f1fc382c433a0",
+    "operationalEnabled": false,
+    "forbiddenActionCount": 0,
+    "previewAttemptCount": 0,
+    "submitAttemptCount": 0,
+    "communicationAttemptCount": 0
+  },
+  "evidenceFingerprint": "ff02bb8555f9a74a0f1a3c96a0046587eb455b34fec5dcb7e6f0490be8c2e662"
+}

@@ -12,7 +12,49 @@ describe("registro operativo unico",()=>{
   });
   it("rende reperibili le regole solo per id",()=>expect(registryRule("core-form-first")?.step).toBe("customer_form"));
   it("registra le nuove regole utente con provenienza, precedenza e audit",()=>{
-    expect(ENEA_OPERATIONAL_REGISTRY_VERSION).toBe("enea-operational-registry-v152");
+    expect(ENEA_OPERATIONAL_REGISTRY_VERSION).toBe("enea-operational-registry-v176");
+    expect(registryRule("system-operator-response-ledger-concurrency-v1")).toMatchObject({
+      step: "checkpoint_persistence",
+      kind: "system",
+      outcome: "continue",
+      deterministicAction: expect.stringContaining("contesa transitoria"),
+      audit: expect.stringContaining("applicationId/responseId"),
+    });
+    expect(registryRule(USER_AUTHORIZED_RULE_IDS.operatorResponseRuntimeConsumption)).toMatchObject({
+      step: "checkpoint_persistence",
+      kind: "system",
+      outcome: "continue",
+      deterministicAction: expect.stringContaining("registro globale condiviso tra coorti"),
+      audit: expect.stringContaining("responseId"),
+    });
+    expect(registryRule(USER_AUTHORIZED_RULE_IDS.invoiceFinalPrintedTotalRuntimeAuthority)).toMatchObject({
+      step: "gross_reconciliation",
+      outcome: "continue",
+      provenance: { authority: "user", receivedAt: "2026-09-11" },
+      deterministicAction: expect.stringContaining("esclusivamente il totale finale stampato"),
+    });
+    expect(registryRule(USER_AUTHORIZED_RULE_IDS.advanceBalanceFiscalInvoiceEquivalence)).toMatchObject({
+      step: "economic_sources",
+      outcome: "continue",
+      deterministicAction: expect.stringContaining("advance e balance come fatture"),
+    });
+    expect(registryRule(USER_AUTHORIZED_RULE_IDS.infissiClosureMeasurementsNotApplicable)).toMatchObject({
+      step: "enea_mapping",
+      outcome: "continue",
+      provenance: { authority: "user", receivedAt: "2026-09-11" },
+      deterministicAction: expect.stringContaining("larghezza e altezza della chiusura non sono campi ENEA"),
+    });
+    expect(registryRule(USER_AUTHORIZED_RULE_IDS.invoiceSlotContentAuthority)).toMatchObject({
+      step: "economic_sources",
+      outcome: "continue",
+      deterministicAction: expect.stringContaining("identita, bonifici e visure"),
+    });
+    expect(registryRule(USER_AUTHORIZED_RULE_IDS.datedCommissioningReportCompletionPrecedence)).toMatchObject({
+      step: "dates",
+      outcome: "continue",
+      deterministicAction: expect.stringContaining("verbale di collaudo"),
+      audit: expect.stringContaining("date etichettate"),
+    });
     expect(registryRule(USER_AUTHORIZED_RULE_IDS.officialMunicipalityCanonicalIdentity)).toMatchObject({
       step: "identity_property",
       outcome: "continue",
@@ -26,6 +68,13 @@ describe("registro operativo unico",()=>{
       provenance: { authority: "user", receivedAt: "2026-09-03" },
       deterministicAction: expect.stringContaining("preflight"),
       audit: expect.stringContaining("customerKey"),
+    });
+    expect(registryRule(USER_AUTHORIZED_RULE_IDS.idealSistemManualExclusion)).toMatchObject({
+      step: "runner_lifecycle",
+      outcome: "requested_operator",
+      provenance: { authority: "user", receivedAt: "2026-09-10" },
+      deterministicAction: expect.stringContaining("excluded_upstream"),
+      audit: expect.stringContaining("assenza download/analisi/azione ENEA"),
     });
     expect(registryRule(USER_AUTHORIZED_RULE_IDS.technicalDocumentPracticeBinding)).toMatchObject({
       step: "screenings",
@@ -72,7 +121,7 @@ describe("registro operativo unico",()=>{
       step: "gross_reconciliation",
       outcome: "requested_operator",
       provenance: { authority: "user", receivedAt: "2026-08-26" },
-      deterministicAction: expect.stringContaining("Scadenza non leggibile, importo mancante"),
+      lifecycle: { status: "superseded", supersededByRuleId: USER_AUTHORIZED_RULE_IDS.invoiceFinalPrintedTotalRuntimeAuthority },
     });
     expect(registryRule(USER_AUTHORIZED_RULE_IDS.explicitBuildingTypeOverApartmentCount)).toMatchObject({
       step: "identity_property",
@@ -588,12 +637,38 @@ describe("registro operativo unico",()=>{
     expect(rule.audit).toContain("mutationAllowed=false");
   });
 
-  it("deriva Chiusure oscuranti soltanto dal SI/NO del form", () => {
+  it("conserva la vecchia precedenza del form soltanto come regola superseded", () => {
     const rule = registryRule(USER_AUTHORIZED_RULE_IDS.infissiShadingClosuresFromForm)!;
-    expect(rule).toMatchObject({ step: "enea_mapping", priority: 1_216, outcome: "requested_operator", provenance: { authority: "user", receivedAt: "2026-08-19" } });
+    expect(rule).toMatchObject({
+      step: "enea_mapping",
+      priority: 1_216,
+      outcome: "requested_operator",
+      provenance: { authority: "user", receivedAt: "2026-08-19" },
+      lifecycle: {
+        status: "superseded",
+        generalGateEligible: false,
+        supersededByRuleId: USER_AUTHORIZED_RULE_IDS.infissiInvoiceAuthoritativeShadingClosures,
+      },
+    });
     expect(rule.deterministicAction).toContain("SI, selezionare");
     expect(rule.deterministicAction).toContain("NO, lasciarlo non selezionato");
     expect(rule.deterministicAction).toContain("Non inferire il flag");
+  });
+
+  it("registra fattura autoritativa anche sul silenzio e la distinzione contestuale della zanzariera", () => {
+    const invoiceRule = registryRule(USER_AUTHORIZED_RULE_IDS.infissiInvoiceAuthoritativeShadingClosures)!;
+    const zanzarieraRule = registryRule(USER_AUTHORIZED_RULE_IDS.zanzarieraInfissiInstallationContext)!;
+    expect(invoiceRule).toMatchObject({
+      step: "enea_mapping",
+      priority: 1_285,
+      outcome: "requested_operator",
+      provenance: { authority: "user", receivedAt: "2026-09-10" },
+    });
+    expect(invoiceRule.deterministicAction).toContain("La fattura comanda anche quando tace");
+    expect(invoiceRule.deterministicAction).toContain("fascicolo fatture completo");
+    expect(invoiceRule.deterministicAction).toContain("fail-closed");
+    expect(zanzarieraRule.deterministicAction).toContain("insieme agli infissi");
+    expect(zanzarieraRule.deterministicAction).toContain("schermatura solare autonoma");
   });
 
   it("accantona solo Beatrice nel pilot senza cancellare report o propagare la decisione", () => {

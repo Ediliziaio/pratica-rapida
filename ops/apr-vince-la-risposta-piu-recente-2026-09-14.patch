@@ -1,0 +1,84 @@
+Subject: [PATCH] fix(apr): vince la risposta piu' recente — una richiesta di dato e' superata dalla risposta che arriva dopo
+
+Rossella Munafo, 11-14/09/2026. Nel ledger due risposte attive: la
+richiesta 'dato in attesa' dell'11/09 e le misure della bioclimatica del
+12/09 (400x300 cm), nessuna marcata superata. Le misure venivano applicate
+(prodotto 1/1) e la richiesta continuava a generare
+operator_response_pending_external_data: vinceva la vecchia, per tre giri.
+
+Decisione del titolare (13/09): vince la risposta piu' recente, per qualsiasi
+tipo. La proiezione del ledger ora espone operatorRequired solo se e'
+l'ultima risposta attiva sulla pratica; una richiesta seguita da qualunque
+altra risposta e' superata anche senza supersedesResponseId.
+
+Verificato sul ledger reale: proiezione di Munafo -> operatorRequired null,
+screeningProducts presenti. 9/9 ledger, 141/141 crmLocalPreflight, typecheck
+runner pulito.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+---
+--- a/scripts/enea-shadow-runner/operatorResponseLedger.ts
++++ b/scripts/enea-shadow-runner/operatorResponseLedger.ts
+@@ -265,7 +265,17 @@
+       physicalProductCount: latest("physical_product_count") ?? null,
+       documentRefresh: latest("document_refresh") ?? null,
+       caseDisposition: latest("case_disposition") ?? null,
+-      operatorRequired: latest("operator_required") ?? null,
++      // Decisione del titolare (13/09/2026): vince la risposta piu' recente,
++      // per qualsiasi tipo. Una richiesta "in attesa di dato" resta valida
++      // solo se e' l'ultima cosa che l'operatore ha detto su questa pratica:
++      // se dopo e' arrivata una risposta con il dato (misure, decisione,
++      // documento), la richiesta e' superata anche se nessuno l'ha marcata
++      // tale. Rossella Munafo: richiesta dell'11/09 e misure del 12/09
++      // entrambe attive, le misure applicate e la richiesta che continuava
++      // a bloccare la pratica — per tre giri.
++      operatorRequired: entries.at(-1)?.payload.kind === "operator_required"
++        ? entries.at(-1)!.payload as Extract<AprOperatorResponsePayload, { kind: "operator_required" }>
++        : null,
+       caseDecisions: entries.filter((entry) => entry.payload.kind === "case_decision").map((entry) => entry.payload as Extract<AprOperatorResponsePayload, { kind: "case_decision" }>),
+       generalRuleIds: [...new Set(entries.flatMap((entry) => entry.payload.kind === "general_rule_confirmation" ? entry.payload.ruleIds : []))],
+     };
+--- a/scripts/enea-shadow-runner/operatorResponseLedger.test.ts
++++ b/scripts/enea-shadow-runner/operatorResponseLedger.test.ts
+@@ -53,6 +53,41 @@
+     });
+   });
+ 
++  // Rossella Munafo, 11-14/09/2026: richiesta "dato in attesa" dell'11 e misure
++  // del 12 entrambe attive, nessuna marcata superata. Le misure venivano
++  // applicate e la richiesta continuava a bloccare la pratica, per tre giri.
++  it("vince la risposta piu' recente: una richiesta di dato seguita da una risposta con il dato non blocca piu'", () => {
++    const base = mkdtempSync(path.join(os.tmpdir(), "apr-operator-response-ledger-")); roots.push(base);
++    const root = path.join(base, "cohorts", "cohort-a"); mkdirSync(root, { recursive: true });
++    const ledger = new PersistentAprOperatorResponseLedger(root);
++    ledger.importResponses([
++      response("response:munafo:pending:20260911", "rossella-munafo", {
++        kind: "operator_required", operatorQuestion: "Indica le misure della bioclimatica riportate nel foglio manoscritto.", missingDocumentType: null,
++      }, "2026-09-11T09:37:00.000Z"),
++      response("response:munafo:dimensions:20260912", "rossella-munafo", {
++        kind: "screening_products", products: [{ description: "Bioclimatica", quantity: 1, widthMm: 4000, heightMm: 3000 }],
++      }, "2026-09-12T11:53:00.000Z"),
++    ]);
++    const projection = ledger.projection("rossella-munafo", "practice-fixture");
++    expect(projection.screeningProducts).toMatchObject({ products: [{ widthMm: 4000, heightMm: 3000 }] });
++    expect(projection.operatorRequired).toBeNull();
++  });
++
++  it("una richiesta di dato resta valida se e' davvero l'ultima cosa detta sulla pratica", () => {
++    const base = mkdtempSync(path.join(os.tmpdir(), "apr-operator-response-ledger-")); roots.push(base);
++    const root = path.join(base, "cohorts", "cohort-a"); mkdirSync(root, { recursive: true });
++    const ledger = new PersistentAprOperatorResponseLedger(root);
++    ledger.importResponses([
++      response("response:x:dimensions:20260911", "cliente-x", {
++        kind: "screening_products", products: [{ description: "Tenda", quantity: 1, widthMm: 3000, heightMm: 2000 }],
++      }, "2026-09-11T09:00:00.000Z"),
++      response("response:x:pending:20260912", "cliente-x", {
++        kind: "operator_required", operatorQuestion: "Serve ancora il certificato del produttore.", missingDocumentType: "certificato",
++      }, "2026-09-12T09:00:00.000Z"),
++    ]);
++    expect(ledger.projection("cliente-x", "practice-fixture").operatorRequired).toMatchObject({ operatorQuestion: "Serve ancora il certificato del produttore." });
++  });
++
+   it("applica soltanto campi strutturati ammessi e conserva immutato il resto del dossier", () => {
+     const root = mkdtempSync(path.join(os.tmpdir(), "apr-operator-response-fields-")); roots.push(root);
+     const ledger = new PersistentAprOperatorResponseLedger(root);

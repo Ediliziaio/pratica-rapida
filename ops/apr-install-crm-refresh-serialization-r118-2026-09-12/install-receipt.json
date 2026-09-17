@@ -1,0 +1,26 @@
+{
+  "version": "apr-install-bundle-cli-receipt-v1",
+  "installedAt": "2026-09-12T19:00:38.943Z",
+  "label": "crm-refresh-serialization-r118",
+  "versionId": "f086c1f4-crm-refresh-serialization-r118-20260912",
+  "previousTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/16bbdf1b-operator-response-ledger-concurrency-r117-20260912",
+  "currentTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/f086c1f4-crm-refresh-serialization-r118-20260912",
+  "installedBundle": {
+    "apr-supervisor.mjs": "eb87ebe9dc9e909de92471dba9aedc9660ef302c131018092e28bbf2fe4a671b",
+    "apr-enea-worker.mjs": "295b9fe0083f82243b7435c775ea02d3c5f0ab5f0aabf8ec820167bd899822ad",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "apr-rule-governance-attestation.json": "70ddef8f630051c448116deab7394bd155ecb840876a9e1ca50e983c11bf48e8"
+  },
+  "gateResultArtifactId": "58e35309b8ed5fc6ee77263d98cee338f6948bbb3935462434f185922c4b3d24",
+  "gateStatus": "PASS",
+  "governanceAttestation": {
+    "path": "apr-rule-governance-attestation.json",
+    "sha256": "70ddef8f630051c448116deab7394bd155ecb840876a9e1ca50e983c11bf48e8",
+    "historicalAuditReport": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-crm-refresh-serialization-r118-2026-09-12/historical-audit-report-r118.json",
+    "authorizedHistoricalGap": true
+  },
+  "legacyGovernanceDebtNoticed": [
+    "user-2026-09-05-co-beneficiary-trusted-enter-delivery-v2",
+    "user-2026-09-05-terminal-cohort-browser-quiescence-v1"
+  ]
+}

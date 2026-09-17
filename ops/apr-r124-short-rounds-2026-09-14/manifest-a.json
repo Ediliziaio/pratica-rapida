@@ -1,0 +1,40 @@
+{
+  "version": "apr-r124-short-round-a-manifest-v1",
+  "generatedAt": "2026-09-14T07:35:00.000Z",
+  "authorizationId": "user-2026-09-14-two-short-rounds-a-and-b-v1",
+  "selection": {
+    "total": 20,
+    "description": "Le 20 pratiche non salvate in r123, escluse le cinque ritirate indicate dal titolare.",
+    "allowedStages": ["archiviate", "recensione", "pronte_da_fare"],
+    "excludedCustomerKeys": ["nicolae-olteanu", "marco-de-marinis", "sabrina-eustomi", "maurizia-coreggioli", "antonio-maeschi", "beatrice-ciotta", "samuele-beretta"]
+  },
+  "safety": {
+    "draftOnly": true,
+    "previewAllowed": false,
+    "submitAllowed": false,
+    "communicationsAllowed": false,
+    "priorDraftPolicy": "preserve_and_ignore_for_new_test_draft"
+  },
+  "cases": [
+    {"cohort":11,"practiceId":"3e731c9e-ccea-4b30-b9bc-454f3ec60f06","customerKey":"milena-albertoni","displayName":"Milena Albertoni","stage":"archiviate","stageName":"Archiviate","module":"screening","productEvidence":"Schermature Solari","reseller":"lm tende","invoiceCount":2,"complexity":"medium","historicalRetest":true},
+    {"cohort":1,"practiceId":"7e616b55-67fd-4d6f-aa4b-42af0fa00ce4","customerKey":"vincenzo-falconi","displayName":"VINCENZO FALCONI","stage":"archiviate","stageName":"Archiviate","module":"screening","productEvidence":"Schermature Solari","reseller":"Zanzasol","invoiceCount":1,"complexity":"simple","historicalRetest":true},
+    {"cohort":65,"practiceId":"51ec4e1a-2600-482b-9fde-6b3976bbdbc2","customerKey":"gemma-minore","displayName":"Gemma Minore","stage":"recensione","stageName":"Recensione","module":"infissi","productEvidence":"Infissi / Serramenti","reseller":"Cisam Infissi Srl","invoiceCount":2,"complexity":"medium","historicalRetest":true,"group":"remaining_contractual"},
+    {"cohort":74,"practiceId":"b02daf33-b4e5-4ba5-90e1-85ebb3578fe9","customerKey":"paolino-bellini","displayName":"Paolino Bellini","stage":"archiviate","stageName":"Archiviate","module":"screening","productEvidence":"Schermature Solari","reseller":"Rinaldi Lab","invoiceCount":1,"complexity":"simple","historicalRetest":true,"sourceGroup":"reactivated_after_invoice_upload","reacquireBeforeReplay":true},
+    {"cohort":8,"practiceId":"53420a92-8872-4df5-8915-0b7f76be9e66","customerKey":"lea-dettori","displayName":"Lea Dettori","stage":"archiviate","stageName":"Archiviate","module":"screening","productEvidence":"Schermature Solari","reseller":"lm tende","invoiceCount":2,"complexity":"medium","historicalRetest":true},
+    {"cohort":61,"practiceId":"1778bb92-4090-499f-92e6-85599118399f","customerKey":"gloria-padoani","displayName":"Gloria Padoani","stage":"archiviate","stageName":"Archiviate","module":"screening","productEvidence":"Schermature Solari","reseller":"⚠️ Da abbinare — richieste sito","invoiceCount":1,"complexity":"simple","historicalRetest":true,"group":"remaining_contractual"},
+    {"cohort":67,"practiceId":"6f274566-2fc3-4e49-a40d-64538988f540","customerKey":"fausta-de-filippo","displayName":"Fausta De Filippo","stage":"recensione","stageName":"Recensione","module":"screening","productEvidence":"Schermature Solari","reseller":"vetratex","invoiceCount":1,"complexity":"simple","historicalRetest":true,"group":"remaining_contractual"},
+    {"cohort":68,"practiceId":"faed1722-65d5-4527-8aca-9928e1ea6f1e","customerKey":"danila-serpa","displayName":"Danila Serpa","stage":"archiviate","stageName":"Archiviate","module":"screening","productEvidence":"Schermature Solari","reseller":"Rinaldi Lab","invoiceCount":1,"complexity":"simple","historicalRetest":true,"group":"remaining_contractual"},
+    {"cohort":14,"practiceId":"5ffcaa4d-60d6-4c6f-92dd-158ba844b6d1","customerKey":"milena-fiorini","displayName":"Milena Fiorini","stage":"archiviate","stageName":"Archiviate","module":"screening","productEvidence":"Schermature Solari","reseller":"Cisam Infissi Srl","invoiceCount":2,"complexity":"medium","historicalRetest":true},
+    {"cohort":17,"practiceId":"64d1ab0c-7633-4f03-992b-2fe430584a4e","customerKey":"stefania-venturi","displayName":"Stefania Venturi","stage":"recensione","stageName":"Recensione","module":"screening","productEvidence":"Schermature Solari","reseller":"sa montaggi","invoiceCount":1,"complexity":"simple","historicalRetest":true},
+    {"cohort":22,"practiceId":"5f669e8b-9ef1-45f6-b00d-12449d741314","customerKey":"eugenio-codognato","displayName":"EUGENIO CODOGNATO","stage":"archiviate","stageName":"Archiviate","module":"infissi","productEvidence":"Infissi / Serramenti","reseller":"Finestra Italia","invoiceCount":6,"complexity":"complex","historicalRetest":true,"group":"historical_saved_regression"},
+    {"cohort":2,"practiceId":"92f0a811-6199-494e-bc12-dafefe1a37b2","customerKey":"rossella-munafo","displayName":"Rossella Munafò","stage":"recensione","stageName":"Recensione","module":"screening","productEvidence":"Schermature Solari","reseller":"Brianza serramenti","invoiceCount":2,"complexity":"medium","historicalRetest":true},
+    {"cohort":5,"practiceId":"99c19e81-7252-4325-afbd-1e7f2698b6df","customerKey":"patrizia-muzzi","displayName":"Patrizia Muzzi","stage":"recensione","stageName":"Recensione","module":"screening","productEvidence":"Schermature Solari","reseller":"⚠️ Da abbinare — richieste sito","invoiceCount":1,"complexity":"simple","historicalRetest":true},
+    {"cohort":30,"practiceId":"5323d52a-6473-46f1-a5aa-faf5568ae3fc","customerKey":"santo-giuga","displayName":"Santo Giuga","stage":"recensione","stageName":"Recensione","module":"infissi","productEvidence":"Infissi / Serramenti","reseller":"Innova Serramenti","invoiceCount":8,"complexity":"complex","historicalRetest":true,"group":"historical_saved_regression"},
+    {"cohort":37,"practiceId":"0a92f92c-22ed-4a43-b47e-6abe1d74282a","customerKey":"massimo-cappello","displayName":"massimo cappello","stage":"archiviate","stageName":"Archiviate","module":"infissi","productEvidence":"Infissi / Serramenti","reseller":"Rotondi infissi","invoiceCount":3,"complexity":"medium","historicalRetest":true,"group":"historical_saved_regression"},
+    {"cohort":54,"practiceId":"2803d6c1-f867-44a9-bff2-e67fcc230f7e","customerKey":"nicla-biagioni","displayName":"Nicla Biagioni","stage":"archiviate","stageName":"Archiviate","module":"infissi","productEvidence":"Infissi / Serramenti","reseller":"Finestra Italia","invoiceCount":3,"complexity":"medium","historicalRetest":true,"group":"remaining_contractual"},
+    {"cohort":58,"practiceId":"752e4dd5-604c-495d-92ff-8d0f89be7531","customerKey":"cesare-imperiali","displayName":"Cesare Imperiali","stage":"archiviate","stageName":"Archiviate","module":"infissi","productEvidence":"Infissi / Serramenti","reseller":"Brianza serramenti","invoiceCount":2,"complexity":"medium","historicalRetest":true,"group":"remaining_contractual"},
+    {"cohort":63,"practiceId":"491cf101-c6cd-4f48-9cf0-78c096d95c0e","customerKey":"mauro-leonardi","displayName":"Mauro Leonardi","stage":"recensione","stageName":"Recensione","module":"infissi","productEvidence":"Infissi / Serramenti","reseller":"Brianza serramenti","invoiceCount":2,"complexity":"medium","historicalRetest":true,"group":"remaining_contractual"},
+    {"cohort":75,"practiceId":"b35fc3d3-d441-48d0-99f0-1d1e967ab6e7","customerKey":"gabriele-girelli","displayName":"Gabriele Girelli","stage":"archiviate","stageName":"Archiviate","module":"infissi","productEvidence":"Infissi / Serramenti","reseller":"Innova Serramenti","invoiceCount":1,"complexity":"simple","historicalRetest":true,"sourceGroup":"reactivated_after_invoice_upload","reacquireBeforeReplay":true},
+    {"cohort":76,"practiceId":"84688adb-14d8-4a0a-957b-67626c27a886","customerKey":"silvia-lomartire","displayName":"silvia lomartire","stage":"pronte_da_fare","stageName":"pronte_da_fare","module":"screening","productEvidence":"Schermature Solari","reseller":"rinaldi lab","invoiceCount":null,"complexity":"current_pipeline_unobserved","historicalRetest":true,"expectedRouting":"standard","group":"pronte_da_fare","groupOrder":1,"sourceGroup":"reactivated_after_invoice_upload","reacquireBeforeReplay":true}
+  ]
+}

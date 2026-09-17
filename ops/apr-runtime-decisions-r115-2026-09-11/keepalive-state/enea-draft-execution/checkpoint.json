@@ -1,0 +1,38 @@
+{
+  "version": "apr-enea-draft-execution-v1",
+  "revision": 0,
+  "status": "blocked_preflight",
+  "sourceFingerprint": null,
+  "sourceRevisionFingerprints": [],
+  "currentCustomerKey": null,
+  "sessionEvidenceId": null,
+  "sessionVerifiedAt": null,
+  "items": [],
+  "supersededGenerations": [],
+  "reason": "Esecuzione bozza ENEA non preparata: preflight persistente richiesto.",
+  "nextAction": "Attendere una coorte TEST di almeno due casi con almeno un payload verde; i casi bloccati devono restare isolati e Beatrice Ciotta esclusa.",
+  "createCapability": "one_attempt_after_persistent_intent",
+  "saveCapability": "one_attempt_after_all_pages_checkpointed",
+  "previewAllowed": false,
+  "submitAllowed": false,
+  "communicationsAllowed": false,
+  "audit": [
+    {
+      "revision": 0,
+      "at": "2026-09-11T21:34:35.728Z",
+      "type": "initialized",
+      "customerKey": null,
+      "commandId": "system:draft-execution:init",
+      "reason": "Esecuzione bozza ENEA non preparata: preflight persistente richiesto.",
+      "nextAction": "Preparare la coda soltanto dal checkpoint preflight verde.",
+      "appliedRuleIds": [
+        "user-2026-08-14-green-preflight-create-save-draft",
+        "user-2026-08-14-test-stop-at-complete-saved-draft",
+        "system-atomic-checkpoint-resume"
+      ]
+    }
+  ],
+  "processedCommandIds": [
+    "system:draft-execution:init"
+  ]
+}

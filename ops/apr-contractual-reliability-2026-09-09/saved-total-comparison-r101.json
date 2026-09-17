@@ -1,0 +1,1294 @@
+{
+  "version": "apr-saved-total-comparison-aggregate-r101-v1",
+  "updatedAt": "2026-09-09T21:07:49.963Z",
+  "status": "completed",
+  "scope": "Tutte le pratiche SAVED del mirato e del lotto lungo r101",
+  "externalMutationAllowed": false,
+  "portalAccessed": false,
+  "historicalValuesMayFeedMapper": false,
+  "counts": {
+    "savedObserved": 41,
+    "compared": 41,
+    "concordant": 40,
+    "discordant": 1,
+    "notComparable": 0
+  },
+  "discordant": [
+    {
+      "version": "apr-saved-total-comparison-readonly-v3",
+      "generatedAt": "2026-09-09T17:09:44.074Z",
+      "executorIdentity": "APR/saved-total-comparison-readonly",
+      "externalMutationAllowed": false,
+      "historicalValuesMayFeedMapper": false,
+      "customerKey": "santo-giuga",
+      "displayName": "Santo Giuga",
+      "practiceId": "5323d52a-6473-46f1-a5aa-faf5568ae3fc",
+      "draftId": "479266",
+      "moduleName": "infissi",
+      "status": "discordant",
+      "fieldId": "infissi.spesa",
+      "aprTotal": {
+        "raw": 10953.08,
+        "euros": 10953.08
+      },
+      "humanTotal": {
+        "raw": "10678.08",
+        "euros": 10678.08
+      },
+      "deltaEuros": 275,
+      "historicalPath": "5323d52a-6473-46f1-a5aa-faf5568ae3fc/conclusa/a9fcdb0f-df8b-4565-99b3-12ddcc6dbe1e.pdf",
+      "historicalPdfSha256": "161a31a0627741555c79f92e74fb51c8ce79a8de55a34e3f6fbb25ec36f7c63d",
+      "sourceBenchmarkPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5313-global-controller-santo-giuga/historical-benchmark/checkpoint.json"
+    }
+  ],
+  "notComparable": [],
+  "concordant": [
+    {
+      "version": "apr-saved-total-comparison-readonly-v3",
+      "generatedAt": "2026-09-09T17:08:52.924Z",
+      "executorIdentity": "APR/saved-total-comparison-readonly",
+      "externalMutationAllowed": false,
+      "historicalValuesMayFeedMapper": false,
+      "customerKey": "vera-buracchi",
+      "displayName": "VERA BURACCHI",
+      "practiceId": "36978c5f-f8fb-43b0-8bd9-26665bf553ad",
+      "draftId": "478326",
+      "moduleName": "infissi",
+      "status": "concordant",
+      "fieldId": "infissi.spesa",
+      "aprTotal": {
+        "raw": 6426.92,
+        "euros": 6426.92
+      },
+      "humanTotal": {
+        "raw": "6426.92",
+        "euros": 6426.92
+      },
+      "deltaEuros": 0,
+      "historicalPath": "36978c5f-f8fb-43b0-8bd9-26665bf553ad/conclusa/d899b365-892d-4d6a-bdee-e943e734618d.pdf",
+      "historicalPdfSha256": "cd0b143fec5ffdd3fd83f3da65753e6bf4270b374c31c440e730a10ad662de0b",
+      "sourceBenchmarkPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5221-global-controller-vera-buracchi/historical-benchmark/checkpoint.json"
+    },
+    {
+      "version": "apr-saved-total-comparison-readonly-v3",
+      "generatedAt": "2026-09-09T17:08:55.093Z",
+      "executorIdentity": "APR/saved-total-comparison-readonly",
+      "externalMutationAllowed": false,
+      "historicalValuesMayFeedMapper": false,
+      "customerKey": "della-maria-carla-vigetti",
+      "displayName": "Della Mariacarla Vigetti",
+      "practiceId": "802a1cc1-c046-4c4b-a245-25401217740f",
+      "draftId": "478381",
+      "moduleName": "screening",
+      "status": "concordant",
+      "fieldId": "schermature.spesa",
+      "aprTotal": {
+        "raw": "4575,00",
+        "euros": 4575
+      },
+      "humanTotal": {
+        "raw": "4575",
+        "euros": 4575
+      },
+      "deltaEuros": 0,
+      "historicalPath": "802a1cc1-c046-4c4b-a245-25401217740f/conclusa/002e56ac-2e19-4487-8ddd-71ec16a9f270.pdf",
+      "historicalPdfSha256": "d5517a5dd4afe4f6ef6f0d81886d9caae6ad5f460294a5c86dd8bae18f1de09c",
+      "sourceBenchmarkPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5222-global-controller-della-maria-carla-vigetti/historical-benchmark/checkpoint.json"
+    },
+    {
+      "version": "apr-saved-total-comparison-readonly-v3",
+      "generatedAt": "2026-09-09T17:08:57.188Z",
+      "executorIdentity": "APR/saved-total-comparison-readonly",
+      "externalMutationAllowed": false,
+      "historicalValuesMayFeedMapper": false,
+      "customerKey": "natale-tiraboschi",
+      "displayName": "Natale Tiraboschi",
+      "practiceId": "805249c4-7248-40ac-990c-6d00cba517c8",
+      "draftId": "478431",
+      "moduleName": "screening",
+      "status": "concordant",
+      "fieldId": "schermature.spesa",
+      "aprTotal": {
+        "raw": "2035,00",
+        "euros": 2035
+      },
+      "humanTotal": {
+        "raw": "2035",
+        "euros": 2035
+      },
+      "deltaEuros": 0,
+      "historicalPath": "805249c4-7248-40ac-990c-6d00cba517c8/conclusa/82aa29f8-91bf-43d0-bb34-747698baca2a.pdf",
+      "historicalPdfSha256": "6a4a0fc4410b239f39f43254d31bc14374683484194b4a451329fa284e66b76a",
+      "sourceBenchmarkPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5225-global-controller-natale-tiraboschi/historical-benchmark/checkpoint.json"
+    },
+    {
+      "version": "apr-saved-total-comparison-readonly-v3",
+      "generatedAt": "2026-09-09T17:08:59.798Z",
+      "executorIdentity": "APR/saved-total-comparison-readonly",
+      "externalMutationAllowed": false,
+      "historicalValuesMayFeedMapper": false,
+      "customerKey": "giovanni-pescatori",
+      "displayName": "Giovanni Pescatori",
+      "practiceId": "20c7c802-85da-4d7e-95a3-482b66151b16",
+      "draftId": "478484",
+      "moduleName": "screening",
+      "status": "concordant",
+      "fieldId": "schermature.spesa",
+      "aprTotal": {
+        "raw": "2257,00",
+        "euros": 2257
+      },
+      "humanTotal": {
+        "raw": "2257",
+        "euros": 2257
+      },
+      "deltaEuros": 0,
+      "historicalPath": "20c7c802-85da-4d7e-95a3-482b66151b16/conclusa/8a59ff49-a8af-4f5d-94e6-826da1529a45.pdf",
+      "historicalPdfSha256": "3283c6eda05e338a605ee89d5bb435d96b617cf12d6b740d071c8b4dfa99332f",
+      "sourceBenchmarkPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5227-global-controller-giovanni-pescatori/historical-benchmark/checkpoint.json"
+    },
+    {
+      "version": "apr-saved-total-comparison-readonly-v3",
+      "generatedAt": "2026-09-09T17:09:02.037Z",
+      "executorIdentity": "APR/saved-total-comparison-readonly",
+      "externalMutationAllowed": false,
+      "historicalValuesMayFeedMapper": false,
+      "customerKey": "fares-hassairi",
+      "displayName": "Fares Hassairi",
+      "practiceId": "62510980-062e-4278-83f9-6a583089f783",
+      "draftId": "478525",
+      "moduleName": "screening",
+      "status": "concordant",
+      "fieldId": "schermature.spesa",
+      "aprTotal": {
+        "raw": "3355,00",
+        "euros": 3355
+      },
+      "humanTotal": {
+        "raw": "3355",
+        "euros": 3355
+      },
+      "deltaEuros": 0,
+      "historicalPath": "62510980-062e-4278-83f9-6a583089f783/conclusa/6cef1995-fe86-4e4e-abf0-a02d2ccef4b7.pdf",
+      "historicalPdfSha256": "a323b8ddd4b5d574862dfeb787a4e5f91fed5b78d8a3323a3795839fac741890",
+      "sourceBenchmarkPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5228-global-controller-fares-hassairi/historical-benchmark/checkpoint.json"
+    },
+    {
+      "version": "apr-saved-total-comparison-readonly-v3",
+      "generatedAt": "2026-09-09T17:09:04.639Z",
+      "executorIdentity": "APR/saved-total-comparison-readonly",
+      "externalMutationAllowed": false,
+      "historicalValuesMayFeedMapper": false,
+      "customerKey": "milena-albertoni",
+      "displayName": "Milena Albertoni",
+      "practiceId": "3e731c9e-ccea-4b30-b9bc-454f3ec60f06",
+      "draftId": "478561",
+      "moduleName": "screening",
+      "status": "concordant",
+      "fieldId": "schermature.spesa",
+      "aprTotal": {
+        "raw": "1830,00",
+        "euros": 1830
+      },
+      "humanTotal": {
+        "raw": "1830",
+        "euros": 1830
+      },
+      "deltaEuros": 0,
+      "historicalPath": "3e731c9e-ccea-4b30-b9bc-454f3ec60f06/conclusa/c6e39d20-18d7-4af9-8f3b-38fbdc147390.pdf",
+      "historicalPdfSha256": "fc30087dfb2fe98b94075a7bcaf9baa173858e109970568d4527cbb5d302fa48",
+      "sourceBenchmarkPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5229-global-controller-milena-albertoni/historical-benchmark/checkpoint.json"
+    },
+    {
+      "version": "apr-saved-total-comparison-readonly-v3",
+      "generatedAt": "2026-09-09T17:09:06.918Z",
+      "executorIdentity": "APR/saved-total-comparison-readonly",
+      "externalMutationAllowed": false,
+      "historicalValuesMayFeedMapper": false,
+      "customerKey": "cataldo-cassone",
+      "displayName": "Cataldo Cassone",
+      "practiceId": "46a577d1-53f3-438e-9a85-96ae4d246259",
+      "draftId": "478596",
+      "moduleName": "screening",
+      "status": "concordant",
+      "fieldId": "schermature.spesa",
+      "aprTotal": {
+        "raw": "1403,00",
+        "euros": 1403
+      },
+      "humanTotal": {
+        "raw": "1403",
+        "euros": 1403
+      },
+      "deltaEuros": 0,
+      "historicalPath": "46a577d1-53f3-438e-9a85-96ae4d246259/conclusa/3e98988b-c678-42a9-ad28-69b4f5160cc9.pdf",
+      "historicalPdfSha256": "5d6e57767f7bcca4765bed97b63a66087207820f71d9cda5f320d49ac5dea3c1",
+      "sourceBenchmarkPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5230-global-controller-cataldo-cassone/historical-benchmark/checkpoint.json"
+    },
+    {
+      "version": "apr-saved-total-comparison-readonly-v3",
+      "generatedAt": "2026-09-09T17:09:09.126Z",
+      "executorIdentity": "APR/saved-total-comparison-readonly",
+      "externalMutationAllowed": false,
+      "historicalValuesMayFeedMapper": false,
+      "customerKey": "marco-tocchetti",
+      "displayName": "Marco Tocchetti",
+      "practiceId": "1b6d780a-2e81-415f-9a27-c67e2f19e846",
+      "draftId": "478622",
+      "moduleName": "screening",
+      "status": "concordant",
+      "fieldId": "schermature.spesa",
+      "aprTotal": {
+        "raw": "4100,00",
+        "euros": 4100
+      },
+      "humanTotal": {
+        "raw": "4100",
+        "euros": 4100
+      },
+      "deltaEuros": 0,
+      "historicalPath": "1b6d780a-2e81-415f-9a27-c67e2f19e846/conclusa/9c531c74-9ecd-4085-99a1-3409a9ced711.pdf",
+      "historicalPdfSha256": "5cec5c1faf14d62d1c1edb17be60e7876e412ec567a4f909965dd4063b284134",
+      "sourceBenchmarkPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5231-global-controller-marco-tocchetti/historical-benchmark/checkpoint.json"
+    },
+    {
+      "version": "apr-saved-total-comparison-readonly-v3",
+      "generatedAt": "2026-09-09T17:09:11.540Z",
+      "executorIdentity": "APR/saved-total-comparison-readonly",
+      "externalMutationAllowed": false,
+      "historicalValuesMayFeedMapper": false,
+      "customerKey": "claudio-beghini",
+      "displayName": "Claudio Beghini",
+      "practiceId": "d4f1480f-a224-415e-b4c0-121db8040ef8",
+      "draftId": "478694",
+      "moduleName": "screening",
+      "status": "concordant",
+      "fieldId": "schermature.spesa",
+      "aprTotal": {
+        "raw": "3477,00",
+        "euros": 3477
+      },
+      "humanTotal": {
+        "raw": "3477",
+        "euros": 3477
+      },
+      "deltaEuros": 0,
+      "historicalPath": "d4f1480f-a224-415e-b4c0-121db8040ef8/conclusa/41d42156-2bfb-4e7a-8bed-d132497f6b4f.pdf",
+      "historicalPdfSha256": "28e064a4a27da1ff043248bee7e32bd5b840c8549d0844c27338b088d9bb1ddf",
+      "sourceBenchmarkPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5233-global-controller-claudio-beghini/historical-benchmark/checkpoint.json"
+    },
+    {
+      "version": "apr-saved-total-comparison-readonly-v3",
+      "generatedAt": "2026-09-09T17:09:13.731Z",
+      "executorIdentity": "APR/saved-total-comparison-readonly",
+      "externalMutationAllowed": false,
+      "historicalValuesMayFeedMapper": false,
+      "customerKey": "gianluigi-chiolini",
+      "displayName": "Gianluigi Chiolin",
+      "practiceId": "d77a8626-54ac-408c-b7c2-58fd10d3e25a",
+      "draftId": "478721",
+      "moduleName": "screening",
+      "status": "concordant",
+      "fieldId": "schermature.spesa",
+      "aprTotal": {
+        "raw": "3172,00",
+        "euros": 3172
+      },
+      "humanTotal": {
+        "raw": "3172",
+        "euros": 3172
+      },
+      "deltaEuros": 0,
+      "historicalPath": "d77a8626-54ac-408c-b7c2-58fd10d3e25a/conclusa/f4fa048b-4293-4ac6-bd27-a71ed40ae2f4.pdf",
+      "historicalPdfSha256": "54b39929028bde1c6a50d0f4c403b8081584a0a5a326a965c1bf8dfbe8335937",
+      "sourceBenchmarkPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5234-global-controller-gianluigi-chiolini/historical-benchmark/checkpoint.json"
+    },
+    {
+      "version": "apr-saved-total-comparison-readonly-v3",
+      "generatedAt": "2026-09-09T17:09:15.696Z",
+      "executorIdentity": "APR/saved-total-comparison-readonly",
+      "externalMutationAllowed": false,
+      "historicalValuesMayFeedMapper": false,
+      "customerKey": "lucia-droghetti",
+      "displayName": "LUCIA DROGHETTI",
+      "practiceId": "652f820b-9d49-4706-a8bc-87931bec5148",
+      "draftId": "478948",
+      "moduleName": "screening",
+      "status": "concordant",
+      "fieldId": "schermature.spesa",
+      "aprTotal": {
+        "raw": "2000,00",
+        "euros": 2000
+      },
+      "humanTotal": {
+        "raw": "2000",
+        "euros": 2000
+      },
+      "deltaEuros": 0,
+      "historicalPath": "652f820b-9d49-4706-a8bc-87931bec5148/conclusa/bd7cbd7d-507a-4d0f-a75d-1d5766054f3b.pdf",
+      "historicalPdfSha256": "ff2802f55adf94599a77ea87293ffa4379a215d6362b8cf88720ff786410edf7",
+      "sourceBenchmarkPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5301-global-controller-lucia-droghetti/historical-benchmark/checkpoint.json"
+    },
+    {
+      "version": "apr-saved-total-comparison-readonly-v3",
+      "generatedAt": "2026-09-09T17:09:17.841Z",
+      "executorIdentity": "APR/saved-total-comparison-readonly",
+      "externalMutationAllowed": false,
+      "historicalValuesMayFeedMapper": false,
+      "customerKey": "angela-tuttolani",
+      "displayName": "Angela Tuttolani",
+      "practiceId": "8e011a14-60b7-43f4-8b35-04626b35bc91",
+      "draftId": "478967",
+      "moduleName": "screening",
+      "status": "concordant",
+      "fieldId": "schermature.spesa",
+      "aprTotal": {
+        "raw": "2500,00",
+        "euros": 2500
+      },
+      "humanTotal": {
+        "raw": "2500",
+        "euros": 2500
+      },
+      "deltaEuros": 0,
+      "historicalPath": "8e011a14-60b7-43f4-8b35-04626b35bc91/conclusa/6622c5c9-79cf-48e9-8378-9cb86d621221.pdf",
+      "historicalPdfSha256": "a97414e1bcc502123fb2b5cc668b9813ab9993454b49ec292949de424829a5f3",
+      "sourceBenchmarkPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5302-global-controller-angela-tuttolani/historical-benchmark/checkpoint.json"
+    },
+    {
+      "version": "apr-saved-total-comparison-readonly-v3",
+      "generatedAt": "2026-09-09T17:09:19.845Z",
+      "executorIdentity": "APR/saved-total-comparison-readonly",
+      "externalMutationAllowed": false,
+      "historicalValuesMayFeedMapper": false,
+      "customerKey": "gianfranco-lavezzi",
+      "displayName": "gianfranco lavezzi",
+      "practiceId": "49f0a3c1-698c-44c4-ae31-d09ad994196d",
+      "draftId": "478986",
+      "moduleName": "screening",
+      "status": "concordant",
+      "fieldId": "schermature.spesa",
+      "aprTotal": {
+        "raw": "2200,00",
+        "euros": 2200
+      },
+      "humanTotal": {
+        "raw": "2200",
+        "euros": 2200
+      },
+      "deltaEuros": 0,
+      "historicalPath": "49f0a3c1-698c-44c4-ae31-d09ad994196d/conclusa/a64ae2ce-c166-4685-9e0c-7349b8a4e2ac.pdf",
+      "historicalPdfSha256": "5d27b3fdf1a08e06de67726ccd9140001798d2e5b3b45bf9e4550efa7df22206",
+      "sourceBenchmarkPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5303-global-controller-gianfranco-lavezzi/historical-benchmark/checkpoint.json"
+    },
+    {
+      "version": "apr-saved-total-comparison-readonly-v3",
+      "generatedAt": "2026-09-09T17:09:22.059Z",
+      "executorIdentity": "APR/saved-total-comparison-readonly",
+      "externalMutationAllowed": false,
+      "historicalValuesMayFeedMapper": false,
+      "customerKey": "matteo-capitanelli",
+      "displayName": "MATTEO CAPITANELLI",
+      "practiceId": "61b0dc51-4959-46e7-bd6d-37c8f1981c52",
+      "draftId": "479032",
+      "moduleName": "infissi",
+      "status": "concordant",
+      "fieldId": "infissi.spesa",
+      "aprTotal": {
+        "raw": 9819,
+        "euros": 9819
+      },
+      "humanTotal": {
+        "raw": "9819",
+        "euros": 9819
+      },
+      "deltaEuros": 0,
+      "historicalPath": "61b0dc51-4959-46e7-bd6d-37c8f1981c52/conclusa/d9f1273c-1cfd-4452-a44e-d50fd2329903.pdf",
+      "historicalPdfSha256": "8b92d44d28f5494dc139a4f54ae56fef39fafd99df6849f0b033be2908c123cd",
+      "sourceBenchmarkPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5304-global-controller-matteo-capitanelli/historical-benchmark/checkpoint.json"
+    },
+    {
+      "version": "apr-saved-total-comparison-readonly-v3",
+      "generatedAt": "2026-09-09T17:09:24.903Z",
+      "executorIdentity": "APR/saved-total-comparison-readonly",
+      "externalMutationAllowed": false,
+      "historicalValuesMayFeedMapper": false,
+      "customerKey": "eugenio-codognato",
+      "displayName": "EUGENIO CODOGNATO",
+      "practiceId": "5f669e8b-9ef1-45f6-b00d-12449d741314",
+      "draftId": "479069",
+      "moduleName": "infissi",
+      "status": "concordant",
+      "fieldId": "infissi.spesa",
+      "aprTotal": {
+        "raw": 18997,
+        "euros": 18997
+      },
+      "humanTotal": {
+        "raw": "18997",
+        "euros": 18997
+      },
+      "deltaEuros": 0,
+      "historicalPath": "5f669e8b-9ef1-45f6-b00d-12449d741314/conclusa/aabf7558-689c-4ca0-859d-4941ee5e8536.pdf",
+      "historicalPdfSha256": "a755371997ed7a2be1709c73b89822f2e0be8add36a0eb364c5d4c9d54160ed5",
+      "sourceBenchmarkPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5305-global-controller-eugenio-codognato/historical-benchmark/checkpoint.json"
+    },
+    {
+      "version": "apr-saved-total-comparison-readonly-v3",
+      "generatedAt": "2026-09-09T17:09:27.215Z",
+      "executorIdentity": "APR/saved-total-comparison-readonly",
+      "externalMutationAllowed": false,
+      "historicalValuesMayFeedMapper": false,
+      "customerKey": "gregorio-fusco",
+      "displayName": "gregorio fusco",
+      "practiceId": "7b8fa856-36d9-471b-82f5-a0ae194469b2",
+      "draftId": "479120",
+      "moduleName": "infissi",
+      "status": "concordant",
+      "fieldId": "infissi.spesa",
+      "aprTotal": {
+        "raw": 7230.07,
+        "euros": 7230.07
+      },
+      "humanTotal": {
+        "raw": "7230.07",
+        "euros": 7230.07
+      },
+      "deltaEuros": 0,
+      "historicalPath": "7b8fa856-36d9-471b-82f5-a0ae194469b2/conclusa/899d6283-055d-445d-9a55-1483cf08867e.pdf",
+      "historicalPdfSha256": "20f0eb9353b89a6c6614ca072d1a3312fbbbe902b532423a3223103f6e8cb56b",
+      "sourceBenchmarkPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5306-global-controller-gregorio-fusco/historical-benchmark/checkpoint.json"
+    },
+    {
+      "version": "apr-saved-total-comparison-readonly-v3",
+      "generatedAt": "2026-09-09T17:09:29.137Z",
+      "executorIdentity": "APR/saved-total-comparison-readonly",
+      "externalMutationAllowed": false,
+      "historicalValuesMayFeedMapper": false,
+      "customerKey": "luca-ronconi",
+      "displayName": "Luca Ronconi",
+      "practiceId": "98d44d99-86af-4fec-ba55-ffe24d208e83",
+      "draftId": "479148",
+      "moduleName": "screening",
+      "status": "concordant",
+      "fieldId": "schermature.spesa",
+      "aprTotal": {
+        "raw": "1575,01",
+        "euros": 1575.01
+      },
+      "humanTotal": {
+        "raw": "1575.01",
+        "euros": 1575.01
+      },
+      "deltaEuros": 0,
+      "historicalPath": "98d44d99-86af-4fec-ba55-ffe24d208e83/conclusa/a1b8c78b-d223-42ae-a09c-2ca92d16bc69.pdf",
+      "historicalPdfSha256": "c0933c3e26a3d3b2ce011a5732eea566bb79e7c360620e3928d02311fe9c84bc",
+      "sourceBenchmarkPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5307-global-controller-luca-ronconi/historical-benchmark/checkpoint.json"
+    },
+    {
+      "version": "apr-saved-total-comparison-readonly-v3",
+      "generatedAt": "2026-09-09T17:09:31.585Z",
+      "executorIdentity": "APR/saved-total-comparison-readonly",
+      "externalMutationAllowed": false,
+      "historicalValuesMayFeedMapper": false,
+      "customerKey": "andrea-trabucco",
+      "displayName": "Andrea Trabucco",
+      "practiceId": "fe20bff9-ded6-4380-9452-e20c4410a0c7",
+      "draftId": "479168",
+      "moduleName": "infissi",
+      "status": "concordant",
+      "fieldId": "infissi.spesa",
+      "aprTotal": {
+        "raw": 1274.02,
+        "euros": 1274.02
+      },
+      "humanTotal": {
+        "raw": "1274.02",
+        "euros": 1274.02
+      },
+      "deltaEuros": 0,
+      "historicalPath": "fe20bff9-ded6-4380-9452-e20c4410a0c7/conclusa/8975cc15-3738-44ce-b240-d6e9e6fad6eb.pdf",
+      "historicalPdfSha256": "ca99becf10d80e7a7c85e0d385b3e66b1d39bc0a3fc566d063e857810e44ce1a",
+      "sourceBenchmarkPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5308-global-controller-andrea-trabucco/historical-benchmark/checkpoint.json"
+    },
+    {
+      "version": "apr-saved-total-comparison-readonly-v3",
+      "generatedAt": "2026-09-09T17:09:33.689Z",
+      "executorIdentity": "APR/saved-total-comparison-readonly",
+      "externalMutationAllowed": false,
+      "historicalValuesMayFeedMapper": false,
+      "customerKey": "antonella-ferletic",
+      "displayName": "Antonella Ferletic",
+      "practiceId": "3e7d38d2-e40d-4304-850c-e128698be78e",
+      "draftId": "479185",
+      "moduleName": "screening",
+      "status": "concordant",
+      "fieldId": "schermature.spesa",
+      "aprTotal": {
+        "raw": "2200,00",
+        "euros": 2200
+      },
+      "humanTotal": {
+        "raw": "2200",
+        "euros": 2200
+      },
+      "deltaEuros": 0,
+      "historicalPath": "3e7d38d2-e40d-4304-850c-e128698be78e/conclusa/7f4a39bf-69b3-4c7d-84e8-1043b41df400.pdf",
+      "historicalPdfSha256": "2233992027ffe168c4d1a700ca7c63ad3b59037bd4a182f4f31f842f2d06bc81",
+      "sourceBenchmarkPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5309-global-controller-antonella-ferletic/historical-benchmark/checkpoint.json"
+    },
+    {
+      "version": "apr-saved-total-comparison-readonly-v3",
+      "generatedAt": "2026-09-09T17:09:35.817Z",
+      "executorIdentity": "APR/saved-total-comparison-readonly",
+      "externalMutationAllowed": false,
+      "historicalValuesMayFeedMapper": false,
+      "customerKey": "luca-cigognetti",
+      "displayName": "Luca Cigognetti",
+      "practiceId": "77c5e8b6-34f8-4f1b-830a-526addefdd7d",
+      "draftId": "479202",
+      "moduleName": "infissi",
+      "status": "concordant",
+      "fieldId": "infissi.spesa",
+      "aprTotal": {
+        "raw": 12772.4,
+        "euros": 12772.4
+      },
+      "humanTotal": {
+        "raw": "12772.4",
+        "euros": 12772.4
+      },
+      "deltaEuros": 0,
+      "historicalPath": "77c5e8b6-34f8-4f1b-830a-526addefdd7d/conclusa/2bee7034-3a83-4cb1-8227-f90c43b2df97.pdf",
+      "historicalPdfSha256": "b8945100c82862641fa23ac7b118291560e9eab09197aef053eb866123a0cd67",
+      "sourceBenchmarkPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5310-global-controller-luca-cigognetti/historical-benchmark/checkpoint.json"
+    },
+    {
+      "version": "apr-saved-total-comparison-readonly-v3",
+      "generatedAt": "2026-09-09T17:09:38.171Z",
+      "executorIdentity": "APR/saved-total-comparison-readonly",
+      "externalMutationAllowed": false,
+      "historicalValuesMayFeedMapper": false,
+      "customerKey": "lia-chiericati",
+      "displayName": "Lia Chiericati",
+      "practiceId": "2cef7991-a654-4cd6-b2b8-623cefce596b",
+      "draftId": "479236",
+      "moduleName": "screening",
+      "status": "concordant",
+      "fieldId": "schermature.spesa",
+      "aprTotal": {
+        "raw": "4793,20",
+        "euros": 4793.2
+      },
+      "humanTotal": {
+        "raw": "4793.2",
+        "euros": 4793.2
+      },
+      "deltaEuros": 0,
+      "historicalPath": "2cef7991-a654-4cd6-b2b8-623cefce596b/conclusa/2ec5946d-bdd2-454a-a809-8a1926e86d0f.pdf",
+      "historicalPdfSha256": "f13a95bc40d02d20699b08c79d73b6f1daba7dd13f223db8343cac9994212bc9",
+      "sourceBenchmarkPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5311-global-controller-lia-chiericati/historical-benchmark/checkpoint.json"
+    },
+    {
+      "version": "apr-saved-total-comparison-readonly-v3",
+      "generatedAt": "2026-09-09T17:09:40.920Z",
+      "executorIdentity": "APR/saved-total-comparison-readonly",
+      "externalMutationAllowed": false,
+      "historicalValuesMayFeedMapper": false,
+      "customerKey": "monica-molteni",
+      "displayName": "Monica Molteni",
+      "practiceId": "aa8d417f-8450-4283-b328-dc8c9cb573ba",
+      "draftId": "479254",
+      "moduleName": "screening",
+      "status": "concordant",
+      "fieldId": "schermature.spesa",
+      "aprTotal": {
+        "raw": "2500,00",
+        "euros": 2500
+      },
+      "humanTotal": {
+        "raw": "2500",
+        "euros": 2500
+      },
+      "deltaEuros": 0,
+      "historicalPath": "aa8d417f-8450-4283-b328-dc8c9cb573ba/conclusa/47a68eb3-7e0a-4109-9c6b-0c1b3ef56395.pdf",
+      "historicalPdfSha256": "739874137c6402da4ad1f6dfe92819da859719f19f3a24b3d515b560263eab2b",
+      "sourceBenchmarkPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5312-global-controller-monica-molteni/historical-benchmark/checkpoint.json"
+    },
+    {
+      "version": "apr-saved-total-comparison-readonly-v3",
+      "generatedAt": "2026-09-09T17:09:46.464Z",
+      "executorIdentity": "APR/saved-total-comparison-readonly",
+      "externalMutationAllowed": false,
+      "historicalValuesMayFeedMapper": false,
+      "customerKey": "claudia-campagna",
+      "displayName": "Claudia Campagna",
+      "practiceId": "eed0922f-b5ec-4e8f-b860-d746ed93528e",
+      "draftId": "479311",
+      "moduleName": "screening",
+      "status": "concordant",
+      "fieldId": "schermature.spesa",
+      "aprTotal": {
+        "raw": "2276,06",
+        "euros": 2276.06
+      },
+      "humanTotal": {
+        "raw": "2276.06",
+        "euros": 2276.06
+      },
+      "deltaEuros": 0,
+      "historicalPath": "eed0922f-b5ec-4e8f-b860-d746ed93528e/conclusa/95eccd22-1123-434e-8da8-69c4030032bf.pdf",
+      "historicalPdfSha256": "ae683c82a8f3c6b4267725abb0794c94dcc0bef9a5f79e2c6f0bcbc867475037",
+      "sourceBenchmarkPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5314-global-controller-claudia-campagna/historical-benchmark/checkpoint.json"
+    },
+    {
+      "version": "apr-saved-total-comparison-readonly-v3",
+      "generatedAt": "2026-09-09T17:09:48.587Z",
+      "executorIdentity": "APR/saved-total-comparison-readonly",
+      "externalMutationAllowed": false,
+      "historicalValuesMayFeedMapper": false,
+      "customerKey": "fabio-sartori",
+      "displayName": "Fabio Sartori",
+      "practiceId": "9b996147-82e1-4438-affe-9fcec062c003",
+      "draftId": "479342",
+      "moduleName": "screening",
+      "status": "concordant",
+      "fieldId": "schermature.spesa",
+      "aprTotal": {
+        "raw": "4000,00",
+        "euros": 4000
+      },
+      "humanTotal": {
+        "raw": "4000",
+        "euros": 4000
+      },
+      "deltaEuros": 0,
+      "historicalPath": "9b996147-82e1-4438-affe-9fcec062c003/conclusa/e1231397-86ce-4a1b-b3f4-c86cb756d161.pdf",
+      "historicalPdfSha256": "cde2dadbd15e5c9adce27a60aedebc8d8059a19fe2ffb8f08c7803efb32ef56c",
+      "sourceBenchmarkPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5315-global-controller-fabio-sartori/historical-benchmark/checkpoint.json"
+    },
+    {
+      "version": "apr-saved-total-comparison-readonly-v3",
+      "generatedAt": "2026-09-09T17:09:50.594Z",
+      "executorIdentity": "APR/saved-total-comparison-readonly",
+      "externalMutationAllowed": false,
+      "historicalValuesMayFeedMapper": false,
+      "customerKey": "annalisa-lanzo",
+      "displayName": "ANNALISA LANZO",
+      "practiceId": "b51df57d-dae2-4ddc-bf99-904673ebe50d",
+      "draftId": "479363",
+      "moduleName": "screening",
+      "status": "concordant",
+      "fieldId": "schermature.spesa",
+      "aprTotal": {
+        "raw": "1400,00",
+        "euros": 1400
+      },
+      "humanTotal": {
+        "raw": "1400",
+        "euros": 1400
+      },
+      "deltaEuros": 0,
+      "historicalPath": "b51df57d-dae2-4ddc-bf99-904673ebe50d/conclusa/946b82d1-e4ad-4a18-acb4-b33acd93a2d4.pdf",
+      "historicalPdfSha256": "91a1f95e409c171b660dc9435627f8635f2353416b4d6a4c06276b8edde7bceb",
+      "sourceBenchmarkPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5316-global-controller-annalisa-lanzo/historical-benchmark/checkpoint.json"
+    },
+    {
+      "version": "apr-saved-total-comparison-readonly-v3",
+      "generatedAt": "2026-09-09T17:14:57.504Z",
+      "executorIdentity": "APR/saved-total-comparison-readonly",
+      "externalMutationAllowed": false,
+      "historicalValuesMayFeedMapper": false,
+      "customerKey": "monica-ambra-fioravanti",
+      "displayName": "MONICA AMBRA FIORAVANTI",
+      "practiceId": "b8eb5a0a-21f8-4400-bd8c-ed1c39751b10",
+      "draftId": "479410",
+      "moduleName": "screening",
+      "status": "concordant",
+      "fieldId": "schermature.spesa",
+      "aprTotal": {
+        "raw": "4950,01",
+        "euros": 4950.01
+      },
+      "humanTotal": {
+        "raw": "4950",
+        "euros": 4950
+      },
+      "deltaEuros": 0.01,
+      "historicalPath": "b8eb5a0a-21f8-4400-bd8c-ed1c39751b10/conclusa/7b996707-f248-48bf-bf9a-af1bd7b44610.pdf",
+      "historicalPdfSha256": "b653b0ddd6603873f243078f7c70f9ac45b6b58f7a63989ea06c5ca96b5fd564",
+      "sourceBenchmarkPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5318-global-controller-monica-ambra-fioravanti/historical-benchmark/checkpoint.json"
+    },
+    {
+      "version": "apr-saved-total-comparison-readonly-v3",
+      "generatedAt": "2026-09-09T17:21:47.965Z",
+      "executorIdentity": "APR/saved-total-comparison-readonly",
+      "externalMutationAllowed": false,
+      "historicalValuesMayFeedMapper": false,
+      "customerKey": "adelfio-pietro-spinelli",
+      "displayName": "Adelfio Pietro Spinelli",
+      "practiceId": "81c6ec6a-ab2e-4214-a018-5f769c0cf61b",
+      "draftId": "479426",
+      "moduleName": "screening",
+      "status": "concordant",
+      "fieldId": "schermature.spesa",
+      "aprTotal": {
+        "raw": "2300,00",
+        "euros": 2300
+      },
+      "humanTotal": {
+        "raw": "2300",
+        "euros": 2300
+      },
+      "deltaEuros": 0,
+      "historicalPath": "81c6ec6a-ab2e-4214-a018-5f769c0cf61b/conclusa/b5c1cb24-d205-4503-bd60-31d26a31f362.pdf",
+      "historicalPdfSha256": "1a643b9434d04b2e0e4004fac8c3f1affe1fcbc3029ceea8ad2b59a40f012027",
+      "sourceBenchmarkPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5319-global-controller-adelfio-pietro-spinelli/historical-benchmark/checkpoint.json"
+    },
+    {
+      "version": "apr-saved-total-comparison-readonly-v3",
+      "generatedAt": "2026-09-09T17:37:09.804Z",
+      "executorIdentity": "APR/saved-total-comparison-readonly",
+      "externalMutationAllowed": false,
+      "historicalValuesMayFeedMapper": false,
+      "customerKey": "massimo-cappello",
+      "displayName": "massimo cappello",
+      "practiceId": "0a92f92c-22ed-4a43-b47e-6abe1d74282a",
+      "draftId": "479442",
+      "moduleName": "infissi",
+      "status": "concordant",
+      "fieldId": "infissi.spesa",
+      "aprTotal": {
+        "raw": 16505,
+        "euros": 16505
+      },
+      "humanTotal": {
+        "raw": "16505",
+        "euros": 16505
+      },
+      "deltaEuros": 0,
+      "historicalPath": "0a92f92c-22ed-4a43-b47e-6abe1d74282a/conclusa/461f3b63-0356-438b-83e0-6d00f772086a.pdf",
+      "historicalPdfSha256": "9b0c02efbdc333c7d98123aae88f1e875bf55249065c9b32620ff4ce22180ccf",
+      "sourceBenchmarkPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5320-global-controller-massimo-cappello/historical-benchmark/checkpoint.json"
+    },
+    {
+      "version": "apr-saved-total-comparison-readonly-v3",
+      "generatedAt": "2026-09-09T17:46:17.080Z",
+      "executorIdentity": "APR/saved-total-comparison-readonly",
+      "externalMutationAllowed": false,
+      "historicalValuesMayFeedMapper": false,
+      "customerKey": "lucia-lagrasta",
+      "displayName": "Lucia Lagrasta",
+      "practiceId": "0f468582-9698-4589-b2d8-a103acced455",
+      "draftId": "479476",
+      "moduleName": "screening",
+      "status": "concordant",
+      "fieldId": "schermature.spesa",
+      "aprTotal": {
+        "raw": "3140,00",
+        "euros": 3140
+      },
+      "humanTotal": {
+        "raw": "3140",
+        "euros": 3140
+      },
+      "deltaEuros": 0,
+      "historicalPath": "0f468582-9698-4589-b2d8-a103acced455/conclusa/bb088505-9713-4e16-8bfa-7510b498ccf6.pdf",
+      "historicalPdfSha256": "6fdfa4dca12942d5a4368a9a262bb62d07c8dc1e872171c1819b07d94a54f749",
+      "sourceBenchmarkPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5321-global-controller-lucia-lagrasta/historical-benchmark/checkpoint.json"
+    },
+    {
+      "version": "apr-saved-total-comparison-readonly-v3",
+      "generatedAt": "2026-09-09T17:58:39.193Z",
+      "executorIdentity": "APR/saved-total-comparison-readonly",
+      "externalMutationAllowed": false,
+      "historicalValuesMayFeedMapper": false,
+      "customerKey": "angelina-stricelli",
+      "displayName": "Angelina Stricelli",
+      "practiceId": "ae88aed9-0b83-42c7-87fb-a03c76a46113",
+      "draftId": "479495",
+      "moduleName": "infissi",
+      "status": "concordant",
+      "fieldId": "infissi.spesa",
+      "aprTotal": {
+        "raw": 10500.87,
+        "euros": 10500.87
+      },
+      "humanTotal": {
+        "raw": "10500.87",
+        "euros": 10500.87
+      },
+      "deltaEuros": 0,
+      "historicalPath": "ae88aed9-0b83-42c7-87fb-a03c76a46113/conclusa/cf4408ae-7cff-47dc-9316-b69a3b150b3b.pdf",
+      "historicalPdfSha256": "3653f269b91ee97fe90f66338acf4e571fd67056dfa3ef112afd3ce5c82911cf",
+      "sourceBenchmarkPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5322-global-controller-angelina-stricelli/historical-benchmark/checkpoint.json"
+    },
+    {
+      "version": "apr-saved-total-comparison-readonly-v3",
+      "generatedAt": "2026-09-09T18:05:47.948Z",
+      "executorIdentity": "APR/saved-total-comparison-readonly",
+      "externalMutationAllowed": false,
+      "historicalValuesMayFeedMapper": false,
+      "customerKey": "nadia-ragni",
+      "displayName": "Nadia Ragni",
+      "practiceId": "47ef4b16-d334-4acf-8c1f-c7c341281771",
+      "draftId": "479516",
+      "moduleName": "screening",
+      "status": "concordant",
+      "fieldId": "schermature.spesa",
+      "aprTotal": {
+        "raw": "9550,00",
+        "euros": 9550
+      },
+      "humanTotal": {
+        "raw": "9550",
+        "euros": 9550
+      },
+      "deltaEuros": 0,
+      "historicalPath": "47ef4b16-d334-4acf-8c1f-c7c341281771/conclusa/9b54cac4-7719-4cd5-86ea-fe1ebc6eaf90.pdf",
+      "historicalPdfSha256": "c691d135832b439190609ee6b293804614f4f99f9bdd9dca0a2e2aac412d0565",
+      "sourceBenchmarkPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5323-global-controller-nadia-ragni/historical-benchmark/checkpoint.json"
+    },
+    {
+      "version": "apr-saved-total-comparison-readonly-v3",
+      "generatedAt": "2026-09-09T18:12:45.143Z",
+      "executorIdentity": "APR/saved-total-comparison-readonly",
+      "externalMutationAllowed": false,
+      "historicalValuesMayFeedMapper": false,
+      "customerKey": "romeo-ropa",
+      "displayName": "Romeo Ropa",
+      "practiceId": "adff093a-ef0d-4013-aa23-5f71dec4234b",
+      "draftId": "479526",
+      "moduleName": "screening",
+      "status": "concordant",
+      "fieldId": "schermature.spesa",
+      "aprTotal": {
+        "raw": "2826,81",
+        "euros": 2826.81
+      },
+      "humanTotal": {
+        "raw": "2826.81",
+        "euros": 2826.81
+      },
+      "deltaEuros": 0,
+      "historicalPath": "adff093a-ef0d-4013-aa23-5f71dec4234b/conclusa/42f2618e-377d-4693-80e6-a1528cd6f126.pdf",
+      "historicalPdfSha256": "f66a7b35aaa98b7b918692f99f8fecda4b48238c4e4a790ef36d4a4cfd62c08a",
+      "sourceBenchmarkPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5324-global-controller-romeo-ropa/historical-benchmark/checkpoint.json"
+    },
+    {
+      "version": "apr-saved-total-comparison-readonly-v3",
+      "generatedAt": "2026-09-09T18:24:23.107Z",
+      "executorIdentity": "APR/saved-total-comparison-readonly",
+      "externalMutationAllowed": false,
+      "historicalValuesMayFeedMapper": false,
+      "customerKey": "claudia-sellati",
+      "displayName": "CLAUDIA SELLATI",
+      "practiceId": "58f03680-c716-42e7-ad7d-e3ceaee5573d",
+      "draftId": "479533",
+      "moduleName": "infissi",
+      "status": "concordant",
+      "fieldId": "infissi.spesa",
+      "aprTotal": {
+        "raw": 6230,
+        "euros": 6230
+      },
+      "humanTotal": {
+        "raw": "6230",
+        "euros": 6230
+      },
+      "deltaEuros": 0,
+      "historicalPath": "58f03680-c716-42e7-ad7d-e3ceaee5573d/conclusa/73b30059-e036-4995-b25b-1f49872b7b6c.pdf",
+      "historicalPdfSha256": "d57d82550518a27e269bbaf7fb2f492e8becc212dea71c35c338217b69e3a5dd",
+      "sourceBenchmarkPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5325-global-controller-claudia-sellati/historical-benchmark/checkpoint.json"
+    },
+    {
+      "version": "apr-saved-total-comparison-readonly-v3",
+      "generatedAt": "2026-09-09T18:34:29.622Z",
+      "executorIdentity": "APR/saved-total-comparison-readonly",
+      "externalMutationAllowed": false,
+      "historicalValuesMayFeedMapper": false,
+      "customerKey": "elena-depalma",
+      "displayName": "ELENA DEPALMA",
+      "practiceId": "af39159b-62d9-4c0d-8056-d2462e4b7727",
+      "draftId": "479544",
+      "moduleName": "infissi",
+      "status": "concordant",
+      "fieldId": "infissi.spesa",
+      "aprTotal": {
+        "raw": 7644,
+        "euros": 7644
+      },
+      "humanTotal": {
+        "raw": "7644",
+        "euros": 7644
+      },
+      "deltaEuros": 0,
+      "historicalPath": "af39159b-62d9-4c0d-8056-d2462e4b7727/conclusa/7063ce33-b576-4bd8-805c-f3c4cec1b4ff.pdf",
+      "historicalPdfSha256": "5c6239dd56ab5519b9241654e6a741a1b280b62b7ea60ceef3bf8e3eae8be141",
+      "sourceBenchmarkPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5326-global-controller-elena-depalma/historical-benchmark/checkpoint.json"
+    },
+    {
+      "version": "apr-saved-total-comparison-readonly-v3",
+      "generatedAt": "2026-09-09T18:42:51.318Z",
+      "executorIdentity": "APR/saved-total-comparison-readonly",
+      "externalMutationAllowed": false,
+      "historicalValuesMayFeedMapper": false,
+      "customerKey": "mauro-ballabio",
+      "displayName": "Mauro Ballabio",
+      "practiceId": "d3d11e50-d24e-4f38-b2c7-3a16480b007a",
+      "draftId": "479556",
+      "moduleName": "screening",
+      "status": "concordant",
+      "fieldId": "schermature.spesa",
+      "aprTotal": {
+        "raw": "5203,30",
+        "euros": 5203.3
+      },
+      "humanTotal": {
+        "raw": "5203.3",
+        "euros": 5203.3
+      },
+      "deltaEuros": 0,
+      "historicalPath": "d3d11e50-d24e-4f38-b2c7-3a16480b007a/conclusa/bef5400e-0892-4379-8518-d990d99b4a8b.pdf",
+      "historicalPdfSha256": "d6f406ab206f3ac5c723642ac0c6372812cddeaae6059cdebab3ae51ab0218e1",
+      "sourceBenchmarkPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5327-global-controller-mauro-ballabio/historical-benchmark/checkpoint.json"
+    },
+    {
+      "version": "apr-saved-total-comparison-readonly-v3",
+      "generatedAt": "2026-09-09T18:54:29.780Z",
+      "executorIdentity": "APR/saved-total-comparison-readonly",
+      "externalMutationAllowed": false,
+      "historicalValuesMayFeedMapper": false,
+      "customerKey": "flavia-cipriani",
+      "displayName": "Flavia Cipriani",
+      "practiceId": "9f785f33-491a-4954-8423-4316d6842dbb",
+      "draftId": "479571",
+      "moduleName": "infissi",
+      "status": "concordant",
+      "fieldId": "infissi.spesa",
+      "aprTotal": {
+        "raw": 6497.91,
+        "euros": 6497.91
+      },
+      "humanTotal": {
+        "raw": "6497.91",
+        "euros": 6497.91
+      },
+      "deltaEuros": 0,
+      "historicalPath": "9f785f33-491a-4954-8423-4316d6842dbb/conclusa/0ce1edaf-ccc6-445e-99d1-ffece3707da0.pdf",
+      "historicalPdfSha256": "008f0080c65691c0d5b216c9ea90b5e651b78d5da3119a56cbab19078f959051",
+      "sourceBenchmarkPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5328-global-controller-flavia-cipriani/historical-benchmark/checkpoint.json"
+    },
+    {
+      "version": "apr-saved-total-comparison-readonly-v3",
+      "generatedAt": "2026-09-09T19:01:52.035Z",
+      "executorIdentity": "APR/saved-total-comparison-readonly",
+      "externalMutationAllowed": false,
+      "historicalValuesMayFeedMapper": false,
+      "customerKey": "rosa-toscano",
+      "displayName": "rosa toscano",
+      "practiceId": "48098402-2621-40d9-92ae-eb3d5befe380",
+      "draftId": "479582",
+      "moduleName": "screening",
+      "status": "concordant",
+      "fieldId": "schermature.spesa",
+      "aprTotal": {
+        "raw": "4350,00",
+        "euros": 4350
+      },
+      "humanTotal": {
+        "raw": "4350",
+        "euros": 4350
+      },
+      "deltaEuros": 0,
+      "historicalPath": "48098402-2621-40d9-92ae-eb3d5befe380/conclusa/7e9e71a5-8f48-44eb-9104-429ed44c19d5.pdf",
+      "historicalPdfSha256": "d9e2f9dba8a94f63ac633354a6637c4527fac1f894b2f2b9f5b7b93f8124b154",
+      "sourceBenchmarkPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5329-global-controller-rosa-toscano/historical-benchmark/checkpoint.json"
+    },
+    {
+      "version": "apr-saved-total-comparison-readonly-v3",
+      "generatedAt": "2026-09-09T19:08:43.326Z",
+      "executorIdentity": "APR/saved-total-comparison-readonly",
+      "externalMutationAllowed": false,
+      "historicalValuesMayFeedMapper": false,
+      "customerKey": "luigi-carfora",
+      "displayName": "Luigi Carfora",
+      "practiceId": "0572b6a4-a44d-4f13-8fad-d8e91fc5c91d",
+      "draftId": "479592",
+      "moduleName": "screening",
+      "status": "concordant",
+      "fieldId": "schermature.spesa",
+      "aprTotal": {
+        "raw": "12500,00",
+        "euros": 12500
+      },
+      "humanTotal": {
+        "raw": "12500",
+        "euros": 12500
+      },
+      "deltaEuros": 0,
+      "historicalPath": "0572b6a4-a44d-4f13-8fad-d8e91fc5c91d/conclusa/c7e9c11c-3708-46f7-9241-781467c99ae4.pdf",
+      "historicalPdfSha256": "2a275f53642c67b40ad35cad0c5c43f71eabd2524a40741c5dc58f679131e0fb",
+      "sourceBenchmarkPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5330-global-controller-luigi-carfora/historical-benchmark/checkpoint.json"
+    },
+    {
+      "version": "apr-saved-total-comparison-readonly-v3",
+      "generatedAt": "2026-09-09T19:23:35.274Z",
+      "executorIdentity": "APR/saved-total-comparison-readonly",
+      "externalMutationAllowed": false,
+      "historicalValuesMayFeedMapper": false,
+      "customerKey": "zeno-righetti",
+      "displayName": "Zeno Righetti",
+      "practiceId": "513b7f1e-d79f-4efc-86f0-20e4018c9155",
+      "draftId": "479603",
+      "moduleName": "screening",
+      "status": "concordant",
+      "fieldId": "schermature.spesa",
+      "aprTotal": {
+        "raw": "11730,40",
+        "euros": 11730.4
+      },
+      "humanTotal": {
+        "raw": "11730.4",
+        "euros": 11730.4
+      },
+      "deltaEuros": 0,
+      "historicalPath": "513b7f1e-d79f-4efc-86f0-20e4018c9155/conclusa/6f186934-d483-46a4-a485-7b843b2abff8.pdf",
+      "historicalPdfSha256": "bc824c99f87210bc2e9634442641c656e35e9f49411fdd287ec0e38ff402c9dc",
+      "sourceBenchmarkPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5331-global-controller-zeno-righetti/historical-benchmark/checkpoint.json"
+    },
+    {
+      "version": "apr-saved-total-comparison-readonly-v3",
+      "generatedAt": "2026-09-09T21:07:49.930Z",
+      "executorIdentity": "APR/saved-total-comparison-readonly",
+      "externalMutationAllowed": false,
+      "historicalValuesMayFeedMapper": false,
+      "customerKey": "fabrizio-pelizzari",
+      "displayName": "Fabrizio Pelizzari",
+      "practiceId": "7ff69610-c6d5-4436-9eb5-01883efe08db",
+      "draftId": "479733",
+      "moduleName": "screening",
+      "status": "concordant",
+      "fieldId": "schermature.spesa",
+      "aprTotal": {
+        "raw": "5002,00",
+        "euros": 5002
+      },
+      "humanTotal": {
+        "raw": "5002",
+        "euros": 5002
+      },
+      "deltaEuros": 0,
+      "historicalPath": "7ff69610-c6d5-4436-9eb5-01883efe08db/conclusa/34ef743c-c0a4-41e6-8d73-b9ff3940acf1.pdf",
+      "historicalPdfSha256": "75d3dd19fc194eaa1c4821c9403fe22112244878aa6a000e7576e6ae4149b63c",
+      "sourceBenchmarkPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5363-global-controller-fabrizio-pelizzari/historical-benchmark/checkpoint.json"
+    }
+  ],
+  "attempts": {
+    "36978c5f-f8fb-43b0-8bd9-26665bf553ad": {
+      "status": "completed",
+      "at": "2026-09-09T17:08:52.940Z",
+      "result": "concordant"
+    },
+    "802a1cc1-c046-4c4b-a245-25401217740f": {
+      "status": "completed",
+      "at": "2026-09-09T17:08:55.106Z",
+      "result": "concordant"
+    },
+    "805249c4-7248-40ac-990c-6d00cba517c8": {
+      "status": "completed",
+      "at": "2026-09-09T17:08:57.204Z",
+      "result": "concordant"
+    },
+    "20c7c802-85da-4d7e-95a3-482b66151b16": {
+      "status": "completed",
+      "at": "2026-09-09T17:08:59.816Z",
+      "result": "concordant"
+    },
+    "62510980-062e-4278-83f9-6a583089f783": {
+      "status": "completed",
+      "at": "2026-09-09T17:09:02.054Z",
+      "result": "concordant"
+    },
+    "3e731c9e-ccea-4b30-b9bc-454f3ec60f06": {
+      "status": "completed",
+      "at": "2026-09-09T17:09:04.654Z",
+      "result": "concordant"
+    },
+    "46a577d1-53f3-438e-9a85-96ae4d246259": {
+      "status": "completed",
+      "at": "2026-09-09T17:09:06.932Z",
+      "result": "concordant"
+    },
+    "1b6d780a-2e81-415f-9a27-c67e2f19e846": {
+      "status": "completed",
+      "at": "2026-09-09T17:09:09.139Z",
+      "result": "concordant"
+    },
+    "d4f1480f-a224-415e-b4c0-121db8040ef8": {
+      "status": "completed",
+      "at": "2026-09-09T17:09:11.555Z",
+      "result": "concordant"
+    },
+    "d77a8626-54ac-408c-b7c2-58fd10d3e25a": {
+      "status": "completed",
+      "at": "2026-09-09T17:09:13.746Z",
+      "result": "concordant"
+    },
+    "652f820b-9d49-4706-a8bc-87931bec5148": {
+      "status": "completed",
+      "at": "2026-09-09T17:09:15.709Z",
+      "result": "concordant"
+    },
+    "8e011a14-60b7-43f4-8b35-04626b35bc91": {
+      "status": "completed",
+      "at": "2026-09-09T17:09:17.856Z",
+      "result": "concordant"
+    },
+    "49f0a3c1-698c-44c4-ae31-d09ad994196d": {
+      "status": "completed",
+      "at": "2026-09-09T17:09:19.864Z",
+      "result": "concordant"
+    },
+    "61b0dc51-4959-46e7-bd6d-37c8f1981c52": {
+      "status": "completed",
+      "at": "2026-09-09T17:09:22.073Z",
+      "result": "concordant"
+    },
+    "5f669e8b-9ef1-45f6-b00d-12449d741314": {
+      "status": "completed",
+      "at": "2026-09-09T17:09:24.916Z",
+      "result": "concordant"
+    },
+    "7b8fa856-36d9-471b-82f5-a0ae194469b2": {
+      "status": "completed",
+      "at": "2026-09-09T17:09:27.230Z",
+      "result": "concordant"
+    },
+    "98d44d99-86af-4fec-ba55-ffe24d208e83": {
+      "status": "completed",
+      "at": "2026-09-09T17:09:29.152Z",
+      "result": "concordant"
+    },
+    "fe20bff9-ded6-4380-9452-e20c4410a0c7": {
+      "status": "completed",
+      "at": "2026-09-09T17:09:31.599Z",
+      "result": "concordant"
+    },
+    "3e7d38d2-e40d-4304-850c-e128698be78e": {
+      "status": "completed",
+      "at": "2026-09-09T17:09:33.704Z",
+      "result": "concordant"
+    },
+    "77c5e8b6-34f8-4f1b-830a-526addefdd7d": {
+      "status": "completed",
+      "at": "2026-09-09T17:09:35.833Z",
+      "result": "concordant"
+    },
+    "2cef7991-a654-4cd6-b2b8-623cefce596b": {
+      "status": "completed",
+      "at": "2026-09-09T17:09:38.188Z",
+      "result": "concordant"
+    },
+    "aa8d417f-8450-4283-b328-dc8c9cb573ba": {
+      "status": "completed",
+      "at": "2026-09-09T17:09:40.936Z",
+      "result": "concordant"
+    },
+    "5323d52a-6473-46f1-a5aa-faf5568ae3fc": {
+      "status": "completed",
+      "at": "2026-09-09T17:09:44.088Z",
+      "result": "discordant"
+    },
+    "eed0922f-b5ec-4e8f-b860-d746ed93528e": {
+      "status": "completed",
+      "at": "2026-09-09T17:09:46.481Z",
+      "result": "concordant"
+    },
+    "9b996147-82e1-4438-affe-9fcec062c003": {
+      "status": "completed",
+      "at": "2026-09-09T17:09:48.602Z",
+      "result": "concordant"
+    },
+    "b51df57d-dae2-4ddc-bf99-904673ebe50d": {
+      "status": "completed",
+      "at": "2026-09-09T17:09:50.608Z",
+      "result": "concordant"
+    },
+    "b8eb5a0a-21f8-4400-bd8c-ed1c39751b10": {
+      "status": "completed",
+      "at": "2026-09-09T17:14:57.519Z",
+      "result": "concordant"
+    },
+    "81c6ec6a-ab2e-4214-a018-5f769c0cf61b": {
+      "status": "completed",
+      "at": "2026-09-09T17:21:47.980Z",
+      "result": "concordant"
+    },
+    "0a92f92c-22ed-4a43-b47e-6abe1d74282a": {
+      "status": "completed",
+      "at": "2026-09-09T17:37:09.818Z",
+      "result": "concordant"
+    },
+    "0f468582-9698-4589-b2d8-a103acced455": {
+      "status": "completed",
+      "at": "2026-09-09T17:46:17.095Z",
+      "result": "concordant"
+    },
+    "ae88aed9-0b83-42c7-87fb-a03c76a46113": {
+      "status": "completed",
+      "at": "2026-09-09T17:58:39.207Z",
+      "result": "concordant"
+    },
+    "47ef4b16-d334-4acf-8c1f-c7c341281771": {
+      "status": "completed",
+      "at": "2026-09-09T18:05:47.963Z",
+      "result": "concordant"
+    },
+    "adff093a-ef0d-4013-aa23-5f71dec4234b": {
+      "status": "completed",
+      "at": "2026-09-09T18:12:45.156Z",
+      "result": "concordant"
+    },
+    "58f03680-c716-42e7-ad7d-e3ceaee5573d": {
+      "status": "completed",
+      "at": "2026-09-09T18:24:23.122Z",
+      "result": "concordant"
+    },
+    "af39159b-62d9-4c0d-8056-d2462e4b7727": {
+      "status": "completed",
+      "at": "2026-09-09T18:34:29.636Z",
+      "result": "concordant"
+    },
+    "d3d11e50-d24e-4f38-b2c7-3a16480b007a": {
+      "status": "completed",
+      "at": "2026-09-09T18:42:51.329Z",
+      "result": "concordant"
+    },
+    "9f785f33-491a-4954-8423-4316d6842dbb": {
+      "status": "completed",
+      "at": "2026-09-09T18:54:29.792Z",
+      "result": "concordant"
+    },
+    "48098402-2621-40d9-92ae-eb3d5befe380": {
+      "status": "completed",
+      "at": "2026-09-09T19:01:52.048Z",
+      "result": "concordant"
+    },
+    "0572b6a4-a44d-4f13-8fad-d8e91fc5c91d": {
+      "status": "completed",
+      "at": "2026-09-09T19:08:43.340Z",
+      "result": "concordant"
+    },
+    "513b7f1e-d79f-4efc-86f0-20e4018c9155": {
+      "status": "completed",
+      "at": "2026-09-09T19:23:35.289Z",
+      "result": "concordant"
+    },
+    "7ff69610-c6d5-4436-9eb5-01883efe08db": {
+      "status": "completed",
+      "at": "2026-09-09T21:07:49.945Z",
+      "result": "concordant"
+    }
+  }
+}

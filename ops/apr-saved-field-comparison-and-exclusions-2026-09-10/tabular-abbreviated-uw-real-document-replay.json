@@ -1,0 +1,423 @@
+{
+  "schemaVersion": "apr-infissi-tabular-abbreviated-uw-real-document-replay-v1",
+  "generatedAt": "2026-09-10T17:47:34.227Z",
+  "mode": "local_read_only_original_document_text_reclassification_and_extraction",
+  "cases": [
+    {
+      "customerKey": "eugenio-codognato",
+      "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5305-global-controller-eugenio-codognato/crm-document-analysis/checkpoint.json",
+      "checkpointSha256": "f98a7dbe89aab2ed2aa4bd8dddf032f0c2002f73764f4e243d0f6ccc384e9289",
+      "documents": [
+        {
+          "sourceId": "eca2f44af100b81c628541f054531301cc8f093137d807df913c72cd02574262",
+          "textPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5305-global-controller-eugenio-codognato/crm-document-analysis/text/eugenio-codognato/eca2f44af100b81c628541f054531301cc8f093137d807df913c72cd02574262.txt",
+          "textSha256": "f23bf46d375f94311e423c815ad34fa725670dd8f2f9e28b2bb1f8daec32f0d8",
+          "classification": {
+            "version": "apr-infissi-technical-document-classifier-v3",
+            "storageKind": "invoice",
+            "verifiedKind": "invoice",
+            "profile": "invoice_passthrough",
+            "certificateScope": null,
+            "matchedCriteria": [],
+            "missingCriteria": [],
+            "appliedRuleIds": [
+              "user-2026-08-26-third-party-technical-certificate-classification-v1",
+              "user-2026-08-25-crm-internal-technical-document-untrusted-v1"
+            ]
+          }
+        },
+        {
+          "sourceId": "13356a34d7bddad11ced326297d55eb68b4b61be5b60bc5f4638d4131f3f6424",
+          "textPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5305-global-controller-eugenio-codognato/crm-document-analysis/text/eugenio-codognato/13356a34d7bddad11ced326297d55eb68b4b61be5b60bc5f4638d4131f3f6424.txt",
+          "textSha256": "a992cb01493045d1a56f65d234f0728ab0ae26e9bf7fbba4645cb5ee1573b3f1",
+          "classification": {
+            "version": "apr-infissi-technical-document-classifier-v3",
+            "storageKind": "invoice",
+            "verifiedKind": "invoice",
+            "profile": "invoice_passthrough",
+            "certificateScope": null,
+            "matchedCriteria": [],
+            "missingCriteria": [],
+            "appliedRuleIds": [
+              "user-2026-08-26-third-party-technical-certificate-classification-v1",
+              "user-2026-08-25-crm-internal-technical-document-untrusted-v1"
+            ]
+          }
+        },
+        {
+          "sourceId": "88454d2ede51fe93c91b190a656a577ba01882425d057085bf20bf4592825322",
+          "textPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5305-global-controller-eugenio-codognato/crm-document-analysis/text/eugenio-codognato/88454d2ede51fe93c91b190a656a577ba01882425d057085bf20bf4592825322.txt",
+          "textSha256": "b2dc8e2ac729479546b89f3755fa628b645f5222732d22a599e16d9cbbd7d051",
+          "classification": {
+            "version": "apr-infissi-technical-document-classifier-v3",
+            "storageKind": "invoice",
+            "verifiedKind": "invoice",
+            "profile": "invoice_passthrough",
+            "certificateScope": null,
+            "matchedCriteria": [],
+            "missingCriteria": [],
+            "appliedRuleIds": [
+              "user-2026-08-26-third-party-technical-certificate-classification-v1",
+              "user-2026-08-25-crm-internal-technical-document-untrusted-v1"
+            ]
+          }
+        },
+        {
+          "sourceId": "a57033863e6d29bb8e1fd1f1c7be0ac56b855b1b9dd2464efe8b99fb0336272e",
+          "textPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5305-global-controller-eugenio-codognato/crm-document-analysis/text/eugenio-codognato/a57033863e6d29bb8e1fd1f1c7be0ac56b855b1b9dd2464efe8b99fb0336272e.txt",
+          "textSha256": "5da5d1a07f8bbe24b8de06bc645d437a77f00a8a14da5fd98b5a42e967bb5492",
+          "classification": {
+            "version": "apr-infissi-technical-document-classifier-v3",
+            "storageKind": "invoice",
+            "verifiedKind": "invoice",
+            "profile": "invoice_passthrough",
+            "certificateScope": null,
+            "matchedCriteria": [],
+            "missingCriteria": [],
+            "appliedRuleIds": [
+              "user-2026-08-26-third-party-technical-certificate-classification-v1",
+              "user-2026-08-25-crm-internal-technical-document-untrusted-v1"
+            ]
+          }
+        },
+        {
+          "sourceId": "a35d359ed6c04845dffe0f6bc0640f411f9057c62e31bf04c652e1eb5a084d09",
+          "textPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5305-global-controller-eugenio-codognato/crm-document-analysis/text/eugenio-codognato/a35d359ed6c04845dffe0f6bc0640f411f9057c62e31bf04c652e1eb5a084d09.txt",
+          "textSha256": "2d5512b6775497c30f1393d0e50e9e820b3129f221327f1852d9b8606e6bf7f8",
+          "classification": {
+            "version": "apr-infissi-technical-document-classifier-v3",
+            "storageKind": "invoice",
+            "verifiedKind": "invoice",
+            "profile": "invoice_passthrough",
+            "certificateScope": null,
+            "matchedCriteria": [],
+            "missingCriteria": [],
+            "appliedRuleIds": [
+              "user-2026-08-26-third-party-technical-certificate-classification-v1",
+              "user-2026-08-25-crm-internal-technical-document-untrusted-v1"
+            ]
+          }
+        },
+        {
+          "sourceId": "9e39665553291fb24b25d01c19697b14e702dc2c17ea40fbdb36f48dff253133",
+          "textPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5305-global-controller-eugenio-codognato/crm-document-analysis/text/eugenio-codognato/9e39665553291fb24b25d01c19697b14e702dc2c17ea40fbdb36f48dff253133.txt",
+          "textSha256": "8448c7bd722f66205a06b8c5f8f8e7e623c4740b7bb91d5ad185fc31cf992f1e",
+          "classification": {
+            "version": "apr-infissi-technical-document-classifier-v3",
+            "storageKind": "invoice",
+            "verifiedKind": "invoice",
+            "profile": "invoice_passthrough",
+            "certificateScope": null,
+            "matchedCriteria": [],
+            "missingCriteria": [],
+            "appliedRuleIds": [
+              "user-2026-08-26-third-party-technical-certificate-classification-v1",
+              "user-2026-08-25-crm-internal-technical-document-untrusted-v1"
+            ]
+          }
+        },
+        {
+          "sourceId": "7891895a71d05416bf656ce08513cf853455a3eaa7fd3e2523c77a88ac05d20a",
+          "textPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5305-global-controller-eugenio-codognato/crm-document-analysis/text/eugenio-codognato/7891895a71d05416bf656ce08513cf853455a3eaa7fd3e2523c77a88ac05d20a.txt",
+          "textSha256": "46fc4ab6d27901c3b605120df564e854cd8eefe1e5936cb69f86350145025622",
+          "classification": {
+            "version": "apr-infissi-technical-document-classifier-v3",
+            "storageKind": "additional",
+            "verifiedKind": "third_party_certificate",
+            "profile": "formal_declaration",
+            "certificateScope": "installed_windows",
+            "matchedCriteria": [
+              "formal_declaration_title",
+              "window_product_family",
+              "numeric_thermal_performance",
+              "technical_standard",
+              "declaring_party_or_signature"
+            ],
+            "missingCriteria": [],
+            "appliedRuleIds": [
+              "user-2026-08-26-third-party-technical-certificate-classification-v1",
+              "user-2026-08-25-crm-internal-technical-document-untrusted-v1"
+            ]
+          }
+        }
+      ],
+      "expected": {
+        "parser": "numbered-dop-thermal-column",
+        "thermalTransmittanceWm2K": [
+          1.28,
+          1.22,
+          1.27,
+          1.2,
+          1.28,
+          1.28,
+          1.23,
+          1.27
+        ]
+      },
+      "actual": {
+        "status": "ready",
+        "blockers": [],
+        "selectedSourceId": "7891895a71d05416bf656ce08513cf853455a3eaa7fd3e2523c77a88ac05d20a",
+        "selectedParser": "numbered-dop-thermal-column",
+        "selectedSourceBinding": {
+          "status": "verified",
+          "customerMatched": true,
+          "orderOrJobReferencesPresent": true,
+          "productSignatureMatched": true,
+          "matchedInvoiceSourceIds": [
+            "a35d359ed6c04845dffe0f6bc0640f411f9057c62e31bf04c652e1eb5a084d09"
+          ],
+          "technicalReferences": [],
+          "invoiceReferences": []
+        },
+        "candidateCounts": [
+          {
+            "sourceId": "a35d359ed6c04845dffe0f6bc0640f411f9057c62e31bf04c652e1eb5a084d09",
+            "parser": "finestra-italia-positional-dimensions",
+            "rowCount": 8
+          },
+          {
+            "sourceId": "7891895a71d05416bf656ce08513cf853455a3eaa7fd3e2523c77a88ac05d20a",
+            "parser": "numbered-dop-thermal-column",
+            "rowCount": 8
+          }
+        ],
+        "rows": [
+          {
+            "lineId": "7891895a71d05416bf656ce08513cf853455a3eaa7fd3e2523c77a88ac05d20a:numbered-dop-thermal-column:1",
+            "quantity": 1,
+            "widthM": 2.235,
+            "heightM": 1.435,
+            "thermalTransmittanceWm2K": 1.28,
+            "measurementKind": "documented_unspecified"
+          },
+          {
+            "lineId": "7891895a71d05416bf656ce08513cf853455a3eaa7fd3e2523c77a88ac05d20a:numbered-dop-thermal-column:2",
+            "quantity": 1,
+            "widthM": 2.695,
+            "heightM": 2.405,
+            "thermalTransmittanceWm2K": 1.22,
+            "measurementKind": "documented_unspecified"
+          },
+          {
+            "lineId": "7891895a71d05416bf656ce08513cf853455a3eaa7fd3e2523c77a88ac05d20a:numbered-dop-thermal-column:3",
+            "quantity": 1,
+            "widthM": 0.665,
+            "heightM": 1.435,
+            "thermalTransmittanceWm2K": 1.27,
+            "measurementKind": "documented_unspecified"
+          },
+          {
+            "lineId": "7891895a71d05416bf656ce08513cf853455a3eaa7fd3e2523c77a88ac05d20a:numbered-dop-thermal-column:4",
+            "quantity": 1,
+            "widthM": 1.31,
+            "heightM": 2.228,
+            "thermalTransmittanceWm2K": 1.2,
+            "measurementKind": "documented_unspecified"
+          },
+          {
+            "lineId": "7891895a71d05416bf656ce08513cf853455a3eaa7fd3e2523c77a88ac05d20a:numbered-dop-thermal-column:5",
+            "quantity": 1,
+            "widthM": 1.31,
+            "heightM": 1.44,
+            "thermalTransmittanceWm2K": 1.28,
+            "measurementKind": "documented_unspecified"
+          },
+          {
+            "lineId": "7891895a71d05416bf656ce08513cf853455a3eaa7fd3e2523c77a88ac05d20a:numbered-dop-thermal-column:6",
+            "quantity": 1,
+            "widthM": 1.315,
+            "heightM": 1.44,
+            "thermalTransmittanceWm2K": 1.28,
+            "measurementKind": "documented_unspecified"
+          },
+          {
+            "lineId": "7891895a71d05416bf656ce08513cf853455a3eaa7fd3e2523c77a88ac05d20a:numbered-dop-thermal-column:7",
+            "quantity": 1,
+            "widthM": 0.665,
+            "heightM": 1.375,
+            "thermalTransmittanceWm2K": 1.23,
+            "measurementKind": "documented_unspecified"
+          },
+          {
+            "lineId": "7891895a71d05416bf656ce08513cf853455a3eaa7fd3e2523c77a88ac05d20a:numbered-dop-thermal-column:8",
+            "quantity": 1,
+            "widthM": 1.3,
+            "heightM": 2.355,
+            "thermalTransmittanceWm2K": 1.27,
+            "measurementKind": "documented_unspecified"
+          }
+        ],
+        "thermalTransmittanceWm2K": [
+          1.28,
+          1.22,
+          1.27,
+          1.2,
+          1.28,
+          1.28,
+          1.23,
+          1.27
+        ]
+      },
+      "passed": true
+    },
+    {
+      "customerKey": "vera-buracchi",
+      "checkpointPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5221-global-controller-vera-buracchi/crm-document-analysis/checkpoint.json",
+      "checkpointSha256": "cde8868a51da65c22dca9ed3c4fb14ee715dfce85ff9bb6bdd6f3dbc9db32e5c",
+      "documents": [
+        {
+          "sourceId": "6298bca3d05d53516fe493c1e921332f4c36ab65f4e307e5a5a684fa15201fbf",
+          "textPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5221-global-controller-vera-buracchi/crm-document-analysis/text/vera-buracchi/6298bca3d05d53516fe493c1e921332f4c36ab65f4e307e5a5a684fa15201fbf.txt",
+          "textSha256": "10724858fa0a8baa48b4624e883e74b73e04622b070b501ffd6d583d36388ec0",
+          "classification": {
+            "version": "apr-infissi-technical-document-classifier-v3",
+            "storageKind": "invoice",
+            "verifiedKind": "invoice",
+            "profile": "invoice_passthrough",
+            "certificateScope": null,
+            "matchedCriteria": [],
+            "missingCriteria": [],
+            "appliedRuleIds": [
+              "user-2026-08-26-third-party-technical-certificate-classification-v1",
+              "user-2026-08-25-crm-internal-technical-document-untrusted-v1"
+            ]
+          }
+        },
+        {
+          "sourceId": "899a1e0bf7390c7eaf87a24e1329123bb396d437d60933f18b6c685de4e637fa",
+          "textPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5221-global-controller-vera-buracchi/crm-document-analysis/text/vera-buracchi/899a1e0bf7390c7eaf87a24e1329123bb396d437d60933f18b6c685de4e637fa.txt",
+          "textSha256": "a78f220fb81c1ace82c37a5a237fc94240b2e65aa8f03fd8d23dd934225b561f",
+          "classification": {
+            "version": "apr-infissi-technical-document-classifier-v3",
+            "storageKind": "additional",
+            "verifiedKind": "third_party_certificate",
+            "profile": "formal_declaration",
+            "certificateScope": "installed_windows",
+            "matchedCriteria": [
+              "formal_declaration_title",
+              "window_product_family",
+              "numeric_thermal_performance",
+              "technical_standard",
+              "declaring_party_or_signature"
+            ],
+            "missingCriteria": [],
+            "appliedRuleIds": [
+              "user-2026-08-26-third-party-technical-certificate-classification-v1",
+              "user-2026-08-25-crm-internal-technical-document-untrusted-v1"
+            ]
+          }
+        },
+        {
+          "sourceId": "cf2ceadb4398a03f19f09e2dd1ea48690579c3843afc978bcd6a31a9a64d9d19",
+          "textPath": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5221-global-controller-vera-buracchi/crm-document-analysis/text/vera-buracchi/cf2ceadb4398a03f19f09e2dd1ea48690579c3843afc978bcd6a31a9a64d9d19.txt",
+          "textSha256": "53f4fef691907ea13b1dc1a36105ac22e08cd98f9934e200fc6c2aa633f28446",
+          "classification": {
+            "version": "apr-infissi-technical-document-classifier-v3",
+            "storageKind": "additional",
+            "verifiedKind": "third_party_certificate",
+            "profile": "abbreviated_product_label",
+            "certificateScope": "installed_windows",
+            "matchedCriteria": [
+              "window_product_family",
+              "abbreviated_numeric_thermal_performance",
+              "en_14351_product_standard",
+              "position_and_page_ordinal",
+              "labelled_lh_dimensions_mm",
+              "at_least_two_abbreviated_product_blocks"
+            ],
+            "missingCriteria": [],
+            "appliedRuleIds": [
+              "user-2026-08-26-third-party-technical-certificate-classification-v1",
+              "user-2026-08-25-crm-internal-technical-document-untrusted-v1"
+            ]
+          }
+        }
+      ],
+      "expected": {
+        "parser": "abbreviated-thermal-product-label",
+        "thermalTransmittanceWm2K": [
+          1.2,
+          1.17,
+          1.18,
+          1.17
+        ]
+      },
+      "actual": {
+        "status": "ready",
+        "blockers": [],
+        "selectedSourceId": "cf2ceadb4398a03f19f09e2dd1ea48690579c3843afc978bcd6a31a9a64d9d19",
+        "selectedParser": "abbreviated-thermal-product-label",
+        "selectedSourceBinding": {
+          "status": "verified",
+          "customerMatched": true,
+          "orderOrJobReferencesPresent": true,
+          "productSignatureMatched": true,
+          "matchedInvoiceSourceIds": [
+            "6298bca3d05d53516fe493c1e921332f4c36ab65f4e307e5a5a684fa15201fbf"
+          ],
+          "technicalReferences": [],
+          "invoiceReferences": []
+        },
+        "candidateCounts": [
+          {
+            "sourceId": "6298bca3d05d53516fe493c1e921332f4c36ab65f4e307e5a5a684fa15201fbf",
+            "parser": "dimension-block",
+            "rowCount": 4
+          },
+          {
+            "sourceId": "cf2ceadb4398a03f19f09e2dd1ea48690579c3843afc978bcd6a31a9a64d9d19",
+            "parser": "abbreviated-thermal-product-label",
+            "rowCount": 4
+          }
+        ],
+        "rows": [
+          {
+            "lineId": "cf2ceadb4398a03f19f09e2dd1ea48690579c3843afc978bcd6a31a9a64d9d19:abbreviated-thermal-product-label:1",
+            "quantity": 1,
+            "widthM": 1.485,
+            "heightM": 2.434,
+            "thermalTransmittanceWm2K": 1.2,
+            "measurementKind": "documented_unspecified"
+          },
+          {
+            "lineId": "cf2ceadb4398a03f19f09e2dd1ea48690579c3843afc978bcd6a31a9a64d9d19:abbreviated-thermal-product-label:2",
+            "quantity": 1,
+            "widthM": 1.3,
+            "heightM": 1.527,
+            "thermalTransmittanceWm2K": 1.17,
+            "measurementKind": "documented_unspecified"
+          },
+          {
+            "lineId": "cf2ceadb4398a03f19f09e2dd1ea48690579c3843afc978bcd6a31a9a64d9d19:abbreviated-thermal-product-label:3",
+            "quantity": 1,
+            "widthM": 1.08,
+            "heightM": 1.527,
+            "thermalTransmittanceWm2K": 1.18,
+            "measurementKind": "documented_unspecified"
+          },
+          {
+            "lineId": "cf2ceadb4398a03f19f09e2dd1ea48690579c3843afc978bcd6a31a9a64d9d19:abbreviated-thermal-product-label:4",
+            "quantity": 1,
+            "widthM": 1.29,
+            "heightM": 2.434,
+            "thermalTransmittanceWm2K": 1.17,
+            "measurementKind": "documented_unspecified"
+          }
+        ],
+        "thermalTransmittanceWm2K": [
+          1.2,
+          1.17,
+          1.18,
+          1.17
+        ]
+      },
+      "passed": true
+    }
+  ],
+  "summary": {
+    "total": 2,
+    "passed": 2,
+    "failed": 0
+  }
+}

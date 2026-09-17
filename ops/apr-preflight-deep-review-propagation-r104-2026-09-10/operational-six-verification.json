@@ -1,0 +1,92 @@
+{
+  "version": "apr-preflight-deep-review-propagation-operational-verification-v1",
+  "verifiedAt": "2026-09-10T09:15:00.000Z",
+  "status": "PASS",
+  "scope": "Verifica operativa mirata della rimozione dello stallo preflight a sette minuti; nessuna anteprima, submit o comunicazione.",
+  "bundle": {
+    "versionId": "0b183b6e-preflight-deep-review-propagation-r104-20260910",
+    "workerSha256": "eb44de5edaee1412b4ca3593647885a272815cb4071116c816f76a437da1c932",
+    "gateStatus": "PASS",
+    "gateResultArtifactId": "dbbaa89f01eddbbc245b2851aa1e02c8afb6ed4b70a46a6edc433d2cdf1eb87a"
+  },
+  "manifest": {
+    "path": "../apr-preflight-terminal-propagation-r103-2026-09-10/manifest-operational-six.json",
+    "sha256": "7783cd02e5be89879ff1f540c667bd97f7ab9fa4bbcdf88df90dcfea4659aa65",
+    "cases": 6
+  },
+  "execution": {
+    "startedAt": "2026-09-10T09:10:09.369Z",
+    "endedAt": "2026-09-10T09:11:39.762Z",
+    "elapsedMilliseconds": 90393,
+    "processed": 6,
+    "saved": 0,
+    "operatorRequired": 6,
+    "technicalBlock": 0,
+    "inconsistent": 0,
+    "sevenMinuteStalls": 0
+  },
+  "cases": [
+    {
+      "name": "SALVATORE DI BELLO",
+      "cohort": 5621,
+      "classification": "OPERATOR_REQUIRED",
+      "exactCause": "crm_practice_exact_match_not_found",
+      "operatorQuestion": "Indica l'ID esatto e la fase CRM attuale della pratica di SALVATORE DI BELLO."
+    },
+    {
+      "name": "VIRGINIA MADIA",
+      "cohort": 5622,
+      "classification": "OPERATOR_REQUIRED",
+      "exactCause": "crm_practice_exact_match_not_found",
+      "operatorQuestion": "Indica l'ID esatto e la fase CRM attuale della pratica di VIRGINIA MADIA."
+    },
+    {
+      "name": "ERNESTINA AVALLI",
+      "cohort": 5623,
+      "classification": "OPERATOR_REQUIRED",
+      "exactCause": "crm_practice_exact_match_not_found",
+      "operatorQuestion": "Indica l'ID esatto e la fase CRM attuale della pratica di ERNESTINA AVALLI."
+    },
+    {
+      "name": "Maddalena Giovanna Pezzani",
+      "cohort": 5624,
+      "classification": "OPERATOR_REQUIRED",
+      "exactCause": "crm_practice_exact_match_not_found",
+      "operatorQuestion": "Indica l'ID esatto e la fase CRM attuale della pratica di Maddalena Giovanna Pezzani."
+    },
+    {
+      "name": "Mario Martegani",
+      "cohort": 5625,
+      "classification": "OPERATOR_REQUIRED",
+      "exactCause": "permanent_supplier_automation_exclusion",
+      "operatorQuestion": "Confermi che la pratica collegata a Linea Sole Potito deve restare esclusa dall'automazione APR?"
+    },
+    {
+      "name": "Marzia Bellotti",
+      "cohort": 5626,
+      "classification": "OPERATOR_REQUIRED",
+      "exactCause": "permanent_supplier_automation_exclusion",
+      "operatorQuestion": "Confermi che la pratica collegata a Linea Sole Potito deve restare esclusa dall'automazione APR?"
+    }
+  ],
+  "threeWayVerification": {
+    "checkpointAndReport": "PASS: tutti i sei checkpoint di acquisizione, preflight, deep review ed esecuzione ENEA concordano; zero bozze create.",
+    "journal": "PASS: tutte le pratiche mostrano avanzamenti materiali e terminalizzazione in circa quindici secondi ciascuna, senza timeout.",
+    "dashboardTerminalSnapshot": "PASS: i sei snapshot terminal-observability riportano blocked_case e lo stesso unico blocker del checkpoint/report."
+  },
+  "evidence": {
+    "runReport": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-preflight-deep-review-propagation-r104-operational-six-20260910/report.json",
+    "runReportSha256": "1b11fdd199d506c0bbded594982949ac29666e47a6aa37d54aea4527d0484422",
+    "journal": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-preflight-deep-review-propagation-r104-operational-six-20260910/journal.ndjson",
+    "journalSha256": "7fe7a5099bf178beb12e75b64d2130049cefa3dbbcef75d92f008185ac981415"
+  },
+  "safety": {
+    "draftsCreated": 0,
+    "previewAttempted": false,
+    "submitAttempted": false,
+    "communicationsAttempted": false,
+    "keepaliveStillRunning": true,
+    "chromeStillRunning": true,
+    "residualCohortProcesses": 0
+  }
+}

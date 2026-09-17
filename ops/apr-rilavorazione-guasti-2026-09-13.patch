@@ -1,0 +1,382 @@
+From 8ca143b154e0cce499e443e1f0e9414d2eab060c Mon Sep 17 00:00:00 2001
+From: Giuliano Beretta <giulianolavoro@MacBook-Pro-di-Giuliano-2026.local>
+Date: Sun, 13 Sep 2026 16:16:16 +0200
+Subject: [PATCH] feat(apr): rimette in coda le pratiche perse per un guasto di
+ APR
+
+Nel lotto r121, 9 pratiche ferme su 23 erano pronte e si sono perse per
+un guasto nostro: sessione del browser caduta durante la compilazione,
+esito del salvataggio non dimostrabile, CRM in timeout prima di leggere
+il fascicolo, payload incompleto per una mappatura mancante. Nessuna e'
+stata rimessa in coda: sono finite nel conteggio come fallimenti.
+
+La politica decide per ogni guasto se rilavorare subito, a fine lotto, o
+non rilavorare affatto. Il tetto di tentativi e' esplicito: uno stesso
+guasto che si ripete oltre il tetto smette di essere un incidente e
+diventa un difetto da chiudere, cosi' nessun ciclo gira all'infinito
+nascondendo un problema strutturale. Un esito non dimostrabile si
+riverifica a fine lotto e non subito, per non creare una seconda bozza.
+
+Un test aggancia le due meta': ogni testo di guasto prodotto da
+aprStopDisposition deve essere riconosciuto dalla politica. Ha gia'
+trovato due buchi mentre veniva scritto.
+
+Piano su r121: 3 subito (Serpa, Padoani, Dettori), 4 a fine lotto
+(Depalma, De Filippo, Bellini, Falconi), 2 difetti da chiudere
+(Fiorini, Venturi).
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+---
+ .../apr-fault-recovery-cli.ts                 |  33 ++++
+ .../aprFaultRecoveryPolicy.test.ts            | 118 ++++++++++++
+ .../aprFaultRecoveryPolicy.ts                 | 173 ++++++++++++++++++
+ 3 files changed, 324 insertions(+)
+ create mode 100644 scripts/enea-shadow-runner/apr-fault-recovery-cli.ts
+ create mode 100644 scripts/enea-shadow-runner/aprFaultRecoveryPolicy.test.ts
+ create mode 100644 scripts/enea-shadow-runner/aprFaultRecoveryPolicy.ts
+
+diff --git a/scripts/enea-shadow-runner/apr-fault-recovery-cli.ts b/scripts/enea-shadow-runner/apr-fault-recovery-cli.ts
+new file mode 100644
+index 0000000..3a9b5e7
+--- /dev/null
++++ b/scripts/enea-shadow-runner/apr-fault-recovery-cli.ts
+@@ -0,0 +1,33 @@
++#!/usr/bin/env vite-node
++import { execFileSync } from "node:child_process";
++import path from "node:path";
++import { fileURLToPath } from "node:url";
++import { planAprFaultRecovery, type AprFaultRecoveryInput } from "./aprFaultRecoveryPolicy";
++
++/**
++ * Dice quali pratiche ferme per un guasto di APR vanno rimesse in coda, quando,
++ * e quali invece nascondono un difetto da chiudere nel codice. Sola lettura:
++ * non rilancia niente, produce il piano.
++ */
++const here = path.dirname(fileURLToPath(import.meta.url));
++const runId = process.argv[2];
++if (!runId) { process.stderr.write("usage: apr-fault-recovery-cli.ts <runId>\n"); process.exit(2); }
++
++const stdout = execFileSync(process.execPath, [
++  path.join(here, "..", "..", "node_modules", ".bin", "vite-node"),
++  path.join(here, "apr-stop-disposition-cli.ts"),
++  runId,
++], { encoding: "utf8", maxBuffer: 10 * 1024 * 1024 });
++
++const disposizioni = (JSON.parse(stdout).disposizioni as Array<Record<string, unknown>>) ?? [];
++const inputs: AprFaultRecoveryInput[] = disposizioni
++  .filter((item) => item.kind === "guasto_apr")
++  .map((item) => ({
++    customerKey: String(item.customerKey),
++    faultText: String(item.text ?? ""),
++    // Il conteggio dei tentativi vive nel ledger del runner: qui, in sola
++    // lettura, si valuta il primo tentativo.
++    previousAttempts: 0,
++  }));
++
++process.stdout.write(`${JSON.stringify({ runId, ...planAprFaultRecovery(inputs) }, null, 2)}\n`);
+diff --git a/scripts/enea-shadow-runner/aprFaultRecoveryPolicy.test.ts b/scripts/enea-shadow-runner/aprFaultRecoveryPolicy.test.ts
+new file mode 100644
+index 0000000..1897041
+--- /dev/null
++++ b/scripts/enea-shadow-runner/aprFaultRecoveryPolicy.test.ts
+@@ -0,0 +1,118 @@
++import { describe, expect, it } from "vitest";
++import { decideAprFaultRecovery, planAprFaultRecovery, type AprFaultRecoveryInput } from "./aprFaultRecoveryPolicy";
++import { disposeAprStoppedCases, type AprStopCaseInput } from "./aprStopDisposition";
++
++const guasto = (faultText: string, previousAttempts = 0, customerKey = "danila-serpa"): AprFaultRecoveryInput =>
++  ({ customerKey, faultText, previousAttempts });
++
++/** Testi presi dalle disposizioni realmente prodotte sul lotto r121. */
++const TESTI = {
++  lease: "La sessione del browser e' scaduta durante la lavorazione: la pratica era pronta e non e' stata portata a termine. Va rilavorata.",
++  nonDimostrabile: "APR non e' riuscito a dimostrare l'esito del salvataggio dopo l'unico tentativo di recupero autorizzato. La bozza puo' esistere o no: va riverificata.",
++  acquisizione: "Nessun documento originario e' stato acquisito: il verdetto non riguarda la pratica ma l'acquisizione. Va rilavorata.",
++  inCoda: "La pratica era pronta e in coda per il portale, ma il lotto si e' chiuso senza eseguirla. Va rilavorata.",
++  mappatura: "I documenti non presentano conflitti ma APR non riesce a completare il payload della bozza: manca una mappatura nel modulo. E' un difetto da chiudere nel codice.",
++  senzaMotivo: "APR si e' fermato senza registrare alcun motivo: non c'e' niente da chiedere all'operatore finche' il motivo non viene scritto.",
++};
++
++describe("un guasto di APR non e' un verdetto sulla pratica", () => {
++  it("una sessione caduta si riprende subito", () => {
++    expect(decideAprFaultRecovery(guasto(TESTI.lease))).toMatchObject({
++      faultClass: "sessione_browser_persa", action: "rilavora_subito", maxAttempts: 2,
++    });
++  });
++
++  it("un esito non dimostrabile si riverifica a fine lotto, per non creare una seconda bozza", () => {
++    const decisione = decideAprFaultRecovery(guasto(TESTI.nonDimostrabile));
++    expect(decisione).toMatchObject({ faultClass: "esito_non_dimostrabile", action: "rilavora_a_fine_lotto" });
++    expect(decisione.reason).toContain("una seconda");
++  });
++
++  it("un servizio esterno caduto si riprova a fine lotto", () => {
++    expect(decideAprFaultRecovery(guasto(TESTI.acquisizione))).toMatchObject({
++      faultClass: "servizio_esterno_non_disponibile", action: "rilavora_a_fine_lotto", maxAttempts: 3,
++    });
++  });
++
++  it("una pratica mai eseguita va semplicemente eseguita", () => {
++    expect(decideAprFaultRecovery(guasto(TESTI.inCoda))).toMatchObject({
++      faultClass: "mai_eseguita", action: "rilavora_subito",
++    });
++  });
++
++  it("una mappatura mancante non si risolve ritentando", () => {
++    const decisione = decideAprFaultRecovery(guasto(TESTI.mappatura));
++    expect(decisione).toMatchObject({ faultClass: "difetto_di_codice", action: "difetto_da_chiudere", maxAttempts: 0 });
++    expect(decisione.reason).toContain("manca del codice");
++  });
++
++  it("una ferma senza motivo registrato non si ritenta al buio", () => {
++    expect(decideAprFaultRecovery(guasto(TESTI.senzaMotivo))).toMatchObject({
++      faultClass: "motivo_non_registrato", action: "difetto_da_chiudere",
++    });
++  });
++
++  it("lo stesso guasto ripetuto oltre il tetto smette di essere un incidente", () => {
++    expect(decideAprFaultRecovery(guasto(TESTI.lease, 1)).action).toBe("rilavora_subito");
++    const esaurito = decideAprFaultRecovery(guasto(TESTI.lease, 2));
++    expect(esaurito.action).toBe("difetto_da_chiudere");
++    expect(esaurito.reason).toContain("non e' piu' un incidente");
++  });
++
++  it("un guasto sconosciuto si guarda, non si ripete", () => {
++    expect(decideAprFaultRecovery(guasto("qualcosa che non abbiamo mai visto"))).toMatchObject({
++      action: "difetto_da_chiudere",
++    });
++  });
++
++  it("i tentativi negativi o frazionari non aggirano il tetto", () => {
++    expect(decideAprFaultRecovery(guasto(TESTI.lease, -5)).attemptsSpent).toBe(0);
++    expect(decideAprFaultRecovery(guasto(TESTI.lease, 2.9)).action).toBe("difetto_da_chiudere");
++  });
++
++  it("riproduce i 9 guasti del lotto r121", () => {
++    const piano = planAprFaultRecovery([
++      guasto(TESTI.lease, 0, "danila-serpa"),
++      guasto(TESTI.lease, 0, "gloria-padoani"),
++      guasto(TESTI.lease, 0, "lea-dettori"),
++      guasto(TESTI.nonDimostrabile, 0, "paolino-bellini"),
++      guasto(TESTI.nonDimostrabile, 0, "vincenzo-falconi"),
++      guasto(TESTI.acquisizione, 0, "elena-depalma"),
++      guasto(TESTI.acquisizione, 0, "fausta-de-filippo"),
++      guasto(TESTI.mappatura, 0, "stefania-venturi"),
++      guasto(TESTI.senzaMotivo, 0, "milena-fiorini"),
++    ]);
++    expect(piano.guasti).toBe(9);
++    expect(piano.rilavoraSubito).toEqual(["danila-serpa", "gloria-padoani", "lea-dettori"]);
++    expect(piano.rilavoraAFineLotto).toEqual(["elena-depalma", "fausta-de-filippo", "paolino-bellini", "vincenzo-falconi"]);
++    expect(piano.difettiDaChiudere).toEqual(["milena-fiorini", "stefania-venturi"]);
++  });
++
++  /**
++   * Le due meta' devono restare agganciate: se qualcuno riscrive il testo di
++   * un guasto in aprStopDisposition e qui nessuno se ne accorge, il guasto
++   * ricade nel ramo "non riconosciuto" e la pratica non viene piu' rilavorata.
++   * E' esattamente l'errore trovato scrivendo questo modulo.
++   */
++  it("ogni guasto prodotto dalla disposizione viene riconosciuto dalla politica", () => {
++    const ferma = (over: Partial<AprStopCaseInput>): AprStopCaseInput => ({
++      customerKey: "x", state: "technical_block", blockerCodes: [],
++      persistedQuestionCount: 0, documentsAcquired: true, ...over,
++    });
++    const fermate = [
++      ferma({ customerKey: "acquisizione", documentsAcquired: false }),
++      ferma({ customerKey: "crm", blockerCodes: ["crm_readonly_acquisition_invalid_response"] }),
++      ferma({ customerKey: "payload", blockerCodes: ["draft_payload_mapping_incomplete"] }),
++      ferma({ customerKey: "lease", executionReason: "Errore circoscritto alla pratica: apr_global_browser_lease_expired" }),
++      ferma({ customerKey: "cdp", executionReason: "Errore circoscritto alla pratica: apr_cdp_enea_field_verification" }),
++      ferma({ customerKey: "incerto", executionReason: "Anche l'unico recupero autorizzato ha esito incerto: Esito non dimostrabile" }),
++      ferma({ customerKey: "coda", executionState: "queued" }),
++    ];
++    for (const disposizione of disposeAprStoppedCases(fermate).disposizioni) {
++      const decisione = decideAprFaultRecovery({
++        customerKey: disposizione.customerKey, faultText: disposizione.text, previousAttempts: 0,
++      });
++      expect(decisione.reason).not.toContain("Guasto non riconosciuto");
++    }
++  });
++});
+diff --git a/scripts/enea-shadow-runner/aprFaultRecoveryPolicy.ts b/scripts/enea-shadow-runner/aprFaultRecoveryPolicy.ts
+new file mode 100644
+index 0000000..63d2399
+--- /dev/null
++++ b/scripts/enea-shadow-runner/aprFaultRecoveryPolicy.ts
+@@ -0,0 +1,173 @@
++export const APR_FAULT_RECOVERY_POLICY_VERSION = "apr-fault-recovery-policy-v1" as const;
++
++/**
++ * Un guasto di APR non e' un verdetto sulla pratica.
++ *
++ * Nel lotto r121, 9 pratiche su 23 ferme si sono fermate perche' si e' rotta
++ * la nostra macchina, non i documenti del cliente: lease del browser scaduta
++ * durante la compilazione, esito del salvataggio non dimostrabile, CRM in
++ * timeout prima di leggere il fascicolo, payload incompleto per una mappatura
++ * mancante. Erano pratiche pronte, e sono finite nel conteggio come fallimenti
++ * senza che nessuno le rimettesse in coda.
++ *
++ * Qui si decide, per ogni guasto, se la pratica va rilavorata e quando. La
++ * decisione e' limitata e persistita: un guasto che si ripete oltre il tetto
++ * di tentativi smette di essere un incidente e diventa un difetto da chiudere
++ * nel codice, cosi' che nessun ciclo possa girare all'infinito nascondendo un
++ * problema strutturale.
++ */
++export type AprFaultRecoveryAction =
++  | "rilavora_subito"
++  | "rilavora_a_fine_lotto"
++  | "difetto_da_chiudere";
++
++/**
++ * Le classi derivano dai guasti realmente osservati, non da un elenco
++ * immaginato. Ogni classe dice quando ritentare e perche'.
++ */
++export type AprFaultClass =
++  | "sessione_browser_persa"
++  | "esito_non_dimostrabile"
++  | "servizio_esterno_non_disponibile"
++  | "mai_eseguita"
++  | "difetto_di_codice"
++  | "motivo_non_registrato";
++
++interface FaultRule {
++  pattern: RegExp;
++  faultClass: AprFaultClass;
++  /** Quante volte ha senso ritentare lo stesso guasto sulla stessa pratica. */
++  maxAttempts: number;
++  action: Exclude<AprFaultRecoveryAction, "difetto_da_chiudere">;
++  reason: string;
++}
++
++/**
++ * Ordine significativo: la prima regola che riconosce il testo vince. Le
++ * classi piu' specifiche stanno prima di quelle generiche.
++ */
++const FAULT_RULES: readonly FaultRule[] = [
++  {
++    pattern: /lease|sessione del browser|browser_lease|fenced/i,
++    faultClass: "sessione_browser_persa",
++    maxAttempts: 2,
++    action: "rilavora_subito",
++    reason: "La pratica era pronta e la sessione e' caduta durante la compilazione: si riprende subito, la sessione nuova e' gia' disponibile.",
++  },
++  {
++    pattern: /controllo del browser|apr_cdp_/i,
++    faultClass: "sessione_browser_persa",
++    maxAttempts: 2,
++    action: "rilavora_subito",
++    reason: "Errore tecnico del pilotaggio del browser su una pratica pronta: si riprende subito con una connessione nuova.",
++  },
++  {
++    pattern: /non dimostrabile|non e' riuscito a dimostrare|esito incerto|riverificata/i,
++    faultClass: "esito_non_dimostrabile",
++    maxAttempts: 1,
++    action: "rilavora_a_fine_lotto",
++    reason: "La bozza potrebbe essere gia' stata salvata: si riverifica a fine lotto per non crearne una seconda.",
++  },
++  {
++    pattern: /timeout|504|gateway|acquisizione|non e' stato acquisito/i,
++    faultClass: "servizio_esterno_non_disponibile",
++    maxAttempts: 3,
++    action: "rilavora_a_fine_lotto",
++    reason: "Il servizio esterno non ha risposto: si riprova a fine lotto, quando il carico e' diverso.",
++  },
++  {
++    pattern: /in coda|queued|senza eseguirla/i,
++    faultClass: "mai_eseguita",
++    maxAttempts: 2,
++    action: "rilavora_subito",
++    reason: "La pratica era pronta e non e' mai stata eseguita: va semplicemente eseguita.",
++  },
++];
++
++const CODE_DEFECT: readonly { pattern: RegExp; faultClass: AprFaultClass; reason: string }[] = [
++  {
++    pattern: /mappatura|payload|non sa formulare/i,
++    faultClass: "difetto_di_codice",
++    reason: "Rilavorare non cambia l'esito: manca del codice. Va chiuso il difetto prima di riprovare.",
++  },
++  {
++    pattern: /senza registrare alcun motivo/i,
++    faultClass: "motivo_non_registrato",
++    reason: "La pratica si e' fermata senza scrivere perche': finche' il motivo non viene registrato, un nuovo tentativo non insegna niente.",
++  },
++];
++
++export interface AprFaultRecoveryInput {
++  customerKey: string;
++  /** Testo del guasto prodotto dalla disposizione della pratica ferma. */
++  faultText: string;
++  /** Tentativi gia' spesi su questa pratica per questo stesso guasto. */
++  previousAttempts: number;
++}
++
++export interface AprFaultRecoveryDecision {
++  customerKey: string;
++  faultClass: AprFaultClass;
++  action: AprFaultRecoveryAction;
++  attemptsSpent: number;
++  maxAttempts: number;
++  reason: string;
++}
++
++export function decideAprFaultRecovery(input: AprFaultRecoveryInput): AprFaultRecoveryDecision {
++  const attemptsSpent = Math.max(0, Math.trunc(input.previousAttempts));
++
++  const defect = CODE_DEFECT.find((rule) => rule.pattern.test(input.faultText));
++  if (defect) {
++    return {
++      customerKey: input.customerKey, faultClass: defect.faultClass, action: "difetto_da_chiudere",
++      attemptsSpent, maxAttempts: 0, reason: defect.reason,
++    };
++  }
++
++  const rule = FAULT_RULES.find((candidate) => candidate.pattern.test(input.faultText));
++  if (!rule) {
++    return {
++      customerKey: input.customerKey, faultClass: "difetto_di_codice", action: "difetto_da_chiudere",
++      attemptsSpent, maxAttempts: 0,
++      reason: "Guasto non riconosciuto: non sappiamo se rilavorare abbia senso, quindi va guardato invece che ripetuto.",
++    };
++  }
++
++  if (attemptsSpent >= rule.maxAttempts) {
++    return {
++      customerKey: input.customerKey, faultClass: rule.faultClass, action: "difetto_da_chiudere",
++      attemptsSpent, maxAttempts: rule.maxAttempts,
++      reason: `Lo stesso guasto si e' ripetuto ${attemptsSpent} volte sul tetto di ${rule.maxAttempts}: non e' piu' un incidente, e' un difetto da chiudere.`,
++    };
++  }
++
++  return {
++    customerKey: input.customerKey, faultClass: rule.faultClass, action: rule.action,
++    attemptsSpent, maxAttempts: rule.maxAttempts, reason: rule.reason,
++  };
++}
++
++export interface AprFaultRecoveryPlan {
++  version: typeof APR_FAULT_RECOVERY_POLICY_VERSION;
++  guasti: number;
++  rilavoraSubito: readonly string[];
++  rilavoraAFineLotto: readonly string[];
++  difettiDaChiudere: readonly string[];
++  decisioni: readonly AprFaultRecoveryDecision[];
++}
++
++export function planAprFaultRecovery(inputs: readonly AprFaultRecoveryInput[]): AprFaultRecoveryPlan {
++  const decisioni = inputs.map(decideAprFaultRecovery)
++    .sort((left, right) => left.customerKey.localeCompare(right.customerKey));
++  const keysFor = (action: AprFaultRecoveryAction) =>
++    decisioni.filter((item) => item.action === action).map((item) => item.customerKey);
++  return {
++    version: APR_FAULT_RECOVERY_POLICY_VERSION,
++    guasti: decisioni.length,
++    rilavoraSubito: keysFor("rilavora_subito"),
++    rilavoraAFineLotto: keysFor("rilavora_a_fine_lotto"),
++    difettiDaChiudere: keysFor("difetto_da_chiudere"),
++    decisioni,
++  };
++}
+-- 
+2.50.1 (Apple Git-155)
+

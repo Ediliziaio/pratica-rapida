@@ -1,4 +1,4 @@
-import { combineDocumentResults } from "../../src/features/enea-lab/invoiceParser";
+import { combineDocumentResults, parseScreeningInvoiceText } from "../../src/features/enea-lab/invoiceParser";
 import { existsSync, readFileSync } from "node:fs";
 import { mapSchermaturaPractice } from "../../src/features/enea-lab/mapper";
 import { buildEneaPayload, fingerprintPreparedPractice, validatePreparedPractice } from "../../src/features/enea-lab/preparation";
@@ -7,9 +7,9 @@ import { prepareEneaTestDraftPortalCollaudo, type EneaTestDraftPortalGate } from
 import type { EneaLabDocumentAnalysis, EneaLabIssue, EneaLabMappedPractice, EneaLabPayload, EneaLabSourcePractice } from "../../src/features/enea-lab/types";
 import type { SchermaturaDirezione, SchermaturaItem, SchermaturaTipo } from "../../src/types/form-cliente";
 import type { AprCrmDocumentAnalysisState } from "./crmDocumentAnalysis";
-import { reconcileLocalInvoiceSegments, splitLocalInvoiceText } from "./localInvoiceSegmentation";
+import { reconcileLocalInvoiceSegments, splitLocalInvoiceText, type LocalInvoiceSegment } from "./localInvoiceSegmentation";
 import { USER_AUTHORIZED_RULE_IDS } from "../../src/features/enea-shadow-crm/operationalRegistry";
-import { extractBankTransferEvidences } from "./bankTransferEvidence";
+import { extractBankTransferEvidences, firstBankTransferHeaderIndex } from "./bankTransferEvidence";
 import { ENEA_INTERVENTION_SCOPE } from "../../src/features/enea-lab/interventionRules";
 
 type JsonObject = Record<string, unknown>;
@@ -60,6 +60,9 @@ export interface CrmEneaPayloadAuditInput {
   resolvedCoBeneficiaryPresent?: boolean | null;
   resolvedCoBeneficiary?: { name: string; surname: string; taxCode: string; sourceIds: string[] } | null;
   analysis: AprCrmDocumentAnalysisState;
+  /** Segmenti fiscali gia risolti dal preflight comune (inclusi i fallback
+   * autorizzati). Il payload li consuma senza ricostruirli dal testo grezzo. */
+  resolvedInvoiceSegments?: readonly LocalInvoiceSegment[];
 }
 
 export interface CrmEneaPayloadAuditResult {
@@ -84,6 +87,19 @@ export interface CrmEneaPayloadAuditResult {
   };
   externalActionAllowed: false;
   reason: string;
+}
+
+/**
+ * Byte logici esatti prodotti dal preflight e destinati al worker. Il report
+ * conserva questo piano insieme all'audit: il percorso operativo non deve
+ * ricostruirlo da dossier o checkpoint che possono essere cambiati nel
+ * frattempo.
+ */
+export interface CrmEneaPreflightExecutablePlan {
+  mappingFingerprint: string;
+  workflowFingerprint: string;
+  payload: EneaLabPayload;
+  workflow: Extract<EneaTestDraftPortalGate, { status: "ready" }>["workflow"];
 }
 
 export type CrmEneaDraftPackageResult =
@@ -172,8 +188,10 @@ export function buildCrmEneaDraftPackage(input: CrmEneaPayloadAuditInput): CrmEn
   source.form.prodotto = { tipo: "schermature", items: productItems };
 
   let compositeInvoiceBankTransferObserved = false;
-  const segments = input.analysis.items.filter((item) => item.customerKey === input.customerKey && item.kind === "invoice" && item.invoiceResult)
-    .flatMap((item) => {
+  const segments = input.resolvedInvoiceSegments
+    ? input.resolvedInvoiceSegments.map((segment) => ({ ...segment, result: { ...segment.result }, items: [...segment.items] }))
+    : input.analysis.items.filter((item) => item.customerKey === input.customerKey && (item.semanticKind ?? item.kind) === "invoice" && item.invoiceResult)
+      .flatMap((item) => {
       const documentText = item.textPath && existsSync(item.textPath) ? readFileSync(item.textPath, "utf8") : "";
       if (extractBankTransferEvidences(item.documentKey, documentText).length && FISCAL_DOCUMENT_MARKERS.test(documentText)) {
         compositeInvoiceBankTransferObserved = true;
@@ -183,17 +201,23 @@ export function buildCrmEneaDraftPackage(input: CrmEneaPayloadAuditInput): CrmEn
         text: documentText,
         extractionMode: item.extractionMode ?? "macos_vision_ocr",
       });
-    }).filter((segment) => {
+      }).filter((segment) => {
       if (segment.result.documentType !== "invoice" && segment.result.documentType !== "credit_note") return false;
       const bankEvidence = extractBankTransferEvidences(segment.sourceId, segment.text);
       if (!bankEvidence.length) return true;
-      // Un allegato puo contenere pagine fiscali e ricevute di bonifico. Il
-      // bonifico non invalida l'intero file: conserviamo esclusivamente il
-      // segmento che possiede anche marcatori fiscali propri della fattura.
-      // Un segmento solo bancario resta escluso in modo fail-closed.
-      const isFiscalSegment = FISCAL_DOCUMENT_MARKERS.test(segment.text);
-      return isFiscalSegment;
-    });
+      // Una ricevuta bancaria puo citare numero, data e importo della fattura
+      // nella causale. Questi valori non la trasformano in fattura. Manteniamo
+      // il segmento soltanto se titolo di fattura, etichetta fiscale finale
+      // e totale leggibile sono gia' presenti PRIMA della prima intestazione
+      // bancaria: e' il caso di una fattura vera seguita, nello stesso PDF,
+      // dalla ricevuta di pagamento. Numero/data non sono requisiti economici.
+      const headerIndex = firstBankTransferHeaderIndex(segment.text);
+      const beforeBankReceipt = headerIndex === null ? "" : segment.text.slice(0, headerIndex);
+      const parsedBeforeBankReceipt = parseScreeningInvoiceText(beforeBankReceipt, segment.sourceId).result;
+      return Boolean(/\bFATTURA\b/iu.test(beforeBankReceipt)
+        && FISCAL_DOCUMENT_MARKERS.test(beforeBankReceipt)
+        && parsedBeforeBankReceipt.total !== null);
+      });
   const parsed = reconcileLocalInvoiceSegments(segments).technicalSegments.map((segment) => ({ result: segment.result, items: segment.items }));
   const fiscalDocumentAnalysis: EneaLabDocumentAnalysis | undefined = parsed.length ? combineDocumentResults(parsed) : undefined;
   const reconciledTechnicalItems = input.products.flatMap((product) =>
@@ -325,8 +349,7 @@ export function buildCrmEneaDraftPackage(input: CrmEneaPayloadAuditInput): CrmEn
  * portale. Il risultato è diagnostico e fail-closed: non abilita alcuna azione
  * esterna e non trasforma review/missing in valori confermati.
  */
-export function buildCrmEneaPayloadAudit(input: CrmEneaPayloadAuditInput): CrmEneaPayloadAuditResult {
-  const packageResult = buildCrmEneaDraftPackage(input);
+function auditBuiltCrmEneaDraftPackage(packageResult: CrmEneaDraftPackageResult): CrmEneaPayloadAuditResult {
   if (packageResult.status === "source_unmappable") return { status: "source_unmappable", mappingFingerprint: null, fieldSummary: { ready: 0, review: 0, missing: 0 }, requiredPortalFieldCount: 0, blockerCount: 1,
     blockers: [{ code: packageResult.code, fieldId: null, message: packageResult.reason }], excludedUnverifiedFields: [], draftReady: false, officialSubmissionAllowed: false, portalGate: { status: "blocked", reason: "source-unmappable", workflowFingerprint: null, supportedPages: [], screeningItemCount: 0, saveAllowedOnlyBySeparateCapability: true, previewAllowed: false, submitAllowed: false }, externalActionAllowed: false, reason: "Payload ENEA non costruibile dal dossier locale." };
   const { mapped, issues, payload, portalGate } = packageResult;
@@ -343,4 +366,28 @@ export function buildCrmEneaPayloadAudit(input: CrmEneaPayloadAuditInput): CrmEn
     externalActionAllowed: false,
     reason: complete ? "Payload TEST completo per la sola bozza salvata; anteprima e submit restano vietati." : `${blockers.length} campi o controlli impediscono ancora il payload della bozza TEST.`,
   };
+}
+
+export function buildCrmEneaPayloadAuditAndExecutablePlan(input: CrmEneaPayloadAuditInput): {
+  audit: CrmEneaPayloadAuditResult;
+  executablePlan: CrmEneaPreflightExecutablePlan | null;
+} {
+  const packageResult = buildCrmEneaDraftPackage(input);
+  const audit = auditBuiltCrmEneaDraftPackage(packageResult);
+  if (packageResult.status !== "built" || packageResult.portalGate.status !== "ready" || !audit.draftReady || !audit.mappingFingerprint) {
+    return { audit, executablePlan: null };
+  }
+  return {
+    audit,
+    executablePlan: {
+      mappingFingerprint: audit.mappingFingerprint,
+      workflowFingerprint: packageResult.portalGate.fingerprint,
+      payload: packageResult.payload,
+      workflow: packageResult.portalGate.workflow,
+    },
+  };
+}
+
+export function buildCrmEneaPayloadAudit(input: CrmEneaPayloadAuditInput): CrmEneaPayloadAuditResult {
+  return buildCrmEneaPayloadAuditAndExecutablePlan(input).audit;
 }

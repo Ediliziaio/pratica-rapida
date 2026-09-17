@@ -1,0 +1,26 @@
+{
+  "version": "apr-install-bundle-cli-receipt-v1",
+  "installedAt": "2026-09-10T09:07:57.261Z",
+  "label": "preflight-deep-review-propagation-r104",
+  "versionId": "0b183b6e-preflight-deep-review-propagation-r104-20260910",
+  "previousTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/831bb370-preflight-terminal-propagation-r103-20260910",
+  "currentTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/0b183b6e-preflight-deep-review-propagation-r104-20260910",
+  "installedBundle": {
+    "apr-supervisor.mjs": "f319eaf0fe8712deae5b4ecdec921aca73d4f8bcf88dea07fa92ab1d2cfd1c97",
+    "apr-enea-worker.mjs": "eb44de5edaee1412b4ca3593647885a272815cb4071116c816f76a437da1c932",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "apr-rule-governance-attestation.json": "c0f80aa8ee25bb36ea7e10b05b2cc9e33d8962f1684ce8ed44fd9845840e3702"
+  },
+  "gateResultArtifactId": "dbbaa89f01eddbbc245b2851aa1e02c8afb6ed4b70a46a6edc433d2cdf1eb87a",
+  "gateStatus": "PASS",
+  "governanceAttestation": {
+    "path": "apr-rule-governance-attestation.json",
+    "sha256": "c0f80aa8ee25bb36ea7e10b05b2cc9e33d8962f1684ce8ed44fd9845840e3702",
+    "historicalAuditReport": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-preflight-deep-review-propagation-r104-2026-09-10/historical-audit-report-r104.json",
+    "authorizedHistoricalGap": true
+  },
+  "legacyGovernanceDebtNoticed": [
+    "user-2026-09-05-co-beneficiary-trusted-enter-delivery-v2",
+    "user-2026-09-05-terminal-cohort-browser-quiescence-v1"
+  ]
+}

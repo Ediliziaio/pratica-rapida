@@ -1,0 +1,40 @@
+{
+  "version": "apr-real-response-consumption-verification-v1",
+  "verifiedAt": "2026-09-14T11:16:26.586Z",
+  "mode": "real_dossier_local_read_and_persisted_application_receipt",
+  "externalActions": false,
+  "cases": [
+    {
+      "customerKey": "cesare-imperiali",
+      "dossierSha256": "e55d87bcac987ab859cd89e527cd88d63237f036f07a6cbbbd627eeac79b6139",
+      "responseId": "response:chat:infissi-dimensioni-e-numero:cesare-imperiali:20260914",
+      "productCount": 3,
+      "surfaceM2": [2.6, 2.4, 3.6],
+      "dossierOverrideResponseIds": ["response:chat:infissi-dimensioni-e-numero:cesare-imperiali:20260914"],
+      "applicationOutcome": "applied",
+      "questionStatus": "retired",
+      "resolvedReason": "Domanda chiusa dalla risposta attiva response:chat:infissi-dimensioni-e-numero:cesare-imperiali:20260914."
+    },
+    {
+      "customerKey": "mauro-leonardi",
+      "dossierSha256": "e1aab2edc9b51884d9e6336f038709b9112bf56e25ee12ce14e6d8125a22e763",
+      "responseId": "response:chat:completion-date:mauro-leonardi:20260914",
+      "completionDate": "2026-08-30",
+      "dossierOverrideResponseIds": ["response:chat:completion-date:mauro-leonardi:20260914"],
+      "applicationOutcome": "applied",
+      "questionStatus": "retired",
+      "resolvedReason": "Domanda chiusa dalla risposta attiva response:chat:completion-date:mauro-leonardi:20260914."
+    },
+    {
+      "customerKey": "gabriele-girelli",
+      "dossierSha256": "bc510f16a8c3dff9abcc0e71b77d74e09b25a14992c032c77384eae3f3c75eaa",
+      "responseId": "response:chat:completion-date:gabriele-girelli:20260914",
+      "completionDate": "2026-08-30",
+      "dossierOverrideResponseIds": ["response:chat:completion-date:gabriele-girelli:20260914"],
+      "applicationOutcome": "applied",
+      "questionStatus": "retired",
+      "resolvedReason": "Domanda chiusa dalla risposta attiva response:chat:completion-date:gabriele-girelli:20260914.",
+      "unrelatedOpenQuestionPreserved": "infissi:gabriele-girelli:infissi_shading_closures_form_answer_missing_or_ambiguous"
+    }
+  ]
+}

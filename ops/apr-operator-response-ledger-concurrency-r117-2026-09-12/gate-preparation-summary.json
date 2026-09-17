@@ -1,0 +1,25 @@
+{
+  "status": "PASS",
+  "tests": {
+    "total": 2031,
+    "passed": 2031,
+    "failed": 0,
+    "pending": 0
+  },
+  "matrixRules": 226,
+  "testedRules": 226,
+  "requiredRuntimeRule": "system-operator-response-ledger-concurrency-v1",
+  "stagedBundleSha256": {
+    "apr-supervisor.mjs": "f6d3ca51055ceae1976807eb3a2ed3fbb05c5522eee855ae757699338de227cf",
+    "apr-enea-worker.mjs": "2ba02d4bfd2a157fee8bd92efac23a7af6a4164fb523b4a05b8ae90590d432b0",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0"
+  },
+  "historicalAudit": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-operator-response-ledger-concurrency-r117-2026-09-12/historical-audit-report-r117.json",
+  "historicalAuditSha256": "4c4ff673cb996fad880b7513f4f0045de0b7b2e45b9e7bdeb27aa077bfc61c47",
+  "authorizedHistoricalGapOnly": [
+    "user-2026-08-06-portal-intermediary-physical-beneficiary-v1",
+    "user-2026-08-06-intervention-authoritative-sources-and-defaults-v1",
+    "user-2026-08-06-existing-plant-authoritative-mapping-v1",
+    "user-2026-08-06-portal-municipality-controlled-selection-v1"
+  ]
+}

@@ -132,7 +132,7 @@ export function parseCompletedEneaText(text: string): CompletedEneaSnapshot {
   const fields: Record<string, string> = {};
 
   const cpid = capture(source, /\bCPID\s+([A-Z0-9-]+)(?:\s+Data chiusura|\s+del\s+)/i);
-  set(fields, "intervento.tipo", capture(source, /\b(Comma\s+345B\s+-\s+Schermature solari)\b/i));
+  set(fields, "intervento.tipo", capture(source, /\b(Comma\s+345[AB]\s+-\s+(?:Schermature solari|Interventi sull'involucro))\b/i));
 
   const worksAddress = parseAddressBlock(capture(
     source,
@@ -145,6 +145,7 @@ export function parseCompletedEneaText(text: string): CompletedEneaSnapshot {
     fields["immobile.comune"] = worksAddress.municipality;
   }
 
+  set(fields, "immobile.codice_catastale", capture(source, /Codice nazionale del Comune:\s*([A-Z][0-9]{3})\s+Sezione:/i));
   set(fields, "immobile.foglio", capture(source, /Foglio:\s*([^\s]+)\s+Particella:/i));
   set(fields, "immobile.mappale", capture(source, /Particella:\s*([^\s]+)\s+Subalterno:/i));
   set(fields, "immobile.subalterno", capture(source, /Subalterno:\s*([^\s]+)\s+2\. Anno di costruzione/i));
@@ -175,6 +176,7 @@ export function parseCompletedEneaText(text: string): CompletedEneaSnapshot {
   set(fields, "immobile.tipologia", capture(source, /9\. Tipologia edilizia\s+(.+?)\s+10\. Superficie utile/i));
 
   set(fields, "intervento.ambito", capture(source, /Intervento su\s+(.+?)\s+2\. Unità immobiliari/i));
+  set(fields, "intervento.unita_totali", capture(source, /Numero totale delle unità immobiliari dell'edificio alla fine dei lavori\s+([0-9]+)/i));
   set(fields, "intervento.unita_oggetto", capture(source, /Numero di unità immobiliari oggetto dell'intervento per cui si chiede la detrazione.*?Si considera la situazione catastale all'inizio dei lavori\s+([0-9]+)/i));
   set(fields, "intervento.accorpamenti", capture(source, /Si sono verificati degli accorpamenti di unità immobiliari\?.*?presente scheda descrittiva\s+(Sì|Si|No)/i));
   set(fields, "intervento.data_inizio", capture(source, /Data d'inizio dei lavori\s+(\d{2}\/\d{2}\/\d{4})/i));
@@ -184,11 +186,12 @@ export function parseCompletedEneaText(text: string): CompletedEneaSnapshot {
   set(fields, "impianto.combustibile", capture(source, /6\. Vettore energetico Indicare la tipologia prevalente\s+(.+?)\s+7\. Impianto di climatizzazione estiva/i));
   set(fields, "impianto.condizionamento", capture(source, /7\. Impianto di climatizzazione estiva\s+(Sì|Si|No)/i));
 
-  const generator = source.match(/(?:Caldaia ad acqua calda standard|Caldaia ad acqua calda a bassa temperatura|Caldaia a gas a condensazione|Caldaia a gasolio a condensazione|Pompa di calore \/ Impianto geotermico|Generatore aria calda|Scambiatore per teleriscaldamento|Caldaia a biomassa|Altro \([^)]+\))\s+([0-9]+)\s+[^=]{0,12}=\s*([0-9]+(?:[.,][0-9]+)?)\s*%\s+([0-9]+(?:[.,][0-9]+)?)/i);
+  const generator = source.match(/(Caldaia ad acqua calda standard|Caldaia ad acqua calda a bassa temperatura|Caldaia a gas a condensazione|Caldaia a gasolio a condensazione|Pompa di calore \/ Impianto geotermico|Generatore aria calda|Scambiatore per teleriscaldamento|Caldaia a biomassa|Altro(?: \([^)]+\))?)\s+([0-9]+)\s+(?:[ƞη]\s*=|P\.E\.A\.\s*=)\s*([0-9]+(?:[.,][0-9]+)?)\s*(?:%|kW)\s+([0-9]+(?:[.,][0-9]+)?)/i);
   if (generator) {
-    fields["impianto.numero_generatori"] = generator[1];
-    fields["impianto.rendimento"] = generator[2];
-    fields["impianto.potenza"] = generator[3];
+    fields["impianto.generatore"] = generator[1];
+    fields["impianto.numero_generatori"] = generator[2];
+    fields["impianto.rendimento"] = generator[3];
+    fields["impianto.potenza"] = generator[4];
   }
 
   const screeningStart = source.indexOf("Scheda intervento SS. Schermature solari");
@@ -225,7 +228,7 @@ export function parseCompletedEneaText(text: string): CompletedEneaSnapshot {
   const infissiText = infissiStart >= 0
     ? source.slice(infissiStart, infissiEnd > infissiStart ? infissiEnd : undefined)
     : "";
-  const infissiPattern = /(\d+)\s+(Legno|PVC|Metallo,? taglio termico|Metallo,? no taglio termico|Misto)\s+(Singolo|Doppio|Triplo|Pannello(?: opaco)?)\s+([0-9]+(?:[.,][0-9]+)?)\s+([0-9]+(?:[.,][0-9]+)?)\s+(Legno|PVC|Metallo,? taglio termico|Metallo,? no taglio termico|Misto)\s+(Singolo|Doppio|Triplo|Pannello(?: opaco)?)\s+([0-9]+(?:[.,][0-9]+)?)\s+(Verso esterno|Verso ambiente non climatizzato)\s+(Sì|Si|No)/gi;
+  const infissiPattern = /(\d+)\s+(Legno|PVC|Metallo,? taglio termico|Metallo,? no taglio termico|Misto)\s+(Singolo|Doppio|Triplo|Pannello(?: opaco)?)\s+([0-9]+(?:[.,][0-9]+)?)\s+([0-9]+(?:[.,][0-9]+)?)\s+(Legno|PVC|Metallo,? taglio termico|Metallo,? no taglio termico|Misto)\s+(A bassa emissione|Singolo|Doppio|Triplo|Pannello(?: opaco)?)\s+([0-9]+(?:[.,][0-9]+)?)\s+(Verso esterno|Verso ambiente non climatizzato)\s+(Sì|Si|No)/gi;
   // Nei PDF reali le etichette "A bassa emissione" e "Verso esterno"
   // possono essere spezzate prima/dopo la riga numerata. Il nucleo stabile
   // della riga resta: numero, telaio/vetro/U vecchi, superficie e telaio nuovo.
@@ -263,6 +266,10 @@ export function parseCompletedEneaText(text: string): CompletedEneaSnapshot {
     fields["infissi.numero"] = String(infissiCount);
     set(fields, "infissi.spesa", capture(source.slice(infissiStart), /Spese congrue sostenute\s*\[\s*€\s*\]\s*([0-9]+(?:[.,][0-9]+)?)/i));
   }
+  set(fields, "riepilogo.detrazione_totale", capture(source, /1\. Detrazione totale calcolata\s*\[€\]\s*([0-9]+(?:[.,][0-9]+)?)/i));
+  set(fields, "riepilogo.detrazione_massima", capture(source, /2\. Detrazione massima ammissibile\s*\[€\]\s*([0-9]+(?:[.,][0-9]+)?)/i));
+  set(fields, "riepilogo.detrazione_ammissibile", capture(source, /3\. Detrazione ammissibile\s*\[€\]\s*([0-9]+(?:[.,][0-9]+)?)/i));
+  set(fields, "riepilogo.risparmio_energia_primaria", capture(source, /2\. Risparmio stimato di energia primaria non rinnovabile\s*\[kWh\/anno\].*?automaticamente\.\s*([0-9]+(?:[.,][0-9]+)?)/i));
   const uniqueScreeningOrdinals = new Set(screeningOrdinals);
   const uniqueParsedScreeningOrdinals = new Set(parsedScreeningOrdinals);
   const orderedScreeningOrdinals = [...uniqueScreeningOrdinals].sort((left, right) => left - right);
@@ -275,7 +282,7 @@ export function parseCompletedEneaText(text: string): CompletedEneaSnapshot {
   // In audit il confronto con schermature.numero fallira' invece di certificare
   // per errore un PDF parzialmente interpretato.
   const screeningCount = screeningStructureValid ? orderedScreeningOrdinals.length : -1;
-  set(fields, "schermature.spesa", capture(source, /Spese congrue sostenute \[€\]\s+([0-9]+(?:[.,][0-9]+)?)/i));
+  if (screeningStart >= 0) set(fields, "schermature.spesa", capture(source.slice(screeningStart), /Spese congrue sostenute \[€\]\s+([0-9]+(?:[.,][0-9]+)?)/i));
 
   return { cpid, fields, screeningCount, infissiCount };
 }

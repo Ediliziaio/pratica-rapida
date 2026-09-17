@@ -10,6 +10,25 @@ static int fail(NSString *message, int code) {
   return code;
 }
 
+static CGPoint readingPointForCoordinates(CGFloat x, CGFloat y, CGImagePropertyOrientation orientation) {
+  // Vision accetta l'orientamento per riconoscere i glifi, ma le bounding
+  // box restano riferite al raster originario. L'ordine di lettura deve
+  // quindi essere calcolato nello stesso sistema orientato mostrato a un
+  // lettore umano. Senza questa trasformazione una pagina a 90/270 gradi
+  // contiene parole corrette in colonne/righe sbagliate (regressione
+  // Riviera: numero, data e totale presenti ma non associabili).
+  switch (orientation) {
+    case kCGImagePropertyOrientationRight: return CGPointMake(1.0 - y, x);
+    case kCGImagePropertyOrientationDown: return CGPointMake(1.0 - x, 1.0 - y);
+    case kCGImagePropertyOrientationLeft: return CGPointMake(y, 1.0 - x);
+    default: return CGPointMake(x, y);
+  }
+}
+
+static CGPoint readingPointForObservation(VNRecognizedTextObservation *observation, CGImagePropertyOrientation orientation) {
+  return readingPointForCoordinates(CGRectGetMidX(observation.boundingBox), CGRectGetMidY(observation.boundingBox), orientation);
+}
+
 static NSString *recognizeImage(CGImageRef cgImage, CGImagePropertyOrientation orientation, NSError **error) {
   VNRecognizeTextRequest *request = [[VNRecognizeTextRequest alloc] init];
   request.recognitionLevel = VNRequestTextRecognitionLevelAccurate;
@@ -18,9 +37,11 @@ static NSString *recognizeImage(CGImageRef cgImage, CGImagePropertyOrientation o
   VNImageRequestHandler *handler = [[VNImageRequestHandler alloc] initWithCGImage:cgImage orientation:orientation options:@{}];
   if (![handler performRequests:@[request] error:error]) return nil;
   NSArray<VNRecognizedTextObservation *> *observations = [request.results sortedArrayUsingComparator:^NSComparisonResult(VNRecognizedTextObservation *left, VNRecognizedTextObservation *right) {
-    CGFloat vertical = fabs(CGRectGetMidY(left.boundingBox) - CGRectGetMidY(right.boundingBox));
-    if (vertical > 0.012) return CGRectGetMidY(left.boundingBox) > CGRectGetMidY(right.boundingBox) ? NSOrderedAscending : NSOrderedDescending;
-    return CGRectGetMinX(left.boundingBox) < CGRectGetMinX(right.boundingBox) ? NSOrderedAscending : NSOrderedDescending;
+    CGPoint leftPoint = readingPointForObservation(left, orientation);
+    CGPoint rightPoint = readingPointForObservation(right, orientation);
+    CGFloat vertical = fabs(leftPoint.y - rightPoint.y);
+    if (vertical > 0.012) return leftPoint.y > rightPoint.y ? NSOrderedAscending : NSOrderedDescending;
+    return leftPoint.x < rightPoint.x ? NSOrderedAscending : NSOrderedDescending;
   }];
   NSMutableArray<NSString *> *lines = [NSMutableArray array];
   for (VNRecognizedTextObservation *observation in observations) {
@@ -89,6 +110,16 @@ static NSInteger orientationDegrees(CGImagePropertyOrientation orientation) {
 int main(int argc, const char *argv[]) {
   @autoreleasepool {
     if (argc != 2) return fail(@"usage: apr-pdf-ocr <local-pdf-or-image>", 64);
+    if (strcmp(argv[1], "--self-test-reading-order") == 0) {
+      CGPoint up = readingPointForCoordinates(0.2, 0.7, kCGImagePropertyOrientationUp);
+      CGPoint right = readingPointForCoordinates(0.2, 0.7, kCGImagePropertyOrientationRight);
+      CGPoint down = readingPointForCoordinates(0.2, 0.7, kCGImagePropertyOrientationDown);
+      CGPoint left = readingPointForCoordinates(0.2, 0.7, kCGImagePropertyOrientationLeft);
+      NSDictionary *result = @{ @"up": @[@(up.x), @(up.y)], @"right": @[@(right.x), @(right.y)], @"down": @[@(down.x), @(down.y)], @"left": @[@(left.x), @(left.y)] };
+      NSData *data = [NSJSONSerialization dataWithJSONObject:result options:0 error:nil];
+      [[NSFileHandle fileHandleWithStandardOutput] writeData:data];
+      return 0;
+    }
     NSString *inputPath = [[NSString stringWithUTF8String:argv[1]] stringByStandardizingPath];
     NSString *extension = inputPath.pathExtension.lowercaseString;
     NSMutableArray<NSString *> *pages = [NSMutableArray array];

@@ -260,3 +260,65 @@ describe("gate sequencer recovery_queued con prova server", () => {
     expect(resolveUncertainSaveLifecycle(execution, "fixture-screening", canonicalAbsenceDriverFixture())).toMatchObject({ kind: "invalid" });
   });
 });
+
+// Lucia Droghetti, 14/09/2026, coorte 9218: prima pagina salvata e provata
+// dalla GET canonica, worker gia' in filling sulla pagina dopo. Il sequencer
+// giudicava "state_status_mismatch:filling:resolved_saved" e isolava una
+// lavorazione sana. La prova e' la stessa richiesta in recovery_queued.
+describe("resolved_saved con la pratica ancora in filling (Droghetti)", () => {
+  const droghetti = () => ({
+    status: "running",
+    currentCustomerKey: "lucia-droghetti",
+    items: [{
+      customerKey: "lucia-droghetti",
+      state: "filling",
+      draftId: "494037",
+      serverEvidenceIds: ["cdp-server-13-7888883a4b35c43d04d7"],
+      completedPageIds: ["page:Anagrafica Beneficiario"],
+      uncertainPageSave: {
+        pageId: "page:Anagrafica Beneficiario",
+        status: "resolved_saved",
+        operatorDecision: null,
+        probes: [
+          { method: "server_redirect", outcome: "inconclusive", evidenceId: "cdp-server-12-x" },
+          { method: "persisted_fields_get", outcome: "saved", evidenceId: "cdp-server-13-7888883a4b35c43d04d7", url: "https://bonusfiscali.enea.it/pratica/ecobonus/2026/beneficiario/494037" },
+        ],
+      },
+      pageCheckpoints: [
+        { pageId: "page:Anagrafica Beneficiario", state: "saved", saveAttemptCount: 1, recoverySaveAttemptCount: 0, savedEvidenceId: "cdp-server-13-7888883a4b35c43d04d7" },
+        { pageId: "page:Immobile", state: "pending", saveAttemptCount: 0, recoverySaveAttemptCount: 0 },
+      ],
+    }],
+  });
+
+  it("lascia proseguire il worker quando la prova di salvataggio e' completa", () => {
+    expect(resolveUncertainSaveLifecycle(droghetti() as never, "lucia-droghetti")).toMatchObject({ kind: "wait_for_worker_resume" });
+  });
+
+  // 16/09/2026, coorte 10370: stessa pratica, un passo dopo. Schermature
+  // risolta e completata; il worker ha gia' registrato l'intento di Salva su
+  // «Calcolo costi». Il sequencer giudicava
+  // "state_status_mismatch:save_intent_recorded:resolved_saved".
+  it("lascia proseguire il worker anche se ha gia' registrato l'intento di salvataggio della pagina dopo (Droghetti, 16/09)", () => {
+    const later: any = droghetti();
+    later.items[0].state = "save_intent_recorded";
+    later.items[0].pageCheckpoints[1] = { pageId: "page:Immobile", state: "save_intent_recorded", saveAttemptCount: 1, recoverySaveAttemptCount: 0 };
+    expect(resolveUncertainSaveLifecycle(later, "lucia-droghetti")).toMatchObject({ kind: "wait_for_worker_resume" });
+  });
+
+  it("con l'intento registrato sulla pagina dopo resta fail-closed se la pagina risolta non e' fra le completate", () => {
+    const later: any = droghetti();
+    later.items[0].state = "save_intent_recorded";
+    later.items[0].completedPageIds = [];
+    expect(resolveUncertainSaveLifecycle(later, "lucia-droghetti")).toMatchObject({ kind: "invalid", reason: expect.stringContaining("resolved_saved_proof_invalid") });
+  });
+
+  it("resta fail-closed se la prova di salvataggio non e' completa", () => {
+    const noProof: any = droghetti();
+    noProof.items[0].pageCheckpoints[0].savedEvidenceId = "altra-evidenza";
+    expect(resolveUncertainSaveLifecycle(noProof, "lucia-droghetti")).toMatchObject({ kind: "invalid", reason: expect.stringContaining("resolved_saved_proof_invalid") });
+    const notCompleted: any = droghetti();
+    notCompleted.items[0].completedPageIds = [];
+    expect(resolveUncertainSaveLifecycle(notCompleted, "lucia-droghetti")).toMatchObject({ kind: "invalid" });
+  });
+});

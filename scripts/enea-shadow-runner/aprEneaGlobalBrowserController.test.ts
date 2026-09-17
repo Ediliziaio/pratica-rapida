@@ -2,7 +2,7 @@ import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSy
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { atomicCreateExclusiveJson, PersistentAprEneaGlobalBrowserController } from "./aprEneaGlobalBrowserController";
+import { APR_ENEA_BROWSER_LEASE_DEFAULT_MS, atomicCreateExclusiveJson, PersistentAprEneaGlobalBrowserController } from "./aprEneaGlobalBrowserController";
 import { APR_CDP_EVALUATION_TIMEOUTS, CdpPageClient } from "./cdpClient";
 import { registryRule } from "../../src/features/enea-shadow-crm/operationalRegistry";
 
@@ -22,6 +22,11 @@ function fixture() {
 afterEach(() => { for (const root of roots.splice(0)) rmSync(root, { recursive: true, force: true }); });
 
 describe("controllore globale esclusivo Chrome/ENEA", () => {
+  it("mantiene la lease predefinita a 120 secondi, sotto il watchdog esterno di sette minuti", () => {
+    expect(APR_ENEA_BROWSER_LEASE_DEFAULT_MS).toBe(120_000);
+    expect(APR_ENEA_BROWSER_LEASE_DEFAULT_MS).toBeLessThan(7 * 60_000);
+  });
+
   it("impedisce a due worker di controllare contemporaneamente la stessa sessione", async () => {
     const { first, second } = fixture();
     let active = 0;

@@ -32,9 +32,16 @@ export const VENEZIANA_PERSIANA_EQUIVALENT_TREATMENT_RULE_ID = "user-2026-09-08-
 export const NARRATIVE_PAYMENT_SENTENCE_AWNING_DIMENSION_RULE_ID = "user-2026-09-08-narrative-payment-sentence-awning-dimension-v1" as const;
 export const ZANZASOL_NARRATIVE_QUANTITY_FROM_PRICE_ROW_RULE_ID = "user-2026-09-08-zanzasol-narrative-quantity-from-price-row-v1" as const;
 export const ARCHITECTURAL_OPENING_LABEL_OVER_INCIDENTAL_NUMBER_PAIR_RULE_ID = "user-2026-09-08-architectural-opening-label-over-incidental-number-pair-v1" as const;
+export const DOCUMENT_TYPE_BARE_WORD_FATTURA_NARRATIVE_EXCLUSION_RULE_ID = "user-2026-09-08-document-type-bare-word-fattura-narrative-exclusion-v1" as const;
+export const SALES_ORDER_IN_INVOICE_SLOT_IS_FISCAL_DOCUMENT_RULE_ID = "user-2026-09-13-sales-order-in-invoice-slot-is-fiscal-document-v1" as const;
+export const SCREENING_MEASUREMENTS_IN_LINE_DESCRIPTION_RULE_ID = "user-2026-09-11-screening-measurements-in-line-description-v1" as const;
+export const CASSONETTO_EXCLUDED_FROM_ENEA_PRODUCTS_RULE_ID = "user-2026-09-11-cassonetto-excluded-from-enea-products-v1" as const;
 export const FINESTRA_ITALIA_SEPARATED_LABEL_VALUE_BLOCK_DOCUMENT_IDENTITY_RULE_ID = "user-2026-09-08-finestra-italia-separated-label-value-block-document-identity-v1" as const;
 export const TOTALE_CONTRATTO_COMMESSA_NEVER_DOCUMENT_TOTAL_RULE_ID = "user-2026-09-08-totale-contratto-commessa-never-document-total-v1" as const;
 export const FINESTRA_ITALIA_SCADENZE_INTERVENING_LABEL_VERTICAL_RECAP_RULE_ID = "user-2026-09-08-finestra-italia-scadenze-intervening-label-vertical-recap-v1" as const;
+export const SCRAMBLED_FISCAL_HEADER_UNIQUE_LOCAL_CANDIDATES_RULE_ID = "user-2026-09-09-scrambled-fiscal-header-unique-local-candidates-v1" as const;
+export const SCRAMBLED_NET_PAYABLE_REPEATED_AMOUNT_RULE_ID = "user-2026-09-09-scrambled-net-payable-repeated-amount-v1" as const;
+export const EXPLICIT_INVOICE_PRODUCT_EVIDENCE_RECOVERY_RULE_ID = "user-2026-09-10-explicit-invoice-product-evidence-recovery-v1" as const;
 const SCREENING_SURFACE_RELATIVE_TOLERANCE = 0.05;
 
 type ScreeningMeasureUnit = "m" | "cm" | "mm";
@@ -239,7 +246,7 @@ function extractDocumentIdentity(text: string): {
   // alla riga delle etichette. Il riconoscimento resta legato allo stesso
   // blocco di intestazione e non usa riferimenti narrativi nel corpo.
   const separatedNumberDate = text.match(
-    /(?:^|\n)[^\n]{0,80}\bN[°º.]?\s*DOCUMENTO\s+DATA\s+DOCUMENTO(?:\s+[A-Z][A-Z ]{1,30})?\s+([A-Z0-9./-]+)\s*\n\s*(\d{2}[/-]\d{2}[/-](?:\d{4}|\d{2}))\b/i,
+    /(?:^|\n)[^\n]{0,80}\bN[°º.]?\s*DOCUMENTO\s+DATA\s+DOCUMENTO(?:\s+[A-Z][A-Z ]{1,30})?\s+((?!PAG\.?(?:\s|$))[A-Z0-9./-]+)\s*\n\s*(\d{2}[/-]\d{2}[/-](?:\d{4}|\d{2}))\b/i,
   );
   if (separatedNumberDate) {
     return { documentNumber: separatedNumberDate[1].trim(), documentDate: toIsoDate(separatedNumberDate[2]) };
@@ -268,6 +275,28 @@ function extractDocumentIdentity(text: string): {
   if (finestraItaliaSeparatedBlocks) {
     return { documentNumber: finestraItaliaSeparatedBlocks[1].trim(), documentDate: toIsoDate(finestraItaliaSeparatedBlocks[2]) };
   }
+  // Alcuni PDF fiscali nativi vengono consegnati dal renderer con l'ordine
+  // visuale delle colonne intercalato: numero, data e pagina restano tutti
+  // leggibili, ma possono precedere o seguire l'etichetta composta. Il
+  // recupero e' ammesso soltanto entro lo stesso piccolo blocco di testata e
+  // con un solo candidato possibile per numero e data; due candidati fanno
+  // fallire chiuso il riconoscimento invece di scegliere per distanza.
+  const headerLines = text.split(/\r?\n/).map((line) => line.replace(/\s+/g, " ").trim());
+  const scrambledHeaderIndex = headerLines.findIndex((line) => /N[°º.]?\s*DOCUMENTO\s+DATA\s+DOCUMENTO/i.test(line));
+  if (scrambledHeaderIndex >= 0 && headerLines.some((line) => /^FATTURA\s+DI\s+VENDITA\b/i.test(line))) {
+    const start = Math.max(0, scrambledHeaderIndex - 10);
+    const end = Math.min(headerLines.length, scrambledHeaderIndex + 11);
+    const window = headerLines.slice(start, end);
+    const dates = [...new Set(window.filter((line) => /^\d{2}-\d{2}-\d{2}$/.test(line)))];
+    const numbers = [...new Set(window.filter((line) => /^(?=.*\d)[A-Z0-9./-]{1,16}$/i.test(line)
+      && !/^\d{1,2}\/\d{1,2}$/.test(line)
+      && !/^\d{2}-\d{2}-\d{2}$/.test(line)
+      && !/^\d+[A-Z]$/.test(line)))];
+    if (dates.length === 1 && numbers.length === 1) {
+      return { documentNumber: numbers[0], documentDate: toIsoDate(dates[0]) };
+    }
+    return {};
+  }
   // Layout tabellare generico nel quale il titolo Fattura precede una riga
   // "Data <valore> Numero <valore>". Numero e data devono provenire dalla
   // stessa intestazione, non da riferimenti narrativi nel corpo.
@@ -284,6 +313,12 @@ function extractDocumentIdentity(text: string): {
   if (tabularHeader) return { documentNumber: tabularHeader[2].trim(), documentDate: toIsoDate(tabularHeader[1]) };
   const documentTable = text.match(/\bNUMERO\s+DOCUMENTO\s+DATA\s+DOCUMENTO\s+PAG\.?\s*\n\s*([A-Z0-9./-]+)\s+(\d{2}\/\d{2}\/\d{4})\b/i);
   if (documentTable) return { documentNumber: documentTable[1].trim(), documentDate: toIsoDate(documentTable[2]) };
+  // Rappresentazione nativa SdI/TeamSystem: il valore TD01, la descrizione
+  // fra parentesi, il numero e la data sono quattro celle della stessa riga.
+  // Il vincolo alla stessa riga impedisce di confondere i richiami narrativi
+  // ad acconti/saldi presenti nel corpo con l'identita del documento.
+  const sdiInline = text.match(/\bTD01\s*\(\s*fattura\s*\)\s+([A-Z0-9][A-Z0-9./-]{0,39})\s+(\d{2}[/-]\d{2}[/-]\d{4})\b/i);
+  if (sdiInline) return { documentNumber: sdiInline[1].trim(), documentDate: toIsoDate(sdiInline[2]) };
   const labeled = text.match(/TIPO\s+DOCUMENTO\s+Fattura[\s\S]{0,220}?DATA\s+DOCUMENTO\s*(\d{2}\/\d{2}\/\d{4})\s+NUMERO\s+DOCUMENTO\s*([A-Z0-9][A-Z0-9./-]{0,39})/i);
   if (labeled) return { documentNumber: labeled[2].trim(), documentDate: toIsoDate(labeled[1]) };
   const courtesy = text.match(/Copia\s+di\s+cortesia\s+Fattura\s+([A-Z0-9][A-Z0-9./-]{0,39})\s+del\s+(\d{2})[-/](\d{2})[-/](\d{4})/i);
@@ -336,6 +371,51 @@ function extractDocumentTotal(text: string): number | null {
     }
     return values.at(-1) ?? null;
   };
+  // Alcune rappresentazioni native SdI separano la testata "Totale
+  // documento" dal valore con una seconda riga di intestazioni (modalita di
+  // pagamento, scadenza, importo). Il lordo e' accettato soltanto quando un
+  // unico valore positivo e' ripetuto almeno due volte dopo l'etichetta: una
+  // sola cifra o due cifre diverse restano fail-closed, senza scegliere tra
+  // imponibile, IVA, acconti o scadenze.
+  if (/\bTD01\s*\(\s*fattura\s*\)/i.test(text) && /\bRIEPILOGHI\s+IVA\s+E\s+TOTALI\b/i.test(text)) {
+    const labelIndex = lines.findIndex((line) => /\bTotale\s+documento\b/i.test(line));
+    if (labelIndex >= 0) {
+      const values = lines.slice(labelIndex, labelIndex + 6)
+        .flatMap((line) => [...line.matchAll(/([0-9][0-9.]*,[0-9]{2})/g)].map((match) => parseItalianNumber(match[1])))
+        .filter((value): value is number => value !== null && value > 0);
+      const counts = new Map<string, { value: number; count: number }>();
+      for (const value of values) {
+        const key = value.toFixed(2);
+        const current = counts.get(key);
+        counts.set(key, { value, count: (current?.count ?? 0) + 1 });
+      }
+      const repeated = [...counts.values()].filter((entry) => entry.count >= 2);
+      if (repeated.length === 1) return repeated[0].value;
+      if (repeated.length > 1) return null;
+    }
+  }
+  // Stesso layout fiscale a colonne intercalate: attorno all'etichetta
+  // NETTO A PAGARE il lordo stampato compare almeno due volte (riepilogo e
+  // scadenza), mentre imponibile e IVA non condividono quella frequenza nel
+  // medesimo blocco. Si accetta soltanto un unico importo ripetuto; in caso
+  // di parita' o assenza di ripetizione il parser resta sul percorso
+  // ordinario fail-closed.
+  if (/N[°º.]?\s*DOCUMENTO\s+DATA\s+DOCUMENTO/i.test(text) && /^FATTURA\s+DI\s+VENDITA\b/im.test(text)) {
+    for (let index = 0; index < lines.length; index += 1) {
+      if (!/^I?NETTO\s+A\s+PAGARE\b/i.test(lines[index])) continue;
+      const counts = new Map<string, { value: number; count: number }>();
+      for (let candidateIndex = Math.max(0, index - 10); candidateIndex <= Math.min(lines.length - 1, index + 10); candidateIndex += 1) {
+        const value = moneyAt(candidateIndex);
+        if (value === null || value <= 0) continue;
+        const key = value.toFixed(2);
+        const current = counts.get(key);
+        counts.set(key, { value, count: (current?.count ?? 0) + 1 });
+      }
+      const repeated = [...counts.values()].filter((entry) => entry.count >= 2);
+      if (repeated.length === 1) return repeated[0].value;
+      return null;
+    }
+  }
   // Regola generale di Giuliano (2026-09-07): APR non deve mai calcolare,
   // verificare o incrociare i dati economici interni della fattura (aliquote
   // IVA, singole voci, coerenza imponibile+IVA=lordo). "Totale dovuto" e' la
@@ -364,6 +444,37 @@ function extractDocumentTotal(text: string): number | null {
     if (trailing) return parseItalianNumber(trailing);
     const nextLine = amount(lines[index + 1] ?? "");
     if (nextLine) return parseItalianNumber(nextLine);
+  }
+  // Alcuni riepiloghi fiscali stampano il lordo finale come unica cifra con
+  // valuta subito DOPO la riga "Totale IVA". APR legge quella cifra finale
+  // stampata; non somma, confronta o riconcilia imponibile e IVA.
+  for (let index = 0; index < lines.length - 1; index += 1) {
+    if (!/^totale\s+iva\b/i.test(lines[index])) continue;
+    if (lines.slice(index + 1).some((line) => /^totale(?:\s|$)/i.test(line))) continue;
+    const next = lines[index + 1];
+    if (!/(?:€|\bEUR\b)/i.test(next)) continue;
+    const printed = amount(next);
+    if (printed) return parseItalianNumber(printed);
+  }
+  // Nei PDF Finestra Italia l'etichetta TOTALE FATTURA precede SCADENZE e
+  // il lordo viene ristampato accanto a EUR. Si accetta soltanto un unico
+  // importo positivo associato alla valuta (anche se ripetuto); senza EUR o
+  // con due valori diversi il percorso resta fail-closed/generico.
+  for (let index = 0; index < lines.length; index += 1) {
+    if (!/^totale\s+fattura\b/i.test(lines[index])) continue;
+    const window = lines.slice(index + 1, index + 11);
+    if (!window.slice(0, 2).some((line) => /^\(?scadenze\b/i.test(line))) continue;
+    const currencyValues: number[] = [];
+    for (let offset = 0; offset < window.length; offset += 1) {
+      if (!/(?:€|\bEUR\b)/i.test(window[offset])) continue;
+      const inline = amount(window[offset]);
+      const candidate = inline ?? amount(window[offset + 1] ?? "");
+      const parsed = candidate ? parseItalianNumber(candidate) : null;
+      if (parsed !== null && parsed > 0) currencyValues.push(parsed);
+    }
+    const unique = [...new Set(currencyValues.map((value) => value.toFixed(2)))];
+    if (unique.length === 1) return Number(unique[0]);
+    if (unique.length > 1) return null;
   }
   // Il netto contabile e il blocco esplicito "Totale documento" hanno
   // precedenza su totali fiscali o massimali detraibili presenti prima nel PDF.
@@ -440,39 +551,26 @@ function extractDocumentTotal(text: string): number | null {
     // dell'acconto/saldo descritto narrativamente subito dopo), non il vero
     // totale del documento.
     if (/^totale\s+(?:imponibile|iva|imposta|compreso|merce|fornitura|ordine|sconto|spese\s+congrue|contratto|commessa)\b/i.test(line)) continue;
-    // Alcuni gestionali di serramenti stampano il riepilogo in colonna:
-    //   Totale fattura
-    //   <imponibile>
-    //   <IVA>
-    //   <lordo>
-    // La prima cifra dopo l'etichetta non e' quindi il totale fattura. Il
-    // lordo e' accettato solo quando la terna si riconcilia al centesimo.
-    if (/^totale\s+fattura\s*$/i.test(line)) {
-      const taxable = moneyAt(index + 1);
-      const vat = moneyAt(index + 2);
-      const gross = moneyAt(index + 3);
-      if (taxable !== null && vat !== null && gross !== null
-        && Math.abs(Math.round((taxable + vat + Number.EPSILON) * 100) / 100 - gross) <= 0.011) return gross;
-      // Regressione Biagioni/Riviera (fornitore Finestra Italia S.r.l.): una
-      // variante dello stesso riepilogo verticale intromette l'etichetta
-      // "SCADENZE" (talvolta corrotta dall'OCR con una parentesi iniziale,
-      // "(SCADENZE") subito dopo "Totale fattura", prima di imponibile e
-      // IVA; il vero lordo e' poi accostato alla sigla valuta "EUR" (mai
-      // "€"/"Euro"), non e' la prima cifra incontrata. Senza questa
-      // variante il fallback generico piu' sotto prendeva l'imponibile del
-      // riepilogo (es. 1.274,00) invece del vero totale (es. 1.401,40).
-      if (/^\(?\s*scadenze\b/i.test(lines[index + 1] ?? "")) {
-        const taxableAfterSchedule = moneyAt(index + 2);
-        const vatAfterSchedule = moneyAt(index + 3);
-        for (let offset = 4; offset <= 6 && index + offset < lines.length; offset += 1) {
-          if (!/\bEUR\b/i.test(lines[index + offset])) continue;
-          const grossAfterSchedule = moneyAt(index + offset) ?? moneyAt(index + offset + 1);
-          if (taxableAfterSchedule !== null && vatAfterSchedule !== null && grossAfterSchedule !== null
-            && Math.abs(Math.round((taxableAfterSchedule + vatAfterSchedule + Number.EPSILON) * 100) / 100 - grossAfterSchedule) <= 0.011) return grossAfterSchedule;
-          break;
-        }
+    // Alcuni PDF nativi stampano l'etichetta "Totale fattura" prima di un
+    // blocco verticale compatto imponibile/IVA/lordo, con ogni valore su una
+    // riga monetaria autonoma. Il totale stampato e' l'ULTIMA riga monetaria
+    // contigua del blocco: questa e' una relazione di layout con l'etichetta,
+    // non una ricostruzione imponibile+IVA. La forma e' accettata solo con
+    // almeno due righe interamente monetarie e valuta esplicita; testo,
+    // etichette o piu blocchi interrompono il riconoscimento fail-closed.
+    if (isTotaleFattura && moneyAt(index) === null) {
+      const verticalValues: number[] = [];
+      for (let offset = 1; offset <= 6 && index + offset < lines.length; offset += 1) {
+        const verticalLine = lines[index + offset];
+        if (!/^\s*(?:€\s*)?[0-9][0-9.]*,[0-9]{2}\s*(?:€|EUR|Euro)\s*$/i.test(verticalLine)) break;
+        const parsed = moneyAt(index + offset);
+        if (parsed === null) break;
+        verticalValues.push(parsed);
       }
+      if (verticalValues.length >= 2) return verticalValues.at(-1)!;
     }
+    // Negli altri layout, serve un totale finale esplicitamente etichettato
+    // o associato a una valuta; non scegliere mai attraverso cifre interne.
     let candidate: number | null = null;
     for (let offset = 1; offset <= 6 && index + offset < lines.length; offset += 1) {
       if (!/(?:€|\bEuro\b)/i.test(lines[index + offset])) continue;
@@ -491,27 +589,6 @@ function extractDocumentTotal(text: string): number | null {
     const value = fromWindow(index, 2); if (value !== null) lastBareTotaleFallback = value;
   }
   if (lastBareTotaleFallback !== null) return lastBareTotaleFallback;
-  // Alcune fatture multipagina espongono il totale lordo senza etichetta,
-  // subito dopo "Imponibile" e "Totale IVA". Accettiamo la riga isolata
-  // soltanto quando coincide, al centesimo, con imponibile + IVA.
-  for (let vatIndex = 0; vatIndex < lines.length; vatIndex += 1) {
-    if (!/^totale\s+iva\b/i.test(lines[vatIndex])) continue;
-    const vat = moneyAt(vatIndex);
-    if (vat === null) continue;
-    let taxable: number | null = null;
-    for (let index = vatIndex - 1; index >= Math.max(0, vatIndex - 5); index -= 1) {
-      if (!/\b(?:totale\s+)?imponibile\b/i.test(lines[index])) continue;
-      taxable = moneyAt(index);
-      break;
-    }
-    if (taxable === null) continue;
-    for (let index = vatIndex + 1; index <= Math.min(lines.length - 1, vatIndex + 2); index += 1) {
-      if (!/^€?\s*[0-9][0-9.]*,[0-9]{2}\s*€?$/.test(lines[index])) continue;
-      const candidate = moneyAt(index);
-      const expected = Math.round((taxable + vat + Number.EPSILON) * 100) / 100;
-      if (candidate !== null && Math.abs(candidate - expected) <= 0.01) return candidate;
-    }
-  }
   return null;
 }
 
@@ -651,6 +728,132 @@ function extractGenericTwoMeasurementScreeningItems(text: string) {
   return groups;
 }
 
+interface ExplicitInvoiceProductEvidence {
+  groups: Array<{
+    quantity: number;
+    widthMm: number;
+    heightMm: number;
+    gTot: number | null;
+    description: string;
+    widthOriginal: number;
+    heightOriginal: number;
+    unit: ScreeningMeasureUnit;
+  }>;
+  cardinalityMismatch: boolean;
+}
+
+/**
+ * Fallback generale per evidenze di prodotto inequivocabili presenti in
+ * fatture native ma non espresse nei layout tabellari gia noti. Non dipende
+ * dal fornitore o dal cliente e si attiva solo se i parser piu autorevoli non
+ * hanno prodotto righe.
+ *
+ * Sono ammesse tre forme, tutte ancorate a una famiglia di schermatura:
+ * - prodotto singolare con "dimensioni L ... x SP ...";
+ * - elenco esplicito di coppie sotto l'etichetta "misura:";
+ * - quantita N.<q> con LARGHEZZA/SPORGENZA e unita esplicite.
+ *
+ * Se una quantita tabellare esplicita non coincide con il numero di coppie
+ * dell'elenco, l'intera estrazione fallisce chiusa: nessuna riga parziale.
+ */
+function extractExplicitInvoiceProductEvidence(text: string): ExplicitInvoiceProductEvidence {
+  const compact = text.replace(/\s+/g, " ");
+  const groups: ExplicitInvoiceProductEvidence["groups"] = [];
+
+  const listed = compact.match(/\bFORNITURA\s+(?:E\s+POSA\s+|DI\s+)?TEND[EA]\s+DA\s+SOLE(?:(?!\bFORNITURA\s+(?:E\s+POSA\s+|DI\s+)?TEND[EA]\s+DA\s+SOLE\b)[\s\S]){0,700}?\bMISUR[AE]?\s*:\s*((?:-\s*[0-9]+(?:[,.][0-9]+)?\s*[X×]\s*[0-9]+(?:[,.][0-9]+)?\s*){1,50})\bG\s*TOT\.?\s*([0-9]+(?:[,.][0-9]+)?)/i);
+  if (listed) {
+    const pairs = [...listed[1].matchAll(/-\s*([0-9]+(?:[,.][0-9]+)?)\s*[X×]\s*([0-9]+(?:[,.][0-9]+)?)/gi)];
+    const tail = compact.slice((listed.index ?? 0) + listed[0].length, (listed.index ?? 0) + listed[0].length + 180);
+    const tabularQuantity = tail.match(/\bN\s+[0-9.]+,[0-9]{2}\s+\d{1,2}\s+(\d{1,2}),00\s+[0-9.]+,[0-9]{2}\b/i);
+    const explicitQuantity = tabularQuantity ? Number(tabularQuantity[1]) : pairs.length;
+    if (!Number.isInteger(explicitQuantity) || explicitQuantity < 1 || explicitQuantity > MAX_SCREENING_QUANTITY
+      || pairs.length !== explicitQuantity) return { groups: [], cardinalityMismatch: true };
+    const gTot = parseItalianNumber(listed[2]);
+    if (gTot === null || gTot <= 0 || gTot > 0.35) return { groups: [], cardinalityMismatch: true };
+    for (const pair of pairs) {
+      const widthCm = parseItalianNumber(pair[1]);
+      const heightCm = parseItalianNumber(pair[2]);
+      if (widthCm === null || heightCm === null || widthCm <= 0 || heightCm <= 0) return { groups: [], cardinalityMismatch: true };
+      groups.push({ quantity: 1, widthMm: Math.round(widthCm * 10), heightMm: Math.round(heightCm * 10), gTot,
+        description: "Tenda da sole", widthOriginal: widthCm, heightOriginal: heightCm, unit: "cm" });
+    }
+    return { groups, cardinalityMismatch: false };
+  }
+
+  const fullWord = compact.match(/\b((?:SCHERMATURA\s+SOLARE|TEND[AE]\s+DA\s+SOLE|PERGOTEND[AE])(?:(?!\b(?:SCHERMATURA\s+SOLARE|TEND[AE]\s+DA\s+SOLE|PERGOTEND[AE])\b)[\s\S]){0,700}?)\bN\.?\s*(\d{1,2})\s+(?:COME\s+SOPRA\s+)?REALIZZAT[AOE]?\s+A\s+MISURA\s+LARGHEZZA\s+(MT|CM|MM|M)\.?\s*([0-9]+(?:[,.][0-9]+)?)\s*[X×]\s*SPORGENZA\s+(MT|CM|MM|M)\.?\s*([0-9]+(?:[,.][0-9]+)?)(?:(?!\b(?:SCHERMATURA\s+SOLARE|TEND[EA]\s+DA\s+SOLE|PERGOTEND[AE])\b)[\s\S]){0,300}?\b(?:FATTORE\s+)?G\s*TOT\s*:?\s*([0-9]+(?:[,.][0-9]+)?)/i);
+  if (fullWord) {
+    const quantity = Number(fullWord[2]);
+    const widthUnit = GENERIC_LABELLED_MEASUREMENT_UNIT[fullWord[3].toUpperCase()];
+    const heightUnit = GENERIC_LABELLED_MEASUREMENT_UNIT[fullWord[5].toUpperCase()];
+    const width = parseItalianNumber(fullWord[4]);
+    const height = parseItalianNumber(fullWord[6]);
+    const gTot = parseItalianNumber(fullWord[7]);
+    if (!Number.isInteger(quantity) || quantity < 1 || quantity > MAX_SCREENING_QUANTITY
+      || !widthUnit || !heightUnit || widthUnit !== heightUnit || width === null || height === null
+      || gTot === null || gTot <= 0 || gTot > 0.35) return { groups: [], cardinalityMismatch: true };
+    groups.push({ quantity, widthMm: Math.round(width * screeningUnitMultiplier(widthUnit)),
+      heightMm: Math.round(height * screeningUnitMultiplier(heightUnit)), gTot,
+      description: /pergotend/i.test(fullWord[1]) ? "Pergotenda" : "Tenda da sole a bracci estensibili",
+      widthOriginal: width, heightOriginal: height, unit: widthUnit });
+    return { groups, cardinalityMismatch: false };
+  }
+
+  const singularCassonated = compact.match(/\b(TENDA\s+(?:DA\s+SOLE\s+)?CASSONATA(?:(?!\bTEND[AE]\b)[\s\S]){0,260}?)\bDIMENSIONI?\s+L\.?\s*([0-9]+(?:[,.][0-9]+)?)\s*[X×]\s*SP\.?\s*([0-9]+(?:[,.][0-9]+)?)/i);
+  if (singularCassonated && !/\b(?:N\.?|QUANTIT[AÀ]|PEZZI?)\s*[2-9]\d*\b/i.test(singularCassonated[0])) {
+    const widthCm = parseItalianNumber(singularCassonated[2]);
+    const heightCm = parseItalianNumber(singularCassonated[3]);
+    if (widthCm !== null && heightCm !== null && widthCm > 0 && heightCm > 0) groups.push({
+      quantity: 1, widthMm: Math.round(widthCm * 10), heightMm: Math.round(heightCm * 10), gTot: null,
+      description: "Tenda da sole cassonata", widthOriginal: widthCm, heightOriginal: heightCm, unit: "cm",
+    });
+  }
+  return { groups, cardinalityMismatch: false };
+}
+
+// Regressione Tiraboschi (2026-09-08, DOCUMENT_TYPE_BARE_WORD_FATTURA_NARRATIVE_EXCLUSION_RULE_ID):
+// il classificatore trattava come "fattura" qualunque documento contenente la
+// parola "fattura" OVUNQUE nel testo, anche dentro una clausola narrativa su
+// un documento futuro/ipotetico ("...consentirvi l'emissione della fattura
+// integrativa..." in una dichiarazione per l'aliquota IVA agevolata, non una
+// fattura). Una volta classificato per errore come fattura, il documento non
+// ha un totale monetario proprio, generando un falso "totale non
+// riconosciuto" nel payload ENEA - un problema di classificazione del
+// documento, non del form CRM ne' dei documenti mancanti. Le stesse tre
+// intestazioni non fiscali gia' riconosciute nella segmentazione locale
+// (dichiarazione di aliquota IVA agevolata, ricevuta di bonifico, documento
+// d'identita') sono ora condivise qui come unica fonte di verita', cosi' i
+// due classificatori non divergono piu'. Una vera fattura resta sempre
+// riconosciuta: ciascun controllo si disattiva in presenza di un'intestazione
+// fattura esplicita ("FATTURA DI VENDITA"/"FATTURA N. X").
+const HAS_GENUINE_INVOICE_HEADER = /\bFATTURA\s+(?:DI\s+VENDIT[AI]|N[°º.]?\s*\d)/i;
+export const isNonFiscalVatRateDeclaration = (text: string): boolean => /\bDICHIARA\b/i.test(text)
+  && /\baliquota\s+I\.?\s*V\.?\s*A\.?\s+(?:nella\s+misura\s+)?agevolat[ao]\b/i.test(text)
+  && !HAS_GENUINE_INVOICE_HEADER.test(text);
+const BANK_TRANSFER_DOCUMENT_MARKERS = /\b(?:Ricevuta\s+bonifico|Codice\s+identificativo\s+dell['’]operazione|Disposizione\s+di\s+bonifico\s+effettuata|Dettaglio\s+(?:singolo\s+)?movimento|Desc\.\s+movimento|Sezione\s+(?:Ordinante|Beneficiario)|DATI\s+DI\s+PAGAMENTO\b[\s\S]{0,80}?\bTRN\b)\b/i;
+export const isNonFiscalBankTransferReceipt = (text: string): boolean => BANK_TRANSFER_DOCUMENT_MARKERS.test(text)
+  && !HAS_GENUINE_INVOICE_HEADER.test(text);
+/**
+ * Decisione del titolare (2026-09-13): un ordine di vendita caricato nello
+ * slot fattura vale come documento fiscale. Alcuni fornitori — Di Iorio Group
+ * sulla pratica Muzzi — non emettono fattura e caricano l'ordine.
+ *
+ * Il riconoscimento e' strutturale, non per parola isolata: servono
+ * l'intestazione dell'ordine e la coppia numero/data documento, come nella
+ * regressione Tiraboschi, dove la sola parola "fattura" in una clausola
+ * narrativa bastava a classificare male un documento. Preventivi, offerte e
+ * proforma restano esclusi: non sono documenti fiscali.
+ */
+const SALES_ORDER_HEADING = /\bordine\s+di\s+vendita\b/iu;
+const SALES_ORDER_DOCUMENT_REFERENCE = /\bN[.°º]?\s*DOCUMENTO\b[\s\S]{0,40}?\bDATA\s+DOCUMENTO\b|\bDATA\s+DOCUMENTO\b[\s\S]{0,40}?\bN[.°º]?\s*DOCUMENTO\b/iu;
+const NON_FISCAL_COMMERCIAL_OFFER = /\b(?:preventivo|offerta\s+(?:commerciale|n[.°º])|proforma|pro\s+forma)\b/iu;
+
+export const isCommercialSalesOrder = (text: string): boolean => SALES_ORDER_HEADING.test(text)
+  && SALES_ORDER_DOCUMENT_REFERENCE.test(text)
+  && !NON_FISCAL_COMMERCIAL_OFFER.test(text);
+
+export const isNonFiscalIdentityDocument = (text: string): boolean => /\bTESSERA\s+SANITARIA\b|\bCARTA\s+DI\s+IDENTIT[AÀ]\b|\bIDENTITY\s+CARD\b|\bCARTA\s+REGIONALE\s+DEI\s+SERVIZI\b|\bTESSERA\s+EUROPEA\s+DI\s+ASSICURAZIONE\s+MALATTIA\b/i.test(text)
+  && !HAS_GENUINE_INVOICE_HEADER.test(text);
+
 export function parseScreeningInvoiceText(
   text: string,
   path = "documento.pdf",
@@ -659,10 +862,14 @@ export function parseScreeningInvoiceText(
   // La parte storica e' esclusa prima di qualunque riconoscimento: resta nel
   // file immutabile per audit, ma non puo' diventare fonte di dati APR.
   const sourceText = stripHistoricalEneaAppendix(text);
-  const nonFiscalSupportingDocument = /DICHIARAZIONE\s+SOSTITUTIVA\s+DELL[’']ATTO\s+DI\s+NOTORIETA/i.test(sourceText);
+  const nonFiscalSupportingDocument = /DICHIARAZIONE\s+SOSTITUTIVA\s+DELL[’']ATTO\s+DI\s+NOTORIETA/i.test(sourceText)
+    || isNonFiscalVatRateDeclaration(sourceText)
+    || isNonFiscalBankTransferReceipt(sourceText)
+    || isNonFiscalIdentityDocument(sourceText);
+  const commercialSalesOrder = isCommercialSalesOrder(sourceText);
   const documentType = /nota\s+di\s+credito|\bstorno\b/i.test(sourceText)
     ? "credit_note"
-    : !nonFiscalSupportingDocument && /\bfattura\b/i.test(sourceText)
+    : !nonFiscalSupportingDocument && (/\bfattura\b/i.test(sourceText) || commercialSalesOrder)
       ? "invoice"
       : "unknown";
   const compact = sourceText.replace(/\s+/g, " ");
@@ -672,6 +879,7 @@ export function parseScreeningInvoiceText(
   let authoritativeVendorItems: EneaLabScreeningItem[] | null = null;
   let invalidExplicitQuantity = false;
   let invalidScreeningDimensionUnit = false;
+  let explicitProductEvidenceCardinalityMismatch = false;
   const surfaceCoherenceFailures: string[] = [];
 
   const appendItems = (
@@ -721,6 +929,30 @@ export function parseScreeningInvoiceText(
     }
     for (const match of compact.matchAll(/N\.?\s*(\d+)\s+TENDE?\s+DA\s+CM\s*(\d{2,4})\s*[X×]\s*(\d{2,4})[\s\S]{0,360}?G\s*TOT\s*([0-9]+(?:[,.][0-9]+)?)/gi)) {
       appendItems(Number(match[1]), Number(match[2]) * 10, Number(match[3]) * 10, parseItalianNumber(match[4]), "Tenda da sole");
+    }
+    // Le misure possono essere parte della descrizione della riga prodotto
+    // anziche' occupare colonne dedicate. Il formato osservato usa
+    // "CM Largh. <L> X Sporg. <S>" subito dopo una tenda da sole. Il
+    // prodotto e l'unita esplicita sono entrambi obbligatori: una coppia
+    // numerica generica non viene mai promossa a schermatura. Lo stesso
+    // parser e' riusato dal percorso tecnico non fiscale, che antepone una
+    // intestazione sintetica ma non usa mai il totale del documento.
+    for (const match of compact.matchAll(/\b(TENDA\s+DA\s+SOLE\b(?:(?!\b(?:TENDA\s+DA\s+SOLE|PERGOTENDA|ZANZARIERA|PERSIANA|AVVOLGIBILE|TAPPARELLA)\b)[\s\S]){0,220}?)\bCM\s+LARGH(?:EZZA)?\.?\s*([0-9]+(?:[,.][0-9]+)?)\s*[X×]\s*SPORG(?:ENZA)?\.?\s*([0-9]+(?:[,.][0-9]+)?)/gi)) {
+      const widthCm = parseItalianNumber(match[2]);
+      const heightCm = parseItalianNumber(match[3]);
+      if (widthCm === null || heightCm === null) continue;
+      const local = compact.slice(match.index ?? 0, Math.min(compact.length, (match.index ?? 0) + 800));
+      const explicitGTot = local.match(/\bG\s*TOT(?:E)?\s*[:=]?\s*([0-9]+(?:[,.][0-9]+)?)/i)?.[1];
+      const before = items.length;
+      appendItems(1, Math.round(widthCm * 10), Math.round(heightCm * 10), explicitGTot ? parseItalianNumber(explicitGTot) : null, "Tenda da sole");
+      for (const item of items.slice(before)) item.measurementAudit = {
+        widthOriginal: widthCm,
+        heightOriginal: heightCm,
+        explicitUnit: "cm",
+        widthResolution: "explicit_cm",
+        heightResolution: "explicit_cm",
+        ruleId: SCREENING_MEASUREMENTS_IN_LINE_DESCRIPTION_RULE_ID,
+      };
     }
     for (const match of compact.matchAll(/TENDA\s+DA\s+SOLE[\s\S]{0,180}?DIM\.?\s*CM\s+L\s*(\d{2,4})\s*[X×]\s*(\d{2,4})[\s\S]{0,260}?G\s*TOT\s*([0-9]+(?:[,.][0-9]+)?)/gi)) {
       appendItems(1, Number(match[1]) * 10, Number(match[2]) * 10, parseItalianNumber(match[3]), "Tenda da sole cassonetto");
@@ -1021,6 +1253,14 @@ export function parseScreeningInvoiceText(
     const avvolgibileStarts = [...compact.matchAll(/(?:\bN[.°º]?\s*(\d{1,2})\s+)?\b(?:AVVOLGIBIL[EI]|TAPPARELL[AE])\b/gi)];
     for (let index = 0; index < avvolgibileStarts.length; index += 1) {
       const start = avvolgibileStarts[index];
+      // Nei preventivi di produzione Infissi la frase accessoria
+      // "Misura luce ... (P/ tapparelle int.)" descrive una quota interna
+      // del serramento, non una tapparella venduta. Senza questa esclusione
+      // la prima coppia largh x alt successiva diventava un prodotto ENEA
+      // fantasma. La sigla P/ immediatamente precedente e' richiesta: una
+      // vera riga Tapparella/Avvolgibile continua a essere estratta.
+      const mentionPrefix = compact.slice(Math.max(0, (start.index ?? 0) - 24), start.index ?? 0);
+      if (/\bP\s*\/\s*$/i.test(mentionPrefix)) continue;
       const block = compact.slice(start.index!, Math.min(avvolgibileStarts[index + 1]?.index ?? compact.length, start.index! + 520));
       const dimensions = block.match(/(?:MISUR[AE]?\s*(?:IN\s*)?(CM|MM)?\s*[:=-]?\s*)?(?:L(?:ARGHEZZA)?\.?\s*)?([0-9]{2,5}(?:[,.][0-9]+)?)\s*[X×]\s*(?:H(?:ALTEZZA)?\.?\s*)?([0-9]{2,5}(?:[,.][0-9]+)?)(?:\s*(CM|MM)\b)?/i);
       if (!dimensions) continue;
@@ -1550,6 +1790,23 @@ export function parseScreeningInvoiceText(
     // Ultimo fallback, generico e senza etichette note: si attiva solo se
     // nessun parser dedicato ne' il fallback narrativo hanno trovato righe.
     if (items.length === 0) {
+      const explicitEvidence = extractExplicitInvoiceProductEvidence(sourceText);
+      explicitProductEvidenceCardinalityMismatch = explicitEvidence.cardinalityMismatch;
+      for (const group of explicitEvidence.groups) {
+        const before = items.length;
+        appendItems(group.quantity, group.widthMm, group.heightMm, group.gTot, group.description);
+        for (const item of items.slice(before)) item.measurementAudit = {
+          widthOriginal: group.widthOriginal,
+          heightOriginal: group.heightOriginal,
+          explicitUnit: group.unit,
+          widthResolution: `explicit_${group.unit}`,
+          heightResolution: `explicit_${group.unit}`,
+          ruleId: EXPLICIT_INVOICE_PRODUCT_EVIDENCE_RECOVERY_RULE_ID,
+        };
+      }
+    }
+
+    if (items.length === 0 && !explicitProductEvidenceCardinalityMismatch) {
       const genericGroups = extractGenericTwoMeasurementScreeningItems(sourceText);
       for (const group of genericGroups) {
         const before = items.length;
@@ -1592,18 +1849,20 @@ export function parseScreeningInvoiceText(
     items,
     result: {
       path,
-      status: invalidExplicitQuantity || invalidScreeningDimensionUnit || surfaceCoherenceFailures.length > 0 ? "failed" : "parsed",
+      status: invalidExplicitQuantity || invalidScreeningDimensionUnit || explicitProductEvidenceCardinalityMismatch || surfaceCoherenceFailures.length > 0 ? "failed" : "parsed",
       documentType,
       total: extractDocumentTotal(sourceText),
       itemCount: items.length,
-      ...(invalidExplicitQuantity || invalidScreeningDimensionUnit || surfaceCoherenceFailures.length > 0
+      ...(invalidExplicitQuantity || invalidScreeningDimensionUnit || explicitProductEvidenceCardinalityMismatch || surfaceCoherenceFailures.length > 0
         ? { message: [
           invalidExplicitQuantity ? "Quantità schermatura esplicita non valida: controllo umano richiesto." : "",
           invalidScreeningDimensionUnit ? "Unità di misura discordanti nella stessa riga schermatura: controllo umano richiesto." : "",
+          explicitProductEvidenceCardinalityMismatch ? "Cardinalità tra quantità esplicita ed elenco misure non riconciliata: controllo umano richiesto." : "",
           ...surfaceCoherenceFailures,
         ].filter(Boolean).join(" ") }
         : {}),
       ...extractDocumentIdentity(sourceText),
+      ...(commercialSalesOrder ? { documentTypeRuleId: SALES_ORDER_IN_INVOICE_SLOT_IS_FISCAL_DOCUMENT_RULE_ID } : {}),
     },
   };
 }

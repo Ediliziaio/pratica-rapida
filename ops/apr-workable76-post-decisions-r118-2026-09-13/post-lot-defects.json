@@ -1,0 +1,23 @@
+{
+  "version": "apr-post-lot-defects-v1",
+  "runId": "apr-workable76-post-decisions-r118-20260913",
+  "status": "recorded_not_corrected_during_lot",
+  "defects": [
+    {
+      "id": "stale-preflight-reactivated-by-dashboard-restart",
+      "priority": "critical",
+      "fixtureCustomerKey": "milena-fiorini",
+      "exactCauseObserved": "Il checkpoint globale infissi-batch-preflight creato il 2026-08-24 e rimasto status=working e stato reclamato e rieseguito al riavvio della dashboard il 2026-09-13T00:51:56+02:00, nonostante manifest, CRM, form e preflight corrente classificassero la pratica come screening.",
+      "requiredFollowUp": "Inventariare tutti i checkpoint storici non terminali reclamabili al riavvio; impedire che una dashboard o una nuova generazione riattivi stati con run/generation/fingerprint non correnti. Gli artefatti storici devono essere proiezioni read-only o superseded, mai input eseguibili.",
+      "corrected": false
+    },
+    {
+      "id": "answered-operator-question-not-retired",
+      "priority": "critical",
+      "fixtureCustomerKey": "rossella-munafo",
+      "exactCauseObserved": "La risposta screening_products del 2026-09-12 ha ricostruito correttamente una bioclimatica 4000x3000 mm, ma la precedente voce operator_required e rimasta status=active perche la risposta non la supersede; il preflight applica entrambe e rigenera il blocker.",
+      "requiredFollowUp": "L'applicazione di una risposta deve chiudere atomicamente la domanda che l'ha originata tramite correlazione esplicita e impedire nuove notifiche della stessa richiesta; una risposta applicata e una domanda pendente sullo stesso fatto non possono coesistere.",
+      "corrected": false
+    }
+  ]
+}

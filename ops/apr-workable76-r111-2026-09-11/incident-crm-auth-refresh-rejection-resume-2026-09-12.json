@@ -1,0 +1,72 @@
+{
+  "version": "apr-r117-crm-auth-refresh-rejection-resume-v1",
+  "recordedAt": "2026-09-12T15:46:27Z",
+  "runId": "apr-workable76-resume26-plus-fioravanti-r117-20260912",
+  "runRoot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/runs/apr-workable76-resume26-plus-fioravanti-r117-20260912",
+  "manifestSha256": "f55dcffc73c8ece46f03bd2751e463a207fd43f93e292a926d656dc928252405",
+  "runner": {
+    "pidAtLaunch": 83388,
+    "scriptPath": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/scripts/enea-shadow-runner/simple-independent-runner.mjs",
+    "scriptSha256": "00fb38a8cca229066b376740a9d5758267275f69c6f040fff79dd419dbd06419",
+    "stoppedAtFirstVerifiedAuthenticationFailure": true,
+    "exitCodeAfterInterrupt": 1
+  },
+  "authenticationTimeline": [
+    {
+      "at": "2026-09-12T15:31:53.283Z",
+      "scope": "global-dashboard",
+      "status": "authenticated",
+      "detail": "Login password verificato dal server; access token dichiarato valido fino a 2026-09-12T16:31:54.000Z."
+    },
+    {
+      "at": "2026-09-12T15:38:51.965Z",
+      "scope": "cohort-6452-claudia-sellati",
+      "status": "session_refreshed",
+      "detail": "La prima coorte ha rinnovato con successo il refresh token condiviso; access token dichiarato valido fino a 2026-09-12T16:38:53.000Z."
+    },
+    {
+      "at": "2026-09-12T15:40:07.190Z",
+      "scope": "cohort-6453-elena-depalma",
+      "status": "login_required",
+      "detail": "Il server CRM ha rifiutato il rinnovo della sessione APR. Acquisizione rimasta waiting_auth; nessuna azione ENEA eseguita."
+    }
+  ],
+  "verifiedOutcome": {
+    "completedBeforeStop": 1,
+    "completedCase": {
+      "displayName": "Claudia Sellati",
+      "status": "OPERATOR_REQUIRED",
+      "blocker": "infissi_shading_closures_form_answer_missing_or_ambiguous"
+    },
+    "interruptedCase": {
+      "displayName": "Elena Depalma",
+      "status": "NO_VERDICT",
+      "point": "CRM acquisition waiting_auth",
+      "eneaDraftCreated": false
+    },
+    "notStarted": 25
+  },
+  "rootCauseAssessment": {
+    "proven": [
+      "La durata nominale di un'ora dell'access JWT non spiega l'evento: il rifiuto e avvenuto 73 secondi dopo un refresh riuscito.",
+      "Ogni nuova coorte crea una nuova istanza PersistentAprCrmAuth senza access token in memoria e usa lo stesso refresh token globale del Portachiavi.",
+      "Il refresh token condiviso viene ruotato a ogni rinnovo e qualunque rifiuto provoca la cancellazione globale del segreto.",
+      "Il runner non possiede ancora un broker unico che serializzi i rinnovi e distribuisca access token alle coorti."
+    ],
+    "notYetProven": [
+      "Non e persistito il corpo preciso della risposta Supabase; non e quindi dimostrabile da questi checkpoint se il secondo rifiuto sia dovuto a riuso concorrente del token, rotazione non propagata o disservizio intermittente del fornitore."
+    ],
+    "structuralDefect": "Le coorti indipendenti trattano un refresh token globale a rotazione come se fosse consumabile indipendentemente da ogni processo. Il meccanismo non serializza atomicamente refresh, aggiornamento del Portachiavi e consegna dell'access token; inoltre un singolo rifiuto cancella il segreto condiviso per tutti."
+  },
+  "safety": {
+    "crmWrites": false,
+    "eneaWritesForInterruptedCase": false,
+    "preview": false,
+    "submit": false,
+    "communications": false,
+    "chromePreserved": true,
+    "eneaKeepalivePreserved": true,
+    "ntfyAlarmSent": true
+  },
+  "stateCaveat": "Il checkpoint aggregato del runner conserva status=running e currentCustomerKey=elena-depalma perche l'interruzione di sicurezza non possiede ancora una transizione persistita dedicata. Processo ed exec session risultano terminati; il checkpoint non va usato da solo per affermare che il lotto sia in corso."
+}

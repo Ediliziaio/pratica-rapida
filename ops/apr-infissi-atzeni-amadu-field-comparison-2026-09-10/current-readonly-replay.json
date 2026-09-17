@@ -1,0 +1,1305 @@
+{
+  "version": "apr-atzeni-amadu-current-readonly-replay-v1",
+  "generatedAt": "2026-09-10T15:29:09.293Z",
+  "safety": {
+    "crmWrites": false,
+    "eneaOpened": false,
+    "eneaWrites": false,
+    "preview": false,
+    "submit": false,
+    "communications": false
+  },
+  "cases": [
+    {
+      "customerKey": "giovanna-atzeni",
+      "sourceRoot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5342-global-controller-giovanna-atzeni",
+      "replayRoot": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-infissi-atzeni-amadu-field-comparison-2026-09-10/local-replay-v158b/giovanna-atzeni",
+      "commonCheckpoint": {
+        "path": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-infissi-atzeni-amadu-field-comparison-2026-09-10/local-replay-v158b/giovanna-atzeni/crm-local-preflight/checkpoint.json",
+        "sha256": "dc5568a3856f68d6e213785d48d556e4c24443a7d35b232a18f29010ddfeb20f"
+      },
+      "infissiCheckpoint": {
+        "path": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-infissi-atzeni-amadu-field-comparison-2026-09-10/local-replay-v158b/giovanna-atzeni/infissi-batch-preflight/checkpoint.json",
+        "sha256": "0b52c9ca35c906c20bf1e19095a4773dce8eeaec4e370cd66f422c716ff7c6d2"
+      },
+      "common": {
+        "state": "blocked_case",
+        "report": {
+          "outcome": "blocked_case",
+          "formAvailable": false,
+          "startDate": "2025-11-26",
+          "startDateSource": "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:invoice:a9de80b81628",
+          "completionDate": "2025-12-31",
+          "completionDateSource": "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:invoice:a0807c8f37ed",
+          "buildingQualification": null,
+          "buildingUnitCount": null,
+          "deductionRate": null,
+          "taxCodeStatus": "missing_or_invalid",
+          "resolvedTaxCode": null,
+          "taxCodeSourceIds": [
+            "giovanna-atzeni"
+          ],
+          "primaryBeneficiaryResolution": {
+            "status": "not_found",
+            "identity": null,
+            "sourceIds": [],
+            "authority": null
+          },
+          "worksMunicipalityResolution": {
+            "status": "not_found",
+            "value": null,
+            "sourceIds": []
+          },
+          "coBeneficiaryResolution": {
+            "status": "not_declared",
+            "present": false,
+            "identity": null,
+            "sourceIds": []
+          },
+          "products": [],
+          "financial": {
+            "invoiceTotal": 4582.66,
+            "eligibleExpense": 4582.66,
+            "tripleReconciliationVerified": false,
+            "reconciledTotal": 4582.66,
+            "evidence": [
+              {
+                "sourceId": "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:invoice:a9de80b81628",
+                "kind": "invoice",
+                "taxableAmount": 3590.91,
+                "vatAmount": 359.09,
+                "grossTotal": 3950,
+                "interventionGrossAmount": 3950,
+                "extractionConfidence": "certain",
+                "extractionIssues": []
+              },
+              {
+                "sourceId": "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:invoice:a0807c8f37ed",
+                "kind": "invoice",
+                "taxableAmount": null,
+                "vatAmount": null,
+                "grossTotal": 632.66,
+                "interventionGrossAmount": null,
+                "extractionConfidence": "uncertain",
+                "extractionIssues": []
+              }
+            ],
+            "bankTransfers": [
+              {
+                "sourceId": "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:transfer-1",
+                "transactionReference": null,
+                "principalAmount": 3950,
+                "fees": 0.5,
+                "debitedTotal": 3950.5,
+                "invoiceReference": "715/00",
+                "taxReliefType": "energy_saving",
+                "appliedRuleIds": [
+                  "user-2026-08-16-invoice-total-over-bank-transfers",
+                  "user-2026-08-18-mandatory-bank-transfer-invoice-expense-cross-check",
+                  "core-economic-classification"
+                ]
+              },
+              {
+                "sourceId": "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:transfer-2",
+                "transactionReference": null,
+                "principalAmount": 3950,
+                "fees": null,
+                "debitedTotal": null,
+                "invoiceReference": "630/00",
+                "taxReliefType": null,
+                "appliedRuleIds": [
+                  "user-2026-08-16-invoice-total-over-bank-transfers",
+                  "user-2026-08-18-mandatory-bank-transfer-invoice-expense-cross-check",
+                  "core-economic-classification"
+                ]
+              }
+            ],
+            "bankTransferReconciliation": {
+              "status": "principal_exceeds_invoices",
+              "principalTotal": 7900,
+              "feesTotal": 0.5,
+              "debitedTotal": null,
+              "difference": 3317.34,
+              "referenceStatus": "verified",
+              "missingInvoiceReferences": [],
+              "taxReliefTypes": [
+                "energy_saving"
+              ]
+            },
+            "methods": [
+              {
+                "method": "structured_extraction",
+                "ok": false,
+                "total": null,
+                "sources": [
+                  "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:invoice:a9de80b81628",
+                  "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:invoice:a0807c8f37ed"
+                ],
+                "reason": "estrazione-incerta:0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:invoice:a0807c8f37ed"
+              },
+              {
+                "method": "accounting_reconciliation",
+                "ok": false,
+                "total": null,
+                "sources": [
+                  "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:invoice:a9de80b81628",
+                  "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:invoice:a0807c8f37ed"
+                ],
+                "reason": "estrazione-incerta:0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:invoice:a0807c8f37ed"
+              },
+              {
+                "method": "intervention_cross_check",
+                "ok": false,
+                "total": null,
+                "sources": [
+                  "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:invoice:a9de80b81628",
+                  "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:invoice:a0807c8f37ed"
+                ],
+                "reason": "righe-intervento-non-dimostrate:0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:invoice:a0807c8f37ed"
+              }
+            ],
+            "discardedDuplicateSourceIds": [],
+            "supersededTechnicalSourceIds": [],
+            "appliedRuleIds": [
+              "user-2026-08-16-invoice-gross-total-vat-included",
+              "user-2026-09-06-gross-invoice-sum-supersedes-service-separation-v1",
+              "user-2026-08-18-mandatory-bank-transfer-invoice-expense-cross-check",
+              "core-gross-triple-reconciliation",
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "system-explicit-advance-invoice-reference-marker-v1",
+              "user-2026-09-07-invoice-gross-total-never-internally-verified-v1"
+            ]
+          },
+          "warnings": [
+            {
+              "code": "invoice_segment_kept_despite_bank_transfer_evidence",
+              "reason": "1 segmento/i fattura mantenuti nonostante una conferma di bonifico accodata nello stesso allegato: terna fiscale (numero, data, totale) gia' completamente risolta dall'intestazione propria, il bonifico non e' letto per questa decisione.",
+              "appliedRuleIds": [
+                "user-2026-09-08-bank-transfer-segment-exclusion-requires-incomplete-triple-v1"
+              ]
+            }
+          ],
+          "blockers": [
+            {
+              "code": "customer_form_missing",
+              "field": "customer_form",
+              "reason": "Il dossier CRM non contiene un form cliente originario utilizzabile; documenti ENEA storici esclusi.",
+              "sourceIds": [
+                "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8"
+              ],
+              "appliedRuleIds": [
+                "core-form-first",
+                "user-2026-09-03-structured-residual-case-question-v1"
+              ],
+              "exactCause": "Il dossier CRM non contiene un form cliente originario utilizzabile; documenti ENEA storici esclusi.",
+              "missingDocumentType": "modulo cliente originario",
+              "operatorQuestion": "Puoi inserire o indicare il modulo cliente originario richiesto per risolvere customer_form?",
+              "onboardingGap": "Rendere obbligatorio in onboarding: modulo cliente originario."
+            },
+            {
+              "code": "tax_code_missing_or_invalid",
+              "field": "beneficiary.taxCode",
+              "reason": "CF valido e coerente non disponibile nel form o nelle fatture originarie.",
+              "sourceIds": [
+                "giovanna-atzeni"
+              ],
+              "appliedRuleIds": [
+                "core-form-first",
+                "user-2026-08-14-valid-original-document-cf-over-invalid-form",
+                "user-2026-08-16-fiscal-code-identity-cross-check",
+                "user-2026-09-03-structured-residual-case-question-v1"
+              ],
+              "exactCause": "CF valido e coerente non disponibile nel form o nelle fatture originarie.",
+              "missingDocumentType": "documento fiscale o ufficiale con codice fiscale",
+              "operatorQuestion": "Puoi inserire o indicare il documento fiscale o ufficiale con codice fiscale richiesto per risolvere beneficiary.taxCode?",
+              "onboardingGap": "Rendere obbligatorio in onboarding: documento fiscale o ufficiale con codice fiscale."
+            },
+            {
+              "code": "screenings_missing",
+              "field": "screenings",
+              "reason": "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+              "sourceIds": [
+                "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8"
+              ],
+              "appliedRuleIds": [
+                "user-2026-08-14-preserve-technical-product-cardinality",
+                "system-specific-incomplete-screening-blocker-v1",
+                "user-2026-09-03-structured-residual-case-question-v1"
+              ],
+              "exactCause": "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+              "missingDocumentType": "documento tecnico con misure del prodotto",
+              "operatorQuestion": "Mancano le misure del prodotto in tutti i documenti originari verificati: puoi inserirle?",
+              "onboardingGap": "Rendere obbligatorio in onboarding: documento tecnico con misure del prodotto."
+            },
+            {
+              "code": "completion_date_portal_year_mismatch",
+              "field": "dates.completion",
+              "reason": "Fine lavori 2025-12-31: anno 2025 incompatibile con il portale ENEA 2026. Selezionare il portale annuale corretto senza modificare la data.",
+              "sourceIds": [
+                "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:invoice:a0807c8f37ed"
+              ],
+              "appliedRuleIds": [
+                "user-2026-08-23-completion-portal-year-operator-gate",
+                "user-2026-08-14-missing-completion-use-latest-invoice",
+                "user-2026-09-03-structured-residual-case-question-v1"
+              ],
+              "exactCause": "Fine lavori 2025-12-31: anno 2025 incompatibile con il portale ENEA 2026. Selezionare il portale annuale corretto senza modificare la data.",
+              "missingDocumentType": null,
+              "operatorQuestion": "Confermi che la pratica è ancora procedibile e indichi l'anno del portale ENEA corretto?",
+              "onboardingGap": "Acquisire e validare in onboarding il dato dates.completion con la relativa fonte originaria."
+            },
+            {
+              "code": "completion_over_90_days_operator_required",
+              "field": "dates.completion",
+              "reason": "Fine lavori 2025-12-31: 253 giorni prima della lavorazione, oltre il limite di 90 giorni. Verificare la procedibilità e il portale annuale corretto.",
+              "sourceIds": [
+                "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:invoice:a0807c8f37ed"
+              ],
+              "appliedRuleIds": [
+                "user-2026-08-23-completion-over-90-operator-gate",
+                "user-2026-08-14-missing-completion-use-latest-invoice",
+                "user-2026-09-03-structured-residual-case-question-v1"
+              ],
+              "exactCause": "Fine lavori 2025-12-31: 253 giorni prima della lavorazione, oltre il limite di 90 giorni. Verificare la procedibilità e il portale annuale corretto.",
+              "missingDocumentType": null,
+              "operatorQuestion": "Confermi che la pratica è ancora procedibile e indichi l'anno del portale ENEA corretto?",
+              "onboardingGap": "Acquisire e validare in onboarding il dato dates.completion con la relativa fonte originaria."
+            },
+            {
+              "code": "invoice_332a5af9",
+              "field": "economic_sources",
+              "reason": "Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture.",
+              "sourceIds": [
+                "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8"
+              ],
+              "appliedRuleIds": [
+                "core-economic-classification",
+                "user-2026-09-03-structured-residual-case-question-v1"
+              ],
+              "exactCause": "Nessuna riga di schermatura con dimensioni e gTot riconosciuta nelle fatture.",
+              "missingDocumentType": null,
+              "operatorQuestion": "Confermi il valore corretto da usare per economic_sources, sulla base dei documenti originari?",
+              "onboardingGap": "Acquisire e validare in onboarding il dato economic_sources con la relativa fonte originaria."
+            },
+            {
+              "code": "gross_triple_reconciliation_failed",
+              "field": "economic_sources.total",
+              "reason": "Tripla riconciliazione non dimostrata: estrazione-incerta:0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:invoice:a0807c8f37ed.",
+              "sourceIds": [
+                "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8"
+              ],
+              "appliedRuleIds": [
+                "user-2026-08-16-invoice-gross-total-vat-included",
+                "core-gross-triple-reconciliation",
+                "user-2026-09-07-invoice-gross-total-never-internally-verified-v1",
+                "user-2026-09-03-structured-residual-case-question-v1"
+              ],
+              "exactCause": "Tripla riconciliazione non dimostrata: estrazione-incerta:0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:invoice:a0807c8f37ed.",
+              "missingDocumentType": null,
+              "operatorQuestion": "Confermi il valore corretto da usare per economic_sources.total, sulla base dei documenti originari?",
+              "onboardingGap": "Acquisire e validare in onboarding il dato economic_sources.total con la relativa fonte originaria."
+            }
+          ],
+          "sourceIds": [
+            "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8"
+          ],
+          "eneaPayloadAudit": {
+            "status": "payload_incomplete",
+            "mappingFingerprint": null,
+            "fieldSummary": {
+              "ready": 0,
+              "review": 0,
+              "missing": 0
+            },
+            "requiredPortalFieldCount": 0,
+            "blockerCount": 2,
+            "blockers": [
+              {
+                "code": "crm-source-not-screening",
+                "fieldId": null,
+                "message": "Il dossier non è mappabile come pratica schermature."
+              },
+              {
+                "code": "screenings_missing",
+                "fieldId": "screenings",
+                "message": "Nessun prodotto fisico riconciliato dalle fatture originarie."
+              }
+            ],
+            "excludedUnverifiedFields": [],
+            "draftReady": false,
+            "officialSubmissionAllowed": false,
+            "portalGate": {
+              "status": "blocked",
+              "reason": "screening-component-blocked",
+              "workflowFingerprint": null,
+              "supportedPages": [],
+              "screeningItemCount": 0,
+              "saveAllowedOnlyBySeparateCapability": true,
+              "previewAllowed": false,
+              "submitAllowed": false
+            },
+            "externalActionAllowed": false,
+            "reason": "1 blocker della componente Schermature invalidano il payload della bozza TEST."
+          },
+          "eneaExecutablePlan": null,
+          "draftPlan": {
+            "status": "blocked",
+            "externalActionAllowed": false,
+            "previewAllowed": false,
+            "submitAllowed": false,
+            "communicationsAllowed": false,
+            "nextAction": "Risolvere i blocker con sole fonti originarie; la coda prosegue sugli altri casi."
+          }
+        }
+      },
+      "infissi": {
+        "state": "blocked_case",
+        "report": {
+          "outcome": "blocked_case",
+          "blockers": [
+            {
+              "code": "infissi_financial_triple_reconciliation_required",
+              "field": "invoice_total",
+              "sourceIds": [
+                "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:invoice:a9de80b81628",
+                "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:invoice:a0807c8f37ed"
+              ]
+            },
+            {
+              "code": "gross_triple_reconciliation_failed",
+              "field": "economic_sources.total",
+              "sourceIds": [
+                "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8"
+              ]
+            }
+          ],
+          "physicalProductCount": 8,
+          "invoiceGrossTotal": 4582.66,
+          "automaticTechnicalEvidenceAudit": {
+            "selectedSourceId": "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8",
+            "selectedParser": "dimension-block",
+            "candidateCounts": [
+              {
+                "sourceId": "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8",
+                "parser": "dimension-block",
+                "rowCount": 8
+              }
+            ],
+            "excludedSources": [
+              {
+                "sourceId": "067b9a687b094d1a715403f4b3dd4992366cab3136ca5b076772e4f7671021d6",
+                "kind": "additional",
+                "reason": "crm_internal_technical_document_not_authoritative"
+              },
+              {
+                "sourceId": "740b22ee7e984a6d3bb86f5679415254e09f137273090669c9c256aae40321f8",
+                "kind": "additional",
+                "reason": "crm_internal_technical_document_not_authoritative"
+              }
+            ],
+            "appliedRuleIds": [
+              "user-2026-08-19-infissi-invoice-or-technical-source-resolution-v1",
+              "user-2026-08-19-infissi-transmittance-1-3-fallback-v1",
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "user-2026-08-25-crm-internal-technical-document-untrusted-v1",
+              "user-2026-08-25-test-ex-novo-original-sources-only-v1",
+              "user-2026-09-07-technical-document-practice-binding-product-signature-only-v1",
+              "user-2026-09-07-mixed-infissi-screening-distinct-invoice-orders-not-conflict-v1"
+            ],
+            "selectedSourceBinding": {
+              "status": "not_applicable",
+              "customerMatched": true,
+              "orderOrJobReferencesPresent": true,
+              "productSignatureMatched": true,
+              "matchedInvoiceSourceIds": [
+                "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8"
+              ],
+              "technicalReferences": [],
+              "invoiceReferences": []
+            }
+          },
+          "technical": {
+            "version": "apr-infissi-technical-sources-v1",
+            "status": "ready",
+            "rows": [
+              {
+                "physicalRowId": "dc4484cd-c462-49c0-a734-3064dd6469a8:infisso:1",
+                "sourceLineId": "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:dimension-block:1",
+                "pieceIndex": 1,
+                "widthM": 1.127,
+                "heightM": 1.532,
+                "exactAreaM2": 1.726564,
+                "eneaAreaM2": 1.7,
+                "thermalTransmittanceWm2K": 1.3,
+                "measurementKind": "documented_unspecified",
+                "dimensionSourceKind": "invoice",
+                "dimensionSourceIds": [
+                  "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8"
+                ],
+                "transmittanceSourceKind": "authorized_fallback",
+                "transmittanceSourceIds": []
+              },
+              {
+                "physicalRowId": "dc4484cd-c462-49c0-a734-3064dd6469a8:infisso:2",
+                "sourceLineId": "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:dimension-block:2",
+                "pieceIndex": 1,
+                "widthM": 1.13,
+                "heightM": 1.534,
+                "exactAreaM2": 1.73342,
+                "eneaAreaM2": 1.7,
+                "thermalTransmittanceWm2K": 1.3,
+                "measurementKind": "documented_unspecified",
+                "dimensionSourceKind": "invoice",
+                "dimensionSourceIds": [
+                  "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8"
+                ],
+                "transmittanceSourceKind": "authorized_fallback",
+                "transmittanceSourceIds": []
+              },
+              {
+                "physicalRowId": "dc4484cd-c462-49c0-a734-3064dd6469a8:infisso:3",
+                "sourceLineId": "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:dimension-block:3",
+                "pieceIndex": 1,
+                "widthM": 0.683,
+                "heightM": 1.529,
+                "exactAreaM2": 1.044307,
+                "eneaAreaM2": 1,
+                "thermalTransmittanceWm2K": 1.3,
+                "measurementKind": "documented_unspecified",
+                "dimensionSourceKind": "invoice",
+                "dimensionSourceIds": [
+                  "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8"
+                ],
+                "transmittanceSourceKind": "authorized_fallback",
+                "transmittanceSourceIds": []
+              },
+              {
+                "physicalRowId": "dc4484cd-c462-49c0-a734-3064dd6469a8:infisso:4",
+                "sourceLineId": "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:dimension-block:4",
+                "pieceIndex": 1,
+                "widthM": 1.129,
+                "heightM": 1.532,
+                "exactAreaM2": 1.729628,
+                "eneaAreaM2": 1.7,
+                "thermalTransmittanceWm2K": 1.3,
+                "measurementKind": "documented_unspecified",
+                "dimensionSourceKind": "invoice",
+                "dimensionSourceIds": [
+                  "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8"
+                ],
+                "transmittanceSourceKind": "authorized_fallback",
+                "transmittanceSourceIds": []
+              },
+              {
+                "physicalRowId": "dc4484cd-c462-49c0-a734-3064dd6469a8:infisso:5",
+                "sourceLineId": "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:dimension-block:5",
+                "pieceIndex": 1,
+                "widthM": 1.608,
+                "heightM": 2.472,
+                "exactAreaM2": 3.9749760000000003,
+                "eneaAreaM2": 4,
+                "thermalTransmittanceWm2K": 1.3,
+                "measurementKind": "documented_unspecified",
+                "dimensionSourceKind": "invoice",
+                "dimensionSourceIds": [
+                  "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8"
+                ],
+                "transmittanceSourceKind": "authorized_fallback",
+                "transmittanceSourceIds": []
+              },
+              {
+                "physicalRowId": "dc4484cd-c462-49c0-a734-3064dd6469a8:infisso:6",
+                "sourceLineId": "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:dimension-block:6",
+                "pieceIndex": 1,
+                "widthM": 0.591,
+                "heightM": 1.585,
+                "exactAreaM2": 0.936735,
+                "eneaAreaM2": 0.9,
+                "thermalTransmittanceWm2K": 0.54,
+                "measurementKind": "documented_unspecified",
+                "dimensionSourceKind": "invoice",
+                "dimensionSourceIds": [
+                  "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8"
+                ],
+                "transmittanceSourceKind": "invoice",
+                "transmittanceSourceIds": [
+                  "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8"
+                ]
+              },
+              {
+                "physicalRowId": "dc4484cd-c462-49c0-a734-3064dd6469a8:infisso:7",
+                "sourceLineId": "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:dimension-block:7",
+                "pieceIndex": 1,
+                "widthM": 0.876,
+                "heightM": 2.486,
+                "exactAreaM2": 2.1777360000000003,
+                "eneaAreaM2": 2.2,
+                "thermalTransmittanceWm2K": 1.3,
+                "measurementKind": "documented_unspecified",
+                "dimensionSourceKind": "invoice",
+                "dimensionSourceIds": [
+                  "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8"
+                ],
+                "transmittanceSourceKind": "authorized_fallback",
+                "transmittanceSourceIds": []
+              },
+              {
+                "physicalRowId": "dc4484cd-c462-49c0-a734-3064dd6469a8:infisso:8",
+                "sourceLineId": "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8:dimension-block:8",
+                "pieceIndex": 1,
+                "widthM": 0.588,
+                "heightM": 1.529,
+                "exactAreaM2": 0.8990519999999999,
+                "eneaAreaM2": 0.9,
+                "thermalTransmittanceWm2K": 1.3,
+                "measurementKind": "documented_unspecified",
+                "dimensionSourceKind": "invoice",
+                "dimensionSourceIds": [
+                  "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8"
+                ],
+                "transmittanceSourceKind": "authorized_fallback",
+                "transmittanceSourceIds": []
+              }
+            ],
+            "blockers": [],
+            "audit": {
+              "invoiceSourceIds": [
+                "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8"
+              ],
+              "technicalDocumentSourceIds": [],
+              "selectedDimensionSource": "invoice",
+              "physicalProductCount": 8,
+              "exactAreaTotalM2": 14.222418,
+              "eneaRoundedAreaTotalM2": 14.100000000000003,
+              "appliedRuleIds": [
+                "user-2026-08-19-infissi-invoice-or-technical-source-resolution-v1",
+                "user-2026-08-19-infissi-enea-square-meter-rounding-v1",
+                "user-2026-08-19-infissi-transmittance-1-3-fallback-v1",
+                "user-2026-08-14-preserve-technical-product-cardinality"
+              ]
+            }
+          },
+          "productRules": {
+            "version": "apr-infissi-product-rules-v3",
+            "status": "ready",
+            "newFrameMaterial": "PVC",
+            "glassType": "Bassa emissivita",
+            "oldWindowThermalTransmittanceWm2K": 6,
+            "eneaShadingClosuresChecked": false,
+            "blockers": [],
+            "audit": {
+              "physicalRowId": null,
+              "newFrameMaterialSource": "authorized_fallback_pvc",
+              "glassTypeSource": "authorized_fallback_low_emissivity",
+              "oldWindowThermalTransmittance": {
+                "version": "apr-infissi-old-window-transmittance-v1",
+                "thermalTransmittanceWm2K": 6,
+                "source": "authorized_precautionary_fallback",
+                "material": null,
+                "glazing": null,
+                "fallbackReason": "missing_material",
+                "audit": {
+                  "formSourceId": "dc4484cd-c462-49c0-a734-3064dd6469a8:crm-form",
+                  "sourceIds": [
+                    "dc4484cd-c462-49c0-a734-3064dd6469a8:crm-form"
+                  ],
+                  "sourceKind": "customer_form",
+                  "rawMaterial": null,
+                  "rawGlazing": null,
+                  "appliedRuleIds": [
+                    "user-2026-08-19-infissi-old-window-transmittance-matrix-v1"
+                  ]
+                }
+              },
+              "formSourceId": "dc4484cd-c462-49c0-a734-3064dd6469a8:crm-form",
+              "formAlsoInstalledClosures": null,
+              "shadingClosuresSource": "explicit_no_screen_evidence",
+              "documentedNoAdditionalClosureSourceIds": [
+                "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8"
+              ],
+              "appliedRuleIds": [
+                "user-2026-08-19-infissi-pvc-low-e-fallbacks-v1",
+                "user-2026-08-19-infissi-shading-closures-form-flag-v1",
+                "user-2026-08-19-infissi-old-window-transmittance-matrix-v1",
+                "user-2026-09-10-infissi-explicit-no-screen-negative-closure-evidence-v1"
+              ]
+            }
+          },
+          "shadingClosureAllocation": {
+            "version": "apr-infissi-shading-closure-allocation-v3",
+            "mode": "technical_explicit_none",
+            "flags": [
+              false,
+              false,
+              false,
+              false,
+              false,
+              false,
+              false,
+              false
+            ],
+            "documentedClosureCount": 0,
+            "sourceIds": [],
+            "blocker": null,
+            "audit": {
+              "physicalWindowCount": 8,
+              "documentedClosureCount": 0,
+              "technicalRowSourceKind": "invoice",
+              "invoiceDocumentSignatures": [],
+              "explicitNoScreenCount": 8,
+              "explicitNoScreenSourceIds": [
+                "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8"
+              ],
+              "invoiceClosureMentionSourceIds": [],
+              "appliedRuleIds": [
+                "user-2026-09-10-infissi-explicit-no-screen-negative-closure-evidence-v1"
+              ]
+            }
+          },
+          "oldWindowSourceResolution": {
+            "version": "apr-infissi-old-window-source-resolution-v1",
+            "hasDoubt": false,
+            "sourceKind": "customer_form",
+            "sourceIds": [
+              "dc4484cd-c462-49c0-a734-3064dd6469a8:crm-form"
+            ],
+            "audit": {
+              "formMaterial": null,
+              "formGlazing": null,
+              "invoiceMaterials": [],
+              "invoiceGlazings": [],
+              "appliedRuleIds": [
+                "user-2026-08-19-infissi-old-window-transmittance-matrix-v1"
+              ]
+            }
+          },
+          "invoiceCertificateCardinality": {
+            "version": "apr-infissi-invoice-certificate-cardinality-v1",
+            "status": "not_applicable",
+            "invoiceCount": 11,
+            "certificateCount": null,
+            "invoiceSourceIds": [
+              "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8"
+            ],
+            "certificateSourceIds": [],
+            "blocker": null,
+            "audit": {
+              "appliedRuleIds": [
+                "user-2026-08-22-infissi-invoice-certificate-cardinality-match-v1"
+              ]
+            }
+          },
+          "eneaDraftPayload": null,
+          "sourceIds": [
+            "dc4484cd-c462-49c0-a734-3064dd6469a8:crm-form",
+            "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8",
+            "067b9a687b094d1a715403f4b3dd4992366cab3136ca5b076772e4f7671021d6",
+            "740b22ee7e984a6d3bb86f5679415254e09f137273090669c9c256aae40321f8"
+          ],
+          "sourceFingerprints": [
+            {
+              "sourceId": "0498d0d2e892f651b1b1ba11cba7087b0a71b3ca30d418574460be047bd472f8",
+              "sha256": "cb3027ba10a2a76bd547780dcb56115d84163db1731eec1f1abfd6f0e157bc3b"
+            },
+            {
+              "sourceId": "067b9a687b094d1a715403f4b3dd4992366cab3136ca5b076772e4f7671021d6",
+              "sha256": "cb3027ba10a2a76bd547780dcb56115d84163db1731eec1f1abfd6f0e157bc3b"
+            },
+            {
+              "sourceId": "740b22ee7e984a6d3bb86f5679415254e09f137273090669c9c256aae40321f8",
+              "sha256": "cb3027ba10a2a76bd547780dcb56115d84163db1731eec1f1abfd6f0e157bc3b"
+            }
+          ],
+          "appliedRuleIds": [
+            "system-single-active-practice",
+            "system-atomic-checkpoint-resume",
+            "user-2026-08-19-infissi-invoice-or-technical-source-resolution-v1",
+            "user-2026-08-19-infissi-transmittance-1-3-fallback-v1",
+            "user-2026-08-14-preserve-technical-product-cardinality",
+            "user-2026-08-25-crm-internal-technical-document-untrusted-v1",
+            "user-2026-08-25-test-ex-novo-original-sources-only-v1",
+            "user-2026-09-07-technical-document-practice-binding-product-signature-only-v1",
+            "user-2026-09-07-mixed-infissi-screening-distinct-invoice-orders-not-conflict-v1",
+            "user-2026-08-19-infissi-enea-square-meter-rounding-v1",
+            "user-2026-08-19-infissi-pvc-low-e-fallbacks-v1",
+            "user-2026-08-19-infissi-shading-closures-form-flag-v1",
+            "user-2026-08-19-infissi-old-window-transmittance-matrix-v1",
+            "user-2026-09-10-infissi-explicit-no-screen-negative-closure-evidence-v1",
+            "user-2026-08-22-infissi-invoice-certificate-cardinality-match-v1",
+            "user-2026-08-16-invoice-gross-total-vat-included",
+            "user-2026-08-16-distinct-invoice-numbers-same-customer-sum",
+            "core-gross-triple-reconciliation",
+            "user-2026-09-07-invoice-gross-total-never-internally-verified-v1",
+            "user-2026-09-03-structured-residual-case-question-v1"
+          ]
+        }
+      }
+    },
+    {
+      "customerKey": "giovanni-amadu",
+      "sourceRoot": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/cohorts/apr-pilot-5354-global-controller-giovanni-amadu",
+      "replayRoot": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-infissi-atzeni-amadu-field-comparison-2026-09-10/local-replay-v158b/giovanni-amadu",
+      "commonCheckpoint": {
+        "path": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-infissi-atzeni-amadu-field-comparison-2026-09-10/local-replay-v158b/giovanni-amadu/crm-local-preflight/checkpoint.json",
+        "sha256": "985064a827134fb3a06d7cdfd023e922998d7a28ea74f49444df2633d5c2c1a1"
+      },
+      "infissiCheckpoint": {
+        "path": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-infissi-atzeni-amadu-field-comparison-2026-09-10/local-replay-v158b/giovanni-amadu/infissi-batch-preflight/checkpoint.json",
+        "sha256": "4dce7fc7bdec2615f567b9ed1d45e593d32da9daa2c5f646c40d053483322223"
+      },
+      "common": {
+        "state": "blocked_case",
+        "report": {
+          "outcome": "blocked_case",
+          "formAvailable": false,
+          "startDate": null,
+          "startDateSource": null,
+          "completionDate": null,
+          "completionDateSource": null,
+          "buildingQualification": null,
+          "buildingUnitCount": null,
+          "deductionRate": null,
+          "taxCodeStatus": "missing_or_invalid",
+          "resolvedTaxCode": null,
+          "taxCodeSourceIds": [
+            "giovanni-amadu"
+          ],
+          "primaryBeneficiaryResolution": {
+            "status": "not_found",
+            "identity": null,
+            "sourceIds": [],
+            "authority": null
+          },
+          "worksMunicipalityResolution": {
+            "status": "not_found",
+            "value": null,
+            "sourceIds": []
+          },
+          "coBeneficiaryResolution": {
+            "status": "not_declared",
+            "present": false,
+            "identity": null,
+            "sourceIds": []
+          },
+          "products": [],
+          "financial": {
+            "invoiceTotal": null,
+            "eligibleExpense": null,
+            "tripleReconciliationVerified": false,
+            "reconciledTotal": null,
+            "evidence": [],
+            "bankTransfers": [],
+            "bankTransferReconciliation": {
+              "status": "not_provided",
+              "principalTotal": null,
+              "feesTotal": null,
+              "debitedTotal": null,
+              "difference": null,
+              "referenceStatus": "not_provided",
+              "missingInvoiceReferences": [],
+              "taxReliefTypes": []
+            },
+            "methods": [
+              {
+                "method": "structured_extraction",
+                "ok": false,
+                "total": null,
+                "sources": [],
+                "reason": "fonti-assenti, nessuna-fattura-economica-valida"
+              },
+              {
+                "method": "accounting_reconciliation",
+                "ok": false,
+                "total": null,
+                "sources": [],
+                "reason": "fonti-assenti, nessuna-fattura-economica-valida"
+              },
+              {
+                "method": "intervention_cross_check",
+                "ok": false,
+                "total": null,
+                "sources": [],
+                "reason": "righe-intervento-non-dimostrate:"
+              }
+            ],
+            "discardedDuplicateSourceIds": [],
+            "supersededTechnicalSourceIds": [],
+            "appliedRuleIds": [
+              "user-2026-08-16-invoice-gross-total-vat-included",
+              "user-2026-09-06-gross-invoice-sum-supersedes-service-separation-v1",
+              "user-2026-08-18-mandatory-bank-transfer-invoice-expense-cross-check",
+              "core-gross-triple-reconciliation",
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "system-explicit-advance-invoice-reference-marker-v1",
+              "user-2026-09-07-invoice-gross-total-never-internally-verified-v1",
+              "user-2026-08-31-no-valid-economic-invoice-operator-v1"
+            ]
+          },
+          "warnings": [],
+          "blockers": [
+            {
+              "code": "customer_form_missing",
+              "field": "customer_form",
+              "reason": "Il dossier CRM non contiene un form cliente originario utilizzabile; documenti ENEA storici esclusi.",
+              "sourceIds": [
+                "a7c6441f69bf6a1fb4624466d5e9dc979caf0802b1e0d5e6ad69a7ef4dc3953c"
+              ],
+              "appliedRuleIds": [
+                "core-form-first",
+                "user-2026-09-03-structured-residual-case-question-v1"
+              ],
+              "exactCause": "Il dossier CRM non contiene un form cliente originario utilizzabile; documenti ENEA storici esclusi.",
+              "missingDocumentType": "modulo cliente originario",
+              "operatorQuestion": "Puoi inserire o indicare il modulo cliente originario richiesto per risolvere customer_form?",
+              "onboardingGap": "Rendere obbligatorio in onboarding: modulo cliente originario."
+            },
+            {
+              "code": "tax_code_missing_or_invalid",
+              "field": "beneficiary.taxCode",
+              "reason": "CF valido e coerente non disponibile nel form o nelle fatture originarie.",
+              "sourceIds": [
+                "giovanni-amadu"
+              ],
+              "appliedRuleIds": [
+                "core-form-first",
+                "user-2026-08-14-valid-original-document-cf-over-invalid-form",
+                "user-2026-08-16-fiscal-code-identity-cross-check",
+                "user-2026-09-03-structured-residual-case-question-v1"
+              ],
+              "exactCause": "CF valido e coerente non disponibile nel form o nelle fatture originarie.",
+              "missingDocumentType": "documento fiscale o ufficiale con codice fiscale",
+              "operatorQuestion": "Puoi inserire o indicare il documento fiscale o ufficiale con codice fiscale richiesto per risolvere beneficiary.taxCode?",
+              "onboardingGap": "Rendere obbligatorio in onboarding: documento fiscale o ufficiale con codice fiscale."
+            },
+            {
+              "code": "screenings_missing",
+              "field": "screenings",
+              "reason": "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+              "sourceIds": [
+                "a7c6441f69bf6a1fb4624466d5e9dc979caf0802b1e0d5e6ad69a7ef4dc3953c"
+              ],
+              "appliedRuleIds": [
+                "user-2026-08-14-preserve-technical-product-cardinality",
+                "system-specific-incomplete-screening-blocker-v1",
+                "user-2026-09-03-structured-residual-case-question-v1"
+              ],
+              "exactCause": "Nessun prodotto fisico riconciliato dalle fatture originarie.",
+              "missingDocumentType": "documento tecnico con misure del prodotto",
+              "operatorQuestion": "Mancano le misure del prodotto in tutti i documenti originari verificati: puoi inserirle?",
+              "onboardingGap": "Rendere obbligatorio in onboarding: documento tecnico con misure del prodotto."
+            },
+            {
+              "code": "completion_date_missing",
+              "field": "dates.completion",
+              "reason": "Fine lavori assente e data fattura non ricavabile.",
+              "sourceIds": [
+                "a7c6441f69bf6a1fb4624466d5e9dc979caf0802b1e0d5e6ad69a7ef4dc3953c"
+              ],
+              "appliedRuleIds": [
+                "user-2026-08-14-missing-completion-use-latest-invoice",
+                "user-2026-09-03-structured-residual-case-question-v1"
+              ],
+              "exactCause": "Fine lavori assente e data fattura non ricavabile.",
+              "missingDocumentType": "documento originario con data di fine lavori",
+              "operatorQuestion": "Puoi inserire o indicare il documento originario con data di fine lavori richiesto per risolvere dates.completion?",
+              "onboardingGap": "Rendere obbligatorio in onboarding: documento originario con data di fine lavori."
+            },
+            {
+              "code": "gross_triple_reconciliation_failed",
+              "field": "economic_sources.total",
+              "reason": "Tripla riconciliazione non dimostrata: fonti-assenti, nessuna-fattura-economica-valida.",
+              "sourceIds": [
+                "a7c6441f69bf6a1fb4624466d5e9dc979caf0802b1e0d5e6ad69a7ef4dc3953c"
+              ],
+              "appliedRuleIds": [
+                "user-2026-08-16-invoice-gross-total-vat-included",
+                "core-gross-triple-reconciliation",
+                "user-2026-09-07-invoice-gross-total-never-internally-verified-v1",
+                "user-2026-08-31-no-valid-economic-invoice-operator-v1",
+                "user-2026-09-03-structured-residual-case-question-v1"
+              ],
+              "exactCause": "Tripla riconciliazione non dimostrata: fonti-assenti, nessuna-fattura-economica-valida.",
+              "missingDocumentType": null,
+              "operatorQuestion": "Confermi il valore corretto da usare per economic_sources.total, sulla base dei documenti originari?",
+              "onboardingGap": "Acquisire e validare in onboarding il dato economic_sources.total con la relativa fonte originaria."
+            }
+          ],
+          "sourceIds": [
+            "a7c6441f69bf6a1fb4624466d5e9dc979caf0802b1e0d5e6ad69a7ef4dc3953c"
+          ],
+          "eneaPayloadAudit": {
+            "status": "payload_incomplete",
+            "mappingFingerprint": null,
+            "fieldSummary": {
+              "ready": 0,
+              "review": 0,
+              "missing": 0
+            },
+            "requiredPortalFieldCount": 0,
+            "blockerCount": 2,
+            "blockers": [
+              {
+                "code": "crm-source-not-screening",
+                "fieldId": null,
+                "message": "Il dossier non è mappabile come pratica schermature."
+              },
+              {
+                "code": "screenings_missing",
+                "fieldId": "screenings",
+                "message": "Nessun prodotto fisico riconciliato dalle fatture originarie."
+              }
+            ],
+            "excludedUnverifiedFields": [],
+            "draftReady": false,
+            "officialSubmissionAllowed": false,
+            "portalGate": {
+              "status": "blocked",
+              "reason": "screening-component-blocked",
+              "workflowFingerprint": null,
+              "supportedPages": [],
+              "screeningItemCount": 0,
+              "saveAllowedOnlyBySeparateCapability": true,
+              "previewAllowed": false,
+              "submitAllowed": false
+            },
+            "externalActionAllowed": false,
+            "reason": "1 blocker della componente Schermature invalidano il payload della bozza TEST."
+          },
+          "eneaExecutablePlan": null,
+          "draftPlan": {
+            "status": "blocked",
+            "externalActionAllowed": false,
+            "previewAllowed": false,
+            "submitAllowed": false,
+            "communicationsAllowed": false,
+            "nextAction": "Risolvere i blocker con sole fonti originarie; la coda prosegue sugli altri casi."
+          }
+        }
+      },
+      "infissi": {
+        "state": "blocked_case",
+        "report": {
+          "outcome": "blocked_case",
+          "blockers": [
+            {
+              "code": "infissi_financial_triple_reconciliation_required",
+              "field": "invoice_total",
+              "sourceIds": []
+            },
+            {
+              "code": "gross_triple_reconciliation_failed",
+              "field": "economic_sources.total",
+              "sourceIds": [
+                "a7c6441f69bf6a1fb4624466d5e9dc979caf0802b1e0d5e6ad69a7ef4dc3953c"
+              ]
+            }
+          ],
+          "physicalProductCount": 5,
+          "invoiceGrossTotal": null,
+          "automaticTechnicalEvidenceAudit": {
+            "selectedSourceId": "a7c6441f69bf6a1fb4624466d5e9dc979caf0802b1e0d5e6ad69a7ef4dc3953c",
+            "selectedParser": "dimension-block",
+            "candidateCounts": [
+              {
+                "sourceId": "a7c6441f69bf6a1fb4624466d5e9dc979caf0802b1e0d5e6ad69a7ef4dc3953c",
+                "parser": "dimension-block",
+                "rowCount": 5
+              }
+            ],
+            "excludedSources": [
+              {
+                "sourceId": "20d12303eba1647319f0c730b4b5c2901cc4b5b75f07c33413710eb3d47166ef",
+                "kind": "additional",
+                "reason": "crm_internal_technical_document_not_authoritative"
+              },
+              {
+                "sourceId": "20764d0098fbf5f8bccfd12bdc794ab030cbfc0295d5134a52605af646e631a2",
+                "kind": "additional",
+                "reason": "crm_internal_technical_document_not_authoritative"
+              }
+            ],
+            "appliedRuleIds": [
+              "user-2026-08-19-infissi-invoice-or-technical-source-resolution-v1",
+              "user-2026-08-19-infissi-transmittance-1-3-fallback-v1",
+              "user-2026-08-14-preserve-technical-product-cardinality",
+              "user-2026-08-25-crm-internal-technical-document-untrusted-v1",
+              "user-2026-08-25-test-ex-novo-original-sources-only-v1",
+              "user-2026-09-07-technical-document-practice-binding-product-signature-only-v1",
+              "user-2026-09-07-mixed-infissi-screening-distinct-invoice-orders-not-conflict-v1"
+            ],
+            "selectedSourceBinding": {
+              "status": "not_applicable",
+              "customerMatched": true,
+              "orderOrJobReferencesPresent": true,
+              "productSignatureMatched": true,
+              "matchedInvoiceSourceIds": [
+                "a7c6441f69bf6a1fb4624466d5e9dc979caf0802b1e0d5e6ad69a7ef4dc3953c"
+              ],
+              "technicalReferences": [],
+              "invoiceReferences": []
+            }
+          },
+          "technical": {
+            "version": "apr-infissi-technical-sources-v1",
+            "status": "ready",
+            "rows": [
+              {
+                "physicalRowId": "e94df373-f8f5-44b9-bd31-3e6c36025c13:infisso:1",
+                "sourceLineId": "a7c6441f69bf6a1fb4624466d5e9dc979caf0802b1e0d5e6ad69a7ef4dc3953c:dimension-block:1",
+                "pieceIndex": 1,
+                "widthM": 2.305,
+                "heightM": 1.718,
+                "exactAreaM2": 3.9599900000000003,
+                "eneaAreaM2": 4,
+                "thermalTransmittanceWm2K": 1.3,
+                "measurementKind": "documented_unspecified",
+                "dimensionSourceKind": "invoice",
+                "dimensionSourceIds": [
+                  "a7c6441f69bf6a1fb4624466d5e9dc979caf0802b1e0d5e6ad69a7ef4dc3953c"
+                ],
+                "transmittanceSourceKind": "authorized_fallback",
+                "transmittanceSourceIds": []
+              },
+              {
+                "physicalRowId": "e94df373-f8f5-44b9-bd31-3e6c36025c13:infisso:2",
+                "sourceLineId": "a7c6441f69bf6a1fb4624466d5e9dc979caf0802b1e0d5e6ad69a7ef4dc3953c:dimension-block:2",
+                "pieceIndex": 1,
+                "widthM": 2.308,
+                "heightM": 1.733,
+                "exactAreaM2": 3.999764,
+                "eneaAreaM2": 4,
+                "thermalTransmittanceWm2K": 1.3,
+                "measurementKind": "documented_unspecified",
+                "dimensionSourceKind": "invoice",
+                "dimensionSourceIds": [
+                  "a7c6441f69bf6a1fb4624466d5e9dc979caf0802b1e0d5e6ad69a7ef4dc3953c"
+                ],
+                "transmittanceSourceKind": "authorized_fallback",
+                "transmittanceSourceIds": []
+              },
+              {
+                "physicalRowId": "e94df373-f8f5-44b9-bd31-3e6c36025c13:infisso:3",
+                "sourceLineId": "a7c6441f69bf6a1fb4624466d5e9dc979caf0802b1e0d5e6ad69a7ef4dc3953c:dimension-block:3",
+                "pieceIndex": 1,
+                "widthM": 1.743,
+                "heightM": 1.45,
+                "exactAreaM2": 2.52735,
+                "eneaAreaM2": 2.5,
+                "thermalTransmittanceWm2K": 1.3,
+                "measurementKind": "documented_unspecified",
+                "dimensionSourceKind": "invoice",
+                "dimensionSourceIds": [
+                  "a7c6441f69bf6a1fb4624466d5e9dc979caf0802b1e0d5e6ad69a7ef4dc3953c"
+                ],
+                "transmittanceSourceKind": "authorized_fallback",
+                "transmittanceSourceIds": []
+              },
+              {
+                "physicalRowId": "e94df373-f8f5-44b9-bd31-3e6c36025c13:infisso:4",
+                "sourceLineId": "a7c6441f69bf6a1fb4624466d5e9dc979caf0802b1e0d5e6ad69a7ef4dc3953c:dimension-block:4",
+                "pieceIndex": 1,
+                "widthM": 1.743,
+                "heightM": 0.587,
+                "exactAreaM2": 1.023141,
+                "eneaAreaM2": 1,
+                "thermalTransmittanceWm2K": 1.3,
+                "measurementKind": "documented_unspecified",
+                "dimensionSourceKind": "invoice",
+                "dimensionSourceIds": [
+                  "a7c6441f69bf6a1fb4624466d5e9dc979caf0802b1e0d5e6ad69a7ef4dc3953c"
+                ],
+                "transmittanceSourceKind": "authorized_fallback",
+                "transmittanceSourceIds": []
+              },
+              {
+                "physicalRowId": "e94df373-f8f5-44b9-bd31-3e6c36025c13:infisso:5",
+                "sourceLineId": "a7c6441f69bf6a1fb4624466d5e9dc979caf0802b1e0d5e6ad69a7ef4dc3953c:dimension-block:5",
+                "pieceIndex": 1,
+                "widthM": 1.285,
+                "heightM": 2.293,
+                "exactAreaM2": 2.946505,
+                "eneaAreaM2": 2.9,
+                "thermalTransmittanceWm2K": 1.3,
+                "measurementKind": "documented_unspecified",
+                "dimensionSourceKind": "invoice",
+                "dimensionSourceIds": [
+                  "a7c6441f69bf6a1fb4624466d5e9dc979caf0802b1e0d5e6ad69a7ef4dc3953c"
+                ],
+                "transmittanceSourceKind": "authorized_fallback",
+                "transmittanceSourceIds": []
+              }
+            ],
+            "blockers": [],
+            "audit": {
+              "invoiceSourceIds": [
+                "a7c6441f69bf6a1fb4624466d5e9dc979caf0802b1e0d5e6ad69a7ef4dc3953c"
+              ],
+              "technicalDocumentSourceIds": [],
+              "selectedDimensionSource": "invoice",
+              "physicalProductCount": 5,
+              "exactAreaTotalM2": 14.456750000000001,
+              "eneaRoundedAreaTotalM2": 14.4,
+              "appliedRuleIds": [
+                "user-2026-08-19-infissi-invoice-or-technical-source-resolution-v1",
+                "user-2026-08-19-infissi-enea-square-meter-rounding-v1",
+                "user-2026-08-19-infissi-transmittance-1-3-fallback-v1",
+                "user-2026-08-14-preserve-technical-product-cardinality"
+              ]
+            }
+          },
+          "productRules": {
+            "version": "apr-infissi-product-rules-v3",
+            "status": "ready",
+            "newFrameMaterial": "PVC",
+            "glassType": "Bassa emissivita",
+            "oldWindowThermalTransmittanceWm2K": 6,
+            "eneaShadingClosuresChecked": false,
+            "blockers": [],
+            "audit": {
+              "physicalRowId": null,
+              "newFrameMaterialSource": "authorized_fallback_pvc",
+              "glassTypeSource": "authorized_fallback_low_emissivity",
+              "oldWindowThermalTransmittance": {
+                "version": "apr-infissi-old-window-transmittance-v1",
+                "thermalTransmittanceWm2K": 6,
+                "source": "authorized_precautionary_fallback",
+                "material": null,
+                "glazing": null,
+                "fallbackReason": "missing_material",
+                "audit": {
+                  "formSourceId": "e94df373-f8f5-44b9-bd31-3e6c36025c13:crm-form",
+                  "sourceIds": [
+                    "e94df373-f8f5-44b9-bd31-3e6c36025c13:crm-form"
+                  ],
+                  "sourceKind": "customer_form",
+                  "rawMaterial": null,
+                  "rawGlazing": null,
+                  "appliedRuleIds": [
+                    "user-2026-08-19-infissi-old-window-transmittance-matrix-v1"
+                  ]
+                }
+              },
+              "formSourceId": "e94df373-f8f5-44b9-bd31-3e6c36025c13:crm-form",
+              "formAlsoInstalledClosures": null,
+              "shadingClosuresSource": "explicit_no_screen_evidence",
+              "documentedNoAdditionalClosureSourceIds": [
+                "a7c6441f69bf6a1fb4624466d5e9dc979caf0802b1e0d5e6ad69a7ef4dc3953c"
+              ],
+              "appliedRuleIds": [
+                "user-2026-08-19-infissi-pvc-low-e-fallbacks-v1",
+                "user-2026-08-19-infissi-shading-closures-form-flag-v1",
+                "user-2026-08-19-infissi-old-window-transmittance-matrix-v1",
+                "user-2026-09-10-infissi-explicit-no-screen-negative-closure-evidence-v1"
+              ]
+            }
+          },
+          "shadingClosureAllocation": {
+            "version": "apr-infissi-shading-closure-allocation-v3",
+            "mode": "technical_explicit_none",
+            "flags": [
+              false,
+              false,
+              false,
+              false,
+              false
+            ],
+            "documentedClosureCount": 0,
+            "sourceIds": [],
+            "blocker": null,
+            "audit": {
+              "physicalWindowCount": 5,
+              "documentedClosureCount": 0,
+              "technicalRowSourceKind": "invoice",
+              "invoiceDocumentSignatures": [],
+              "explicitNoScreenCount": 5,
+              "explicitNoScreenSourceIds": [
+                "a7c6441f69bf6a1fb4624466d5e9dc979caf0802b1e0d5e6ad69a7ef4dc3953c"
+              ],
+              "invoiceClosureMentionSourceIds": [],
+              "appliedRuleIds": [
+                "user-2026-09-10-infissi-explicit-no-screen-negative-closure-evidence-v1"
+              ]
+            }
+          },
+          "oldWindowSourceResolution": {
+            "version": "apr-infissi-old-window-source-resolution-v1",
+            "hasDoubt": false,
+            "sourceKind": "customer_form",
+            "sourceIds": [
+              "e94df373-f8f5-44b9-bd31-3e6c36025c13:crm-form"
+            ],
+            "audit": {
+              "formMaterial": null,
+              "formGlazing": null,
+              "invoiceMaterials": [],
+              "invoiceGlazings": [],
+              "appliedRuleIds": [
+                "user-2026-08-19-infissi-old-window-transmittance-matrix-v1"
+              ]
+            }
+          },
+          "invoiceCertificateCardinality": {
+            "version": "apr-infissi-invoice-certificate-cardinality-v1",
+            "status": "not_applicable",
+            "invoiceCount": 90,
+            "certificateCount": null,
+            "invoiceSourceIds": [
+              "a7c6441f69bf6a1fb4624466d5e9dc979caf0802b1e0d5e6ad69a7ef4dc3953c"
+            ],
+            "certificateSourceIds": [],
+            "blocker": null,
+            "audit": {
+              "appliedRuleIds": [
+                "user-2026-08-22-infissi-invoice-certificate-cardinality-match-v1"
+              ]
+            }
+          },
+          "eneaDraftPayload": null,
+          "sourceIds": [
+            "e94df373-f8f5-44b9-bd31-3e6c36025c13:crm-form",
+            "a7c6441f69bf6a1fb4624466d5e9dc979caf0802b1e0d5e6ad69a7ef4dc3953c",
+            "20d12303eba1647319f0c730b4b5c2901cc4b5b75f07c33413710eb3d47166ef",
+            "20764d0098fbf5f8bccfd12bdc794ab030cbfc0295d5134a52605af646e631a2"
+          ],
+          "sourceFingerprints": [
+            {
+              "sourceId": "a7c6441f69bf6a1fb4624466d5e9dc979caf0802b1e0d5e6ad69a7ef4dc3953c",
+              "sha256": "f432215e48044be77bf1018d5eb81ef5b5457edd49b4271c22a13a9116b0c57b"
+            },
+            {
+              "sourceId": "20d12303eba1647319f0c730b4b5c2901cc4b5b75f07c33413710eb3d47166ef",
+              "sha256": "f432215e48044be77bf1018d5eb81ef5b5457edd49b4271c22a13a9116b0c57b"
+            },
+            {
+              "sourceId": "20764d0098fbf5f8bccfd12bdc794ab030cbfc0295d5134a52605af646e631a2",
+              "sha256": "f432215e48044be77bf1018d5eb81ef5b5457edd49b4271c22a13a9116b0c57b"
+            }
+          ],
+          "appliedRuleIds": [
+            "system-single-active-practice",
+            "system-atomic-checkpoint-resume",
+            "user-2026-08-19-infissi-invoice-or-technical-source-resolution-v1",
+            "user-2026-08-19-infissi-transmittance-1-3-fallback-v1",
+            "user-2026-08-14-preserve-technical-product-cardinality",
+            "user-2026-08-25-crm-internal-technical-document-untrusted-v1",
+            "user-2026-08-25-test-ex-novo-original-sources-only-v1",
+            "user-2026-09-07-technical-document-practice-binding-product-signature-only-v1",
+            "user-2026-09-07-mixed-infissi-screening-distinct-invoice-orders-not-conflict-v1",
+            "user-2026-08-19-infissi-enea-square-meter-rounding-v1",
+            "user-2026-08-19-infissi-pvc-low-e-fallbacks-v1",
+            "user-2026-08-19-infissi-shading-closures-form-flag-v1",
+            "user-2026-08-19-infissi-old-window-transmittance-matrix-v1",
+            "user-2026-09-10-infissi-explicit-no-screen-negative-closure-evidence-v1",
+            "user-2026-08-22-infissi-invoice-certificate-cardinality-match-v1",
+            "user-2026-08-16-invoice-gross-total-vat-included",
+            "user-2026-08-16-distinct-invoice-numbers-same-customer-sum",
+            "core-gross-triple-reconciliation",
+            "user-2026-09-07-invoice-gross-total-never-internally-verified-v1",
+            "user-2026-08-31-no-valid-economic-invoice-operator-v1",
+            "user-2026-09-03-structured-residual-case-question-v1"
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,98 @@
+Subject: [PATCH] fix(apr): una richiesta di dato superata da una risposta successiva non blocca piu' la pratica (Munafo, dove si legge davvero)
+
+La patch della sera (proiezione del ledger) correggeva un campo che il
+preflight non legge: il blocker operator_response_pending_external_data
+nasce in crmLocalPreflight.buildReportFor cercando fra TUTTE le risposte
+attive una richiesta non 'applied' — e una richiesta non e' mai applied,
+perche' e' una richiesta e non un dato. Vinceva sempre la vecchia.
+
+Ora la richiesta e' pendente solo se e' l'ultima risposta attiva sulla
+pratica (decisione del titolare del 13/09: vince la piu' recente, per
+qualsiasi tipo). Due test end-to-end con il preflight persistente: Munafo
+(richiesta dell'11 + misure del 12 -> misure applicate, nessun blocco) e
+il caso in cui la richiesta e' davvero l'ultima cosa detta (resta pendente).
+143/143, typecheck runner pulito.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+---
+--- a/scripts/enea-shadow-runner/crmLocalPreflight.ts
++++ b/scripts/enea-shadow-runner/crmLocalPreflight.ts
+@@ -2172,8 +2172,20 @@
+       missingDocumentType: refreshEntries.flatMap((entry) => entry.payload.kind === "document_refresh" ? entry.payload.documentTypes : []).join(", ") || null,
+       onboardingGap: null,
+     });
+-    const pendingOperatorResponse = [...projection.entries].reverse().find((entry) => (entry.payload.kind === "operator_required" || entry.payload.kind === "case_decision")
+-      && prepared.applications.find((application) => application.responseId === entry.responseId)?.outcome !== "applied");
++    // Decisione del titolare (13/09/2026): vince la risposta piu' recente, per
++    // qualsiasi tipo. Una richiesta "dato in attesa" e' pendente soltanto se
++    // e' l'ULTIMA cosa che l'operatore ha detto sulla pratica. Se dopo e'
++    // arrivata una risposta con il dato — misure, decisione, documento — la
++    // richiesta e' superata anche se nessuno l'ha marcata tale: cercarla fra
++    // tutte le risposte attive faceva vincere la vecchia (Rossella Munafo:
++    // richiesta dell'11/09 e misure del 12/09 entrambe attive, misure
++    // applicate, richiesta che bloccava la pratica per quattro giri).
++    const latestOperatorEntry = projection.entries.at(-1);
++    const pendingOperatorResponse = latestOperatorEntry
++      && (latestOperatorEntry.payload.kind === "operator_required" || latestOperatorEntry.payload.kind === "case_decision")
++      && prepared.applications.find((application) => application.responseId === latestOperatorEntry.responseId)?.outcome !== "applied"
++      ? latestOperatorEntry
++      : undefined;
+     if (pendingOperatorResponse) report = appendOperatorResponseBlocker(report, {
+       code: "operator_response_pending_external_data",
+       field: "operator_response",
+--- a/scripts/enea-shadow-runner/crmLocalPreflight.test.ts
++++ b/scripts/enea-shadow-runner/crmLocalPreflight.test.ts
+@@ -109,6 +109,53 @@
+     expect(ledger.load().applications).toContainEqual(expect.objectContaining({ responseId: "response:mondini:dimensions:runtime-test", outcome: "applied" }));
+   });
+ 
++  // Rossella Munafo, 11-14/09/2026: richiesta "dato in attesa" e misure
++  // arrivate dopo, entrambe attive. Le misure venivano applicate e la
++  // richiesta continuava a bloccare la pratica, per quattro giri.
++  it("vince la risposta piu' recente: una richiesta di dato seguita dalle misure non blocca piu' la pratica (Munafo)", () => {
++    const root = mkdtempSync(path.join(os.tmpdir(), "apr-runtime-response-latest-wins-")); directories.push(root);
++    const dossierPath = path.join(root, "dossier.json");
++    writeFileSync(dossierPath, JSON.stringify({ acquiredAt: "2026-09-14T08:01:00.000Z", row: { id: "practice-munafo", dati_form: { prodotto: { schermature: [] } } } }));
++    const analysis = new PersistentAprCrmDocumentAnalysis(root, async () => { throw new Error("not used"); }); analysis.initialize();
++    const ledger = new PersistentAprOperatorResponseLedger(root);
++    ledger.importResponses([{
++      responseId: "response:munafo:pending:20260911", customerKey: "rossella-munafo", displayName: "Rossella Munafo", practiceId: "practice-munafo",
++      receivedAt: "2026-09-11T09:37:00.000Z", source: "giuliano_chat_decision", question: "Indica le misure della bioclimatica riportate nel foglio manoscritto.", answer: "Le misure non sono nella fattura.",
++      payload: { kind: "operator_required", operatorQuestion: "Indica le misure della bioclimatica riportate nel foglio manoscritto.", missingDocumentType: null }, status: "active", supersedesResponseId: null,
++      appliedRuleIds: [OPERATOR_RESPONSE_RUNTIME_CONSUMPTION_RULE_ID],
++    }, {
++      responseId: "response:munafo:dimensions:20260912", customerKey: "rossella-munafo", displayName: "Rossella Munafo", practiceId: "practice-munafo",
++      receivedAt: "2026-09-12T11:53:00.000Z", source: "giuliano_chat_decision", question: "Quali sono le misure?", answer: "Una bioclimatica 400 x 300 cm.",
++      payload: { kind: "screening_products", products: [{ description: "Bioclimatica", quantity: 1, widthMm: 4000, heightMm: 3000 }] }, status: "active", supersedesResponseId: null,
++      appliedRuleIds: [OPERATOR_RESPONSE_RUNTIME_CONSUMPTION_RULE_ID],
++    }]);
++    const store = new PersistentAprCrmLocalPreflight(root, analysis);
++    store.prepare([{ customerKey: "rossella-munafo", displayName: "Rossella Munafo", state: "acquired", requestId: "req-munafo", attemptCount: 1, practiceId: "practice-munafo", dossierPath, responseSha256: "e".repeat(64), sourceDocumentCount: 0, reason: "ok", startedAt: null, endedAt: null }] as never, "f".repeat(64));
++    const completed = store.runToCompletion(new Date("2026-09-14T08:02:00.000Z"));
++    // Le misure del 12/09 vengono applicate...
++    expect(completed.items[0].report?.warnings).toContainEqual(expect.objectContaining({ code: "operator_response_screening_products_applied" }));
++    // ...e la richiesta dell'11/09, superata, non blocca piu' la pratica.
++    expect(completed.items[0].report?.blockers).not.toContainEqual(expect.objectContaining({ code: "operator_response_pending_external_data" }));
++  });
++
++  it("una richiesta di dato che e' davvero l'ultima risposta resta pendente", () => {
++    const root = mkdtempSync(path.join(os.tmpdir(), "apr-runtime-response-latest-pending-")); directories.push(root);
++    const dossierPath = path.join(root, "dossier.json");
++    writeFileSync(dossierPath, JSON.stringify({ acquiredAt: "2026-09-14T08:01:00.000Z", row: { id: "practice-x", dati_form: {} } }));
++    const analysis = new PersistentAprCrmDocumentAnalysis(root, async () => { throw new Error("not used"); }); analysis.initialize();
++    const ledger = new PersistentAprOperatorResponseLedger(root);
++    ledger.importResponses([{
++      responseId: "response:x:pending:20260913", customerKey: "cliente-x", displayName: "Cliente X", practiceId: "practice-x",
++      receivedAt: "2026-09-13T09:00:00.000Z", source: "giuliano_chat_decision", question: "Serve il certificato del produttore.", answer: "Lo chiedo al fornitore.",
++      payload: { kind: "operator_required", operatorQuestion: "Serve il certificato del produttore.", missingDocumentType: "certificato" }, status: "active", supersedesResponseId: null,
++      appliedRuleIds: [OPERATOR_RESPONSE_RUNTIME_CONSUMPTION_RULE_ID],
++    }]);
++    const store = new PersistentAprCrmLocalPreflight(root, analysis);
++    store.prepare([{ customerKey: "cliente-x", displayName: "Cliente X", state: "acquired", requestId: "req-x", attemptCount: 1, practiceId: "practice-x", dossierPath, responseSha256: "1".repeat(64), sourceDocumentCount: 0, reason: "ok", startedAt: null, endedAt: null }] as never, "2".repeat(64));
++    const completed = store.runToCompletion(new Date("2026-09-14T08:02:00.000Z"));
++    expect(completed.items[0].report?.blockers).toContainEqual(expect.objectContaining({ code: "operator_response_pending_external_data" }));
++  });
++
+   it("non considera applicata una risposta su nuovi documenti prima della riacquisizione", () => {
+     const root = mkdtempSync(path.join(os.tmpdir(), "apr-runtime-response-refresh-")); directories.push(root);
+     const dossierPath = path.join(root, "dossier.json");

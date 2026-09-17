@@ -1,0 +1,26 @@
+{
+  "version": "apr-install-bundle-cli-receipt-v1",
+  "installedAt": "2026-09-13T18:16:43.199Z",
+  "label": "certificate-measures-columnar-total-r123",
+  "versionId": "9720ac8c-certificate-measures-columnar-total-r123-20260913",
+  "previousTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/328eeac0-fault-recovery-browser-lease-r122-20260913",
+  "currentTarget": "/Users/giulianolavoro/Library/Application Support/PraticaRapida/enea-shadow-runner/canonical-bundle/versions/9720ac8c-certificate-measures-columnar-total-r123-20260913",
+  "installedBundle": {
+    "apr-supervisor.mjs": "c94d6815f7bf62049188dfc7e626c13c4e3f96499a1946ca0faffb61c694aebf",
+    "apr-enea-worker.mjs": "284decdfae9737008d657f360132abc6062e5f5ef94d1d3031069f067d44e79e",
+    "apr-watchdog.mjs": "551118e02af5d2a9163f18d8663d7b332d173ff0ae28cffb9659dee9a33619f0",
+    "apr-rule-governance-attestation.json": "e998bec261c13a6a36053da2b702e4c4a0e8969031f1d79d4c1007f673b4a7e1"
+  },
+  "gateResultArtifactId": "efeaabdaf1aed095e8c4dbce87158134599177f19d4e2f23f33a5e8605ad9b43",
+  "gateStatus": "PASS",
+  "governanceAttestation": {
+    "path": "apr-rule-governance-attestation.json",
+    "sha256": "e998bec261c13a6a36053da2b702e4c4a0e8969031f1d79d4c1007f673b4a7e1",
+    "historicalAuditReport": "/Users/giulianolavoro/.codex/worktrees/76cf/pratica-rapida/ops/apr-certificate-measures-columnar-total-r123-2026-09-13/historical-audit-report-r123.json",
+    "authorizedHistoricalGap": true
+  },
+  "legacyGovernanceDebtNoticed": [
+    "user-2026-09-05-co-beneficiary-trusted-enter-delivery-v2",
+    "user-2026-09-05-terminal-cohort-browser-quiescence-v1"
+  ]
+}

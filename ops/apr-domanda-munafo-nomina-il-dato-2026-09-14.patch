@@ -1,0 +1,64 @@
+From 30ba7173f84d85dcfa47fb6b2c0075e664b05d74 Mon Sep 17 00:00:00 2001
+From: Giuliano Beretta <giulianolavoro@MacBook-Pro-di-Giuliano-2026.local>
+Date: Mon, 14 Sep 2026 00:50:37 +0200
+Subject: [PATCH] fix(apr): la domanda su un dato gia' richiesto ripete la
+ richiesta originale, non un testo generico
+
+Munafo, giro r123: la domanda scritta era 'fornisci il dato mancante
+indicato nella richiesta', che non dice quale dato e non e' rispondibile.
+Il blocco operator_response_pending_external_data porta con se' la
+richiesta originale, che nomina il dato (le misure della bioclimatica
+nel foglio manoscritto): ora si ripropone quella, parola per parola.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+---
+ scripts/enea-shadow-runner/aprStopDisposition.test.ts | 10 ++++++++++
+ scripts/enea-shadow-runner/aprStopDisposition.ts      | 11 ++++++++++-
+ 2 files changed, 20 insertions(+), 1 deletion(-)
+
+diff --git a/scripts/enea-shadow-runner/aprStopDisposition.test.ts b/scripts/enea-shadow-runner/aprStopDisposition.test.ts
+index bc9de13..0870c2a 100644
+--- a/scripts/enea-shadow-runner/aprStopDisposition.test.ts
++++ b/scripts/enea-shadow-runner/aprStopDisposition.test.ts
+@@ -54,6 +54,16 @@ describe("nessuna pratica ferma resta muta", () => {
+     expect(esito.text).toContain("senza ricalcolarlo");
+   });
+ 
++  it("un dato gia' richiesto viene richiesto di nuovo con le parole della richiesta originale (Munafo)", () => {
++    const esito = disposeAprStoppedCase(ferma({
++      blockerCodes: ["operator_response_pending_external_data"],
++      blockerReasons: { operator_response_pending_external_data: "Indica le misure della bioclimatica riportate nel foglio manoscritto corretto per questa pratica." },
++    }));
++    expect(esito.kind).toBe("domanda_operatore");
++    expect(esito.text).toContain("misure della bioclimatica");
++    expect(esito.text).not.toContain("dato mancante indicato nella richiesta");
++  });
++
+   it("un fascicolo vuoto e' un guasto di acquisizione", () => {
+     const esito = disposeAprStoppedCase(ferma({ documentsAcquired: false, blockerCodes: ["screenings_missing"] }));
+     expect(esito.kind).toBe("guasto_apr");
+diff --git a/scripts/enea-shadow-runner/aprStopDisposition.ts b/scripts/enea-shadow-runner/aprStopDisposition.ts
+index 5fbbe70..68795dd 100644
+--- a/scripts/enea-shadow-runner/aprStopDisposition.ts
++++ b/scripts/enea-shadow-runner/aprStopDisposition.ts
+@@ -185,7 +185,16 @@ export function disposeAprStoppedCase(input: AprStopCaseInput): AprStopDispositi
+   const blockerCode = pickBlocker(input.blockerCodes);
+   if (blockerCode) {
+     const entry = BLOCKER_DISPOSITIONS[blockerCode];
+-    return { ...base, kind: entry.kind, blockerCode, text: entry.text, field: entry.field ?? null };
++    // Un blocco che aspetta un dato gia' richiesto porta con se' la richiesta
++    // originale, che nomina il dato ("le misure della bioclimatica riportate
++    // nel foglio manoscritto"). Riproporla parola per parola vale piu' di un
++    // testo generico: su Munafo (r123) la domanda "fornisci il dato mancante
++    // indicato nella richiesta" non diceva quale, e non era rispondibile.
++    const persistedReason = input.blockerReasons?.[blockerCode]?.trim();
++    const text = blockerCode === "operator_response_pending_external_data" && persistedReason
++      ? persistedReason
++      : entry.text;
++    return { ...base, kind: entry.kind, blockerCode, text, field: entry.field ?? null };
+   }
+ 
+   const dynamic = [...new Set(input.blockerCodes)].sort()
+-- 
+2.50.1 (Apple Git-155)
+

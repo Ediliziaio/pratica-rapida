@@ -178,6 +178,12 @@ export async function getIssuedDocument(config: FicConfig, documentId: number) {
   );
 }
 
+export async function deleteIssuedDocument(config: FicConfig, documentId: number) {
+  return await ficRequest<unknown>(config, `/c/${config.companyId}/issued_documents/${documentId}`, {
+    method: "DELETE",
+  });
+}
+
 export async function scheduleDocumentEmail(
   config: FicConfig,
   documentId: number,

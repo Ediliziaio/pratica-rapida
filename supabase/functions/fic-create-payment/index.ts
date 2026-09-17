@@ -3,6 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import Stripe from "https://esm.sh/stripe@18.0.0?target=deno";
 import {
   createProforma,
+  deleteIssuedDocument,
   extractBillingIdentity,
   getFicConfig,
   proformaPayload,
@@ -69,21 +70,9 @@ serve(async (req) => {
 
   const { data: existing } = await admin
     .from("cf_payment_orders")
-    .select("status,provider,stripe_checkout_url,fic_document_url,last_error_message")
+    .select("id,status,provider,stripe_checkout_session_id,stripe_checkout_url,fic_proforma_id,fic_document_url,is_test_payment,last_error_message")
     .eq("practice_id", practice.id)
     .maybeSingle();
-  const existingUrl = existing?.stripe_checkout_url || existing?.fic_document_url;
-  if (existingUrl) {
-    return json({ status: existing.status, payment_url: existingUrl, existing: true });
-  }
-  if (existing) {
-    return json({
-      error: existing.status === "failed"
-        ? "La richiesta di pagamento è stata registrata ma richiede una verifica dello staff. Non ricompilare il modulo."
-        : "La richiesta di pagamento è in preparazione. Riprova tra pochi secondi.",
-      status: existing.status,
-    }, 409);
-  }
 
   try {
     const { data: settingRows } = await admin.from("platform_settings")
@@ -134,7 +123,27 @@ serve(async (req) => {
     const paymentProvider = Deno.env.get("CF_PAYMENT_PROVIDER") === "stripe"
       ? "stripe_fatture_in_cloud"
       : "fatture_in_cloud_tspay";
-    const { data: reserved, error: reserveError } = await admin.from("cf_payment_orders").insert({
+    const existingUrl = existing?.stripe_checkout_url || existing?.fic_document_url;
+    const resetExistingStripeOrder = Boolean(
+      isTestPayment &&
+      existing &&
+      !existing.is_test_payment &&
+      existing.provider === "stripe_fatture_in_cloud" &&
+      existing.stripe_checkout_session_id,
+    );
+    if (existingUrl && !resetExistingStripeOrder) {
+      return json({ status: existing?.status, payment_url: existingUrl, existing: true });
+    }
+    if (existing && !resetExistingStripeOrder) {
+      return json({
+        error: existing.status === "failed"
+          ? "La richiesta di pagamento è stata registrata ma richiede una verifica dello staff. Non ricompilare il modulo."
+          : "La richiesta di pagamento è in preparazione. Riprova tra pochi secondi.",
+        status: existing.status,
+      }, 409);
+    }
+
+    const orderValues = {
       practice_id: practice.id,
       provider: paymentProvider,
       pricing_key: price.pricingKey,
@@ -144,11 +153,45 @@ serve(async (req) => {
       totale_cents: price.grossCents,
       is_test_payment: isTestPayment,
       status: "creating",
-    }).select("id").single();
+    };
+    let reserved: { id: string } | null = null;
+    let reserveError: { code?: string; message?: string } | null = null;
+    if (resetExistingStripeOrder && existing) {
+      const stripeKey = Deno.env.get("STRIPE_SECRET_KEY")?.trim() ?? "";
+      if (!stripeKey) throw new Error("Stripe non configurato: STRIPE_SECRET_KEY mancante");
+      const stripe = new Stripe(stripeKey, { httpClient: Stripe.createFetchHttpClient() });
+      const staleSession = await stripe.checkout.sessions.retrieve(String(existing.stripe_checkout_session_id));
+      if (staleSession.payment_status === "paid") {
+        return json({ error: "La precedente sessione risulta pagata: il collaudo richiede una verifica dello staff." }, 409);
+      }
+      if (staleSession.status === "open") {
+        await stripe.checkout.sessions.expire(staleSession.id);
+      }
+      if (existing.fic_proforma_id) {
+        await deleteIssuedDocument(getFicConfig(), Number(existing.fic_proforma_id));
+      }
+      const resetResult = await admin.from("cf_payment_orders").update({
+        ...orderValues,
+        stripe_checkout_session_id: null,
+        stripe_checkout_url: null,
+        fic_proforma_id: null,
+        fic_document_url: null,
+        last_error_code: null,
+        last_error_message: null,
+        updated_at: new Date().toISOString(),
+      }).eq("id", existing.id).select("id").single();
+      reserved = resetResult.data;
+      reserveError = resetResult.error;
+    } else {
+      const insertResult = await admin.from("cf_payment_orders").insert(orderValues).select("id").single();
+      reserved = insertResult.data;
+      reserveError = insertResult.error;
+    }
     if (reserveError) {
       if (reserveError.code === "23505") return json({ error: "Richiesta già in preparazione. Riprova tra pochi secondi." }, 409);
       throw reserveError;
     }
+    if (!reserved) throw new Error("Impossibile riservare l'ordine di pagamento");
 
     // Il collaudo da 1 € verifica soltanto Stripe e il ritorno al CRM: non è
     // un'operazione fiscale e non deve lasciare proforme tra i crediti FIC.
@@ -207,7 +250,7 @@ serve(async (req) => {
         success_url: `${siteUrl}/form/${token}?pagamento=ok`,
         cancel_url: `${siteUrl}/form/${token}?pagamento=annullato`,
         expires_at: Math.floor(Date.now() / 1000) + 30 * 60,
-      }, { idempotencyKey: `cf-payment-order-${reserved.id}` });
+      }, { idempotencyKey: `cf-payment-order-${reserved.id}${resetExistingStripeOrder ? "-test-reset" : ""}` });
       stripeSessionId = session.id;
       paymentUrl = String(session.url ?? "");
       if (!paymentUrl) throw new Error("Stripe non ha restituito il link di pagamento");

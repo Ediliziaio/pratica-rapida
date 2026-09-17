@@ -9,6 +9,19 @@ export interface FicConfig {
   companyId: number;
 }
 
+const FIC_WEBHOOK_TYPES = [
+  "it.fattureincloud.webhooks.issued_documents.proformas.update",
+  "it.fattureincloud.webhooks.issued_documents.e_invoices.status_update",
+  "it.fattureincloud.webhooks.issued_documents.invoices.email_sent",
+] as const;
+
+interface FicWebhookSubscription {
+  id: string;
+  sink: string;
+  verified?: boolean;
+  types?: string[];
+}
+
 export interface BillingIdentity {
   name: string;
   email: string;
@@ -56,6 +69,63 @@ export async function ficRequest<T>(
     throw error;
   }
   return body as T;
+}
+
+/** Verifica che esista la sottoscrizione dedicata al webhook del CRM. */
+export async function ensureFicWebhookSubscription(config: FicConfig): Promise<void> {
+  const sink = Deno.env.get("FIC_WEBHOOK_URL")?.trim() ?? "";
+  if (!sink.startsWith("https://")) {
+    throw new Error("Webhook Fatture in Cloud non configurato: FIC_WEBHOOK_URL HTTPS mancante");
+  }
+
+  const listed = await ficRequest<{ data?: FicWebhookSubscription[] }>(
+    config,
+    `/c/${config.companyId}/subscriptions`,
+  );
+  const subscriptions = Array.isArray(listed.data) ? listed.data : [];
+  let subscription = subscriptions.find((item) => item.sink === sink);
+
+  if (!subscription) {
+    const created = await ficRequest<{ data: FicWebhookSubscription; warnings?: string[] }>(
+      config,
+      `/c/${config.companyId}/subscriptions`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          data: {
+            sink,
+            types: [...FIC_WEBHOOK_TYPES],
+            verification_method: "header",
+            config: { mapping: "binary" },
+          },
+        }),
+      },
+    );
+    if ((created.warnings ?? []).length > 0) {
+      throw new Error(`Sottoscrizione webhook FIC incompleta: ${created.warnings?.join("; ")}`);
+    }
+    subscription = created.data;
+  }
+
+  if (!subscription?.id) throw new Error("Fatture in Cloud non ha restituito l'ID della sottoscrizione webhook");
+  const subscribedTypes = Array.isArray(subscription.types) ? subscription.types : [];
+  const missingTypes = FIC_WEBHOOK_TYPES.filter((type) => !subscribedTypes.includes(type));
+  if (missingTypes.length > 0) {
+    throw new Error(`Sottoscrizione webhook FIC incompleta: mancano ${missingTypes.join(", ")}`);
+  }
+  if (subscription.verified !== true) {
+    const verified = await ficRequest<{ data: FicWebhookSubscription }>(
+      config,
+      `/c/${config.companyId}/subscriptions/${encodeURIComponent(subscription.id)}/verify`,
+      {
+        method: "POST",
+        body: JSON.stringify({ data: { verification_method: "header" } }),
+      },
+    );
+    if (verified.data?.verified !== true) {
+      throw new Error("Sottoscrizione webhook Fatture in Cloud non verificata");
+    }
+  }
 }
 
 function stringAt(value: unknown, ...path: string[]): string {

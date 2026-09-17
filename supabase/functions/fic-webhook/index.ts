@@ -122,22 +122,6 @@ serve(async (req) => {
           await admin.from("enea_practices").update({ current_stage_id: readyStage.id }).eq("id", order.practice_id);
         }
 
-        // Un pagamento di collaudo verifica soltanto TS Pay e l'associazione
-        // alla pratica. Non deve mai produrre documenti fiscali reali.
-        if (order.is_test_payment === true) {
-          const { data: admins } = await admin.from("user_roles").select("user_id").eq("role", "super_admin");
-          if (admins?.length) {
-            await admin.from("notifications").insert(admins.map((row) => ({
-              user_id: row.user_id,
-              tipo: "pagamento_ricevuto",
-              titolo: "Collaudo pagamento ricevuto — € 1,00",
-              messaggio: "Test TS Pay associato alla pratica. Nessuna fattura e nessun invio SDI sono stati eseguiti.",
-              link: `/pratiche/${order.practice_id}`,
-            })));
-          }
-          continue;
-        }
-
         // Interruttore Cabina di Regia: senza approvazione esplicita il denaro
         // viene rilevato, ma nessuna fattura viene creata o inviata allo SDI.
         if (Deno.env.get("FIC_LIVE_INVOICING_ENABLED") !== "true") {

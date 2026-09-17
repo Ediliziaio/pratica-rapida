@@ -1,5 +1,6 @@
 import {
   createProforma,
+  ensureFicWebhookSubscription,
   extractBillingIdentity,
   getFicConfig,
   proformaPayload,
@@ -77,6 +78,9 @@ export async function finalizePaidCfOrder(
   }
 
   const config = getFicConfig();
+  // Senza questa conferma il CRM non può sapere con certezza che FIC abbia
+  // spedito la fattura al cliente e la pratica resterebbe bloccata.
+  await ensureFicWebhookSubscription(config);
   let invoiceId = Number(order.fic_invoice_id ?? 0);
   let invoiceUrl = String(order.fic_invoice_url ?? "");
   let proformaId = Number(order.fic_proforma_id ?? 0);

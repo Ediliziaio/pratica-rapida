@@ -123,6 +123,13 @@ serve(async (req) => {
 
   const brandLabel = practice.brand === "enea" ? "ENEA" : "Conto Termico";
 
+  const { data: ficRolloutRow } = await supabase
+    .from("platform_settings")
+    .select("value")
+    .eq("key", "fic_tspay_rollout")
+    .maybeSingle();
+  const ficRolloutEnabled = (ficRolloutRow?.value as { enabled?: boolean } | null)?.enabled === true;
+
   // Track per-step success so the caller can detect partial failure
   const steps: Record<string, boolean> = {};
 
@@ -131,15 +138,13 @@ serve(async (req) => {
   const whatsappEnabled = await isRuleEnabled(supabase, "practice_created", "whatsapp");
 
   // ── Pratica a carico del CLIENTE FINALE ───────────────────────────────────
-  // Il rivenditore ha scelto "a carico del cliente finale": prima paga lui,
-  // poi (solo col servizio completo) compila il modulo. Quindi adesso NON gli
-  // mandiamo il link al form, ma quello alla pagina di pagamento.
-  //
-  // Il link al modulo arriva dopo, da /paga/:token o dall'email che manda
-  // stripe-webhook a pagamento confermato.
-  const attesaPagamentoCliente =
+  // Il nuovo flusso FIC/TS Pay raccoglie prima i dati del modulo e genera la
+  // proforma soltanto all'invio. Il vecchio link Stripe resta disponibile solo
+  // come rollback quando il rollout è spento.
+  const attesaPagamentoClienteLegacy =
     practice.tipo_fatturazione === "cliente_finale" &&
-    practice.pagamento_stato !== "pagata";
+    practice.pagamento_stato !== "pagata" &&
+    !ficRolloutEnabled;
 
   // 1. Email di conferma al rivenditore (gated by practice_created/email)
   //    Skippata sui resend: "Rinvia link" deve toccare solo il cliente finale.
@@ -158,7 +163,7 @@ serve(async (req) => {
   }
 
   // 2. Primo contatto WA al cliente privato (gated by practice_created/whatsapp)
-  if (!reseller_only && !attesaPagamentoCliente && whatsappEnabled && puoContattareCliente(practice) && practice.cliente_telefono) {
+  if (!reseller_only && !attesaPagamentoClienteLegacy && whatsappEnabled && puoContattareCliente(practice) && practice.cliente_telefono) {
     const phone = practice.cliente_telefono.replace(/\D/g, "").replace(/^0039/, "39").replace(/^\+/, "");
     steps.client_wa = await invoke("send-whatsapp", {
       to: phone,
@@ -176,7 +181,7 @@ serve(async (req) => {
   }
 
   // 3. Email al cliente finale (solo servizio_completo, gated by practice_created/email)
-  if (!reseller_only && !attesaPagamentoCliente && emailEnabled && puoContattareCliente(practice) && practice.cliente_email) {
+  if (!reseller_only && !attesaPagamentoClienteLegacy && emailEnabled && puoContattareCliente(practice) && practice.cliente_email) {
     steps.client_email = await invoke("send-email", {
       to: practice.cliente_email,
       template: "richiesta_form",
@@ -195,7 +200,7 @@ serve(async (req) => {
   //    va contattato per i documenti (li ha dati il rivenditore), ma se il
   //    servizio e' a suo carico il link per pagare deve comunque arrivargli —
   //    altrimenti nessuno gli chiederebbe mai nulla.
-  if (attesaPagamentoCliente && emailEnabled && practice.cliente_email) {
+  if (attesaPagamentoClienteLegacy && emailEnabled && practice.cliente_email) {
     // "Cosa succede dopo il pagamento" cambia col percorso: col servizio
     // completo c'e' un breve modulo da compilare, con i documenti forniti
     // il rivenditore ha gia' consegnato tutto e il cliente non fa altro.
@@ -215,7 +220,7 @@ serve(async (req) => {
         practice_id,
       },
     });
-  } else if (attesaPagamentoCliente && !practice.cliente_email) {
+  } else if (attesaPagamentoClienteLegacy && !practice.cliente_email) {
     // Senza email il cliente non puo' ricevere il link: va segnalato, non
     // silenziato, altrimenti la pratica resta ferma senza che nessuno lo sappia.
     console.error("[on-practice-created] cliente_finale senza email:", practice_id);

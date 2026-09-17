@@ -60,7 +60,7 @@ Deno.serve(async (req) => {
   const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
   const lookup = admin
     .from("enea_practices")
-    .select("id, cliente_email, form_token, pagamento_stato, archived_at, prodotto_installato, companies:reseller_id(prezzo_cf_imponibile_cents)");
+    .select("id, cliente_email, form_token, tipo_fatturazione, pagamento_stato, archived_at, prodotto_installato, companies:reseller_id(prezzo_cf_imponibile_cents)");
   const { data: practice } = await (practiceId
     ? lookup.eq("id", practiceId)
     : lookup.eq("form_token", formToken!)
@@ -75,6 +75,19 @@ Deno.serve(async (req) => {
   // per un lavoro che nessuno farà.
   if (practice.archived_at) {
     return json({ error: "Questa pratica non è più attiva: nessun pagamento richiesto" }, 409);
+  }
+
+  // Arresto del vecchio percorso CF: durante il rollout FIC/TS Pay il cliente
+  // deve prima compilare il modulo. I link Stripe già inviati non possono così
+  // creare un pagamento parallelo o con il vecchio importo.
+  if (practice.tipo_fatturazione === "cliente_finale" && body.pricing_key === "prezzo_privato_enea") {
+    const { data: rolloutRow } = await admin.from("platform_settings")
+      .select("value")
+      .eq("key", "fic_tspay_rollout")
+      .maybeSingle();
+    if ((rolloutRow?.value as { enabled?: boolean } | null)?.enabled === true) {
+      return json({ error: "Il pagamento Stripe non è più attivo per questa pratica. Compila prima il modulo ricevuto." }, 409);
+    }
   }
 
   // ── Importo ───────────────────────────────────────────────────────────────

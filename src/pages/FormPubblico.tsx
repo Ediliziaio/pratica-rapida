@@ -130,6 +130,14 @@ function dynamicCadastralServiceRequested(data: unknown): boolean {
     (typeof value === "string" && ["true", "1", "si", "sì", "yes"].includes(value.trim().toLowerCase()));
 }
 
+type PublicEneaPractice = EneaPractice & {
+  reseller_name?: string | null;
+  payment_required?: boolean | null;
+  payment_status?: string | null;
+  payment_url?: string | null;
+  payment_is_test?: boolean | null;
+};
+
 export default function FormPubblico() {
   const { token } = useParams<{ token: string }>();
   const { toast } = useToast();
@@ -142,7 +150,7 @@ export default function FormPubblico() {
   const isProxyCompiler = !!session && (isInternal || isReseller);
 
   // ── Initial fetch state ─────────────────────────────────────────────────────
-  const [practice, setPractice] = useState<EneaPractice | null>(null);
+  const [practice, setPractice] = useState<PublicEneaPractice | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -186,12 +194,7 @@ export default function FormPubblico() {
       .rpc("get_practice_by_form_token", { p_token: token })
       .then(({ data, error }) => {
         if (cancelled) return;
-        const row = (Array.isArray(data) ? data[0] : null) as (EneaPractice & {
-          reseller_name?: string | null;
-          payment_required?: boolean | null;
-          payment_status?: string | null;
-          payment_url?: string | null;
-        }) | null;
+        const row = (Array.isArray(data) ? data[0] : null) as PublicEneaPractice | null;
         if (error || !row) {
           setError("Pratica non trovata o link non valido.");
         } else if (row.archived_at) {
@@ -313,11 +316,14 @@ export default function FormPubblico() {
     ? dynamicCadastralServiceRequested(practice.dati_form)
     : currentCadastralServiceRequested;
   const paymentRequired = practice?.tipo_fatturazione === "cliente_finale" || cadastralServiceRequested;
-  const practiceNetPrice = practice?.tipo_fatturazione === "cliente_finale"
+  const isTestPayment = practice?.payment_is_test === true;
+  const practiceNetPrice = isTestPayment
+    ? 0.82
+    : practice?.tipo_fatturazione === "cliente_finale"
     ? (practice.reseller_id === "26796836-cc0e-4bfe-b3a5-0200b2098ed8" ? 100 : 150)
     : 0;
-  const paymentNetPrice = practiceNetPrice + (cadastralServiceRequested ? 10 : 0);
-  const paymentGrossPrice = paymentNetPrice * 1.22;
+  const paymentNetPrice = isTestPayment ? 0.82 : practiceNetPrice + (cadastralServiceRequested ? 10 : 0);
+  const paymentGrossPrice = isTestPayment ? 1 : paymentNetPrice * 1.22;
 
   // Richiedente persona giuridica (P.IVA): il form chiede ragione sociale +
   // partita IVA e "sede legale" al posto dei dati anagrafici e della residenza.
@@ -648,13 +654,18 @@ export default function FormPubblico() {
             I dati sono stati salvati. La pratica entrerà in lavorazione soltanto dopo la conferma del pagamento.
           </p>
           <div className="rounded-lg border bg-muted/30 p-3 text-left text-sm space-y-1">
-            {practiceNetPrice > 0 && (
+            {isTestPayment ? (
+              <div className="flex justify-between gap-3">
+                <span>Collaudo tecnico pagamento</span>
+                <span>1,00 € IVA inclusa</span>
+              </div>
+            ) : practiceNetPrice > 0 && (
               <div className="flex justify-between gap-3">
                 <span>Servizio gestione pratica</span>
                 <span>{practiceNetPrice.toFixed(2).replace(".", ",")} € + IVA</span>
               </div>
             )}
-            {cadastralServiceRequested && (
+            {!isTestPayment && cadastralServiceRequested && (
               <div className="flex justify-between gap-3">
                 <span>Servizio ricerca dati catastali</span>
                 <span>10,00 € + IVA</span>

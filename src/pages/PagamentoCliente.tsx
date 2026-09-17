@@ -69,9 +69,10 @@ export default function PagamentoCliente() {
     if (!token) return;
     let vivo = true;
     (async () => {
-      const [praticaRes, prezzoRes] = await Promise.all([
+      const [praticaRes, prezzoRes, rolloutRes] = await Promise.all([
         supabase.rpc("get_pagamento_by_form_token", { p_token: token }),
         supabase.from("platform_settings").select("value").eq("key", "prezzo_privato_enea").maybeSingle(),
+        supabase.from("platform_settings").select("value").eq("key", "fic_tspay_rollout").maybeSingle(),
       ]);
       if (!vivo) return;
 
@@ -84,6 +85,11 @@ export default function PagamentoCliente() {
       if (!riga) {
         setErrore("Link non valido o scaduto. Se pensi sia un errore scrivici e controlliamo noi.");
       } else {
+        const rolloutEnabled = ((rolloutRes.data?.value ?? {}) as { enabled?: boolean }).enabled === true;
+        if (rolloutEnabled && riga.tipo_fatturazione === "cliente_finale" && riga.pagamento_stato !== "pagata") {
+          window.location.replace(`/form/${token}`);
+          return;
+        }
         setDati(riga);
       }
 

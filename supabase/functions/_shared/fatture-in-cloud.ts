@@ -213,7 +213,9 @@ export async function transformProformaToInvoice(
 ) {
   const prepared = await ficRequest<{ data: JsonObject; options: JsonObject }>(
     config,
-    `/c/${config.companyId}/issued_documents/transform?original_document_id=${proformaId}&new_type=invoice&e_invoice=1&transform_keep_copy=1`,
+    // La proforma è un documento tecnico temporaneo: dopo la trasformazione
+    // non va conservata, altrimenti rimane un credito fittizio da riscuotere.
+    `/c/${config.companyId}/issued_documents/transform?original_document_id=${proformaId}&new_type=invoice&e_invoice=1&transform_keep_copy=0`,
   );
   prepared.data.e_invoice = true;
   prepared.data.show_tspay_button = false;

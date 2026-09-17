@@ -809,8 +809,8 @@ export default function FormPubblico() {
           <h1 className="text-2xl font-bold">Pagamento effettuato e pratica inviata ✓</h1>
           <p className="text-muted-foreground">
             Il pagamento è stato effettuato e la pratica è stata correttamente inviata.
-            Riceverai via e-mail la pratica ENEA completata, pronta per essere
-            conservata e utilizzata per la dichiarazione dei redditi.
+            Riceverai via e-mail la pratica ENEA pronta per essere consegnata
+            in sede di dichiarazione dei redditi.
           </p>
         </div>
       </div>

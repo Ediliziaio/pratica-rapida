@@ -779,15 +779,23 @@ export default function FormPubblico() {
     // conto del cliente: testo + CTA "Torna al kanban" invece del messaggio
     // standard pensato per il cliente finale.
     if (isProxyCompiler) {
+      const proxyTitle = paymentRequired
+        ? isTestPayment
+          ? "Collaudo pagamento completato ✓"
+          : "Pagamento effettuato e pratica inviata ✓"
+        : "Pratica inviata ✓";
+      const proxyMessage = paymentRequired
+        ? isTestPayment
+          ? "Il pagamento di collaudo da 1,00 € è stato confermato e la pratica di prova è stata spostata nella colonna “Pronte da fare”. Il collaudo non emette fatture e non effettua invii allo SDI."
+          : "Il pagamento è stato effettuato e la pratica è stata correttamente inviata. La fattura viene emessa e inviata all’indirizzo e-mail del cliente tramite Fatture in Cloud."
+        : "I dati sono stati registrati. La pratica è ora visibile a Pratica Rapida nella colonna “Pronte da fare” e sarà gestita dal team entro le tempistiche standard.";
       return (
         <div className="min-h-screen flex items-center justify-center p-4">
           <div className="text-center space-y-5 max-w-md">
             <CheckCircle className="h-16 w-16 text-green-500 mx-auto" />
-            <h1 className="text-2xl font-bold">Pratica inviata ✓</h1>
+            <h1 className="text-2xl font-bold">{proxyTitle}</h1>
             <p className="text-muted-foreground">
-              I dati sono stati registrati. La pratica è ora visibile a Pratica Rapida
-              nella colonna <strong>“Pronte da fare”</strong> e sarà gestita dal team
-              entro le tempistiche standard.
+              {proxyMessage}
             </p>
             <div className="flex flex-col sm:flex-row gap-2 justify-center pt-2">
               <Button onClick={() => navigate("/kanban")}>

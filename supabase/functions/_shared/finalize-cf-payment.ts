@@ -58,13 +58,38 @@ export async function finalizePaidCfOrder(
   const paidAt = String(order.paid_at ?? new Date().toISOString());
 
   if (order.is_test_payment === true) {
+    const { data: readyStage } = await admin.from("pipeline_stages")
+      .select("id")
+      .is("reseller_id", null)
+      .eq("stage_type", "pronte_da_fare")
+      .eq("brand", practice.brand ?? "enea")
+      .limit(1)
+      .maybeSingle();
+    if (!readyStage?.id) throw new Error("Colonna 'Pronte da fare' non trovata");
+
+    // Il collaudo non genera documenti fiscali, ma deve comunque verificare
+    // l'intero passaggio operativo pagamento → pratica pronta. In caso
+    // contrario il test risulterebbe positivo pur lasciando la pratica nella
+    // colonna precedente, che è esattamente il guasto che deve intercettare.
+    await admin.from("enea_practices").update({
+      pagamento_stato: "pagata",
+      data_incasso: paidAt,
+      current_stage_id: readyStage.id,
+    }).eq("id", practiceId);
+    await admin.from("cf_payment_orders").update({
+      status: "completed",
+      last_error_code: null,
+      last_error_message: null,
+      updated_at: new Date().toISOString(),
+    }).eq("id", orderId);
+
     await notifyAdmins(
       admin,
       practiceId,
       "Collaudo pagamento ricevuto — € 1,00",
-      "Pagamento Stripe di collaudo associato alla pratica. Nessuna fattura e nessun invio SDI sono stati eseguiti.",
+      "Pagamento Stripe di collaudo associato e pratica spostata in Pronte da fare. Nessuna fattura e nessun invio SDI sono stati eseguiti.",
     );
-    return { ready: false, reason: "test" };
+    return { ready: true, reason: "test" };
   }
 
   if (Deno.env.get("FIC_LIVE_INVOICING_ENABLED") !== "true") {

@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import Stripe from "https://esm.sh/stripe@14.21.0?target=deno";
 import {
   createProforma,
   extractBillingIdentity,
@@ -68,11 +69,12 @@ serve(async (req) => {
 
   const { data: existing } = await admin
     .from("cf_payment_orders")
-    .select("status,fic_document_url,last_error_message")
+    .select("status,provider,stripe_checkout_url,fic_document_url,last_error_message")
     .eq("practice_id", practice.id)
     .maybeSingle();
-  if (existing?.fic_document_url) {
-    return json({ status: existing.status, payment_url: existing.fic_document_url, existing: true });
+  const existingUrl = existing?.stripe_checkout_url || existing?.fic_document_url;
+  if (existingUrl) {
+    return json({ status: existing.status, payment_url: existingUrl, existing: true });
   }
   if (existing) {
     return json({
@@ -129,8 +131,12 @@ serve(async (req) => {
       product: practice.prodotto_installato ?? "ENEA",
     });
 
-    const { error: reserveError } = await admin.from("cf_payment_orders").insert({
+    const paymentProvider = Deno.env.get("CF_PAYMENT_PROVIDER") === "stripe"
+      ? "stripe_fatture_in_cloud"
+      : "fatture_in_cloud_tspay";
+    const { data: reserved, error: reserveError } = await admin.from("cf_payment_orders").insert({
       practice_id: practice.id,
+      provider: paymentProvider,
       pricing_key: price.pricingKey,
       servizio_catastale: price.cadastralService,
       imponibile_cents: price.netCents,
@@ -138,7 +144,7 @@ serve(async (req) => {
       totale_cents: price.grossCents,
       is_test_payment: isTestPayment,
       status: "creating",
-    });
+    }).select("id").single();
     if (reserveError) {
       if (reserveError.code === "23505") return json({ error: "Richiesta già in preparazione. Riprova tra pochi secondi." }, 409);
       throw reserveError;
@@ -156,10 +162,56 @@ serve(async (req) => {
       throw new Error("Fatture in Cloud non ha restituito ID e URL della proforma");
     }
 
+    let paymentUrl = documentUrl;
+    let stripeSessionId: string | null = null;
+    if (paymentProvider === "stripe_fatture_in_cloud") {
+      const stripeKey = Deno.env.get("STRIPE_SECRET_KEY")?.trim() ?? "";
+      if (!stripeKey) throw new Error("Stripe non configurato: STRIPE_SECRET_KEY mancante");
+      const siteUrl = (Deno.env.get("PUBLIC_SITE_URL") ?? "https://app.praticarapida.it").replace(/\/+$/, "");
+      const stripe = new Stripe(stripeKey, {
+        apiVersion: "2024-06-20",
+        httpClient: Stripe.createFetchHttpClient(),
+      });
+      const session = await stripe.checkout.sessions.create({
+        mode: "payment",
+        payment_method_types: ["card"],
+        customer_email: customer.email,
+        locale: "it",
+        line_items: price.lines.map((line) => ({
+          quantity: 1,
+          price_data: {
+            currency: "eur",
+            unit_amount: line.netCents + Math.round(line.netCents * line.vatPercent / 100),
+            product_data: { name: line.name },
+          },
+        })),
+        metadata: {
+          payment_order_id: String(reserved.id),
+          practice_id: practice.id,
+        },
+        payment_intent_data: {
+          metadata: {
+            payment_order_id: String(reserved.id),
+            practice_id: practice.id,
+          },
+        },
+        success_url: `${siteUrl}/form/${token}?pagamento=ok`,
+        cancel_url: `${siteUrl}/form/${token}?pagamento=annullato`,
+        expires_at: Math.floor(Date.now() / 1000) + 30 * 60,
+      }, { idempotencyKey: `cf-payment-order-${reserved.id}` });
+      stripeSessionId = session.id;
+      paymentUrl = String(session.url ?? "");
+      if (!paymentUrl) throw new Error("Stripe non ha restituito il link di pagamento");
+    }
+
     await admin.from("cf_payment_orders").update({
       status: "pending",
       fic_proforma_id: proformaId,
-      fic_document_url: documentUrl,
+      // La proforma resta un documento tecnico se il checkout è Stripe: non
+      // viene mostrata né spedita al cliente.
+      fic_document_url: paymentProvider === "fatture_in_cloud_tspay" ? documentUrl : null,
+      stripe_checkout_session_id: stripeSessionId,
+      stripe_checkout_url: paymentProvider === "stripe_fatture_in_cloud" ? paymentUrl : null,
       updated_at: new Date().toISOString(),
     }).eq("practice_id", practice.id);
     if (isTestPayment) {
@@ -175,20 +227,22 @@ serve(async (req) => {
     if (practice.tipo_fatturazione === "cliente_finale") practiceUpdate.prezzo = price.netCents / 100;
     await admin.from("enea_practices").update(practiceUpdate).eq("id", practice.id);
 
-    // L'email e il redirect sono ridondanti intenzionalmente: se il cliente
-    // chiude la scheda, conserva comunque il link di pagamento.
-    try {
-      await scheduleDocumentEmail(config, proformaId, customer.email, customer.name, "proforma");
-      await admin.from("cf_payment_orders").update({ proforma_emailed_at: new Date().toISOString() }).eq("practice_id", practice.id);
-    } catch (emailError) {
-      console.error("[fic-create-payment] proforma creata, email fallita", emailError);
-      await admin.from("cf_payment_orders").update({
-        last_error_code: "PROFORMA_EMAIL_FAILED",
-        last_error_message: emailError instanceof Error ? emailError.message : String(emailError),
-      }).eq("practice_id", practice.id);
+    // Nel vecchio percorso TS Pay l'e-mail contiene la proforma da aprire. Con
+    // Stripe non va inviata: il cliente deve vedere direttamente il checkout.
+    if (paymentProvider === "fatture_in_cloud_tspay") {
+      try {
+        await scheduleDocumentEmail(config, proformaId, customer.email, customer.name, "proforma");
+        await admin.from("cf_payment_orders").update({ proforma_emailed_at: new Date().toISOString() }).eq("practice_id", practice.id);
+      } catch (emailError) {
+        console.error("[fic-create-payment] proforma creata, email fallita", emailError);
+        await admin.from("cf_payment_orders").update({
+          last_error_code: "PROFORMA_EMAIL_FAILED",
+          last_error_message: emailError instanceof Error ? emailError.message : String(emailError),
+        }).eq("practice_id", practice.id);
+      }
     }
 
-    return json({ status: "pending", payment_url: documentUrl, total_cents: price.grossCents });
+    return json({ status: "pending", payment_url: paymentUrl, total_cents: price.grossCents });
   } catch (error) {
     await admin.from("cf_payment_orders").update({
       status: "failed",

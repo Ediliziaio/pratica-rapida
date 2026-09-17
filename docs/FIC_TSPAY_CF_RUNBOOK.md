@@ -1,4 +1,4 @@
-# Pagamenti CF — Fatture in Cloud + TS Pay
+# Pagamenti CF — Stripe + Fatture in Cloud
 
 ## Risultato atteso
 
@@ -11,16 +11,17 @@
 - Cliente non CF che richiede la sola ricerca catastale: 12,20 EUR IVA inclusa.
 - Il cliente completa il modulo prima di pagare, così sono disponibili tutti i
   dati fiscali necessari.
-- Il CRM crea una proforma Fatture in Cloud con il pulsante TS Pay.
+- Il CRM crea una proforma tecnica Fatture in Cloud non mostrata al cliente e
+  apre direttamente il checkout Stripe.
 - Quando è acquistata la ricerca catastale, proforma e fattura espongono una
   riga separata dal servizio pratica e il CRM mostra il contrassegno `CATASTO`.
 - Anche il cliente non CF paga direttamente la ricerca catastale e riceve la
   relativa fattura all'indirizzo e-mail indicato nel modulo.
 - Solo un pagamento verificato porta alla creazione della fattura elettronica.
 - La pratica passa a `pronte_da_fare` solo dopo pagamento, creazione fattura,
-  invio allo SDI e pianificazione dell'email al cliente.
-- Qonto riceve gli accrediti aggregati da TS Pay; la riconciliazione cliente ↔
-  pratica avviene prima, tramite `cf_payment_orders` e gli ID dei documenti FIC.
+  invio allo SDI e conferma FIC dell'e-mail inviata al cliente.
+- Qonto riceve gli accrediti Stripe; la riconciliazione cliente ↔ pratica
+  avviene prima, tramite `cf_payment_orders`, Checkout Session e documento FIC.
 
 ## Autonomia e interruttori di sicurezza
 
@@ -30,6 +31,10 @@ di Regia, creazione/invio reale delle fatture richiede approvazione del Titolare
 - `FIC_PAYMENT_CREATION_ENABLED=false`: non crea proforme né link reali.
 - `FIC_LIVE_INVOICING_ENABLED=false`: registra il pagamento ma non crea fatture.
 - `FIC_SDI_DRY_RUN=true`: esegue i controlli SDI senza trasmettere la fattura.
+- `CF_PAYMENT_PROVIDER=stripe`: abilita il checkout Stripe diretto. Se assente,
+  resta attivo il precedente percorso TS Pay.
+- `FIC_STRIPE_PAYMENT_ACCOUNT_ID`: ID del conto Qonto in Fatture in Cloud su
+  cui registrare la fattura come pagata. È obbligatorio per la fatturazione live.
 - `platform_settings.fic_tspay_rollout.enabled=false`: mantiene il nuovo flusso
   catastale dormiente finché backend e frontend non vengono attivati insieme.
 
@@ -55,6 +60,8 @@ Secret richiesti:
 - `FIC_PAYMENT_CREATION_ENABLED`
 - `FIC_LIVE_INVOICING_ENABLED`
 - `FIC_SDI_DRY_RUN`
+- `CF_PAYMENT_PROVIDER`
+- `FIC_STRIPE_PAYMENT_ACCOUNT_ID`
 - opzionale `FIC_VAT_TYPE_ID` (default API `0`, IVA 22%)
 
 ## Webhook
@@ -67,6 +74,7 @@ Eventi da sottoscrivere:
 
 - `it.fattureincloud.webhooks.issued_documents.proformas.update`
 - `it.fattureincloud.webhooks.issued_documents.e_invoices.status_update`
+- `it.fattureincloud.webhooks.issued_documents.invoices.email_sent`
 
 Le richieste vengono accettate soltanto dopo verifica del JWT ES256 FIC. Gli
 eventi sono registrati per `event_id` per impedire la doppia elaborazione.
@@ -77,18 +85,18 @@ eventi sono registrati per `event_id` per impedire la doppia elaborazione.
 2. Verificare, senza creare proforme, i quattro scenari economici: CF ordinario,
    CF Sima Home, ciascuno con e senza ricerca catastale, e il caso non CF con la
    sola ricerca catastale.
-3. Abilitare soltanto la creazione proforma e controllare importi e anagrafica.
+3. Abilitare soltanto la creazione proforma/checkout e controllare importi e anagrafica.
 4. Effettuare un pagamento reale di collaudo soltanto previa approvazione.
 5. Trasformare in fattura con `FIC_SDI_DRY_RUN=true` e verificare XML/esito.
 6. Con approvazione finale, impostare `FIC_LIVE_INVOICING_ENABLED=true` e
    `FIC_SDI_DRY_RUN=false`.
-7. Verificare email cliente, stato CRM, stato SDI e accredito TS Pay.
+7. Verificare email cliente, quattro indicatori CRM, stato SDI e accredito Stripe su Qonto.
 
 ## Arresto e recupero
 
 - Arresto immediato nuovi pagamenti: `FIC_PAYMENT_CREATION_ENABLED=false`.
 - Arresto fatturazione automatica: `FIC_LIVE_INVOICING_ENABLED=false`.
-- Un evento fallito resta in `fic_webhook_events` e l'ordine conserva
+- Un evento fallito resta in `fic_webhook_events`/`stripe_webhook_events` e l'ordine conserva
   `last_error_code`/`last_error_message`; non viene generata una seconda pratica.
 - Le proforme e fatture non vengono mai cancellate automaticamente.
 ## Collaudo controllato da 1 euro
@@ -104,6 +112,6 @@ può essere autorizzata tramite una riga service-role in
 
 Il totale è 1,00 EUR IVA inclusa (0,82 EUR imponibile + 0,18 EUR IVA). Gli ordini
 di collaudo sono marcati `is_test_payment = true`: il webhook registra il
-pagamento e sblocca la pratica, ma non crea mai una fattura e non invia mai allo
-SDI, indipendentemente dagli interruttori generali. La migrazione crea soltanto
-la struttura e non abilita alcuna pratica.
+pagamento, ma non crea mai una fattura, non invia allo SDI e non immette la
+pratica di collaudo nella coda operativa, indipendentemente dagli interruttori
+generali. La migrazione crea soltanto la struttura e non abilita alcuna pratica.

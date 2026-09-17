@@ -168,6 +168,8 @@ export default function FormPubblico() {
   const [stepIndex, setStepIndex] = useState(0);
   const [formData, setFormData] = useState<FormClienteData>(emptyFormData());
   const [uploading, setUploading] = useState(false);
+  const returningFromPayment = typeof window !== "undefined"
+    && new URLSearchParams(window.location.search).get("pagamento") === "ok";
 
   // ── Dynamic-path state ──────────────────────────────────────────────────────
   // Quando `dbModule` è risolto, usiamo `dynamicData` (shape libera dallo
@@ -250,6 +252,39 @@ export default function FormPubblico() {
       cancelled = true;
     };
   }, [token]);
+
+  // Stripe torna subito sul portale, mentre webhook + Fatture in Cloud possono
+  // impiegare alcuni secondi. In quel breve intervallo non mostriamo di nuovo
+  // il pulsante di pagamento (rischio doppio click): attendiamo lo stato che
+  // certifica fattura creata, SDI richiesto ed e-mail programmata.
+  useEffect(() => {
+    if (!token || !awaitingPayment || !returningFromPayment) return;
+    let cancelled = false;
+    let attempts = 0;
+    const poll = async () => {
+      attempts += 1;
+      const { data } = await supabase.rpc("get_practice_by_form_token", { p_token: token });
+      if (cancelled) return;
+      const row = (Array.isArray(data) ? data[0] : null) as PublicEneaPractice | null;
+      if (row && row.pagamento_stato === "pagata" && ["ready", "completed"].includes(row.payment_status ?? "")) {
+        setPractice(row);
+        setAwaitingPayment(false);
+        setSubmitted(true);
+        return;
+      }
+      if (row?.payment_status === "failed") {
+        setPaymentError("Pagamento ricevuto, ma fattura o invio richiedono una verifica dello staff. Non ripagare.");
+        return;
+      }
+      if (attempts >= 20) {
+        setPaymentError("Pagamento in verifica. Non ripagare: riceverai la fattura via e-mail appena completato il controllo.");
+        return;
+      }
+      window.setTimeout(poll, 2000);
+    };
+    void poll();
+    return () => { cancelled = true; };
+  }, [token, awaitingPayment, returningFromPayment]);
 
   const startRequiredPayment = async (required: boolean): Promise<boolean> => {
     if (!token || !required || practice?.pagamento_stato === "pagata") {
@@ -651,7 +686,9 @@ export default function FormPubblico() {
           <CreditCard className="h-14 w-14 text-primary mx-auto" />
           <h1 className="text-2xl font-bold">Ultimo passo: pagamento</h1>
           <p className="text-muted-foreground">
-            I dati sono stati salvati. La pratica entrerà in lavorazione soltanto dopo la conferma del pagamento.
+            {returningFromPayment
+              ? "Pagamento ricevuto. Stiamo emettendo e inviando la fattura da Fatture in Cloud: attendi senza chiudere questa pagina."
+              : "I dati sono stati salvati. La pratica entrerà in lavorazione soltanto dopo la conferma del pagamento e l'invio della fattura."}
           </p>
           <div className="rounded-lg border bg-muted/30 p-3 text-left text-sm space-y-1">
             {isTestPayment ? (
@@ -681,7 +718,11 @@ export default function FormPubblico() {
               {paymentError}
             </div>
           )}
-          {paymentUrl ? (
+          {returningFromPayment && !paymentError ? (
+            <div className="flex items-center justify-center gap-2 rounded-lg border p-3 text-sm">
+              <Loader2 className="h-4 w-4 animate-spin" /> Conferma pagamento e fattura in corso…
+            </div>
+          ) : paymentUrl && !returningFromPayment ? (
             <Button className="w-full" onClick={() => window.location.assign(paymentUrl)}>
               <CreditCard className="h-4 w-4 mr-2" />Vai al pagamento sicuro
             </Button>
@@ -700,7 +741,7 @@ export default function FormPubblico() {
             </Button>
           )}
           <p className="text-xs text-muted-foreground">
-            Riceverai anche il collegamento via email. Non compilare nuovamente il modulo.
+            Il pagamento avviene direttamente su Stripe. La fattura sarà emessa e inviata da Fatture in Cloud. Non compilare nuovamente il modulo e non effettuare un secondo pagamento.
           </p>
         </div>
       </div>

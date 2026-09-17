@@ -123,6 +123,28 @@ type PracticeWithRelations = EneaPractice & {
   companies: { id: string; ragione_sociale: string } | null;
 };
 
+type CfPaymentOrderSummary = {
+  provider: string;
+  status: string;
+  paid_at: string | null;
+  invoice_created_at: string | null;
+  sdi_sent_at: string | null;
+  customer_emailed_at: string | null;
+  fic_invoice_url: string | null;
+  last_error_code: string | null;
+  last_error_message: string | null;
+};
+
+interface CfPaymentReadClient {
+  from(table: "cf_payment_orders"): {
+    select(columns: string): {
+      eq(column: "practice_id", value: string): {
+        maybeSingle(): PromiseLike<{ data: CfPaymentOrderSummary | null; error: { message?: string } | null }>;
+      };
+    };
+  };
+}
+
 // La tabella `enea_practices` NON è presente nei tipi generati di Supabase
 // (`@/integrations/supabase/types` la modella solo come interfaccia `EneaPractice`
 // ed espone la sola view di lettura `enea_practices_public`). Per gli UPDATE
@@ -608,6 +630,21 @@ function PracticeDetailSheet({
     enabled: operatorIds.length > 0,
   });
 
+  const { data: cfPaymentOrder } = useQuery({
+    queryKey: ["cf-payment-order", practice?.id],
+    enabled: isInternal && !!practice?.id,
+    queryFn: async () => {
+      if (!practice?.id) return null;
+      const db = supabase as unknown as CfPaymentReadClient;
+      const { data, error } = await db.from("cf_payment_orders")
+        .select("provider,status,paid_at,invoice_created_at,sdi_sent_at,customer_emailed_at,fic_invoice_url,last_error_code,last_error_message")
+        .eq("practice_id", practice.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
   // Documenti precompilati (Dichiarazione Requisiti Tecnici) generati e
   // confermati dal super_admin via "Doc. tecnico". Visibili sia allo staff
   // sia al rivenditore (RLS controlla company_id + visibilita).
@@ -1004,6 +1041,37 @@ function PracticeDetailSheet({
                 </SheetDescription>
               )}
             </SheetHeader>
+
+            {isInternal && cfPaymentOrder && (
+              <section className={`mb-4 rounded-lg border p-3 text-xs ${
+                cfPaymentOrder.last_error_code
+                  ? "border-amber-300 bg-amber-50 text-amber-950"
+                  : "border-emerald-200 bg-emerald-50 text-emerald-950"
+              }`}>
+                <p className="font-semibold mb-2">Pagamento e fattura CF</p>
+                <div className="grid grid-cols-1 gap-1">
+                  <p>{cfPaymentOrder.paid_at ? "✓" : "○"} Pagamento incassato</p>
+                  <p>{cfPaymentOrder.invoice_created_at ? "✓" : "○"} Fattura emessa da Fatture in Cloud</p>
+                  <p>{cfPaymentOrder.sdi_sent_at ? "✓" : "○"} Fattura inviata allo SDI</p>
+                  <p>{cfPaymentOrder.customer_emailed_at ? "✓" : "○"} Fattura inviata al cliente via e-mail</p>
+                </div>
+                {cfPaymentOrder.last_error_code && (
+                  <p className="mt-2 font-medium">
+                    ⚠ Richiede controllo: {cfPaymentOrder.last_error_message ?? cfPaymentOrder.last_error_code}
+                  </p>
+                )}
+                {cfPaymentOrder.fic_invoice_url && (
+                  <a
+                    className="mt-2 inline-flex items-center gap-1 underline font-medium"
+                    href={cfPaymentOrder.fic_invoice_url}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Apri fattura <ExternalLink className="h-3 w-3" />
+                  </a>
+                )}
+              </section>
+            )}
 
             {/* Action buttons row */}
             {!editMode && (

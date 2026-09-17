@@ -15,7 +15,7 @@ const common = {
   product: "ENEA",
 };
 
-describe("prezzi Fatture in Cloud / TS Pay", () => {
+describe("prezzi Stripe / Fatture in Cloud", () => {
   it("limita il collaudo tecnico a 1 euro IVA inclusa", () => {
     const result = createTestPaymentPricing();
     expect(result.pricingKey).toBe("prezzo_test_pagamento");
@@ -35,6 +35,30 @@ describe("prezzi Fatture in Cloud / TS Pay", () => {
     expect(result.netCents).toBe(16_000);
     expect(result.grossCents).toBe(19_520);
     expect(result.lines.map((line) => line.code)).toEqual(["PR-CF", "PR-CATASTO"]);
+  });
+
+  it("calcola il CF ordinario senza catasto a 183 euro IVA inclusa", () => {
+    const result = calculatePaymentPricing({
+      ...common,
+      tipoFatturazione: "cliente_finale",
+      resellerId: "altro",
+      cadastralService: false,
+    });
+    expect(result.netCents).toBe(15_000);
+    expect(result.vatCents).toBe(3_300);
+    expect(result.grossCents).toBe(18_300);
+  });
+
+  it("calcola il CF Sima Home senza catasto a 122 euro IVA inclusa", () => {
+    const result = calculatePaymentPricing({
+      ...common,
+      tipoFatturazione: "cliente_finale",
+      resellerId: "sima",
+      cadastralService: false,
+    });
+    expect(result.netCents).toBe(10_000);
+    expect(result.vatCents).toBe(2_200);
+    expect(result.grossCents).toBe(12_200);
   });
 
   it("calcola Sima Home con ricerca catastale", () => {

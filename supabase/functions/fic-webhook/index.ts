@@ -241,14 +241,59 @@ serve(async (req) => {
           })));
         }
       }
+    } else if (event.type === "it.fattureincloud.webhooks.issued_documents.invoices.email_sent") {
+      for (const invoiceId of ids) {
+        const { data: order } = await admin.from("cf_payment_orders")
+          .select("id,practice_id,status,paid_at,sdi_sent_at,fic_invoice_id,enea_practices:practice_id(brand)")
+          .eq("fic_invoice_id", invoiceId)
+          .maybeSingle();
+        if (!order) continue;
+        const emailedAt = new Date().toISOString();
+        await admin.from("cf_payment_orders").update({
+          customer_emailed_at: emailedAt,
+          status: "ready",
+          last_error_code: null,
+          last_error_message: null,
+          updated_at: emailedAt,
+        }).eq("id", order.id);
+
+        const practice = (order.enea_practices ?? {}) as JsonObject;
+        const { data: readyStage } = await admin.from("pipeline_stages")
+          .select("id")
+          .is("reseller_id", null)
+          .eq("stage_type", "pronte_da_fare")
+          .eq("brand", practice.brand ?? "enea")
+          .limit(1)
+          .maybeSingle();
+        if (!readyStage?.id) throw new Error("Colonna 'Pronte da fare' non trovata");
+        await admin.from("enea_practices").update({
+          pagamento_stato: "pagata",
+          data_incasso: order.paid_at ?? emailedAt,
+          current_stage_id: readyStage.id,
+        }).eq("id", order.practice_id);
+
+        const { data: admins } = await admin.from("user_roles").select("user_id").eq("role", "super_admin");
+        if (admins?.length) {
+          await admin.from("notifications").insert(admins.map((row) => ({
+            user_id: row.user_id,
+            tipo: "pagamento_ricevuto",
+            titolo: "CF pronto — pagamento e fattura completati",
+            messaggio: "Pagamento verificato; fattura Fatture in Cloud inviata allo SDI e al cliente via e-mail.",
+            link: `/pratiche/${order.practice_id}`,
+          })));
+        }
+      }
     } else if (event.type === "it.fattureincloud.webhooks.issued_documents.e_invoices.status_update") {
       for (const invoiceId of ids) {
-        const { data: order } = await admin.from("cf_payment_orders").select("id,practice_id").eq("fic_invoice_id", invoiceId).maybeSingle();
+        const { data: order } = await admin.from("cf_payment_orders").select("id,practice_id,customer_emailed_at").eq("fic_invoice_id", invoiceId).maybeSingle();
         if (!order) continue;
         const invoice = await getIssuedDocument(config, invoiceId);
         const eiStatus = String(invoice.data.ei_status ?? "");
         if (["accepted", "not_delivered", "no_response", "manual_accepted"].includes(eiStatus)) {
-          await admin.from("cf_payment_orders").update({ status: "completed", updated_at: new Date().toISOString() }).eq("id", order.id);
+          await admin.from("cf_payment_orders").update({
+            status: order.customer_emailed_at ? "completed" : "sdi_pending",
+            updated_at: new Date().toISOString(),
+          }).eq("id", order.id);
         } else if (["error", "discarded", "rejected", "manual_rejected"].includes(eiStatus)) {
           await admin.from("cf_payment_orders").update({
             status: "failed",

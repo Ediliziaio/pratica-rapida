@@ -206,13 +206,42 @@ export async function scheduleDocumentEmail(
   });
 }
 
-export async function transformProformaToInvoice(config: FicConfig, proformaId: number) {
+export async function transformProformaToInvoice(
+  config: FicConfig,
+  proformaId: number,
+  paidAt?: string,
+) {
   const prepared = await ficRequest<{ data: JsonObject; options: JsonObject }>(
     config,
     `/c/${config.companyId}/issued_documents/transform?original_document_id=${proformaId}&new_type=invoice&e_invoice=1&transform_keep_copy=1`,
   );
   prepared.data.e_invoice = true;
   prepared.data.show_tspay_button = false;
+  // Se il pagamento arriva da Stripe, la fattura nasce già saldata. In questo
+  // modo Fatture in Cloud rimane la sola fonte fiscale, ma non attende un
+  // secondo incasso TS Pay che non arriverà mai.
+  if (paidAt) {
+    const paidDate = paidAt.slice(0, 10);
+    const paymentAccountId = Number(Deno.env.get("FIC_STRIPE_PAYMENT_ACCOUNT_ID") ?? "");
+    if (!Number.isInteger(paymentAccountId) || paymentAccountId <= 0) {
+      throw new Error("Conto di accredito Stripe/Qonto non configurato in Fatture in Cloud");
+    }
+    const payments = Array.isArray(prepared.data.payments_list)
+      ? prepared.data.payments_list as JsonObject[]
+      : [];
+    const paymentRows = payments.length > 0
+      ? payments
+      : [{ amount: Number(prepared.data.amount_gross ?? 0), due_date: paidDate }];
+    if (paymentRows.some((payment) => Number(payment.amount ?? 0) <= 0)) {
+      throw new Error("Importo pagamento non disponibile nella fattura Fatture in Cloud");
+    }
+    prepared.data.payments_list = paymentRows.map((payment) => ({
+      ...payment,
+      status: "paid",
+      paid_date: paidDate,
+      payment_account: { id: paymentAccountId },
+    }));
+  }
   const eiData = (prepared.data.ei_data && typeof prepared.data.ei_data === "object")
     ? prepared.data.ei_data as JsonObject
     : {};

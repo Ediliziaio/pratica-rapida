@@ -80,7 +80,17 @@ interface Payload {
   tipo_soggetto?: "persona_fisica" | "azienda_piva";
   azienda?: { ragione_sociale?: string; email?: string; telefono?: string };
   cliente?: { nome?: string; cognome?: string; telefono?: string; email?: string; cf?: string; indirizzo?: string };
+  data_fine_lavori?: string;
   note?: string;
+}
+
+function isValidIsoDate(value: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const [year, month, day] = value.split("-").map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return date.getUTCFullYear() === year &&
+    date.getUTCMonth() === month - 1 &&
+    date.getUTCDate() === day;
 }
 
 serve(async (req) => {
@@ -128,6 +138,7 @@ serve(async (req) => {
   const cognome = p.cliente?.cognome?.trim() ?? "";
   const telefono = p.cliente?.telefono?.trim() ?? "";
   const clienteEmail = p.cliente?.email?.trim() ?? "";
+  const dataFineLavori = p.data_fine_lavori?.trim() ?? "";
   if (!isPrivato && ragione.length < 2) return json({ success: false, error: "Ragione sociale obbligatoria" }, 400);
   // Al privato la ricevuta Stripe e il link per completare i dati arrivano via
   // email: senza, il pagamento sarebbe un vicolo cieco.
@@ -138,6 +149,11 @@ serve(async (req) => {
   if (aziendaEmail && !EMAIL_RE.test(aziendaEmail)) return json({ success: false, error: "Email aziendale non valida" }, 400);
   if (nome.length < 2 || cognome.length < 2) return json({ success: false, error: "Nome e cognome del cliente obbligatori" }, 400);
   if (telefono.replace(/\D/g, "").length < 8) return json({ success: false, error: "Telefono del cliente non valido" }, 400);
+  // Il form Pratica ENEA non può creare una pratica senza data di fine lavori.
+  // La verifica lato server impedisce di aggirare l'obbligo presente nella UI.
+  if (p.modulo === "pratica-enea" && !isValidIsoDate(dataFineLavori)) {
+    return json({ success: false, error: "Data di fine lavori obbligatoria" }, 400);
+  }
 
   const allFiles = [...fattureFiles, ...docExtraFiles, ...librettoFiles, ...moduliFiles];
   if (allFiles.length > MAX_FILES) return json({ success: false, error: `Massimo ${MAX_FILES} file` }, 400);
@@ -300,6 +316,7 @@ serve(async (req) => {
         cliente_email: p.cliente?.email?.trim() || null,
         cliente_cf: p.cliente?.cf?.trim() || null,
         cliente_indirizzo: p.cliente?.indirizzo?.trim() || null,
+        data_fine_lavori: dataFineLavori || null,
         note: declared,
         fatture_urls: [],
         documenti_enea_urls: [],

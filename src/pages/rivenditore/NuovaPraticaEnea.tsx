@@ -1269,6 +1269,9 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
                   id="data-fine-lavori"
                   type="button"
                   variant="outline"
+                  aria-required="true"
+                  aria-invalid={Boolean(errors.dataFineLavori)}
+                  aria-describedby={errors.dataFineLavori ? "data-fine-lavori-error" : undefined}
                   className={cn(
                     "w-full h-10 justify-start text-left font-normal",
                     !dataFineLavori && "text-muted-foreground",
@@ -1280,10 +1283,22 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
-                <Calendar mode="single" selected={dataFineLavori} onSelect={setDataFineLavori} locale={it} />
+                <Calendar
+                  mode="single"
+                  selected={dataFineLavori}
+                  onSelect={(date) => {
+                    setDataFineLavori(date);
+                    if (date) setErrors((previous) => ({ ...previous, dataFineLavori: "" }));
+                  }}
+                  locale={it}
+                />
               </PopoverContent>
             </Popover>
-            {errors.dataFineLavori && <p className="text-xs text-destructive" data-error>{errors.dataFineLavori}</p>}
+            {errors.dataFineLavori && (
+              <p id="data-fine-lavori-error" className="text-xs text-destructive" data-error>
+                {errors.dataFineLavori}
+              </p>
+            )}
           </div>
         </div>
 

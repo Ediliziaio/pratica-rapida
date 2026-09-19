@@ -415,6 +415,10 @@ export default function FormPubblico() {
   );
   // Path dinamico
   const dynamicStep = visibleDynamicSteps[safeStepIndex];
+  const isCadastralCurrentStep = useDynamic
+    ? dynamicStep?.key === "catastali"
+    : hardcodedStep.id === "catastali";
+  const showCadastralContinueLabel = isCadastralCurrentStep && currentCadastralServiceRequested;
   const dynamicErrors = useMemo(
     () => (useDynamic && dynamicStep ? validateDynamicStep(dynamicStep, dynamicData) : {}),
     [useDynamic, dynamicStep, dynamicData],
@@ -986,7 +990,7 @@ export default function FormPubblico() {
                 </>
               ) : (
                 <>
-                  Avanti
+                  {showCadastralContinueLabel ? "Continua la compilazione" : "Avanti"}
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </>
               )}

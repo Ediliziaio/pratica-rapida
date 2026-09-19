@@ -465,8 +465,15 @@ export function StepCatastali({ data, errors, patchSection }: StepProps) {
 
       {c.recupero_richiesto && (
         <div className="space-y-4 border-t pt-4">
+          <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-950">
+            <p className="font-semibold">Perfetto, ce ne occupiamo noi.</p>
+            <p className="mt-1">
+              Non devi aspettare i dati catastali: continua subito a compilare la pratica.
+              Il servizio costa 10,00 € + IVA 22% (12,20 €) e potrai pagarlo al termine del modulo.
+            </p>
+          </div>
           <p className="text-sm text-muted-foreground">
-            Per recuperare i dati catastali ci servono i dati anagrafici del proprietario dell'immobile.
+            Per effettuare la ricerca ci servono soltanto i dati anagrafici del proprietario dell'immobile.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1">

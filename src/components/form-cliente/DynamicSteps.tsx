@@ -84,6 +84,9 @@ export function DynamicSteps({
   }
 
   const fields = step.fields ?? [];
+  const isCadastralStep = step.key === "catastali";
+  const recoveryValue = formData.catastali?.recupero_richiesto;
+  const recoveryRequested = recoveryValue === true || recoveryValue === "true";
   if (fields.length === 0) {
     return (
       <p className="text-sm text-muted-foreground">
@@ -98,9 +101,6 @@ export function DynamicSteps({
         if (field.visible_if && !checkVisibleIf(field.visible_if, formData)) {
           return null;
         }
-        const isCadastralStep = step.key === "catastali";
-        const recoveryValue = formData.catastali?.recupero_richiesto;
-        const recoveryRequested = recoveryValue === true || recoveryValue === "true";
         if (isCadastralStep && recoveryRequested && ["foglio", "mappale", "subalterno"].includes(field.key)) {
           return null;
         }
@@ -130,6 +130,15 @@ export function DynamicSteps({
           />
         );
       })}
+      {isCadastralStep && recoveryRequested && (
+        <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-950">
+          <p className="font-semibold">Perfetto, ce ne occupiamo noi.</p>
+          <p className="mt-1">
+            Non devi aspettare i dati catastali: continua subito a compilare la pratica.
+            Il servizio costa 10,00 € + IVA 22% (12,20 €) e potrai pagarlo al termine del modulo.
+          </p>
+        </div>
+      )}
     </div>
   );
 }

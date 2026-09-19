@@ -20,6 +20,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -569,6 +570,10 @@ function PracticeDetailSheet({
   const [editClienteTelefono, setEditClienteTelefono] = useState("");
   const [editClienteCf, setEditClienteCf] = useState("");
   const [editClienteIndirizzo, setEditClienteIndirizzo] = useState("");
+  const [catastoFoglio, setCatastoFoglio] = useState("");
+  const [catastoMappale, setCatastoMappale] = useState("");
+  const [catastoSubalterno, setCatastoSubalterno] = useState("");
+  const [savingCatasto, setSavingCatasto] = useState(false);
   const [newDoc, setNewDoc] = useState("");
   const [uploadingConclusa, setUploadingConclusa] = useState(false);
   const [uploadingFgasConclusa, setUploadingFgasConclusa] = useState(false);
@@ -585,6 +590,18 @@ function PracticeDetailSheet({
   const fgasConclusaInputRef = useRef<HTMLInputElement>(null);
   const aggiuntivoInputRef = useRef<HTMLInputElement>(null);
   const fatturaInputRef = useRef<HTMLInputElement>(null);
+
+  const sheetPracticeData = practice ? practiceData(practice) : {};
+  const sheetCatastali = sheetPracticeData.catastali && typeof sheetPracticeData.catastali === "object" && !Array.isArray(sheetPracticeData.catastali)
+    ? sheetPracticeData.catastali as Record<string, unknown>
+    : {};
+  const sheetHasCadastralService = sheetCatastali.recupero_richiesto === true || sheetCatastali.recupero_richiesto === "true";
+
+  useEffect(() => {
+    setCatastoFoglio(String(sheetCatastali.foglio ?? ""));
+    setCatastoMappale(String(sheetCatastali.mappale ?? ""));
+    setCatastoSubalterno(String(sheetCatastali.subalterno ?? ""));
+  }, [practice?.id, sheetCatastali.foglio, sheetCatastali.mappale, sheetCatastali.subalterno]);
 
   // Eliminazione pratica — solo super_admin.
   const { roles } = useAuth();
@@ -969,6 +986,54 @@ function PracticeDetailSheet({
         title: "Aggiornamento F-Gas fallito",
         description: err instanceof Error ? err.message : "Riprova.",
       });
+    }
+  }
+
+  async function saveCadastralData() {
+    if (!practice) return;
+    const foglio = catastoFoglio.trim();
+    const mappale = catastoMappale.trim();
+    const subalterno = catastoSubalterno.trim();
+    if (!foglio || !mappale) {
+      toast({
+        variant: "destructive",
+        title: "Dati catastali incompleti",
+        description: "Inserisci almeno foglio e mappale o particella.",
+      });
+      return;
+    }
+    setSavingCatasto(true);
+    try {
+      const fresh = await freshPracticeData(practice.id, practiceData(practice));
+      const freshCatastali = fresh.catastali && typeof fresh.catastali === "object" && !Array.isArray(fresh.catastali)
+        ? fresh.catastali as Record<string, unknown>
+        : {};
+      await updatePractice.mutateAsync({
+        id: practice.id,
+        updates: {
+          dati_form: {
+            ...fresh,
+            catastali: {
+              ...freshCatastali,
+              foglio,
+              mappale,
+              subalterno,
+            },
+          },
+        },
+      });
+      toast({
+        title: "Dati catastali salvati",
+        description: "Sono ora disponibili nella pratica anche per la compilazione APR.",
+      });
+    } catch (err) {
+      toast({
+        variant: "destructive",
+        title: "Salvataggio dati catastali fallito",
+        description: err instanceof Error ? err.message : "Riprova.",
+      });
+    } finally {
+      setSavingCatasto(false);
     }
   }
 
@@ -1645,6 +1710,54 @@ function PracticeDetailSheet({
                 {/* 1.5 — Dati completi form cliente (collapsible, sempre visibili se compilati) */}
                 {practice.dati_form && Object.keys(practice.dati_form as Record<string, unknown>).length > 0 && (
                   <FormDataDetails dati={practice.dati_form as Record<string, unknown>} />
+                )}
+
+                {isInternal && sheetHasCadastralService && (
+                  <section className="rounded-lg border border-violet-200 bg-violet-50/60 p-3 space-y-3 dark:border-violet-900 dark:bg-violet-950/20">
+                    <div>
+                      <h3 className="text-xs font-semibold uppercase tracking-wider text-violet-800 dark:text-violet-300">
+                        Completamento servizio Catasto
+                      </h3>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Inserisci qui i dati recuperati: resteranno nella pratica e saranno disponibili anche ad APR.
+                      </p>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div className="space-y-1">
+                        <Label htmlFor={`catasto-foglio-${practice.id}`}>Foglio *</Label>
+                        <Input
+                          id={`catasto-foglio-${practice.id}`}
+                          value={catastoFoglio}
+                          onChange={(event) => setCatastoFoglio(event.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label htmlFor={`catasto-mappale-${practice.id}`}>Mappale o particella *</Label>
+                        <Input
+                          id={`catasto-mappale-${practice.id}`}
+                          value={catastoMappale}
+                          onChange={(event) => setCatastoMappale(event.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label htmlFor={`catasto-subalterno-${practice.id}`}>Subalterno</Label>
+                        <Input
+                          id={`catasto-subalterno-${practice.id}`}
+                          value={catastoSubalterno}
+                          onChange={(event) => setCatastoSubalterno(event.target.value)}
+                        />
+                      </div>
+                    </div>
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={() => void saveCadastralData()}
+                      disabled={savingCatasto}
+                    >
+                      {savingCatasto ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Check className="h-4 w-4 mr-2" />}
+                      Salva dati catastali
+                    </Button>
+                  </section>
                 )}
 
                 {isInternal && isFgasPackage(practice) && (() => {

@@ -77,6 +77,7 @@ const EneaLabPreviewHandoff = lazy(() => import("./EneaLabPreviewHandoff"));
 const DomandeApr = lazy(() => import("./pages/DomandeApr"));
 const ComunicazioniBloccate = lazy(() => import("./pages/ComunicazioniBloccate"));
 const ImportaPratica = lazy(() => import("./pages/ImportaPratica"));
+const ServizioEneaFgas = lazy(() => import("./pages/ServizioEneaFgas"));
 
 /**
  * QueryClient con default sensibili per ridurre carico backend e migliorare
@@ -265,6 +266,7 @@ const App = () => (
                 <Route path="/conto-termico" element={<HomeCT />} />
                 <Route path="/conto-termico/guida" element={<GuidaCT />} />
                 <Route path="/conto-termico/simulatore" element={<SimulatoreCT />} />
+                <Route path="/servizi/enea-fgas" element={<ServizioEneaFgas />} />
                 <Route path="/offerta" element={<Navigate to="/pratica-enea" replace />} />
                 <Route path="/home" element={<Navigate to="/" replace />} />
                 <Route path="/area-riservata-vecchia" element={<AreaRiservataVecchia />} />

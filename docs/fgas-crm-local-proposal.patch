@@ -1,0 +1,1480 @@
+# Exact local proposal patch for Claude review
+# Generated from the current local worktree on 2026-09-19.
+# DO NOT APPLY BLINDLY: compare with APR changes and apply hunk by hunk.
+
+diff --git a/src/App.tsx b/src/App.tsx
+index e38a0ac2..15769222 100644
+--- a/src/App.tsx
++++ b/src/App.tsx
+@@ -77,6 +77,7 @@ const EneaLabPreviewHandoff = lazy(() => import("./EneaLabPreviewHandoff"));
+ const DomandeApr = lazy(() => import("./pages/DomandeApr"));
+ const ComunicazioniBloccate = lazy(() => import("./pages/ComunicazioniBloccate"));
+ const ImportaPratica = lazy(() => import("./pages/ImportaPratica"));
++const ServizioEneaFgas = lazy(() => import("./pages/ServizioEneaFgas"));
+ 
+ /**
+  * QueryClient con default sensibili per ridurre carico backend e migliorare
+@@ -265,6 +266,7 @@ const App = () => (
+                 <Route path="/conto-termico" element={<HomeCT />} />
+                 <Route path="/conto-termico/guida" element={<GuidaCT />} />
+                 <Route path="/conto-termico/simulatore" element={<SimulatoreCT />} />
++                <Route path="/servizi/enea-fgas" element={<ServizioEneaFgas />} />
+                 <Route path="/offerta" element={<Navigate to="/pratica-enea" replace />} />
+                 <Route path="/home" element={<Navigate to="/" replace />} />
+                 <Route path="/area-riservata-vecchia" element={<AreaRiservataVecchia />} />
+diff --git a/src/pages/KanbanBoard.tsx b/src/pages/KanbanBoard.tsx
+index 245e7d11..3aded640 100644
+--- a/src/pages/KanbanBoard.tsx
++++ b/src/pages/KanbanBoard.tsx
+@@ -113,7 +113,7 @@ import {
+ } from "@/components/ui/tooltip";
+ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+ import { createPortal } from "react-dom";
+-import { format } from "date-fns";
++import { addDays, differenceInCalendarDays, format } from "date-fns";
+ import { it } from "date-fns/locale";
+ import DichiarazioneTecnicaDialog from "@/components/documenti/DichiarazioneTecnicaDialog";
+ import type { EneaPractice, PipelineStage } from "@/integrations/supabase/types";
+@@ -171,6 +171,44 @@ function isDaAbbinareCompany(ragioneSociale?: string | null) {
+   return !!ragioneSociale?.includes("Da abbinare");
+ }
+ 
++type FgasStatus = "ricevuta_da_verificare" | "in_lavorazione" | "conclusa";
++
++function practiceData(practice: Pick<EneaPractice, "dati_form">) {
++  return practice.dati_form && typeof practice.dati_form === "object" && !Array.isArray(practice.dati_form)
++    ? practice.dati_form as Record<string, unknown>
++    : {};
++}
++
++function practiceFgas(practice: Pick<EneaPractice, "dati_form">) {
++  const dati = practiceData(practice);
++  return dati.fgas && typeof dati.fgas === "object" && !Array.isArray(dati.fgas)
++    ? dati.fgas as Record<string, unknown>
++    : {};
++}
++
++function isFgasPackage(practice: Pick<EneaPractice, "dati_form">) {
++  const fgas = practiceFgas(practice);
++  return fgas.requested === true || fgas.requested === "true";
++}
++
++function fgasCompletionDocuments(practice: Pick<EneaPractice, "dati_form">) {
++  const urls = practiceFgas(practice).completion_document_urls;
++  return Array.isArray(urls) ? urls.filter((url): url is string => typeof url === "string" && !!url) : [];
++}
++
++function packageCompletionBlockers(practice: Pick<EneaPractice, "dati_form" | "pratica_enea_conclusa_urls">) {
++  if (!isFgasPackage(practice)) return [];
++  const blockers: string[] = [];
++  if (!practice.pratica_enea_conclusa_urls?.length) blockers.push("pratica ENEA conclusa");
++  const fgas = practiceFgas(practice);
++  if (fgas.status !== "conclusa" || fgasCompletionDocuments(practice).length === 0) {
++    blockers.push("pratica F-Gas conclusa con ricevuta allegata");
++  }
++  return blockers;
++}
++
++const PACKAGE_FINAL_STAGE_TYPES = new Set(["da_inviare", "gestionale", "recensione", "archiviate"]);
++
+ // ── FileDownloadLink ──────────────────────────────────────────────────────────
+ 
+ function FileDownloadLink({ label, path }: { label: string; path: string }) {
+@@ -506,6 +544,7 @@ function PracticeDetailSheet({
+   const [editClienteIndirizzo, setEditClienteIndirizzo] = useState("");
+   const [newDoc, setNewDoc] = useState("");
+   const [uploadingConclusa, setUploadingConclusa] = useState(false);
++  const [uploadingFgasConclusa, setUploadingFgasConclusa] = useState(false);
+   const [deleteConclusaPath, setDeleteConclusaPath] = useState<string | null>(null);
+   const [uploadingAggiuntivo, setUploadingAggiuntivo] = useState(false);
+   const [uploadingFattura, setUploadingFattura] = useState(false);
+@@ -516,6 +555,7 @@ function PracticeDetailSheet({
+   >(null);
+   const [showDichiarazione, setShowDichiarazione] = useState(false);
+   const conclusaInputRef = useRef<HTMLInputElement>(null);
++  const fgasConclusaInputRef = useRef<HTMLInputElement>(null);
+   const aggiuntivoInputRef = useRef<HTMLInputElement>(null);
+   const fatturaInputRef = useRef<HTMLInputElement>(null);
+ 
+@@ -715,6 +755,17 @@ function PracticeDetailSheet({
+   async function handleArchive() {
+     if (!practice) return;
+     const restoring = !!practice.archived_at;
++    if (!restoring) {
++      const blockers = packageCompletionBlockers(practice);
++      if (blockers.length > 0) {
++        toast({
++          variant: "destructive",
++          title: "Pacchetto non completato",
++          description: `Non puoi archiviare: manca ${blockers.join(" e ")}.`,
++        });
++        return;
++      }
++    }
+     try {
+       await updatePractice.mutateAsync({
+         id: practice.id,
+@@ -842,6 +893,88 @@ function PracticeDetailSheet({
+     }
+   }
+ 
++  async function updateFgasStatus(status: FgasStatus) {
++    if (!practice) return;
++    const existingFgas = practiceFgas(practice);
++    if (status === "conclusa" && fgasCompletionDocuments(practice).length === 0) {
++      toast({
++        variant: "destructive",
++        title: "Manca la ricevuta F-Gas",
++        description: "Carica prima il documento conclusivo: lo stato passerà automaticamente a Conclusa.",
++      });
++      return;
++    }
++    try {
++      await updatePractice.mutateAsync({
++        id: practice.id,
++        updates: {
++          dati_form: {
++            ...practiceData(practice),
++            fgas: {
++              ...existingFgas,
++              status,
++              completed_at: status === "conclusa" ? new Date().toISOString() : null,
++            },
++          },
++        },
++      });
++      toast({ title: "Stato F-Gas aggiornato" });
++    } catch (err) {
++      toast({
++        variant: "destructive",
++        title: "Aggiornamento F-Gas fallito",
++        description: err instanceof Error ? err.message : "Riprova.",
++      });
++    }
++  }
++
++  async function handleUploadFgasConclusa(e: React.ChangeEvent<HTMLInputElement>) {
++    if (!practice || !e.target.files?.length) return;
++    setUploadingFgasConclusa(true);
++    const files = Array.from(e.target.files);
++    const uploaded: string[] = [];
++    try {
++      for (const file of files) {
++        const ext = file.name.split(".").pop() ?? "bin";
++        const path = `${practice.id}/fgas-conclusa/${crypto.randomUUID()}.${ext}`;
++        const { error } = await supabase.storage.from("enea-documents").upload(path, file, { upsert: false });
++        if (error) throw error;
++        uploaded.push(path);
++      }
++      const existingFgas = practiceFgas(practice);
++      await updatePractice.mutateAsync({
++        id: practice.id,
++        updates: {
++          dati_form: {
++            ...practiceData(practice),
++            fgas: {
++              ...existingFgas,
++              status: "conclusa",
++              completed_at: new Date().toISOString(),
++              completion_document_urls: [...fgasCompletionDocuments(practice), ...uploaded],
++            },
++          },
++        },
++      });
++      toast({
++        title: "F-Gas conclusa",
++        description: "Ricevuta salvata. Il pacchetto potrà essere inviato quando sarà presente anche la pratica ENEA conclusa.",
++      });
++    } catch (err) {
++      if (uploaded.length) {
++        await supabase.storage.from("enea-documents").remove(uploaded);
++      }
++      toast({
++        variant: "destructive",
++        title: "Caricamento F-Gas fallito",
++        description: err instanceof Error ? err.message : "Riprova.",
++      });
++    } finally {
++      setUploadingFgasConclusa(false);
++      if (fgasConclusaInputRef.current) fgasConclusaInputRef.current.value = "";
++    }
++  }
++
+   // Upload di file sul cliente — solo super_admin. Parametrico sulla colonna
+   // destinazione: "fatture_urls" (gruppo Fatture) oppure
+   // "documenti_aggiuntivi_urls" (gruppo Documenti aggiuntivi). I due flussi
+@@ -1442,6 +1575,66 @@ function PracticeDetailSheet({
+                   <FormDataDetails dati={practice.dati_form as Record<string, unknown>} />
+                 )}
+ 
++                {isInternal && isFgasPackage(practice) && (() => {
++                  const fgas = practiceFgas(practice);
++                  const receipts = fgasCompletionDocuments(practice);
++                  const status = (fgas.status as FgasStatus | undefined) ?? "ricevuta_da_verificare";
++                  return (
++                    <section className="rounded-lg border border-sky-200 bg-sky-50/50 p-3 space-y-3 dark:border-sky-900 dark:bg-sky-950/20">
++                      <div>
++                        <h3 className="text-xs font-semibold uppercase tracking-wider text-sky-800 dark:text-sky-300">
++                          Lavorazione F-Gas
++                        </h3>
++                        <p className="text-xs text-muted-foreground mt-1">
++                          Gestiscila anche mentre l'ENEA è in attesa dei dati del cliente.
++                        </p>
++                      </div>
++                      <Select value={status} onValueChange={(value) => void updateFgasStatus(value as FgasStatus)}>
++                        <SelectTrigger className="h-9 bg-background">
++                          <SelectValue />
++                        </SelectTrigger>
++                        <SelectContent>
++                          <SelectItem value="ricevuta_da_verificare">Da verificare</SelectItem>
++                          <SelectItem value="in_lavorazione">In lavorazione</SelectItem>
++                          <SelectItem value="conclusa">Conclusa</SelectItem>
++                        </SelectContent>
++                      </Select>
++
++                      {receipts.length > 0 && (
++                        <div className="space-y-1">
++                          <p className="text-[11px] font-medium text-muted-foreground">Ricevuta F-Gas conclusa</p>
++                          {receipts.map((path, index) => (
++                            <FileDownloadLink key={path} label={`Ricevuta F-Gas ${index + 1}`} path={path} />
++                          ))}
++                        </div>
++                      )}
++
++                      <input
++                        ref={fgasConclusaInputRef}
++                        type="file"
++                        accept=".pdf,.png,.jpg,.jpeg"
++                        multiple
++                        className="hidden"
++                        onChange={handleUploadFgasConclusa}
++                      />
++                      <Button
++                        type="button"
++                        variant="outline"
++                        size="sm"
++                        className="w-full gap-1.5 bg-background"
++                        disabled={uploadingFgasConclusa}
++                        onClick={() => fgasConclusaInputRef.current?.click()}
++                      >
++                        {uploadingFgasConclusa ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
++                        {receipts.length ? "Aggiungi altra ricevuta F-Gas" : "Carica ricevuta F-Gas conclusa"}
++                      </Button>
++                      <p className="text-[11px] text-muted-foreground">
++                        Il caricamento della ricevuta imposta automaticamente F-Gas come conclusa.
++                      </p>
++                    </section>
++                  );
++                })()}
++
+                 {/* 1b. Finanziario (solo isInternal) */}
+                 {isInternal && (
+                   <section>
+@@ -2021,6 +2214,7 @@ function FormDataDetails({ dati }: { dati: Record<string, unknown> }) {
+   const edificio = (dati.edificio as Record<string, unknown>) || {};
+   const impianto = (dati.impianto as Record<string, unknown>) || {};
+   const prodotto = (dati.prodotto as Record<string, unknown>) || {};
++  const fgas = (dati.fgas as Record<string, unknown>) || {};
+ 
+   const hasApparLavori = residenza.stesso_indirizzo_lavori === false && Object.keys(apparlavori).length > 0;
+   const hasCointest = cointest.presente === true;
+@@ -2047,6 +2241,43 @@ function FormDataDetails({ dati }: { dati: Record<string, unknown> }) {
+         <span className="text-xs text-muted-foreground group-open:rotate-180 transition-transform">▾</span>
+       </summary>
+       <div className="px-4 pb-4 space-y-5">
++        {/* Pacchetto F-Gas: il form esterno resta minimale; questa è la vista
++            operativa completa per lo staff di PraticaRapida. */}
++        {fgas.requested === true && (
++          <section className="rounded-lg border border-sky-200 bg-sky-50/60 p-3 dark:border-sky-900 dark:bg-sky-950/20">
++            <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
++              <div>
++                <p className="text-xs font-bold uppercase tracking-wider text-sky-800 dark:text-sky-300">Pacchetto ENEA + F-Gas</p>
++                <p className="text-xs text-muted-foreground">Una sola commessa, due lavorazioni coordinate</p>
++              </div>
++              <span className="rounded-full bg-sky-100 px-2.5 py-1 text-xs font-bold text-sky-800 dark:bg-sky-950 dark:text-sky-300">
++                90,00 € + IVA 22%
++              </span>
++            </div>
++            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
++              <Field label="Stato F-Gas" value={fgas.status === "ricevuta_da_verificare" ? "Ricevuta · da verificare" : fgas.status} />
++              <Field label="Indirizzo come fattura" value={fgas.address_same_as_invoice} />
++              {fgas.address_same_as_invoice === false && <Field label="Indirizzo installazione" value={fgas.installation_address} />}
++              <Field
++                label="Gas aggiunto o recuperato"
++                value={fgas.gas_movement === "no" ? "No" : fgas.gas_movement === "si" ? "Sì" : fgas.gas_movement === "non_so" ? "Da verificare" : fgas.gas_movement}
++              />
++              <Field label="Data intervento proposta" value={fgas.intervention_date_source} />
++              <Field
++                label="Scadenza F-Gas proposta"
++                value={
++                  typeof fgas.intervention_date_source === "string" && fgas.intervention_date_source
++                    ? format(addDays(new Date(`${fgas.intervention_date_source}T12:00:00`), 30), "dd/MM/yyyy")
++                    : undefined
++                }
++              />
++            </div>
++            <p className="mt-3 text-xs text-sky-900/80 dark:text-sky-200/80">
++              La data deriva dalla fine lavori ENEA: prima dell'inserimento nel portale F-Gas deve essere verificata dall'operatore.
++            </p>
++          </section>
++        )}
++
+         {/* Richiedente */}
+         {Object.keys(richiedente).length > 0 && (
+           <section>
+@@ -2117,7 +2348,9 @@ function FormDataDetails({ dati }: { dati: Record<string, unknown> }) {
+             </div>
+             {hasRecuperoCatastale && (
+               <div className="mt-3 rounded bg-amber-50 dark:bg-amber-950/20 px-3 py-2 text-xs">
+-                <p className="font-semibold text-amber-800 dark:text-amber-300 mb-1">⚠️ Cliente ha richiesto recupero catastale (+€10)</p>
++                <p className="font-semibold text-amber-800 dark:text-amber-300 mb-1">
++                  ⚠️ Servizio ricerca dati catastali acquistato (10,00 € + IVA 22%)
++                </p>
+                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-1 mt-1">
+                   <Field label="Proprietario nome" value={catastali.proprietario_nome} />
+                   <Field label="Proprietario cognome" value={catastali.proprietario_cognome} />
+@@ -2276,6 +2509,34 @@ function PracticeCard({
+   const hasMissingDocs = practice.documenti_mancanti?.length > 0;
+   const stageType = practice.pipeline_stages?.stage_type;
+   const operatorName = practice.operatore_id ? operatorMap[practice.operatore_id] : null;
++  const cardDatiForm = practice.dati_form && typeof practice.dati_form === "object" && !Array.isArray(practice.dati_form)
++    ? practice.dati_form as Record<string, unknown>
++    : {};
++  const cardCatastali = cardDatiForm.catastali && typeof cardDatiForm.catastali === "object" && !Array.isArray(cardDatiForm.catastali)
++    ? cardDatiForm.catastali as Record<string, unknown>
++    : {};
++  const cardFgas = cardDatiForm.fgas && typeof cardDatiForm.fgas === "object" && !Array.isArray(cardDatiForm.fgas)
++    ? cardDatiForm.fgas as Record<string, unknown>
++    : {};
++  const hasCadastralService = cardCatastali.recupero_richiesto === true || cardCatastali.recupero_richiesto === "true";
++  const hasFgasService = cardFgas.requested === true || cardFgas.requested === "true";
++  const fgasStatus = (cardFgas.status as FgasStatus | undefined) ?? "ricevuta_da_verificare";
++  const fgasIsComplete = fgasStatus === "conclusa" && fgasCompletionDocuments(practice).length > 0;
++  const eneaIsComplete = (practice.pratica_enea_conclusa_urls?.length ?? 0) > 0;
++  const eneaStatusLabel = eneaIsComplete
++    ? "conclusa"
++    : practice.form_compilato_at
++      ? "in lavorazione"
++      : "in attesa cliente";
++  const fgasStatusLabel = fgasIsComplete
++    ? "conclusa"
++    : fgasStatus === "in_lavorazione"
++      ? "in lavorazione"
++      : "da verificare";
++  const fgasDeadline = hasFgasService && typeof cardFgas.intervention_date_source === "string" && cardFgas.intervention_date_source
++    ? addDays(new Date(`${cardFgas.intervention_date_source}T12:00:00`), 30)
++    : null;
++  const fgasDaysLeft = fgasDeadline ? differenceInCalendarDays(fgasDeadline, new Date()) : null;
+ 
+   const agingIntent =
+     days > 7 ? "text-destructive" : days >= 4 ? "text-amber-500" : "text-muted-foreground";
+@@ -2359,6 +2620,16 @@ function PracticeCard({
+                   CF
+                 </span>
+               )}
++              {isInternal && hasCadastralService && (
++                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-violet-100 text-violet-700 dark:bg-violet-950 dark:text-violet-300">
++                  CATASTO
++                </span>
++              )}
++              {hasFgasService && (
++                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300">
++                  F-GAS
++                </span>
++              )}
+               <span
+                 className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${
+                   practice.brand === "enea"
+@@ -2393,6 +2664,33 @@ function PracticeCard({
+             </p>
+           )}
+ 
++          {hasFgasService && (
++            <div className={cn(
++              "rounded-md border px-2 py-1.5 text-[11px]",
++              !fgasIsComplete && fgasDaysLeft != null && fgasDaysLeft < 0
++                ? "border-red-200 bg-red-50 text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-300"
++                : !fgasIsComplete && fgasDaysLeft != null && fgasDaysLeft <= 5
++                  ? "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-300"
++                  : "border-sky-200 bg-sky-50 text-sky-700 dark:border-sky-900 dark:bg-sky-950/40 dark:text-sky-300",
++            )}>
++              <div className="space-y-0.5">
++                <div className="flex items-center justify-between gap-2">
++                  <span className="font-semibold">ENEA · {eneaStatusLabel}</span>
++                  <span aria-hidden>{eneaIsComplete ? "✓" : "○"}</span>
++                </div>
++                <div className="flex items-center justify-between gap-2">
++                  <span className="font-semibold">F-Gas · {fgasStatusLabel}</span>
++                  <span aria-hidden>{fgasIsComplete ? "✓" : "○"}</span>
++                </div>
++                {!fgasIsComplete && fgasDaysLeft != null && (
++                  <span className="font-bold">
++                    {fgasDaysLeft < 0 ? `${Math.abs(fgasDaysLeft)}g oltre termine` : `${fgasDaysLeft}g rimasti`}
++                  </span>
++                )}
++              </div>
++            </div>
++          )}
++
+           {/* Form status dot */}
+           {practice.form_compilato_at ? (
+             <div className="flex items-center gap-1.5">
+@@ -2568,6 +2866,7 @@ export default function KanbanBoard() {
+   const [clienteFilter, setClienteFilter] = useState("");
+   const [aziendaComboboxOpen, setAziendaComboboxOpen] = useState(false);
+   const [stageFilter, setStageFilter] = useState<string>("all");
++  const [fgasWorkFilter, setFgasWorkFilter] = useState(false);
+   const [archiveConfirm, setArchiveConfirm] = useState<{
+     practiceId: string;
+     newStageId: string;
+@@ -2756,6 +3055,7 @@ export default function KanbanBoard() {
+     if (isInternal && operatoreFilter !== "all" && p.operatore_id !== operatoreFilter) return false;
+     if (isInternal && aziendaFilter !== "all" && p.companies?.id !== aziendaFilter) return false;
+     if (stageFilter !== "all" && p.current_stage_id !== stageFilter) return false;
++    if (fgasWorkFilter && (!isFgasPackage(p) || packageCompletionBlockers(p).filter((item) => item.includes("F-Gas")).length === 0)) return false;
+     if (dateFrom && p.created_at < dateFrom) return false;
+     if (dateTo && p.created_at > dateTo + "T23:59:59") return false;
+     // Ricerca: combina la barra principale (deferredSearch) e il filtro avanzato
+@@ -2775,16 +3075,21 @@ export default function KanbanBoard() {
+       if (!tokens.every((tok) => haystack.includes(tok))) return false;
+     }
+     return true;
+-  }), [practices, isInternal, operatoreFilter, aziendaFilter, stageFilter, dateFrom, dateTo, clienteFilter, deferredSearch]);
++  }), [practices, isInternal, operatoreFilter, aziendaFilter, stageFilter, fgasWorkFilter, dateFrom, dateTo, clienteFilter, deferredSearch]);
+ 
+   const activeFilterCount = [
+     dateFrom, dateTo,
+     aziendaFilter !== "all",
+     operatoreFilter !== "all",
+     stageFilter !== "all",
++    fgasWorkFilter,
+     clienteFilter.trim() !== "",
+   ].filter(Boolean).length;
+   const hasActiveFilters = activeFilterCount > 0;
++  const fgasToWorkCount = useMemo(
++    () => practices.filter((p) => isFgasPackage(p) && packageCompletionBlockers(p).some((item) => item.includes("F-Gas"))).length,
++    [practices],
++  );
+ 
+   // KPI aggregates (staff only)
+   const kpis = useMemo(() => {
+@@ -2910,6 +3215,7 @@ export default function KanbanBoard() {
+     setOperatoreFilter("all");
+     setClienteFilter("");
+     setStageFilter("all");
++    setFgasWorkFilter(false);
+   };
+ 
+   // Map each stage.id → the "virtual column id" it belongs to.
+@@ -3134,6 +3440,18 @@ export default function KanbanBoard() {
+     newStageName: string;
+   }) => {
+     const newStage = stages.find((s) => s.id === args.newStageId);
++    const practice = practices.find((p) => p.id === args.practiceId);
++    if (practice && newStage && PACKAGE_FINAL_STAGE_TYPES.has(newStage.stage_type as string)) {
++      const blockers = packageCompletionBlockers(practice);
++      if (blockers.length > 0) {
++        toast({
++          variant: "destructive",
++          title: "Invio bloccato: pacchetto incompleto",
++          description: `Manca ${blockers.join(" e ")}. Completa entrambe le lavorazioni prima di proseguire.`,
++        });
++        return;
++      }
++    }
+     // Intercetta archivio
+     if (newStage?.stage_type === "archiviate") {
+       setArchiveConfirm(args);
+@@ -3426,6 +3744,21 @@ export default function KanbanBoard() {
+           </div>
+         )}
+ 
++        {isInternal && (
++          <button
++            onClick={() => setFgasWorkFilter((value) => !value)}
++            className={cn(
++              "h-7 px-2.5 rounded-md border text-xs font-medium transition-colors",
++              fgasWorkFilter
++                ? "border-sky-300 bg-sky-100 text-sky-800 dark:border-sky-800 dark:bg-sky-950 dark:text-sky-300"
++                : "border-border text-muted-foreground hover:text-foreground",
++            )}
++            title="Mostra soltanto i pacchetti con F-Gas non ancora conclusa"
++          >
++            F-Gas da lavorare · {fgasToWorkCount}
++          </button>
++        )}
++
+         <div className="ml-auto flex items-center gap-3">
+           {isInternal && (
+             <button
+@@ -3940,6 +4273,21 @@ export default function KanbanBoard() {
+               // inconsistente nel DB). Il Select disabled chiude la
+               // tendina durante la mutation e ignora click successivi.
+               if (bulkMoveMutation.isPending) return;
++              const targetStage = stages.find((stage) => stage.id === stageId);
++              if (targetStage && PACKAGE_FINAL_STAGE_TYPES.has(targetStage.stage_type as string)) {
++                const blocked = practices
++                  .filter((practice) => selectedIds.has(practice.id))
++                  .map((practice) => ({ practice, blockers: packageCompletionBlockers(practice) }))
++                  .filter((item) => item.blockers.length > 0);
++                if (blocked.length > 0) {
++                  toast({
++                    variant: "destructive",
++                    title: "Spostamento multiplo bloccato",
++                    description: `${blocked.length} pratiche hanno il pacchetto ENEA + F-Gas incompleto. Completale singolarmente prima dell'invio.`,
++                  });
++                  return;
++                }
++              }
+               setBulkMoveStageId(stageId);
+               bulkMoveMutation.mutate({ ids: Array.from(selectedIds), stageId });
+             }}
+@@ -3980,7 +4328,20 @@ export default function KanbanBoard() {
+             variant="outline"
+             size="sm"
+             className="h-8 gap-1.5"
+-            onClick={() => setBulkArchiveConfirm(true)}
++            onClick={() => {
++              const blocked = practices
++                .filter((practice) => selectedIds.has(practice.id))
++                .filter((practice) => packageCompletionBlockers(practice).length > 0);
++              if (blocked.length > 0) {
++                toast({
++                  variant: "destructive",
++                  title: "Archiviazione bloccata",
++                  description: `${blocked.length} pratiche hanno il pacchetto ENEA + F-Gas incompleto.`,
++                });
++                return;
++              }
++              setBulkArchiveConfirm(true);
++            }}
+             disabled={bulkArchiveMutation.isPending}
+           >
+             <Archive className="h-3.5 w-3.5" />
+diff --git a/src/pages/rivenditore/NuovaPraticaEnea.tsx b/src/pages/rivenditore/NuovaPraticaEnea.tsx
+index 70d2c0ea..dd628b50 100644
+--- a/src/pages/rivenditore/NuovaPraticaEnea.tsx
++++ b/src/pages/rivenditore/NuovaPraticaEnea.tsx
+@@ -39,12 +39,13 @@ const MODULI_URL = "https://drive.google.com/file/d/1ZZit5BsW1X0IkQ2_Xit5Jd8YRUu
+ 
+ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+ 
+-/** Centesimi → "€ 183,00". Gli importi girano sempre in centesimi: 150 * 1.22
++/** Centesimi → "183,00 €". Gli importi girano sempre in centesimi: 150 * 1.22
+  *  in floating point non fa esattamente 183. */
+ const euro = (cents: number) =>
+   (cents / 100).toLocaleString("it-IT", { style: "currency", currency: "EUR" });
+ 
+ type TipoProdotto = "schermature_solari" | "infissi" | "vepa" | "pompe_calore" | "insufflaggio_tetti";
++type MovimentoGasFgas = "no" | "si" | "non_so";
+ 
+ // ── Config prodotti ───────────────────────────────────────────────────────────
+ const PRODOTTI: {
+@@ -218,7 +219,7 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?:
+       const { data } = await supabase
+         .from("platform_settings")
+         .select("value")
+-        .eq("key", "prezzo_privato_enea")
++        .eq("key", "prezzo_cf_standard")
+         .maybeSingle();
+       const v = (data?.value ?? {}) as {
+         imponibile_cents?: number;
+@@ -284,6 +285,15 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?:
+   const [fatturaFiles, setFatturaFiles] = useState<File[]>([]);
+   const [docExtra1, setDocExtra1] = useState<File[]>([]); // doc condizionale 1
+   const [docExtra2, setDocExtra2] = useState<File[]>([]); // doc condizionale 2 (solo pompe di calore: libretto)
++  // Pacchetto F-Gas: al rivenditore chiediamo soltanto ciò che non possiamo
++  // ricavare dalla pratica ENEA o dai documenti. Tutti i campi tecnici restano
++  // a carico di PraticaRapida nel back-office.
++  const [fgasRequested, setFgasRequested] = useState<boolean | null>(null);
++  const [fgasAddressSame, setFgasAddressSame] = useState<boolean | null>(null);
++  const [fgasInstallationAddress, setFgasInstallationAddress] = useState("");
++  const [fgasGasMovement, setFgasGasMovement] = useState<MovimentoGasFgas | null>(null);
++  const [fgasPlateFiles, setFgasPlateFiles] = useState<File[]>([]);
++  const [fgasInterventionFiles, setFgasInterventionFiles] = useState<File[]>([]);
+   // Moduli di raccolta dati compilati — obbligatori SOLO se tipoServizio === "documenti_forniti".
+   // Valido per tutti i prodotti (schermature, infissi, vepa, pompe di calore, insufflaggio tetti).
+   const [moduliRaccoltaFiles, setModuliRaccoltaFiles] = useState<File[]>([]);
+@@ -385,9 +395,21 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?:
+     // consegna via email, quindi qui l'email diventa obbligatoria.
+     if (tipoServizio === "documenti_forniti" && inviaPraticaCliente === true && !email.trim())
+       e.email = "Serve l'email del cliente per potergli inviare la pratica";
+-    // Pompe di calore: libretto obbligatorio
++    // Pompe di calore: documento tecnico necessario alla pratica ENEA.
+     if (tipoProdotto === "pompe_calore" && docExtra2.length === 0)
+-      e.libretto = "Il certificato F-GAS è obbligatorio";
++      e.libretto = "La scheda tecnica o il certificato del prodotto è obbligatorio";
++    // Il pacchetto F-Gas è proposto soltanto a rivenditori/installatori. Il
++    // percorso resta volutamente corto: una scelta e tre informazioni semplici.
++    if (tipoProdotto === "pompe_calore" && !isPrivato) {
++      if (fgasRequested === null) e.fgasRequested = "Indica se vuoi aggiungere la gestione F-Gas";
++      if (fgasRequested === true) {
++        if (fgasPlateFiles.length === 0) e.fgasPlate = "Carica almeno una foto leggibile della targhetta";
++        if (fgasAddressSame === null) e.fgasAddressSame = "Conferma l'indirizzo di installazione";
++        if (fgasAddressSame === false && fgasInstallationAddress.trim().length < 5)
++          e.fgasInstallationAddress = "Inserisci l'indirizzo di installazione";
++        if (fgasGasMovement === null) e.fgasGasMovement = "Indica se è stato aggiunto o recuperato gas";
++      }
++    }
+     // Prodotti con flag: se NO → doc extra obbligatorio
+     if (docConfig?.hasExtra && flagDocCompleto === false && docExtra1.length === 0)
+       e.docExtra1 = "Il documento aggiuntivo è obbligatorio";
+@@ -414,10 +436,9 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?:
+           modulo: "pratica-enea",
+           prodotto: prodottoLabel,
+           richiedente_tipo: richiedenteTipo ?? "rivenditore",
+-          // Il privato paga prima che la pratica entri in lavorazione: niente
+-          // messaggio "completa i tuoi dati" adesso, lo mandiamo noi al
+-          // /form/:token subito dopo il pagamento.
+-          requires_payment: isPrivato,
++          // Il cliente privato completa prima tutti i dati fiscali e tecnici;
++          // il pagamento TS Pay viene proposto alla fine del modulo.
++          requires_payment: false,
+           tipo_servizio: tipoServizio,
+           // Sotto-modalità documenti_forniti: cartacei (tutto allegato → pronte
+           // da fare) vs form online (il rivenditore compila lui il /form).
+@@ -443,6 +464,20 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?:
+             indirizzo: indirizzo.trim() || undefined,
+           },
+           data_fine_lavori: dataFineLavori ? format(dataFineLavori, "yyyy-MM-dd") : undefined,
++          fgas: tipoProdotto === "pompe_calore" && !isPrivato
++            ? {
++                requested: fgasRequested === true,
++                package: fgasRequested === true ? "enea_fgas_full" : "enea_only",
++                price_net_eur: fgasRequested === true ? 90 : undefined,
++                status: fgasRequested === true ? "ricevuta_da_verificare" : "non_richiesta",
++                address_same_as_invoice: fgasRequested === true ? fgasAddressSame : undefined,
++                installation_address:
++                  fgasRequested === true && fgasAddressSame === false
++                    ? fgasInstallationAddress.trim()
++                    : undefined,
++                gas_movement: fgasRequested === true ? fgasGasMovement : undefined,
++              }
++            : undefined,
+           note: note.trim() || undefined,
+         };
+         const fd = new FormData();
+@@ -451,6 +486,8 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?:
+         docExtra1.forEach((f) => fd.append("doc_extra", f));
+         docExtra2.forEach((f) => fd.append("libretto", f));
+         moduliRaccoltaFiles.forEach((f) => fd.append("moduli_raccolta", f));
++        fgasPlateFiles.forEach((f) => fd.append("fgas_targhetta", f));
++        fgasInterventionFiles.forEach((f) => fd.append("fgas_rapporto", f));
+ 
+         const { data, error: fnErr } = await supabase.functions.invoke("richiesta-pubblica", { body: fd });
+         if (fnErr) throw new Error(fnErr.message);
+@@ -462,48 +499,16 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?:
+         };
+         if (!res.success) throw new Error(res.error ?? "Invio fallito");
+ 
+-        // ── Cliente privato: si passa dalla cassa ──
+-        // La pratica esiste già ma resta non pagata finché Stripe non conferma
+-        // (stripe-webhook → pagamento_stato='pagata'). A pagamento riuscito
+-        // Stripe riporta l'utente sul suo /form/:token per i dati tecnici.
++        // ── Cliente privato: prima completa il modulo, poi paga con TS Pay ──
++        // Il modulo raccoglie i dati fiscali necessari a emettere correttamente
++        // la fattura soltanto dopo il pagamento.
+         if (isPrivato) {
+-          if (!res.practice_id) {
++          if (!res.form_token) {
+             throw new Error(
+-              "Richiesta registrata ma senza riferimento per il pagamento. Scrivici su WhatsApp e la completiamo noi.",
++              "Richiesta registrata ma senza link al modulo. Scrivici su WhatsApp senza ricompilare la richiesta.",
+             );
+           }
+-          const { data: checkout, error: checkoutErr } = await supabase.functions.invoke("stripe-checkout", {
+-            body: {
+-              practice_id: res.practice_id,
+-              // L'importo NON lo passiamo da qui: lo legge la function dal DB.
+-              pricing_key: "prezzo_privato_enea",
+-              success: "form",
+-              email: email.trim(),
+-              descrizione: `Pratica ENEA — ${prodottoLabel}`,
+-            },
+-          });
+-          // Attenzione ai messaggi da qui in giù: la pratica È GIÀ STATA
+-          // CREATA. Dire "riprova" farebbe ricompilare tutto e creerebbe un
+-          // doppione non pagato, quindi rimandiamo al supporto.
+-          if (checkoutErr) {
+-            // supabase-js sugli status non-2xx non espone il body: senza
+-            // leggerlo dal Response allegato l'utente vedrebbe solo
+-            // "Edge Function returned a non-2xx status code".
+-            let msg = checkoutErr.message;
+-            const ctx = (checkoutErr as { context?: Response }).context;
+-            if (ctx && typeof ctx.json === "function") {
+-              try { msg = (await ctx.json())?.error ?? msg; } catch { /* body non JSON */ }
+-            }
+-            throw new Error(`${msg} — la tua richiesta è stata registrata: scrivici e completiamo noi il pagamento, non ricompilare il modulo.`);
+-          }
+-          const co = checkout as { url?: string; error?: string };
+-          if (!co?.url) {
+-            throw new Error(
+-              co?.error ??
+-                "Non riusciamo ad aprire la pagina di pagamento. La tua richiesta è stata registrata: scrivici e la completiamo noi.",
+-            );
+-          }
+-          window.location.href = co.url;
++          navigate(`/form/${res.form_token}`);
+           return;
+         }
+ 
+@@ -584,6 +589,23 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?:
+           cliente_cf: cf.trim() || null,
+           cliente_indirizzo: indirizzo.trim() || null,
+           data_fine_lavori: dataFineLavori ? format(dataFineLavori, "yyyy-MM-dd") : null,
++          dati_form: tipoProdotto === "pompe_calore" && !isPrivato
++            ? {
++                fgas: {
++                  requested: fgasRequested === true,
++                  package: fgasRequested === true ? "enea_fgas_full" : "enea_only",
++                  price_net_eur: fgasRequested === true ? 90 : null,
++                  status: fgasRequested === true ? "ricevuta_da_verificare" : "non_richiesta",
++                  address_same_as_invoice: fgasRequested === true ? fgasAddressSame : null,
++                  installation_address:
++                    fgasRequested === true && fgasAddressSame === false
++                      ? fgasInstallationAddress.trim()
++                      : null,
++                  gas_movement: fgasRequested === true ? fgasGasMovement : null,
++                  intervention_date_source: dataFineLavori ? format(dataFineLavori, "yyyy-MM-dd") : null,
++                },
++              }
++            : {},
+           note: note.trim() || null,
+           // Prova dell'accettazione del contratto di servizio da parte del
+           // rivenditore che sta inserendo questa pratica.
+@@ -600,14 +622,23 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?:
+       if (insertError || !practice) throw insertError ?? new Error("Insert fallito");
+ 
+       // Upload documenti in parallelo
+-      const [fatture, docExtra, docExtra2Res, moduliRes] = await Promise.all([
++      const [fatture, docExtra, docExtra2Res, moduliRes, fgasPlateRes, fgasInterventionRes] = await Promise.all([
+         uploadFiles(fatturaFiles, practice.id, "fattura"),
+         uploadFiles(docExtra1, practice.id, "doc_extra"),
+         uploadFiles(docExtra2, practice.id, "libretto"),
+         uploadFiles(moduliRaccoltaFiles, practice.id, "moduli_raccolta"),
++        uploadFiles(fgasPlateFiles, practice.id, "fgas_targhetta"),
++        uploadFiles(fgasInterventionFiles, practice.id, "fgas_rapporto_intervento"),
+       ]);
+ 
+-      const allFailed = [...fatture.failed, ...docExtra.failed, ...docExtra2Res.failed, ...moduliRes.failed];
++      const allFailed = [
++        ...fatture.failed,
++        ...docExtra.failed,
++        ...docExtra2Res.failed,
++        ...moduliRes.failed,
++        ...fgasPlateRes.failed,
++        ...fgasInterventionRes.failed,
++      ];
+       if (allFailed.length > 0) {
+         toast({
+           variant: "destructive",
+@@ -616,10 +647,19 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?:
+         });
+       }
+ 
+-      if (fatture.urls.length || docExtra.urls.length || docExtra2Res.urls.length || moduliRes.urls.length) {
++      if (
++        fatture.urls.length || docExtra.urls.length || docExtra2Res.urls.length || moduliRes.urls.length ||
++        fgasPlateRes.urls.length || fgasInterventionRes.urls.length
++      ) {
+         await supabase.from("enea_practices").update({
+           fatture_urls: fatture.urls,
+-          documenti_aggiuntivi_urls: [...docExtra.urls, ...docExtra2Res.urls, ...moduliRes.urls],
++          documenti_aggiuntivi_urls: [
++            ...docExtra.urls,
++            ...docExtra2Res.urls,
++            ...moduliRes.urls,
++            ...fgasPlateRes.urls,
++            ...fgasInterventionRes.urls,
++          ],
+         }).eq("id", practice.id);
+       }
+ 
+@@ -667,6 +707,8 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?:
+     setNome(""); setCognome(""); setEmail(""); setTelefono("");
+     setCf(""); setIndirizzo(""); setNote("");
+     setFatturaFiles([]); setDocExtra1([]); setDocExtra2([]);
++    setFgasRequested(null); setFgasAddressSame(null); setFgasInstallationAddress("");
++    setFgasGasMovement(null); setFgasPlateFiles([]); setFgasInterventionFiles([]);
+     setModuliRaccoltaFiles([]);
+     setFlagDocCompleto(null); setErrors({});
+     setAccettoContratto(false);
+@@ -700,8 +742,8 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?:
+   // numerazione va ricalcolata o si vedrebbe "2, 5, 6, 7".
+   // (le sezioni nascoste restano a 0: non vengono renderizzate)
+   const S = isPrivato
+-    ? { servizio: 0, prodotto: 1, soggetto: 0, fatturazione: 0, dati: 2, documenti: 3, note: 4 }
+-    : { servizio: 1, prodotto: 2, soggetto: 3, fatturazione: 4, dati: 5, documenti: 6, note: 7 };
++    ? { servizio: 0, prodotto: 1, soggetto: 0, fatturazione: 0, dati: 2, documenti: 3, fgas: 0, note: 4 }
++    : { servizio: 1, prodotto: 2, soggetto: 3, fatturazione: 4, dati: 5, documenti: 6, fgas: 7, note: tipoProdotto === "pompe_calore" ? 8 : 7 };
+ 
+   // ── Success screen ─────────────────────────────────────────────────────────
+   if (submitted) {
+@@ -713,6 +755,7 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?:
+         <h1 className="text-2xl font-bold">Pratica inviata!</h1>
+         <p className="text-muted-foreground text-sm leading-relaxed">
+           La pratica per <strong>{submitted.nome}</strong> è stata creata con successo.
++          {fgasRequested === true ? " Abbiamo ricevuto anche la richiesta F-Gas del pacchetto completo." : ""}
+           {tipoServizio === "servizio_completo"
+             ? " Il nostro team contatterà il cliente a breve."
+             : " La pratica è in lavorazione."}
+@@ -809,7 +852,8 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?:
+                     Voglio la pratica ENEA per casa mia.
+                     {prezzoPrivato && (
+                       <> Il servizio ha un costo di{" "}
+-                      <strong className="text-foreground">{euro(prezzoPrivato.totaleCents)}</strong> IVA inclusa.</>
++                      <strong className="text-foreground">{euro(prezzoPrivato.imponibileCents)}</strong>
++                      {` + IVA ${prezzoPrivato.ivaPercent}%`}.</>
+                     )}
+                   </>
+                 ) : (
+@@ -1067,6 +1111,12 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?:
+                   setFlagDocCompleto(null);
+                   setDocExtra1([]);
+                   setDocExtra2([]);
++                  setFgasRequested(null);
++                  setFgasAddressSame(null);
++                  setFgasInstallationAddress("");
++                  setFgasGasMovement(null);
++                  setFgasPlateFiles([]);
++                  setFgasInterventionFiles([]);
+                 }}
+                 className={cn(
+                   "flex items-center gap-3 rounded-lg border-2 p-3.5 text-left transition-all hover:shadow-sm focus:outline-none",
+@@ -1383,7 +1433,7 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?:
+               </p>
+             )}
+             <FileDropzone
+-              label="Certificato F-GAS (marca e modello)"
++              label="Scheda tecnica o certificato del prodotto (marca e modello)"
+               required
+               files={docExtra2}
+               onAdd={(f) => setDocExtra2((p) => [...p, ...f])}
+@@ -1400,6 +1450,172 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?:
+         )}
+       </Section>
+ 
++      {/* ── 7. Pacchetto F-Gas — solo installatori/rivenditori ────────────
++          Non replichiamo il portale ministeriale: chiediamo solo le prove e le
++          tre informazioni che PraticaRapida non può ricavare autonomamente. */}
++      {tipoProdotto === "pompe_calore" && !isPrivato && (
++        <Section number={S.fgas} title="Gestione pratica F-Gas (opzionale)">
++          <div className="space-y-3">
++            <div>
++              <p className="font-semibold text-sm">Vuoi aggiungere anche la gestione della pratica F-Gas?</p>
++              <p className="text-xs text-muted-foreground mt-1">
++                Se scegli il pacchetto completo riutilizziamo fattura, cliente e dati ENEA: non dovrai compilare un secondo modulo tecnico.
++              </p>
++            </div>
++            {errors.fgasRequested && (
++              <p className="text-xs text-destructive flex items-center gap-1" data-error>
++                <AlertCircle className="h-3.5 w-3.5" />{errors.fgasRequested}
++              </p>
++            )}
++            <div className="grid sm:grid-cols-2 gap-3">
++              <button
++                type="button"
++                onClick={() => {
++                  setFgasRequested(false);
++                  setErrors((p) => ({ ...p, fgasRequested: "" }));
++                }}
++                className={cn(
++                  "rounded-xl border-2 p-4 text-left transition-all hover:shadow-sm",
++                  fgasRequested === false ? "border-slate-400 bg-slate-50" : "border-border hover:border-slate-300",
++                )}
++              >
++                <p className="font-semibold text-sm">No, solo pratica ENEA</p>
++                <p className="text-xs text-muted-foreground mt-1">Lavoreremo esclusivamente la pratica ENEA.</p>
++              </button>
++              <button
++                type="button"
++                onClick={() => {
++                  setFgasRequested(true);
++                  setErrors((p) => ({ ...p, fgasRequested: "" }));
++                }}
++                className={cn(
++                  "rounded-xl border-2 p-4 text-left transition-all hover:shadow-sm",
++                  fgasRequested === true ? "border-sky-500 bg-sky-50" : "border-border hover:border-sky-300",
++                )}
++              >
++                <div className="flex items-center justify-between gap-2">
++                  <p className="font-semibold text-sm">Sì, pacchetto completo</p>
++                  <Badge className="bg-sky-100 text-sky-800 border-0">90,00 € + IVA 22%</Badge>
++                </div>
++                <p className="text-xs text-muted-foreground mt-1">Pratica ENEA + gestione F-Gas con prezzo pacchetto.</p>
++              </button>
++            </div>
++          </div>
++
++          {fgasRequested === false && (
++            <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900">
++              Perfetto: lavoreremo soltanto la pratica ENEA.
++            </div>
++          )}
++
++          {fgasRequested === true && (
++            <div className="space-y-5 rounded-xl border-2 border-sky-200 bg-sky-50/40 p-4">
++              <div>
++                <p className="font-semibold text-sky-950">Pacchetto completo attivato</p>
++                <p className="text-xs text-sky-900/80 mt-1">
++                  Ci occupiamo noi dei dati tecnici e della compilazione. Ti chiediamo solo una foto e due risposte veloci.
++                </p>
++              </div>
++
++              <div>
++                {errors.fgasPlate && (
++                  <p className="text-xs text-destructive flex items-center gap-1 mb-2" data-error>
++                    <AlertCircle className="h-3.5 w-3.5" />{errors.fgasPlate}
++                  </p>
++                )}
++                <FileDropzone
++                  label="Foto leggibile della targhetta della pompa di calore"
++                  required
++                  files={fgasPlateFiles}
++                  onAdd={(f) => setFgasPlateFiles((p) => [...p, ...f])}
++                  onRemove={(i) => setFgasPlateFiles((p) => p.filter((_, j) => j !== i))}
++                />
++                <p className="text-xs text-muted-foreground mt-1.5">Se ci sono più unità, carica una foto per ciascuna targhetta.</p>
++              </div>
++
++              <div className="space-y-2">
++                <p className="text-sm font-medium">L'indirizzo di installazione è quello riportato sulla fattura?</p>
++                {errors.fgasAddressSame && <p className="text-xs text-destructive" data-error>{errors.fgasAddressSame}</p>}
++                <div className="flex gap-2">
++                  {([true, false] as const).map((value) => (
++                    <button
++                      key={String(value)}
++                      type="button"
++                      onClick={() => {
++                        setFgasAddressSame(value);
++                        setErrors((p) => ({ ...p, fgasAddressSame: "" }));
++                      }}
++                      className={cn(
++                        "flex-1 rounded-lg border-2 py-2 text-sm font-medium",
++                        fgasAddressSame === value ? "border-sky-500 bg-white text-sky-800" : "border-border bg-white",
++                      )}
++                    >
++                      {value ? "Sì" : "No"}
++                    </button>
++                  ))}
++                </div>
++                {fgasAddressSame === false && (
++                  <div>
++                    <Input
++                      value={fgasInstallationAddress}
++                      onChange={(e) => {
++                        setFgasInstallationAddress(e.target.value);
++                        setErrors((p) => ({ ...p, fgasInstallationAddress: "" }));
++                      }}
++                      placeholder="Indirizzo completo di installazione"
++                      className={errors.fgasInstallationAddress ? "border-destructive" : ""}
++                    />
++                    {errors.fgasInstallationAddress && (
++                      <p className="text-xs text-destructive mt-1" data-error>{errors.fgasInstallationAddress}</p>
++                    )}
++                  </div>
++                )}
++              </div>
++
++              <div className="space-y-2">
++                <p className="text-sm font-medium">Durante l'intervento è stato aggiunto o recuperato gas?</p>
++                {errors.fgasGasMovement && <p className="text-xs text-destructive" data-error>{errors.fgasGasMovement}</p>}
++                <div className="grid grid-cols-3 gap-2">
++                  {([
++                    ["no", "No"],
++                    ["si", "Sì"],
++                    ["non_so", "Non lo so"],
++                  ] as const).map(([value, label]) => (
++                    <button
++                      key={value}
++                      type="button"
++                      onClick={() => {
++                        setFgasGasMovement(value);
++                        setErrors((p) => ({ ...p, fgasGasMovement: "" }));
++                      }}
++                      className={cn(
++                        "rounded-lg border-2 py-2 text-sm font-medium",
++                        fgasGasMovement === value ? "border-sky-500 bg-white text-sky-800" : "border-border bg-white",
++                      )}
++                    >
++                      {label}
++                    </button>
++                  ))}
++                </div>
++              </div>
++
++              {(fgasGasMovement === "si" || fgasGasMovement === "non_so") && (
++                <div>
++                  <FileDropzone
++                    label="Foto del rapporto di intervento, se disponibile (opzionale)"
++                    required={false}
++                    files={fgasInterventionFiles}
++                    onAdd={(f) => setFgasInterventionFiles((p) => [...p, ...f])}
++                    onRemove={(i) => setFgasInterventionFiles((p) => p.filter((_, j) => j !== i))}
++                  />
++                  <p className="text-xs text-muted-foreground mt-1.5">Se non lo hai, invia comunque: recupereremo noi i dati mancanti.</p>
++                </div>
++              )}
++            </div>
++          )}
++        </Section>
++      )}
++
+       {/* ── 7. Note aggiuntive ───────────────────────────────────────────── */}
+       <Section number={S.note} title="Note aggiuntive (opzionale)">
+         <Textarea
+@@ -1473,13 +1689,15 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?:
+         <div className="rounded-xl border bg-card/95 backdrop-blur p-4 shadow-lg flex items-center justify-between gap-4">
+           <div className="text-sm text-muted-foreground hidden sm:block">
+             {/* Al rivenditore niente importi: il prezzo varia da azienda ad
+-                azienda. Al privato il totale va invece SEMPRE in chiaro. */}
++                azienda. Al privato mostriamo sempre imponibile + aliquota. */}
+             {isPrivato
+               ? [PRODOTTI.find((p) => p.id === tipoProdotto)?.short,
+-                 prezzoPrivato ? `${euro(prezzoPrivato.totaleCents)} IVA inclusa` : undefined,
++                 prezzoPrivato ? `${euro(prezzoPrivato.imponibileCents)} + IVA ${prezzoPrivato.ivaPercent}%` : undefined,
+                 ].filter(Boolean).join(" · ")
+               : [tipoServizio && (tipoServizio === "servizio_completo" ? "Servizio Completo" : "Documenti Forniti"),
+                  PRODOTTI.find((p) => p.id === tipoProdotto)?.short,
++                 tipoProdotto === "pompe_calore" && fgasRequested === true ? "ENEA + F-Gas · 90,00 € + IVA 22%" : undefined,
++                 tipoProdotto === "pompe_calore" && fgasRequested === false ? "Solo ENEA" : undefined,
+                  tipoFatturazione === "cliente_finale" ? "CF" : tipoFatturazione === "rivenditore" ? "A carico mio" : undefined,
+                 ].filter(Boolean).join(" · ")}
+           </div>
+@@ -1497,7 +1715,9 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?:
+             ) : isPrivato ? (
+               // "Prosegui" invece di "Vai al pagamento": l'importo accanto
+               // basta a far capire dove si sta andando, senza incalzare.
+-              prezzoPrivato ? `Prosegui — ${euro(prezzoPrivato.totaleCents)}` : "Prosegui"
++              prezzoPrivato ? `Prosegui — ${euro(prezzoPrivato.imponibileCents)} + IVA ${prezzoPrivato.ivaPercent}%` : "Prosegui"
++            ) : tipoProdotto === "pompe_calore" && fgasRequested === true ? (
++              "Invia pacchetto ENEA + F-Gas — 90,00 € + IVA 22%"
+             ) : (
+               "Invia Pratica ENEA"
+             )}
+diff --git a/supabase/functions/richiesta-pubblica/index.ts b/supabase/functions/richiesta-pubblica/index.ts
+index 108189c2..4a8823d0 100644
+--- a/supabase/functions/richiesta-pubblica/index.ts
++++ b/supabase/functions/richiesta-pubblica/index.ts
+@@ -79,6 +79,16 @@ interface Payload {
+   tipo_soggetto?: "persona_fisica" | "azienda_piva";
+   azienda?: { ragione_sociale?: string; email?: string; telefono?: string };
+   cliente?: { nome?: string; cognome?: string; telefono?: string; email?: string; cf?: string; indirizzo?: string };
++  data_fine_lavori?: string;
++  fgas?: {
++    requested?: boolean;
++    package?: "enea_only" | "enea_fgas_full";
++    price_net_eur?: number;
++    status?: string;
++    address_same_as_invoice?: boolean;
++    installation_address?: string;
++    gas_movement?: "no" | "si" | "non_so";
++  };
+   note?: string;
+ }
+ 
+@@ -95,6 +105,8 @@ serve(async (req) => {
+   let docExtraFiles: File[] = [];
+   let librettoFiles: File[] = [];
+   let moduliFiles: File[] = [];
++  let fgasPlateFiles: File[] = [];
++  let fgasInterventionFiles: File[] = [];
+   try {
+     const contentType = req.headers.get("content-type") ?? "";
+     if (contentType.includes("multipart/form-data")) {
+@@ -105,6 +117,8 @@ serve(async (req) => {
+       docExtraFiles = [...grab("doc_extra"), ...grab("documenti")];
+       librettoFiles = grab("libretto");
+       moduliFiles = grab("moduli_raccolta");
++      fgasPlateFiles = grab("fgas_targhetta");
++      fgasInterventionFiles = grab("fgas_rapporto");
+     } else {
+       p = await req.json();
+     }
+@@ -138,7 +152,14 @@ serve(async (req) => {
+   if (nome.length < 2 || cognome.length < 2) return json({ success: false, error: "Nome e cognome del cliente obbligatori" }, 400);
+   if (telefono.replace(/\D/g, "").length < 8) return json({ success: false, error: "Telefono del cliente non valido" }, 400);
+ 
+-  const allFiles = [...fattureFiles, ...docExtraFiles, ...librettoFiles, ...moduliFiles];
++  const allFiles = [
++    ...fattureFiles,
++    ...docExtraFiles,
++    ...librettoFiles,
++    ...moduliFiles,
++    ...fgasPlateFiles,
++    ...fgasInterventionFiles,
++  ];
+   if (allFiles.length > MAX_FILES) return json({ success: false, error: `Massimo ${MAX_FILES} file` }, 400);
+   for (const f of allFiles) {
+     if (f.size > MAX_FILE_SIZE) return json({ success: false, error: `File "${f.name}" troppo grande (max 10MB)` }, 400);
+@@ -299,6 +320,21 @@ serve(async (req) => {
+         cliente_email: p.cliente?.email?.trim() || null,
+         cliente_cf: p.cliente?.cf?.trim() || null,
+         cliente_indirizzo: p.cliente?.indirizzo?.trim() || null,
++        data_fine_lavori: p.data_fine_lavori || null,
++        dati_form: p.fgas
++          ? {
++              fgas: {
++                requested: p.fgas.requested === true,
++                package: p.fgas.requested === true ? "enea_fgas_full" : "enea_only",
++                price_net_eur: p.fgas.requested === true ? 90 : null,
++                status: p.fgas.requested === true ? "ricevuta_da_verificare" : "non_richiesta",
++                address_same_as_invoice: p.fgas.address_same_as_invoice ?? null,
++                installation_address: p.fgas.installation_address?.trim() || null,
++                gas_movement: p.fgas.gas_movement ?? null,
++                intervention_date_source: p.data_fine_lavori || null,
++              },
++            }
++          : {},
+         note: declared,
+         fatture_urls: [],
+         documenti_enea_urls: [],
+@@ -323,13 +359,21 @@ serve(async (req) => {
+       }
+       return paths;
+     };
+-    const [fattureUrls, docExtraUrls, librettoUrls, moduliUrls] = await Promise.all([
++    const [fattureUrls, docExtraUrls, librettoUrls, moduliUrls, fgasPlateUrls, fgasInterventionUrls] = await Promise.all([
+       uploadAll(fattureFiles, "fattura"),
+       uploadAll(docExtraFiles, "doc_extra"),
+       uploadAll(librettoFiles, "libretto"),
+       uploadAll(moduliFiles, "moduli_raccolta"),
++      uploadAll(fgasPlateFiles, "fgas_targhetta"),
++      uploadAll(fgasInterventionFiles, "fgas_rapporto_intervento"),
+     ]);
+-    const aggiuntivi = [...docExtraUrls, ...librettoUrls, ...moduliUrls];
++    const aggiuntivi = [
++      ...docExtraUrls,
++      ...librettoUrls,
++      ...moduliUrls,
++      ...fgasPlateUrls,
++      ...fgasInterventionUrls,
++    ];
+     if (fattureUrls.length || aggiuntivi.length) {
+       await supabase.from("enea_practices").update({
+         fatture_urls: fattureUrls,
+
+diff --git a/src/pages/ServizioEneaFgas.tsx b/src/pages/ServizioEneaFgas.tsx
+new file mode 100644
+index 00000000..a570c22f
+--- /dev/null
++++ b/src/pages/ServizioEneaFgas.tsx
+@@ -0,0 +1,317 @@
++import {
++  ArrowRight,
++  BadgeCheck,
++  Check,
++  ChevronRight,
++  Clock3,
++  FileCheck2,
++  Gauge,
++  Headphones,
++  LockKeyhole,
++  MonitorCheck,
++  ShieldCheck,
++  Snowflake,
++  Star,
++  UploadCloud,
++} from "lucide-react";
++import { SEO } from "@/components/SEO";
++
++const GREEN = "#009846";
++
++const portalRows = [
++  { client: "Cliente Demo Milano", service: "ENEA + F-Gas", status: "In lavorazione", tone: "amber" },
++  { client: "Cliente Demo Monza", service: "F-Gas", status: "Documenti completi", tone: "green" },
++  { client: "Cliente Demo Como", service: "ENEA", status: "Consegnata", tone: "blue" },
++];
++
++function Logo() {
++  return (
++    <img
++      src="/pratica-rapida-logo-horizontal-official.png"
++      alt="PraticaRapida"
++      className="h-auto w-[230px] sm:w-[290px]"
++    />
++  );
++}
++
++function CheckItem({ children }: { children: React.ReactNode }) {
++  return (
++    <li className="flex gap-3 text-[15px] leading-6 text-slate-700">
++      <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-emerald-100 text-emerald-700">
++        <Check className="h-3.5 w-3.5" strokeWidth={3} />
++      </span>
++      <span>{children}</span>
++    </li>
++  );
++}
++
++export default function ServizioEneaFgas() {
++  return (
++    <div className="min-h-screen bg-[#f7faf8] text-slate-950">
++      <SEO
++        title="Pratiche ENEA e comunicazioni F-Gas per installatori"
++        description="Un unico servizio amministrativo per le pratiche ENEA e le comunicazioni degli interventi alla Banca Dati F-Gas, dedicato a venditori e installatori di climatizzatori."
++        canonical="/servizi/enea-fgas"
++        noIndex
++        noFollow
++      />
++
++      <header className="border-b border-emerald-900/10 bg-white/95">
++        <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-5 lg:px-8">
++          <Logo />
++          <a
++            href="mailto:g.beretta@praticarapida.it?subject=Attivazione%20servizio%20ENEA%20e%20F-Gas"
++            className="hidden items-center gap-2 rounded-full bg-[#009846] px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-[#007d3b] sm:flex"
++          >
++            Richiedi l’attivazione <ArrowRight className="h-4 w-4" />
++          </a>
++        </div>
++      </header>
++
++      <main>
++        <section className="relative overflow-hidden bg-[#009846] text-white">
++          <div className="absolute inset-0 opacity-15 [background-image:linear-gradient(rgba(255,255,255,.22)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.22)_1px,transparent_1px)] [background-size:38px_38px]" />
++          <div className="absolute -right-32 -top-40 h-[520px] w-[520px] rounded-full border-[80px] border-white/10" />
++          <div className="relative mx-auto grid max-w-6xl gap-12 px-5 py-16 lg:grid-cols-[1.05fr_.95fr] lg:px-8 lg:py-24">
++            <div>
++              <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-4 py-2 text-xs font-bold uppercase tracking-[.16em]">
++                <Snowflake className="h-4 w-4" /> Per venditori e installatori di climatizzatori
++              </div>
++              <h1 className="max-w-3xl text-4xl font-black leading-[1.02] tracking-[-0.045em] sm:text-6xl">
++                ENEA e F-Gas.
++                <span className="block text-[#d9ff74]">Una sola area riservata.</span>
++              </h1>
++              <p className="mt-7 max-w-2xl text-lg leading-8 text-emerald-50 sm:text-xl">
++                Tu installi. Noi organizziamo i dati, curiamo gli adempimenti amministrativi e ti consegniamo la documentazione pronta da archiviare.
++              </p>
++
++              <div className="mt-8 flex flex-wrap gap-3 text-sm font-semibold">
++                <span className="rounded-full bg-white px-4 py-2 text-[#007d3b]">Nessun canone</span>
++                <span className="rounded-full bg-white px-4 py-2 text-[#007d3b]">Fattura a lavoro concluso</span>
++                <span className="rounded-full bg-white px-4 py-2 text-[#007d3b]">Supporto telefonico</span>
++              </div>
++            </div>
++
++            <div className="self-end rounded-[28px] bg-white p-4 text-slate-900 shadow-2xl shadow-emerald-950/25 sm:p-6">
++              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
++                <div>
++                  <p className="text-xs font-bold uppercase tracking-[.14em] text-emerald-700">Area riservata</p>
++                  <p className="mt-1 text-lg font-black">Le tue pratiche, sempre sotto controllo</p>
++                </div>
++                <div className="grid h-11 w-11 place-items-center rounded-2xl bg-emerald-50 text-emerald-700">
++                  <MonitorCheck className="h-6 w-6" />
++                </div>
++              </div>
++              <div className="mt-4 space-y-3">
++                {portalRows.map((row) => (
++                  <div key={row.client} className="grid grid-cols-[1fr_auto] items-center gap-4 rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3">
++                    <div>
++                      <p className="text-sm font-bold">{row.client}</p>
++                      <p className="mt-0.5 text-xs text-slate-500">{row.service}</p>
++                    </div>
++                    <span className={`rounded-full px-3 py-1 text-[11px] font-bold ${
++                      row.tone === "green" ? "bg-emerald-100 text-emerald-800" : row.tone === "blue" ? "bg-sky-100 text-sky-800" : "bg-amber-100 text-amber-800"
++                    }`}>
++                      {row.status}
++                    </span>
++                  </div>
++                ))}
++              </div>
++              <p className="mt-4 text-center text-[11px] text-slate-400">Anteprima dimostrativa · nessun dato cliente reale</p>
++            </div>
++          </div>
++        </section>
++
++        <section className="mx-auto max-w-6xl px-5 py-16 lg:px-8">
++          <div className="grid gap-5 md:grid-cols-3">
++            {[
++              ["65,00 €", "Pratica ENEA", "Gestione e invio della pratica ENEA", "emerald"],
++              ["35,00 €", "Comunicazione F-Gas", "Inserimento dell’intervento in Banca Dati", "sky"],
++              ["90,00 €", "Pacchetto completo", "ENEA + comunicazione F-Gas", "lime"],
++            ].map(([price, title, copy, tone]) => (
++              <article key={title} className={`relative overflow-hidden rounded-[28px] border p-7 shadow-sm ${tone === "lime" ? "border-lime-300 bg-[#efffc7]" : "border-emerald-900/10 bg-white"}`}>
++                {tone === "lime" && <span className="absolute right-5 top-5 rounded-full bg-slate-950 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-white">Più scelto</span>}
++                <p className="text-4xl font-black tracking-tight text-[#009846]">{price}</p>
++                <p className="mt-1 text-xs font-semibold uppercase tracking-widest text-slate-500">+ IVA 22%</p>
++                <h2 className="mt-6 text-xl font-black">{title}</h2>
++                <p className="mt-2 min-h-12 text-sm leading-6 text-slate-600">{copy}</p>
++                <div className="mt-6 flex items-center gap-2 border-t border-slate-900/10 pt-5 text-sm font-bold text-slate-900">
++                  <FileCheck2 className="h-5 w-5 text-[#009846]" /> Fattura solo a lavoro concluso
++                </div>
++              </article>
++            ))}
++          </div>
++          <p className="mt-5 text-center text-xs text-slate-500">Prezzi per singola pratica/comunicazione. Nessun costo di attivazione e nessun canone mensile.</p>
++        </section>
++
++        <section className="border-y border-emerald-900/10 bg-white">
++          <div className="mx-auto max-w-6xl px-5 py-16 lg:px-8">
++            <div className="max-w-3xl">
++              <p className="text-xs font-black uppercase tracking-[.18em] text-[#009846]">Come funziona</p>
++              <h2 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">Un flusso semplice, pensato per chi installa.</h2>
++            </div>
++            <div className="mt-10 grid gap-5 md:grid-cols-4">
++              {[
++                ["01", "Inserisci il cliente", "Apri la pratica dalla tua area riservata e scegli ENEA, F-Gas oppure il pacchetto completo."],
++                ["02", "Carica i dati", "Alleghi fattura, foto leggibile della targhetta e i dati tecnici richiesti dalla Banca Dati."],
++                ["03", "Controlliamo e compiliamo", "Verifichiamo la completezza formale, inseriamo i dati e ti contattiamo se manca qualcosa."],
++                ["04", "Ricevi i documenti", "Trovi ricevute e documentazione nella tua area riservata. Solo allora emettiamo fattura."],
++              ].map(([n, title, copy]) => (
++                <article key={n} className="rounded-3xl border border-slate-200 bg-[#f9fbfa] p-6">
++                  <p className="text-4xl font-black text-emerald-200">{n}</p>
++                  <h3 className="mt-6 text-lg font-black">{title}</h3>
++                  <p className="mt-3 text-sm leading-6 text-slate-600">{copy}</p>
++                </article>
++              ))}
++            </div>
++          </div>
++        </section>
++
++        <section className="mx-auto grid max-w-6xl gap-10 px-5 py-16 lg:grid-cols-2 lg:px-8">
++          <div className="rounded-[30px] bg-slate-950 p-7 text-white sm:p-9">
++            <div className="flex items-center gap-3 text-[#d9ff74]">
++              <UploadCloud className="h-6 w-6" />
++              <p className="text-xs font-black uppercase tracking-[.16em]">Checklist F-Gas</p>
++            </div>
++            <h2 className="mt-5 text-3xl font-black tracking-tight">Cosa serve per comunicare un’installazione</h2>
++            <ul className="mt-7 space-y-4">
++              {[
++                "Dati del cliente/operatore e indirizzo di installazione",
++                "Numero e data della fattura o dello scontrino, se disponibili",
++                "Foto nitida della targhetta con marca, modello, matricola e dati del refrigerante",
++                "Data dell’intervento e tipologia di apparecchiatura",
++                "Codice fiscale del tecnico certificato che ha eseguito l’intervento",
++                "Tipo e quantità di gas presente, recuperato o aggiunto",
++                "Numero di circuiti e informazioni tecniche richieste dal portale",
++              ].map((item) => (
++                <li key={item} className="flex gap-3 text-sm leading-6 text-slate-200">
++                  <Check className="mt-1 h-4 w-4 shrink-0 text-[#d9ff74]" strokeWidth={3} /> {item}
++                </li>
++              ))}
++            </ul>
++            <p className="mt-7 rounded-2xl bg-white/10 p-4 text-xs leading-5 text-slate-300">
++              L’impresa installatrice resta responsabile dell’intervento tecnico e della correttezza dei dati forniti. PraticaRapida cura il servizio amministrativo di raccolta, controllo formale e trasmissione.
++            </p>
++          </div>
++
++          <div className="rounded-[30px] border border-emerald-900/10 bg-white p-7 sm:p-9">
++            <div className="flex items-center gap-3 text-[#009846]">
++              <LockKeyhole className="h-6 w-6" />
++              <p className="text-xs font-black uppercase tracking-[.16em]">Attivazione una tantum</p>
++            </div>
++            <h2 className="mt-5 text-3xl font-black tracking-tight">Come abilitarci sul portale F-Gas</h2>
++            <ol className="mt-7 space-y-5">
++              {[
++                "Il legale rappresentante entra nella Scrivania telematica su fgas.it con SPID o firma digitale.",
++                "Seleziona “Richiesta abilitazioni per comunicazione interventi”.",
++                "In “Abilitazione del personale” sceglie “Aggiungi personale”.",
++                "Inserisce nome, cognome, codice fiscale ed e-mail del referente PraticaRapida che comunicheremo all’attivazione.",
++                "Abilita almeno Inserimento e Comunicazione; consigliamo anche Consultazione e Storno per gestire eventuali correzioni.",
++                "Controlla, firma digitalmente e trasmette la richiesta. La pratica di abilitazione è gratuita.",
++              ].map((item, index) => (
++                <li key={item} className="grid grid-cols-[34px_1fr] gap-3 text-sm leading-6 text-slate-700">
++                  <span className="grid h-8 w-8 place-items-center rounded-full bg-emerald-100 font-black text-emerald-800">{index + 1}</span>
++                  <span className="pt-1">{item}</span>
++                </li>
++              ))}
++            </ol>
++            <a
++              href="https://scrivania.fgas.it/Home/"
++              target="_blank"
++              rel="noreferrer"
++              className="mt-8 inline-flex items-center gap-2 text-sm font-black text-[#007d3b] hover:underline"
++            >
++              Apri la Scrivania F-Gas ufficiale <ChevronRight className="h-4 w-4" />
++            </a>
++          </div>
++        </section>
++
++        <section className="bg-[#e9f8ef]">
++          <div className="mx-auto grid max-w-6xl gap-8 px-5 py-16 lg:grid-cols-[.8fr_1.2fr] lg:px-8">
++            <div>
++              <p className="text-xs font-black uppercase tracking-[.18em] text-[#009846]">Perché PraticaRapida</p>
++              <h2 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">Struttura, controllo e assistenza. A tuo nome.</h2>
++              <p className="mt-5 text-base leading-7 text-slate-600">
++                Siamo specializzati nella gestione B2B delle pratiche energetiche: il tuo cliente riceve un servizio ordinato e tu mantieni visibilità su ogni fase.
++              </p>
++            </div>
++            <div className="grid gap-4 sm:grid-cols-2">
++              {[
++                [Gauge, "48 ore lavorative", "per le pratiche ENEA, dalla documentazione completa"],
++                [MonitorCheck, "Area riservata", "per monitorare stato e documenti delle pratiche"],
++                [Headphones, "Supporto telefonico", "con un referente reale quando serve"],
++                [ShieldCheck, "Controllo formale", "prima della trasmissione e consegna ordinata"],
++              ].map(([Icon, title, copy]) => {
++                const ItemIcon = Icon as typeof Gauge;
++                return (
++                  <article key={String(title)} className="rounded-3xl bg-white p-6 shadow-sm">
++                    <ItemIcon className="h-6 w-6 text-[#009846]" />
++                    <h3 className="mt-5 font-black">{String(title)}</h3>
++                    <p className="mt-2 text-sm leading-6 text-slate-600">{String(copy)}</p>
++                  </article>
++                );
++              })}
++            </div>
++          </div>
++        </section>
++
++        <section className="mx-auto max-w-6xl px-5 py-16 lg:px-8">
++          <div className="grid gap-7 rounded-[32px] border border-emerald-900/10 bg-white p-7 shadow-sm lg:grid-cols-[.72fr_1.28fr] lg:p-10">
++            <div className="rounded-3xl bg-[#009846] p-7 text-white">
++              <div className="flex gap-1 text-[#d9ff74]">
++                {[0, 1, 2, 3, 4].map((n) => <Star key={n} className="h-5 w-5 fill-current" />)}
++              </div>
++              <p className="mt-6 text-5xl font-black">4,9/5</p>
++              <p className="mt-2 font-bold">su 140 recensioni Trustpilot</p>
++              <a href="https://it.trustpilot.com/review/praticarapida.it" target="_blank" rel="noreferrer" className="mt-6 inline-flex items-center gap-2 text-sm font-bold text-white underline underline-offset-4">
++                Leggi tutte le recensioni <ArrowRight className="h-4 w-4" />
++              </a>
++            </div>
++            <div className="grid gap-4 sm:grid-cols-3">
++              {[
++                ["“Rapido e professionale”", "Documentazione gestita in modo rapido e professionale. Persone cortesi e disponibili."],
++                ["“Veloci e precisi”", "Disponibili con contatti telefonici, veloci e precisi nelle pratiche."],
++                ["“Chiarezza e rapidità”", "La velocità di evasione della pratica e la semplicità sono eccezionali."],
++              ].map(([title, copy]) => (
++                <blockquote key={title} className="rounded-2xl bg-slate-50 p-5">
++                  <BadgeCheck className="h-5 w-5 text-[#009846]" />
++                  <p className="mt-4 font-black">{title}</p>
++                  <p className="mt-2 text-sm leading-6 text-slate-600">{copy}</p>
++                  <footer className="mt-4 text-[11px] font-bold uppercase tracking-wider text-slate-400">Recensione Trustpilot</footer>
++                </blockquote>
++              ))}
++            </div>
++          </div>
++        </section>
++
++        <section className="bg-slate-950 text-white">
++          <div className="mx-auto max-w-4xl px-5 py-16 text-center lg:px-8">
++            <Clock3 className="mx-auto h-9 w-9 text-[#d9ff74]" />
++            <h2 className="mt-5 text-3xl font-black tracking-tight sm:text-5xl">Attiviamo il servizio con la tua prima pratica.</h2>
++            <p className="mx-auto mt-5 max-w-2xl text-lg leading-8 text-slate-300">
++              Ti guidiamo nell’abilitazione F-Gas, configuriamo l’area riservata e verifichiamo insieme il primo fascicolo.
++            </p>
++            <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
++              <a href="mailto:g.beretta@praticarapida.it?subject=Attivazione%20servizio%20ENEA%20e%20F-Gas" className="inline-flex items-center justify-center gap-2 rounded-full bg-[#d9ff74] px-7 py-4 font-black text-slate-950 transition hover:bg-white">
++                Richiedi l’attivazione <ArrowRight className="h-5 w-5" />
++              </a>
++              <a href="tel:+393517935227" className="inline-flex items-center justify-center rounded-full border border-white/30 px-7 py-4 font-bold text-white transition hover:bg-white/10">
++                Chiama 351 793 5227
++              </a>
++            </div>
++          </div>
++        </section>
++      </main>
++
++      <footer className="bg-white">
++        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-5 px-5 py-8 text-center sm:flex-row sm:text-left lg:px-8">
++          <Logo />
++          <div className="text-xs leading-5 text-slate-500">
++            <p>PraticaRapida · Lissone (MB) · Servizi amministrativi per installatori</p>
++            <p className="mt-1">Fonti operative: Banca Dati F-Gas ed Ecocerved · Informazioni aggiornate a settembre 2026</p>
++          </div>
++        </div>
++      </footer>
++    </div>
++  );
++}
+

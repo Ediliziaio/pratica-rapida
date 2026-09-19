@@ -276,8 +276,8 @@ export default function ServizioEneaFgas() {
               <a href="mailto:g.beretta@praticarapida.it?subject=Attivazione%20servizio%20ENEA%20e%20F-Gas" className="inline-flex items-center justify-center gap-2 rounded-full bg-[#d9ff74] px-7 py-4 font-black text-slate-950 transition hover:bg-white">
                 Richiedi l’attivazione <ArrowRight className="h-5 w-5" />
               </a>
-              <a href="tel:+393517935227" className="inline-flex items-center justify-center rounded-full border border-white/30 px-7 py-4 font-bold text-white transition hover:bg-white/10">
-                Chiama 351 793 5227
+              <a href="tel:+390398682692" className="inline-flex items-center justify-center rounded-full border border-white/30 px-7 py-4 font-bold text-white transition hover:bg-white/10">
+                Chiama 039 868 2692
               </a>
             </div>
           </div>

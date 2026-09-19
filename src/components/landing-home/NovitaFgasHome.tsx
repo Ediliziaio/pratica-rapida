@@ -9,16 +9,16 @@ import { ArrowRight, Sparkles } from "lucide-react";
  */
 export default function NovitaFgasHome() {
   return (
-    <section aria-label="Novità: pacchetto ENEA e F-Gas" className="px-5 lg:px-8">
+    <section aria-label="Novità: pacchetto ENEA e F-Gas" className="px-5 lg:px-8 pt-24 sm:pt-28 relative z-10">
       <div
-        className="mx-auto max-w-6xl rounded-[28px] border px-6 py-7 sm:px-9 sm:py-8 flex flex-col gap-5 md:flex-row md:items-center md:justify-between"
+        className="mx-auto max-w-6xl rounded-[22px] border px-5 py-5 sm:px-7 sm:py-6 flex flex-col gap-5 md:flex-row md:items-center md:justify-between"
         style={{ borderColor: "hsla(152,80%,35%,0.25)", background: "linear-gradient(135deg, hsla(152,80%,35%,0.08), hsla(199,89%,48%,0.06))" }}
       >
         <div className="max-w-2xl">
           <p className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-[.18em]" style={{ color: "hsl(var(--pr-green))" }}>
             <Sparkles size={14} /> Novità
           </p>
-          <h2 className="mt-2 text-2xl sm:text-3xl font-black tracking-tight text-foreground">
+          <h2 className="mt-1 text-xl sm:text-2xl font-black tracking-tight text-foreground">
             Pompe di calore: pratica ENEA e comunicazione F-Gas in un unico pacchetto
           </h2>
           <p className="mt-2 text-sm sm:text-base text-muted-foreground leading-relaxed">

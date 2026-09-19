@@ -7,7 +7,7 @@ import HeroNewsWidget from "../landing/HeroNewsWidget";
 export default function HeroSectionHome() {
   return (
     <section
-      className="relative min-h-screen flex items-center overflow-hidden pt-20 pb-16"
+      className="relative min-h-[calc(100vh-7rem)] flex items-center overflow-hidden pt-4 pb-16"
       style={{ background: "linear-gradient(160deg, #f0fdf4 0%, #ffffff 45%, #f0f9ff 100%)" }}
     >
       {/* ── Background photo — team sfumato ─────────────────────── */}

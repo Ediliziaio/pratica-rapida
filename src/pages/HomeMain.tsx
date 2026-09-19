@@ -50,8 +50,8 @@ export default function HomeMain() {
         jsonLd={jsonLd}
       />
       <Navbar />
-      <HeroSectionHome />
       <NovitaFgasHome />
+      <HeroSectionHome />
       <TickerStrip />
       <ServicesSectionHome />
       <PartnerSection />

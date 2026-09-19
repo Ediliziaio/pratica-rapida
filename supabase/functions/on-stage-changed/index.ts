@@ -56,6 +56,21 @@ async function invoke(fnName: string, body: unknown) {
 }
 
 /**
+ * Pacchetto ENEA + F-Gas (dati_form.fgas): letto in modo difensivo, perche'
+ * il JSON e' compilato dal form del rivenditore e potrebbe mancare o essere
+ * malformato. Nessuna eccezione deve fermare la consegna delle pratiche
+ * ENEA normali.
+ */
+function fgasPackageInfo(datiForm: unknown): { requested: boolean; status: string | null; completionPaths: string[] } {
+  const dati = datiForm && typeof datiForm === "object" && !Array.isArray(datiForm) ? datiForm as Record<string, unknown> : null;
+  const fgas = dati?.fgas && typeof dati.fgas === "object" && !Array.isArray(dati.fgas) ? dati.fgas as Record<string, unknown> : null;
+  if (!fgas || fgas.requested !== true) return { requested: false, status: null, completionPaths: [] };
+  const raw = Array.isArray(fgas.completion_document_urls) ? fgas.completion_document_urls : [];
+  const completionPaths = raw.filter((p): p is string => typeof p === "string" && p.trim().length > 0 && !p.includes("..") && !p.startsWith("/"));
+  return { requested: true, status: typeof fgas.status === "string" ? fgas.status : null, completionPaths };
+}
+
+/**
  * Recupera tutti i file collegati a una pratica e li converte in attachments
  * Resend (base64). Limit Resend 40 MB totali — limitiamo a 35 MB con margine
  * per il body HTML dell'email.
@@ -112,11 +127,15 @@ async function collectPracticeAttachments(
     // Source: enea_practices.pratica_enea_conclusa_urls[] (text[])
     const { data: practiceRow } = await supabase
       .from("enea_practices")
-      .select("pratica_enea_conclusa_urls, cliente_nome, cliente_cognome")
+      .select("pratica_enea_conclusa_urls, cliente_nome, cliente_cognome, dati_form")
       .eq("id", practiceId)
       .maybeSingle();
 
     const conclusaPaths = (practiceRow?.pratica_enea_conclusa_urls as string[] | null) ?? [];
+    // Pacchetto ENEA + F-Gas: la ricevuta F-Gas caricata dallo staff sta in
+    // dati_form.fgas.completion_document_urls (bucket enea-documents,
+    // {id}/fgas-conclusa/...). Va nella STESSA e-mail dei documenti ENEA.
+    const fgas = fgasPackageInfo(practiceRow?.dati_form);
     const clienteSlug = `${practiceRow?.cliente_nome ?? ""}_${practiceRow?.cliente_cognome ?? ""}`
       .trim().replace(/\s+/g, "_").toLowerCase() || "pratica";
 
@@ -167,6 +186,31 @@ async function collectPracticeAttachments(
     if (out.length === 0) {
       console.warn(`[collectPracticeAttachments] practice ${practiceId}: NESSUN allegato trovato (conclusaPaths=${conclusaPaths.length}, docs=${docs?.length ?? 0})`);
     }
+
+    // ── C. Ricevuta F-Gas (pacchetto ENEA + F-Gas) ─────────────────────────
+    let fgasCounter = 1;
+    for (const path of fgas.completionPaths) {
+      const ext = path.split(".").pop()?.toLowerCase() ?? "pdf";
+      const filename = `ricevuta_fgas_${clienteSlug}_${fgasCounter}.${ext}`;
+      const encoded = await downloadAndEncode("enea-documents", path, filename);
+      if (!encoded) continue;
+      if (total + encoded.size > MAX_TOTAL_BYTES) {
+        console.warn(`[collectPracticeAttachments] Skip ${filename}: oltre budget 35MB`);
+        continue;
+      }
+      const mime = ext === "pdf" ? "application/pdf" : ext === "p7m" ? "application/pkcs7-mime" : "application/octet-stream";
+      out.push({ filename: encoded.filename, content: encoded.content, content_type: mime });
+      total += encoded.size;
+      fgasCounter++;
+    }
+    // Pacchetto F-Gas richiesto ma ricevuta assente o non scaricabile: non si
+    // consegna una commessa incompleta. Il chiamante tratta la lista vuota
+    // come "missing_attachments" e non invia.
+    if (fgas.requested && fgasCounter === 1) {
+      console.warn(`[collectPracticeAttachments] practice ${practiceId}: pacchetto F-Gas richiesto ma nessuna ricevuta F-Gas allegabile (status=${fgas.status}, paths=${fgas.completionPaths.length})`);
+      return [];
+    }
+    console.log(`[collectPracticeAttachments] practice ${practiceId}: allegati=${out.map((a) => a.filename).join(", ")}`);
     return out;
   } catch (err) {
     console.error("[collectPracticeAttachments] failed:", err);
@@ -296,7 +340,12 @@ serve(async (req) => {
       // Resend limita gli allegati totali a 40MB.
       if (mailAlCliente && stageEmailEnabled && practice.cliente_email) {
         const attachments = await collectPracticeAttachments(supabase, practice_id);
-        clientEmailOk = await invoke("send-email", {
+        if (attachments.length === 0) {
+          // Mai dichiarare consegnata una pratica senza il documento conclusivo
+          // (o senza la ricevuta F-Gas quando il pacchetto la richiede).
+          clientEmailOk = false;
+          steps.client_email = "missing_attachments";
+        } else clientEmailOk = await invoke("send-email", {
           to: practice.cliente_email,
           template: "pratica_inviata",
           data: {

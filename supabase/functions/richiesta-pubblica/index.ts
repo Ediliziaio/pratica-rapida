@@ -81,6 +81,15 @@ interface Payload {
   azienda?: { ragione_sociale?: string; email?: string; telefono?: string };
   cliente?: { nome?: string; cognome?: string; telefono?: string; email?: string; cf?: string; indirizzo?: string };
   data_fine_lavori?: string;
+  fgas?: {
+    requested?: boolean;
+    package?: "enea_only" | "enea_fgas_full";
+    price_net_eur?: number;
+    status?: string;
+    address_same_as_invoice?: boolean;
+    installation_address?: string;
+    gas_movement?: "no" | "si" | "non_so";
+  };
   note?: string;
 }
 
@@ -106,6 +115,8 @@ serve(async (req) => {
   let docExtraFiles: File[] = [];
   let librettoFiles: File[] = [];
   let moduliFiles: File[] = [];
+  let fgasPlateFiles: File[] = [];
+  let fgasInterventionFiles: File[] = [];
   try {
     const contentType = req.headers.get("content-type") ?? "";
     if (contentType.includes("multipart/form-data")) {
@@ -116,6 +127,8 @@ serve(async (req) => {
       docExtraFiles = [...grab("doc_extra"), ...grab("documenti")];
       librettoFiles = grab("libretto");
       moduliFiles = grab("moduli_raccolta");
+      fgasPlateFiles = grab("fgas_targhetta");
+      fgasInterventionFiles = grab("fgas_rapporto");
     } else {
       p = await req.json();
     }
@@ -155,7 +168,14 @@ serve(async (req) => {
     return json({ success: false, error: "Data di fine lavori obbligatoria" }, 400);
   }
 
-  const allFiles = [...fattureFiles, ...docExtraFiles, ...librettoFiles, ...moduliFiles];
+  const allFiles = [
+    ...fattureFiles,
+    ...docExtraFiles,
+    ...librettoFiles,
+    ...moduliFiles,
+    ...fgasPlateFiles,
+    ...fgasInterventionFiles,
+  ];
   if (allFiles.length > MAX_FILES) return json({ success: false, error: `Massimo ${MAX_FILES} file` }, 400);
   for (const f of allFiles) {
     if (f.size > MAX_FILE_SIZE) return json({ success: false, error: `File "${f.name}" troppo grande (max 10MB)` }, 400);
@@ -317,6 +337,20 @@ serve(async (req) => {
         cliente_cf: p.cliente?.cf?.trim() || null,
         cliente_indirizzo: p.cliente?.indirizzo?.trim() || null,
         data_fine_lavori: dataFineLavori || null,
+        dati_form: p.fgas
+          ? {
+              fgas: {
+                requested: p.fgas.requested === true,
+                package: p.fgas.requested === true ? "enea_fgas_full" : "enea_only",
+                price_net_eur: p.fgas.requested === true ? 90 : null,
+                status: p.fgas.requested === true ? "ricevuta_da_verificare" : "non_richiesta",
+                address_same_as_invoice: p.fgas.address_same_as_invoice ?? null,
+                installation_address: p.fgas.installation_address?.trim() || null,
+                gas_movement: p.fgas.gas_movement ?? null,
+                intervention_date_source: dataFineLavori || null,
+              },
+            }
+          : {},
         note: declared,
         fatture_urls: [],
         documenti_enea_urls: [],
@@ -341,13 +375,21 @@ serve(async (req) => {
       }
       return paths;
     };
-    const [fattureUrls, docExtraUrls, librettoUrls, moduliUrls] = await Promise.all([
+    const [fattureUrls, docExtraUrls, librettoUrls, moduliUrls, fgasPlateUrls, fgasInterventionUrls] = await Promise.all([
       uploadAll(fattureFiles, "fattura"),
       uploadAll(docExtraFiles, "doc_extra"),
       uploadAll(librettoFiles, "libretto"),
       uploadAll(moduliFiles, "moduli_raccolta"),
+      uploadAll(fgasPlateFiles, "fgas_targhetta"),
+      uploadAll(fgasInterventionFiles, "fgas_rapporto_intervento"),
     ]);
-    const aggiuntivi = [...docExtraUrls, ...librettoUrls, ...moduliUrls];
+    const aggiuntivi = [
+      ...docExtraUrls,
+      ...librettoUrls,
+      ...moduliUrls,
+      ...fgasPlateUrls,
+      ...fgasInterventionUrls,
+    ];
     if (fattureUrls.length || aggiuntivi.length) {
       await supabase.from("enea_practices").update({
         fatture_urls: fattureUrls,

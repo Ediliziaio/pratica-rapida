@@ -134,7 +134,7 @@ export default function ServizioEneaFgas() {
             <div className="mt-10 grid gap-5 md:grid-cols-4">
               {[
                 ["01", "Inserisci il cliente", "Apri la pratica dalla tua area riservata e scegli ENEA, F-Gas oppure il pacchetto completo."],
-                ["02", "Carica i dati", "Alleghi fattura, foto leggibile della targhetta e i dati tecnici richiesti dalla Banca Dati."],
+                ["02", "Carica i dati", "Alleghi la fattura e una foto leggibile della targhetta: il resto lo ricaviamo noi."],
                 ["03", "Controlliamo e compiliamo", "Verifichiamo la completezza formale, inseriamo i dati e ti contattiamo se manca qualcosa."],
                 ["04", "Ricevi i documenti", "Trovi ricevute e documentazione nella tua area riservata. Solo allora emettiamo fattura."],
               ].map(([n, title, copy]) => (
@@ -148,64 +148,8 @@ export default function ServizioEneaFgas() {
           </div>
         </section>
 
-        <section className="mx-auto grid max-w-6xl gap-10 px-5 py-16 lg:grid-cols-2 lg:px-8">
-          <div className="rounded-[30px] bg-slate-950 p-7 text-white sm:p-9">
-            <div className="flex items-center gap-3 text-[#d9ff74]">
-              <UploadCloud className="h-6 w-6" />
-              <p className="text-xs font-black uppercase tracking-[.16em]">Checklist F-Gas</p>
-            </div>
-            <h2 className="mt-5 text-3xl font-black tracking-tight">Cosa serve per comunicare un’installazione</h2>
-            <ul className="mt-7 space-y-4">
-              {[
-                "Dati del cliente/operatore e indirizzo di installazione",
-                "Numero e data della fattura o dello scontrino, se disponibili",
-                "Foto nitida della targhetta con marca, modello, matricola e dati del refrigerante",
-                "Data dell’intervento e tipologia di apparecchiatura",
-                "Codice fiscale del tecnico certificato che ha eseguito l’intervento",
-                "Tipo e quantità di gas presente, recuperato o aggiunto",
-                "Numero di circuiti e informazioni tecniche richieste dal portale",
-              ].map((item) => (
-                <li key={item} className="flex gap-3 text-sm leading-6 text-slate-200">
-                  <Check className="mt-1 h-4 w-4 shrink-0 text-[#d9ff74]" strokeWidth={3} /> {item}
-                </li>
-              ))}
-            </ul>
-            <p className="mt-7 rounded-2xl bg-white/10 p-4 text-xs leading-5 text-slate-300">
-              L’impresa installatrice resta responsabile dell’intervento tecnico e della correttezza dei dati forniti. PraticaRapida cura il servizio amministrativo di raccolta, controllo formale e trasmissione.
-            </p>
-          </div>
-
-          <div className="rounded-[30px] border border-emerald-900/10 bg-white p-7 sm:p-9">
-            <div className="flex items-center gap-3 text-[#009846]">
-              <LockKeyhole className="h-6 w-6" />
-              <p className="text-xs font-black uppercase tracking-[.16em]">Attivazione una tantum</p>
-            </div>
-            <h2 className="mt-5 text-3xl font-black tracking-tight">Come abilitarci sul portale F-Gas</h2>
-            <ol className="mt-7 space-y-5">
-              {[
-                "Il legale rappresentante entra nella Scrivania telematica su fgas.it con SPID o firma digitale.",
-                "Seleziona “Richiesta abilitazioni per comunicazione interventi”.",
-                "In “Abilitazione del personale” sceglie “Aggiungi personale”.",
-                "Inserisce nome, cognome, codice fiscale ed e-mail del referente PraticaRapida che comunicheremo all’attivazione.",
-                "Abilita almeno Inserimento e Comunicazione; consigliamo anche Consultazione e Storno per gestire eventuali correzioni.",
-                "Controlla, firma digitalmente e trasmette la richiesta. La pratica di abilitazione è gratuita.",
-              ].map((item, index) => (
-                <li key={item} className="grid grid-cols-[34px_1fr] gap-3 text-sm leading-6 text-slate-700">
-                  <span className="grid h-8 w-8 place-items-center rounded-full bg-emerald-100 font-black text-emerald-800">{index + 1}</span>
-                  <span className="pt-1">{item}</span>
-                </li>
-              ))}
-            </ol>
-            <a
-              href="https://scrivania.fgas.it/Home/"
-              target="_blank"
-              rel="noreferrer"
-              className="mt-8 inline-flex items-center gap-2 text-sm font-black text-[#007d3b] hover:underline"
-            >
-              Apri la Scrivania F-Gas ufficiale <ChevronRight className="h-4 w-4" />
-            </a>
-          </div>
-        </section>
+        {/* Checklist completa e abilitazione sul portale F-Gas: NON pubbliche.
+            Vivono nell'area riservata (Documenti utili) e nella newsletter. */}
 
         <section className="bg-[#e9f8ef]">
           <div className="mx-auto grid max-w-6xl gap-8 px-5 py-16 lg:grid-cols-[.8fr_1.2fr] lg:px-8">

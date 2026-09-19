@@ -5,6 +5,7 @@ import HowItWorksSectionHome from "@/components/landing-home/HowItWorksSectionHo
 import StatsSectionHome from "@/components/landing-home/StatsSectionHome";
 import FinalCTAHome from "@/components/landing-home/FinalCTAHome";
 import BlogPreviewHome from "@/components/landing-home/BlogPreviewHome";
+import NovitaFgasHome from "@/components/landing-home/NovitaFgasHome";
 import { SEO } from "@/components/SEO";
 
 const jsonLd = [
@@ -50,6 +51,7 @@ export default function HomeMain() {
       />
       <Navbar />
       <HeroSectionHome />
+      <NovitaFgasHome />
       <TickerStrip />
       <ServicesSectionHome />
       <PartnerSection />

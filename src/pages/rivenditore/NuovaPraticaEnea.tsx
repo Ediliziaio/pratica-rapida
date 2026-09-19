@@ -39,7 +39,7 @@ const MODULI_URL = "https://drive.google.com/file/d/1ZZit5BsW1X0IkQ2_Xit5Jd8YRUu
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
-/** Centesimi → "€ 183,00". Gli importi girano sempre in centesimi: 150 * 1.22
+/** Centesimi → "183,00 €". Gli importi girano sempre in centesimi: 150 * 1.22
  *  in floating point non fa esattamente 183. */
 const euro = (cents: number) =>
   (cents / 100).toLocaleString("it-IT", { style: "currency", currency: "EUR" });
@@ -50,6 +50,7 @@ const euroScomposto = (p: { imponibileCents: number; totaleCents: number }) =>
   `${euro(p.imponibileCents)} + IVA (${euro(p.totaleCents)})`;
 
 type TipoProdotto = "schermature_solari" | "infissi" | "vepa" | "pompe_calore" | "insufflaggio_tetti";
+type MovimentoGasFgas = "no" | "si" | "non_so";
 
 // ── Config prodotti ───────────────────────────────────────────────────────────
 const PRODOTTI: {
@@ -315,6 +316,15 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
   const [fatturaFiles, setFatturaFiles] = useState<File[]>([]);
   const [docExtra1, setDocExtra1] = useState<File[]>([]); // doc condizionale 1
   const [docExtra2, setDocExtra2] = useState<File[]>([]); // doc condizionale 2 (solo pompe di calore: libretto)
+  // Pacchetto F-Gas: al rivenditore chiediamo soltanto ciò che non possiamo
+  // ricavare dalla pratica ENEA o dai documenti. Tutti i campi tecnici restano
+  // a carico di PraticaRapida nel back-office.
+  const [fgasRequested, setFgasRequested] = useState<boolean | null>(null);
+  const [fgasAddressSame, setFgasAddressSame] = useState<boolean | null>(null);
+  const [fgasInstallationAddress, setFgasInstallationAddress] = useState("");
+  const [fgasGasMovement, setFgasGasMovement] = useState<MovimentoGasFgas | null>(null);
+  const [fgasPlateFiles, setFgasPlateFiles] = useState<File[]>([]);
+  const [fgasInterventionFiles, setFgasInterventionFiles] = useState<File[]>([]);
   // Moduli di raccolta dati compilati — obbligatori SOLO se tipoServizio === "documenti_forniti".
   // Valido per tutti i prodotti (schermature, infissi, vepa, pompe di calore, insufflaggio tetti).
   const [moduliRaccoltaFiles, setModuliRaccoltaFiles] = useState<File[]>([]);
@@ -420,9 +430,21 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
     // non c'e' nessun modo di raggiungerlo e la pratica resta ferma.
     if (!isPrivato && tipoFatturazione === "cliente_finale" && !EMAIL_RE.test(email.trim()))
       e.email = "Serve l'email del cliente: e' li' che arriva il link per il pagamento";
-    // Pompe di calore: libretto obbligatorio
+    // Pompe di calore: documento tecnico necessario alla pratica ENEA.
     if (tipoProdotto === "pompe_calore" && docExtra2.length === 0)
-      e.libretto = "Il certificato F-GAS è obbligatorio";
+      e.libretto = "La scheda tecnica o il certificato del prodotto è obbligatorio";
+    // Il pacchetto F-Gas è proposto soltanto a rivenditori/installatori. Il
+    // percorso resta volutamente corto: una scelta e tre informazioni semplici.
+    if (tipoProdotto === "pompe_calore" && !isPrivato) {
+      if (fgasRequested === null) e.fgasRequested = "Indica se vuoi aggiungere la gestione F-Gas";
+      if (fgasRequested === true) {
+        if (fgasPlateFiles.length === 0) e.fgasPlate = "Carica almeno una foto leggibile della targhetta";
+        if (fgasAddressSame === null) e.fgasAddressSame = "Conferma l'indirizzo di installazione";
+        if (fgasAddressSame === false && fgasInstallationAddress.trim().length < 5)
+          e.fgasInstallationAddress = "Inserisci l'indirizzo di installazione";
+        if (fgasGasMovement === null) e.fgasGasMovement = "Indica se è stato aggiunto o recuperato gas";
+      }
+    }
     // Prodotti con flag: se NO → doc extra obbligatorio
     if (docConfig?.hasExtra && flagDocCompleto === false && docExtra1.length === 0)
       e.docExtra1 = "Il documento aggiuntivo è obbligatorio";
@@ -477,6 +499,20 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
             indirizzo: indirizzo.trim() || undefined,
           },
           data_fine_lavori: dataFineLavori ? format(dataFineLavori, "yyyy-MM-dd") : undefined,
+          fgas: tipoProdotto === "pompe_calore" && !isPrivato
+            ? {
+                requested: fgasRequested === true,
+                package: fgasRequested === true ? "enea_fgas_full" : "enea_only",
+                price_net_eur: fgasRequested === true ? 90 : undefined,
+                status: fgasRequested === true ? "ricevuta_da_verificare" : "non_richiesta",
+                address_same_as_invoice: fgasRequested === true ? fgasAddressSame : undefined,
+                installation_address:
+                  fgasRequested === true && fgasAddressSame === false
+                    ? fgasInstallationAddress.trim()
+                    : undefined,
+                gas_movement: fgasRequested === true ? fgasGasMovement : undefined,
+              }
+            : undefined,
           note: note.trim() || undefined,
         };
         const fd = new FormData();
@@ -485,6 +521,8 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
         docExtra1.forEach((f) => fd.append("doc_extra", f));
         docExtra2.forEach((f) => fd.append("libretto", f));
         moduliRaccoltaFiles.forEach((f) => fd.append("moduli_raccolta", f));
+        fgasPlateFiles.forEach((f) => fd.append("fgas_targhetta", f));
+        fgasInterventionFiles.forEach((f) => fd.append("fgas_rapporto", f));
 
         const { data, error: fnErr } = await supabase.functions.invoke("richiesta-pubblica", { body: fd });
         if (fnErr) throw new Error(fnErr.message);
@@ -586,6 +624,23 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
           cliente_cf: cf.trim() || null,
           cliente_indirizzo: indirizzo.trim() || null,
           data_fine_lavori: dataFineLavori ? format(dataFineLavori, "yyyy-MM-dd") : null,
+          dati_form: tipoProdotto === "pompe_calore" && !isPrivato
+            ? {
+                fgas: {
+                  requested: fgasRequested === true,
+                  package: fgasRequested === true ? "enea_fgas_full" : "enea_only",
+                  price_net_eur: fgasRequested === true ? 90 : null,
+                  status: fgasRequested === true ? "ricevuta_da_verificare" : "non_richiesta",
+                  address_same_as_invoice: fgasRequested === true ? fgasAddressSame : null,
+                  installation_address:
+                    fgasRequested === true && fgasAddressSame === false
+                      ? fgasInstallationAddress.trim()
+                      : null,
+                  gas_movement: fgasRequested === true ? fgasGasMovement : null,
+                  intervention_date_source: dataFineLavori ? format(dataFineLavori, "yyyy-MM-dd") : null,
+                },
+              }
+            : {},
           note: note.trim() || null,
           // Prova dell'accettazione del contratto di servizio da parte del
           // rivenditore che sta inserendo questa pratica.
@@ -602,14 +657,23 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
       if (insertError || !practice) throw insertError ?? new Error("Insert fallito");
 
       // Upload documenti in parallelo
-      const [fatture, docExtra, docExtra2Res, moduliRes] = await Promise.all([
+      const [fatture, docExtra, docExtra2Res, moduliRes, fgasPlateRes, fgasInterventionRes] = await Promise.all([
         uploadFiles(fatturaFiles, practice.id, "fattura"),
         uploadFiles(docExtra1, practice.id, "doc_extra"),
         uploadFiles(docExtra2, practice.id, "libretto"),
         uploadFiles(moduliRaccoltaFiles, practice.id, "moduli_raccolta"),
+        uploadFiles(fgasPlateFiles, practice.id, "fgas_targhetta"),
+        uploadFiles(fgasInterventionFiles, practice.id, "fgas_rapporto_intervento"),
       ]);
 
-      const allFailed = [...fatture.failed, ...docExtra.failed, ...docExtra2Res.failed, ...moduliRes.failed];
+      const allFailed = [
+        ...fatture.failed,
+        ...docExtra.failed,
+        ...docExtra2Res.failed,
+        ...moduliRes.failed,
+        ...fgasPlateRes.failed,
+        ...fgasInterventionRes.failed,
+      ];
       if (allFailed.length > 0) {
         toast({
           variant: "destructive",
@@ -618,10 +682,19 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
         });
       }
 
-      if (fatture.urls.length || docExtra.urls.length || docExtra2Res.urls.length || moduliRes.urls.length) {
+      if (
+        fatture.urls.length || docExtra.urls.length || docExtra2Res.urls.length || moduliRes.urls.length ||
+        fgasPlateRes.urls.length || fgasInterventionRes.urls.length
+      ) {
         await supabase.from("enea_practices").update({
           fatture_urls: fatture.urls,
-          documenti_aggiuntivi_urls: [...docExtra.urls, ...docExtra2Res.urls, ...moduliRes.urls],
+          documenti_aggiuntivi_urls: [
+            ...docExtra.urls,
+            ...docExtra2Res.urls,
+            ...moduliRes.urls,
+            ...fgasPlateRes.urls,
+            ...fgasInterventionRes.urls,
+          ],
         }).eq("id", practice.id);
       }
 
@@ -679,6 +752,8 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
     setNome(""); setCognome(""); setEmail(""); setTelefono("");
     setCf(""); setIndirizzo(""); setNote("");
     setFatturaFiles([]); setDocExtra1([]); setDocExtra2([]);
+    setFgasRequested(null); setFgasAddressSame(null); setFgasInstallationAddress("");
+    setFgasGasMovement(null); setFgasPlateFiles([]); setFgasInterventionFiles([]);
     setModuliRaccoltaFiles([]);
     setFlagDocCompleto(null); setErrors({});
     setAccettoContratto(false);
@@ -712,8 +787,8 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
   // numerazione va ricalcolata o si vedrebbe "2, 5, 6, 7".
   // (le sezioni nascoste restano a 0: non vengono renderizzate)
   const S = isPrivato
-    ? { servizio: 0, prodotto: 1, soggetto: 0, fatturazione: 0, dati: 2, documenti: 3, note: 4 }
-    : { servizio: 1, prodotto: 2, soggetto: 3, fatturazione: 4, dati: 5, documenti: 6, note: 7 };
+    ? { servizio: 0, prodotto: 1, soggetto: 0, fatturazione: 0, dati: 2, documenti: 3, fgas: 0, note: 4 }
+    : { servizio: 1, prodotto: 2, soggetto: 3, fatturazione: 4, dati: 5, documenti: 6, fgas: 7, note: tipoProdotto === "pompe_calore" ? 8 : 7 };
 
   // ── Success screen ─────────────────────────────────────────────────────────
   if (submitted) {
@@ -725,6 +800,7 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
         <h1 className="text-2xl font-bold">Pratica inviata!</h1>
         <p className="text-muted-foreground text-sm leading-relaxed">
           La pratica per <strong>{submitted.nome}</strong> è stata creata con successo.
+          {fgasRequested === true ? " Abbiamo ricevuto anche la richiesta F-Gas del pacchetto completo." : ""}
           {tipoServizio === "servizio_completo"
             ? " Il nostro team contatterà il cliente a breve."
             : " La pratica è in lavorazione."}
@@ -1080,6 +1156,12 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
                   setFlagDocCompleto(null);
                   setDocExtra1([]);
                   setDocExtra2([]);
+                  setFgasRequested(null);
+                  setFgasAddressSame(null);
+                  setFgasInstallationAddress("");
+                  setFgasGasMovement(null);
+                  setFgasPlateFiles([]);
+                  setFgasInterventionFiles([]);
                 }}
                 className={cn(
                   "flex items-center gap-3 rounded-lg border-2 p-3.5 text-left transition-all hover:shadow-sm focus:outline-none",
@@ -1432,7 +1514,7 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
               </p>
             )}
             <FileDropzone
-              label="Certificato F-GAS (marca e modello)"
+              label="Scheda tecnica o certificato del prodotto (marca e modello)"
               required
               files={docExtra2}
               onAdd={(f) => setDocExtra2((p) => [...p, ...f])}
@@ -1448,6 +1530,172 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
           </div>
         )}
       </Section>
+
+      {/* ── 7. Pacchetto F-Gas — solo installatori/rivenditori ────────────
+          Non replichiamo il portale ministeriale: chiediamo solo le prove e le
+          tre informazioni che PraticaRapida non può ricavare autonomamente. */}
+      {tipoProdotto === "pompe_calore" && !isPrivato && (
+        <Section number={S.fgas} title="Gestione pratica F-Gas (opzionale)">
+          <div className="space-y-3">
+            <div>
+              <p className="font-semibold text-sm">Vuoi aggiungere anche la gestione della pratica F-Gas?</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Se scegli il pacchetto completo riutilizziamo fattura, cliente e dati ENEA: non dovrai compilare un secondo modulo tecnico.
+              </p>
+            </div>
+            {errors.fgasRequested && (
+              <p className="text-xs text-destructive flex items-center gap-1" data-error>
+                <AlertCircle className="h-3.5 w-3.5" />{errors.fgasRequested}
+              </p>
+            )}
+            <div className="grid sm:grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setFgasRequested(false);
+                  setErrors((p) => ({ ...p, fgasRequested: "" }));
+                }}
+                className={cn(
+                  "rounded-xl border-2 p-4 text-left transition-all hover:shadow-sm",
+                  fgasRequested === false ? "border-slate-400 bg-slate-50" : "border-border hover:border-slate-300",
+                )}
+              >
+                <p className="font-semibold text-sm">No, solo pratica ENEA</p>
+                <p className="text-xs text-muted-foreground mt-1">Lavoreremo esclusivamente la pratica ENEA.</p>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setFgasRequested(true);
+                  setErrors((p) => ({ ...p, fgasRequested: "" }));
+                }}
+                className={cn(
+                  "rounded-xl border-2 p-4 text-left transition-all hover:shadow-sm",
+                  fgasRequested === true ? "border-sky-500 bg-sky-50" : "border-border hover:border-sky-300",
+                )}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <p className="font-semibold text-sm">Sì, pacchetto completo</p>
+                  <Badge className="bg-sky-100 text-sky-800 border-0">90,00 € + IVA 22%</Badge>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">Pratica ENEA + gestione F-Gas con prezzo pacchetto.</p>
+              </button>
+            </div>
+          </div>
+
+          {fgasRequested === false && (
+            <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900">
+              Perfetto: lavoreremo soltanto la pratica ENEA.
+            </div>
+          )}
+
+          {fgasRequested === true && (
+            <div className="space-y-5 rounded-xl border-2 border-sky-200 bg-sky-50/40 p-4">
+              <div>
+                <p className="font-semibold text-sky-950">Pacchetto completo attivato</p>
+                <p className="text-xs text-sky-900/80 mt-1">
+                  Ci occupiamo noi dei dati tecnici e della compilazione. Ti chiediamo solo una foto e due risposte veloci.
+                </p>
+              </div>
+
+              <div>
+                {errors.fgasPlate && (
+                  <p className="text-xs text-destructive flex items-center gap-1 mb-2" data-error>
+                    <AlertCircle className="h-3.5 w-3.5" />{errors.fgasPlate}
+                  </p>
+                )}
+                <FileDropzone
+                  label="Foto leggibile della targhetta della pompa di calore"
+                  required
+                  files={fgasPlateFiles}
+                  onAdd={(f) => setFgasPlateFiles((p) => [...p, ...f])}
+                  onRemove={(i) => setFgasPlateFiles((p) => p.filter((_, j) => j !== i))}
+                />
+                <p className="text-xs text-muted-foreground mt-1.5">Se ci sono più unità, carica una foto per ciascuna targhetta.</p>
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-sm font-medium">L'indirizzo di installazione è quello riportato sulla fattura?</p>
+                {errors.fgasAddressSame && <p className="text-xs text-destructive" data-error>{errors.fgasAddressSame}</p>}
+                <div className="flex gap-2">
+                  {([true, false] as const).map((value) => (
+                    <button
+                      key={String(value)}
+                      type="button"
+                      onClick={() => {
+                        setFgasAddressSame(value);
+                        setErrors((p) => ({ ...p, fgasAddressSame: "" }));
+                      }}
+                      className={cn(
+                        "flex-1 rounded-lg border-2 py-2 text-sm font-medium",
+                        fgasAddressSame === value ? "border-sky-500 bg-white text-sky-800" : "border-border bg-white",
+                      )}
+                    >
+                      {value ? "Sì" : "No"}
+                    </button>
+                  ))}
+                </div>
+                {fgasAddressSame === false && (
+                  <div>
+                    <Input
+                      value={fgasInstallationAddress}
+                      onChange={(e) => {
+                        setFgasInstallationAddress(e.target.value);
+                        setErrors((p) => ({ ...p, fgasInstallationAddress: "" }));
+                      }}
+                      placeholder="Indirizzo completo di installazione"
+                      className={errors.fgasInstallationAddress ? "border-destructive" : ""}
+                    />
+                    {errors.fgasInstallationAddress && (
+                      <p className="text-xs text-destructive mt-1" data-error>{errors.fgasInstallationAddress}</p>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Durante l'intervento è stato aggiunto o recuperato gas?</p>
+                {errors.fgasGasMovement && <p className="text-xs text-destructive" data-error>{errors.fgasGasMovement}</p>}
+                <div className="grid grid-cols-3 gap-2">
+                  {([
+                    ["no", "No"],
+                    ["si", "Sì"],
+                    ["non_so", "Non lo so"],
+                  ] as const).map(([value, label]) => (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => {
+                        setFgasGasMovement(value);
+                        setErrors((p) => ({ ...p, fgasGasMovement: "" }));
+                      }}
+                      className={cn(
+                        "rounded-lg border-2 py-2 text-sm font-medium",
+                        fgasGasMovement === value ? "border-sky-500 bg-white text-sky-800" : "border-border bg-white",
+                      )}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {(fgasGasMovement === "si" || fgasGasMovement === "non_so") && (
+                <div>
+                  <FileDropzone
+                    label="Foto del rapporto di intervento, se disponibile (opzionale)"
+                    required={false}
+                    files={fgasInterventionFiles}
+                    onAdd={(f) => setFgasInterventionFiles((p) => [...p, ...f])}
+                    onRemove={(i) => setFgasInterventionFiles((p) => p.filter((_, j) => j !== i))}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1.5">Se non lo hai, invia comunque: recupereremo noi i dati mancanti.</p>
+                </div>
+              )}
+            </div>
+          )}
+        </Section>
+      )}
 
       {/* ── 7. Note aggiuntive ───────────────────────────────────────────── */}
       <Section number={S.note} title="Note aggiuntive (opzionale)">
@@ -1523,13 +1771,15 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
         <div className="rounded-xl border bg-card/95 backdrop-blur p-4 shadow-lg flex items-center justify-between gap-4">
           <div className="text-sm text-muted-foreground hidden sm:block">
             {/* Al rivenditore niente importi: il prezzo varia da azienda ad
-                azienda. Al privato il totale va invece SEMPRE in chiaro. */}
+                azienda. Al privato mostriamo sempre imponibile + aliquota. */}
             {isPrivato
               ? [PRODOTTI.find((p) => p.id === tipoProdotto)?.short,
                  prezzoPrivato ? euroScomposto(prezzoPrivato) : undefined,
                 ].filter(Boolean).join(" · ")
               : [tipoServizio && (tipoServizio === "servizio_completo" ? "Servizio Completo" : "Documenti Forniti"),
                  PRODOTTI.find((p) => p.id === tipoProdotto)?.short,
+                 tipoProdotto === "pompe_calore" && fgasRequested === true ? "ENEA + F-Gas · 90,00 € + IVA 22%" : undefined,
+                 tipoProdotto === "pompe_calore" && fgasRequested === false ? "Solo ENEA" : undefined,
                  tipoFatturazione === "cliente_finale" ? "CF" : tipoFatturazione === "rivenditore" ? "A carico mio" : undefined,
                 ].filter(Boolean).join(" · ")}
           </div>
@@ -1547,7 +1797,9 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
             ) : isPrivato ? (
               // "Prosegui" invece di "Vai al pagamento": l'importo accanto
               // basta a far capire dove si sta andando, senza incalzare.
-              prezzoPrivato ? `Prosegui — ${euro(prezzoPrivato.totaleCents)}` : "Prosegui"
+              prezzoPrivato ? `Prosegui — ${euro(prezzoPrivato.imponibileCents)} + IVA ${prezzoPrivato.ivaPercent}%` : "Prosegui"
+            ) : tipoProdotto === "pompe_calore" && fgasRequested === true ? (
+              "Invia pacchetto ENEA + F-Gas — 90,00 € + IVA 22%"
             ) : (
               "Invia Pratica ENEA"
             )}

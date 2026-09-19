@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Download, FileText, Printer, ExternalLink } from "lucide-react";
 import AttoNotorioTemplate from "@/components/documenti/AttoNotorioTemplate";
 import AsseverazioneNeutraTemplate from "@/components/documenti/AsseverazioneNeutraTemplate";
+import GuidaFgasRiservata from "@/components/documenti/GuidaFgasRiservata";
 
 // Documenti serviti come PDF statico (in /public), non come template stampabile.
 interface StaticDoc {
@@ -84,6 +85,7 @@ export default function DocumentiUtili() {
         {DOCUMENT_TEMPLATES.map((tpl) => (
           <DocumentRow key={tpl.id} template={tpl} />
         ))}
+        <GuidaFgasRiservata />
       </div>
     </div>
   );

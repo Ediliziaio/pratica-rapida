@@ -85,13 +85,8 @@ export default function DocumentiUtili() {
         {DOCUMENT_TEMPLATES.map((tpl) => (
           <DocumentRow key={tpl.id} template={tpl} />
         ))}
+        <GuidaFgasRiservata />
       </div>
-
-      <div>
-        <h2 className="font-display text-xl font-bold tracking-tight">Pacchetto ENEA + F-Gas</h2>
-        <p className="text-muted-foreground text-sm mt-1">Guida riservata per le pompe di calore: checklist e abilitazione sul portale F-Gas.</p>
-      </div>
-      <GuidaFgasRiservata />
     </div>
   );
 }

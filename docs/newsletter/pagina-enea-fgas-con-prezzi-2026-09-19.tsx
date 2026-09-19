@@ -122,8 +122,27 @@ export default function ServizioEneaFgas() {
           </div>
         </section>
 
-        {/* Prezzi: NON pubblicati sul sito per decisione del titolare (19/09/2026).
-            Il blocco con le tre tariffe e' conservato in docs/newsletter/ per la newsletter. */}
+        <section className="mx-auto max-w-6xl px-5 py-16 lg:px-8">
+          <div className="grid gap-5 md:grid-cols-3">
+            {[
+              ["65,00 €", "Pratica ENEA", "Gestione e invio della pratica ENEA", "emerald"],
+              ["35,00 €", "Comunicazione F-Gas", "Inserimento dell’intervento in Banca Dati", "sky"],
+              ["90,00 €", "Pacchetto completo", "ENEA + comunicazione F-Gas", "lime"],
+            ].map(([price, title, copy, tone]) => (
+              <article key={title} className={`relative overflow-hidden rounded-[28px] border p-7 shadow-sm ${tone === "lime" ? "border-lime-300 bg-[#efffc7]" : "border-emerald-900/10 bg-white"}`}>
+                {tone === "lime" && <span className="absolute right-5 top-5 rounded-full bg-slate-950 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-white">Più scelto</span>}
+                <p className="text-4xl font-black tracking-tight text-[#009846]">{price}</p>
+                <p className="mt-1 text-xs font-semibold uppercase tracking-widest text-slate-500">+ IVA 22%</p>
+                <h2 className="mt-6 text-xl font-black">{title}</h2>
+                <p className="mt-2 min-h-12 text-sm leading-6 text-slate-600">{copy}</p>
+                <div className="mt-6 flex items-center gap-2 border-t border-slate-900/10 pt-5 text-sm font-bold text-slate-900">
+                  <FileCheck2 className="h-5 w-5 text-[#009846]" /> Fattura solo a lavoro concluso
+                </div>
+              </article>
+            ))}
+          </div>
+          <p className="mt-5 text-center text-xs text-slate-500">Prezzi per singola pratica/comunicazione. Nessun costo di attivazione e nessun canone mensile.</p>
+        </section>
 
         <section className="border-y border-emerald-900/10 bg-white">
           <div className="mx-auto max-w-6xl px-5 py-16 lg:px-8">

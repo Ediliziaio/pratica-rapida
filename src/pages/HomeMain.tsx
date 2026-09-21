@@ -32,8 +32,8 @@ const jsonLd = [
       "@type": "OfferCatalog",
       name: "Servizi Pratica Rapida",
       itemListElement: [
-        { "@type": "Offer", name: "Pratica ENEA", price: "65", priceCurrency: "EUR" },
-        { "@type": "Offer", name: "Pratica Conto Termico", priceCurrency: "EUR" },
+        { "@type": "Offer", name: "Pratica ENEA" },
+        { "@type": "Offer", name: "Pratica Conto Termico" },
       ],
     },
   },

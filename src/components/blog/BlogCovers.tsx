@@ -370,7 +370,7 @@ export function CoverOutsourcing() {
       {/* Cost comparison */}
       <rect x="20" y="160" width="175" height="40" rx="8" fill="rgba(167,139,250,0.08)" stroke="rgba(167,139,250,0.2)" strokeWidth="1" />
       <text x="107" y="175" fontSize="7" fontWeight="700" fill="rgba(167,139,250,0.6)" textAnchor="middle" fontFamily="system-ui, sans-serif">GESTIONE INTERNA</text>
-      <text x="107" y="189" fontSize="8" fill="rgba(167,139,250,0.5)" textAnchor="middle" fontFamily="system-ui, sans-serif">~750€/mese  →  <tspan fill="#a78bfa" fontWeight="700">650€ con PR</tspan></text>
+      <text x="107" y="189" fontSize="8" fill="rgba(167,139,250,0.5)" textAnchor="middle" fontFamily="system-ui, sans-serif">COSTI FISSI  →  <tspan fill="#a78bfa" fontWeight="700">SOLO QUANDO SERVE</tspan></text>
 
       {/* Label */}
       <rect x="22" y="192" width="90" height="18" rx="9" fill="rgba(167,139,250,0.1)" stroke="rgba(167,139,250,0.3)" strokeWidth="0.8" />

@@ -33,7 +33,7 @@ export default function PricingSection() {
           className="text-center mb-10 sm:mb-14"
         >
           <h2 className="font-bold text-2xl sm:text-3xl lg:text-5xl leading-[1.1] mb-4 text-foreground">
-            Un Prezzo. Tutto Incluso.
+            Un Servizio. Tutto Incluso.
             <br />
             <span style={{ color: "hsl(var(--pr-green))" }}>Zero Sorprese.</span>
           </h2>
@@ -53,18 +53,12 @@ export default function PricingSection() {
             className="absolute -top-3 left-1/2 -translate-x-1/2 text-white text-xs font-bold px-4 py-1 rounded-full"
             style={{ backgroundColor: "hsl(var(--pr-green))" }}
           >
-            PREZZO UNICO
+            LISTINO RISERVATO
           </span>
 
           <div className="text-center mb-8">
-            <div className="flex items-baseline justify-center gap-1">
-              <span className="font-bold text-5xl sm:text-6xl text-foreground">65</span>
-              <span className="text-2xl text-foreground font-bold">€</span>
-            </div>
-            <p className="text-muted-foreground mt-1">a pratica completata • IVA esclusa</p>
-            <p className="text-sm font-medium mt-2" style={{ color: "hsl(var(--pr-green))" }}>
-              Prima pratica? Prova senza impegno.
-            </p>
+            <p className="font-bold text-2xl sm:text-3xl text-foreground">Disponibile nell’area rivenditori</p>
+            <p className="text-muted-foreground mt-2">Accedi per consultare il listino dedicato alla tua azienda.</p>
           </div>
 
           <div className="grid sm:grid-cols-2 gap-8">
@@ -102,7 +96,7 @@ export default function PricingSection() {
               className="inline-flex items-center text-white font-bold px-8 py-3.5 rounded-full text-base transition-all hover:brightness-110 active:scale-[0.97]"
               style={{ backgroundColor: "hsl(var(--pr-green))" }}
             >
-              Richiedi Ora
+              Accedi all’area rivenditori
             </Link>
           </div>
         </motion.div>

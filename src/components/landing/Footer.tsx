@@ -23,7 +23,7 @@ export default function Footer() {
             <Link to="/pratica-enea" className="block text-sm mb-2 hover:text-white transition-colors">Pratiche ENEA</Link>
             <Link to="/conto-termico" className="block text-sm mb-2 hover:text-white transition-colors">Conto Termico</Link>
             <Link to="/pratica-enea#come-funziona" className="block text-sm mb-2 hover:text-white transition-colors">Come funziona</Link>
-            <Link to="/pratica-enea#prezzi" className="block text-sm mb-2 hover:text-white transition-colors">Prezzi</Link>
+            <Link to="/auth" className="block text-sm mb-2 hover:text-white transition-colors">Area rivenditori</Link>
           </div>
 
           {/* Azienda */}

@@ -499,7 +499,7 @@ export default function BlogPostPage() {
                 className="inline-flex items-center justify-center gap-2 font-bold text-sm px-6 py-3 rounded-full text-white transition-all hover:brightness-110"
                 style={{ background: "hsl(var(--pr-green))" }}
               >
-                Pratiche ENEA — 65€ <ArrowRight size={14} />
+                Scopri le pratiche ENEA <ArrowRight size={14} />
               </Link>
               <Link
                 to="/conto-termico"

@@ -901,18 +901,8 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
                 <p className="font-semibold text-sm leading-tight">Sono un cliente<br />privato</p>
               </div>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                {/* Tono volutamente piano: il prezzo si dice, non si impone.
-                    Resta comunque in chiaro — nascondere il costo prima del
-                    checkout sarebbe peggio che dirlo. */}
                 {privatoDisponibile ? (
-                  <>
-                    Voglio la pratica ENEA per casa mia.
-                    {prezzoPrivato && (
-                      <> Il servizio costa{" "}
-                      <strong className="text-foreground">{euro(prezzoPrivato.imponibileCents)} + IVA</strong>{" "}
-                      ({euro(prezzoPrivato.totaleCents)} in totale).</>
-                    )}
-                  </>
+                  <>Voglio affidare a Pratica Rapida la pratica ENEA per casa mia.</>
                 ) : (
                   <>Al momento non disponibile online: scrivici e ti seguiamo noi.</>
                 )}
@@ -1077,7 +1067,9 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
               </div>
               <div>
                 <p className="font-semibold text-sm leading-tight">Solo pratica F-Gas</p>
-                <Badge className="text-[10px] mt-0.5 bg-violet-100 text-violet-800 border-0">35,00 € + IVA 22%</Badge>
+                {!publicMode && (
+                  <Badge className="text-[10px] mt-0.5 bg-violet-100 text-violet-800 border-0">35,00 € + IVA 22%</Badge>
+                )}
               </div>
             </div>
             <p className="text-xs text-muted-foreground leading-relaxed">
@@ -1321,7 +1313,7 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
         <div className="rounded-lg border border-amber-200 bg-amber-50/60 dark:border-amber-900/40 dark:bg-amber-950/20 p-4 text-sm">
           <p className="font-medium text-amber-900 dark:text-amber-200">
             Al tuo cliente invieremo il link per pagare il servizio
-            {prezzoCf ? ` (${euroScomposto(prezzoCf)} in totale)` : ""}.
+            {!publicMode && prezzoCf ? ` (${euroScomposto(prezzoCf)} in totale)` : ""}.
             {publicMode ? " Se hai condizioni concordate con Pratica Rapida, al cliente verrà chiesto l'importo dei tuoi accordi." : ""}
           </p>
           <p className="text-xs text-amber-800/80 dark:text-amber-300/80 mt-1">
@@ -1620,7 +1612,7 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
               >
                 <div className="flex items-center justify-between gap-2">
                   <p className="font-semibold text-sm">Sì, pacchetto completo</p>
-                  <Badge className="bg-sky-100 text-sky-800 border-0">90,00 € + IVA 22%</Badge>
+                  {!publicMode && <Badge className="bg-sky-100 text-sky-800 border-0">90,00 € + IVA 22%</Badge>}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">Pratica ENEA + gestione F-Gas con prezzo pacchetto.</p>
               </button>
@@ -1643,7 +1635,7 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
               >
                 <div className="flex items-center justify-between gap-2">
                   <p className="font-semibold text-sm">Solo pratica F-Gas</p>
-                  <Badge className="bg-violet-100 text-violet-800 border-0">35,00 € + IVA 22%</Badge>
+                  {!publicMode && <Badge className="bg-violet-100 text-violet-800 border-0">35,00 € + IVA 22%</Badge>}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">Nessuna pratica ENEA: bastano fattura, data e foto targhetta.</p>
               </button>
@@ -1790,14 +1782,7 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
           />
           <span>
             {isPrivato ? (
-              <>
-                Acconsento al trattamento dei miei dati (GDPR) per la gestione della pratica ENEA
-                {prezzoPrivato && (
-                  <> e ho preso visione del costo del servizio:{" "}
-                  <strong>{euro(prezzoPrivato.imponibileCents)} + IVA</strong> ({euro(prezzoPrivato.totaleCents)} in
-                  totale). Dopo la conferma potrò completare con calma i dati tecnici della pratica</>
-                )}.
-              </>
+              <>Acconsento al trattamento dei miei dati (GDPR) per la gestione della pratica ENEA.</>
             ) : (
               <>
                 Dichiaro di aver informato il cliente finale e acconsento al trattamento dei dati (GDPR)
@@ -1839,16 +1824,12 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
       <div className="sticky bottom-4">
         <div className="rounded-xl border bg-card/95 backdrop-blur p-4 shadow-lg flex items-center justify-between gap-4">
           <div className="text-sm text-muted-foreground hidden sm:block">
-            {/* Al rivenditore niente importi: il prezzo varia da azienda ad
-                azienda. Al privato mostriamo sempre imponibile + aliquota. */}
             {isPrivato
-              ? [PRODOTTI.find((p) => p.id === tipoProdotto)?.short,
-                 prezzoPrivato ? euroScomposto(prezzoPrivato) : undefined,
-                ].filter(Boolean).join(" · ")
+              ? PRODOTTI.find((p) => p.id === tipoProdotto)?.short
               : [tipoServizio && (tipoServizio === "servizio_completo" ? "Servizio Completo" : "Documenti Forniti"),
                  PRODOTTI.find((p) => p.id === tipoProdotto)?.short,
-                 isFgasOnly ? "Solo F-Gas · 35,00 € + IVA 22%" : undefined,
-                 fgasChoice === "enea_fgas_full" ? "ENEA + F-Gas · 90,00 € + IVA 22%" : undefined,
+                 isFgasOnly ? `Solo F-Gas${publicMode ? "" : " · 35,00 € + IVA 22%"}` : undefined,
+                 fgasChoice === "enea_fgas_full" ? `ENEA + F-Gas${publicMode ? "" : " · 90,00 € + IVA 22%"}` : undefined,
                  fgasChoice === "enea_only" ? "Solo ENEA" : undefined,
                  tipoFatturazione === "cliente_finale" ? "CF" : tipoFatturazione === "rivenditore" ? "A carico mio" : undefined,
                 ].filter(Boolean).join(" · ")}
@@ -1865,13 +1846,11 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
                 {isPrivato ? "Un momento..." : "Invio in corso..."}
               </>
             ) : isPrivato ? (
-              // "Prosegui" invece di "Vai al pagamento": l'importo accanto
-              // basta a far capire dove si sta andando, senza incalzare.
-              prezzoPrivato ? `Prosegui — ${euro(prezzoPrivato.imponibileCents)} + IVA ${prezzoPrivato.ivaPercent}%` : "Prosegui"
+              "Prosegui"
             ) : isFgasOnly ? (
-              "Invia pratica Solo F-Gas — 35,00 € + IVA 22%"
+              publicMode ? "Invia pratica Solo F-Gas" : "Invia pratica Solo F-Gas — 35,00 € + IVA 22%"
             ) : fgasChoice === "enea_fgas_full" ? (
-              "Invia pacchetto ENEA + F-Gas — 90,00 € + IVA 22%"
+              publicMode ? "Invia pacchetto ENEA + F-Gas" : "Invia pacchetto ENEA + F-Gas — 90,00 € + IVA 22%"
             ) : (
               "Invia Pratica ENEA"
             )}

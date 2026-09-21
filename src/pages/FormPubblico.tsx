@@ -369,14 +369,6 @@ export default function FormPubblico() {
     ? dynamicCadastralServiceRequested(practice.dati_form)
     : currentCadastralServiceRequested;
   const paymentRequired = practice?.tipo_fatturazione === "cliente_finale" || cadastralServiceRequested;
-  const isTestPayment = practice?.payment_is_test === true;
-  const practiceNetPrice = isTestPayment
-    ? 0.82
-    : practice?.tipo_fatturazione === "cliente_finale"
-    ? (practice.reseller_id === "26796836-cc0e-4bfe-b3a5-0200b2098ed8" ? 100 : 150)
-    : 0;
-  const paymentNetPrice = isTestPayment ? 0.82 : practiceNetPrice + (cadastralServiceRequested ? 10 : 0);
-  const paymentGrossPrice = isTestPayment ? 1 : paymentNetPrice * 1.22;
 
   // Richiedente persona giuridica (P.IVA): il form chiede ragione sociale +
   // partita IVA e "sede legale" al posto dei dati anagrafici e della residenza.
@@ -715,28 +707,8 @@ export default function FormPubblico() {
                 ? "Pagamento confermato. Stiamo completando la fattura e l'invio della pratica."
               : "I dati sono stati salvati. La pratica entrerà in lavorazione soltanto dopo la conferma del pagamento e l'invio della fattura."}
           </p>
-          <div className="rounded-lg border bg-muted/30 p-3 text-left text-sm space-y-1">
-            {isTestPayment ? (
-              <div className="flex justify-between gap-3">
-                <span>Collaudo tecnico pagamento</span>
-                <span>1,00 € IVA inclusa</span>
-              </div>
-            ) : practiceNetPrice > 0 && (
-              <div className="flex justify-between gap-3">
-                <span>Servizio gestione pratica</span>
-                <span>{practiceNetPrice.toFixed(2).replace(".", ",")} € + IVA</span>
-              </div>
-            )}
-            {!isTestPayment && cadastralServiceRequested && (
-              <div className="flex justify-between gap-3">
-                <span>Servizio ricerca dati catastali</span>
-                <span>10,00 € + IVA</span>
-              </div>
-            )}
-            <div className="flex justify-between gap-3 border-t pt-1 font-semibold">
-              <span>Totale IVA inclusa</span>
-              <span>{paymentGrossPrice.toFixed(2).replace(".", ",")} €</span>
-            </div>
+          <div className="rounded-lg border bg-muted/30 p-3 text-sm text-muted-foreground">
+            Verrai indirizzato alla pagina di pagamento sicuro, dove potrai verificare e confermare l’operazione.
           </div>
           {paymentError && (
             <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">

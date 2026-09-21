@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/accordion";
 
 const faqs = [
-  { q: "Quanto costa il servizio?", a: "65€ a pratica completata, IVA esclusa. Nessun canone mensile, nessun costo di attivazione, nessun vincolo contrattuale. Paghi solo quando la pratica è stata effettivamente completata e consegnata." },
+  { q: "Dove trovo il listino?", a: "Il listino completo è riservato ai rivenditori ed è disponibile nell’area riservata. Nessun canone mensile, nessun costo di attivazione e nessun vincolo contrattuale." },
   { q: "Come funziona il contatto con il mio cliente?", a: "Chiamiamo il tuo cliente presentandoci come parte del tuo team / ufficio tecnico. Il cliente non saprà mai che siamo un servizio esterno. Raccogliamo tutti i documenti necessari direttamente da lui." },
   { q: "Quanto tempo ci vuole per completare una pratica?", a: "Entro 24 ore lavorative dalla raccolta completa dei documenti, la pratica ENEA viene compilata, inviata e consegnata a te e al tuo cliente." },
   { q: "Cosa succede se c'è un errore nella pratica?", a: "Ogni pratica è coperta da assicurazione RC professionale. In caso di errore, lo correggiamo immediatamente e gratuitamente. La responsabilità è nostra." },

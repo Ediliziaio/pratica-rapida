@@ -453,7 +453,7 @@ export function StepCatastali({ data, errors, patchSection }: StepProps) {
             Non li ho, voglio che li recuperate voi
           </Label>
           <p className="text-xs text-muted-foreground">
-            Servizio aggiuntivo: 10,00 € + IVA 22% (12,20 € IVA inclusa)
+            Servizio aggiuntivo
           </p>
         </div>
         <Switch
@@ -469,7 +469,7 @@ export function StepCatastali({ data, errors, patchSection }: StepProps) {
             <p className="font-semibold">Perfetto, ce ne occupiamo noi.</p>
             <p className="mt-1">
               Non devi aspettare i dati catastali: continua subito a compilare la pratica.
-              Il servizio costa 10,00 € + IVA 22% (12,20 €) e potrai pagarlo al termine del modulo.
+              Potrai completare il pagamento del servizio al termine del modulo.
             </p>
           </div>
           <p className="text-sm text-muted-foreground">

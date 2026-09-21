@@ -37,9 +37,6 @@ interface Pagamento {
   totale_cents?: number | null;
 }
 
-const euro = (cents: number) =>
-  (cents / 100).toLocaleString("it-IT", { style: "currency", currency: "EUR" });
-
 function Riquadro({ children }: { children: React.ReactNode }) {
   return (
     <main className="min-h-screen bg-gray-50 pt-24 pb-20">
@@ -302,10 +299,10 @@ export default function PagamentoCliente() {
 
         <p className="text-sm leading-relaxed">
           {senzaRivenditore ? (
-            <>Qui sotto trovi il riepilogo del costo, che puoi saldare quando preferisci.</>
+            <>Puoi procedere al pagamento quando preferisci.</>
           ) : (
-            <>Come da accordi presi con {dati.reseller_name}, il costo del servizio è a tuo
-            carico. Qui sotto trovi il riepilogo e puoi procedere quando preferisci.</>
+            <>Come da accordi presi con {dati.reseller_name}, il pagamento del servizio è a tuo
+            carico e puoi procedere quando preferisci.</>
           )}{" "}
           {documentiForniti ? (
             <>Dopo il pagamento non dovrai fare nient'altro: prepariamo la pratica e ti
@@ -315,21 +312,6 @@ export default function PagamentoCliente() {
             online — bastano circa 5 minuti — e da lì in poi pensiamo a tutto noi.</>
           )}
         </p>
-
-        <div className="rounded-lg border bg-muted/30 p-4 flex items-baseline justify-between gap-3">
-          <div>
-            <span className="text-sm text-muted-foreground">Costo del servizio</span>
-            {prezzo && (
-              <p className="text-xs text-muted-foreground mt-0.5">
-                {euro(prezzo.imponibileCents)} + IVA {prezzo.ivaPercent}%
-              </p>
-            )}
-          </div>
-          <span className="text-lg font-bold">
-            {prezzo ? euro(prezzo.totaleCents) : "—"}
-          </span>
-        </div>
-        <p className="text-xs text-muted-foreground -mt-3">Totale, IVA inclusa</p>
 
         {esito === "annullato" && (
           <p className="text-sm rounded-md border border-amber-200 bg-amber-50 p-3 text-amber-800">
@@ -346,7 +328,7 @@ export default function PagamentoCliente() {
           {avvio ? (
             <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Un attimo…</>
           ) : prezzo ? (
-            `Prosegui — ${euro(prezzo.totaleCents)}`
+            "Prosegui al pagamento"
           ) : (
             "Pagamento non disponibile"
           )}

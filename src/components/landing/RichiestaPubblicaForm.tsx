@@ -221,7 +221,7 @@ export default function RichiestaPubblicaForm({ modulo, prodottoFisso, prodotti,
           style={{ background: "hsl(152 65% 38%)" }}
         >
           <CreditCard className="w-4 h-4" />
-          Procedi al pagamento — € {(priceCents / 100).toFixed(2)}
+          Procedi al pagamento
         </a>
         <p className="text-xs text-gray-400 mt-3">Se non vieni reindirizzato automaticamente, clicca il pulsante.</p>
       </div>
@@ -575,7 +575,7 @@ export default function RichiestaPubblicaForm({ modulo, prodottoFisso, prodotti,
         {submitting
           ? "Invio in corso…"
           : requiresPayment
-            ? `Vai al pagamento — € ${(priceCents / 100).toFixed(2)}`
+            ? "Vai al pagamento"
             : conTipoServizio && tipoServizio === "documenti_forniti"
               ? "Invia e compila il modulo"
               : "Invia la richiesta"}

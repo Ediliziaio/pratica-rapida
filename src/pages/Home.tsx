@@ -28,7 +28,6 @@ const jsonLd = [
     provider: { "@type": "Organization", name: "Pratica Rapida", url: "https://www.praticarapida.it" },
     description: "Gestione completa delle pratiche ENEA Ecobonus e Bonus Casa per installatori: infissi, serramenti, schermature solari, pompe di calore. Raccolta documenti dal cliente finale, compilazione e invio telematico ENEA entro 48 ore lavorative.",
     areaServed: "IT",
-    offers: { "@type": "Offer", price: "65", priceCurrency: "EUR", priceSpecification: { "@type": "UnitPriceSpecification", price: "65", priceCurrency: "EUR", unitText: "pratica" } },
     audience: { "@type": "BusinessAudience", audienceType: "Installatori, Serramentisti, Rivenditori" },
   },
   {
@@ -48,7 +47,7 @@ const jsonLd = [
         name: "Quanto costa il servizio?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "65€ a pratica completata, IVA esclusa. Nessun canone mensile, nessun costo di attivazione, nessun vincolo contrattuale. Paghi solo quando la pratica è stata effettivamente completata e consegnata.",
+          text: "Il listino completo è disponibile ai rivenditori nella loro area riservata. Nessun canone mensile, nessun costo di attivazione e nessun vincolo contrattuale.",
         },
       },
       {

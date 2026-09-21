@@ -108,7 +108,7 @@ export function DynamicSteps({
           ? {
               ...field,
               label: "Non ho i dati catastali: richiedo il servizio di ricerca",
-              help_text: "Servizio aggiuntivo: 10,00 € + IVA 22% (12,20 € IVA inclusa). Riceverai la fattura via email.",
+              help_text: "Servizio aggiuntivo. Riceverai la fattura via email.",
             }
           : isCadastralStep && (
             (!recoveryRequested && ["foglio", "mappale"].includes(field.key)) ||
@@ -135,7 +135,7 @@ export function DynamicSteps({
           <p className="font-semibold">Perfetto, ce ne occupiamo noi.</p>
           <p className="mt-1">
             Non devi aspettare i dati catastali: continua subito a compilare la pratica.
-            Il servizio costa 10,00 € + IVA 22% (12,20 €) e potrai pagarlo al termine del modulo.
+            Potrai completare il pagamento del servizio al termine del modulo.
           </p>
         </div>
       )}

@@ -51,6 +51,7 @@ const euroScomposto = (p: { imponibileCents: number; totaleCents: number }) =>
 
 type TipoProdotto = "schermature_solari" | "infissi" | "vepa" | "pompe_calore" | "insufflaggio_tetti";
 type MovimentoGasFgas = "no" | "si" | "non_so";
+type SceltaFgas = "enea_only" | "enea_fgas_full" | "fgas_only";
 
 // ── Config prodotti ───────────────────────────────────────────────────────────
 const PRODOTTI: {
@@ -319,7 +320,7 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
   // Pacchetto F-Gas: al rivenditore chiediamo soltanto ciò che non possiamo
   // ricavare dalla pratica ENEA o dai documenti. Tutti i campi tecnici restano
   // a carico di PraticaRapida nel back-office.
-  const [fgasRequested, setFgasRequested] = useState<boolean | null>(null);
+  const [fgasChoice, setFgasChoice] = useState<SceltaFgas | null>(null);
   const [fgasAddressSame, setFgasAddressSame] = useState<boolean | null>(null);
   const [fgasInstallationAddress, setFgasInstallationAddress] = useState("");
   const [fgasGasMovement, setFgasGasMovement] = useState<MovimentoGasFgas | null>(null);
@@ -382,6 +383,8 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
   };
 
   const docConfig = getDocConfig(tipoProdotto);
+  const isFgasOnly = fgasChoice === "fgas_only";
+  const hasFgas = fgasChoice === "enea_fgas_full" || isFgasOnly;
 
   // ── Validazione ────────────────────────────────────────────────────────────
   const validate = () => {
@@ -404,9 +407,9 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
     }
     // Contratto di servizio: obbligatorio per ogni pratica, in ogni modalità.
     if (!accettoContratto) e.accettoContratto = "Devi accettare le condizioni di servizio per inviare la pratica";
-    if (!tipoServizio)     e.tipoServizio = "Seleziona il tipo di servizio";
+    if (!tipoServizio && !isFgasOnly) e.tipoServizio = "Seleziona il tipo di servizio";
     if (!tipoProdotto)     e.tipoProdotto = "Seleziona il prodotto";
-    if (!tipoSoggetto)     e.tipoSoggetto = "Seleziona il tipo di soggetto";
+    if (!tipoSoggetto && !isFgasOnly) e.tipoSoggetto = "Seleziona il tipo di soggetto";
     if (!tipoFatturazione) e.tipoFatturazione = "Seleziona la fatturazione";
     if (!nome.trim())      e.nome = "Nome obbligatorio";
     if (!cognome.trim())   e.cognome = "Cognome obbligatorio";
@@ -414,30 +417,30 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
     if (!dataFineLavori)   e.dataFineLavori = "La data di fine lavori è obbligatoria";
     if (fatturaFiles.length === 0) e.fattura = "La fattura è obbligatoria";
     // Documenti forniti: i moduli di raccolta dati compilati sono obbligatori per ogni prodotto
-    if (tipoServizio === "documenti_forniti" && !documentiMode)
+    if (!isFgasOnly && tipoServizio === "documenti_forniti" && !documentiMode)
       e.documentiMode = "Scegli se allegare i moduli cartacei o compilare il form online";
     // I moduli di raccolta dati sono obbligatori SOLO se si è scelto il cartaceo.
-    if (tipoServizio === "documenti_forniti" && documentiMode === "moduli_cartacei" && moduliRaccoltaFiles.length === 0)
+    if (!isFgasOnly && tipoServizio === "documenti_forniti" && documentiMode === "moduli_cartacei" && moduliRaccoltaFiles.length === 0)
       e.moduliRaccolta = "I moduli di raccolta dati compilati sono obbligatori";
     // Contattare o no il cliente è una decisione di chi compila: niente default.
-    if (tipoServizio === "documenti_forniti" && inviaPraticaCliente === null)
+    if (!isFgasOnly && tipoServizio === "documenti_forniti" && inviaPraticaCliente === null)
       e.inviaPraticaCliente = "Rispondi se dobbiamo mandare la pratica al cliente";
     // "Sì" senza email = promessa che non possiamo mantenere: la pratica si
     // consegna via email, quindi qui l'email diventa obbligatoria.
-    if (tipoServizio === "documenti_forniti" && inviaPraticaCliente === true && !email.trim())
+    if (!isFgasOnly && tipoServizio === "documenti_forniti" && inviaPraticaCliente === true && !email.trim())
       e.email = "Serve l'email del cliente per potergli inviare la pratica";
     // A carico del cliente finale: il link per pagare arriva via email. Senza,
     // non c'e' nessun modo di raggiungerlo e la pratica resta ferma.
     if (!isPrivato && tipoFatturazione === "cliente_finale" && !EMAIL_RE.test(email.trim()))
       e.email = "Serve l'email del cliente: e' li' che arriva il link per il pagamento";
     // Pompe di calore: documento tecnico necessario alla pratica ENEA.
-    if (tipoProdotto === "pompe_calore" && docExtra2.length === 0)
+    if (tipoProdotto === "pompe_calore" && !isFgasOnly && docExtra2.length === 0)
       e.libretto = "La scheda tecnica o il certificato del prodotto è obbligatorio";
     // Il pacchetto F-Gas è proposto soltanto a rivenditori/installatori. Il
     // percorso resta volutamente corto: una scelta e tre informazioni semplici.
     if (tipoProdotto === "pompe_calore" && !isPrivato) {
-      if (fgasRequested === null) e.fgasRequested = "Indica se vuoi aggiungere la gestione F-Gas";
-      if (fgasRequested === true) {
+      if (fgasChoice === null) e.fgasRequested = "Scegli ENEA, pacchetto completo oppure solo F-Gas";
+      if (hasFgas) {
         if (fgasPlateFiles.length === 0) e.fgasPlate = "Carica almeno una foto leggibile della targhetta";
         if (fgasAddressSame === null) e.fgasAddressSame = "Conferma l'indirizzo di installazione";
         if (fgasAddressSame === false && fgasInstallationAddress.trim().length < 5)
@@ -468,19 +471,19 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
       try {
         const prodottoLabel = PRODOTTI.find((p) => p.id === tipoProdotto)?.label ?? tipoProdotto ?? "";
         const payload = {
-          modulo: "pratica-enea",
-          prodotto: prodottoLabel,
+          modulo: isFgasOnly ? "pratica-fgas" : "pratica-enea",
+          prodotto: isFgasOnly ? "Pratica F-Gas" : prodottoLabel,
           richiedente_tipo: richiedenteTipo ?? "rivenditore",
           // Il cliente privato completa prima tutti i dati fiscali e tecnici;
           // il pagamento TS Pay viene proposto alla fine del modulo.
           requires_payment: false,
-          tipo_servizio: tipoServizio,
+          tipo_servizio: isFgasOnly ? "documenti_forniti" : tipoServizio,
           // Sotto-modalità documenti_forniti: cartacei (tutto allegato → pronte
           // da fare) vs form online (il rivenditore compila lui il /form).
-          documenti_mode: tipoServizio === "documenti_forniti" ? documentiMode : undefined,
+          documenti_mode: isFgasOnly ? "moduli_cartacei" : tipoServizio === "documenti_forniti" ? documentiMode : undefined,
           // Solo documenti_forniti: il rivenditore ha scelto se farci inviare la
           // pratica conclusa al suo cliente.
-          invia_pratica_al_cliente: tipoServizio === "documenti_forniti" && inviaPraticaCliente === true,
+          invia_pratica_al_cliente: !isFgasOnly && tipoServizio === "documenti_forniti" && inviaPraticaCliente === true,
           tipo_fatturazione: tipoFatturazione,
           tipo_soggetto: tipoSoggetto,
           azienda: isPrivato
@@ -501,16 +504,17 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
           data_fine_lavori: dataFineLavori ? format(dataFineLavori, "yyyy-MM-dd") : undefined,
           fgas: tipoProdotto === "pompe_calore" && !isPrivato
             ? {
-                requested: fgasRequested === true,
-                package: fgasRequested === true ? "enea_fgas_full" : "enea_only",
-                price_net_eur: fgasRequested === true ? 90 : undefined,
-                status: fgasRequested === true ? "ricevuta_da_verificare" : "non_richiesta",
-                address_same_as_invoice: fgasRequested === true ? fgasAddressSame : undefined,
+                requested: hasFgas,
+                package: fgasChoice,
+                price_net_eur: isFgasOnly ? 35 : hasFgas ? 90 : undefined,
+                fgas_price_net_eur: isFgasOnly ? 35 : hasFgas ? 30 : undefined,
+                status: hasFgas ? "ricevuta_da_verificare" : "non_richiesta",
+                address_same_as_invoice: hasFgas ? fgasAddressSame : undefined,
                 installation_address:
-                  fgasRequested === true && fgasAddressSame === false
+                  hasFgas && fgasAddressSame === false
                     ? fgasInstallationAddress.trim()
                     : undefined,
-                gas_movement: fgasRequested === true ? fgasGasMovement : undefined,
+                gas_movement: hasFgas ? fgasGasMovement : undefined,
               }
             : undefined,
           note: note.trim() || undefined,
@@ -595,7 +599,9 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
       //  - documenti_forniti + form online → "attesa_compilazione" (il rivenditore
       //    compilerà il form a nome del cliente, poi diventa pronte_da_fare)
       const targetStageType =
-        tipoServizio === "servizio_completo"
+        isFgasOnly
+          ? "pronte_da_fare"
+          : tipoServizio === "servizio_completo"
           ? "inviata"
           : documentiMode === "moduli_cartacei"
             ? "pronte_da_fare"
@@ -610,13 +616,13 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
           reseller_id: effectiveResellerId,
           brand: "enea",
           current_stage_id: initialStage?.id ?? null,
-          tipo_servizio: tipoServizio === "documenti_forniti" ? "documenti_forniti" : "servizio_completo",
+          tipo_servizio: isFgasOnly || tipoServizio === "documenti_forniti" ? "documenti_forniti" : "servizio_completo",
           // Ha senso solo con documenti_forniti: nel servizio completo il
           // cliente riceve la pratica comunque.
-          invia_pratica_al_cliente: tipoServizio === "documenti_forniti" && inviaPraticaCliente === true,
+          invia_pratica_al_cliente: !isFgasOnly && tipoServizio === "documenti_forniti" && inviaPraticaCliente === true,
           tipo_fatturazione: tipoFatturazione,
           tipo_soggetto: tipoSoggetto,
-          prodotto_installato: prodottoLabel,
+          prodotto_installato: isFgasOnly ? "Pratica F-Gas" : prodottoLabel,
           cliente_nome: nome.trim(),
           cliente_cognome: cognome.trim(),
           cliente_email: email.trim() || null,
@@ -627,20 +633,22 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
           dati_form: tipoProdotto === "pompe_calore" && !isPrivato
             ? {
                 fgas: {
-                  requested: fgasRequested === true,
-                  package: fgasRequested === true ? "enea_fgas_full" : "enea_only",
-                  price_net_eur: fgasRequested === true ? 90 : null,
-                  status: fgasRequested === true ? "ricevuta_da_verificare" : "non_richiesta",
-                  address_same_as_invoice: fgasRequested === true ? fgasAddressSame : null,
+                  requested: hasFgas,
+                  package: fgasChoice,
+                  price_net_eur: isFgasOnly ? 35 : hasFgas ? 90 : null,
+                  fgas_price_net_eur: isFgasOnly ? 35 : hasFgas ? 30 : null,
+                  status: hasFgas ? "ricevuta_da_verificare" : "non_richiesta",
+                  address_same_as_invoice: hasFgas ? fgasAddressSame : null,
                   installation_address:
-                    fgasRequested === true && fgasAddressSame === false
+                    hasFgas && fgasAddressSame === false
                       ? fgasInstallationAddress.trim()
                       : null,
-                  gas_movement: fgasRequested === true ? fgasGasMovement : null,
+                  gas_movement: hasFgas ? fgasGasMovement : null,
                   intervention_date_source: dataFineLavori ? format(dataFineLavori, "yyyy-MM-dd") : null,
                 },
               }
             : {},
+          prezzo: isFgasOnly ? 35 : hasFgas ? 90 : null,
           note: note.trim() || null,
           // Prova dell'accettazione del contratto di servizio da parte del
           // rivenditore che sta inserendo questa pratica.
@@ -699,7 +707,7 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
       }
 
       // Trigger automations for "servizio_completo" (email+WA al cliente)
-      if (tipoServizio === "servizio_completo") {
+      if (!isFgasOnly && tipoServizio === "servizio_completo") {
         supabase.functions.invoke("on-practice-created", {
           body: { practice_id: practice.id },
         }).catch(console.error); // non-blocking
@@ -709,7 +717,7 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
       // rivenditore compila lui il modulo, ma il pagamento resta del cliente e
       // il link glielo deve mandare qualcuno. Negli altri rami ci pensa la
       // chiamata a on-practice-created gia' presente; qui non c'era.
-      if (tipoServizio === "documenti_forniti" && documentiMode === "form_online" && tipoFatturazione === "cliente_finale") {
+      if (!isFgasOnly && tipoServizio === "documenti_forniti" && documentiMode === "form_online" && tipoFatturazione === "cliente_finale") {
         supabase.functions.invoke("on-practice-created", {
           body: { practice_id: practice.id, reseller_only: true },
         }).catch(console.error); // non-blocking
@@ -717,7 +725,7 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
 
       // "documenti_forniti" + FORM ONLINE: il rivenditore compila il modulo
       // cliente a nome del cliente. Reindirizziamo al FormPubblico col token.
-      if (tipoServizio === "documenti_forniti" && documentiMode === "form_online" && practice.form_token) {
+      if (!isFgasOnly && tipoServizio === "documenti_forniti" && documentiMode === "form_online" && practice.form_token) {
         toast({
           title: "Pratica creata",
           description: "Ora compila il modulo cliente con tutti i dettagli per inviarcela.",
@@ -730,7 +738,7 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
       // "pronte da fare". Nessun messaggio al cliente; al rivenditore parte solo
       // l'email "pratica ricevuta" (reseller_only). La seconda email ("lavorata")
       // arriverà quando lo staff la chiude (on-stage-changed → notifica rivenditore).
-      if (tipoServizio === "documenti_forniti" && documentiMode === "moduli_cartacei") {
+      if (isFgasOnly || (tipoServizio === "documenti_forniti" && documentiMode === "moduli_cartacei")) {
         supabase.functions.invoke("on-practice-created", {
           body: { practice_id: practice.id, reseller_only: true },
         }).catch(console.error); // non-blocking
@@ -752,7 +760,7 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
     setNome(""); setCognome(""); setEmail(""); setTelefono("");
     setCf(""); setIndirizzo(""); setNote("");
     setFatturaFiles([]); setDocExtra1([]); setDocExtra2([]);
-    setFgasRequested(null); setFgasAddressSame(null); setFgasInstallationAddress("");
+    setFgasChoice(null); setFgasAddressSame(null); setFgasInstallationAddress("");
     setFgasGasMovement(null); setFgasPlateFiles([]); setFgasInterventionFiles([]);
     setModuliRaccoltaFiles([]);
     setFlagDocCompleto(null); setErrors({});
@@ -788,6 +796,8 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
   // (le sezioni nascoste restano a 0: non vengono renderizzate)
   const S = isPrivato
     ? { servizio: 0, prodotto: 1, soggetto: 0, fatturazione: 0, dati: 2, documenti: 3, fgas: 0, note: 4 }
+    : isFgasOnly
+      ? { servizio: 0, prodotto: 1, soggetto: 0, fatturazione: 0, dati: 2, documenti: 3, fgas: 4, note: 5 }
     : { servizio: 1, prodotto: 2, soggetto: 3, fatturazione: 4, dati: 5, documenti: 6, fgas: 7, note: tipoProdotto === "pompe_calore" ? 8 : 7 };
 
   // ── Success screen ─────────────────────────────────────────────────────────
@@ -800,7 +810,9 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
         <h1 className="text-2xl font-bold">Pratica inviata!</h1>
         <p className="text-muted-foreground text-sm leading-relaxed">
           La pratica per <strong>{submitted.nome}</strong> è stata creata con successo.
-          {fgasRequested === true ? " Abbiamo ricevuto anche la richiesta F-Gas del pacchetto completo." : ""}
+          {isFgasOnly
+            ? " Abbiamo ricevuto la richiesta Solo F-Gas ed è già pronta per la lavorazione."
+            : hasFgas ? " Abbiamo ricevuto anche la richiesta F-Gas del pacchetto completo." : ""}
           {tipoServizio === "servizio_completo"
             ? " Il nostro team contatterà il cliente a breve."
             : " La pratica è in lavorazione."}
@@ -819,7 +831,7 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
   return (
     <form onSubmit={handleSubmit} className="max-w-2xl mx-auto space-y-5 pb-16">
       <div>
-        <h1 className="font-display text-2xl font-bold tracking-tight">Nuova Pratica ENEA</h1>
+        <h1 className="font-display text-2xl font-bold tracking-tight">Nuova pratica ENEA / F-Gas</h1>
         <p className="text-muted-foreground text-sm mt-1">
           Completa tutte le sezioni, poi invia. La pagina si salva automaticamente.
         </p>
@@ -979,14 +991,14 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
           Nascosta al privato: "Documenti Forniti" presuppone i moduli
           cartacei di raccolta dati che compila il rivenditore. Per lui vale
           sempre il servizio completo (impostato in scegliPrivato). */}
-      {!isPrivato && (
+      {!isPrivato && !isFgasOnly && (
       <Section number={S.servizio} title="Tipo di servizio">
         {errors.tipoServizio && (
           <p className="text-xs text-destructive flex items-center gap-1" data-error>
             <AlertCircle className="h-3.5 w-3.5" />{errors.tipoServizio}
           </p>
         )}
-        <div className="grid sm:grid-cols-2 gap-3">
+        <div className="grid sm:grid-cols-3 gap-3">
           {/* Servizio Completo */}
           <button
             type="button"
@@ -1041,10 +1053,41 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
               Pratica Rapida prepara e invia la pratica direttamente.
             </p>
           </button>
+
+          {/* Percorso indipendente: nessun modulo ENEA e nessun contatto al
+              cliente. Fattura, data e targhette arrivano direttamente in CRM. */}
+          <button
+            type="button"
+            onClick={() => {
+              setTipoProdotto("pompe_calore");
+              setFgasChoice("fgas_only");
+              setTipoServizio("documenti_forniti");
+              setDocumentiMode("moduli_cartacei");
+              setInviaPraticaCliente(false);
+              setTipoFatturazione("rivenditore");
+              setDocExtra2([]);
+              setModuliRaccoltaFiles([]);
+              setErrors((p) => ({ ...p, tipoServizio: "", tipoProdotto: "", fgasRequested: "" }));
+            }}
+            className="rounded-xl border-2 border-border p-4 text-left transition-all hover:border-violet-400 hover:shadow-sm focus:outline-none"
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg shrink-0 bg-violet-100 text-violet-700">
+                <Thermometer className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="font-semibold text-sm leading-tight">Solo pratica F-Gas</p>
+                <Badge className="text-[10px] mt-0.5 bg-violet-100 text-violet-800 border-0">35,00 € + IVA 22%</Badge>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Carica fattura e targhette. Al resto pensiamo noi, senza aprire una pratica ENEA.
+            </p>
+          </button>
         </div>
 
         {/* Sotto-scelta per "Documenti Forniti": cartaceo vs form online */}
-        {tipoServizio === "documenti_forniti" && (
+        {!isFgasOnly && tipoServizio === "documenti_forniti" && (
           <div className="mt-4 space-y-2.5">
             <p className="text-sm font-medium">Come vuoi fornire i dati del cliente?</p>
             {errors.documentiMode && (
@@ -1152,11 +1195,12 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
                 key={prod.id}
                 type="button"
                 onClick={() => {
+                  if (isFgasOnly && prod.id === "pompe_calore") return;
                   setTipoProdotto(prod.id);
                   setFlagDocCompleto(null);
                   setDocExtra1([]);
                   setDocExtra2([]);
-                  setFgasRequested(null);
+                  setFgasChoice(null);
                   setFgasAddressSame(null);
                   setFgasInstallationAddress("");
                   setFgasGasMovement(null);
@@ -1188,7 +1232,7 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
 
       {/* ── 3. Tipo di Soggetto ────────────────────────────────────────────
           Nascosta al privato: per definizione è persona fisica. */}
-      {!isPrivato && (
+      {!isPrivato && !isFgasOnly && (
       <Section number={S.soggetto} title="Tipo di soggetto">
         {errors.tipoSoggetto && (
           <p className="text-xs text-destructive flex items-center gap-1" data-error>
@@ -1227,7 +1271,7 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
 
       {/* ── 4. Fatturazione ────────────────────────────────────────────────
           Nascosta al privato: paga lui, non c'è alternativa da scegliere. */}
-      {!isPrivato && (
+      {!isPrivato && !isFgasOnly && (
       <Section number={S.fatturazione} title="Fatturazione del servizio">
         {errors.tipoFatturazione && (
           <p className="text-xs text-destructive flex items-center gap-1" data-error>
@@ -1273,7 +1317,7 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
 
       {/* Cosa comporta il "CF": il rivenditore deve sapere che al SUO cliente
           parte una richiesta di pagamento a nostro nome. */}
-      {!isPrivato && tipoFatturazione === "cliente_finale" && (
+      {!isPrivato && !isFgasOnly && tipoFatturazione === "cliente_finale" && (
         <div className="rounded-lg border border-amber-200 bg-amber-50/60 dark:border-amber-900/40 dark:bg-amber-950/20 p-4 text-sm">
           <p className="font-medium text-amber-900 dark:text-amber-200">
             Al tuo cliente invieremo il link per pagare il servizio
@@ -1344,7 +1388,7 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1.5">
-            <Label htmlFor="data-fine-lavori" className="text-sm">Data di fine lavori *</Label>
+            <Label htmlFor="data-fine-lavori" className="text-sm">{isFgasOnly ? "Data dell'intervento" : "Data di fine lavori"} *</Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
@@ -1388,7 +1432,7 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
             Con questo servizio il cliente non viene mai contattato, quindi
             l'invio della pratica finita dev'essere una scelta esplicita di chi
             compila: non c'è un default sensato al posto suo. */}
-        {tipoServizio === "documenti_forniti" && (
+        {!isFgasOnly && tipoServizio === "documenti_forniti" && (
           <div className="rounded-lg border border-blue-200 bg-blue-50/50 dark:border-blue-900/40 dark:bg-blue-950/20 p-4 space-y-3">
             <div>
               <p className="text-sm font-medium">
@@ -1506,7 +1550,7 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
         )}
 
         {/* Pompe di calore: libretto impianto obbligatorio */}
-        {tipoProdotto === "pompe_calore" && (
+        {tipoProdotto === "pompe_calore" && !isFgasOnly && (
           <div className="space-y-2">
             {errors.libretto && (
               <p className="text-xs text-destructive flex items-center gap-1" data-error>
@@ -1535,12 +1579,12 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
           Non replichiamo il portale ministeriale: chiediamo solo le prove e le
           tre informazioni che PraticaRapida non può ricavare autonomamente. */}
       {tipoProdotto === "pompe_calore" && !isPrivato && (
-        <Section number={S.fgas} title="Gestione pratica F-Gas (opzionale)">
+        <Section number={S.fgas} title="Scelta ENEA / F-Gas">
           <div className="space-y-3">
             <div>
-              <p className="font-semibold text-sm">Vuoi aggiungere anche la gestione della pratica F-Gas?</p>
+              <p className="font-semibold text-sm">Quale pratica vuoi affidare a Pratica Rapida?</p>
               <p className="text-xs text-muted-foreground mt-1">
-                Se scegli il pacchetto completo riutilizziamo fattura, cliente e dati ENEA: non dovrai compilare un secondo modulo tecnico.
+                Puoi scegliere ENEA, il pacchetto completo oppure la sola pratica F-Gas. Riutilizziamo sempre i documenti già caricati.
               </p>
             </div>
             {errors.fgasRequested && (
@@ -1548,16 +1592,16 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
                 <AlertCircle className="h-3.5 w-3.5" />{errors.fgasRequested}
               </p>
             )}
-            <div className="grid sm:grid-cols-2 gap-3">
+            <div className="grid sm:grid-cols-3 gap-3">
               <button
                 type="button"
                 onClick={() => {
-                  setFgasRequested(false);
+                  setFgasChoice("enea_only");
                   setErrors((p) => ({ ...p, fgasRequested: "" }));
                 }}
                 className={cn(
                   "rounded-xl border-2 p-4 text-left transition-all hover:shadow-sm",
-                  fgasRequested === false ? "border-slate-400 bg-slate-50" : "border-border hover:border-slate-300",
+                  fgasChoice === "enea_only" ? "border-slate-400 bg-slate-50" : "border-border hover:border-slate-300",
                 )}
               >
                 <p className="font-semibold text-sm">No, solo pratica ENEA</p>
@@ -1566,12 +1610,12 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
               <button
                 type="button"
                 onClick={() => {
-                  setFgasRequested(true);
+                  setFgasChoice("enea_fgas_full");
                   setErrors((p) => ({ ...p, fgasRequested: "" }));
                 }}
                 className={cn(
                   "rounded-xl border-2 p-4 text-left transition-all hover:shadow-sm",
-                  fgasRequested === true ? "border-sky-500 bg-sky-50" : "border-border hover:border-sky-300",
+                  fgasChoice === "enea_fgas_full" ? "border-sky-500 bg-sky-50" : "border-border hover:border-sky-300",
                 )}
               >
                 <div className="flex items-center justify-between gap-2">
@@ -1580,20 +1624,45 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">Pratica ENEA + gestione F-Gas con prezzo pacchetto.</p>
               </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setFgasChoice("fgas_only");
+                  setTipoServizio("documenti_forniti");
+                  setDocumentiMode("moduli_cartacei");
+                  setInviaPraticaCliente(false);
+                  setTipoFatturazione("rivenditore");
+                  setDocExtra2([]);
+                  setModuliRaccoltaFiles([]);
+                  setErrors((p) => ({ ...p, fgasRequested: "", tipoServizio: "", documentiMode: "", moduliRaccolta: "" }));
+                }}
+                className={cn(
+                  "rounded-xl border-2 p-4 text-left transition-all hover:shadow-sm",
+                  isFgasOnly ? "border-violet-500 bg-violet-50" : "border-border hover:border-violet-300",
+                )}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <p className="font-semibold text-sm">Solo pratica F-Gas</p>
+                  <Badge className="bg-violet-100 text-violet-800 border-0">35,00 € + IVA 22%</Badge>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">Nessuna pratica ENEA: bastano fattura, data e foto targhetta.</p>
+              </button>
             </div>
           </div>
 
-          {fgasRequested === false && (
+          {fgasChoice === "enea_only" && (
             <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900">
               Perfetto: lavoreremo soltanto la pratica ENEA.
             </div>
           )}
 
-          {fgasRequested === true && (
-            <div className="space-y-5 rounded-xl border-2 border-sky-200 bg-sky-50/40 p-4">
+          {hasFgas && (
+            <div className={cn("space-y-5 rounded-xl border-2 p-4", isFgasOnly ? "border-violet-200 bg-violet-50/40" : "border-sky-200 bg-sky-50/40")}>
               <div>
-                <p className="font-semibold text-sky-950">Pacchetto completo attivato</p>
-                <p className="text-xs text-sky-900/80 mt-1">
+                <p className={cn("font-semibold", isFgasOnly ? "text-violet-950" : "text-sky-950")}>
+                  {isFgasOnly ? "Pratica Solo F-Gas attivata" : "Pacchetto completo attivato"}
+                </p>
+                <p className={cn("text-xs mt-1", isFgasOnly ? "text-violet-900/80" : "text-sky-900/80")}>
                   Ci occupiamo noi dei dati tecnici e della compilazione. Ti chiediamo solo una foto e due risposte veloci.
                 </p>
               </div>
@@ -1778,8 +1847,9 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
                 ].filter(Boolean).join(" · ")
               : [tipoServizio && (tipoServizio === "servizio_completo" ? "Servizio Completo" : "Documenti Forniti"),
                  PRODOTTI.find((p) => p.id === tipoProdotto)?.short,
-                 tipoProdotto === "pompe_calore" && fgasRequested === true ? "ENEA + F-Gas · 90,00 € + IVA 22%" : undefined,
-                 tipoProdotto === "pompe_calore" && fgasRequested === false ? "Solo ENEA" : undefined,
+                 isFgasOnly ? "Solo F-Gas · 35,00 € + IVA 22%" : undefined,
+                 fgasChoice === "enea_fgas_full" ? "ENEA + F-Gas · 90,00 € + IVA 22%" : undefined,
+                 fgasChoice === "enea_only" ? "Solo ENEA" : undefined,
                  tipoFatturazione === "cliente_finale" ? "CF" : tipoFatturazione === "rivenditore" ? "A carico mio" : undefined,
                 ].filter(Boolean).join(" · ")}
           </div>
@@ -1798,7 +1868,9 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
               // "Prosegui" invece di "Vai al pagamento": l'importo accanto
               // basta a far capire dove si sta andando, senza incalzare.
               prezzoPrivato ? `Prosegui — ${euro(prezzoPrivato.imponibileCents)} + IVA ${prezzoPrivato.ivaPercent}%` : "Prosegui"
-            ) : tipoProdotto === "pompe_calore" && fgasRequested === true ? (
+            ) : isFgasOnly ? (
+              "Invia pratica Solo F-Gas — 35,00 € + IVA 22%"
+            ) : fgasChoice === "enea_fgas_full" ? (
               "Invia pacchetto ENEA + F-Gas — 90,00 € + IVA 22%"
             ) : (
               "Invia Pratica ENEA"

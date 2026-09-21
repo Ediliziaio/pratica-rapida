@@ -223,6 +223,11 @@ function isFgasPackage(practice: Pick<EneaPractice, "dati_form">) {
   return fgas.requested === true || fgas.requested === "true";
 }
 
+function fgasServiceMode(practice: Pick<EneaPractice, "dati_form">): "none" | "bundle" | "standalone" {
+  if (!isFgasPackage(practice)) return "none";
+  return practiceFgas(practice).package === "fgas_only" ? "standalone" : "bundle";
+}
+
 function fgasCompletionDocuments(practice: Pick<EneaPractice, "dati_form">) {
   const urls = practiceFgas(practice).completion_document_urls;
   return Array.isArray(urls) ? urls.filter((url): url is string => typeof url === "string" && !!url) : [];
@@ -231,7 +236,9 @@ function fgasCompletionDocuments(practice: Pick<EneaPractice, "dati_form">) {
 function packageCompletionBlockers(practice: Pick<EneaPractice, "dati_form" | "pratica_enea_conclusa_urls">) {
   if (!isFgasPackage(practice)) return [];
   const blockers: string[] = [];
-  if (!practice.pratica_enea_conclusa_urls?.length) blockers.push("pratica ENEA conclusa");
+  if (fgasServiceMode(practice) !== "standalone" && !practice.pratica_enea_conclusa_urls?.length) {
+    blockers.push("pratica ENEA conclusa");
+  }
   const fgas = practiceFgas(practice);
   if (fgas.status !== "conclusa" || fgasCompletionDocuments(practice).length === 0) {
     blockers.push("pratica F-Gas conclusa con ricevuta allegata");
@@ -1069,7 +1076,9 @@ function PracticeDetailSheet({
       });
       toast({
         title: "F-Gas conclusa",
-        description: "Ricevuta salvata. Il pacchetto potrà essere inviato quando sarà presente anche la pratica ENEA conclusa.",
+        description: fgasServiceMode(practice) === "standalone"
+          ? "Ricevuta salvata. La pratica Solo F-Gas è pronta per la consegna."
+          : "Ricevuta salvata. Il pacchetto potrà essere inviato quando sarà presente anche la pratica ENEA conclusa.",
       });
     } catch (err) {
       if (uploaded.length) {
@@ -2365,6 +2374,7 @@ function FormDataDetails({ dati }: { dati: Record<string, unknown> }) {
   const impianto = (dati.impianto as Record<string, unknown>) || {};
   const prodotto = (dati.prodotto as Record<string, unknown>) || {};
   const fgas = (dati.fgas as Record<string, unknown>) || {};
+  const fgasStandalone = fgas.package === "fgas_only";
 
   const hasApparLavori = residenza.stesso_indirizzo_lavori === false && Object.keys(apparlavori).length > 0;
   const hasCointest = cointest.presente === true;
@@ -2398,11 +2408,15 @@ function FormDataDetails({ dati }: { dati: Record<string, unknown> }) {
           <section className="rounded-lg border border-sky-200 bg-sky-50/60 p-3 dark:border-sky-900 dark:bg-sky-950/20">
             <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
               <div>
-                <p className="text-xs font-bold uppercase tracking-wider text-sky-800 dark:text-sky-300">Pacchetto ENEA + F-Gas</p>
-                <p className="text-xs text-muted-foreground">Una sola commessa, due lavorazioni coordinate</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-sky-800 dark:text-sky-300">
+                  {fgasStandalone ? "Pratica Solo F-Gas" : "Pacchetto ENEA + F-Gas"}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {fgasStandalone ? "Lavorazione F-Gas indipendente" : "Una sola commessa, due lavorazioni coordinate"}
+                </p>
               </div>
               <span className="rounded-full bg-sky-100 px-2.5 py-1 text-xs font-bold text-sky-800 dark:bg-sky-950 dark:text-sky-300">
-                90,00 € + IVA 22%
+                {fgasStandalone ? "35,00 € + IVA 22%" : "90,00 € + IVA 22%"}
               </span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
@@ -2424,7 +2438,9 @@ function FormDataDetails({ dati }: { dati: Record<string, unknown> }) {
               />
             </div>
             <p className="mt-3 text-xs text-sky-900/80 dark:text-sky-200/80">
-              La data deriva dalla fine lavori ENEA: prima dell'inserimento nel portale F-Gas deve essere verificata dall'operatore.
+              {fgasStandalone
+                ? "La data indicata è la data dell'intervento: verificala prima dell'inserimento nel portale F-Gas."
+                : "La data deriva dalla fine lavori ENEA: prima dell'inserimento nel portale F-Gas deve essere verificata dall'operatore."}
             </p>
           </section>
         )}
@@ -2692,6 +2708,7 @@ function PracticeCard({
     : {};
   const hasCadastralService = cardCatastali.recupero_richiesto === true || cardCatastali.recupero_richiesto === "true";
   const hasFgasService = cardFgas.requested === true || cardFgas.requested === "true";
+  const fgasStandalone = hasFgasService && cardFgas.package === "fgas_only";
   const fgasStatus = (cardFgas.status as FgasStatus | undefined) ?? "ricevuta_da_verificare";
   const fgasIsComplete = fgasStatus === "conclusa" && fgasCompletionDocuments(practice).length > 0;
   const eneaIsComplete = (practice.pratica_enea_conclusa_urls?.length ?? 0) > 0;
@@ -2760,7 +2777,7 @@ function PracticeCard({
                 ? "shadow-xl ring-2 ring-primary/30"
                 : isSelected
                 ? "shadow-md ring-2 ring-primary border-primary"
-                : "shadow-sm hover:shadow-md hover:-translate-y-0.5"
+                : `shadow-sm hover:shadow-md hover:-translate-y-0.5 ${fgasStandalone ? "border-l-4 border-l-violet-500" : ""}`
             }`}
           >
           {/* Top: name + brand + CF badge */}
@@ -2798,11 +2815,16 @@ function PracticeCard({
                 </span>
               )}
               {hasFgasService && (
-                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300">
-                  F-GAS
+                <span className={cn(
+                  "text-[10px] font-bold px-1.5 py-0.5 rounded-md",
+                  fgasStandalone
+                    ? "bg-violet-100 text-violet-700 dark:bg-violet-950 dark:text-violet-300"
+                    : "bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300",
+                )}>
+                  {fgasStandalone ? "SOLO F-GAS" : "F-GAS"}
                 </span>
               )}
-              <span
+              {!fgasStandalone && <span
                 className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${
                   practice.brand === "enea"
                     ? "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300"
@@ -2810,7 +2832,7 @@ function PracticeCard({
                 }`}
               >
                 {practice.brand === "enea" ? "ENEA" : "CT"}
-              </span>
+              </span>}
             </div>
           </div>
 
@@ -2846,10 +2868,12 @@ function PracticeCard({
                   : "border-sky-200 bg-sky-50 text-sky-700 dark:border-sky-900 dark:bg-sky-950/40 dark:text-sky-300",
             )}>
               <div className="space-y-0.5">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="font-semibold">ENEA · {eneaStatusLabel}</span>
-                  <span aria-hidden>{eneaIsComplete ? "✓" : "○"}</span>
-                </div>
+                {!fgasStandalone && (
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-semibold">ENEA · {eneaStatusLabel}</span>
+                    <span aria-hidden>{eneaIsComplete ? "✓" : "○"}</span>
+                  </div>
+                )}
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-semibold">F-Gas · {fgasStatusLabel}</span>
                   <span aria-hidden>{fgasIsComplete ? "✓" : "○"}</span>

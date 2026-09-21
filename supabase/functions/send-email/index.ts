@@ -467,12 +467,12 @@ function renderTemplate(template: string, data: Record<string, string>): { subje
     case "notifica_pratica_disponibile":
       // Notifica C - email to reseller when practice moved to da_inviare (available in archivio)
       return {
-        subject: r("Pratica ENEA completata — {{cliente_nome}} {{cliente_cognome}}"),
+        subject: r("Pratica {{servizio}} completata — {{cliente_nome}} {{cliente_cognome}}"),
         html: base(`
           <h2>Pratica completata ✓</h2>
           <p>Buongiorno,</p>
-          <p>ti comunichiamo che la pratica del cliente <strong>${r("{{cliente_nome}}")} ${r("{{cliente_cognome}}")}</strong> è conclusa e già inviatagli.</p>
-          <p>Nella tua area riservata troverai: pratica ENEA e certificazioni relative all'intervento.</p>
+          <p>ti comunichiamo che la pratica del cliente <strong>${r("{{cliente_nome}}")} ${r("{{cliente_cognome}}")}</strong> è conclusa e disponibile nella tua area riservata.</p>
+          <p>Nella tua area riservata troverai la pratica <strong>${r("{{servizio}}")}</strong> e le certificazioni relative all'intervento.</p>
           <p>Grazie.</p>
           ${cta("Vai all'area riservata", r("{{app_url}}"))}
           ${footer("reseller")}

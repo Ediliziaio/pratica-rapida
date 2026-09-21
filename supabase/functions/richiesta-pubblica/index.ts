@@ -83,8 +83,9 @@ interface Payload {
   data_fine_lavori?: string;
   fgas?: {
     requested?: boolean;
-    package?: "enea_only" | "enea_fgas_full";
+    package?: "enea_only" | "enea_fgas_full" | "fgas_only";
     price_net_eur?: number;
+    fgas_price_net_eur?: number;
     status?: string;
     address_same_as_invoice?: boolean;
     installation_address?: string;
@@ -162,10 +163,26 @@ serve(async (req) => {
   if (aziendaEmail && !EMAIL_RE.test(aziendaEmail)) return json({ success: false, error: "Email aziendale non valida" }, 400);
   if (nome.length < 2 || cognome.length < 2) return json({ success: false, error: "Nome e cognome del cliente obbligatori" }, 400);
   if (telefono.replace(/\D/g, "").length < 8) return json({ success: false, error: "Telefono del cliente non valido" }, 400);
-  // Il form Pratica ENEA non può creare una pratica senza data di fine lavori.
+  const fgasOnly = p.fgas?.package === "fgas_only";
+  // ENEA e F-Gas non possono essere aperte senza la data dell'intervento.
   // La verifica lato server impedisce di aggirare l'obbligo presente nella UI.
-  if (p.modulo === "pratica-enea" && !isValidIsoDate(dataFineLavori)) {
-    return json({ success: false, error: "Data di fine lavori obbligatoria" }, 400);
+  if ((p.modulo === "pratica-enea" || p.modulo === "pratica-fgas") && !isValidIsoDate(dataFineLavori)) {
+    return json({ success: false, error: fgasOnly ? "Data dell'intervento obbligatoria" : "Data di fine lavori obbligatoria" }, 400);
+  }
+  if (fgasOnly && fattureFiles.length === 0) {
+    return json({ success: false, error: "La fattura è obbligatoria per la pratica F-Gas" }, 400);
+  }
+  if (fgasOnly && fgasPlateFiles.length === 0) {
+    return json({ success: false, error: "Carica almeno una foto leggibile della targhetta" }, 400);
+  }
+  if (fgasOnly && p.fgas?.address_same_as_invoice == null) {
+    return json({ success: false, error: "Conferma l'indirizzo di installazione" }, 400);
+  }
+  if (fgasOnly && p.fgas?.address_same_as_invoice === false && (p.fgas.installation_address?.trim().length ?? 0) < 5) {
+    return json({ success: false, error: "Indirizzo di installazione obbligatorio" }, 400);
+  }
+  if (fgasOnly && !["no", "si", "non_so"].includes(p.fgas?.gas_movement ?? "")) {
+    return json({ success: false, error: "Indica se è stato aggiunto o recuperato gas" }, 400);
   }
 
   const allFiles = [
@@ -275,7 +292,7 @@ serve(async (req) => {
     //  In OGNI caso documenti_forniti il CLIENTE NON va MAI contattato: i guard
     //  di _shared/contatto-cliente.ts in on-stage-changed, on-practice-created
     //  e process-automations bloccano ogni messaggio/email al privato.
-    const tipoServizio = isDocumentiForniti(p) ? "documenti_forniti" : "servizio_completo";
+    const tipoServizio = fgasOnly || isDocumentiForniti(p) ? "documenti_forniti" : "servizio_completo";
     const targetStageType =
       tipoServizio === "servizio_completo"
         ? "inviata"
@@ -322,8 +339,8 @@ serve(async (req) => {
         invia_pratica_al_cliente:
           tipoServizio === "documenti_forniti" && p.invia_pratica_al_cliente === true,
         tipo_fatturazione: p.tipo_fatturazione === "cliente_finale" ? "cliente_finale" : "rivenditore",
-        tipo_soggetto: p.tipo_soggetto === "azienda_piva" ? "azienda_piva" : "persona_fisica",
-        prodotto_installato: p.prodotto?.trim() || (p.modulo ?? "Richiesta sito"),
+        tipo_soggetto: fgasOnly ? null : p.tipo_soggetto === "azienda_piva" ? "azienda_piva" : "persona_fisica",
+        prodotto_installato: fgasOnly ? "Pratica F-Gas" : p.prodotto?.trim() || (p.modulo ?? "Richiesta sito"),
         // Ragione sociale dichiarata dal rivenditore: sul segnaposto "Da
         // abbinare" è questo il nome che i template mostrano al cliente finale
         // (vedi _shared/reseller.ts) e che il CRM affianca al badge.
@@ -341,8 +358,9 @@ serve(async (req) => {
           ? {
               fgas: {
                 requested: p.fgas.requested === true,
-                package: p.fgas.requested === true ? "enea_fgas_full" : "enea_only",
-                price_net_eur: p.fgas.requested === true ? 90 : null,
+                package: p.fgas.package ?? (p.fgas.requested === true ? "enea_fgas_full" : "enea_only"),
+                price_net_eur: fgasOnly ? 35 : p.fgas.requested === true ? 90 : null,
+                fgas_price_net_eur: fgasOnly ? 35 : p.fgas.requested === true ? 30 : null,
                 status: p.fgas.requested === true ? "ricevuta_da_verificare" : "non_richiesta",
                 address_same_as_invoice: p.fgas.address_same_as_invoice ?? null,
                 installation_address: p.fgas.installation_address?.trim() || null,
@@ -351,6 +369,7 @@ serve(async (req) => {
               },
             }
           : {},
+        prezzo: fgasOnly ? 35 : p.fgas?.requested === true ? 90 : null,
         note: declared,
         fatture_urls: [],
         documenti_enea_urls: [],

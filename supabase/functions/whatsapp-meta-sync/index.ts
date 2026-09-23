@@ -319,7 +319,10 @@ async function handlePreviewTemplateMigration(
     .map((template) => ({ name: template.name, language: template.language }));
 
   const localOnly = Array.from(localByKey.values())
-    .filter((row) => !sourceKeys.has(`${row.meta_template_name}::${row.language}`))
+    .filter((row) => {
+      const key = `${row.meta_template_name}::${row.language}`;
+      return !sourceKeys.has(key) && !targetKeys.has(key);
+    })
     .map((row) => ({
       name: row.meta_template_name,
       language: row.language,

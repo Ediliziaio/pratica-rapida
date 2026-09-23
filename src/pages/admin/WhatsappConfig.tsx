@@ -92,7 +92,15 @@ interface TemplateMigrationPreview {
     is_active: boolean | null;
   }>;
   already_on_target: Array<{ name: string; language: string }>;
-  local_only: Array<{ name: string; language: string; mapped_trigger_event: string | null }>;
+  local_only: Array<{
+    name: string;
+    language: string;
+    category: string | null;
+    status: string;
+    mapped_trigger_event: string | null;
+    recoverable: boolean;
+    blocked_reason: string | null;
+  }>;
 }
 
 const PREVIOUS_WABA_ID = "1869271400712235";
@@ -1119,6 +1127,48 @@ function TemplatesTab() {
     },
   });
 
+  const recoverLocalTemplatesMutation = useMutation({
+    mutationFn: async (preview: TemplateMigrationPreview) => {
+      const recoverable = preview.local_only.filter((template) => template.recoverable);
+      const { data, error } = await supabase.functions.invoke("whatsapp-meta-sync", {
+        body: {
+          action: "recover_local_templates",
+          templates: recoverable.map(({ name, language }) => ({ name, language })),
+          confirm: true,
+        },
+      });
+      if (error) throw error;
+      const result = data as {
+        success: boolean;
+        created: number;
+        skipped: number;
+        failed: number;
+        results: Array<{ name: string; success: boolean; status: string; error?: string }>;
+        error?: string;
+      };
+      if (!result.success && !result.results) throw new Error(result.error ?? "Recupero fallito");
+      return result;
+    },
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ["whatsapp-templates"] });
+      setMigrationPreview(null);
+      setMigrationOpen(false);
+      toast({
+        title: result.failed === 0
+          ? `${result.created} template locali inviati a Meta`
+          : `${result.created} inviati, ${result.failed} da controllare`,
+        description: result.failed === 0
+          ? "Testi, variabili, trigger e automazioni del CRM sono rimasti invariati. Ora attendiamo l'approvazione Meta."
+          : result.results.filter((item) => !item.success).map((item) => `${item.name}: ${item.error ?? item.status}`).join(" · "),
+        variant: result.failed > 0 ? "destructive" : "default",
+        duration: result.failed > 0 ? 20_000 : 8_000,
+      });
+    },
+    onError: (err: Error) => {
+      toast({ variant: "destructive", title: "Recupero interrotto", description: err.message });
+    },
+  });
+
   // Seed dei 5 template di base (one-click batch creation su Meta)
   const seedMutation = useMutation({
     mutationFn: async () => {
@@ -1310,7 +1360,7 @@ function TemplatesTab() {
       <Dialog
         open={migrationOpen}
         onOpenChange={(open) => {
-          if (migrateTemplatesMutation.isPending) return;
+          if (migrateTemplatesMutation.isPending || recoverLocalTemplatesMutation.isPending) return;
           setMigrationOpen(open);
           if (!open) setMigrationPreview(null);
         }}
@@ -1363,7 +1413,7 @@ function TemplatesTab() {
               </div>
 
               <div>
-                <p className="text-sm font-semibold mb-2">Elenco esatto da creare sul nuovo WABA</p>
+                <p className="text-sm font-semibold mb-2">Template recuperabili direttamente dal vecchio WABA</p>
                 <div className="max-h-56 overflow-y-auto rounded-lg border divide-y">
                   {migrationPreview.ready_to_copy.length === 0 ? (
                     <p className="p-4 text-sm text-muted-foreground">Nessun template da copiare.</p>
@@ -1383,9 +1433,30 @@ function TemplatesTab() {
               </div>
 
               {migrationPreview.local_only.length > 0 && (
-                <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-950">
-                  <strong>{migrationPreview.local_only.length} elementi risultano solo nel database locale.</strong>{" "}
-                  Non verranno cancellati né modificati e saranno controllati separatamente.
+                <div className="space-y-2">
+                  <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-950">
+                    <strong>{migrationPreview.local_only.length} template risultano solo nel database locale.</strong>{" "}
+                    Sono elencati qui sotto prima di qualunque invio a Meta. Trigger e automazioni saranno conservati.
+                  </div>
+                  <div className="max-h-56 overflow-y-auto rounded-lg border divide-y">
+                    {migrationPreview.local_only.map((template) => (
+                      <div key={`local::${template.name}::${template.language}`} className="flex items-center justify-between gap-3 p-2.5 text-sm">
+                        <div className="min-w-0">
+                          <code className="font-semibold break-all">{template.name}</code>
+                          <span className="ml-2 text-xs text-muted-foreground">{template.language}</span>
+                          {template.blocked_reason && (
+                            <p className="mt-1 text-xs text-red-700">{template.blocked_reason}</p>
+                          )}
+                        </div>
+                        <div className="flex gap-1 shrink-0">
+                          {template.mapped_trigger_event && <Badge variant="secondary">trigger preservato</Badge>}
+                          <Badge variant={template.recoverable ? "outline" : "destructive"}>
+                            {template.recoverable ? "ricostruibile" : "bloccato"}
+                          </Badge>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
 
@@ -1397,7 +1468,11 @@ function TemplatesTab() {
           )}
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setMigrationOpen(false)} disabled={migrateTemplatesMutation.isPending}>
+            <Button
+              variant="outline"
+              onClick={() => setMigrationOpen(false)}
+              disabled={migrateTemplatesMutation.isPending || recoverLocalTemplatesMutation.isPending}
+            >
               Annulla
             </Button>
             {!migrationPreview ? (
@@ -1410,16 +1485,32 @@ function TemplatesTab() {
                 Controlla senza modificare
               </Button>
             ) : (
-              <Button
-                onClick={() => migrateTemplatesMutation.mutate(migrationPreview)}
-                disabled={migrationPreview.ready_to_copy.length === 0 || migrateTemplatesMutation.isPending}
-                className="gap-2"
-              >
-                {migrateTemplatesMutation.isPending
-                  ? <Loader2 className="h-4 w-4 animate-spin" />
-                  : <ShieldCheck className="h-4 w-4" />}
-                Copia {migrationPreview.ready_to_copy.length} template, senza cancellare nulla
-              </Button>
+              <>
+                {migrationPreview.ready_to_copy.length > 0 && (
+                  <Button
+                    onClick={() => migrateTemplatesMutation.mutate(migrationPreview)}
+                    disabled={migrateTemplatesMutation.isPending || recoverLocalTemplatesMutation.isPending}
+                    className="gap-2"
+                  >
+                    {migrateTemplatesMutation.isPending
+                      ? <Loader2 className="h-4 w-4 animate-spin" />
+                      : <ShieldCheck className="h-4 w-4" />}
+                    Copia {migrationPreview.ready_to_copy.length} dal vecchio WABA
+                  </Button>
+                )}
+                {migrationPreview.local_only.some((template) => template.recoverable) && (
+                  <Button
+                    onClick={() => recoverLocalTemplatesMutation.mutate(migrationPreview)}
+                    disabled={migrateTemplatesMutation.isPending || recoverLocalTemplatesMutation.isPending}
+                    className="gap-2"
+                  >
+                    {recoverLocalTemplatesMutation.isPending
+                      ? <Loader2 className="h-4 w-4 animate-spin" />
+                      : <ShieldCheck className="h-4 w-4" />}
+                    Ricrea {migrationPreview.local_only.filter((template) => template.recoverable).length} template locali su Meta
+                  </Button>
+                )}
+              </>
             )}
           </DialogFooter>
         </DialogContent>

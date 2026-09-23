@@ -278,13 +278,21 @@ async function handlePreviewTemplateMigration(
 
   const { data: localRows, error: localError } = await supabase
     .from("whatsapp_templates")
-    .select("meta_template_name,language,mapped_trigger_event,is_active");
+    .select("meta_template_name,language,category,status,header_type,header_text,body_text,footer_text,buttons,variables,mapped_trigger_event,is_active");
   if (localError) return { success: false, error: localError.message };
 
   const localByKey = new Map(
     ((localRows ?? []) as Array<{
       meta_template_name: string;
       language: string;
+      category: string | null;
+      status: string;
+      header_type: string | null;
+      header_text: string | null;
+      body_text: string;
+      footer_text: string | null;
+      buttons: Array<Record<string, unknown>> | null;
+      variables: Array<{ position?: number; example?: string }> | null;
       mapped_trigger_event: string | null;
       is_active: boolean;
     }>).map((row) => [`${row.meta_template_name}::${row.language}`, row]),
@@ -315,7 +323,24 @@ async function handlePreviewTemplateMigration(
     .map((row) => ({
       name: row.meta_template_name,
       language: row.language,
+      category: row.category,
+      status: row.status,
       mapped_trigger_event: row.mapped_trigger_event,
+      recoverable: Boolean(
+        row.body_text?.trim()
+        && row.category
+        && ["UTILITY", "MARKETING", "AUTHENTICATION"].includes(row.category)
+        && (!row.header_type || row.header_type === "TEXT"),
+      ),
+      blocked_reason: !row.body_text?.trim()
+        ? "Testo del messaggio mancante"
+        : !row.category
+          ? "Categoria Meta mancante"
+          : !["UTILITY", "MARKETING", "AUTHENTICATION"].includes(row.category)
+            ? `Categoria non valida: ${row.category}`
+            : row.header_type && row.header_type !== "TEXT"
+              ? `Header ${row.header_type} richiede il file originale`
+              : null,
     }));
 
   return {
@@ -327,6 +352,173 @@ async function handlePreviewTemplateMigration(
     ready_to_copy: readyToCopy,
     already_on_target: alreadyOnTarget,
     local_only: localOnly,
+  };
+}
+
+type LocalTemplateRow = {
+  meta_template_name: string;
+  language: string;
+  category: string | null;
+  header_type: string | null;
+  header_text: string | null;
+  body_text: string;
+  footer_text: string | null;
+  buttons: Array<Record<string, unknown>> | null;
+  variables: Array<{ position?: number; example?: string }> | null;
+};
+
+function buildLocalTemplateComponents(row: LocalTemplateRow): Array<Record<string, unknown>> {
+  const components: Array<Record<string, unknown>> = [];
+  if (row.header_type === "TEXT" && row.header_text?.trim()) {
+    components.push({ type: "HEADER", format: "TEXT", text: row.header_text });
+  }
+
+  const placeholderPositions = Array.from(row.body_text.matchAll(/\{\{(\d+)\}\}/g))
+    .map((match) => Number(match[1]))
+    .filter((position) => Number.isFinite(position));
+  const maxPosition = placeholderPositions.length > 0 ? Math.max(...placeholderPositions) : 0;
+  const examplesByPosition = new Map(
+    (row.variables ?? []).map((variable) => [variable.position, variable.example?.trim()]),
+  );
+  const body: Record<string, unknown> = { type: "BODY", text: row.body_text };
+  if (maxPosition > 0) {
+    body.example = {
+      body_text: [Array.from({ length: maxPosition }, (_, index) => examplesByPosition.get(index + 1) || `Esempio ${index + 1}`)],
+    };
+  }
+  components.push(body);
+
+  if (row.footer_text?.trim()) components.push({ type: "FOOTER", text: row.footer_text });
+  if (row.buttons && row.buttons.length > 0) components.push({ type: "BUTTONS", buttons: row.buttons });
+  return components;
+}
+
+/**
+ * Ricrea sul WABA corrente esclusivamente template selezionati dal DB locale.
+ * L'update DB e' mirato ai soli campi Meta, quindi testi, variabili, trigger,
+ * descrizioni, stato attivo e collegamenti alle automazioni restano invariati.
+ */
+async function handleRecoverLocalTemplates(
+  supabase: ReturnType<typeof createClient>,
+  payload: {
+    templates?: Array<{ name?: string; language?: string }>;
+    confirm?: boolean;
+  },
+): Promise<Record<string, unknown>> {
+  const targetWabaId = Deno.env.get("WA_BUSINESS_ACCOUNT_ID");
+  const accessToken = Deno.env.get("WA_ACCESS_TOKEN");
+  if (payload.confirm !== true) return { success: false, error: "Conferma esplicita mancante" };
+  if (!targetWabaId || !accessToken) return { success: false, error: "Secrets Meta mancanti" };
+
+  const requested = payload.templates ?? [];
+  if (requested.length === 0 || requested.length > 250) {
+    return { success: false, error: "Elenco template vuoto o troppo grande" };
+  }
+  const requestedKeys = new Set(
+    requested
+      .filter((item) => item.name && item.language)
+      .map((item) => `${item.name}::${item.language}`),
+  );
+  if (requestedKeys.size !== requested.length) {
+    return { success: false, error: "Elenco template non valido o con duplicati" };
+  }
+
+  const names = Array.from(new Set(requested.map((item) => item.name as string)));
+  const [{ data: rows, error: rowsError }, targetTemplates] = await Promise.all([
+    supabase
+      .from("whatsapp_templates")
+      .select("meta_template_name,language,category,header_type,header_text,body_text,footer_text,buttons,variables")
+      .in("meta_template_name", names),
+    fetchMetaTemplates(targetWabaId, accessToken),
+  ]);
+  if (rowsError) return { success: false, error: rowsError.message };
+
+  const localByKey = new Map(
+    ((rows ?? []) as LocalTemplateRow[]).map((row) => [`${row.meta_template_name}::${row.language}`, row]),
+  );
+  const targetKeys = new Set(targetTemplates.map(templateKey));
+  const results: Array<{ name: string; language: string; success: boolean; status: string; error?: string }> = [];
+
+  for (const key of requestedKeys) {
+    const row = localByKey.get(key);
+    const [name, language] = key.split("::");
+    if (!row) {
+      results.push({ name, language, success: false, status: "LOCAL_NOT_FOUND", error: "Template locale non trovato" });
+      continue;
+    }
+    if (targetKeys.has(key)) {
+      results.push({ name, language, success: true, status: "SKIPPED_ALREADY_EXISTS" });
+      continue;
+    }
+    if (!row.body_text?.trim() || !row.category || !["UTILITY", "MARKETING", "AUTHENTICATION"].includes(row.category)) {
+      results.push({ name, language, success: false, status: "INVALID_LOCAL", error: "Testo o categoria Meta non validi" });
+      continue;
+    }
+    if (row.header_type && row.header_type !== "TEXT") {
+      results.push({ name, language, success: false, status: "UNSUPPORTED_HEADER", error: `Header ${row.header_type} richiede il file originale` });
+      continue;
+    }
+
+    try {
+      const metaRes = await fetch(`https://graph.facebook.com/v18.0/${targetWabaId}/message_templates`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: row.meta_template_name,
+          language: row.language,
+          category: row.category,
+          components: buildLocalTemplateComponents(row),
+        }),
+      });
+      const metaData = await metaRes.json();
+      if (!metaRes.ok) {
+        results.push({
+          name,
+          language,
+          success: false,
+          status: "META_ERROR",
+          error: metaData?.error?.message ?? `Meta HTTP ${metaRes.status}`,
+        });
+        continue;
+      }
+
+      const { error: updateError } = await supabase
+        .from("whatsapp_templates")
+        .update({
+          meta_template_id: metaData.id ?? null,
+          status: metaData.status ?? "PENDING",
+          rejection_reason: null,
+          meta_last_synced_at: new Date().toISOString(),
+        })
+        .eq("meta_template_name", row.meta_template_name)
+        .eq("language", row.language);
+
+      results.push({
+        name,
+        language,
+        success: true,
+        status: updateError ? "CREATED_DB_UPDATE_WARNING" : (metaData.status ?? "PENDING"),
+        error: updateError?.message,
+      });
+      targetKeys.add(key);
+    } catch (err) {
+      results.push({
+        name,
+        language,
+        success: false,
+        status: "NETWORK_ERROR",
+        error: err instanceof Error ? err.message : String(err),
+      });
+    }
+  }
+
+  return {
+    success: results.every((result) => result.success),
+    target_waba_id: targetWabaId,
+    created: results.filter((result) => result.success && !result.status.startsWith("SKIPPED")).length,
+    skipped: results.filter((result) => result.status.startsWith("SKIPPED")).length,
+    failed: results.filter((result) => !result.success).length,
+    results,
   };
 }
 
@@ -1516,6 +1708,14 @@ serve(async (req) => {
           supabase,
           payload as {
             source_waba_id?: string;
+            templates?: Array<{ name?: string; language?: string }>;
+            confirm?: boolean;
+          },
+        ));
+      case "recover_local_templates":
+        return json(await handleRecoverLocalTemplates(
+          supabase,
+          payload as {
             templates?: Array<{ name?: string; language?: string }>;
             confirm?: boolean;
           },

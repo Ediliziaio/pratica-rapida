@@ -31,7 +31,7 @@ import { useWaProvider } from "@/hooks/useWaProvider";
 import {
   CheckCircle2, XCircle, AlertTriangle, Copy, RefreshCw, MessageCircle,
   ExternalLink, KeyRound, Webhook, Send, Pencil, Loader2, Plus, Sparkles,
-  Trash2, Phone, Zap, TrendingUp,
+  Trash2, Phone, Zap, TrendingUp, ArrowRightLeft, ShieldCheck,
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 
@@ -75,6 +75,27 @@ interface WhatsappTemplate {
   meta_last_synced_at: string | null;
   updated_at: string;
 }
+
+interface TemplateMigrationPreview {
+  success: boolean;
+  source_waba_id: string;
+  target_waba_id: string;
+  source_total: number;
+  target_total: number;
+  ready_to_copy: Array<{
+    name: string;
+    language: string;
+    category: string | null;
+    source_status: string;
+    has_local_mapping: boolean;
+    mapped_trigger_event: string | null;
+    is_active: boolean | null;
+  }>;
+  already_on_target: Array<{ name: string; language: string }>;
+  local_only: Array<{ name: string; language: string; mapped_trigger_event: string | null }>;
+}
+
+const PREVIOUS_WABA_ID = "1869271400712235";
 
 // Trigger events disponibili — sincronizzati con process-automations
 const TRIGGER_EVENTS = [
@@ -958,6 +979,8 @@ function TemplatesTab() {
   const [testing, setTesting] = useState<WhatsappTemplate | null>(null);
   const [creating, setCreating] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [migrationOpen, setMigrationOpen] = useState(false);
+  const [migrationPreview, setMigrationPreview] = useState<TemplateMigrationPreview | null>(null);
 
   const { data: templates, isLoading } = useQuery({
     queryKey: ["whatsapp-templates"],
@@ -1038,29 +1061,61 @@ function TemplatesTab() {
     },
   });
 
-  // Pulizia orphan templates: cancella DAL DB i template che non esistono
-  // più sul WABA Meta corrente. Utile dopo switch WABA o pulizia generale.
-  const purgeMutation = useMutation({
+  const previewMigrationMutation = useMutation({
     mutationFn: async () => {
       const { data, error } = await supabase.functions.invoke("whatsapp-meta-sync", {
-        body: { action: "purge_orphan_templates" },
+        body: { action: "preview_template_migration", source_waba_id: PREVIOUS_WABA_ID },
       });
       if (error) throw error;
-      const res = data as { success?: boolean; error?: string; purged?: number; purged_names?: string[] };
-      if (!res.success) throw new Error(res.error ?? "Purge fallito");
-      return res;
+      const result = data as TemplateMigrationPreview & { error?: string };
+      if (!result.success) throw new Error(result.error ?? "Anteprima non disponibile");
+      return result;
     },
-    onSuccess: (res) => {
+    onSuccess: (result) => setMigrationPreview(result),
+    onError: (err: Error) => {
+      toast({ variant: "destructive", title: "Impossibile preparare l'anteprima", description: err.message });
+    },
+  });
+
+  const migrateTemplatesMutation = useMutation({
+    mutationFn: async (preview: TemplateMigrationPreview) => {
+      const { data, error } = await supabase.functions.invoke("whatsapp-meta-sync", {
+        body: {
+          action: "migrate_templates",
+          source_waba_id: preview.source_waba_id,
+          templates: preview.ready_to_copy.map(({ name, language }) => ({ name, language })),
+          confirm: true,
+        },
+      });
+      if (error) throw error;
+      const result = data as {
+        success: boolean;
+        created: number;
+        skipped: number;
+        failed: number;
+        results: Array<{ name: string; success: boolean; status: string; error?: string }>;
+        error?: string;
+      };
+      if (!result.success && !result.results) throw new Error(result.error ?? "Migrazione fallita");
+      return result;
+    },
+    onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ["whatsapp-templates"] });
+      setMigrationPreview(null);
+      setMigrationOpen(false);
       toast({
-        title: res.purged === 0 ? "Nessun template fantasma" : `Rimossi ${res.purged} template fantasma`,
-        description: res.purged && res.purged > 0
-          ? `Template puliti dal DB (non esistevano più su Meta): ${res.purged_names?.slice(0, 3).join(", ")}${res.purged > 3 ? "..." : ""}`
-          : "Tutti i template in DB esistono ancora sul WABA Meta corrente",
+        title: result.failed === 0
+          ? `${result.created} template copiati senza cancellazioni`
+          : `${result.created} copiati, ${result.failed} da controllare`,
+        description: result.failed === 0
+          ? "Testi, mapping e automazioni locali sono rimasti invariati. Ora attendiamo l'approvazione Meta."
+          : result.results.filter((item) => !item.success).map((item) => item.name).join(", "),
+        variant: result.failed > 0 ? "destructive" : "default",
+        duration: result.failed > 0 ? 15_000 : 7_000,
       });
     },
     onError: (err: Error) => {
-      toast({ variant: "destructive", title: "Errore pulizia", description: err.message });
+      toast({ variant: "destructive", title: "Migrazione interrotta", description: err.message });
     },
   });
 
@@ -1155,16 +1210,14 @@ function TemplatesTab() {
                   <Button
                     variant="outline"
                     onClick={() => {
-                      if (confirm("Cancellare i template 'fantasma' dal DB locale? Cancella SOLO i template che non esistono più sul WABA Meta corrente (es. residui di un WABA precedente). Non tocca Meta.")) {
-                        purgeMutation.mutate();
-                      }
+                      setMigrationPreview(null);
+                      setMigrationOpen(true);
                     }}
-                    disabled={purgeMutation.isPending}
                     className="gap-2"
-                    title="Cancella dal DB i template che non esistono più su Meta (residui di WABA precedenti)"
+                    title="Copia i template dal vecchio WABA senza cancellare dati o mapping"
                   >
-                    {purgeMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
-                    Pulisci fantasma
+                    <ArrowRightLeft className="h-4 w-4" />
+                    Migra dal vecchio WABA
                   </Button>
                   <Button
                     variant="outline"
@@ -1253,6 +1306,124 @@ function TemplatesTab() {
           )}
         </CardContent>
       </Card>
+
+      <Dialog
+        open={migrationOpen}
+        onOpenChange={(open) => {
+          if (migrateTemplatesMutation.isPending) return;
+          setMigrationOpen(open);
+          if (!open) setMigrationPreview(null);
+        }}
+      >
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ArrowRightLeft className="h-5 w-5" />
+              Copia sicura dal vecchio account WhatsApp
+            </DialogTitle>
+            <DialogDescription>
+              Prima controlliamo cosa manca. La copia non elimina nulla dal vecchio account e non modifica testi,
+              variabili, trigger o automazioni già salvati nel CRM.
+            </DialogDescription>
+          </DialogHeader>
+
+          {!migrationPreview ? (
+            <div className="space-y-4 py-2">
+              <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-950">
+                <div className="flex items-start gap-2">
+                  <ShieldCheck className="h-5 w-5 mt-0.5 shrink-0" />
+                  <div>
+                    <p className="font-semibold">Primo passaggio: sola anteprima</p>
+                    <p className="mt-1">
+                      Verranno letti il vecchio e il nuovo WABA. In questa fase non viene creato, cancellato o
+                      aggiornato alcun template.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Vecchio WABA: <code>{PREVIOUS_WABA_ID}</code>
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4 py-2">
+              <div className="grid grid-cols-3 gap-3 text-center">
+                <div className="rounded-lg border p-3">
+                  <p className="text-2xl font-bold">{migrationPreview.source_total}</p>
+                  <p className="text-xs text-muted-foreground">sul vecchio WABA</p>
+                </div>
+                <div className="rounded-lg border border-emerald-300 bg-emerald-50 p-3">
+                  <p className="text-2xl font-bold text-emerald-800">{migrationPreview.ready_to_copy.length}</p>
+                  <p className="text-xs text-emerald-800">da copiare</p>
+                </div>
+                <div className="rounded-lg border p-3">
+                  <p className="text-2xl font-bold">{migrationPreview.already_on_target.length}</p>
+                  <p className="text-xs text-muted-foreground">già presenti</p>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-sm font-semibold mb-2">Elenco esatto da creare sul nuovo WABA</p>
+                <div className="max-h-56 overflow-y-auto rounded-lg border divide-y">
+                  {migrationPreview.ready_to_copy.length === 0 ? (
+                    <p className="p-4 text-sm text-muted-foreground">Nessun template da copiare.</p>
+                  ) : migrationPreview.ready_to_copy.map((template) => (
+                    <div key={`${template.name}::${template.language}`} className="flex items-center justify-between gap-3 p-2.5 text-sm">
+                      <div className="min-w-0">
+                        <code className="font-semibold break-all">{template.name}</code>
+                        <span className="ml-2 text-xs text-muted-foreground">{template.language}</span>
+                      </div>
+                      <div className="flex gap-1 shrink-0">
+                        {template.has_local_mapping && <Badge variant="secondary">trigger preservato</Badge>}
+                        <Badge variant="outline">{template.source_status}</Badge>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {migrationPreview.local_only.length > 0 && (
+                <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-950">
+                  <strong>{migrationPreview.local_only.length} elementi risultano solo nel database locale.</strong>{" "}
+                  Non verranno cancellati né modificati e saranno controllati separatamente.
+                </div>
+              )}
+
+              <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-950">
+                <strong>Conferma di sicurezza:</strong> il pulsante qui sotto crea esclusivamente i template elencati
+                sul nuovo WABA. Non cancella il vecchio WABA e conserva integralmente dati e automazioni nel CRM.
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setMigrationOpen(false)} disabled={migrateTemplatesMutation.isPending}>
+              Annulla
+            </Button>
+            {!migrationPreview ? (
+              <Button
+                onClick={() => previewMigrationMutation.mutate()}
+                disabled={previewMigrationMutation.isPending}
+                className="gap-2"
+              >
+                {previewMigrationMutation.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+                Controlla senza modificare
+              </Button>
+            ) : (
+              <Button
+                onClick={() => migrateTemplatesMutation.mutate(migrationPreview)}
+                disabled={migrationPreview.ready_to_copy.length === 0 || migrateTemplatesMutation.isPending}
+                className="gap-2"
+              >
+                {migrateTemplatesMutation.isPending
+                  ? <Loader2 className="h-4 w-4 animate-spin" />
+                  : <ShieldCheck className="h-4 w-4" />}
+                Copia {migrationPreview.ready_to_copy.length} template, senza cancellare nulla
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {editing && <EditTemplateDialog template={editing} onClose={() => setEditing(null)} />}
       {testing && <TestSendDialog template={testing} onClose={() => setTesting(null)} />}

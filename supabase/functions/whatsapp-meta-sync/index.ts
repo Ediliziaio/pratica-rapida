@@ -69,8 +69,34 @@ interface MetaTemplate {
     format?: string;
     text?: string;
     buttons?: Array<{ type: string; text: string; url?: string; phone_number?: string }>;
+    example?: Record<string, unknown>;
+    [key: string]: unknown;
   }>;
   rejected_reason?: string;
+}
+
+const templateKey = (template: Pick<MetaTemplate, "name" | "language">) =>
+  `${template.name}::${template.language}`;
+
+async function fetchMetaTemplates(wabaId: string, accessToken: string): Promise<MetaTemplate[]> {
+  const templates: MetaTemplate[] = [];
+  let url: string | null = `https://graph.facebook.com/v18.0/${wabaId}/message_templates?fields=id,name,language,status,category,components,rejected_reason&limit=100`;
+  let pages = 0;
+
+  while (url && pages < 20) {
+    const res: Response = await fetch(url, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data?.error?.message ?? `Meta HTTP ${res.status}`);
+    }
+    templates.push(...((data.data as MetaTemplate[]) ?? []));
+    url = data.paging?.next ?? null;
+    pages++;
+  }
+
+  return templates;
 }
 
 /**
@@ -221,6 +247,222 @@ async function handleSyncTemplates(supabase: ReturnType<typeof createClient>): P
     synced: upserted,
     errors,
     total_fetched: templates.length,
+  };
+}
+
+/**
+ * Confronta un WABA precedente con quello configurato, senza scrivere nulla.
+ * Serve come controllo obbligatorio prima della migrazione dei template.
+ */
+async function handlePreviewTemplateMigration(
+  supabase: ReturnType<typeof createClient>,
+  payload: { source_waba_id?: string },
+): Promise<Record<string, unknown>> {
+  const targetWabaId = Deno.env.get("WA_BUSINESS_ACCOUNT_ID");
+  const accessToken = Deno.env.get("WA_ACCESS_TOKEN");
+  const sourceWabaId = payload.source_waba_id?.trim();
+
+  if (!targetWabaId || !accessToken) return { success: false, error: "Secrets Meta mancanti" };
+  if (!sourceWabaId || !/^\d+$/.test(sourceWabaId)) {
+    return { success: false, error: "ID del vecchio WABA non valido" };
+  }
+  if (sourceWabaId === targetWabaId) {
+    return { success: false, error: "Il WABA sorgente coincide con quello di destinazione" };
+  }
+
+  const [sourceTemplates, targetTemplates] = await Promise.all([
+    fetchMetaTemplates(sourceWabaId, accessToken),
+    fetchMetaTemplates(targetWabaId, accessToken),
+  ]);
+  const targetKeys = new Set(targetTemplates.map(templateKey));
+
+  const { data: localRows, error: localError } = await supabase
+    .from("whatsapp_templates")
+    .select("meta_template_name,language,mapped_trigger_event,is_active");
+  if (localError) return { success: false, error: localError.message };
+
+  const localByKey = new Map(
+    ((localRows ?? []) as Array<{
+      meta_template_name: string;
+      language: string;
+      mapped_trigger_event: string | null;
+      is_active: boolean;
+    }>).map((row) => [`${row.meta_template_name}::${row.language}`, row]),
+  );
+  const sourceKeys = new Set(sourceTemplates.map(templateKey));
+
+  const readyToCopy = sourceTemplates
+    .filter((template) => !targetKeys.has(templateKey(template)))
+    .map((template) => {
+      const local = localByKey.get(templateKey(template));
+      return {
+        name: template.name,
+        language: template.language,
+        category: template.category ?? null,
+        source_status: template.status,
+        has_local_mapping: !!local?.mapped_trigger_event,
+        mapped_trigger_event: local?.mapped_trigger_event ?? null,
+        is_active: local?.is_active ?? null,
+      };
+    });
+
+  const alreadyOnTarget = sourceTemplates
+    .filter((template) => targetKeys.has(templateKey(template)))
+    .map((template) => ({ name: template.name, language: template.language }));
+
+  const localOnly = Array.from(localByKey.values())
+    .filter((row) => !sourceKeys.has(`${row.meta_template_name}::${row.language}`))
+    .map((row) => ({
+      name: row.meta_template_name,
+      language: row.language,
+      mapped_trigger_event: row.mapped_trigger_event,
+    }));
+
+  return {
+    success: true,
+    source_waba_id: sourceWabaId,
+    target_waba_id: targetWabaId,
+    source_total: sourceTemplates.length,
+    target_total: targetTemplates.length,
+    ready_to_copy: readyToCopy,
+    already_on_target: alreadyOnTarget,
+    local_only: localOnly,
+  };
+}
+
+/**
+ * Copia sul WABA corrente solo i template selezionati e mancanti.
+ * Non elimina nulla dal WABA sorgente e aggiorna nel DB esclusivamente i
+ * campi Meta: testi, variabili, mapping, descrizioni e automazioni restano invariati.
+ */
+async function handleMigrateTemplates(
+  supabase: ReturnType<typeof createClient>,
+  payload: {
+    source_waba_id?: string;
+    templates?: Array<{ name?: string; language?: string }>;
+    confirm?: boolean;
+  },
+): Promise<Record<string, unknown>> {
+  const targetWabaId = Deno.env.get("WA_BUSINESS_ACCOUNT_ID");
+  const accessToken = Deno.env.get("WA_ACCESS_TOKEN");
+  const sourceWabaId = payload.source_waba_id?.trim();
+
+  if (payload.confirm !== true) return { success: false, error: "Conferma esplicita mancante" };
+  if (!targetWabaId || !accessToken) return { success: false, error: "Secrets Meta mancanti" };
+  if (!sourceWabaId || !/^\d+$/.test(sourceWabaId)) {
+    return { success: false, error: "ID del vecchio WABA non valido" };
+  }
+  if (sourceWabaId === targetWabaId) {
+    return { success: false, error: "Il WABA sorgente coincide con quello di destinazione" };
+  }
+
+  const requested = payload.templates ?? [];
+  if (requested.length === 0 || requested.length > 250) {
+    return { success: false, error: "Elenco template vuoto o troppo grande" };
+  }
+  const requestedKeys = new Set(
+    requested
+      .filter((item) => item.name && item.language)
+      .map((item) => `${item.name}::${item.language}`),
+  );
+  if (requestedKeys.size !== requested.length) {
+    return { success: false, error: "Elenco template non valido o con duplicati" };
+  }
+
+  const [sourceTemplates, targetTemplates] = await Promise.all([
+    fetchMetaTemplates(sourceWabaId, accessToken),
+    fetchMetaTemplates(targetWabaId, accessToken),
+  ]);
+  const sourceByKey = new Map(sourceTemplates.map((template) => [templateKey(template), template]));
+  const targetKeys = new Set(targetTemplates.map(templateKey));
+  const results: Array<{ name: string; language: string; success: boolean; status: string; error?: string }> = [];
+
+  for (const key of requestedKeys) {
+    const source = sourceByKey.get(key);
+    const [name, language] = key.split("::");
+
+    if (!source) {
+      results.push({ name, language, success: false, status: "SOURCE_NOT_FOUND", error: "Template non trovato sul vecchio WABA" });
+      continue;
+    }
+    if (targetKeys.has(key)) {
+      results.push({ name, language, success: true, status: "SKIPPED_ALREADY_EXISTS" });
+      continue;
+    }
+    if (!source.category || !source.components?.length) {
+      results.push({ name, language, success: false, status: "INVALID_SOURCE", error: "Categoria o componenti mancanti" });
+      continue;
+    }
+
+    try {
+      const metaRes = await fetch(
+        `https://graph.facebook.com/v18.0/${targetWabaId}/message_templates`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name: source.name,
+            language: source.language,
+            category: source.category,
+            components: source.components,
+          }),
+        },
+      );
+      const metaData = await metaRes.json();
+      if (!metaRes.ok) {
+        results.push({
+          name,
+          language,
+          success: false,
+          status: "META_ERROR",
+          error: metaData?.error?.message ?? `Meta HTTP ${metaRes.status}`,
+        });
+        continue;
+      }
+
+      // Update mirato: non usare upsert, per non sovrascrivere mapping e contenuti locali.
+      const { error: updateError } = await supabase
+        .from("whatsapp_templates")
+        .update({
+          meta_template_id: metaData.id ?? null,
+          category: source.category,
+          status: metaData.status ?? "PENDING",
+          rejection_reason: null,
+          meta_last_synced_at: new Date().toISOString(),
+        })
+        .eq("meta_template_name", source.name)
+        .eq("language", source.language);
+
+      results.push({
+        name,
+        language,
+        success: true,
+        status: updateError ? "CREATED_DB_UPDATE_WARNING" : (metaData.status ?? "PENDING"),
+        error: updateError?.message,
+      });
+      targetKeys.add(key);
+    } catch (err) {
+      results.push({
+        name,
+        language,
+        success: false,
+        status: "NETWORK_ERROR",
+        error: err instanceof Error ? err.message : String(err),
+      });
+    }
+  }
+
+  return {
+    success: results.every((result) => result.success),
+    source_waba_id: sourceWabaId,
+    target_waba_id: targetWabaId,
+    created: results.filter((result) => result.success && !result.status.startsWith("SKIPPED")).length,
+    skipped: results.filter((result) => result.status.startsWith("SKIPPED")).length,
+    failed: results.filter((result) => !result.success).length,
+    results,
   };
 }
 
@@ -1264,6 +1506,20 @@ serve(async (req) => {
         return json(await handleStatus());
       case "sync_templates":
         return json(await handleSyncTemplates(supabase));
+      case "preview_template_migration":
+        return json(await handlePreviewTemplateMigration(
+          supabase,
+          payload as { source_waba_id?: string },
+        ));
+      case "migrate_templates":
+        return json(await handleMigrateTemplates(
+          supabase,
+          payload as {
+            source_waba_id?: string;
+            templates?: Array<{ name?: string; language?: string }>;
+            confirm?: boolean;
+          },
+        ));
       case "create_template":
         return json(await handleCreateTemplate(supabase, payload as { template?: Record<string, unknown> }));
       case "seed_default_templates":

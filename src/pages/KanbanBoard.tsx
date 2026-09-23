@@ -223,9 +223,15 @@ function isFgasPackage(practice: Pick<EneaPractice, "dati_form">) {
   return fgas.requested === true || fgas.requested === "true";
 }
 
-function fgasServiceMode(practice: Pick<EneaPractice, "dati_form">): "none" | "bundle" | "standalone" {
+function fgasServiceMode(
+  practice: Pick<EneaPractice, "dati_form"> & Partial<Pick<EneaPractice, "prodotto_installato">>,
+): "none" | "bundle" | "standalone" {
   if (!isFgasPackage(practice)) return "none";
-  return practiceFgas(practice).package === "fgas_only" ? "standalone" : "bundle";
+  const fgas = practiceFgas(practice);
+  const productMarksStandalone =
+    typeof practice.prodotto_installato === "string"
+    && practice.prodotto_installato.trim().toLocaleLowerCase("it-IT") === "pratica f-gas";
+  return fgas.package === "fgas_only" || productMarksStandalone ? "standalone" : "bundle";
 }
 
 function fgasCompletionDocuments(practice: Pick<EneaPractice, "dati_form">) {
@@ -233,7 +239,9 @@ function fgasCompletionDocuments(practice: Pick<EneaPractice, "dati_form">) {
   return Array.isArray(urls) ? urls.filter((url): url is string => typeof url === "string" && !!url) : [];
 }
 
-function packageCompletionBlockers(practice: Pick<EneaPractice, "dati_form" | "pratica_enea_conclusa_urls">) {
+function packageCompletionBlockers(
+  practice: Pick<EneaPractice, "dati_form" | "pratica_enea_conclusa_urls" | "prodotto_installato">,
+) {
   if (!isFgasPackage(practice)) return [];
   const blockers: string[] = [];
   if (fgasServiceMode(practice) !== "standalone" && !practice.pratica_enea_conclusa_urls?.length) {
@@ -1718,7 +1726,10 @@ function PracticeDetailSheet({
 
                 {/* 1.5 — Dati completi form cliente (collapsible, sempre visibili se compilati) */}
                 {practice.dati_form && Object.keys(practice.dati_form as Record<string, unknown>).length > 0 && (
-                  <FormDataDetails dati={practice.dati_form as Record<string, unknown>} />
+                  <FormDataDetails
+                    dati={practice.dati_form as Record<string, unknown>}
+                    standaloneFgas={fgasServiceMode(practice) === "standalone"}
+                  />
                 )}
 
                 {isInternal && sheetHasCadastralService && (
@@ -1780,7 +1791,9 @@ function PracticeDetailSheet({
                           Lavorazione F-Gas
                         </h3>
                         <p className="text-xs text-muted-foreground mt-1">
-                          Gestiscila anche mentre l'ENEA è in attesa dei dati del cliente.
+                          {fgasServiceMode(practice) === "standalone"
+                            ? "Pratica indipendente: non è collegata a una lavorazione ENEA."
+                            : "Gestiscila anche mentre l'ENEA è in attesa dei dati del cliente."}
                         </p>
                       </div>
                       <Select value={status} onValueChange={(value) => void updateFgasStatus(value as FgasStatus)}>
@@ -2364,7 +2377,13 @@ function Field({ label, value }: { label: string; value: unknown }) {
   );
 }
 
-function FormDataDetails({ dati }: { dati: Record<string, unknown> }) {
+function FormDataDetails({
+  dati,
+  standaloneFgas = false,
+}: {
+  dati: Record<string, unknown>;
+  standaloneFgas?: boolean;
+}) {
   const richiedente = (dati.richiedente as Record<string, unknown>) || {};
   const residenza = (dati.residenza as Record<string, unknown>) || {};
   const apparlavori = (dati.appartamento_lavori as Record<string, unknown>) || {};
@@ -2374,7 +2393,7 @@ function FormDataDetails({ dati }: { dati: Record<string, unknown> }) {
   const impianto = (dati.impianto as Record<string, unknown>) || {};
   const prodotto = (dati.prodotto as Record<string, unknown>) || {};
   const fgas = (dati.fgas as Record<string, unknown>) || {};
-  const fgasStandalone = fgas.package === "fgas_only";
+  const fgasStandalone = standaloneFgas || fgas.package === "fgas_only";
 
   const hasApparLavori = residenza.stesso_indirizzo_lavori === false && Object.keys(apparlavori).length > 0;
   const hasCointest = cointest.presente === true;
@@ -2708,7 +2727,7 @@ function PracticeCard({
     : {};
   const hasCadastralService = cardCatastali.recupero_richiesto === true || cardCatastali.recupero_richiesto === "true";
   const hasFgasService = cardFgas.requested === true || cardFgas.requested === "true";
-  const fgasStandalone = hasFgasService && cardFgas.package === "fgas_only";
+  const fgasStandalone = hasFgasService && fgasServiceMode(practice) === "standalone";
   const fgasStatus = (cardFgas.status as FgasStatus | undefined) ?? "ricevuta_da_verificare";
   const fgasIsComplete = fgasStatus === "conclusa" && fgasCompletionDocuments(practice).length > 0;
   const eneaIsComplete = (practice.pratica_enea_conclusa_urls?.length ?? 0) > 0;

@@ -307,7 +307,18 @@ serve(async (req) => {
     }
 
     // Messaggio 4 + Notifica C — pratica inviata → email+WA al cliente + email al rivenditore
-    case "da_inviare": {
+    // Switch di produzione del 24/09/2026, deciso dal titolare.
+    // "Invio pratica chiusa" (da_inviare) e la nuova "Richiesto intervento
+    // operatore" restano SILENZIOSE: APR ci parcheggia una pratica finita, o su
+    // cui serve una decisione umana, senza che al cliente parta nulla. Le
+    // comunicazioni di chiusura partono soltanto da "Da inserire su Excel"
+    // (gestionale), dove la pratica arriva con un gesto manuale, cioe' dopo
+    // essere stata davvero trasmessa sul portale ENEA.
+    case "da_inviare":
+    case "intervento_operatore":
+      break;
+
+    case "gestionale": {
       const stageEmailEnabled = await isRuleEnabled(supabase, "stage_changed", "email");
       const stageWhatsappEnabled = await isRuleEnabled(supabase, "stage_changed", "whatsapp");
       const fgasInfo = fgasPackageInfo(practice.dati_form);
@@ -404,26 +415,11 @@ serve(async (req) => {
         recensione_richiesta_at: new Date().toISOString(),
       }).eq("id", practice_id);
 
-      // CRM#9 — Auto-spostamento: dopo che mail + WhatsApp di chiusura sono
-      // partiti correttamente, sposta la pratica in "da inserire su Excel"
-      // (stage di sistema per il brand), così lo staff sa che va loggata.
-      if (clientEmailOk && clientWaOk) {
-        const { data: excelStage } = await supabase
-          .from("pipeline_stages")
-          .select("id")
-          .is("reseller_id", null)
-          .eq("stage_type", "da_inserire_excel")
-          .eq("brand", practice.brand)
-          .maybeSingle();
-        if (excelStage?.id) {
-          await supabase
-            .from("enea_practices")
-            .update({ current_stage_id: excelStage.id })
-            .eq("id", practice_id);
-        } else {
-          console.warn(`[on-stage-changed] stage da_inserire_excel non trovato per brand ${practice.brand}`);
-        }
-      }
+      // L'auto-spostamento in "Da inserire su Excel" e' stato rimosso il
+      // 24/09/2026: ora e' quella colonna a far partire le comunicazioni, quindi
+      // arrivarci da soli le manderebbe senza che nessuno le abbia volute. Fra
+      // l'altro cercava lo stage_type "da_inserire_excel", che in produzione non
+      // esiste (le colonne sono "gestionale"): non ha mai spostato nulla.
 
       break;
     }

@@ -3220,6 +3220,7 @@ export type Database = {
         | "inviata"
         | "attesa_compilazione"
         | "pronte_da_fare"
+        | "intervento_operatore"
         | "documenti_mancanti"
         | "da_inviare"
         | "gestionale"
@@ -3411,6 +3412,7 @@ export const Constants = {
         "inviata",
         "attesa_compilazione",
         "pronte_da_fare",
+        "intervento_operatore",
         "documenti_mancanti",
         "da_inviare",
         "gestionale",
@@ -3435,6 +3437,7 @@ export type StageType =
   | "inviata"
   | "attesa_compilazione"
   | "pronte_da_fare"
+  | "intervento_operatore"
   | "documenti_mancanti"
   | "da_inviare"
   | "gestionale"

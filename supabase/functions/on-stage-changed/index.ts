@@ -319,6 +319,16 @@ serve(async (req) => {
       break;
 
     case "gestionale": {
+      // Protezione contro i doppi invii, 24/09/2026.
+      // Prima non esisteva: bastava far ripassare una pratica da questa colonna
+      // perche' il cliente ricevesse di nuovo tutto. Accaduto davvero durante la
+      // prova dello switch, su una pratica gia' chiusa.
+      // `recensione_richiesta_at` viene scritto in fondo a questo blocco, quindi
+      // se e' gia' valorizzato le comunicazioni di chiusura sono gia' partite.
+      if (practice.recensione_richiesta_at) {
+        steps.closure_communications = "already_done";
+        break;
+      }
       const stageEmailEnabled = await isRuleEnabled(supabase, "stage_changed", "email");
       const stageWhatsappEnabled = await isRuleEnabled(supabase, "stage_changed", "whatsapp");
       const fgasInfo = fgasPackageInfo(practice.dati_form);
@@ -410,10 +420,17 @@ serve(async (req) => {
         });
       }
 
-      // Mark recensione_richiesta_at
-      await supabase.from("enea_practices").update({
-        recensione_richiesta_at: new Date().toISOString(),
-      }).eq("id", practice_id);
+      // Marcatore di chiusura: vale anche da protezione contro i doppi invii al
+      // passaggio successivo. Si scrive solo se almeno una comunicazione e'
+      // davvero partita, altrimenti un invio fallito resterebbe bloccato per
+      // sempre e non si potrebbe ritentare ripassando la pratica di qui.
+      if (clientEmailOk || clientWaOk) {
+        await supabase.from("enea_practices").update({
+          recensione_richiesta_at: new Date().toISOString(),
+        }).eq("id", practice_id);
+      } else {
+        steps.closure_communications = "all_failed_not_marked";
+      }
 
       // L'auto-spostamento in "Da inserire su Excel" e' stato rimosso il
       // 24/09/2026: ora e' quella colonna a far partire le comunicazioni, quindi

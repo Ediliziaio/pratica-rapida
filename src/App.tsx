@@ -291,7 +291,8 @@ const App = () => (
                     perché cambia il titolare, cambiano i dati trattati e
                     cambia il tipo di cliente. */}
                 <Route path="/verifica" element={<SoloEneaSubito><VerificaEneaSubito /></SoloEneaSubito>} />
-                <Route path="/modulo-fine-lavori" element={<SoloEneaSubito><ModuloFineLavori /></SoloEneaSubito>} />
+                <Route path="/modulo-fine-lavori" element={<SoloEneaSubito><ModuloFineLavori documento="fine-lavori" /></SoloEneaSubito>} />
+                <Route path="/verbale-di-posa" element={<SoloEneaSubito><ModuloFineLavori documento="verbale" /></SoloEneaSubito>} />
                 <Route path="/es/privacy" element={<SoloEneaSubito><PaginaLegale slug="privacy" /></SoloEneaSubito>} />
                 <Route path="/es/termini" element={<SoloEneaSubito><PaginaLegale slug="termini" /></SoloEneaSubito>} />
                 <Route path="/es/cookie" element={<SoloEneaSubito><PaginaLegale slug="cookie" /></SoloEneaSubito>} />

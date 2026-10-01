@@ -47,6 +47,30 @@ const VARIANTI: Record<Famiglia, Variante> = {
   },
 };
 
+/**
+ * Il verbale di posa e collaudo, dal facsimile del Titolare. È più forte della
+ * sola dichiarazione perché lo firmano azienda **e** cliente, e fissa la data
+ * di collaudo — quella da cui decorrono i 90 giorni.
+ *
+ * La citazione normativa è per famiglia e non universale: quella del facsimile
+ * (UNI EN 13561 e 1932) riguarda le schermature, e lasciarla su una pompa di
+ * calore significherebbe citare norme che non c'entrano.
+ */
+const NORME: Record<Famiglia, string> = {
+  infissi:
+    "Si attesta che il prodotto posato è un infisso detraibile ai sensi dell'articolo 14 comma 2 DL 63/2013 e ai sensi del DL 311/2006 allegato M, in marchiatura CE obbligatoria e successive modificazioni del DL 26/06/2009 in G.U. 158 del 10/07/2009.",
+  schermature:
+    "Si attesta che il prodotto posato è una schermatura solare da esterno detraibile ai sensi dell'articolo 14 comma 2 DL 63/2013 e ai sensi del DL 311/2006 allegato M, in marchiatura CE obbligatoria e successive modificazioni del DL 26/06/2009 in G.U. 158 del 10/07/2009. Il prodotto posato è fabbricato in conformità alle norme tecniche UNI EN 13561 e UNI EN 1932.",
+  pompe:
+    "[DA SCRIVERE: i riferimenti normativi per la climatizzazione invernale con pompa di calore. Quelli del facsimile riguardano le schermature e qui non valgono.]",
+};
+
+const OGGETTO_VERBALE: Record<Famiglia, string> = {
+  infissi: "infissi e relativi accessori",
+  schermature: "schermature solari e relativi accessori",
+  pompe: "impianto di climatizzazione invernale con pompa di calore",
+};
+
 const ETICHETTE: Record<Famiglia, string> = {
   infissi: "Infissi",
   schermature: "Schermature solari",
@@ -90,17 +114,21 @@ const STAMPA = `
 }
 `;
 
-export default function ModuloFineLavori() {
+export default function ModuloFineLavori({ documento = "fine-lavori" }: { documento?: "fine-lavori" | "verbale" }) {
   const [parametri] = useSearchParams();
   const richiesta = parametri.get("intervento") as Famiglia | null;
   const famiglia: Famiglia = richiesta && richiesta in VARIANTI ? richiesta : "infissi";
   const variante = VARIANTI[famiglia];
+  const titoloPagina =
+    documento === "verbale"
+      ? "Verbale di posa in opera e collaudo — modulo da far firmare"
+      : "Dichiarazione di fine lavori — modulo da far firmare";
 
   return (
     <div className="mfl">
       <Helmet>
         <html lang="it" />
-        <title>Dichiarazione di fine lavori — modulo da far firmare</title>
+        <title>{titoloPagina}</title>
         <meta
           name="description"
           content="Modulo di dichiarazione di fine lavori da far compilare e firmare all'impresa che ha eseguito i lavori."
@@ -123,7 +151,7 @@ export default function ModuloFineLavori() {
         {(Object.keys(VARIANTI) as Famiglia[]).map((f) => (
           <a
             key={f}
-            href={`/modulo-fine-lavori?intervento=${f}`}
+            href={`${documento === "verbale" ? "/verbale-di-posa" : "/modulo-fine-lavori"}?intervento=${f}`}
             aria-current={f === famiglia ? "page" : undefined}
           >
             {ETICHETTE[f]}
@@ -132,49 +160,103 @@ export default function ModuloFineLavori() {
       </nav>
 
       <div className="mfl-foglio">
-        <h1>Dichiarazione di fine lavori</h1>
-        <h2>ai fini delle detrazioni fiscali</h2>
+        {documento === "verbale" ? (
+          <>
+            <h1>Verbale di posa in opera e collaudo</h1>
+            <h2>da firmare in due: impresa e cliente</h2>
 
-        <p>
-          La società <span className="mfl-vuoto mfl-lungo" />, con sede in{" "}
-          <span className="mfl-vuoto mfl-lungo" />, partita IVA <span className="mfl-vuoto" />, in qualità
-          di ☐ fornitore/installatore ☐ tecnico incaricato,
-        </p>
+            <p>
+              In data <span className="mfl-vuoto mfl-corto" /> abbiamo effettuato il collaudo di fine
+              installazione di {OGGETTO_VERBALE[famiglia]} da noi forniti per la seguente unità
+              immobiliare:
+            </p>
 
-        <p>
-          dichiara sotto la propria responsabilità che presso l'immobile sito in{" "}
-          <span className="mfl-vuoto mfl-lungo" />, nel Comune di <span className="mfl-vuoto" /> (
-          <span className="mfl-vuoto mfl-corto" />), immobile detenuto dal Sig./Sig.ra{" "}
-          <span className="mfl-vuoto mfl-lungo" />, codice fiscale <span className="mfl-vuoto" />,
-        </p>
+            <p>
+              Via <span className="mfl-vuoto mfl-lungo" /> n. <span className="mfl-vuoto mfl-corto" />,
+              Comune di <span className="mfl-vuoto" />, Provincia di{" "}
+              <span className="mfl-vuoto mfl-corto" />.
+            </p>
 
-        <p>è stato eseguito il seguente intervento:</p>
+            <p>
+              Per il seguente cliente <span className="mfl-vuoto mfl-lungo" />, codice fiscale{" "}
+              <span className="mfl-vuoto" />.
+            </p>
 
-        <p className="mfl-dichiara">
-          {variante.intervento}, concluso in data <span className="mfl-vuoto mfl-corto" />.
-        </p>
+            <p className="mfl-dichiara">L'ESITO DEL COLLAUDO RISULTA: POSITIVO</p>
+            <p>
+              Osservazioni del cliente: <span className="mfl-vuoto mfl-lungo" />
+            </p>
 
-        {variante.attestazioni.map((frase) => (
-          <p key={frase}>{frase}</p>
-        ))}
+            <p>{NORME[famiglia]}</p>
 
-        <p>Si allegano, ove disponibili, schede tecniche e documentazione del produttore.</p>
+            <p>
+              Con il presente documento firmato tra le parti si intendono concluse le attività di posa in
+              opera e collaudo come da nostra fornitura.
+            </p>
 
-        <div className="mfl-firme">
-          <div>
-            <span />
-            Data
-          </div>
-          <div>
-            <span />
-            Timbro e firma
-          </div>
-        </div>
+            <div className="mfl-firme">
+              <div>
+                <span />
+                L'azienda (firma)
+              </div>
+              <div>
+                <span />
+                Il cliente (firma)
+              </div>
+            </div>
 
-        <p className="mfl-nota">
-          La data di ultimazione dei lavori è quella da cui decorrono i 90 giorni per la trasmissione
-          della comunicazione all'ENEA, e va indicata dall'impresa che ha eseguito i lavori.
-        </p>
+            <p className="mfl-nota">
+              La data del collaudo è quella da cui decorrono i 90 giorni per la trasmissione della
+              comunicazione all'ENEA.
+            </p>
+          </>
+        ) : (
+          <>
+            <h1>Dichiarazione di fine lavori</h1>
+            <h2>ai fini delle detrazioni fiscali</h2>
+
+            <p>
+              La società <span className="mfl-vuoto mfl-lungo" />, con sede in{" "}
+              <span className="mfl-vuoto mfl-lungo" />, partita IVA <span className="mfl-vuoto" />, in
+              qualità di ☐ fornitore/installatore ☐ tecnico incaricato,
+            </p>
+
+            <p>
+              dichiara sotto la propria responsabilità che presso l'immobile sito in{" "}
+              <span className="mfl-vuoto mfl-lungo" />, nel Comune di <span className="mfl-vuoto" /> (
+              <span className="mfl-vuoto mfl-corto" />), immobile detenuto dal Sig./Sig.ra{" "}
+              <span className="mfl-vuoto mfl-lungo" />, codice fiscale <span className="mfl-vuoto" />,
+            </p>
+
+            <p>è stato eseguito il seguente intervento:</p>
+
+            <p className="mfl-dichiara">
+              {variante.intervento}, concluso in data <span className="mfl-vuoto mfl-corto" />.
+            </p>
+
+            {variante.attestazioni.map((frase) => (
+              <p key={frase}>{frase}</p>
+            ))}
+
+            <p>Si allegano, ove disponibili, schede tecniche e documentazione del produttore.</p>
+
+            <div className="mfl-firme">
+              <div>
+                <span />
+                Data
+              </div>
+              <div>
+                <span />
+                Timbro e firma
+              </div>
+            </div>
+
+            <p className="mfl-nota">
+              La data di ultimazione dei lavori è quella da cui decorrono i 90 giorni per la trasmissione
+              della comunicazione all'ENEA, e va indicata dall'impresa che ha eseguito i lavori.
+            </p>
+          </>
+        )}
       </div>
     </div>
   );

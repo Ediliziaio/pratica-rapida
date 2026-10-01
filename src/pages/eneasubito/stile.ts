@@ -224,4 +224,11 @@ export const STILE = `
 .es-dettaglio summary { cursor: pointer; padding: 14px 0; font-size: 15px; font-weight: 600; color: var(--es-verde); }
 .es-dettaglio p { margin: 0 0 16px; font-size: 15px; line-height: 1.6; color: var(--es-inchiostro-tenue); }
 
+.es-striscia { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; margin-top: 8px;
+  background: var(--es-bordo); border: 1px solid var(--es-bordo); border-radius: 14px; overflow: hidden; }
+.es-striscia div { background: var(--es-superficie); padding: 20px 22px; display: flex; flex-direction: column; gap: 4px; }
+.es-striscia b { font-size: 28px; font-weight: 600; letter-spacing: -0.5px; }
+.es-striscia span { font-size: 14px; line-height: 1.45; color: var(--es-inchiostro-debole); }
+@media (max-width: 640px) { .es-striscia { grid-template-columns: minmax(0, 1fr); } }
+
 `;

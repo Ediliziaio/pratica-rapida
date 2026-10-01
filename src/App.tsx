@@ -29,6 +29,7 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const Home = lazy(() => import("./pages/Home"));
 const EneaSubito = lazy(() => import("./pages/EneaSubito"));
 const PaginaIntervento = lazy(() => import("./pages/eneasubito/PaginaIntervento"));
+const PaginaLegale = lazy(() => import("./pages/eneasubito/PaginaLegale"));
 const HomeCT = lazy(() => import("./pages/HomeCT"));
 const GuidaCT = lazy(() => import("./pages/GuidaCT"));
 const SimulatoreCT = lazy(() => import("./pages/SimulatoreCT"));
@@ -284,6 +285,12 @@ const App = () => (
                 {/* Rinvii dai vecchi indirizzi WordPress che non hanno più un
                     corrispondente: /climatizzatori copriva le pompe di calore,
                     l'area rivenditori non esiste più su questo marchio. */}
+                {/* Pagine legali proprie: non condivise con Pratica Rapida,
+                    perché cambia il titolare, cambiano i dati trattati e
+                    cambia il tipo di cliente. */}
+                <Route path="/es/privacy" element={<SoloEneaSubito><PaginaLegale slug="privacy" /></SoloEneaSubito>} />
+                <Route path="/es/termini" element={<SoloEneaSubito><PaginaLegale slug="termini" /></SoloEneaSubito>} />
+                <Route path="/es/cookie" element={<SoloEneaSubito><PaginaLegale slug="cookie" /></SoloEneaSubito>} />
                 <Route path="/climatizzatori" element={<SoloEneaSubito><Navigate to="/pompe-di-calore" replace /></SoloEneaSubito>} />
                 <Route path="/area-rivenditori" element={<SoloEneaSubito><Navigate to="/" replace /></SoloEneaSubito>} />
                 <Route path="/conto-termico" element={<HomeCT />} />

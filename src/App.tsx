@@ -31,6 +31,7 @@ const EneaSubito = lazy(() => import("./pages/EneaSubito"));
 const PaginaIntervento = lazy(() => import("./pages/eneasubito/PaginaIntervento"));
 const PaginaLegale = lazy(() => import("./pages/eneasubito/PaginaLegale"));
 const VerificaEneaSubito = lazy(() => import("./pages/eneasubito/verifica/Verifica"));
+const ModuloFineLavori = lazy(() => import("./pages/eneasubito/ModuloFineLavori"));
 const HomeCT = lazy(() => import("./pages/HomeCT"));
 const GuidaCT = lazy(() => import("./pages/GuidaCT"));
 const SimulatoreCT = lazy(() => import("./pages/SimulatoreCT"));
@@ -290,6 +291,7 @@ const App = () => (
                     perché cambia il titolare, cambiano i dati trattati e
                     cambia il tipo di cliente. */}
                 <Route path="/verifica" element={<SoloEneaSubito><VerificaEneaSubito /></SoloEneaSubito>} />
+                <Route path="/modulo-fine-lavori" element={<SoloEneaSubito><ModuloFineLavori /></SoloEneaSubito>} />
                 <Route path="/es/privacy" element={<SoloEneaSubito><PaginaLegale slug="privacy" /></SoloEneaSubito>} />
                 <Route path="/es/termini" element={<SoloEneaSubito><PaginaLegale slug="termini" /></SoloEneaSubito>} />
                 <Route path="/es/cookie" element={<SoloEneaSubito><PaginaLegale slug="cookie" /></SoloEneaSubito>} />

@@ -141,15 +141,16 @@ export function valuta(risposte: Risposte, lettura: LetturaFattura, oggi = new D
       esito: "serve_un_controllo",
       titolo: "Si può ancora fare, ma serve un foglio in più",
       spiegazione:
-        `Dalla data che hai messo sono passati ${passati} giorni, e il termine è 90. Però il termine ` +
-        "non parte dalla data della fattura: parte dalla fine dei lavori, che certifica il tuo " +
-        "installatore e che molto spesso è più avanti di quanto si ricorda. Chiedi al tuo installatore " +
-        "la dichiarazione di fine lavori: ti mandiamo noi il modulo già pronto da passargli. Se la data " +
-        "che attesta rientra nei 90 giorni, la pratica si fa.",
+        `Dalla data che hai messo sono passati ${passati} giorni, e il termine è 90. Non sei ` +
+        "spacciato: il termine non parte dalla fattura, parte da quando i lavori sono stati " +
+        "effettivamente finiti, e quella data si attesta con una dichiarazione di fine lavori. " +
+        "Non devi arrangiarti da solo: guardiamo la tua fattura, ti diciamo se il tuo caso si recupera " +
+        "e ti prepariamo il foglio da far firmare al tuo installatore. Ti rispondiamo entro 24 ore, e " +
+        "non paghi niente finché non è chiaro.",
       motivi: [
         ...motivi,
         { segno: "forse", testo: `Dalla data indicata sono passati ${passati} giorni` },
-        { segno: "forse", testo: "Serve la dichiarazione di fine lavori dell'installatore" },
+        { segno: "forse", testo: "Serve la dichiarazione di fine lavori — ce ne occupiamo noi" },
       ],
     };
   }

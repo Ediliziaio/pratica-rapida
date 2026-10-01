@@ -174,21 +174,22 @@ export default function Verifica() {
             <>
               <h1 className="es-domandona es-serif">Quando sono finiti i lavori?</h1>
               <p className="es-aiuto">
-                È il giorno in cui l'installatore ha finito il montaggio — <strong>non la data della
-                fattura</strong>, che quasi sempre è diversa. Da lì partono i 90 giorni per trasmettere
-                all'ENEA.
+                Se non la ricordi con precisione, <strong>prendi la fattura o la ricevuta del
+                bonifico</strong>: la data è quella, o lì intorno. Da lì partono i 90 giorni per
+                trasmettere all'ENEA.
               </p>
               {/* Molti arrivano qui proprio perché si sono dimenticati della
-                  pratica, e non sanno quale data mettere. Se diventa un muro
-                  li perdiamo tutti: la data vera è quella che certifica
-                  l'installatore, e va detto prima, non dopo il rifiuto. */}
+                  pratica. Mandarli a chiedere un documento all'installatore
+                  sarebbe un vicolo cieco — quel foglio non lo fa quasi nessuno
+                  — e dirlo a tutti spaventerebbe anche chi è tranquillamente
+                  nei termini. Qui si indica solo dove guardare; del resto si
+                  parla dopo, e solo a chi serve davvero. */}
               <details className="es-dettaglio">
                 <summary>Non so quale data mettere</summary>
                 <p>
-                  Succede quasi sempre, e non è un problema. Metti la data che ricordi, anche
-                  approssimativa: è l'installatore che certifica ufficialmente quando ha finito, con un
-                  foglio che si chiama <em>dichiarazione di fine lavori</em>. Se serve, ti mandiamo noi
-                  il modulo già pronto da passargli — tu non devi sapere come si scrive.
+                  Succede quasi sempre. Prendi la fattura o il bonifico e guarda la data: se è di meno
+                  di tre mesi fa, scrivi quella e vai avanti — sei in tempo. Se è più vecchia, vai avanti
+                  lo stesso: c'è un modo di sistemarla e ci pensiamo noi.
                 </p>
               </details>
               <div className="es-campone">
@@ -341,9 +342,16 @@ function SchermataVerdetto({ verdetto, ricomincia }: { verdetto: Verdetto; ricom
               </a>
             )}
             {verdetto.esito === "serve_un_controllo" && (
-              <span className="es-aiuto">
-                Non devi fare altro: ti scriviamo entro 24 ore all'indirizzo che ci hai dato.
-              </span>
+              <>
+                {verdetto.spiegazione.includes("dichiarazione di fine lavori") && (
+                  <a className="es-bottone es-bottone-pieno" href="/modulo-fine-lavori" target="_blank" rel="noreferrer">
+                    Scarica il modulo da far firmare
+                  </a>
+                )}
+                <span className="es-aiuto">
+                  Non devi fare altro: ti scriviamo entro 24 ore all'indirizzo che ci hai dato.
+                </span>
+              </>
             )}
             <button type="button" className="es-indietro" onClick={ricomincia}>
               Ricomincia

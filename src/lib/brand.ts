@@ -29,14 +29,34 @@ export function isEneaSubitoHost(hostname = window.location.hostname): boolean {
 }
 
 /**
- * Marchio corrente. L'override via querystring serve in sviluppo e per le
- * anteprime: non cambia nulla in produzione, dove decide il dominio.
+ * Vero solo sulle macchine di sviluppo e sulle anteprime di Cloudflare, mai
+ * sui domini veri. Serve a limitare l'interruttore qui sotto.
+ */
+function ambienteDiProva(hostname = window.location.hostname): boolean {
+  return (
+    hostname === "localhost" ||
+    hostname === "127.0.0.1" ||
+    hostname.endsWith(".local") ||
+    hostname.endsWith(".pages.dev")
+  );
+}
+
+/**
+ * Marchio corrente: in produzione decide il dominio e basta.
+ *
+ * L'interruttore `?brand=` vale **solo** in sviluppo e sulle anteprime. In
+ * produzione dev'essere inerte: altrimenti chiunque aggiungesse
+ * `?brand=eneasubito` all'indirizzo di praticarapida.it si ritroverebbe
+ * EneaSubito sul sito dell'altro marchio, che è esattamente la cosa che i due
+ * marchi non devono poter fare.
  */
 export function currentBrand(): Brand {
   try {
-    const forced = new URLSearchParams(window.location.search).get("brand");
-    if (forced === "eneasubito") return "eneasubito";
-    if (forced === "pratica-rapida") return "pratica-rapida";
+    if (ambienteDiProva()) {
+      const forced = new URLSearchParams(window.location.search).get("brand");
+      if (forced === "eneasubito") return "eneasubito";
+      if (forced === "pratica-rapida") return "pratica-rapida";
+    }
   } catch {
     // querystring illeggibile: si decide dal dominio
   }

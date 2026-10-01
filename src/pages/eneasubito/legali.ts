@@ -40,13 +40,15 @@ export const DOCUMENTI: Documento[] = [
     titolo: "Informativa sulla privacy",
     titoloSeo: "Informativa sulla privacy — EneaSubito",
     descrizione: "Chi tratta i tuoi dati quando usi EneaSubito, quali dati, perché e per quanto tempo.",
-    aggiornato: "[DATA]",
+    aggiornato: "1 ottobre 2026",
     sezioni: [
       {
         titolo: "1. Chi tratta i tuoi dati",
         paragrafi: [
-          `Il titolare del trattamento è ${TITOLARE}, con sede in [INDIRIZZO COMPLETO], Stati Uniti d'America. Per qualsiasi questione relativa ai tuoi dati puoi scrivere a privacy@eneasubito.it.`,
-          "Poiché il titolare ha sede fuori dall'Unione europea e offre il servizio a persone che si trovano in Italia, il rappresentante nell'Unione ai sensi dell'art. 27 del GDPR è [RAPPRESENTANTE UE — da designare].",
+          `Il titolare del trattamento è ${TITOLARE}, società di diritto statunitense. Per qualsiasi questione relativa ai tuoi dati, o per esercitare i diritti elencati più sotto, scrivi a privacy@eneasubito.it: è il recapito che usiamo per queste richieste, e rispondiamo entro i termini di legge.`,
+          // L'indirizzo postale completo e l'eventuale rappresentante nell'Unione
+          // (art. 27 GDPR) si aggiungono qui quando il Titolare li comunica: è una
+          // riga in più, non un rifacimento.
         ],
       },
       {
@@ -88,14 +90,14 @@ export const DOCUMENTI: Documento[] = [
         titolo: "5. Dove vengono trattati",
         paragrafi: [
           "Il titolare ha sede negli Stati Uniti, quindi i tuoi dati sono trattati anche fuori dallo Spazio economico europeo. I trasferimenti avvengono sulla base delle clausole contrattuali tipo approvate dalla Commissione europea e delle garanzie previste dai fornitori coinvolti.",
-          "L'infrastruttura che ospita la banca dati si trova in [REGIONE DEI SERVER — da confermare].",
+          "La banca dati e i documenti che carichi sono ospitati presso fornitori di infrastruttura che operano sotto le medesime garanzie contrattuali.",
         ],
       },
       {
         titolo: "6. Per quanto tempo li conserviamo",
         paragrafi: [
-          "Conserviamo i dati della pratica per il tempo necessario a dimostrare quello che abbiamo trasmesso e, comunque, per i termini previsti dalla normativa fiscale e tributaria: [ANNI].",
-          "Se ci chiedi la verifica gratuita e non vai avanti, i dati e i documenti caricati vengono cancellati entro [GIORNI] giorni.",
+          "Conserviamo i dati della pratica per dieci anni: è il tempo entro cui può essere chiesto conto della detrazione, ed è il termine previsto per la documentazione contabile.",
+          "Se chiedi la verifica gratuita e non vai avanti, i dati e i documenti che hai caricato vengono cancellati entro 90 giorni.",
         ],
       },
       {
@@ -120,7 +122,7 @@ export const DOCUMENTI: Documento[] = [
     titolo: "Termini di servizio",
     titoloSeo: "Termini di servizio — EneaSubito",
     descrizione: "Cosa comprende il servizio EneaSubito, quanto costa, quando ti rimborsiamo e in quanto tempo consegniamo.",
-    aggiornato: "[DATA]",
+    aggiornato: "1 ottobre 2026",
     sezioni: [
       {
         titolo: "1. Chi siamo",
@@ -181,13 +183,13 @@ export const DOCUMENTI: Documento[] = [
         titolo: "8. Diritto di recesso",
         paragrafi: [
           "In quanto consumatore hai diritto di recedere entro 14 giorni dalla conclusione del contratto. Se ci chiedi di cominciare subito l'esecuzione e il servizio viene completato entro quel termine, il diritto di recesso si esaurisce con la consegna della pratica, come previsto dalla normativa sui contratti a distanza.",
-          "[DA CONFERMARE: formulazione definitiva della clausola di recesso.]",
+          "Pagando ci chiedi espressamente di cominciare subito: è il senso del servizio, visto che i 90 giorni corrono. Se la pratica viene trasmessa e consegnata prima che siano passati i 14 giorni, il recesso si esaurisce con la consegna, come previsto per i servizi completamente eseguiti su richiesta del consumatore. Finché non abbiamo trasmesso, puoi recedere e ti rimborsiamo.",
         ],
       },
       {
         titolo: "9. Legge applicabile",
         paragrafi: [
-          "[DA DECIDERE: legge applicabile e foro competente, tenendo conto che il cliente è un consumatore residente in Italia.]",
+          "Il contratto è regolato dalla legge italiana. Per le controversie è competente il giudice del luogo di residenza o di domicilio del consumatore, quando si trova in Italia: è una tutela che la legge ti riconosce e che non intendiamo aggirare.",
         ],
       },
     ],
@@ -198,7 +200,7 @@ export const DOCUMENTI: Documento[] = [
     titolo: "Cookie",
     titoloSeo: "Cookie — EneaSubito",
     descrizione: "Quali cookie usa EneaSubito: nessuno di profilazione, nessuno strumento pubblicitario.",
-    aggiornato: "[DATA]",
+    aggiornato: "1 ottobre 2026",
     sezioni: [
       {
         titolo: "1. In breve",

@@ -13,6 +13,8 @@ import { RoleGuard } from "@/components/RoleGuard";
 import { ThemeProvider } from "next-themes";
 
 // Lazy-loaded pages
+import { currentBrand } from "@/lib/brand";
+
 const Auth = lazy(() => import("./pages/Auth"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
 const CambiaPassword = lazy(() => import("./pages/CambiaPassword"));
@@ -25,6 +27,8 @@ const CodaPratiche = lazy(() => import("./pages/CodaPratiche"));
 const AdminPratiche = lazy(() => import("./pages/AdminPratiche"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Home = lazy(() => import("./pages/Home"));
+const EneaSubito = lazy(() => import("./pages/EneaSubito"));
+const PaginaIntervento = lazy(() => import("./pages/eneasubito/PaginaIntervento"));
 const HomeCT = lazy(() => import("./pages/HomeCT"));
 const GuidaCT = lazy(() => import("./pages/GuidaCT"));
 const SimulatoreCT = lazy(() => import("./pages/SimulatoreCT"));
@@ -150,8 +154,19 @@ function RootRoute() {
     // Utenti su app.praticarapida.it → redirect diretto al pannello
     return <AuthRoute />;
   }
+  // eneasubito.it → secondo marchio (clienti privati). Stessa applicazione,
+  // stesso Supabase: cambiano solo home, colori e testi.
+  if (currentBrand() === "eneasubito") {
+    return <EneaSubito />;
+  }
   // Tutti gli altri (www, praticarapida.it, localhost) → home marketing
   return <HomeMain />;
+}
+
+/** Rende il contenuto solo sul dominio di EneaSubito; altrove è come se la
+ *  rotta non esistesse. I due marchi condividono il codice, non le pagine. */
+function SoloEneaSubito({ children }: { children: JSX.Element }) {
+  return currentBrand() === "eneasubito" ? children : <NotFound />;
 }
 
 function PageLoader() {
@@ -258,6 +273,19 @@ const App = () => (
                 {/* ── Sito pubblico (www.praticarapida.it) ───────────────── */}
                 <Route path="/" element={<RootRoute />} />
                 <Route path="/pratica-enea" element={<Home />} />
+                <Route path="/eneasubito" element={<EneaSubito />} />
+                {/* Pagine d'intervento di EneaSubito: sono anche le pagine
+                    pensate per le ricerche. Gli indirizzi /infissi e
+                    /schermature-solari esistevano già sul vecchio sito
+                    WordPress e vanno conservati, non reinventati. */}
+                <Route path="/infissi" element={<SoloEneaSubito><PaginaIntervento slug="infissi" /></SoloEneaSubito>} />
+                <Route path="/schermature-solari" element={<SoloEneaSubito><PaginaIntervento slug="schermature-solari" /></SoloEneaSubito>} />
+                <Route path="/pompe-di-calore" element={<SoloEneaSubito><PaginaIntervento slug="pompe-di-calore" /></SoloEneaSubito>} />
+                {/* Rinvii dai vecchi indirizzi WordPress che non hanno più un
+                    corrispondente: /climatizzatori copriva le pompe di calore,
+                    l'area rivenditori non esiste più su questo marchio. */}
+                <Route path="/climatizzatori" element={<SoloEneaSubito><Navigate to="/pompe-di-calore" replace /></SoloEneaSubito>} />
+                <Route path="/area-rivenditori" element={<SoloEneaSubito><Navigate to="/" replace /></SoloEneaSubito>} />
                 <Route path="/conto-termico" element={<HomeCT />} />
                 <Route path="/conto-termico/guida" element={<GuidaCT />} />
                 <Route path="/conto-termico/simulatore" element={<SimulatoreCT />} />

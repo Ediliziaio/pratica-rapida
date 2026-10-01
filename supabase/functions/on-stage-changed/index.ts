@@ -307,7 +307,28 @@ serve(async (req) => {
     }
 
     // Messaggio 4 + Notifica C — pratica inviata → email+WA al cliente + email al rivenditore
-    case "da_inviare": {
+    // Switch di produzione del 24/09/2026, deciso dal titolare.
+    // "Invio pratica chiusa" (da_inviare) e la nuova "Richiesto intervento
+    // operatore" restano SILENZIOSE: APR ci parcheggia una pratica finita, o su
+    // cui serve una decisione umana, senza che al cliente parta nulla. Le
+    // comunicazioni di chiusura partono soltanto da "Da inserire su Excel"
+    // (gestionale), dove la pratica arriva con un gesto manuale, cioe' dopo
+    // essere stata davvero trasmessa sul portale ENEA.
+    case "da_inviare":
+    case "intervento_operatore":
+      break;
+
+    case "gestionale": {
+      // Protezione contro i doppi invii, 24/09/2026.
+      // Prima non esisteva: bastava far ripassare una pratica da questa colonna
+      // perche' il cliente ricevesse di nuovo tutto. Accaduto davvero durante la
+      // prova dello switch, su una pratica gia' chiusa.
+      // `recensione_richiesta_at` viene scritto in fondo a questo blocco, quindi
+      // se e' gia' valorizzato le comunicazioni di chiusura sono gia' partite.
+      if (practice.recensione_richiesta_at) {
+        steps.closure_communications = "already_done";
+        break;
+      }
       const stageEmailEnabled = await isRuleEnabled(supabase, "stage_changed", "email");
       const stageWhatsappEnabled = await isRuleEnabled(supabase, "stage_changed", "whatsapp");
       const fgasInfo = fgasPackageInfo(practice.dati_form);
@@ -399,31 +420,23 @@ serve(async (req) => {
         });
       }
 
-      // Mark recensione_richiesta_at
-      await supabase.from("enea_practices").update({
-        recensione_richiesta_at: new Date().toISOString(),
-      }).eq("id", practice_id);
-
-      // CRM#9 — Auto-spostamento: dopo che mail + WhatsApp di chiusura sono
-      // partiti correttamente, sposta la pratica in "da inserire su Excel"
-      // (stage di sistema per il brand), così lo staff sa che va loggata.
-      if (clientEmailOk && clientWaOk) {
-        const { data: excelStage } = await supabase
-          .from("pipeline_stages")
-          .select("id")
-          .is("reseller_id", null)
-          .eq("stage_type", "da_inserire_excel")
-          .eq("brand", practice.brand)
-          .maybeSingle();
-        if (excelStage?.id) {
-          await supabase
-            .from("enea_practices")
-            .update({ current_stage_id: excelStage.id })
-            .eq("id", practice_id);
-        } else {
-          console.warn(`[on-stage-changed] stage da_inserire_excel non trovato per brand ${practice.brand}`);
-        }
+      // Marcatore di chiusura: vale anche da protezione contro i doppi invii al
+      // passaggio successivo. Si scrive solo se almeno una comunicazione e'
+      // davvero partita, altrimenti un invio fallito resterebbe bloccato per
+      // sempre e non si potrebbe ritentare ripassando la pratica di qui.
+      if (clientEmailOk || clientWaOk) {
+        await supabase.from("enea_practices").update({
+          recensione_richiesta_at: new Date().toISOString(),
+        }).eq("id", practice_id);
+      } else {
+        steps.closure_communications = "all_failed_not_marked";
       }
+
+      // L'auto-spostamento in "Da inserire su Excel" e' stato rimosso il
+      // 24/09/2026: ora e' quella colonna a far partire le comunicazioni, quindi
+      // arrivarci da soli le manderebbe senza che nessuno le abbia volute. Fra
+      // l'altro cercava lo stage_type "da_inserire_excel", che in produzione non
+      // esiste (le colonne sono "gestionale"): non ha mai spostato nulla.
 
       break;
     }

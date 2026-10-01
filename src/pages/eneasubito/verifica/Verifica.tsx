@@ -22,6 +22,7 @@ import { useSearchParams } from "react-router-dom";
 import { Guscio } from "../Guscio";
 import { preparaDocumento } from "./immagine";
 import {
+  GIORNI_DI_LAVORAZIONE,
   giorniRimasti,
   valuta,
   type Famiglia,
@@ -173,9 +174,23 @@ export default function Verifica() {
             <>
               <h1 className="es-domandona es-serif">Quando sono finiti i lavori?</h1>
               <p className="es-aiuto">
-                La data di fine posa o di collaudo, quella che ti ha indicato l'installatore. Da lì partono
-                i 90 giorni per trasmettere all'ENEA.
+                È il giorno in cui l'installatore ha finito il montaggio — <strong>non la data della
+                fattura</strong>, che quasi sempre è diversa. Da lì partono i 90 giorni per trasmettere
+                all'ENEA.
               </p>
+              {/* Molti arrivano qui proprio perché si sono dimenticati della
+                  pratica, e non sanno quale data mettere. Se diventa un muro
+                  li perdiamo tutti: la data vera è quella che certifica
+                  l'installatore, e va detto prima, non dopo il rifiuto. */}
+              <details className="es-dettaglio">
+                <summary>Non so quale data mettere</summary>
+                <p>
+                  Succede quasi sempre, e non è un problema. Metti la data che ricordi, anche
+                  approssimativa: è l'installatore che certifica ufficialmente quando ha finito, con un
+                  foglio che si chiama <em>dichiarazione di fine lavori</em>. Se serve, ti mandiamo noi
+                  il modulo già pronto da passargli — tu non devi sapere come si scrive.
+                </p>
+              </details>
               <div className="es-campone">
                 <label htmlFor="fine-lavori">Data di fine lavori</label>
                 <input
@@ -186,12 +201,14 @@ export default function Verifica() {
                 />
               </div>
               {rimasti !== null && (
-                <p className={`es-riscontro ${rimasti < 0 ? "es-brutto" : rimasti <= 15 ? "es-attenzione" : ""}`}>
+                <p className={`es-riscontro ${rimasti < GIORNI_DI_LAVORAZIONE ? "es-attenzione" : ""}`}>
                   {rimasti < 0
-                    ? `Il termine è scaduto da ${-rimasti} giorni. Vai avanti lo stesso: ti diciamo se è un caso recuperabile.`
-                    : rimasti <= 15
-                      ? `Mancano ${rimasti} giorni alla scadenza. Siamo ancora in tempo, ma non aspettare.`
-                      : `Mancano ${rimasti} giorni alla scadenza dei 90.`}
+                    ? `Da questa data sono passati ${90 - rimasti} giorni. Non fermarti qui: la data che conta è quella che certifica il tuo installatore, e spesso è più avanti. Vai avanti e ti spieghiamo come fare.`
+                    : rimasti < GIORNI_DI_LAVORAZIONE
+                      ? `Mancano ${rimasti} giorni: siamo al limite. Vai avanti, ti diciamo subito se ce la facciamo.`
+                      : rimasti <= 15
+                        ? `Mancano ${rimasti} giorni alla scadenza. Siamo in tempo, ma non aspettare.`
+                        : `Mancano ${rimasti} giorni alla scadenza dei 90.`}
                 </p>
               )}
             </>

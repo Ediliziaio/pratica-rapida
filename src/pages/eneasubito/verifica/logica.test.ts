@@ -48,19 +48,28 @@ describe("perimetro", () => {
 });
 
 describe("i 90 giorni", () => {
-  it("al novantesimo giorno si può ancora fare", () => {
+  it("al novantesimo giorno non promettiamo: trasmettiamo noi, e non ci stiamo", () => {
     const v = valuta(risposte({ fineLavori: "2026-07-03" }), { stato: "letta", totale: "9.840 €" }, OGGI);
     expect(giorniDaFineLavori("2026-07-03", OGGI)).toBe(90);
+    expect(v.esito).toBe("serve_un_controllo");
+    expect(v.titolo).toContain("limite");
+  });
+
+  it("con il margine di lavorazione davanti, si promette", () => {
+    // 86 giorni passati: ne restano 4, uno in più del margine.
+    const v = valuta(risposte({ fineLavori: "2026-07-07" }), { stato: "letta", totale: "9.840 €" }, OGGI);
+    expect(giorniDaFineLavori("2026-07-07", OGGI)).toBe(86);
     expect(v.esito).toBe("si_puo_fare");
   });
 
-  it("al novantunesimo no", () => {
-    const v = valuta(risposte({ fineLavori: "2026-07-02" }), { stato: "letta", totale: "9.840 €" }, OGGI);
-    expect(giorniDaFineLavori("2026-07-02", OGGI)).toBe(91);
-    expect(v.esito).toBe("non_si_puo_fare");
+  it("oltre i 90 giorni non è un muro: si chiede la dichiarazione di fine lavori", () => {
+    const v = valuta(risposte({ fineLavori: "2026-05-02" }), { stato: "letta", totale: "9.840 €" }, OGGI);
+    expect(v.esito).toBe("serve_un_controllo");
+    expect(v.spiegazione).toContain("dichiarazione di fine lavori");
   });
 
   it("avvisa quando il tempo è poco, ma non blocca", () => {
+    // 83 giorni passati, ne restano 7: sopra il margine, sotto l'allarme.
     const v = valuta(risposte({ fineLavori: "2026-07-10" }), { stato: "letta", totale: "9.840 €" }, OGGI);
     expect(v.esito).toBe("si_puo_fare");
     expect(v.motivi.some((m) => m.segno === "forse")).toBe(true);

@@ -220,4 +220,8 @@ export const STILE = `
   .es-scelte { grid-template-columns: minmax(0, 1fr); }
   .es-passo, .es-verdetto { padding: 32px 0 56px; }
 }
+.es-dettaglio { border: 1px solid var(--es-bordo); border-radius: 10px; background: var(--es-superficie); padding: 0 16px; }
+.es-dettaglio summary { cursor: pointer; padding: 14px 0; font-size: 15px; font-weight: 600; color: var(--es-verde); }
+.es-dettaglio p { margin: 0 0 16px; font-size: 15px; line-height: 1.6; color: var(--es-inchiostro-tenue); }
+
 `;

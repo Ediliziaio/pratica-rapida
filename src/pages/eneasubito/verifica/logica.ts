@@ -24,6 +24,16 @@ export const TERMINE_GIORNI = 90;
 /** Sotto questa soglia avvisiamo che il tempo è poco, ma non blocchiamo. */
 export const GIORNI_DI_ALLARME = 15;
 
+/**
+ * Giorni che servono a noi per lavorare e trasmettere dopo il pagamento.
+ *
+ * Il termine di legge vale sulla TRASMISSIONE, non sulla richiesta: se uno
+ * arriva il novantesimo giorno e noi trasmettiamo il giorno dopo, il torto è
+ * nostro. Dentro questo margine non promettiamo, avvisiamo che bisogna pagare
+ * subito.
+ */
+export const GIORNI_DI_LAVORAZIONE = 3;
+
 export interface Risposte {
   famiglia: Famiglia | null;
   /** Data di fine lavori in formato AAAA-MM-GG. */
@@ -128,13 +138,30 @@ export function valuta(risposte: Risposte, lettura: LetturaFattura, oggi = new D
   const rimasti = TERMINE_GIORNI - passati;
   if (rimasti < 0) {
     return {
-      esito: "non_si_puo_fare",
-      titolo: "Sei fuori termine",
+      esito: "serve_un_controllo",
+      titolo: "Si può ancora fare, ma serve un foglio in più",
       spiegazione:
-        `I lavori risultano finiti da ${passati} giorni, e la comunicazione all'ENEA va trasmessa ` +
-        "entro 90. In qualche caso si rimedia, in altri no: scrivici prima di pagare qualsiasi cosa, " +
-        "e ti diciamo se il tuo è uno dei casi recuperabili.",
-      motivi: [...motivi, { segno: "no", testo: `Termine scaduto da ${-rimasti} giorni` }],
+        `Dalla data che hai messo sono passati ${passati} giorni, e il termine è 90. Però il termine ` +
+        "non parte dalla data della fattura: parte dalla fine dei lavori, che certifica il tuo " +
+        "installatore e che molto spesso è più avanti di quanto si ricorda. Chiedi al tuo installatore " +
+        "la dichiarazione di fine lavori: ti mandiamo noi il modulo già pronto da passargli. Se la data " +
+        "che attesta rientra nei 90 giorni, la pratica si fa.",
+      motivi: [
+        ...motivi,
+        { segno: "forse", testo: `Dalla data indicata sono passati ${passati} giorni` },
+        { segno: "forse", testo: "Serve la dichiarazione di fine lavori dell'installatore" },
+      ],
+    };
+  }
+  if (rimasti < GIORNI_DI_LAVORAZIONE) {
+    return {
+      esito: "serve_un_controllo",
+      titolo: "Siamo al limite: si decide oggi",
+      spiegazione:
+        `Mancano ${rimasti} giorni alla scadenza, e a noi serve qualche giorno per compilare e ` +
+        "trasmettere. Si fa solo se si parte subito: scrivici adesso e ti diciamo entro poche ore se " +
+        "ce la facciamo. Non ti facciamo pagare per una corsa che sappiamo già di perdere.",
+      motivi: [...motivi, { segno: "forse", testo: `Restano ${rimasti} giorni: troppo pochi per promettere` }],
     };
   }
   motivi.push({

@@ -83,7 +83,7 @@ export default function EneaSubito() {
             <a href="#prezzo">Prezzo</a>
             <a href="#domande">Domande</a>
           </nav>
-          <a className="es-bottone es-bottone-pieno es-bottone-piccolo" href="#inizia">Verifica gratis</a>
+          <a className="es-bottone es-bottone-pieno es-bottone-piccolo" href="/verifica">Verifica gratis</a>
         </div>
       </header>
 
@@ -98,7 +98,7 @@ export default function EneaSubito() {
             e la pratica la facciamo noi. Se non si può fare te lo diciamo e non paghi niente.
           </p>
           <div className="es-azioni">
-            <a className="es-bottone es-bottone-pieno" href="#inizia">Verifica la tua pratica — è gratis</a>
+            <a className="es-bottone es-bottone-pieno" href="/verifica">Verifica la tua pratica — è gratis</a>
             <a className="es-bottone es-bottone-vuoto" href="#come-funziona">Come funziona</a>
           </div>
           <p className="es-micro">Nessuna carta di credito per la verifica. Risposta in pochi secondi.</p>
@@ -260,7 +260,7 @@ export default function EneaSubito() {
               Si paga dopo la risposta, non prima. Se la pratica non si può fare non paghi niente — e se
               i documenti non confermano quello che ci hai detto, ti restituiamo tutto.
             </p>
-            <a className="es-bottone es-bottone-chiaro" href="#inizia">Verifica la tua pratica</a>
+            <a className="es-bottone es-bottone-chiaro" href="/verifica">Verifica la tua pratica</a>
             <span className="es-firma">Pagamento sicuro con Stripe</span>
           </div>
         </section>
@@ -344,7 +344,7 @@ export default function EneaSubito() {
           Se i lavori sono finiti da poco sei in tempo. Comincia adesso: dieci minuti oggi, la pratica da
           controllare entro 48 ore, e paghi solo se ti convince.
         </p>
-        <a className="es-bottone es-bottone-pieno" href="#inizia" style={{ marginTop: 6 }}>Verifica la tua pratica — è gratis</a>
+        <a className="es-bottone es-bottone-pieno" href="/verifica" style={{ marginTop: 6 }}>Verifica la tua pratica — è gratis</a>
       </section>
 
       {/* ── Piè di pagina ─────────────────────────────────────────────── */}

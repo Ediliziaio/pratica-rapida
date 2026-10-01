@@ -1,7 +1,7 @@
 /**
  * Foglia di stile condivisa dalle pagine di EneaSubito.
  *
- * Tutto sta sotto `.es-root`: nessuna regola esce da lì, quindi il vestito di
+ * Tutto sta sotto .es-root: nessuna regola esce da lì, quindi il vestito di
  * EneaSubito non può toccare una virgola di Pratica Rapida.
  */
 export const STILE = `
@@ -175,4 +175,49 @@ export const STILE = `
 .es-richiamo div { flex: 1 1 420px; display: flex; flex-direction: column; gap: 8px; }
 .es-richiamo b { font-size: 22px; font-weight: 600; }
 .es-richiamo span { font-size: 16px; line-height: 1.55; color: #4A4028; }
+/* Modulo di verifica */
+.es-passo { max-width: 680px; margin: 0 auto; padding: 48px 0 72px; display: flex; flex-direction: column; gap: 24px; }
+.es-avanzamento { display: flex; align-items: center; gap: 12px; font-size: 14px; color: var(--es-inchiostro-debole); }
+.es-barra { flex-grow: 1; height: 6px; background: #E4DFD4; border-radius: 999px; overflow: hidden; }
+.es-barra i { display: block; height: 100%; background: var(--es-verde); border-radius: 999px; transition: width .25s ease; }
+.es-domandona { margin: 0; font-size: clamp(26px, 3.4vw, 34px); line-height: 1.15; font-weight: 600; letter-spacing: -0.5px; }
+.es-aiuto { margin: 0; font-size: 16px; line-height: 1.55; color: var(--es-inchiostro-debole); }
+.es-scelte { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.es-scelta { text-align: left; background: var(--es-superficie); border: 1px solid var(--es-bordo); border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 6px; cursor: pointer; font-family: inherit; color: inherit; }
+.es-scelta:hover { border-color: var(--es-verde); }
+.es-scelta[aria-pressed="true"] { border-color: var(--es-verde); box-shadow: inset 0 0 0 1px var(--es-verde); }
+.es-scelta b { font-size: 17px; font-weight: 600; }
+.es-scelta span { font-size: 14px; line-height: 1.45; color: var(--es-inchiostro-debole); }
+.es-campone { display: flex; flex-direction: column; gap: 8px; }
+.es-campone label { font-size: 15px; font-weight: 600; }
+.es-campone input { height: 56px; padding: 0 16px; background: var(--es-superficie); border: 1px solid #D5CEC0; border-radius: 10px; font-family: inherit; font-size: 17px; color: var(--es-inchiostro); }
+.es-campone input:focus { outline: 2px solid var(--es-verde); outline-offset: 1px; }
+.es-riscontro { font-size: 15px; line-height: 1.5; padding: 12px 14px; border-radius: 10px; background: #E7EDE8; color: #14603F; }
+.es-riscontro.es-attenzione { background: #F3E8D6; color: #7A5F1E; }
+.es-riscontro.es-brutto { background: #F6E3E0; color: #7A2E20; }
+.es-carica { display: flex; flex-wrap: wrap; gap: 12px; }
+.es-carica label { flex: 1 1 200px; display: inline-flex; align-items: center; justify-content: center; gap: 10px; height: 64px; border: 1px dashed #C9C2B5; border-radius: 12px; background: var(--es-superficie); font-size: 16px; font-weight: 600; cursor: pointer; }
+.es-carica label:hover { border-color: var(--es-verde); color: var(--es-verde); }
+.es-carica input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.es-navigazione { display: flex; gap: 12px; align-items: center; margin-top: 8px; }
+.es-indietro { background: none; border: none; font-family: inherit; font-size: 15px; color: var(--es-inchiostro-debole); cursor: pointer; text-decoration: underline; padding: 8px 0; }
+
+/* Verdetto */
+.es-verdetto { max-width: 680px; margin: 0 auto; padding: 48px 0 72px; display: flex; flex-direction: column; gap: 20px; }
+.es-verdetto-testa { display: flex; flex-direction: column; gap: 12px; padding: 28px; border-radius: 16px; border: 1px solid var(--es-bordo); background: var(--es-superficie); }
+.es-verdetto-si .es-verdetto-testa { background: #14201A; border-color: #14201A; }
+.es-verdetto-si .es-verdetto-testa h1, .es-verdetto-si .es-verdetto-testa p { color: #F5F2EC; }
+.es-verdetto-testa h1 { margin: 0; font-size: clamp(26px, 3.4vw, 34px); line-height: 1.15; font-weight: 600; letter-spacing: -0.5px; }
+.es-verdetto-testa p { margin: 0; font-size: 17px; line-height: 1.6; color: var(--es-inchiostro-tenue); }
+.es-motivi { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.es-motivi li { display: flex; gap: 10px; align-items: flex-start; font-size: 16px; line-height: 1.5; color: var(--es-inchiostro-tenue); }
+.es-segno { flex-shrink: 0; width: 22px; height: 22px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; }
+.es-segno-ok { background: #DDF0E4; color: #14603F; }
+.es-segno-no { background: #F6E3E0; color: #7A2E20; }
+.es-segno-forse { background: #F3E8D6; color: #7A5F1E; }
+
+@media (max-width: 640px) {
+  .es-scelte { grid-template-columns: minmax(0, 1fr); }
+  .es-passo, .es-verdetto { padding: 32px 0 56px; }
+}
 `;

@@ -60,8 +60,7 @@ function Contenuto({ intervento }: { intervento: Intervento }) {
               risposta è sì.
             </span>
           </div>
-          {/* TODO(punto 3): porterà al modulo di verifica quando esisterà. */}
-          <a className="es-bottone es-bottone-pieno" href="/#inizia">Verifica la tua pratica</a>
+          <a className="es-bottone es-bottone-pieno" href="/verifica">Verifica la tua pratica</a>
         </section>
       </div>
     </Guscio>

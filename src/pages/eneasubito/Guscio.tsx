@@ -70,8 +70,7 @@ export function Guscio({ titolo, descrizione, percorso, children }: GuscioProps)
             <Link to="/schermature-solari">Schermature solari</Link>
             <Link to="/pompe-di-calore">Pompe di calore</Link>
           </nav>
-          {/* TODO(punto 3): porterà al modulo di verifica quando esisterà. */}
-          <a className="es-bottone es-bottone-pieno es-bottone-piccolo" href="/#inizia">Verifica gratis</a>
+          <a className="es-bottone es-bottone-pieno es-bottone-piccolo" href="/verifica">Verifica gratis</a>
         </div>
       </header>
 

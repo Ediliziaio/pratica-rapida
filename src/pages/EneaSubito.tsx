@@ -17,6 +17,9 @@
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 
+import "@fontsource-variable/fraunces";
+import "@fontsource-variable/work-sans";
+
 import { STILE } from "./eneasubito/stile";
 
 // Cifre della fascia «quello che rischi». Aliquote 2026: 50% sull'abitazione
@@ -63,12 +66,6 @@ export default function EneaSubito() {
         <meta property="og:title" content="EneaSubito — scopri gratis se la tua pratica ENEA si può fare" />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://www.eneasubito.it/" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        <link
-          rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600&display=swap"
-        />
         <style>{STILE}</style>
       </Helmet>
 

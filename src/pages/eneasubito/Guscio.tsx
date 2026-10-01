@@ -10,6 +10,11 @@ import type { ReactNode } from "react";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 
+// Caratteri ospitati da noi e non caricati da Google: nessun servizio esterno
+// vede l'indirizzo IP di chi apre una pagina solo per leggere.
+import "@fontsource-variable/fraunces";
+import "@fontsource-variable/work-sans";
+
 import { STILE } from "./stile";
 
 export function Fulmine({ size = 26 }: { size?: number }) {
@@ -51,12 +56,6 @@ export function Guscio({ titolo, descrizione, percorso, children }: GuscioProps)
         <meta property="og:description" content={descrizione} />
         <meta property="og:type" content="website" />
         <meta property="og:url" content={canonico} />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        <link
-          rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600&display=swap"
-        />
         <style>{STILE}</style>
       </Helmet>
 

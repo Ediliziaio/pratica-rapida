@@ -215,11 +215,10 @@ export const DOCUMENTI: Documento[] = [
       {
         titolo: "3. Servizi esterni",
         elenco: [
-          "I caratteri tipografici della pagina sono forniti da Google Fonts, che per caricarli riceve l'indirizzo IP del tuo dispositivo.",
           "Stripe, solo nel momento in cui apri la pagina di pagamento, per la sicurezza della transazione.",
         ],
         paragrafi: [
-          "[DA DECIDERE: ospitando i caratteri direttamente sul nostro sito, questa voce sparisce del tutto. È mezza giornata di lavoro.]",
+          "È l'unico. I caratteri tipografici, le immagini e tutto il resto sono ospitati direttamente da noi: nessun altro servizio esterno viene contattato mentre leggi queste pagine, e nessuno riceve il tuo indirizzo IP.",
         ],
       },
       {

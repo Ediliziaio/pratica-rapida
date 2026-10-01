@@ -22,13 +22,13 @@ export const STILE = `
 
   background: var(--es-carta);
   color: var(--es-inchiostro);
-  font-family: "Work Sans", system-ui, -apple-system, sans-serif;
+  font-family: "Work Sans Variable", "Work Sans", system-ui, -apple-system, sans-serif;
   min-height: 100vh;
 }
 .es-root *, .es-root *::before, .es-root *::after { box-sizing: border-box; }
 .es-root a { color: var(--es-verde); }
 .es-root a:hover { color: var(--es-verde-scuro); }
-.es-serif { font-family: Fraunces, Georgia, "Times New Roman", serif; }
+.es-serif { font-family: "Fraunces Variable", Fraunces, Georgia, "Times New Roman", serif; }
 
 .es-wrap { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
 
@@ -103,7 +103,7 @@ export const STILE = `
 .es-scheda h3 { margin: 0; font-size: 18px; font-weight: 600; }
 .es-scheda p { margin: 0; font-size: 15px; line-height: 1.55; color: var(--es-inchiostro-tenue); }
 .es-numero { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; background: var(--es-verde); color: #FFFFFF; border-radius: 999px; font-size: 16px; font-weight: 600; }
-.es-scheda-grande h3 { font-size: 24px; font-family: Fraunces, Georgia, serif; }
+.es-scheda-grande h3 { font-size: 24px; font-family: "Fraunces Variable", Fraunces, Georgia, serif; }
 .es-scheda-grande p { font-size: 16px; }
 
 .es-voce { background: var(--es-superficie); border: 1px solid var(--es-bordo); border-radius: 12px; padding: 20px; display: flex; gap: 12px; align-items: flex-start; }

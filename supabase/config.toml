@@ -44,3 +44,8 @@ verify_jwt = false
 [functions.fic-webhook]
 # Chiamato da Fatture in Cloud: autenticazione tramite JWT ES256 del provider.
 verify_jwt = false
+
+[functions.fic-monthly-invoices]
+# Endpoint amministrativo: accetta esclusivamente la chiave dedicata e non
+# invia e-mail né trasmette fatture elettroniche.
+verify_jwt = false

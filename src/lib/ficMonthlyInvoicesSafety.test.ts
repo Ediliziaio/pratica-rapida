@@ -23,11 +23,68 @@ describe("fatturazione mensile FIC settembre 2026", () => {
     expect(source).toContain("discount: 100");
   });
 
+  it("riporta in fattura i nomi dei clienti del cruscotto senza duplicarli", () => {
+    expect(source).toContain("...practices.map(clientName)");
+    expect(source).toContain("paidPractices: group.practices.slice(giftCount)");
+    expect(source).toContain("giftPractices: group.practices.slice(0, giftCount)");
+    expect(source).toContain("name: itemName(paidPractices)");
+    expect(source).toContain("name: itemName(giftPractices)");
+    expect(source).toContain("clients: row.practices.map(clientName)");
+  });
+
   it("blocca la creazione se intestatari, prezzi o duplicati non superano il controllo", () => {
     expect(source).toContain('action === "preview"');
     expect(source).toContain('action === "create" && blockers.length');
     expect(source).toContain("existing_invoice_id");
     expect(source).toContain("row.unitPrice <= 0");
     expect(source).toContain('action === "create_ready"');
+  });
+
+  it("modifica soltanto bozze non numerate e con totali gia verificati", () => {
+    expect(source).toContain('action === "update_existing_draft_names"');
+    expect(source).toContain('if (Boolean(document.locked))');
+    expect(source).toContain('if (Number(document.number ?? 0) > 0)');
+    expect(source).toContain('throw new Error("totali diversi dal controllo preventivo")');
+    expect(source).toContain('method: "PUT"');
+    expect(source).toContain('emailed: false, e_invoice_sent: false');
+  });
+
+  it("la chiave di ispezione autorizza soltanto operazioni di lettura", () => {
+    expect(source).toContain('action === "preview" || action === "inspect_provider"');
+    expect(source).toContain("!runAuthorized && !inspectAuthorized");
+  });
+
+  it("ricorda l'abbinamento FV Tende con l'intestatario Fabio Voltan", () => {
+    expect(source).toContain('["fv.tende@yahoo.com", "Fabio Voltan"]');
+    expect(source).toContain("FIC_ENTITY_NAME_BY_EMAIL.get(group.email) ?? group.provider");
+  });
+
+  it("ricorda i dati fiscali confermati di G.A. Servizi", () => {
+    expect(source).toContain('["gaidroclima@gmail.com", "G.A. SERVIZI DI ADUSHAJ XHULIO"]');
+    expect(source).toContain('vat_number: "03914560127"');
+    expect(source).toContain('tax_code: "DSHXHL87L24Z100E"');
+    expect(source).toContain('ei_code: "KRRH6B9"');
+  });
+
+  it("ricorda l'abbinamento e i dati fiscali di Ghitti Attilio", () => {
+    expect(source).toContain('["attilio.ghitti@libero.it", "Ghitti Attilio"]');
+    expect(source).toContain('vat_number: "09590360153"');
+    expect(source).toContain('tax_code: "GHTTTL58C06D332J"');
+    expect(source).toContain('certified_email: "ghitti.attilio@pec.it"');
+  });
+
+  it("ricorda l'anagrafica completa di Innova Serramenti", () => {
+    expect(source).toContain('["innovaserramenti4@gmail.com", "Innova Serramenti SRLS"]');
+    expect(source).toContain('vat_number: "12087331000"');
+    expect(source).toContain('ei_code: "N92GLON"');
+    expect(source).toContain('address_street: "Via del Mandrione 103"');
+    expect(source).toContain('address_postal_code: "00181"');
+  });
+
+  it("risolve gli abbinamenti storici certi e corregge l'email operativa", () => {
+    expect(source).toContain('["antonio@diioriogroupsrl.com", 112634649]');
+    expect(source).toContain('["info@zanzasol.com", 112634762]');
+    expect(source).toContain('["info@lmtende.it", 112634560]');
+    expect(source).toContain("email: group.email");
   });
 });

@@ -67,7 +67,7 @@ serve(async (req) => {
   if (!practice.form_compilato_at) return json({ error: "Completa il modulo prima del pagamento" }, 409);
   const { data: existing } = await admin
     .from("cf_payment_orders")
-    .select("id,status,provider,stripe_checkout_session_id,stripe_checkout_url,fic_proforma_id,fic_document_url,is_test_payment,last_error_message")
+    .select("id,status,provider,stripe_checkout_session_id,stripe_checkout_url,fic_proforma_id,fic_document_url,is_test_payment,last_error_message,retry_count")
     .eq("practice_id", practice.id)
     .maybeSingle();
 
@@ -136,6 +136,90 @@ serve(async (req) => {
       existing.provider === "stripe_fatture_in_cloud" &&
       existing.stripe_checkout_session_id,
     );
+
+    // Un Checkout Stripe scade (attualmente dopo 30 minuti). Non possiamo
+    // restituire per sempre l'URL memorizzato: dopo la scadenza Stripe mostra
+    // al cliente un errore di sessione/tempo. Se il pagamento non risulta
+    // eseguito, rigeneriamo soltanto il Checkout mantenendo lo stesso ordine e
+    // la stessa proforma tecnica. L'idempotency key include la vecchia sessione:
+    // due retry concorrenti ottengono lo stesso nuovo Checkout, non due addebiti.
+    if (
+      existing?.provider === "stripe_fatture_in_cloud" &&
+      existing.stripe_checkout_session_id &&
+      existing.stripe_checkout_url &&
+      !resetExistingStripeOrder
+    ) {
+      const stripeKey = Deno.env.get("STRIPE_SECRET_KEY")?.trim() ?? "";
+      if (!stripeKey) throw new Error("Stripe non configurato: STRIPE_SECRET_KEY mancante");
+      const stripe = new Stripe(stripeKey, { httpClient: Stripe.createFetchHttpClient() });
+      const previousSessionId = String(existing.stripe_checkout_session_id);
+      const previousSession = await stripe.checkout.sessions.retrieve(previousSessionId);
+
+      if (previousSession.payment_status === "paid") {
+        return json({
+          error: "Il pagamento risulta già eseguito ed è in fase di conferma. Non effettuare un secondo pagamento.",
+          status: existing.status,
+        }, 409);
+      }
+      if (previousSession.status === "open") {
+        return json({
+          status: existing.status,
+          payment_url: existing.stripe_checkout_url,
+          existing: true,
+        });
+      }
+
+      const siteUrl = (Deno.env.get("PUBLIC_SITE_URL") ?? "https://app.praticarapida.it").replace(/\/+$/, "");
+      const renewedSession = await stripe.checkout.sessions.create({
+        mode: "payment",
+        adaptive_pricing: { enabled: false },
+        payment_method_types: ["card"],
+        customer_email: customer.email,
+        locale: "it",
+        line_items: price.lines.map((line) => ({
+          quantity: 1,
+          price_data: {
+            currency: "eur",
+            unit_amount: line.netCents + Math.round(line.netCents * line.vatPercent / 100),
+            product_data: { name: line.name },
+          },
+        })),
+        metadata: {
+          payment_order_id: String(existing.id),
+          practice_id: practice.id,
+        },
+        payment_intent_data: {
+          metadata: {
+            payment_order_id: String(existing.id),
+            practice_id: practice.id,
+          },
+        },
+        success_url: `${siteUrl}/form/${token}?pagamento=ok`,
+        cancel_url: `${siteUrl}/form/${token}?pagamento=annullato`,
+        expires_at: Math.floor(Date.now() / 1000) + 30 * 60,
+      }, { idempotencyKey: `cf-payment-order-${existing.id}-renew-${previousSessionId}` });
+      const renewedUrl = String(renewedSession.url ?? "");
+      if (!renewedUrl) throw new Error("Stripe non ha restituito il nuovo link di pagamento");
+
+      const { error: renewError } = await admin.from("cf_payment_orders").update({
+        status: "pending",
+        stripe_checkout_session_id: renewedSession.id,
+        stripe_checkout_url: renewedUrl,
+        stripe_payment_status: renewedSession.payment_status,
+        last_error_code: null,
+        last_error_message: null,
+        retry_count: Number(existing.retry_count ?? 0) + 1,
+        updated_at: new Date().toISOString(),
+      }).eq("id", existing.id);
+      if (renewError) throw renewError;
+
+      return json({
+        status: "pending",
+        payment_url: renewedUrl,
+        existing: true,
+        refreshed: true,
+      });
+    }
     if (existingUrl && !resetExistingStripeOrder) {
       return json({ status: existing?.status, payment_url: existingUrl, existing: true });
     }

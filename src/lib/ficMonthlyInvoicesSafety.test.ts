@@ -44,11 +44,15 @@ describe("fatturazione mensile FIC settembre 2026", () => {
     expect(source).toContain('action === "create_ready"');
   });
 
-  it("modifica soltanto bozze non numerate e con totali gia verificati", () => {
+  it("modifica soltanto le 16 fatture registrate, non inviate e con totali gia verificati", () => {
     expect(source).toContain('action === "update_existing_draft_names"');
+    expect(source).toContain("KNOWN_CREATED_INVOICE_BY_EMAIL.get(row.email)");
+    expect(source).toContain('registeredInvoiceId !== invoiceId');
     expect(source).toContain('if (Boolean(document.locked))');
-    expect(source).toContain('if (Number(document.number ?? 0) > 0)');
+    expect(source).toContain('normalize(document.ei_status) !== "not_sent"');
+    expect(source).toContain('includes("documento creato ma non inviato")');
     expect(source).toContain('throw new Error("totali diversi dal controllo preventivo")');
+    expect(source).toContain("number: document.number");
     expect(source).toContain('method: "PUT"');
     expect(source).toContain('emailed: false, e_invoice_sent: false');
   });
@@ -59,7 +63,8 @@ describe("fatturazione mensile FIC settembre 2026", () => {
     expect(source).toContain("superAdminAuthorized = Boolean(roles?.length)");
     expect(adminPage).toContain('body: { action: "update_existing_draft_names" }');
     expect(adminPage).toContain("Non crea, non numera, non emette e non invia fatture.");
-    expect(adminPage).toContain("Modifica solo le bozze esistenti");
+    expect(adminPage).toContain("Modifica solo le fatture esistenti");
+    expect(adminPage).toContain("draftUpdateResult.failed.map");
   });
 
   it("la chiave di ispezione autorizza soltanto operazioni di lettura", () => {

@@ -88,7 +88,10 @@ function timeAgo(d: Date | null): string {
 export default function Integrazioni() {
   const { toast } = useToast();
   const [draftUpdatePending, setDraftUpdatePending] = useState(false);
-  const [draftUpdateResult, setDraftUpdateResult] = useState<{ updated: number; failed: number } | null>(null);
+  const [draftUpdateResult, setDraftUpdateResult] = useState<{
+    updated: number;
+    failed: Array<{ provider?: string; error?: string }>;
+  } | null>(null);
 
   const updateSeptemberDraftNames = async () => {
     setDraftUpdatePending(true);
@@ -98,8 +101,9 @@ export default function Integrazioni() {
       });
       if (error) throw error;
       const updated = Array.isArray(data?.updated) ? data.updated.length : 0;
-      const failed = Array.isArray(data?.failed) ? data.failed.length : 0;
-      setDraftUpdateResult({ updated, failed });
+      const failures = Array.isArray(data?.failed) ? data.failed : [];
+      const failed = failures.length;
+      setDraftUpdateResult({ updated, failed: failures });
       toast({
         title: failed === 0 ? "Bozze aggiornate" : "Aggiornamento parziale",
         description: `${updated} bozze modificate; ${failed} bloccate dai controlli di sicurezza.`,
@@ -321,15 +325,24 @@ export default function Integrazioni() {
                 <FilePenLine className="h-5 w-5" />
               </div>
               <div>
-                <CardTitle className="text-base">Bozze fatture ENEA — settembre 2026</CardTitle>
+                <CardTitle className="text-base">Fatture ENEA — settembre 2026</CardTitle>
                 <p className="text-xs text-muted-foreground mt-1 max-w-2xl">
-                  Inserisce nelle bozze già esistenti i nomi dei clienti letti dal cruscotto.
+                  Inserisce nelle 16 fatture già esistenti i nomi dei clienti letti dal cruscotto.
                   Non crea, non numera, non emette e non invia fatture.
                 </p>
                 {draftUpdateResult && (
                   <p className="text-xs font-medium mt-2">
-                    Ultimo risultato: {draftUpdateResult.updated} modificate, {draftUpdateResult.failed} bloccate.
+                    Ultimo risultato: {draftUpdateResult.updated} modificate, {draftUpdateResult.failed.length} bloccate.
                   </p>
+                )}
+                {draftUpdateResult?.failed.length > 0 && (
+                  <ul className="text-xs text-red-700 mt-2 space-y-1">
+                    {draftUpdateResult.failed.map((failure, index) => (
+                      <li key={`${failure.provider ?? "fattura"}-${index}`}>
+                        • {failure.provider ?? "Fattura"}: {failure.error ?? "motivo non disponibile"}
+                      </li>
+                    ))}
+                  </ul>
                 )}
               </div>
             </div>
@@ -337,22 +350,22 @@ export default function Integrazioni() {
               <AlertDialogTrigger asChild>
                 <Button disabled={draftUpdatePending} className="gap-2">
                   <FilePenLine className="h-4 w-4" />
-                  {draftUpdatePending ? "Aggiornamento…" : "Correggi nomi nelle bozze"}
+                  {draftUpdatePending ? "Aggiornamento…" : "Inserisci i nomi nelle fatture"}
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Modificare le bozze esistenti?</AlertDialogTitle>
+                <AlertDialogTitle>Modificare le 16 fatture esistenti?</AlertDialogTitle>
                   <AlertDialogDescription>
                     Verrà aggiornato soltanto il testo delle righe con i nomi dei clienti.
                     Intestatari, quantità, prezzi, IVA, totali e scadenze resteranno invariati.
-                    Le fatture numerate, bloccate o con totali inattesi saranno saltate.
+                    Le fatture già inviate, bloccate o con totali inattesi saranno saltate.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Annulla</AlertDialogCancel>
                   <AlertDialogAction onClick={updateSeptemberDraftNames}>
-                    Modifica solo le bozze esistenti
+                    Modifica solo le fatture esistenti
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>

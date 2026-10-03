@@ -11,14 +11,21 @@
  * accorgersi al volo se un canale è giù SENZA scorrere log.
  */
 
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader,
+  AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import OpenWAPanel from "@/components/admin/OpenWAPanel";
 import {
   Mail, MessageCircle, Clock, CheckCircle2, AlertTriangle, XCircle,
-  RefreshCw, ExternalLink, Database,
+  RefreshCw, ExternalLink, Database, FilePenLine,
 } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 import { it } from "date-fns/locale";
@@ -79,6 +86,36 @@ function timeAgo(d: Date | null): string {
 }
 
 export default function Integrazioni() {
+  const { toast } = useToast();
+  const [draftUpdatePending, setDraftUpdatePending] = useState(false);
+  const [draftUpdateResult, setDraftUpdateResult] = useState<{ updated: number; failed: number } | null>(null);
+
+  const updateSeptemberDraftNames = async () => {
+    setDraftUpdatePending(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("fic-monthly-invoices", {
+        body: { action: "update_existing_draft_names" },
+      });
+      if (error) throw error;
+      const updated = Array.isArray(data?.updated) ? data.updated.length : 0;
+      const failed = Array.isArray(data?.failed) ? data.failed.length : 0;
+      setDraftUpdateResult({ updated, failed });
+      toast({
+        title: failed === 0 ? "Bozze aggiornate" : "Aggiornamento parziale",
+        description: `${updated} bozze modificate; ${failed} bloccate dai controlli di sicurezza.`,
+        variant: failed === 0 ? "default" : "destructive",
+      });
+    } catch (error) {
+      toast({
+        title: "Nessuna bozza modificata",
+        description: error instanceof Error ? error.message : String(error),
+        variant: "destructive",
+      });
+    } finally {
+      setDraftUpdatePending(false);
+    }
+  };
+
   const { data, isFetching, refetch } = useQuery({
     queryKey: ["admin-integrations-health"],
     queryFn: async (): Promise<IntegrationHealth[]> => {
@@ -275,6 +312,54 @@ export default function Integrazioni() {
 
       {/* OpenWA gateway (gestione sessione + QR) */}
       <OpenWAPanel />
+
+      <Card className="border-blue-200 bg-blue-50/40">
+        <CardHeader className="pb-3">
+          <div className="flex items-start justify-between gap-4 flex-wrap">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center shrink-0">
+                <FilePenLine className="h-5 w-5" />
+              </div>
+              <div>
+                <CardTitle className="text-base">Bozze fatture ENEA — settembre 2026</CardTitle>
+                <p className="text-xs text-muted-foreground mt-1 max-w-2xl">
+                  Inserisce nelle bozze già esistenti i nomi dei clienti letti dal cruscotto.
+                  Non crea, non numera, non emette e non invia fatture.
+                </p>
+                {draftUpdateResult && (
+                  <p className="text-xs font-medium mt-2">
+                    Ultimo risultato: {draftUpdateResult.updated} modificate, {draftUpdateResult.failed} bloccate.
+                  </p>
+                )}
+              </div>
+            </div>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button disabled={draftUpdatePending} className="gap-2">
+                  <FilePenLine className="h-4 w-4" />
+                  {draftUpdatePending ? "Aggiornamento…" : "Correggi nomi nelle bozze"}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Modificare le bozze esistenti?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Verrà aggiornato soltanto il testo delle righe con i nomi dei clienti.
+                    Intestatari, quantità, prezzi, IVA, totali e scadenze resteranno invariati.
+                    Le fatture numerate, bloccate o con totali inattesi saranno saltate.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Annulla</AlertDialogCancel>
+                  <AlertDialogAction onClick={updateSeptemberDraftNames}>
+                    Modifica solo le bozze esistenti
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+        </CardHeader>
+      </Card>
 
       {/* Integration cards */}
       <div className="grid gap-3 lg:grid-cols-2">

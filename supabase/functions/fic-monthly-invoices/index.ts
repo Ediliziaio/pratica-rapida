@@ -4,6 +4,7 @@ import { ficRequest, getFicConfig, type JsonObject } from "../_shared/fatture-in
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 const RUN_KEY = Deno.env.get("FIC_MONTHLY_INVOICE_RUN_KEY")!;
 const INSPECT_KEY = Deno.env.get("FIC_MONTHLY_INVOICE_INSPECT_KEY")!;
 const PERIOD_START = "2026-08-31T22:00:00.000Z"; // 1 settembre, Europe/Rome
@@ -86,9 +87,15 @@ const CONFIRMED_FISCAL_DATA_BY_EMAIL = new Map<string, JsonObject>([
   }],
 ]);
 
+const CORS_HEADERS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-monthly-invoice-key, x-monthly-inspect-key",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), {
   status,
-  headers: { "Content-Type": "application/json" },
+  headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
 });
 
 const normalize = (value: unknown) => String(value ?? "")
@@ -184,6 +191,7 @@ const buildItems = (group: InvoiceGroup, vatId: number): JsonObject[] => {
 };
 
 serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: CORS_HEADERS });
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
   let action = "preview";
   let providerQuery = "";
@@ -205,7 +213,27 @@ serve(async (req) => {
     INSPECT_KEY && suppliedInspectKey && suppliedInspectKey === INSPECT_KEY &&
     (action === "preview" || action === "inspect_provider")
   );
-  if (!runAuthorized && !inspectAuthorized) return json({ error: "Unauthorized" }, 401);
+
+  let superAdminAuthorized = false;
+  const authHeader = req.headers.get("Authorization");
+  if (authHeader && action === "update_existing_draft_names") {
+    const userClient = createClient(SUPABASE_URL, ANON_KEY, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: { user } } = await userClient.auth.getUser();
+    if (user) {
+      const authAdmin = createClient(SUPABASE_URL, SERVICE_KEY);
+      const { data: roles } = await authAdmin
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("role", "super_admin");
+      superAdminAuthorized = Boolean(roles?.length);
+    }
+  }
+  if (!runAuthorized && !inspectAuthorized && !superAdminAuthorized) {
+    return json({ error: "Unauthorized" }, 401);
+  }
 
   try {
 

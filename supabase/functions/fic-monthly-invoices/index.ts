@@ -5,6 +5,7 @@ import { ficRequest, getFicConfig, type JsonObject } from "../_shared/fatture-in
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const RUN_KEY = Deno.env.get("FIC_MONTHLY_INVOICE_RUN_KEY")!;
+const INSPECT_KEY = Deno.env.get("FIC_MONTHLY_INVOICE_INSPECT_KEY")!;
 const PERIOD_START = "2026-08-31T22:00:00.000Z"; // 1 settembre, Europe/Rome
 const PERIOD_END = "2026-09-30T22:00:00.000Z"; // 1 ottobre, Europe/Rome
 const DESCRIPTION = "Gestione pratiche ENEA Settembre 2026";
@@ -38,6 +39,51 @@ const KNOWN_CREATED_INVOICE_BY_EMAIL = new Map<string, number>([
   ["amministrazione@stellinodesign.it", 557230063],
   ["tec.estense@gmail.com", 557230068],
   ["info@zanellatotende.it", 557230071],
+]);
+
+// Alias confermati dal Titolare per collegare il nome commerciale nel CRM
+// all'intestatario gia presente nelle fatture FIC. Non modifica il CRM e non
+// crea anagrafiche: serve soltanto a recuperare i dati fiscali corretti.
+const FIC_ENTITY_NAME_BY_EMAIL = new Map<string, string>([
+  ["fv.tende@yahoo.com", "Fabio Voltan"],
+  ["gaidroclima@gmail.com", "G.A. SERVIZI DI ADUSHAJ XHULIO"],
+  ["attilio.ghitti@libero.it", "Ghitti Attilio"],
+  ["innovaserramenti4@gmail.com", "Innova Serramenti SRLS"],
+  ["antonio@diioriogroupsrl.com", "Di Iorio Group SRL"],
+  ["info@zanzasol.com", "ZANZASOL SNC DI TOUKAMI OMAR & C."],
+]);
+
+// Quando FIC contiene duplicati identici, usa l'anagrafica confermata dalla
+// fattura storica piu recente invece di scegliere in modo arbitrario.
+const FIC_ENTITY_ID_BY_EMAIL = new Map<string, number>([
+  ["antonio@diioriogroupsrl.com", 112634649],
+  ["info@zanzasol.com", 112634762],
+  ["info@lmtende.it", 112634560],
+]);
+
+// Dati identificativi confermati dal Titolare. Restano separati dagli indirizzi:
+// il documento usa comunque l'anagrafica completa gia presente in FIC.
+const CONFIRMED_FISCAL_DATA_BY_EMAIL = new Map<string, JsonObject>([
+  ["gaidroclima@gmail.com", {
+    vat_number: "03914560127",
+    tax_code: "DSHXHL87L24Z100E",
+    ei_code: "KRRH6B9",
+  }],
+  ["attilio.ghitti@libero.it", {
+    vat_number: "09590360153",
+    tax_code: "GHTTTL58C06D332J",
+    certified_email: "ghitti.attilio@pec.it",
+  }],
+  ["innovaserramenti4@gmail.com", {
+    vat_number: "12087331000",
+    tax_code: "12087331000",
+    ei_code: "N92GLON",
+    address_street: "Via del Mandrione 103",
+    address_city: "Roma",
+    address_postal_code: "00181",
+    address_province: "RM",
+    country: "Italia",
+  }],
 ]);
 
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), {
@@ -95,19 +141,73 @@ type InvoiceGroup = {
   gifts: number;
 };
 
+const clientName = (practice: BridgeRow) =>
+  `${practice.cliente_nome ?? ""} ${practice.cliente_cognome ?? ""}`.trim().replace(/\s+/g, " ");
+
+const splitPractices = (group: InvoiceGroup) => {
+  const giftCount = Math.min(Math.max(0, group.gifts), group.practices.length);
+  return {
+    giftPractices: group.practices.slice(0, giftCount),
+    paidPractices: group.practices.slice(giftCount),
+  };
+};
+
+const itemName = (practices: BridgeRow[]) => [
+  DESCRIPTION,
+  ...practices.map(clientName),
+].filter(Boolean).join("\n");
+
+const buildItems = (group: InvoiceGroup, vatId: number): JsonObject[] => {
+  const { paidPractices, giftPractices } = splitPractices(group);
+  const items: JsonObject[] = [];
+  if (paidPractices.length > 0) {
+    items.push({
+      code: "ENEA-SET-2026",
+      name: itemName(paidPractices),
+      net_price: group.unitPrice,
+      qty: paidPractices.length,
+      vat: { id: vatId },
+    });
+  }
+  if (giftPractices.length > 0) {
+    items.push({
+      code: "ENEA-SET-2026-OMAGGIO",
+      name: itemName(giftPractices),
+      description: "Prima pratica omaggio",
+      net_price: group.unitPrice,
+      discount: 100,
+      qty: giftPractices.length,
+      vat: { id: vatId },
+    });
+  }
+  return items;
+};
+
 serve(async (req) => {
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
-  const suppliedKey = req.headers.get("x-monthly-invoice-key");
-  if (!RUN_KEY || !suppliedKey || suppliedKey !== RUN_KEY) return json({ error: "Unauthorized" }, 401);
-
-  try {
   let action = "preview";
+  let providerQuery = "";
   try {
-    action = String((await req.json())?.action ?? "preview");
+    const body = await req.json();
+    action = String(body?.action ?? "preview");
+    providerQuery = normalize(body?.provider ?? "");
   } catch {
     return json({ error: "Richiesta non valida" }, 400);
   }
-  if (!new Set(["preview", "create", "create_ready"]).has(action)) return json({ error: "Azione non valida" }, 400);
+  if (!new Set(["preview", "create", "create_ready", "inspect_provider", "update_existing_draft_names"]).has(action)) {
+    return json({ error: "Azione non valida" }, 400);
+  }
+
+  const suppliedRunKey = req.headers.get("x-monthly-invoice-key");
+  const suppliedInspectKey = req.headers.get("x-monthly-inspect-key");
+  const runAuthorized = Boolean(RUN_KEY && suppliedRunKey && suppliedRunKey === RUN_KEY);
+  const inspectAuthorized = Boolean(
+    INSPECT_KEY && suppliedInspectKey && suppliedInspectKey === INSPECT_KEY &&
+    (action === "preview" || action === "inspect_provider")
+  );
+  if (!runAuthorized && !inspectAuthorized) return json({ error: "Unauthorized" }, 401);
+
+  try {
 
   const admin = createClient(SUPABASE_URL, SERVICE_KEY);
   const { data: bridgeRows, error: bridgeError } = await admin
@@ -201,39 +301,89 @@ serve(async (req) => {
     return [[key, entity] as const];
   })).values()];
 
+  if (action === "inspect_provider") {
+    if (!providerQuery) return json({ error: "Fornitore mancante" }, 400);
+    const inspected: Array<{ type: string; count: number; error?: string }> = [];
+    const allDocuments: Array<{ type: string; document: JsonObject }> = [];
+    for (const type of ["invoice", "proforma", "quote", "receipt", "delivery_note"]) {
+      try {
+        const documents = type === "invoice" ? issuedDocuments : await listAll<JsonObject>(
+          `/c/${config.companyId}/issued_documents?type=${type}&fieldset=detailed`,
+        );
+        inspected.push({ type, count: documents.length });
+        allDocuments.push(...documents.map((document) => ({ type, document })));
+      } catch (error) {
+        inspected.push({ type, count: 0, error: error instanceof Error ? error.message : String(error) });
+      }
+    }
+    const matches = allDocuments.flatMap(({ type, document }) => {
+      const entity = document.entity && typeof document.entity === "object" ? document.entity as JsonObject : null;
+      if (!entity) return [];
+      const haystack = `${normalize(entity.name)} ${normalize(entity.email)}`;
+      if (!haystack.includes(providerQuery)) return [];
+      return [{
+        document_type: type,
+        document_id: document.id ?? null,
+        document_date: document.date ?? null,
+        document_number: document.number ?? null,
+        subject: document.subject ?? document.visible_subject ?? null,
+        entity,
+      }];
+    });
+    return json({ provider: providerQuery, inspected, matches });
+  }
+
   const previews = groups.map((group) => {
     const resellerMatches = resellerByEmail.get(group.email) ?? [];
+    const preferredEntityId = FIC_ENTITY_ID_BY_EMAIL.get(group.email);
+    const byPreferredId = preferredEntityId
+      ? entities.filter((client) => Number(client.id ?? 0) === preferredEntityId)
+      : [];
     const byEmail = entities.filter((client) => normalize(client.email) === group.email);
-    const byName = entities.filter((client) => normalize(client.name) === normalize(group.provider));
-    const matches = byEmail.length ? byEmail : byName;
+    const ficEntityName = FIC_ENTITY_NAME_BY_EMAIL.get(group.email) ?? group.provider;
+    const byName = entities.filter((client) => normalize(client.name) === normalize(ficEntityName));
+    const matches = byPreferredId.length ? byPreferredId : (byEmail.length ? byEmail : byName);
     const crmCompany = companyByEmail.get(group.email);
-    const taxCode = String(crmCompany?.codice_fiscale ?? "").replace(/\s+/g, "").toUpperCase();
-    const vatNumber = String(crmCompany?.piva ?? "").replace(/\s+/g, "").replace(/^IT/i, "");
-    const postalCode = String(crmCompany?.cap ?? "").replace(/\s+/g, "");
-    const province = String(crmCompany?.provincia ?? "").trim().toUpperCase();
+    const confirmedFiscalData = CONFIRMED_FISCAL_DATA_BY_EMAIL.get(group.email);
+    const taxCode = String(confirmedFiscalData?.tax_code ?? crmCompany?.codice_fiscale ?? "")
+      .replace(/\s+/g, "").toUpperCase();
+    const vatNumber = String(confirmedFiscalData?.vat_number ?? crmCompany?.piva ?? "")
+      .replace(/\s+/g, "").replace(/^IT/i, "");
+    const postalCode = String(confirmedFiscalData?.address_postal_code ?? crmCompany?.cap ?? "").replace(/\s+/g, "");
+    const province = String(confirmedFiscalData?.address_province ?? crmCompany?.provincia ?? "").trim().toUpperCase();
     const crmEntityComplete = Boolean(
-      crmCompany && (taxCode || vatNumber) && String(crmCompany.indirizzo ?? "").trim() &&
-      String(crmCompany.citta ?? "").trim() && /^\d{5}$/.test(postalCode) && /^[A-Z]{2}$/.test(province)
+      (crmCompany || confirmedFiscalData) && (taxCode || vatNumber) &&
+      String(confirmedFiscalData?.address_street ?? crmCompany?.indirizzo ?? "").trim() &&
+      String(confirmedFiscalData?.address_city ?? crmCompany?.citta ?? "").trim() &&
+      /^\d{5}$/.test(postalCode) && /^[A-Z]{2}$/.test(province)
     );
     const crmEntity: JsonObject | null = crmEntityComplete ? {
-      name: String(crmCompany?.ragione_sociale ?? group.provider).trim(),
+      name: String(ficEntityName).trim(),
       email: group.email,
       vat_number: vatNumber,
       tax_code: taxCode,
-      address_street: String(crmCompany?.indirizzo ?? "").trim(),
+      address_street: String(confirmedFiscalData?.address_street ?? crmCompany?.indirizzo ?? "").trim(),
       address_postal_code: postalCode,
-      address_city: String(crmCompany?.citta ?? "").trim(),
+      address_city: String(confirmedFiscalData?.address_city ?? crmCompany?.citta ?? "").trim(),
       address_province: province,
-      country: "Italia",
-      ei_code: "0000000",
+      country: String(confirmedFiscalData?.country ?? "Italia"),
+      ei_code: String(confirmedFiscalData?.ei_code ?? "0000000"),
+      certified_email: String(confirmedFiscalData?.certified_email ?? ""),
     } : null;
-    const client = matches.length === 1 ? matches[0] : (matches.length === 0 ? crmEntity : null);
+    const historicalClient = matches.length === 1 ? {
+      ...matches[0],
+      // L'email operativa del CRM prevale su eventuali recapiti obsoleti o
+      // errati presenti nelle fatture storiche.
+      email: group.email,
+      ...(confirmedFiscalData ?? {}),
+    } : null;
+    const client = historicalClient ?? (matches.length === 0 ? crmEntity : null);
     const entityId = Number(client?.id ?? 0);
     const duplicate = issuedDocuments.find((invoice) => {
       const entity = invoice.entity && typeof invoice.entity === "object" ? invoice.entity as JsonObject : {};
       const sameEntity = (Number(entity.id ?? 0) === entityId && entityId > 0) ||
         (normalize(entity.email) !== "" && normalize(entity.email) === group.email) ||
-        normalize(entity.name) === normalize(group.provider);
+        normalize(entity.name) === normalize(ficEntityName);
       const sameSubject = normalize(invoice.subject) === normalize(DESCRIPTION) ||
         normalize(invoice.visible_subject) === normalize(DESCRIPTION);
       return sameEntity && sameSubject;
@@ -264,6 +414,9 @@ serve(async (req) => {
     email: row.email,
     practices: row.practices.length,
     gifts: row.gifts,
+    clients: row.practices.map(clientName),
+    paid_clients: splitPractices(row).paidPractices.map(clientName),
+    gift_clients: splitPractices(row).giftPractices.map(clientName),
     unit_price: row.unitPrice,
     net: row.net,
     vat: row.vat,
@@ -296,6 +449,82 @@ serve(async (req) => {
     });
   }
 
+  if (action === "update_existing_draft_names") {
+    const updated: Array<{ provider: string; invoice_id: number }> = [];
+    const failed: Array<{ provider: string; invoice_id: number | null; error: string }> = [];
+    for (const row of previews.filter((item) => Boolean(item.existing_invoice_id))) {
+      const invoiceId = Number(row.existing_invoice_id ?? 0);
+      const document = issuedDocuments.find((item) => Number(item.id ?? 0) === invoiceId);
+      try {
+        if (!document) throw new Error("bozza non trovata");
+        if (String(document.type ?? "") !== "invoice") throw new Error("il documento non e una fattura");
+        if (Boolean(document.locked)) throw new Error("documento bloccato: nessuna modifica eseguita");
+        if (Number(document.number ?? 0) > 0) throw new Error("fattura gia numerata: nessuna modifica eseguita");
+        const subject = String(document.subject ?? document.visible_subject ?? "");
+        if (normalize(subject) !== normalize(DESCRIPTION)) throw new Error("oggetto inatteso");
+        if (cents(Number(document.amount_net ?? 0)) !== row.net || cents(Number(document.amount_gross ?? 0)) !== row.gross) {
+          throw new Error("totali diversi dal controllo preventivo");
+        }
+
+        const desiredItems = buildItems(row, Number(vat22.id));
+        const currentItems = Array.isArray(document.items_list) ? document.items_list as JsonObject[] : [];
+        if (currentItems.length !== desiredItems.length) throw new Error("numero righe inatteso");
+        const updatedItems = currentItems.map((item, index) => {
+          const desired = desiredItems[index];
+          if (Number(item.qty ?? 0) !== Number(desired.qty ?? 0)) throw new Error("quantita riga inattesa");
+          if (cents(Number(item.net_price ?? 0)) !== cents(Number(desired.net_price ?? 0))) {
+            throw new Error("prezzo unitario inatteso");
+          }
+          if (cents(Number(item.discount ?? 0)) !== cents(Number(desired.discount ?? 0))) {
+            throw new Error("sconto riga inatteso");
+          }
+          return {
+            ...item,
+            name: desired.name,
+            description: desired.description ?? item.description ?? "",
+          };
+        });
+
+        const data: JsonObject = {
+          type: document.type,
+          entity: document.entity,
+          date: document.date,
+          subject: DESCRIPTION,
+          visible_subject: DESCRIPTION,
+          currency: document.currency,
+          language: document.language,
+          e_invoice: document.e_invoice,
+          ei_data: document.ei_data,
+          items_list: updatedItems,
+          payments_list: document.payments_list,
+          notes: document.notes,
+          payment_method: document.payment_method,
+          show_payments: document.show_payments,
+          show_payment_method: document.show_payment_method,
+          show_totals: document.show_totals,
+          show_notification_button: document.show_notification_button,
+          show_tspay_button: document.show_tspay_button,
+          use_gross_prices: document.use_gross_prices,
+        };
+        if (document.numeration !== undefined) data.numeration = document.numeration;
+        if (document.next_due_date !== undefined) data.next_due_date = document.next_due_date;
+
+        await ficRequest(config, `/c/${config.companyId}/issued_documents/${invoiceId}`, {
+          method: "PUT",
+          body: JSON.stringify({ data }),
+        });
+        updated.push({ provider: row.provider, invoice_id: invoiceId });
+      } catch (error) {
+        failed.push({
+          provider: row.provider,
+          invoice_id: invoiceId || null,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+    }
+    return json({ updated, failed, emailed: false, e_invoice_sent: false });
+  }
+
   if (action === "create" && blockers.length) {
     return json({
       error: "Creazione bloccata: il controllo preventivo contiene eccezioni",
@@ -308,28 +537,7 @@ serve(async (req) => {
   const failed: Array<{ provider: string; error: string }> = [];
   const targets = action === "create_ready" ? previews.filter((row) => !isBlocked(row)) : previews;
   for (const row of targets) {
-    const paidCount = row.practices.length - row.gifts;
-    const items: JsonObject[] = [];
-    if (paidCount > 0) {
-      items.push({
-        code: "ENEA-SET-2026",
-        name: DESCRIPTION,
-        net_price: row.unitPrice,
-        qty: paidCount,
-        vat: { id: Number(vat22.id) },
-      });
-    }
-    if (row.gifts > 0) {
-      items.push({
-        code: "ENEA-SET-2026-OMAGGIO",
-        name: DESCRIPTION,
-        description: "Prima pratica omaggio",
-        net_price: row.unitPrice,
-        discount: 100,
-        qty: row.gifts,
-        vat: { id: Number(vat22.id) },
-      });
-    }
+    const items = buildItems(row, Number(vat22.id));
     const payload: JsonObject = {
       data: {
         type: "invoice",

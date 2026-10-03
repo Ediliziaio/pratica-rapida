@@ -485,9 +485,18 @@ serve(async (req) => {
       const document = issuedDocuments.find((item) => Number(item.id ?? 0) === invoiceId);
       try {
         if (!document) throw new Error("bozza non trovata");
+        const registeredInvoiceId = KNOWN_CREATED_INVOICE_BY_EMAIL.get(row.email);
+        if (!registeredInvoiceId || registeredInvoiceId !== invoiceId) {
+          throw new Error("ID fattura non presente nel registro controllato");
+        }
         if (String(document.type ?? "") !== "invoice") throw new Error("il documento non e una fattura");
         if (Boolean(document.locked)) throw new Error("documento bloccato: nessuna modifica eseguita");
-        if (Number(document.number ?? 0) > 0) throw new Error("fattura gia numerata: nessuna modifica eseguita");
+        if (normalize(document.ei_status) !== "not_sent") {
+          throw new Error("fattura elettronica non nello stato non inviata");
+        }
+        if (!normalize(document.notes).includes("documento creato ma non inviato")) {
+          throw new Error("nota di sicurezza della bozza assente");
+        }
         const subject = String(document.subject ?? document.visible_subject ?? "");
         if (normalize(subject) !== normalize(DESCRIPTION)) throw new Error("oggetto inatteso");
         if (cents(Number(document.amount_net ?? 0)) !== row.net || cents(Number(document.amount_gross ?? 0)) !== row.gross) {
@@ -517,6 +526,7 @@ serve(async (req) => {
           type: document.type,
           entity: document.entity,
           date: document.date,
+          number: document.number,
           subject: DESCRIPTION,
           visible_subject: DESCRIPTION,
           currency: document.currency,
@@ -534,6 +544,7 @@ serve(async (req) => {
           show_tspay_button: document.show_tspay_button,
           use_gross_prices: document.use_gross_prices,
         };
+        if (document.year !== undefined) data.year = document.year;
         if (document.numeration !== undefined) data.numeration = document.numeration;
         if (document.next_due_date !== undefined) data.next_due_date = document.next_due_date;
 

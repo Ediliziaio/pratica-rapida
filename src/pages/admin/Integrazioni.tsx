@@ -325,9 +325,9 @@ export default function Integrazioni() {
                 <FilePenLine className="h-5 w-5" />
               </div>
               <div>
-                <CardTitle className="text-base">Bozze fatture ENEA — settembre 2026</CardTitle>
+                <CardTitle className="text-base">Fatture ENEA — settembre 2026</CardTitle>
                 <p className="text-xs text-muted-foreground mt-1 max-w-2xl">
-                  Inserisce nelle bozze già esistenti i nomi dei clienti letti dal cruscotto.
+                  Inserisce nelle 16 fatture già esistenti i nomi dei clienti letti dal cruscotto.
                   Non crea, non numera, non emette e non invia fatture.
                 </p>
                 {draftUpdateResult && (
@@ -350,22 +350,22 @@ export default function Integrazioni() {
               <AlertDialogTrigger asChild>
                 <Button disabled={draftUpdatePending} className="gap-2">
                   <FilePenLine className="h-4 w-4" />
-                  {draftUpdatePending ? "Aggiornamento…" : "Correggi nomi nelle bozze"}
+                  {draftUpdatePending ? "Aggiornamento…" : "Inserisci i nomi nelle fatture"}
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Modificare le bozze esistenti?</AlertDialogTitle>
+                <AlertDialogTitle>Modificare le 16 fatture esistenti?</AlertDialogTitle>
                   <AlertDialogDescription>
                     Verrà aggiornato soltanto il testo delle righe con i nomi dei clienti.
                     Intestatari, quantità, prezzi, IVA, totali e scadenze resteranno invariati.
-                    Le fatture numerate, bloccate o con totali inattesi saranno saltate.
+                    Le fatture già inviate, bloccate o con totali inattesi saranno saltate.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Annulla</AlertDialogCancel>
                   <AlertDialogAction onClick={updateSeptemberDraftNames}>
-                    Modifica solo le bozze esistenti
+                    Modifica solo le fatture esistenti
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>

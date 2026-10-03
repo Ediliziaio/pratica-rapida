@@ -6,6 +6,10 @@ const source = readFileSync(
   path.resolve(process.cwd(), "supabase/functions/fic-monthly-invoices/index.ts"),
   "utf8",
 );
+const adminPage = readFileSync(
+  path.resolve(process.cwd(), "src/pages/admin/Integrazioni.tsx"),
+  "utf8",
+);
 
 describe("fatturazione mensile FIC settembre 2026", () => {
   it("usa settembre ed esclude i due fornitori, i CF e le pratiche interne", () => {
@@ -47,6 +51,15 @@ describe("fatturazione mensile FIC settembre 2026", () => {
     expect(source).toContain('throw new Error("totali diversi dal controllo preventivo")');
     expect(source).toContain('method: "PUT"');
     expect(source).toContain('emailed: false, e_invoice_sent: false');
+  });
+
+  it("consente la correzione dal CRM soltanto al super-admin autenticato", () => {
+    expect(source).toContain('action === "update_existing_draft_names"');
+    expect(source).toContain('.eq("role", "super_admin")');
+    expect(source).toContain("superAdminAuthorized = Boolean(roles?.length)");
+    expect(adminPage).toContain('body: { action: "update_existing_draft_names" }');
+    expect(adminPage).toContain("Non crea, non numera, non emette e non invia fatture.");
+    expect(adminPage).toContain("Modifica solo le bozze esistenti");
   });
 
   it("la chiave di ispezione autorizza soltanto operazioni di lettura", () => {

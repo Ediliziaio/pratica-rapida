@@ -1,15 +1,7 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import Stripe from "https://esm.sh/stripe@18.0.0?target=deno";
-import {
-  createProforma,
-  deleteIssuedDocument,
-  extractBillingIdentity,
-  getFicConfig,
-  proformaPayload,
-  scheduleDocumentEmail,
-  type JsonObject,
-} from "../_shared/fatture-in-cloud.ts";
+import { extractBillingIdentity, type JsonObject } from "../_shared/fatture-in-cloud.ts";
 import { finalizePaidCfOrder } from "../_shared/finalize-cf-payment.ts";
 import { reportError } from "../_shared/error.ts";
 import {
@@ -67,7 +59,7 @@ serve(async (req) => {
   if (!practice.form_compilato_at) return json({ error: "Completa il modulo prima del pagamento" }, 409);
   const { data: existing } = await admin
     .from("cf_payment_orders")
-    .select("id,status,provider,stripe_checkout_session_id,stripe_checkout_url,fic_proforma_id,fic_document_url,is_test_payment,last_error_message,retry_count")
+    .select("id,status,provider,totale_cents,stripe_checkout_session_id,stripe_checkout_url,fic_proforma_id,fic_document_url,is_test_payment,last_error_message,retry_count")
     .eq("practice_id", practice.id)
     .maybeSingle();
 
@@ -125,10 +117,11 @@ serve(async (req) => {
       product: practice.prodotto_installato ?? "ENEA",
     });
 
-    const paymentProvider = Deno.env.get("CF_PAYMENT_PROVIDER") === "stripe"
-      ? "stripe_fatture_in_cloud"
-      : "fatture_in_cloud_tspay";
-    const existingUrl = existing?.stripe_checkout_url || existing?.fic_document_url;
+    if (Deno.env.get("CF_PAYMENT_PROVIDER") !== "stripe") {
+      return json({ error: "Pagamento Stripe non attivo: nessun documento e nessun addebito sono stati creati" }, 503);
+    }
+    const paymentProvider = "stripe_fatture_in_cloud";
+    const existingUrl = existing?.stripe_checkout_url;
     const resetExistingStripeOrder = Boolean(
       isTestPayment &&
       existing &&
@@ -137,11 +130,105 @@ serve(async (req) => {
       existing.stripe_checkout_session_id,
     );
 
+    // Gli ordini creati dal vecchio percorso TS Pay espongono come link di
+    // pagamento il PDF della proforma. Migriamo soltanto l'ordine non pagato:
+    // da questo punto il cliente vede esclusivamente un vero Checkout Stripe.
+    const migrateExistingTsPayOrder = Boolean(
+      paymentProvider === "stripe_fatture_in_cloud" &&
+      existing?.id &&
+      existing.provider === "fatture_in_cloud_tspay" &&
+      !existing.stripe_checkout_session_id &&
+      ["creating", "pending"].includes(String(existing.status)),
+    );
+    if (migrateExistingTsPayOrder && existing) {
+      if (Number(existing.totale_cents) !== price.grossCents) {
+        throw new Error(
+          `Importo ordine TS Pay non corrispondente: ${existing.totale_cents ?? "mancante"} != ${price.grossCents}`,
+        );
+      }
+      const stripeKey = Deno.env.get("STRIPE_SECRET_KEY")?.trim() ?? "";
+      if (!stripeKey) throw new Error("Stripe non configurato: STRIPE_SECRET_KEY mancante");
+      const stripe = new Stripe(stripeKey, { httpClient: Stripe.createFetchHttpClient() });
+      const siteUrl = (Deno.env.get("PUBLIC_SITE_URL") ?? "https://app.praticarapida.it").replace(/\/+$/, "");
+      const migratedSession = await stripe.checkout.sessions.create({
+        mode: "payment",
+        adaptive_pricing: { enabled: false },
+        payment_method_types: ["card"],
+        customer_email: customer.email,
+        locale: "it",
+        line_items: price.lines.map((line) => ({
+          quantity: 1,
+          price_data: {
+            currency: "eur",
+            unit_amount: line.netCents + Math.round(line.netCents * line.vatPercent / 100),
+            product_data: { name: line.name },
+          },
+        })),
+        metadata: {
+          payment_order_id: String(existing.id),
+          practice_id: practice.id,
+        },
+        payment_intent_data: {
+          metadata: {
+            payment_order_id: String(existing.id),
+            practice_id: practice.id,
+          },
+        },
+        success_url: `${siteUrl}/form/${token}?pagamento=ok`,
+        cancel_url: `${siteUrl}/form/${token}?pagamento=annullato`,
+        expires_at: Math.floor(Date.now() / 1000) + 30 * 60,
+      }, { idempotencyKey: `cf-payment-order-${existing.id}-migrate-tspay` });
+      const migratedUrl = String(migratedSession.url ?? "");
+      if (!migratedUrl) throw new Error("Stripe non ha restituito il link di pagamento");
+
+      const { data: migrated, error: migrateError } = await admin.from("cf_payment_orders").update({
+        provider: "stripe_fatture_in_cloud",
+        status: "pending",
+        fic_document_url: null,
+        stripe_checkout_session_id: migratedSession.id,
+        stripe_checkout_url: migratedUrl,
+        stripe_payment_status: migratedSession.payment_status,
+        last_error_code: null,
+        last_error_message: null,
+        retry_count: Number(existing.retry_count ?? 0) + 1,
+        updated_at: new Date().toISOString(),
+      })
+        .eq("id", existing.id)
+        .eq("provider", "fatture_in_cloud_tspay")
+        .is("stripe_checkout_session_id", null)
+        .in("status", ["creating", "pending"])
+        .select("id")
+        .maybeSingle();
+      if (migrateError) throw migrateError;
+      if (!migrated) {
+        const { data: concurrent } = await admin.from("cf_payment_orders")
+          .select("status,stripe_checkout_url")
+          .eq("id", existing.id)
+          .maybeSingle();
+        if (concurrent?.stripe_checkout_url) {
+          return json({
+            status: concurrent.status,
+            payment_url: concurrent.stripe_checkout_url,
+            existing: true,
+            migrated: true,
+          });
+        }
+        throw new Error("Ordine TS Pay non acquisibile per la migrazione Stripe");
+      }
+
+      return json({
+        status: "pending",
+        payment_url: migratedUrl,
+        existing: true,
+        migrated: true,
+      });
+    }
+
     // Un Checkout Stripe scade (attualmente dopo 30 minuti). Non possiamo
     // restituire per sempre l'URL memorizzato: dopo la scadenza Stripe mostra
     // al cliente un errore di sessione/tempo. Se il pagamento non risulta
-    // eseguito, rigeneriamo soltanto il Checkout mantenendo lo stesso ordine e
-    // la stessa proforma tecnica. L'idempotency key include la vecchia sessione:
+    // eseguito, rigeneriamo soltanto il Checkout mantenendo lo stesso ordine.
+    // L'idempotency key include la vecchia sessione:
     // due retry concorrenti ottengono lo stesso nuovo Checkout, non due addebiti.
     if (
       existing?.provider === "stripe_fatture_in_cloud" &&
@@ -256,14 +343,10 @@ serve(async (req) => {
       if (staleSession.status === "open") {
         await stripe.checkout.sessions.expire(staleSession.id);
       }
-      if (existing.fic_proforma_id) {
-        await deleteIssuedDocument(getFicConfig(), Number(existing.fic_proforma_id));
-      }
       const resetResult = await admin.from("cf_payment_orders").update({
         ...orderValues,
         stripe_checkout_session_id: null,
         stripe_checkout_url: null,
-        fic_proforma_id: null,
         fic_document_url: null,
         last_error_code: null,
         last_error_message: null,
@@ -282,70 +365,52 @@ serve(async (req) => {
     }
     if (!reserved) throw new Error("Impossibile riservare l'ordine di pagamento");
 
-    const config = getFicConfig();
-    const created = await createProforma(
-      config,
-      proformaPayload(practice.id, practice.prodotto_installato ?? "ENEA", customer, price),
-    );
-    const document = created.data ?? {};
-    const proformaId = Number(document.id);
-    const documentUrl = String(document.url ?? "").trim();
-    if (!Number.isInteger(proformaId) || proformaId <= 0 || !documentUrl) {
-      throw new Error("Fatture in Cloud non ha restituito ID e URL della proforma");
-    }
-
-    let paymentUrl = documentUrl;
-    let stripeSessionId: string | null = null;
-    if (paymentProvider === "stripe_fatture_in_cloud") {
-      const stripeKey = Deno.env.get("STRIPE_SECRET_KEY")?.trim() ?? "";
-      if (!stripeKey) throw new Error("Stripe non configurato: STRIPE_SECRET_KEY mancante");
-      const siteUrl = (Deno.env.get("PUBLIC_SITE_URL") ?? "https://app.praticarapida.it").replace(/\/+$/, "");
-      const stripe = new Stripe(stripeKey, {
-        httpClient: Stripe.createFetchHttpClient(),
-      });
-      const session = await stripe.checkout.sessions.create({
-        mode: "payment",
-        // Prices and invoices are exclusively in EUR. Disabling Adaptive
-        // Pricing removes the confusing currency selector and conversion fee.
-        adaptive_pricing: { enabled: false },
-        payment_method_types: ["card"],
-        customer_email: customer.email,
-        locale: "it",
-        line_items: price.lines.map((line) => ({
-          quantity: 1,
-          price_data: {
-            currency: "eur",
-            unit_amount: line.netCents + Math.round(line.netCents * line.vatPercent / 100),
-            product_data: { name: line.name },
-          },
-        })),
+    // Prima del pagamento non viene creato alcun documento in Fatture in
+    // Cloud. La sola fattura definitiva nasce dal webhook Stripe dopo
+    // l'incasso verificato.
+    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY")?.trim() ?? "";
+    if (!stripeKey) throw new Error("Stripe non configurato: STRIPE_SECRET_KEY mancante");
+    const siteUrl = (Deno.env.get("PUBLIC_SITE_URL") ?? "https://app.praticarapida.it").replace(/\/+$/, "");
+    const stripe = new Stripe(stripeKey, {
+      httpClient: Stripe.createFetchHttpClient(),
+    });
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      adaptive_pricing: { enabled: false },
+      payment_method_types: ["card"],
+      customer_email: customer.email,
+      locale: "it",
+      line_items: price.lines.map((line) => ({
+        quantity: 1,
+        price_data: {
+          currency: "eur",
+          unit_amount: line.netCents + Math.round(line.netCents * line.vatPercent / 100),
+          product_data: { name: line.name },
+        },
+      })),
+      metadata: {
+        payment_order_id: String(reserved.id),
+        practice_id: practice.id,
+      },
+      payment_intent_data: {
         metadata: {
           payment_order_id: String(reserved.id),
           practice_id: practice.id,
         },
-        payment_intent_data: {
-          metadata: {
-            payment_order_id: String(reserved.id),
-            practice_id: practice.id,
-          },
-        },
-        success_url: `${siteUrl}/form/${token}?pagamento=ok`,
-        cancel_url: `${siteUrl}/form/${token}?pagamento=annullato`,
-        expires_at: Math.floor(Date.now() / 1000) + 30 * 60,
-      }, { idempotencyKey: `cf-payment-order-${reserved.id}${resetExistingStripeOrder ? "-test-reset" : ""}` });
-      stripeSessionId = session.id;
-      paymentUrl = String(session.url ?? "");
-      if (!paymentUrl) throw new Error("Stripe non ha restituito il link di pagamento");
-    }
+      },
+      success_url: `${siteUrl}/form/${token}?pagamento=ok`,
+      cancel_url: `${siteUrl}/form/${token}?pagamento=annullato`,
+      expires_at: Math.floor(Date.now() / 1000) + 30 * 60,
+    }, { idempotencyKey: `cf-payment-order-${reserved.id}${resetExistingStripeOrder ? "-test-reset" : ""}` });
+    const stripeSessionId = session.id;
+    const paymentUrl = String(session.url ?? "");
+    if (!paymentUrl) throw new Error("Stripe non ha restituito il link di pagamento");
 
     await admin.from("cf_payment_orders").update({
       status: "pending",
-      fic_proforma_id: proformaId,
-      // La proforma resta un documento tecnico se il checkout è Stripe: non
-      // viene mostrata né spedita al cliente.
-      fic_document_url: paymentProvider === "fatture_in_cloud_tspay" ? documentUrl : null,
+      fic_document_url: null,
       stripe_checkout_session_id: stripeSessionId,
-      stripe_checkout_url: paymentProvider === "stripe_fatture_in_cloud" ? paymentUrl : null,
+      stripe_checkout_url: paymentUrl,
       updated_at: new Date().toISOString(),
     }).eq("practice_id", practice.id);
     if (isTestPayment) {
@@ -361,27 +426,11 @@ serve(async (req) => {
     if (practice.tipo_fatturazione === "cliente_finale") practiceUpdate.prezzo = price.netCents / 100;
     await admin.from("enea_practices").update(practiceUpdate).eq("id", practice.id);
 
-    // Nel vecchio percorso TS Pay l'e-mail contiene la proforma da aprire. Con
-    // Stripe non va inviata: il cliente deve vedere direttamente il checkout.
-    if (paymentProvider === "fatture_in_cloud_tspay") {
-      if (!proformaId) throw new Error("Proforma Fatture in Cloud non disponibile");
-      try {
-        await scheduleDocumentEmail(config, proformaId, customer.email, customer.name, "proforma");
-        await admin.from("cf_payment_orders").update({ proforma_emailed_at: new Date().toISOString() }).eq("practice_id", practice.id);
-      } catch (emailError) {
-        console.error("[fic-create-payment] proforma creata, email fallita", emailError);
-        await admin.from("cf_payment_orders").update({
-          last_error_code: "PROFORMA_EMAIL_FAILED",
-          last_error_message: emailError instanceof Error ? emailError.message : String(emailError),
-        }).eq("practice_id", practice.id);
-      }
-    }
-
     return json({ status: "pending", payment_url: paymentUrl, total_cents: price.grossCents });
   } catch (error) {
     await admin.from("cf_payment_orders").update({
       status: "failed",
-      last_error_code: "PROFORMA_CREATE_FAILED",
+      last_error_code: "PAYMENT_CREATE_FAILED",
       last_error_message: error instanceof Error ? error.message.slice(0, 1000) : String(error).slice(0, 1000),
       retry_count: 1,
       updated_at: new Date().toISOString(),

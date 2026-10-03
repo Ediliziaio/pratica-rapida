@@ -1,15 +1,14 @@
 import {
-  createProforma,
+  createPaidInvoice,
   ensureFicWebhookSubscription,
   extractBillingIdentity,
   getFicConfig,
-  proformaPayload,
+  paidInvoicePayload,
   scheduleDocumentEmail,
   sendEInvoice,
-  transformProformaToInvoice,
   type JsonObject,
 } from "./fatture-in-cloud.ts";
-import { createTestPaymentPricing } from "./fic-pricing.ts";
+import type { PaymentLine, PaymentPricing } from "./fic-pricing.ts";
 
 type AdminClient = {
   from: (table: string) => any;
@@ -37,6 +36,84 @@ async function notifyAdmins(
     messaggio: message,
     link: `/pratiche/${practiceId}`,
   })));
+}
+
+async function pricingFromPaidOrder(
+  admin: AdminClient,
+  order: JsonObject,
+  product: string,
+): Promise<PaymentPricing> {
+  const netCents = Number(order.imponibile_cents);
+  const grossCents = Number(order.totale_cents);
+  const vatPercent = Number(order.iva_percent);
+  const pricingKey = String(order.pricing_key) as PaymentPricing["pricingKey"];
+  if (!Number.isInteger(netCents) || netCents <= 0 || !Number.isInteger(grossCents) || grossCents <= 0) {
+    throw new Error("Importo ordine non valido per la fatturazione");
+  }
+
+  const lines: PaymentLine[] = [];
+  if (pricingKey === "prezzo_test_pagamento") {
+    lines.push({
+      code: "PR-TEST",
+      name: "Collaudo tecnico pagamento Pratica Rapida",
+      netCents,
+      vatPercent,
+    });
+  } else if (pricingKey === "prezzo_servizio_catastale") {
+    lines.push({
+      code: "PR-CATASTO",
+      name: "Servizio ricerca dati catastali",
+      netCents,
+      vatPercent,
+    });
+  } else if (order.servizio_catastale === true) {
+    const { data: cadastralSetting, error: cadastralError } = await admin.from("platform_settings")
+      .select("value")
+      .eq("key", "prezzo_servizio_catastale")
+      .maybeSingle();
+    if (cadastralError) throw cadastralError;
+    const cadastralValue = (cadastralSetting?.value && typeof cadastralSetting.value === "object")
+      ? cadastralSetting.value as JsonObject
+      : {};
+    const cadastralNetCents = Number(cadastralValue.imponibile_cents);
+    if (!Number.isInteger(cadastralNetCents) || cadastralNetCents <= 0 || cadastralNetCents >= netCents) {
+      throw new Error("Quota catastale non ricostruibile dall'ordine pagato");
+    }
+    lines.push({
+      code: "PR-CF",
+      name: `Servizio gestione pratica ${product || "ENEA"}`,
+      netCents: netCents - cadastralNetCents,
+      vatPercent,
+    }, {
+      code: "PR-CATASTO",
+      name: "Servizio ricerca dati catastali",
+      netCents: cadastralNetCents,
+      vatPercent,
+    });
+  } else {
+    lines.push({
+      code: "PR-CF",
+      name: `Servizio gestione pratica ${product || "ENEA"}`,
+      netCents,
+      vatPercent,
+    });
+  }
+
+  const vatCents = lines.reduce(
+    (sum, line) => sum + Math.round(line.netCents * line.vatPercent / 100),
+    0,
+  );
+  if (netCents + vatCents !== grossCents) {
+    throw new Error(`Totale fattura non coerente con il pagamento: ${netCents + vatCents} != ${grossCents}`);
+  }
+  return {
+    pricingKey,
+    cadastralService: order.servizio_catastale === true,
+    lines,
+    netCents,
+    vatCents,
+    grossCents,
+  };
 }
 
 /**
@@ -83,34 +160,6 @@ export async function finalizePaidCfOrder(
   await ensureFicWebhookSubscription(config);
   let invoiceId = Number(order.fic_invoice_id ?? 0);
   let invoiceUrl = String(order.fic_invoice_url ?? "");
-  let proformaId = Number(order.fic_proforma_id ?? 0);
-
-  // Un collaudo fiscale autorizzato deve attraversare lo stesso percorso di
-  // un cliente reale. Gli ordini di test creati prima dell'autorizzazione non
-  // avevano una proforma: la creiamo ora, senza generare un secondo addebito.
-  if (!invoiceId && (!Number.isInteger(proformaId) || proformaId <= 0)) {
-    if (order.is_test_payment !== true) {
-      throw new Error("Proforma tecnica Fatture in Cloud mancante");
-    }
-    const customer = extractBillingIdentity(practice);
-    const price = createTestPaymentPricing(Number(order.iva_percent), Number(order.imponibile_cents));
-    if (price.grossCents !== Number(order.totale_cents)) {
-      throw new Error("Importo del collaudo fiscale non coerente con il pagamento Stripe");
-    }
-    const created = await createProforma(
-      config,
-      proformaPayload(practiceId, String(practice.prodotto_installato ?? "ENEA"), customer, price),
-    );
-    proformaId = Number(created.data.id);
-    if (!Number.isInteger(proformaId) || proformaId <= 0) {
-      throw new Error("Fatture in Cloud non ha restituito l'ID della proforma di collaudo");
-    }
-    await admin.from("cf_payment_orders").update({
-      fic_proforma_id: proformaId,
-      fic_document_url: null,
-      updated_at: new Date().toISOString(),
-    }).eq("id", orderId);
-  }
 
   if (!invoiceId) {
     const { data: claimed, error: claimError } = await admin.from("cf_payment_orders")
@@ -125,7 +174,13 @@ export async function finalizePaidCfOrder(
       throw new Error("Fatturazione già in corso o da verificare: nessun secondo documento è stato creato");
     }
 
-    const invoice = await transformProformaToInvoice(config, proformaId, paidAt);
+    const product = String(practice.prodotto_installato ?? "ENEA");
+    const customer = extractBillingIdentity(practice);
+    const price = await pricingFromPaidOrder(admin, order as JsonObject, product);
+    const invoice = await createPaidInvoice(
+      config,
+      paidInvoicePayload(practiceId, product, customer, price, paidAt),
+    );
     invoiceId = Number(invoice.data.id);
     invoiceUrl = String(invoice.data.url ?? "");
     if (!Number.isInteger(invoiceId) || invoiceId <= 0) {

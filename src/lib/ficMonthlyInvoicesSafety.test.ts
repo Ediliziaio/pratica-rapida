@@ -60,6 +60,7 @@ describe("fatturazione mensile FIC settembre 2026", () => {
     expect(adminPage).toContain('body: { action: "update_existing_draft_names" }');
     expect(adminPage).toContain("Non crea, non numera, non emette e non invia fatture.");
     expect(adminPage).toContain("Modifica solo le bozze esistenti");
+    expect(adminPage).toContain("draftUpdateResult.failed.map");
   });
 
   it("la chiave di ispezione autorizza soltanto operazioni di lettura", () => {

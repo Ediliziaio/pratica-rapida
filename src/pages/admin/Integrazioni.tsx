@@ -88,7 +88,10 @@ function timeAgo(d: Date | null): string {
 export default function Integrazioni() {
   const { toast } = useToast();
   const [draftUpdatePending, setDraftUpdatePending] = useState(false);
-  const [draftUpdateResult, setDraftUpdateResult] = useState<{ updated: number; failed: number } | null>(null);
+  const [draftUpdateResult, setDraftUpdateResult] = useState<{
+    updated: number;
+    failed: Array<{ provider?: string; error?: string }>;
+  } | null>(null);
 
   const updateSeptemberDraftNames = async () => {
     setDraftUpdatePending(true);
@@ -98,8 +101,9 @@ export default function Integrazioni() {
       });
       if (error) throw error;
       const updated = Array.isArray(data?.updated) ? data.updated.length : 0;
-      const failed = Array.isArray(data?.failed) ? data.failed.length : 0;
-      setDraftUpdateResult({ updated, failed });
+      const failures = Array.isArray(data?.failed) ? data.failed : [];
+      const failed = failures.length;
+      setDraftUpdateResult({ updated, failed: failures });
       toast({
         title: failed === 0 ? "Bozze aggiornate" : "Aggiornamento parziale",
         description: `${updated} bozze modificate; ${failed} bloccate dai controlli di sicurezza.`,
@@ -328,8 +332,17 @@ export default function Integrazioni() {
                 </p>
                 {draftUpdateResult && (
                   <p className="text-xs font-medium mt-2">
-                    Ultimo risultato: {draftUpdateResult.updated} modificate, {draftUpdateResult.failed} bloccate.
+                    Ultimo risultato: {draftUpdateResult.updated} modificate, {draftUpdateResult.failed.length} bloccate.
                   </p>
+                )}
+                {draftUpdateResult?.failed.length > 0 && (
+                  <ul className="text-xs text-red-700 mt-2 space-y-1">
+                    {draftUpdateResult.failed.map((failure, index) => (
+                      <li key={`${failure.provider ?? "fattura"}-${index}`}>
+                        • {failure.provider ?? "Fattura"}: {failure.error ?? "motivo non disponibile"}
+                      </li>
+                    ))}
+                  </ul>
                 )}
               </div>
             </div>

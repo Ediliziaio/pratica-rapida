@@ -23,16 +23,17 @@ describe("fatturazione mensile FIC settembre 2026", () => {
   it("non invia e rappresenta gli omaggi con sconto totale", () => {
     expect(source).not.toContain("/email");
     expect(source).not.toContain("/e_invoice/send");
-    expect(source).toContain('description: "Prima pratica omaggio"');
+    expect(source).toContain('"Prima pratica omaggio"].filter(Boolean).join("\\n")');
     expect(source).toContain("discount: 100");
   });
 
   it("riporta in fattura i nomi dei clienti del cruscotto senza duplicarli", () => {
-    expect(source).toContain("...practices.map(clientName)");
+    expect(source).toContain(".map(clientName)");
+    expect(source).toContain('.join("\\n")');
     expect(source).toContain("paidPractices: group.practices.slice(giftCount)");
     expect(source).toContain("giftPractices: group.practices.slice(0, giftCount)");
-    expect(source).toContain("name: itemName(paidPractices)");
-    expect(source).toContain("name: itemName(giftPractices)");
+    expect(source).toContain("description: itemDescription(paidPractices)");
+    expect(source).toContain('[itemDescription(giftPractices), "Prima pratica omaggio"]');
     expect(source).toContain("clients: row.practices.map(clientName)");
   });
 

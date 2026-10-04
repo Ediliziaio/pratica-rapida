@@ -233,7 +233,76 @@ export function proformaPayload(
   };
 }
 
+/**
+ * Crea il payload della sola fattura definitiva, dopo un pagamento Stripe
+ * verificato. Nessun documento FIC deve esistere prima dell'incasso.
+ */
+export function paidInvoicePayload(
+  practiceId: string,
+  product: string,
+  customer: BillingIdentity,
+  price: PaymentPricing,
+  paidAt: string,
+): JsonObject {
+  const paidDate = paidAt.slice(0, 10);
+  const paymentAccountId = Number(Deno.env.get("FIC_STRIPE_PAYMENT_ACCOUNT_ID") ?? "");
+  if (!Number.isInteger(paymentAccountId) || paymentAccountId <= 0) {
+    throw new Error("Conto di accredito Stripe/Qonto non configurato in Fatture in Cloud");
+  }
+  return {
+    data: {
+      type: "invoice",
+      e_invoice: true,
+      entity: {
+        name: customer.name,
+        email: customer.email,
+        tax_code: customer.taxCode,
+        address_street: customer.street,
+        address_postal_code: customer.postalCode,
+        address_city: customer.city,
+        address_province: customer.province,
+        country: customer.country,
+        ei_code: "0000000",
+      },
+      date: paidDate,
+      subject: `PraticaRapida:${practiceId}`,
+      visible_subject: `Servizio pratica ${product || "ENEA"}`,
+      currency: { id: "EUR" },
+      language: { code: "it" },
+      items_list: price.lines.map((line) => ({
+        code: line.code,
+        name: line.name,
+        net_price: line.netCents / 100,
+        qty: 1,
+        vat: { id: Number(Deno.env.get("FIC_VAT_TYPE_ID") ?? "0") },
+      })),
+      payments_list: [{
+        amount: price.grossCents / 100,
+        due_date: paidDate,
+        paid_date: paidDate,
+        status: "paid",
+        payment_account: { id: paymentAccountId },
+      }],
+      show_tspay_button: false,
+      show_payments: true,
+      show_payment_method: true,
+      notes: `Riferimento pratica Pratica Rapida: ${practiceId}`,
+      ei_data: {
+        vat_kind: "I",
+        payment_method: "MP08",
+      },
+    },
+  };
+}
+
 export async function createProforma(config: FicConfig, payload: JsonObject) {
+  return await ficRequest<{ data: JsonObject }>(config, `/c/${config.companyId}/issued_documents`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function createPaidInvoice(config: FicConfig, payload: JsonObject) {
   return await ficRequest<{ data: JsonObject }>(config, `/c/${config.companyId}/issued_documents`, {
     method: "POST",
     body: JSON.stringify(payload),

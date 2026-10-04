@@ -11,15 +11,17 @@
 - Cliente non CF che richiede la sola ricerca catastale: 12,20 EUR IVA inclusa.
 - Il cliente completa il modulo prima di pagare, così sono disponibili tutti i
   dati fiscali necessari.
-- Il CRM crea una proforma tecnica Fatture in Cloud non mostrata al cliente e
-  apre direttamente il checkout Stripe.
+- Il CRM apre direttamente il checkout Stripe e non crea alcun documento in
+  Fatture in Cloud prima dell'incasso.
 - Il checkout Stripe è forzato in EUR: la valuta adattiva è disattivata per
   evitare conversioni e commissioni presentate al cliente.
-- Quando è acquistata la ricerca catastale, proforma e fattura espongono una
-  riga separata dal servizio pratica e il CRM mostra il contrassegno `CATASTO`.
+- Quando è acquistata la ricerca catastale, il checkout e la fattura finale
+  espongono una riga separata dal servizio pratica e il CRM mostra il
+  contrassegno `CATASTO`.
 - Anche il cliente non CF paga direttamente la ricerca catastale e riceve la
   relativa fattura all'indirizzo e-mail indicato nel modulo.
-- Solo un pagamento verificato porta alla creazione della fattura elettronica.
+- Solo un pagamento Stripe verificato porta alla creazione diretta della
+  fattura elettronica finale.
 - La pratica passa a `pronte_da_fare` solo dopo pagamento, creazione fattura,
   invio allo SDI e conferma FIC dell'e-mail inviata al cliente.
 - Qonto riceve gli accrediti Stripe; la riconciliazione cliente ↔ pratica
@@ -30,11 +32,11 @@
 Questa integrazione è una porta a una via sul piano fiscale. In base alla Cabina
 di Regia, creazione/invio reale delle fatture richiede approvazione del Titolare.
 
-- `FIC_PAYMENT_CREATION_ENABLED=false`: non crea proforme né link reali.
+- `FIC_PAYMENT_CREATION_ENABLED=false`: non crea link di pagamento reali.
 - `FIC_LIVE_INVOICING_ENABLED=false`: registra il pagamento ma non crea fatture.
 - `FIC_SDI_DRY_RUN=true`: esegue i controlli SDI senza trasmettere la fattura.
 - `CF_PAYMENT_PROVIDER=stripe`: abilita il checkout Stripe diretto. Se assente,
-  resta attivo il precedente percorso TS Pay.
+  il flusso si blocca in sicurezza senza ricadere nel precedente percorso TS Pay.
 - `FIC_STRIPE_PAYMENT_ACCOUNT_ID`: ID del conto Qonto in Fatture in Cloud su
   cui registrare la fattura come pagata. È obbligatorio per la fatturazione live.
 - `platform_settings.fic_tspay_rollout.enabled=false`: mantiene il nuovo flusso
@@ -91,9 +93,11 @@ eventi sono registrati per `event_id` per impedire la doppia elaborazione.
 2. Verificare, senza creare proforme, i quattro scenari economici: CF ordinario,
    CF Sima Home, ciascuno con e senza ricerca catastale, e il caso non CF con la
    sola ricerca catastale.
-3. Abilitare soltanto la creazione proforma/checkout e controllare importi e anagrafica.
+3. Abilitare soltanto il checkout Stripe e verificare che Fatture in Cloud non
+   contenga nuovi documenti prima del pagamento.
 4. Effettuare un pagamento reale di collaudo soltanto previa approvazione.
-5. Trasformare in fattura con `FIC_SDI_DRY_RUN=true` e verificare XML/esito.
+5. Creare direttamente la fattura finale con `FIC_SDI_DRY_RUN=true` e verificare
+   XML/esito, senza creare o trasformare proforme.
 6. Con approvazione finale, impostare `FIC_LIVE_INVOICING_ENABLED=true` e
    `FIC_SDI_DRY_RUN=false`.
 7. Verificare email cliente, quattro indicatori CRM, stato SDI e accredito Stripe su Qonto.
@@ -104,7 +108,8 @@ eventi sono registrati per `event_id` per impedire la doppia elaborazione.
 - Arresto fatturazione automatica: `FIC_LIVE_INVOICING_ENABLED=false`.
 - Un evento fallito resta in `fic_webhook_events`/`stripe_webhook_events` e l'ordine conserva
   `last_error_code`/`last_error_message`; non viene generata una seconda pratica.
-- Le proforme e fatture non vengono mai cancellate automaticamente.
+- Il nuovo flusso non crea proforme. Gli eventuali documenti storici e le
+  fatture non vengono mai cancellati automaticamente.
 ## Collaudo controllato da 1 euro
 
 Il collaudo economico non modifica mai i prezzi globali. Una singola pratica CF
@@ -119,6 +124,6 @@ può essere autorizzata tramite una riga service-role in
 Il totale è 1,00 EUR IVA inclusa (0,82 EUR imponibile + 0,18 EUR IVA). Gli ordini
 di collaudo sono marcati `is_test_payment = true`, ma dopo l'autorizzazione
 fiscale esplicita del Titolare percorrono lo stesso flusso dei pagamenti
-ordinari: proforma tecnica, fattura reale, invio SDI, e-mail al cliente e
+ordinari: checkout Stripe, fattura finale, invio SDI, e-mail al cliente e
 passaggio in `pronte_da_fare`. La migrazione crea soltanto la struttura e non
 abilita alcuna pratica.

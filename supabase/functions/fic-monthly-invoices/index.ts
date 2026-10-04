@@ -159,10 +159,10 @@ const splitPractices = (group: InvoiceGroup) => {
   };
 };
 
-const itemName = (practices: BridgeRow[]) => [
-  DESCRIPTION,
-  ...practices.map(clientName),
-].filter(Boolean).join("\n");
+const itemDescription = (practices: BridgeRow[]) => practices
+  .map(clientName)
+  .filter(Boolean)
+  .join("\n");
 
 const buildItems = (group: InvoiceGroup, vatId: number): JsonObject[] => {
   const { paidPractices, giftPractices } = splitPractices(group);
@@ -170,7 +170,8 @@ const buildItems = (group: InvoiceGroup, vatId: number): JsonObject[] => {
   if (paidPractices.length > 0) {
     items.push({
       code: "ENEA-SET-2026",
-      name: itemName(paidPractices),
+      name: DESCRIPTION,
+      description: itemDescription(paidPractices),
       net_price: group.unitPrice,
       qty: paidPractices.length,
       vat: { id: vatId },
@@ -179,8 +180,8 @@ const buildItems = (group: InvoiceGroup, vatId: number): JsonObject[] => {
   if (giftPractices.length > 0) {
     items.push({
       code: "ENEA-SET-2026-OMAGGIO",
-      name: itemName(giftPractices),
-      description: "Prima pratica omaggio",
+      name: DESCRIPTION,
+      description: [itemDescription(giftPractices), "Prima pratica omaggio"].filter(Boolean).join("\n"),
       net_price: group.unitPrice,
       discount: 100,
       qty: giftPractices.length,

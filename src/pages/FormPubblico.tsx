@@ -224,7 +224,13 @@ export default function FormPubblico() {
           setResellerName(/Da abbinare|Clienti privati/i.test(nomeAzienda) ? "" : nomeAzienda);
           if (row.payment_required && !isPaymentFlowComplete(row)) {
             setAwaitingPayment(true);
-            setPaymentUrl(isPaymentConfirmed(row) ? "" : row.payment_url ?? "");
+            // Non riutilizzare mai direttamente l'URL memorizzato nel DB:
+            // una Checkout Session Stripe puo essere scaduta. Lasciando vuoto
+            // paymentUrl, il pulsante passa sempre da fic-create-payment, che
+            // controlla la sessione e, se necessario, la rinnova prima del
+            // redirect. In questo modo il cliente non finisce piu sulla pagina
+            // Stripe "pagamento completato o sessione scaduta".
+            setPaymentUrl("");
             if (row.payment_status === "failed") {
               setPaymentError("Il pagamento richiede una verifica dello staff. Non ricompilare il modulo.");
             }
@@ -736,7 +742,7 @@ export default function FormPubblico() {
               }}
             >
               {submitting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CreditCard className="h-4 w-4 mr-2" />}
-              Prepara il pagamento
+              Vai al pagamento sicuro
             </Button>
           )}
           <p className="text-xs text-muted-foreground">

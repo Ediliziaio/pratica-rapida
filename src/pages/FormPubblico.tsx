@@ -35,6 +35,10 @@ import {
   validateAllDynamicSteps,
   validateDynamicStep,
 } from "@/components/form-cliente/dynamicValidation";
+import {
+  applyInvoiceRequestPolicy,
+  customerMustUploadInvoice,
+} from "@/components/form-cliente/invoiceRequestPolicy";
 import { useFormModuleByProdotto } from "@/hooks/useFormSchema";
 
 // Refactor DB-first: se `useFormModuleByProdotto` matcha un modulo (CMS in
@@ -363,10 +367,16 @@ export default function FormPubblico() {
   // ── Step list (dynamic vs hardcoded) ────────────────────────────────────────
   // Lista di step "visibili" in base allo stato corrente. Per il path dinamico
   // applichiamo `visible_if` step-level; per il path hardcoded usiamo STEPS.
+  const requireCustomerInvoice = customerMustUploadInvoice(practice?.tipo_fatturazione);
+  const effectiveDynamicSchema = useMemo(() => {
+    if (!dbModule) return null;
+    return applyInvoiceRequestPolicy(dbModule.schema, requireCustomerInvoice);
+  }, [dbModule, requireCustomerInvoice]);
+
   const visibleDynamicSteps = useMemo(() => {
-    if (!useDynamic || !dbModule) return [];
-    return getVisibleSteps(dbModule.schema, dynamicData);
-  }, [useDynamic, dbModule, dynamicData]);
+    if (!useDynamic || !effectiveDynamicSchema) return [];
+    return getVisibleSteps(effectiveDynamicSchema, dynamicData);
+  }, [useDynamic, effectiveDynamicSchema, dynamicData]);
 
   const currentCadastralServiceRequested = useDynamic
     ? dynamicCadastralServiceRequested(dynamicData)
@@ -408,8 +418,14 @@ export default function FormPubblico() {
   // Path hardcoded
   const hardcodedStep = hardcodedSteps[safeStepIndex] ?? hardcodedSteps[0];
   const hardcodedErrors = useMemo(
-    () => (useDynamic ? {} : validateStep(hardcodedStep.id, formData, prodottoTipo, isAzienda)),
-    [useDynamic, hardcodedStep.id, formData, prodottoTipo, isAzienda],
+    () => (useDynamic ? {} : validateStep(
+      hardcodedStep.id,
+      formData,
+      prodottoTipo,
+      isAzienda,
+      requireCustomerInvoice,
+    )),
+    [useDynamic, hardcodedStep.id, formData, prodottoTipo, isAzienda, requireCustomerInvoice],
   );
   // Path dinamico
   const dynamicStep = visibleDynamicSteps[safeStepIndex];
@@ -557,7 +573,7 @@ export default function FormPubblico() {
 
     if (useDynamic && dbModule) {
       // Validazione completa su tutti gli step visibili
-      const allErrors = validateAllDynamicSteps(dbModule.schema, dynamicData);
+      const allErrors = validateAllDynamicSteps(effectiveDynamicSchema ?? dbModule.schema, dynamicData);
       if (Object.keys(allErrors).length > 0) {
         // Le chiavi d'errore sono "step.campo": riportiamo l'utente allo step
         // che blocca. Senza questo, chi ha un campo mancante a meta' modulo
@@ -628,7 +644,13 @@ export default function FormPubblico() {
     }
 
     // ── Path hardcoded (fallback) ─────────────────────────────────────────────
-    const allErrors = validateStep("recap", formData, prodottoTipo, isAzienda);
+    const allErrors = validateStep(
+      "recap",
+      formData,
+      prodottoTipo,
+      isAzienda,
+      requireCustomerInvoice,
+    );
     if (Object.keys(allErrors).length > 0) {
       toast({
         variant: "destructive",
@@ -895,7 +917,7 @@ export default function FormPubblico() {
           <h2 className="text-lg font-semibold mb-4">{stepLabel}</h2>
           {useDynamic && dbModule ? (
             <DynamicSteps
-              schema={dbModule.schema}
+              schema={effectiveDynamicSchema ?? dbModule.schema}
               currentStepIndex={safeStepIndex}
               formData={dynamicData}
               onChange={updateDynamicField}
@@ -916,6 +938,7 @@ export default function FormPubblico() {
               onUploadEnd={() => setUploading(false)}
               publicToken={token}
               isAzienda={isAzienda}
+              requireCustomerInvoice={requireCustomerInvoice}
             />
           )}
         </div>
@@ -1018,6 +1041,7 @@ interface StepBodyProps {
   onUploadEnd: () => void;
   publicToken?: string;
   isAzienda?: boolean;
+  requireCustomerInvoice: boolean;
 }
 
 function StepBody(props: StepBodyProps) {
@@ -1060,6 +1084,7 @@ function StepBody(props: StepBodyProps) {
           onUploadEnd={props.onUploadEnd}
           publicToken={props.publicToken}
           practiceId={props.practiceId}
+          requireCustomerInvoice={props.requireCustomerInvoice}
         />
       );
     case "recap":

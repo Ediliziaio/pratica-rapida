@@ -193,10 +193,12 @@ export function validateProdotto(d: FormClienteData, tipo: ProdottoTipo): ErrorM
   return e;
 }
 
-export function validateDocumenti(d: FormClienteData): ErrorMap {
+export function validateDocumenti(d: FormClienteData, requireCustomerInvoice = true): ErrorMap {
   const e: ErrorMap = {};
   const doc = d.documenti;
-  if (!doc.fattura_url) e["documenti.fattura_url"] = "Carica la fattura dell'installatore";
+  if (requireCustomerInvoice && !doc.fattura_url) {
+    e["documenti.fattura_url"] = "Carica la fattura dell'installatore";
+  }
   if (doc.finanziamento === null || doc.finanziamento === undefined) {
     e["documenti.finanziamento"] = "Indica se hai usufruito di un finanziamento";
   } else if (doc.finanziamento !== "si" && !doc.bonifico_url) {
@@ -210,6 +212,7 @@ export function validateStep(
   data: FormClienteData,
   prodottoTipo: ProdottoTipo,
   isAzienda = false,
+  requireCustomerInvoice = true,
 ): ErrorMap {
   switch (step) {
     case "richiedente":
@@ -227,7 +230,7 @@ export function validateStep(
     case "prodotto":
       return validateProdotto(data, prodottoTipo);
     case "documenti":
-      return validateDocumenti(data);
+      return validateDocumenti(data, requireCustomerInvoice);
     case "recap":
       // Tutti gli step precedenti devono passare prima del submit
       return {
@@ -238,7 +241,7 @@ export function validateStep(
         ...validateEdificio(data),
         ...validateImpianto(data),
         ...validateProdotto(data, prodottoTipo),
-        ...validateDocumenti(data),
+        ...validateDocumenti(data, requireCustomerInvoice),
       };
     default:
       return {};

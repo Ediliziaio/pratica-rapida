@@ -936,6 +936,7 @@ export interface StepDocumentiProps {
   onUploadEnd: () => void;
   publicToken?: string;
   practiceId: string;
+  requireCustomerInvoice?: boolean;
 }
 
 export function StepDocumenti({
@@ -947,6 +948,7 @@ export function StepDocumenti({
   onUploadEnd,
   publicToken,
   practiceId,
+  requireCustomerInvoice = true,
 }: StepDocumentiProps) {
   const fatturaRef = useRef<HTMLInputElement>(null);
   const bonificoRef = useRef<HTMLInputElement>(null);
@@ -1060,15 +1062,17 @@ export function StepDocumenti({
 
   return (
     <div className="space-y-6">
-      {/* Fattura — sempre obbligatoria */}
-      <div className="space-y-2">
-        <Label>Fattura dell'installatore *</Label>
-        <p className="text-xs text-muted-foreground">
-          Fattura emessa dall'installatore per i lavori eseguiti (PDF, JPG o PNG, max 20 MB).
-        </p>
-        {renderUploadButton("fattura", "Carica fattura", fattura_url, fatturaRef)}
-        <FieldError errors={errors} field="documenti.fattura_url" />
-      </div>
+      {/* La fattura viene chiesta soltanto al cliente finale che paga la pratica. */}
+      {requireCustomerInvoice && (
+        <div className="space-y-2">
+          <Label>Fattura dell'installatore *</Label>
+          <p className="text-xs text-muted-foreground">
+            Fattura emessa dall'installatore per i lavori eseguiti (PDF, JPG o PNG, max 20 MB).
+          </p>
+          {renderUploadButton("fattura", "Carica fattura", fattura_url, fatturaRef)}
+          <FieldError errors={errors} field="documenti.fattura_url" />
+        </div>
+      )}
 
       {/* Domanda finanziamento */}
       <div className="space-y-3">

@@ -12,7 +12,11 @@ const INVOICE_FIELD_KEYS = new Set([
  * quando il costo della pratica è a carico del cliente finale.
  */
 export function customerMustUploadInvoice(tipoFatturazione: string | null | undefined): boolean {
-  return tipoFatturazione === "cliente_finale";
+  // Fail-safe: nascondiamo la fattura soltanto quando il dato certifica
+  // esplicitamente che paga il rivenditore. Le pratiche legacy senza valore
+  // non devono finire con un campo nascosto che il backend continua a
+  // richiedere.
+  return tipoFatturazione !== "rivenditore";
 }
 
 /**
@@ -26,13 +30,28 @@ export function applyInvoiceRequestPolicy(
 ): FormSchema {
   if (requireCustomerInvoice) return schema;
 
+  const steps = (schema.steps ?? []).map((step) => {
+    const originalFields = step.fields ?? [];
+    const fields = originalFields.filter((field) => {
+      const isInvoiceUpload = field.type === "upload" &&
+        INVOICE_FIELD_KEYS.has(field.key.toLowerCase());
+      return !isInvoiceUpload;
+    });
+
+    return {
+      ...step,
+      fields,
+      hadFields: originalFields.length > 0,
+    };
+  });
+
   return {
     ...schema,
-    steps: (schema.steps ?? []).map((step) => ({
-      ...step,
-      fields: (step.fields ?? []).filter((field) =>
-        !(step.key === "documenti" && INVOICE_FIELD_KEYS.has(field.key.toLowerCase()))
-      ),
-    })),
+    // Se una sezione era composta soltanto dal caricamento fattura (come il
+    // modulo Schermature attivo in produzione), eliminiamo anche la sezione
+    // ormai vuota. Le sezioni originariamente vuote restano invariate.
+    steps: steps
+      .filter((step) => !step.hadFields || step.fields.length > 0)
+      .map(({ hadFields: _hadFields, ...step }) => step),
   };
 }

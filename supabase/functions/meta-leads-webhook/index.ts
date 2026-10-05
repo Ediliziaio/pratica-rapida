@@ -12,7 +12,12 @@
  *
  * Secrets richiesti (Supabase → Edge Functions → Secrets):
  *   - META_LEADS_VERIFY_TOKEN   stringa a piacere, usata solo in fase di verifica webhook
- *   - META_PAGE_ACCESS_TOKEN    token della Pagina "Praticarapida" con permesso leads_retrieval
+ *   - META_PAGE_ACCESS_TOKEN    token della Pagina "Praticarapida" con permesso leads_retrieval.
+ *       DEVE essere un token che NON scade (es. token di un System User del
+ *       Business Manager, oppure page token ricavato da un user token LONG-lived).
+ *       Un token del Graph API Explorer scade in ~1-2 ore: il 19/09/2026 è
+ *       successo proprio questo e i lead hanno smesso di entrare.
+ *       Verifica: GET ...?action=status&token=<VERIFY_TOKEN>
  *   - (opz.) META_APP_SECRET    per verificare la firma X-Hub-Signature-256 dei POST
  *   - SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY  (già presenti di default)
  */
@@ -123,6 +128,51 @@ function mapFields(fieldData: Array<{ name: string; values: string[] }>) {
            telefono: telefono || null, citta: citta || null, extra };
 }
 
+const PENDING_MARKER = "[meta_pending]";
+
+/**
+ * Il webhook ha ricevuto un leadgen_id ma la Graph API non ci dà i dati (di
+ * solito: META_PAGE_ACCESS_TOKEN scaduto/revocato). Invece di perdere il lead
+ * lo mettiamo comunque nel CRM come segnaposto e avvisiamo via email: appena
+ * il token viene rinnovato, `import_recent` (anche da cron) lo completa.
+ */
+async function insertPendingLead(leadgenId: string, formId: string, graphError: string, stageId: string) {
+  const marker = `[meta_lead:${leadgenId}]`;
+  const { data: existing } = await supabase
+    .from("leads").select("id").ilike("note", `%${marker}%`).limit(1);
+  if (existing && existing.length > 0) return;
+  const { error } = await supabase.from("leads").insert({
+    nome: "Lead Meta (dati da recuperare)",
+    note: [
+      "⚠️ Dati non leggibili da Meta: rinnovare il secret META_PAGE_ACCESS_TOKEN.",
+      `Errore Graph: ${graphError.slice(0, 300)}`,
+      `Modulo Meta: ${formId || "n/d"}`, PENDING_MARKER, marker,
+    ].join("\n"),
+    source: "meta_ads", stage_id: stageId, page_url: "Meta Ads",
+  });
+  if (error) { console.error("[meta-leads-webhook] pending insert error:", error.message); return; }
+  try {
+    await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/send-email`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        to: Deno.env.get("LEADS_ALERT_EMAIL") ?? "modulistica@praticarapida.it",
+        template: "nuovo_lead",
+        data: {
+          nome: "Lead Meta", cognome: "(dati da recuperare)",
+          occupazione: "ATTENZIONE: token Meta non valido, i dati del lead non sono leggibili. Rinnovare META_PAGE_ACCESS_TOKEN.",
+          email: "—", telefono: "—", citta: "—", fonte: "Meta Ads",
+        },
+      }),
+    });
+  } catch (mailErr) {
+    console.error("[meta-leads-webhook] alert email failed:", mailErr);
+  }
+}
+
 /**
  * Inserisce un lead nel CRM (dedup su marker leadgen_id) e, se nuovo, invia
  * l'email di notifica a modulistica@. Usato SIA dal webhook in tempo reale SIA
@@ -137,10 +187,23 @@ async function ingestLead(
   const m = mapFields(fieldData);
   const marker = `[meta_lead:${leadgenId}]`;
   const { data: existing } = await supabase
-    .from("leads").select("id").ilike("note", `%${marker}%`).limit(1);
-  if (existing && existing.length > 0) return "duplicate";
-
+    .from("leads").select("id, note").ilike("note", `%${marker}%`).limit(1);
   const noteLines = [...m.extra, `Modulo Meta: ${formId || "n/d"}`, marker];
+
+  if (existing && existing.length > 0) {
+    // Segnaposto creato dal webhook quando il token era KO: ora che abbiamo i
+    // dati veri lo completiamo (senza re-inviare la notifica).
+    if (existing[0].note?.includes(PENDING_MARKER) && fieldData.length > 0) {
+      const { error } = await supabase.from("leads").update({
+        nome: m.nome, cognome: m.cognome, email: m.email, telefono: m.telefono, citta: m.citta,
+        note: noteLines.join("\n"),
+      }).eq("id", existing[0].id);
+      if (error) { console.error("[meta-leads-webhook] update error:", error.message); return "error"; }
+      return "inserted";
+    }
+    return "duplicate";
+  }
+
   const { error } = await supabase.from("leads").insert({
     nome: m.nome, cognome: m.cognome, email: m.email, telefono: m.telefono, citta: m.citta,
     note: noteLines.join("\n"), source: "meta_ads", stage_id: stageId, page_url: "Meta Ads",
@@ -197,6 +260,35 @@ Deno.serve(async (req) => {
     return Response.json({ ok: r.ok, status: r.status, page_id: pageId, result: j }, { headers: CORS });
   }
 
+  // ── Diagnostica: stato del token e app iscritte alla Pagina (non espone il token).
+  //    GET ...?action=status&token=<VERIFY_TOKEN>[&page_id=<id>]
+  if (req.method === "GET" && url.searchParams.get("action") === "status") {
+    if (url.searchParams.get("token") !== VERIFY_TOKEN) {
+      return new Response("Forbidden", { status: 403 });
+    }
+    const pageId = url.searchParams.get("page_id") ?? "322933287559293";
+    const pageToken = await resolvePageToken(pageId);
+    const g = async (path: string) => {
+      const r = await fetch(`https://graph.facebook.com/${GRAPH_VERSION}/${path}`);
+      return await r.json().catch(() => ({}));
+    };
+    const [secretDebug, pageDebug, subscribed] = await Promise.all([
+      g(`debug_token?input_token=${PAGE_TOKEN}&access_token=${PAGE_TOKEN}`),
+      g(`debug_token?input_token=${pageToken}&access_token=${pageToken}`),
+      g(`${pageId}/subscribed_apps?access_token=${pageToken}`),
+    ]);
+    const pick = (d: { data?: Record<string, unknown>; error?: unknown }) => d.data
+      ? { app_id: d.data.app_id, application: d.data.application, type: d.data.type,
+          is_valid: d.data.is_valid, expires_at: d.data.expires_at,
+          data_access_expires_at: d.data.data_access_expires_at, scopes: d.data.scopes,
+          error: d.data.error }
+      : { error: d.error };
+    return Response.json({
+      secret_token: pick(secretDebug), page_token: pick(pageDebug),
+      page_resolved: pageToken !== PAGE_TOKEN, subscribed_apps: subscribed,
+    }, { headers: CORS });
+  }
+
   // ── Azione una-tantum: importa i lead ARRETRATI degli ultimi N giorni
   //    (default 7) da tutti i moduli della Pagina, inserendoli nel CRM +
   //    email, con dedup. GET ...?action=import_recent&token=<VERIFY_TOKEN>[&days=7][&page_id=<id>]
@@ -228,7 +320,7 @@ Deno.serve(async (req) => {
         const lr: Response = await fetch(next);
         // deno-lint-ignore no-explicit-any
         const lj: any = await lr.json().catch(() => ({}));
-        if (!lr.ok) break;
+        if (!lr.ok) { console.error("[meta-leads-webhook] import error:", JSON.stringify(lj)); errors++; break; }
         let reachedOld = false;
         for (const lead of (lj.data ?? []) as Array<{ id: string; created_time?: string; field_data?: Array<{ name: string; values: string[] }> }>) {
           scanned++;
@@ -286,6 +378,7 @@ Deno.serve(async (req) => {
         const lead = await resp.json();
         if (!resp.ok) {
           console.error("[meta-leads-webhook] Graph error:", JSON.stringify(lead));
+          await insertPendingLead(leadgenId, formId, String(lead?.error?.message ?? resp.status), stageId);
           continue;
         }
 

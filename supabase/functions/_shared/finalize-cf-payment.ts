@@ -39,6 +39,41 @@ async function notifyAdmins(
   })));
 }
 
+async function recoverRecordedInvoiceEmail(
+  admin: AdminClient,
+  orderId: string,
+  invoiceId: number,
+): Promise<string | null> {
+  // Recupero idempotente per gli eventi binary CloudEvents ricevuti prima
+  // della correzione del parser: FIC ha realmente spedito l'e-mail, ma
+  // resource_ids era rimasto vuoto e l'ordine non era passato a ready.
+  const { data: events, error } = await admin.from("fic_webhook_events")
+    .select("payload,received_at")
+    .eq("event_type", "it.fattureincloud.webhooks.issued_documents.invoices.email_sent")
+    .eq("status", "processed")
+    .order("received_at", { ascending: false })
+    .limit(250);
+  if (error) throw error;
+
+  const delivered = (events ?? []).find((event: { payload?: JsonObject }) => {
+    const payload = event.payload ?? {};
+    const nested = payload.data;
+    const ids = Array.isArray(payload.ids)
+      ? payload.ids
+      : nested && typeof nested === "object" && !Array.isArray(nested) && Array.isArray((nested as JsonObject).ids)
+        ? (nested as JsonObject).ids
+        : [];
+    return (ids as unknown[]).some((id) => Number(id) === invoiceId);
+  }) as { received_at?: string } | undefined;
+  if (!delivered?.received_at) return null;
+
+  await admin.from("cf_payment_orders").update({
+    customer_emailed_at: delivered.received_at,
+    updated_at: new Date().toISOString(),
+  }).eq("id", orderId).is("customer_emailed_at", null);
+  return delivered.received_at;
+}
+
 /**
  * Completa gli effetti successivi a un pagamento già verificato.
  *
@@ -151,6 +186,11 @@ export async function finalizePaidCfOrder(
     .maybeSingle();
   if (currentError) throw currentError;
 
+  let customerEmailedAt = current?.customer_emailed_at as string | null | undefined;
+  if (!customerEmailedAt && Number.isInteger(invoiceId) && invoiceId > 0) {
+    customerEmailedAt = await recoverRecordedInvoiceEmail(admin, orderId, invoiceId);
+  }
+
   const dryRun = Deno.env.get("FIC_SDI_DRY_RUN") !== "false";
   if (!current?.sdi_sent_at) {
     const { data: sdiClaim, error: sdiClaimError } = await admin.from("cf_payment_orders")
@@ -184,7 +224,7 @@ export async function finalizePaidCfOrder(
   const name = `${String(practice.cliente_nome ?? "").trim()} ${String(practice.cliente_cognome ?? "").trim()}`.trim();
   if (!email) throw new Error("E-mail cliente mancante: fattura non inviata");
 
-  if (!current?.customer_emailed_at) {
+  if (!customerEmailedAt) {
     if (!current?.invoice_email_requested_at) {
       await scheduleDocumentEmail(config, invoiceId, email, name, "invoice");
       const requestedAt = new Date().toISOString();

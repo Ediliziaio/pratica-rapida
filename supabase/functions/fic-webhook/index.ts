@@ -38,6 +38,24 @@ function cloudEvent(req: Request, body: JsonObject) {
   };
 }
 
+function resourceIds(data: JsonObject): number[] {
+  // Fatture in Cloud usa due envelope CloudEvents:
+  // - structured: body.data.ids
+  // - binary: headers ce-* + body.data.ids (quindi event.data.data.ids)
+  // Il vecchio lettore gestiva soltanto il primo caso e perdeva l'ID negli
+  // eventi `invoices.email_sent`, lasciando l'ordine in `sdi_pending` anche
+  // dopo l'invio effettivo dell'e-mail al cliente.
+  const nested = data.data;
+  const candidates = Array.isArray(data.ids)
+    ? data.ids
+    : nested && typeof nested === "object" && !Array.isArray(nested) && Array.isArray((nested as JsonObject).ids)
+      ? (nested as JsonObject).ids
+      : [];
+  return (candidates as unknown[])
+    .map(Number)
+    .filter((id) => Number.isInteger(id) && id > 0);
+}
+
 serve(async (req) => {
   try {
     await verifyWebhook(req);
@@ -62,9 +80,7 @@ serve(async (req) => {
   }
   const event = cloudEvent(req, body);
   if (!event.id || !event.type) return new Response("Invalid CloudEvent", { status: 400 });
-  const ids = Array.isArray(event.data?.ids)
-    ? (event.data.ids as unknown[]).map(Number).filter((id) => Number.isInteger(id) && id > 0)
-    : [];
+  const ids = resourceIds(event.data);
 
   const admin = createClient(SUPABASE_URL, SERVICE_KEY);
   const { data: previous } = await admin.from("fic_webhook_events").select("status").eq("event_id", event.id).maybeSingle();

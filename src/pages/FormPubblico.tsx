@@ -301,7 +301,7 @@ export default function FormPubblico() {
         return;
       }
       if (attempts >= 20) {
-        setPaymentError("Stiamo attendendo la conferma definitiva del pagamento. Non effettuare un secondo pagamento: puoi lasciare aperta questa pagina oppure riaprirla più tardi.");
+        setPaymentError("Il pagamento è stato completato. L'aggiornamento automatico sta richiedendo più tempo del previsto: non effettuare un secondo pagamento. Puoi lasciare aperta questa pagina oppure riaprirla più tardi.");
         return;
       }
       window.setTimeout(poll, 2000);
@@ -708,7 +708,7 @@ export default function FormPubblico() {
           <h1 className="text-2xl font-bold">Ultimo passo: pagamento</h1>
           <p className="text-muted-foreground">
             {returningFromPayment
-              ? "Operazione conclusa su Stripe. Stiamo verificando la conferma del pagamento: non effettuare un secondo pagamento."
+              ? "Pagamento completato. Attendi qualche secondo: questa pagina si aggiornerà automaticamente. Non effettuare un secondo pagamento."
               : paymentConfirmed
                 ? "Pagamento confermato. Stiamo completando la fattura e l'invio della pratica."
               : "I dati sono stati salvati. La pratica entrerà in lavorazione soltanto dopo la conferma del pagamento e l'invio della fattura."}
@@ -762,7 +762,7 @@ export default function FormPubblico() {
         ? "Pagamento effettuato e pratica inviata ✓"
         : "Pratica inviata ✓";
       const proxyMessage = paymentRequired
-        ? "Il pagamento è stato effettuato e la pratica è stata correttamente inviata. La fattura viene emessa e inviata all’indirizzo e-mail del cliente tramite Fatture in Cloud."
+        ? "Pagamento effettuato. La fattura è stata inviata allo SDI e all’indirizzo e-mail indicato. Grazie."
         : "I dati sono stati registrati. La pratica è ora visibile a Pratica Rapida nella colonna “Pronte da fare” e sarà gestita dal team entro le tempistiche standard.";
       return (
         <div className="min-h-screen flex items-center justify-center p-4">
@@ -791,9 +791,8 @@ export default function FormPubblico() {
           <CheckCircle className="h-16 w-16 text-green-500 mx-auto" />
           <h1 className="text-2xl font-bold">Pagamento effettuato e pratica inviata ✓</h1>
           <p className="text-muted-foreground">
-            Il pagamento è stato effettuato e la pratica è stata correttamente inviata.
-            Riceverai via e-mail la pratica ENEA pronta per essere consegnata
-            in sede di dichiarazione dei redditi.
+            Pagamento effettuato. La fattura è stata inviata allo SDI e
+            all’indirizzo e-mail indicato. Grazie.
           </p>
         </div>
       </div>

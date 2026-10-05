@@ -34,4 +34,11 @@ describe("recupero delle sessioni Stripe scadute", () => {
     expect(formSource).toContain('setPaymentUrl("")');
     expect(formSource).toContain("await startRequiredPayment(paymentRequired)");
   });
+
+  it("spiega al cliente cosa accade dopo il pagamento senza promettere una conferma indefinita", () => {
+    expect(formSource).toContain("questa pagina si aggiornerà automaticamente");
+    expect(formSource).not.toContain("Stiamo verificando la conferma del pagamento");
+    expect(formSource).not.toContain("attendendo la conferma definitiva del pagamento");
+    expect(formSource).toContain("La fattura è stata inviata allo SDI e all’indirizzo e-mail indicato. Grazie.");
+  });
 });

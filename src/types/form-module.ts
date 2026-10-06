@@ -33,7 +33,10 @@ export interface FormFieldOption {
 export interface VisibleIf {
   /** Path dot-notation, es. "residenza.stesso_indirizzo_lavori" */
   path: string;
-  equals: string | number | boolean;
+  equals?: string | number | boolean;
+  /** Visibile quando il valore e' diverso. Usato, per esempio, per chiedere
+   *  il bonifico salvo finanziamento integrale. */
+  not_equals?: string | number | boolean;
 }
 
 export interface FormField {

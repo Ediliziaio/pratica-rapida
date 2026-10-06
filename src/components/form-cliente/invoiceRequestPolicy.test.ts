@@ -53,7 +53,7 @@ const productionLikeSchema: FormSchema = {
 describe("invoice request policy", () => {
   it("mantiene la fattura obbligatoria per i clienti finali CF", () => {
     expect(customerMustUploadInvoice("cliente_finale")).toBe(true);
-    expect(applyInvoiceRequestPolicy(schema, true).steps[0].fields[0]).toMatchObject({
+    expect(applyInvoiceRequestPolicy(schema, true).steps[0].fields.find((field) => field.key === "fattura_url")).toMatchObject({
       key: "fattura_url",
       required: true,
     });
@@ -64,7 +64,7 @@ describe("invoice request policy", () => {
     expect(customerMustUploadInvoice(null)).toBe(true);
     expect(customerMustUploadInvoice(undefined)).toBe(true);
     expect(customerMustUploadInvoice("valore_sconosciuto")).toBe(true);
-    expect(applyInvoiceRequestPolicy(schema, customerMustUploadInvoice(null)).steps[0].fields[0]).toMatchObject({
+    expect(applyInvoiceRequestPolicy(schema, customerMustUploadInvoice(null)).steps[0].fields.find((field) => field.key === "fattura_url")).toMatchObject({
       key: "fattura_url",
       required: true,
     });
@@ -81,11 +81,11 @@ describe("invoice request policy", () => {
 
     const guarded = applyInvoiceRequestPolicy(infissiSchema, true);
     expect(guarded.steps.map((step) => step.key)).toEqual(["prodotto", "documenti"]);
-    expect(guarded.steps[1].fields).toEqual([expect.objectContaining({
+    expect(guarded.steps[1].fields.find((field) => field.key === "fattura_url")).toEqual(expect.objectContaining({
       key: "fattura_url",
       type: "upload",
       required: true,
-    })]);
+    }));
   });
 
   it("riusa la sezione documenti esistente senza duplicarla", () => {
@@ -100,6 +100,7 @@ describe("invoice request policy", () => {
     const guarded = applyInvoiceRequestPolicy(withoutInvoice, true);
     expect(guarded.steps).toHaveLength(1);
     expect(guarded.steps[0].fields.map((field) => field.key)).toEqual([
+      "finanziamento",
       "bonifico_url",
       "fattura_url",
     ]);
@@ -115,15 +116,42 @@ describe("invoice request policy", () => {
   it("rimuove soltanto la fattura per le pratiche fatturate al rivenditore", () => {
     expect(customerMustUploadInvoice("rivenditore")).toBe(false);
     const filtered = applyInvoiceRequestPolicy(schema, false);
-    expect(filtered.steps[0].fields.map((field) => field.key)).toEqual(["bonifico_url"]);
+    expect(filtered.steps[0].fields.map((field) => field.key)).toEqual(["finanziamento", "bonifico_url"]);
     expect(validateDocumenti(emptyFormData(), false)).not.toHaveProperty("documenti.fattura_url");
+  });
+
+  it("aggiunge la richiesta bonifici ai moduli dinamici che prima la annunciavano soltanto", () => {
+    const schermatureSchema: FormSchema = {
+      steps: [{
+        key: "fatture",
+        label: "Fatture",
+        fields: [{ key: "fattura", label: "Inserisci fatture", type: "upload", required: true }],
+      }],
+    };
+
+    const filtered = applyInvoiceRequestPolicy(schermatureSchema, false);
+    expect(filtered.steps).toHaveLength(1);
+    expect(filtered.steps[0].label).toBe("Documenti di pagamento");
+    expect(filtered.steps[0].fields.map((field) => field.key)).toEqual([
+      "finanziamento",
+      "bonifico_url",
+    ]);
+    expect(filtered.steps[0].fields[1]).toMatchObject({
+      required: true,
+      multiple: true,
+      visible_if: { path: "fatture.finanziamento", not_equals: "si" },
+    });
   });
 
   it("copre gli schemi reali Schermature e VEPA senza eliminare altri campi", () => {
     const filtered = applyInvoiceRequestPolicy(productionLikeSchema, false);
 
-    expect(filtered.steps.map((step) => step.key)).toEqual(["prodotto"]);
+    expect(filtered.steps.map((step) => step.key)).toEqual(["fatture", "prodotto"]);
     expect(filtered.steps[0].fields.map((field) => field.key)).toEqual([
+      "finanziamento",
+      "bonifico_url",
+    ]);
+    expect(filtered.steps[1].fields.map((field) => field.key)).toEqual([
       "fattura_riporta_mq",
       "documento_misure_url",
     ]);
@@ -138,6 +166,11 @@ describe("invoice request policy", () => {
       }],
     };
 
-    expect(applyInvoiceRequestPolicy(nonUploadSchema, false)).toEqual(nonUploadSchema);
+    const guarded = applyInvoiceRequestPolicy(nonUploadSchema, false);
+    expect(guarded.steps[0]).toEqual(nonUploadSchema.steps[0]);
+    expect(guarded.steps[1].fields.map((field) => field.key)).toEqual([
+      "finanziamento",
+      "bonifico_url",
+    ]);
   });
 });

@@ -20,5 +20,8 @@ export function isReviewRequestTemplate(template: string | null | undefined): bo
     "richiesta_recensione",
     "sollecito_recensione",
     "pratica_inviata_recensione",
+    // Nome storico ancora approvato e attivo su Meta, con i pulsanti Google e
+    // Trustpilot. Deve rispettare la stessa esclusione della variante v3.
+    "invio_avvenuto_recensione",
   ]).has(template);
 }

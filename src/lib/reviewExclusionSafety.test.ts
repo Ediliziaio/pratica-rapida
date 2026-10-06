@@ -17,6 +17,7 @@ describe("review exclusion safety", () => {
     expect(isReviewRequestTemplate("richiesta_recensione")).toBe(true);
     expect(isReviewRequestTemplate("sollecito_recensione")).toBe(true);
     expect(isReviewRequestTemplate("pratica_inviata_recensione")).toBe(true);
+    expect(isReviewRequestTemplate("invio_avvenuto_recensione")).toBe(true);
   });
 
   it("non blocca le normali comunicazioni di consegna", () => {

@@ -37,8 +37,16 @@ async function invoke(fnName: string, body: unknown) {
       },
       body: JSON.stringify(body),
     });
-    if (!res.ok) {
-      const errText = await res.text();
+    const responseText = await res.text();
+    let responseBody: { success?: boolean; ok?: boolean } | null = null;
+    try {
+      responseBody = responseText ? JSON.parse(responseText) : null;
+    } catch {
+      responseBody = null;
+    }
+    const logicalSuccess = responseBody?.success !== false && responseBody?.ok !== false;
+    if (!res.ok || !logicalSuccess) {
+      const errText = responseText || JSON.stringify(responseBody ?? {});
       console.error(`invoke(${fnName}) failed: ${res.status} ${errText}`);
       await reportError(new Error(`invoke(${fnName}) failed: ${res.status}`), {
         fn: "on-stage-changed",
@@ -47,7 +55,7 @@ async function invoke(fnName: string, body: unknown) {
         body: errText,
       });
     }
-    return res.ok;
+    return res.ok && logicalSuccess;
   } catch (err) {
     console.error(`invoke(${fnName}) threw:`, err);
     await reportError(err, { fn: "on-stage-changed", invoked: fnName });
@@ -234,6 +242,27 @@ async function isRuleEnabled(
   return data.is_enabled !== false;
 }
 
+async function hasSuccessfulTemplateCommunication(
+  supabase: ReturnType<typeof createClient>,
+  practiceId: string,
+  channel: "email" | "whatsapp",
+  template: string,
+): Promise<boolean> {
+  const { data } = await supabase
+    .from("communication_log")
+    .select("metadata, body_preview")
+    .eq("practice_id", practiceId)
+    .eq("channel", channel)
+    .in("status", ["sent", "delivered", "read"])
+    .limit(100);
+
+  return (data ?? []).some((row) => {
+    const metadata = row.metadata as Record<string, unknown> | null;
+    return metadata?.template === template ||
+      (typeof row.body_preview === "string" && row.body_preview.startsWith(`[${template}]`));
+  });
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
 
@@ -391,18 +420,61 @@ serve(async (req) => {
       // Escluso il caso "documenti forniti + invia_pratica_al_cliente": lì il
       // form promette al rivenditore la sola mail, e il suo cliente non è mai
       // stato contattato prima — un WhatsApp a sorpresa sarebbe fuori posto.
-      if (waAlCliente && stageWhatsappEnabled && practice.cliente_telefono) {
-        clientWaOk = await invoke("send-whatsapp", {
-          to: normalizePhone(practice.cliente_telefono),
-          template_name: "pratica_completata",
-          components: [{
-            type: "body",
-            parameters: [
-              { type: "text", text: practice.cliente_nome },
-            ],
-          }],
-          practice_id,
-        });
+      let reviewWhatsappOk = false;
+      if (waAlCliente && stageWhatsappEnabled && clientEmailOk && practice.cliente_telefono) {
+        const reviewWhatsappAlreadySent = await hasSuccessfulTemplateCommunication(
+          supabase, practice_id, "whatsapp", "invio_avvenuto_recensione",
+        );
+        if (reviewWhatsappAlreadySent) {
+          reviewWhatsappOk = true;
+          steps.review_whatsapp = "already_sent";
+        } else {
+          clientWaOk = await invoke("send-whatsapp", {
+            to: normalizePhone(practice.cliente_telefono),
+            template_name: "invio_avvenuto_recensione",
+            components: [{
+              type: "body",
+              parameters: [
+                { type: "text", text: practice.cliente_nome },
+                { type: "text", text: practice.cliente_email ?? "—" },
+              ],
+            }],
+            practice_id,
+            trigger_event: "recensione_initial",
+          });
+          reviewWhatsappOk = clientWaOk;
+          steps.review_whatsapp = clientWaOk ? "sent" : "failed";
+        }
+      }
+
+      let reviewEmailOk = false;
+      if (waAlCliente && clientEmailOk && practice.cliente_email) {
+        const reviewEmailAlreadySent = await hasSuccessfulTemplateCommunication(
+          supabase, practice_id, "email", "recensione",
+        );
+        if (reviewEmailAlreadySent) {
+          reviewEmailOk = true;
+          steps.review_email = "already_sent";
+        } else {
+          reviewEmailOk = await invoke("send-email", {
+            to: practice.cliente_email,
+            template: "recensione",
+            idempotency_key: `recensione-${practice_id}`,
+            data: {
+              nome: practice.cliente_nome,
+              cognome: practice.cliente_cognome,
+              practice_id,
+              trigger_event: "recensione_initial",
+            },
+          });
+          steps.review_email = reviewEmailOk ? "sent" : "failed";
+        }
+      } else if (!waAlCliente) {
+        steps.review_email = "recipient_not_contactable";
+      } else if (!practice.cliente_email) {
+        steps.review_email = "missing_recipient";
+      } else {
+        steps.review_email = "blocked_delivery_incomplete";
       }
 
       // Notifica C — email al rivenditore (always-on, no DB rule)
@@ -420,16 +492,15 @@ serve(async (req) => {
         });
       }
 
-      // Marcatore di chiusura: vale anche da protezione contro i doppi invii al
-      // passaggio successivo. Si scrive solo se almeno una comunicazione e'
-      // davvero partita, altrimenti un invio fallito resterebbe bloccato per
-      // sempre e non si potrebbe ritentare ripassando la pratica di qui.
-      if (clientEmailOk || clientWaOk) {
+      // Il timer parte soltanto quando una vera richiesta recensione è stata
+      // accettata da almeno un canale. Una semplice comunicazione di chiusura
+      // non deve più produrre un falso "recensione richiesta".
+      if (reviewEmailOk || reviewWhatsappOk) {
         await supabase.from("enea_practices").update({
           recensione_richiesta_at: new Date().toISOString(),
         }).eq("id", practice_id);
       } else {
-        steps.closure_communications = "all_failed_not_marked";
+        steps.review_request = "all_failed_not_marked";
       }
 
       // L'auto-spostamento in "Da inserire su Excel" e' stato rimosso il

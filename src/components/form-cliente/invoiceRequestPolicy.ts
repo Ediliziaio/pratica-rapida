@@ -7,6 +7,20 @@ const INVOICE_FIELD_KEYS = new Set([
   "fattura_lavori",
 ]);
 
+const REQUIRED_INVOICE_FIELD = {
+  key: "fattura_url",
+  label: "Fattura dell'installatore",
+  type: "upload" as const,
+  required: true,
+  help_text: "Fattura emessa dall'installatore per i lavori eseguiti (PDF, JPG o PNG, max 20 MB).",
+  max_size_mb: 20,
+  accept: ["pdf", "jpg", "jpeg", "png"],
+};
+
+function isInvoiceUpload(field: FormSchema["steps"][number]["fields"][number]): boolean {
+  return field.type === "upload" && INVOICE_FIELD_KEYS.has(field.key.toLowerCase());
+}
+
 /**
  * La fattura viene richiesta al cliente soltanto nelle pratiche CF, cioè
  * quando il costo della pratica è a carico del cliente finale.
@@ -28,15 +42,39 @@ export function applyInvoiceRequestPolicy(
   schema: FormSchema,
   requireCustomerInvoice: boolean,
 ): FormSchema {
-  if (requireCustomerInvoice) return schema;
+  if (requireCustomerInvoice) {
+    let invoiceFieldFound = false;
+    const steps = (schema.steps ?? []).map((step) => ({
+      ...step,
+      fields: (step.fields ?? []).map((field) => {
+        if (!isInvoiceUpload(field)) return field;
+        invoiceFieldFound = true;
+        return { ...field, required: true };
+      }),
+    }));
+
+    if (invoiceFieldFound) return { ...schema, steps };
+
+    const documentStepIndex = steps.findIndex((step) => step.key === "documenti");
+    if (documentStepIndex >= 0) {
+      steps[documentStepIndex] = {
+        ...steps[documentStepIndex],
+        fields: [...steps[documentStepIndex].fields, REQUIRED_INVOICE_FIELD],
+      };
+    } else {
+      steps.push({
+        key: "documenti",
+        label: "Documenti",
+        fields: [REQUIRED_INVOICE_FIELD],
+      });
+    }
+
+    return { ...schema, steps };
+  }
 
   const steps = (schema.steps ?? []).map((step) => {
     const originalFields = step.fields ?? [];
-    const fields = originalFields.filter((field) => {
-      const isInvoiceUpload = field.type === "upload" &&
-        INVOICE_FIELD_KEYS.has(field.key.toLowerCase());
-      return !isInvoiceUpload;
-    });
+    const fields = originalFields.filter((field) => !isInvoiceUpload(field));
 
     return {
       ...step,

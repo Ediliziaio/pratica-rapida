@@ -53,7 +53,10 @@ const productionLikeSchema: FormSchema = {
 describe("invoice request policy", () => {
   it("mantiene la fattura obbligatoria per i clienti finali CF", () => {
     expect(customerMustUploadInvoice("cliente_finale")).toBe(true);
-    expect(applyInvoiceRequestPolicy(schema, true)).toBe(schema);
+    expect(applyInvoiceRequestPolicy(schema, true).steps[0].fields[0]).toMatchObject({
+      key: "fattura_url",
+      required: true,
+    });
     expect(validateDocumenti(emptyFormData(), true)).toHaveProperty("documenti.fattura_url");
   });
 
@@ -61,7 +64,52 @@ describe("invoice request policy", () => {
     expect(customerMustUploadInvoice(null)).toBe(true);
     expect(customerMustUploadInvoice(undefined)).toBe(true);
     expect(customerMustUploadInvoice("valore_sconosciuto")).toBe(true);
-    expect(applyInvoiceRequestPolicy(schema, customerMustUploadInvoice(null))).toBe(schema);
+    expect(applyInvoiceRequestPolicy(schema, customerMustUploadInvoice(null)).steps[0].fields[0]).toMatchObject({
+      key: "fattura_url",
+      required: true,
+    });
+  });
+
+  it("aggiunge una sola fattura obbligatoria ai moduli CF che non la prevedono", () => {
+    const infissiSchema: FormSchema = {
+      steps: [{
+        key: "prodotto",
+        label: "Infissi",
+        fields: [{ key: "materiale", label: "Materiale", type: "text", required: true }],
+      }],
+    };
+
+    const guarded = applyInvoiceRequestPolicy(infissiSchema, true);
+    expect(guarded.steps.map((step) => step.key)).toEqual(["prodotto", "documenti"]);
+    expect(guarded.steps[1].fields).toEqual([expect.objectContaining({
+      key: "fattura_url",
+      type: "upload",
+      required: true,
+    })]);
+  });
+
+  it("riusa la sezione documenti esistente senza duplicarla", () => {
+    const withoutInvoice: FormSchema = {
+      steps: [{
+        key: "documenti",
+        label: "Documenti",
+        fields: [{ key: "bonifico_url", label: "Bonifico", type: "upload" }],
+      }],
+    };
+
+    const guarded = applyInvoiceRequestPolicy(withoutInvoice, true);
+    expect(guarded.steps).toHaveLength(1);
+    expect(guarded.steps[0].fields.map((field) => field.key)).toEqual([
+      "bonifico_url",
+      "fattura_url",
+    ]);
+  });
+
+  it("rende obbligatoria la fattura CF già presente ma facoltativa", () => {
+    const guarded = applyInvoiceRequestPolicy(productionLikeSchema, true);
+    const vepaInvoice = guarded.steps[1].fields.find((field) => field.key === "fattura_url");
+    expect(vepaInvoice?.required).toBe(true);
+    expect(guarded.steps.flatMap((step) => step.fields).filter((field) => field.key === "fattura_url")).toHaveLength(1);
   });
 
   it("rimuove soltanto la fattura per le pratiche fatturate al rivenditore", () => {

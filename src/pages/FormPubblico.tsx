@@ -830,8 +830,9 @@ export default function FormPubblico() {
           <FileText className="h-12 w-12 text-primary mx-auto" />
           <h1 className="text-xl sm:text-2xl font-bold">Prima di iniziare</h1>
           <p className="text-muted-foreground leading-relaxed">
-            Per compilare la richiesta le serviranno i <strong>bonifici</strong>, le{" "}
-            <strong>fatture</strong> relativi ai lavori effettuati e i{" "}
+            Per compilare la richiesta le serviranno i <strong>bonifici</strong>
+            {requireCustomerInvoice && <>, le <strong>fatture</strong> relative ai lavori effettuati</>}
+            {" "}e i{" "}
             <strong>dati catastali</strong> dell&apos;immobile (foglio, mappale o
             particella). Li tenga a portata di mano prima di procedere.
           </p>
@@ -871,7 +872,7 @@ export default function FormPubblico() {
                 </p>
                 <p className="text-xs text-amber-800 mt-1 leading-relaxed">
                   Inserisci i dati di <strong>{clienteNomeCompleto}</strong> come se fossi tu il cliente
-                  finale. Allega fatture e documenti tecnici. Al termine la pratica
+                  finale. Allega {requireCustomerInvoice ? "fatture e documenti tecnici" : "i documenti tecnici richiesti"}. Al termine la pratica
                   apparirà a Pratica Rapida in <strong>“Pronte da fare”</strong>.
                 </p>
               </div>

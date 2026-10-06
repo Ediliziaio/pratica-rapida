@@ -40,6 +40,7 @@ import {
   customerMustUploadInvoice,
 } from "@/components/form-cliente/invoiceRequestPolicy";
 import { useFormModuleByProdotto } from "@/hooks/useFormSchema";
+import { getFormCompletionCopy } from "@/lib/formCompletionCopy";
 
 // Refactor DB-first: se `useFormModuleByProdotto` matcha un modulo (CMS in
 // /admin/moduli), il form usa il renderer DINAMICO. Altrimenti fallback
@@ -776,23 +777,18 @@ export default function FormPubblico() {
   }
 
   if (submitted) {
+    const completionCopy = getFormCompletionCopy(paymentRequired);
     // Branch dedicato al rivenditore/staff che ha compilato il modulo per
     // conto del cliente: testo + CTA "Torna al kanban" invece del messaggio
     // standard pensato per il cliente finale.
     if (isProxyCompiler) {
-      const proxyTitle = paymentRequired
-        ? "Pagamento effettuato e pratica inviata ✓"
-        : "Pratica inviata ✓";
-      const proxyMessage = paymentRequired
-        ? "Pagamento effettuato. La fattura è stata inviata allo SDI e all’indirizzo e-mail indicato. Grazie."
-        : "I dati sono stati registrati. La pratica è ora visibile a Pratica Rapida nella colonna “Pronte da fare” e sarà gestita dal team entro le tempistiche standard.";
       return (
         <div className="min-h-screen flex items-center justify-center p-4">
           <div className="text-center space-y-5 max-w-md">
             <CheckCircle className="h-16 w-16 text-green-500 mx-auto" />
-            <h1 className="text-2xl font-bold">{proxyTitle}</h1>
+            <h1 className="text-2xl font-bold">{completionCopy.title}</h1>
             <p className="text-muted-foreground">
-              {proxyMessage}
+              {completionCopy.message}
             </p>
             <div className="flex flex-col sm:flex-row gap-2 justify-center pt-2">
               <Button onClick={() => navigate("/kanban")}>
@@ -806,15 +802,15 @@ export default function FormPubblico() {
         </div>
       );
     }
-    // Cliente finale: messaggio originale
+    // Cliente finale: la copia dipende dal percorso reale. Prima questo ramo
+    // dichiarava sempre un pagamento anche alle pratiche a carico rivenditore.
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="text-center space-y-4 max-w-md">
           <CheckCircle className="h-16 w-16 text-green-500 mx-auto" />
-          <h1 className="text-2xl font-bold">Pagamento effettuato e pratica inviata ✓</h1>
+          <h1 className="text-2xl font-bold">{completionCopy.title}</h1>
           <p className="text-muted-foreground">
-            Pagamento effettuato. La fattura è stata inviata allo SDI e
-            all’indirizzo e-mail indicato. Grazie.
+            {completionCopy.message}
           </p>
         </div>
       </div>
@@ -834,7 +830,8 @@ export default function FormPubblico() {
             {requireCustomerInvoice && <>, le <strong>fatture</strong> relative ai lavori effettuati</>}
             {" "}e i{" "}
             <strong>dati catastali</strong> dell&apos;immobile (foglio, mappale o
-            particella). Li tenga a portata di mano prima di procedere.
+            particella). Li tenga a portata di mano prima di procedere. Se i
+            lavori sono stati interamente finanziati, il bonifico non sarà richiesto.
           </p>
           <Button className="w-full" size="lg" onClick={() => setShowIntro(false)}>
             Ho capito, procedi

@@ -17,6 +17,29 @@ const REQUIRED_INVOICE_FIELD = {
   accept: ["pdf", "jpg", "jpeg", "png"],
 };
 
+const FINANCING_FIELD = {
+  key: "finanziamento",
+  label: "Hai usufruito di un finanziamento per i lavori?",
+  type: "radio" as const,
+  required: true,
+  options: [
+    { value: "si", label: "Sì, interamente" },
+    { value: "in_parte", label: "Sì, in parte" },
+    { value: "no", label: "No" },
+  ],
+};
+
+const REQUIRED_BANK_TRANSFER_FIELD = {
+  key: "bonifico_url",
+  label: "Copia del bonifico parlante",
+  type: "upload" as const,
+  required: true,
+  multiple: true,
+  help_text: "Carica tutti i bonifici effettuati per la detrazione (PDF, JPG o PNG, max 20 MB ciascuno).",
+  max_size_mb: 20,
+  accept: ["pdf", "jpg", "jpeg", "png"],
+};
+
 function isInvoiceUpload(field: FormSchema["steps"][number]["fields"][number]): boolean {
   return field.type === "upload" && INVOICE_FIELD_KEYS.has(field.key.toLowerCase());
 }
@@ -42,9 +65,56 @@ export function applyInvoiceRequestPolicy(
   schema: FormSchema,
   requireCustomerInvoice: boolean,
 ): FormSchema {
+  // Alcuni moduli dinamici di produzione contenevano solo la fattura: la
+  // pagina iniziale annunciava i bonifici, ma il wizard non li chiedeva mai.
+  // Normalizziamo qui tutti i moduli, senza dipendere dalla configurazione DB.
+  const sourceSteps = (schema.steps ?? []).map((step) => ({
+    ...step,
+    fields: [...(step.fields ?? [])],
+  }));
+  const allFields = sourceSteps.flatMap((step) => step.fields);
+  const hasFinancing = allFields.some((field) => field.key.toLowerCase() === "finanziamento");
+  const hasBankTransfer = allFields.some((field) =>
+    field.type === "upload" && /bonific/i.test(field.key)
+  );
+
+  if (!hasFinancing || !hasBankTransfer) {
+    let paymentStepIndex = sourceSteps.findIndex((step) =>
+      step.fields.some((field) => field.key.toLowerCase() === "finanziamento")
+    );
+    if (paymentStepIndex < 0) {
+      paymentStepIndex = sourceSteps.findIndex((step) =>
+        step.fields.some((field) => field.type === "upload" && /bonific/i.test(field.key))
+      );
+    }
+    if (paymentStepIndex < 0) {
+      paymentStepIndex = sourceSteps.findIndex((step) => step.key === "documenti");
+    }
+    if (paymentStepIndex < 0) {
+      paymentStepIndex = sourceSteps.findIndex((step) =>
+        step.fields.some((field) => isInvoiceUpload(field))
+      );
+    }
+    if (paymentStepIndex < 0) {
+      sourceSteps.push({ key: "documenti", label: "Documenti di pagamento", fields: [] });
+      paymentStepIndex = sourceSteps.length - 1;
+    }
+
+    const paymentStep = sourceSteps[paymentStepIndex];
+    const financingPath = `${paymentStep.key}.finanziamento`;
+    if (!hasFinancing) paymentStep.fields.unshift(FINANCING_FIELD);
+    if (!hasBankTransfer) {
+      paymentStep.fields.push({
+        ...REQUIRED_BANK_TRANSFER_FIELD,
+        visible_if: { path: financingPath, not_equals: "si" },
+      });
+    }
+    if (/fattur/i.test(paymentStep.label)) paymentStep.label = "Documenti di pagamento";
+  }
+
   if (requireCustomerInvoice) {
     let invoiceFieldFound = false;
-    const steps = (schema.steps ?? []).map((step) => ({
+    const steps = sourceSteps.map((step) => ({
       ...step,
       fields: (step.fields ?? []).map((field) => {
         if (!isInvoiceUpload(field)) return field;
@@ -72,7 +142,7 @@ export function applyInvoiceRequestPolicy(
     return { ...schema, steps };
   }
 
-  const steps = (schema.steps ?? []).map((step) => {
+  const steps = sourceSteps.map((step) => {
     const originalFields = step.fields ?? [];
     const fields = originalFields.filter((field) => !isInvoiceUpload(field));
 

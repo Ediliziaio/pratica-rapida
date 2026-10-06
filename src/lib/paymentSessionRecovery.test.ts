@@ -10,6 +10,10 @@ const formSource = readFileSync(
   path.resolve(process.cwd(), "src/pages/FormPubblico.tsx"),
   "utf8",
 );
+const completionCopySource = readFileSync(
+  path.resolve(process.cwd(), "src/lib/formCompletionCopy.ts"),
+  "utf8",
+);
 
 describe("recupero delle sessioni Stripe scadute", () => {
   it("controlla la sessione prima di restituire l'URL memorizzato", () => {
@@ -39,6 +43,6 @@ describe("recupero delle sessioni Stripe scadute", () => {
     expect(formSource).toContain("questa pagina si aggiornerà automaticamente");
     expect(formSource).not.toContain("Stiamo verificando la conferma del pagamento");
     expect(formSource).not.toContain("attendendo la conferma definitiva del pagamento");
-    expect(formSource).toContain("La fattura è stata inviata allo SDI e all’indirizzo e-mail indicato. Grazie.");
+    expect(completionCopySource).toContain("La fattura è stata inviata allo SDI e all’indirizzo e-mail indicato. Grazie.");
   });
 });

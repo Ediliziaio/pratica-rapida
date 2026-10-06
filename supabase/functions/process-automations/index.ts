@@ -4,6 +4,7 @@ import { reportError } from "../_shared/error.ts";
 import { normalizePhone } from "../_shared/phone.ts";
 import { resellerDisplayName } from "../_shared/reseller.ts";
 import { puoContattareCliente } from "../_shared/contatto-cliente.ts";
+import { isReviewExcluded } from "../_shared/review-exclusion.ts";
 
 const REQUIRED_ENV = ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"];
 for (const k of REQUIRED_ENV) {
@@ -509,6 +510,7 @@ serve(async () => {
             .from("enea_practices")
             .select("*")
             .is("archived_at", null)
+            .eq("recensione_esclusa", false)
             .is("recensione_ricevuta_at", null)
             .lt("recensione_richiesta_at", sevenDaysAgo);
           if (colonneArchiviateIn) {
@@ -517,6 +519,9 @@ serve(async () => {
           const { data: practices } = await qRecensione;
 
           for (const p of practices ?? []) {
+            // Difesa aggiuntiva oltre al filtro SQL: se una query futura viene
+            // riscritta, l'esclusione puntuale continua a prevalere.
+            if (isReviewExcluded(p)) continue;
             // Applica filtri condition della rule (es. solo infissi, solo ENEA, ecc.).
             // Skippa la pratica se non match. Backward compat: rules senza
             // conditions (legacy) restituiscono true e procedono normalmente.
@@ -613,9 +618,11 @@ serve(async () => {
             .from("enea_practices")
             .select("*, companies:reseller_id(ragione_sociale)")
             .eq("pagamento_stato", "pagata")
+            .eq("recensione_esclusa", false)
             .gte("data_incasso", twoDaysAgo);
 
           for (const p of practices ?? []) {
+            if (isReviewExcluded(p)) continue;
             if (!rulePassesConditions(rule as Record<string, unknown>, p as Record<string, unknown>)) {
               continue;
             }

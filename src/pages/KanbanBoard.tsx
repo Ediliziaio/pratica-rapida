@@ -118,7 +118,7 @@ import { it } from "date-fns/locale";
 import DichiarazioneTecnicaDialog from "@/components/documenti/DichiarazioneTecnicaDialog";
 import type { EneaPractice, PipelineStage } from "@/integrations/supabase/types";
 import { PipelineSettingsDrawer } from "@/components/pratiche/PipelineSettingsDrawer";
-import { calculateMonthlyFinancialKpis } from "@/lib/monthly-financial-kpis";
+import { calculateMonthlyFinancialKpis, fallbackMonthlyPracticePrice } from "@/lib/monthly-financial-kpis";
 
 type PracticeWithRelations = EneaPractice & {
   pipeline_stages: PipelineStage | null;
@@ -3345,7 +3345,7 @@ export default function KanbanBoard() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("companies")
-        .select("id,email")
+        .select("id,email,ragione_sociale,prezzo_cf_imponibile_cents")
         .in("id", resellerIdsWithoutPrice);
       if (error) throw error;
       return data ?? [];
@@ -3508,6 +3508,7 @@ export default function KanbanBoard() {
     const companyEmail = new Map(
       monthlyResellerCompanies.map((company) => [company.id, String(company.email ?? "").trim().toLowerCase()]),
     );
+    const resellerCompany = new Map(monthlyResellerCompanies.map((company) => [company.id, company]));
     const dashboardPricing = new Map<string, number>();
     const duplicateDashboardEmails = new Set<string>();
     for (const row of monthlyDashboardPricing) {
@@ -3521,15 +3522,32 @@ export default function KanbanBoard() {
       created_at: practice.created_at,
       prezzo: practice.prezzo,
       pagamento_stato: practice.pagamento_stato,
-      prezzo_listino: practice.tipo_fatturazione === "cliente_finale"
-        ? 0
-        : pricing.get(`${practice.reseller_id}:${practice.brand}`) ??
-          (() => {
-            const email = companyEmail.get(practice.reseller_id) ?? "";
-            return email && !duplicateDashboardEmails.has(email)
-              ? dashboardPricing.get(email) ?? 0
-              : 0;
-          })(),
+      prezzo_listino: (() => {
+        const company = resellerCompany.get(practice.reseller_id);
+        if (practice.tipo_fatturazione === "cliente_finale") {
+          const companyOverride = Number(company?.prezzo_cf_imponibile_cents ?? 0) / 100;
+          return companyOverride > 0
+            ? companyOverride
+            : fallbackMonthlyPracticePrice({
+                tipoFatturazione: practice.tipo_fatturazione,
+                resellerName: company?.ragione_sociale ?? null,
+              });
+        }
+
+        const configuredPrice = pricing.get(`${practice.reseller_id}:${practice.brand}`);
+        if (configuredPrice && configuredPrice > 0) return configuredPrice;
+
+        const email = companyEmail.get(practice.reseller_id) ?? "";
+        const dashboardPrice = email && !duplicateDashboardEmails.has(email)
+          ? dashboardPricing.get(email) ?? 0
+          : 0;
+        return dashboardPrice > 0
+          ? dashboardPrice
+          : fallbackMonthlyPracticePrice({
+              tipoFatturazione: practice.tipo_fatturazione,
+              resellerName: company?.ragione_sociale ?? null,
+            });
+      })(),
     })));
   }, [isInternal, monthlyCompanyPricing, monthlyDashboardPricing, monthlyFinancialPractices, monthlyResellerCompanies]);
 

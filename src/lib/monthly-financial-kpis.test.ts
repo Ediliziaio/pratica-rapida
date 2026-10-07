@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { calculateMonthlyFinancialKpis } from "./monthly-financial-kpis";
+import { calculateMonthlyFinancialKpis, fallbackMonthlyPracticePrice } from "./monthly-financial-kpis";
 
 describe("calculateMonthlyFinancialKpis", () => {
   const now = new Date("2026-10-15T12:00:00+02:00");
@@ -51,5 +51,18 @@ describe("calculateMonthlyFinancialKpis", () => {
     ], now);
 
     expect(result).toEqual({ fatturato: 0, incassato: 0, daIncassare: 0, pratiche: 1, senzaPrezzo: 1, senzaPrezzoLabels: ["Mario Rossi"] });
+  });
+});
+
+describe("fallbackMonthlyPracticePrice", () => {
+  it.each([
+    ["rivenditore", "Brianza Serramenti", 60],
+    ["rivenditore", "Vans Tappezzeria", 60],
+    ["rivenditore", "Rinaldi Lab", 75],
+    ["rivenditore", "Service Casa", 65],
+    ["cliente_finale", "Sima Home", 100],
+    ["cliente_finale", "Tenda System SRLS", 150],
+  ])("applica il listino a %s / %s", (tipoFatturazione, resellerName, expected) => {
+    expect(fallbackMonthlyPracticePrice({ tipoFatturazione, resellerName })).toBe(expected);
   });
 });

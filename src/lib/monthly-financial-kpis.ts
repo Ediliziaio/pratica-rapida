@@ -15,6 +15,39 @@ export type MonthlyFinancialKpis = {
   senzaPrezzoLabels: string[];
 };
 
+export type MonthlyPriceFallbackInput = {
+  tipoFatturazione: string | null;
+  resellerName: string | null;
+};
+
+function normalizedCompanyName(value: string | null): string {
+  return String(value ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+/**
+ * Listino operativo autorizzato per le pratiche che non hanno ancora il
+ * prezzo salvato sulla singola riga. Gli importi sono imponibili (netto IVA).
+ */
+export function fallbackMonthlyPracticePrice({
+  tipoFatturazione,
+  resellerName,
+}: MonthlyPriceFallbackInput): number {
+  const company = normalizedCompanyName(resellerName);
+
+  if (tipoFatturazione === "cliente_finale") {
+    return company.includes("sima home") ? 100 : 150;
+  }
+
+  if (company.includes("brianza serramenti") || /(^| )vans( |$)/.test(company)) return 60;
+  if (company.includes("rinaldi lab")) return 75;
+  return 65;
+}
+
 const ROME_TIME_ZONE = "Europe/Rome";
 
 function monthKey(value: Date, timeZone = ROME_TIME_ZONE): string {

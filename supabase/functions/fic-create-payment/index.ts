@@ -141,6 +141,8 @@ serve(async (req) => {
       existing.provider === "stripe_fatture_in_cloud" &&
       existing.stripe_checkout_session_id,
     );
+    const resetCancelledOrder = existing?.status === "cancelled";
+    const resetExistingOrder = resetExistingStripeOrder || resetCancelledOrder;
 
     // Un Checkout Stripe scade (attualmente dopo 30 minuti). Non possiamo
     // restituire per sempre l'URL memorizzato: dopo la scadenza Stripe mostra
@@ -152,7 +154,7 @@ serve(async (req) => {
       existing?.provider === "stripe_fatture_in_cloud" &&
       existing.stripe_checkout_session_id &&
       existing.stripe_checkout_url &&
-      !resetExistingStripeOrder
+      !resetExistingOrder
     ) {
       const stripeKey = Deno.env.get("STRIPE_SECRET_KEY")?.trim() ?? "";
       if (!stripeKey) throw new Error("Stripe non configurato: STRIPE_SECRET_KEY mancante");
@@ -225,10 +227,10 @@ serve(async (req) => {
         refreshed: true,
       });
     }
-    if (existingUrl && !resetExistingStripeOrder) {
+    if (existingUrl && !resetExistingOrder) {
       return json({ status: existing?.status, payment_url: existingUrl, existing: true });
     }
-    if (existing && !resetExistingStripeOrder) {
+    if (existing && !resetExistingOrder) {
       return json({
         error: existing.status === "failed"
           ? "La richiesta di pagamento è stata registrata ma richiede una verifica dello staff. Non ricompilare il modulo."
@@ -250,16 +252,18 @@ serve(async (req) => {
     };
     let reserved: { id: string } | null = null;
     let reserveError: { code?: string; message?: string } | null = null;
-    if (resetExistingStripeOrder && existing) {
-      const stripeKey = Deno.env.get("STRIPE_SECRET_KEY")?.trim() ?? "";
-      if (!stripeKey) throw new Error("Stripe non configurato: STRIPE_SECRET_KEY mancante");
-      const stripe = new Stripe(stripeKey, { httpClient: Stripe.createFetchHttpClient() });
-      const staleSession = await stripe.checkout.sessions.retrieve(String(existing.stripe_checkout_session_id));
-      if (staleSession.payment_status === "paid") {
-        return json({ error: "La precedente sessione risulta pagata: il collaudo richiede una verifica dello staff." }, 409);
-      }
-      if (staleSession.status === "open") {
-        await stripe.checkout.sessions.expire(staleSession.id);
+    if (resetExistingOrder && existing) {
+      if (existing.stripe_checkout_session_id) {
+        const stripeKey = Deno.env.get("STRIPE_SECRET_KEY")?.trim() ?? "";
+        if (!stripeKey) throw new Error("Stripe non configurato: STRIPE_SECRET_KEY mancante");
+        const stripe = new Stripe(stripeKey, { httpClient: Stripe.createFetchHttpClient() });
+        const staleSession = await stripe.checkout.sessions.retrieve(String(existing.stripe_checkout_session_id));
+        if (staleSession.payment_status === "paid") {
+          return json({ error: "La precedente sessione risulta pagata: serve una verifica dello staff." }, 409);
+        }
+        if (staleSession.status === "open") {
+          await stripe.checkout.sessions.expire(staleSession.id);
+        }
       }
       if (existing.fic_proforma_id) {
         await deleteIssuedDocument(getFicConfig(), Number(existing.fic_proforma_id));
@@ -272,6 +276,7 @@ serve(async (req) => {
         fic_document_url: null,
         last_error_code: null,
         last_error_message: null,
+        retry_count: Number(existing.retry_count ?? 0) + 1,
         updated_at: new Date().toISOString(),
       }).eq("id", existing.id).select("id").single();
       reserved = resetResult.data;
@@ -337,7 +342,11 @@ serve(async (req) => {
         success_url: `${siteUrl}/form/${token}?pagamento=ok`,
         cancel_url: `${siteUrl}/form/${token}?pagamento=annullato`,
         expires_at: Math.floor(Date.now() / 1000) + 30 * 60,
-      }, { idempotencyKey: `cf-payment-order-${reserved.id}${resetExistingStripeOrder ? "-test-reset" : ""}` });
+      }, {
+        idempotencyKey: `cf-payment-order-${reserved.id}${
+          resetExistingOrder ? `-reset-${Number(existing?.retry_count ?? 0) + 1}` : ""
+        }`,
+      });
       stripeSessionId = session.id;
       paymentUrl = String(session.url ?? "");
       if (!paymentUrl) throw new Error("Stripe non ha restituito il link di pagamento");

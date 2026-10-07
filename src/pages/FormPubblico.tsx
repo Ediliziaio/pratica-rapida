@@ -135,6 +135,19 @@ function dynamicCadastralServiceRequested(data: unknown): boolean {
     (typeof value === "string" && ["true", "1", "si", "sì", "yes"].includes(value.trim().toLowerCase()));
 }
 
+function shouldReopenAtCadastralStep(data: unknown): boolean {
+  if (!data || typeof data !== "object" || Array.isArray(data)) return false;
+  const workflow = (data as Record<string, unknown>)._workflow;
+  if (!workflow || typeof workflow !== "object" || Array.isArray(workflow)) return false;
+  return (workflow as Record<string, unknown>).reopen_at === "catastali";
+}
+
+function withoutWorkflowMetadata<T extends Record<string, unknown>>(data: T): T {
+  const clean = { ...data };
+  delete clean._workflow;
+  return clean;
+}
+
 type PublicEneaPractice = EneaPractice & {
   reseller_name?: string | null;
   payment_required?: boolean | null;
@@ -270,7 +283,13 @@ export default function FormPubblico() {
           if (row.dati_form && typeof row.dati_form === "object" && !Array.isArray(row.dati_form)) {
             setDynamicData(row.dati_form as Record<string, Record<string, unknown>>);
           }
-          if (isPaymentFlowComplete(row)) {
+          if (shouldReopenAtCadastralStep(row.dati_form)) {
+            // Riapertura amministrativa controllata: tutti i dati e gli
+            // allegati restano salvati, ma il cliente torna direttamente al
+            // Catasto per inserire i dati in autonomia senza pagare il servizio.
+            setShowIntro(false);
+            setCadastralResumeMode("at");
+          } else if (isPaymentFlowComplete(row)) {
             setShowIntro(false);
             setCadastralResumeMode("after");
           } else if (
@@ -661,6 +680,7 @@ export default function FormPubblico() {
       };
       const indirizzo = extractIndirizzo(dynamicData);
 
+      const submissionData = withoutWorkflowMetadata(dynamicData);
       const { error: submitError } = await supabase.rpc("submit_form_by_token", {
         p_token: token,
         p_cliente_nome: r.nome,
@@ -670,7 +690,7 @@ export default function FormPubblico() {
         p_cliente_indirizzo: indirizzo,
         p_cliente_cf: r.cf,
         p_note: "",
-        p_dati_form: dynamicData as unknown as Json,
+        p_dati_form: submissionData as unknown as Json,
       });
 
       if (submitError) {

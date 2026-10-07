@@ -891,6 +891,54 @@ function PracticeDetailSheet({
     }
   }
 
+  const [reopeningCadastralForm, setReopeningCadastralForm] = useState(false);
+  async function reopenCadastralFormWithoutService() {
+    if (!practice) return;
+    const confirmed = window.confirm(
+      "Confermi la rinuncia al servizio Catasto? Il checkout non pagato verrà annullato e il modulo sarà riaperto direttamente ai dati catastali, conservando risposte e allegati.",
+    );
+    if (!confirmed) return;
+
+    setReopeningCadastralForm(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("reopen-cadastral-form", {
+        body: { practice_id: practice.id },
+      });
+      if (error) {
+        let message = error.message;
+        const context = (error as { context?: Response }).context;
+        if (context && typeof context.json === "function") {
+          try {
+            message = (await context.json())?.error ?? message;
+          } catch {
+            // Manteniamo il messaggio originale se la risposta non è JSON.
+          }
+        }
+        throw new Error(message);
+      }
+      const result = data as { success?: boolean; error?: string } | null;
+      if (!result?.success) throw new Error(result?.error ?? "Riapertura non riuscita");
+
+      await Promise.all([
+        sheetQueryClient.invalidateQueries({ queryKey: ["enea_practices"] }),
+        sheetQueryClient.invalidateQueries({ queryKey: ["cf-payment-order", practice.id] }),
+      ]);
+      toast({
+        title: "Modulo riaperto al Catasto",
+        description: "Il checkout non pagato è stato annullato. Il cliente può usare lo stesso link e inserire i dati catastali senza pagare.",
+      });
+      onClose();
+    } catch (err) {
+      toast({
+        variant: "destructive",
+        title: "Riapertura bloccata",
+        description: err instanceof Error ? err.message : "Riprova.",
+      });
+    } finally {
+      setReopeningCadastralForm(false);
+    }
+  }
+
   async function handleUploadConclusa(e: React.ChangeEvent<HTMLInputElement>) {
     if (!practice || !e.target.files?.length) return;
     setUploadingConclusa(true);
@@ -1411,6 +1459,20 @@ function PracticeDetailSheet({
                   >
                     <Building2 className="h-3.5 w-3.5" />
                     {isDaAbbinare ? "Abbina rivenditore" : "Cambia rivenditore"}
+                  </Button>
+                )}
+
+                {isSuperAdmin && sheetHasCadastralService && practice.pagamento_stato !== "pagata" && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 text-xs gap-1 text-violet-700 hover:text-violet-800 hover:bg-violet-50 border-violet-300"
+                    onClick={reopenCadastralFormWithoutService}
+                    disabled={reopeningCadastralForm}
+                    title="Annulla il servizio catastale non pagato e riapre lo stesso modulo allo step Catasto"
+                  >
+                    {reopeningCadastralForm ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RotateCcw className="h-3.5 w-3.5" />}
+                    Riapri senza servizio Catasto
                   </Button>
                 )}
 

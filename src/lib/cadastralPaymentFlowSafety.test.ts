@@ -22,6 +22,10 @@ const kanbanSource = readFileSync(
   path.resolve(process.cwd(), "src/pages/KanbanBoard.tsx"),
   "utf8",
 );
+const reopenSource = readFileSync(
+  path.resolve(process.cwd(), "supabase/functions/reopen-cadastral-form/index.ts"),
+  "utf8",
+);
 
 describe("pagamento catastale durante la compilazione", () => {
   it("salva la bozza prima di creare il pagamento e non avanza se il salvataggio fallisce", () => {
@@ -64,5 +68,25 @@ describe("pagamento catastale durante la compilazione", () => {
     expect(kanbanSource).toContain('"CATASTO · PAGATO"');
     expect(kanbanSource).toContain('"CATASTO · DA PAGARE"');
     expect(kanbanSource).toContain("Pagamento e fattura servizio catastale");
+  });
+
+  it("riapre al Catasto senza perdere la bozza e rimuove il metadato al nuovo invio", () => {
+    expect(formSource).toContain('shouldReopenAtCadastralStep(row.dati_form)');
+    expect(formSource).toContain('setCadastralResumeMode("at")');
+    expect(formSource).toContain("withoutWorkflowMetadata(dynamicData)");
+  });
+
+  it("blocca la riapertura se esiste qualsiasi effetto di pagamento o fiscale", () => {
+    expect(reopenSource).toContain("Operazione riservata al super amministratore");
+    expect(reopenSource).toContain("esiste già un pagamento o un effetto fiscale da verificare");
+    expect(reopenSource).toContain('session.payment_status === "paid"');
+    expect(reopenSource).toContain("deleteIssuedDocument");
+    expect(reopenSource).toContain('recupero_richiesto: false');
+  });
+
+  it("espone nel CRM un comando esplicito e non automatico", () => {
+    expect(kanbanSource).toContain("Riapri senza servizio Catasto");
+    expect(kanbanSource).toContain('window.confirm(');
+    expect(kanbanSource).toContain('functions.invoke("reopen-cadastral-form"');
   });
 });

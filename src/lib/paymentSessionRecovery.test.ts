@@ -19,7 +19,7 @@ describe("recupero delle sessioni Stripe scadute", () => {
   it("controlla la sessione prima di restituire l'URL memorizzato", () => {
     const retrieve = source.indexOf("stripe.checkout.sessions.retrieve(previousSessionId)");
     const openSession = source.indexOf('previousSession.status === "open"');
-    const staleUrlFallback = source.indexOf("if (existingUrl && !resetExistingStripeOrder)");
+    const staleUrlFallback = source.indexOf("if (existingUrl && !resetExistingOrder)");
 
     expect(retrieve).toBeGreaterThan(0);
     expect(openSession).toBeGreaterThan(retrieve);

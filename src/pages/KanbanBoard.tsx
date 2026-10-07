@@ -3339,19 +3339,31 @@ export default function KanbanBoard() {
     },
   });
 
-  const { data: defaultEneaNetPrice = 0 } = useQuery({
-    queryKey: ["enea-default-net-price"],
-    enabled: isInternal,
+  const { data: monthlyResellerCompanies = [] } = useQuery({
+    queryKey: ["enea-monthly-reseller-companies", resellerIdsWithoutPrice],
+    enabled: isInternal && resellerIdsWithoutPrice.length > 0,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("service_catalog")
-        .select("prezzo_base")
-        .eq("categoria", "enea_bonus")
-        .eq("attivo", true)
-        .limit(1)
-        .maybeSingle();
+        .from("companies")
+        .select("id,email")
+        .in("id", resellerIdsWithoutPrice);
       if (error) throw error;
-      return Number(data?.prezzo_base ?? 0);
+      return data ?? [];
+    },
+  });
+
+  // Fonte prezzi usata anche dalla fatturazione mensile. Le pratiche CRM
+  // storiche hanno spesso `prezzo=0`: in quel caso il rivenditore va risolto
+  // tramite la sua e-mail, esattamente come fa fic-monthly-invoices.
+  const { data: monthlyDashboardPricing = [] } = useQuery({
+    queryKey: ["enea-monthly-dashboard-pricing"],
+    enabled: isInternal && resellerIdsWithoutPrice.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("cruscotto_rivenditori")
+        .select("email,prezzo");
+      if (error) throw error;
+      return data ?? [];
     },
   });
 
@@ -3493,6 +3505,17 @@ export default function KanbanBoard() {
     const pricing = new Map(
       monthlyCompanyPricing.map((row) => [`${row.company_id}:${row.brand}`, Number(row.prezzo)]),
     );
+    const companyEmail = new Map(
+      monthlyResellerCompanies.map((company) => [company.id, String(company.email ?? "").trim().toLowerCase()]),
+    );
+    const dashboardPricing = new Map<string, number>();
+    const duplicateDashboardEmails = new Set<string>();
+    for (const row of monthlyDashboardPricing) {
+      const email = String(row.email ?? "").trim().toLowerCase();
+      if (!email) continue;
+      if (dashboardPricing.has(email)) duplicateDashboardEmails.add(email);
+      dashboardPricing.set(email, Number(row.prezzo ?? 0));
+    }
     return calculateMonthlyFinancialKpis(monthlyFinancialPractices.map((practice) => ({
       created_at: practice.created_at,
       prezzo: practice.prezzo,
@@ -3500,9 +3523,14 @@ export default function KanbanBoard() {
       prezzo_listino: practice.tipo_fatturazione === "cliente_finale"
         ? 0
         : pricing.get(`${practice.reseller_id}:${practice.brand}`) ??
-          (practice.brand === "enea" ? defaultEneaNetPrice : 0),
+          (() => {
+            const email = companyEmail.get(practice.reseller_id) ?? "";
+            return email && !duplicateDashboardEmails.has(email)
+              ? dashboardPricing.get(email) ?? 0
+              : 0;
+          })(),
     })));
-  }, [defaultEneaNetPrice, isInternal, monthlyCompanyPricing, monthlyFinancialPractices]);
+  }, [isInternal, monthlyCompanyPricing, monthlyDashboardPricing, monthlyFinancialPractices, monthlyResellerCompanies]);
 
   // Inline pagamento_stato update (staff only)
   const updatePagamentoMutation = useMutation({
@@ -4199,8 +4227,14 @@ export default function KanbanBoard() {
 
       {/* ── KPI cards (staff only) ────────────────────────────────────────── */}
       {isInternal && kpis && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 px-4 pt-3 shrink-0">
-          <KpiCard label="Fatturato mese · netto IVA" value={`€ ${kpis.fatturato.toFixed(2)}`} />
+        <div className="px-4 pt-3 shrink-0">
+          {kpis.senzaPrezzo > 0 && (
+            <div className="mb-2 rounded-md border border-red-300 bg-red-50 px-3 py-2 text-xs font-medium text-red-800 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
+              Totale non completo: {kpis.senzaPrezzo} {kpis.senzaPrezzo === 1 ? "pratica è senza prezzo" : "pratiche sono senza prezzo"}.
+            </div>
+          )}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <KpiCard label="Fatturato mese · netto IVA" value={`€ ${kpis.fatturato.toFixed(2)}`} />
           <KpiCard
             label="Incassato mese · netto IVA"
             value={`€ ${kpis.incassato.toFixed(2)}`}
@@ -4212,6 +4246,7 @@ export default function KanbanBoard() {
             color="amber"
           />
           <KpiCard label="Pratiche del mese" value={String(kpis.pratiche)} />
+          </div>
         </div>
       )}
 

@@ -1087,6 +1087,27 @@ export type Database = {
           },
         ]
       }
+      cruscotto_rivenditori: {
+        Row: {
+          email: string | null
+          id: string
+          nome: string | null
+          prezzo: number | null
+        }
+        Insert: {
+          email?: string | null
+          id?: string
+          nome?: string | null
+          prezzo?: number | null
+        }
+        Update: {
+          email?: string | null
+          id?: string
+          nome?: string | null
+          prezzo?: number | null
+        }
+        Relationships: []
+      }
       company_promos: {
         Row: {
           activated_at: string | null

@@ -533,12 +533,19 @@ serve(async (req) => {
         if (practice.cliente_telefono) {
           await invoke("send-whatsapp", {
             to: normalizePhone(practice.cliente_telefono),
-            template_name: "conferma_dati_ricevuti",
+            // Nome e parametri del template APPROVED presente sul WABA live.
+            // Il nome legacy `conferma_dati_ricevuti` viene rifiutato da Meta
+            // con #132001 (template inesistente nella traduzione richiesta).
+            template_name: "compilazione_avvenuta",
             components: [{
               type: "body",
-              parameters: [{ type: "text", text: practice.cliente_nome }],
+              parameters: [
+                { type: "text", text: practice.cliente_nome },
+                { type: "text", text: practice.cliente_email ?? "—" },
+              ],
             }],
             practice_id,
+            trigger_event: "form_compiled",
           });
         }
       }

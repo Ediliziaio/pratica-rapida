@@ -20,6 +20,11 @@ import {
 
 export type ErrorMap = Record<string, string>;
 
+// I campi numerici possono rientrare dalle bozze JSON come number anche se
+// l'input HTML li gestisce come stringhe. La validazione non deve assumere il
+// tipo runtime e, soprattutto, non deve chiamare .trim() direttamente.
+const isBlankScalar = (value: unknown): boolean => String(value ?? "").trim() === "";
+
 export function validateRichiedente(d: FormClienteData, isAzienda = false): ErrorMap {
   const e: ErrorMap = {};
   const r = d.richiedente;
@@ -137,17 +142,17 @@ export function validateCatastali(d: FormClienteData): ErrorMap {
 export function validateEdificio(d: FormClienteData): ErrorMap {
   const e: ErrorMap = {};
   const ed = d.edificio;
-  if (!ed.anno_costruzione.trim()) {
+  if (isBlankScalar(ed.anno_costruzione)) {
     e["edificio.anno_costruzione"] = "Anno di costruzione obbligatorio";
   } else if (!isValidAnnoCostruzione(ed.anno_costruzione)) {
     e["edificio.anno_costruzione"] = `Anno non valido (deve essere tra 1800 e ${new Date().getFullYear()})`;
   }
-  if (!ed.superficie_mq.trim()) {
+  if (isBlankScalar(ed.superficie_mq)) {
     e["edificio.superficie_mq"] = "Superficie obbligatoria";
   } else if (!isPositiveNumber(ed.superficie_mq)) {
     e["edificio.superficie_mq"] = "Superficie deve essere un numero positivo";
   }
-  if (!ed.numero_appartamenti.trim()) {
+  if (isBlankScalar(ed.numero_appartamenti)) {
     e["edificio.numero_appartamenti"] = "Numero appartamenti obbligatorio";
   } else if (!isPositiveInteger(ed.numero_appartamenti)) {
     e["edificio.numero_appartamenti"] = "Deve essere un numero intero positivo";

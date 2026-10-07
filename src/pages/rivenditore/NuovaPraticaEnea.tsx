@@ -44,6 +44,31 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const euro = (cents: number) =>
   (cents / 100).toLocaleString("it-IT", { style: "currency", currency: "EUR" });
 
+async function resolveResellerNetPrice(companyId: string): Promise<number> {
+  const { data: companyPrice, error: companyPriceError } = await supabase
+    .from("company_pricing")
+    .select("prezzo")
+    .eq("company_id", companyId)
+    .eq("brand", "enea")
+    .maybeSingle();
+  if (companyPriceError) throw companyPriceError;
+
+  const configured = Number(companyPrice?.prezzo ?? 0);
+  if (configured > 0) return configured;
+
+  const { data: service, error: serviceError } = await supabase
+    .from("service_catalog")
+    .select("prezzo_base")
+    .eq("categoria", "enea_bonus")
+    .eq("attivo", true)
+    .limit(1)
+    .maybeSingle();
+  if (serviceError) throw serviceError;
+  const fallback = Number(service?.prezzo_base ?? 0);
+  if (fallback <= 0) throw new Error("Prezzo netto ENEA non configurato");
+  return fallback;
+}
+
 /** "150,00 € + IVA (183,00 €)" — il totale secco non dice nulla: la gente
  *  deve vedere imponibile e IVA separati, come su un preventivo. */
 const euroScomposto = (p: { imponibileCents: number; totaleCents: number }) =>
@@ -588,6 +613,7 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
     setSubmitting(true);
 
     try {
+      const prezzoNettoRivenditore = await resolveResellerNetPrice(effectiveResellerId);
       // Trova stage iniziale in base al tipo servizio:
       // - servizio_completo → "inviata" (in attesa che il cliente compili il modulo)
       // - documenti_forniti → "attesa_compilazione" (il rivenditore deve completare lui
@@ -621,6 +647,7 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
           // cliente riceve la pratica comunque.
           invia_pratica_al_cliente: !isFgasOnly && tipoServizio === "documenti_forniti" && inviaPraticaCliente === true,
           tipo_fatturazione: tipoFatturazione,
+          pagamento_stato: "non_pagata",
           tipo_soggetto: tipoSoggetto,
           prodotto_installato: isFgasOnly ? "Pratica F-Gas" : prodottoLabel,
           cliente_nome: nome.trim(),
@@ -648,7 +675,7 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
                 },
               }
             : {},
-          prezzo: isFgasOnly ? 35 : hasFgas ? 90 : null,
+          prezzo: isFgasOnly ? 35 : hasFgas ? 90 : prezzoNettoRivenditore,
           note: note.trim() || null,
           // Prova dell'accettazione del contratto di servizio da parte del
           // rivenditore che sta inserendo questa pratica.

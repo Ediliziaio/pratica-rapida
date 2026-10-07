@@ -118,6 +118,7 @@ import { it } from "date-fns/locale";
 import DichiarazioneTecnicaDialog from "@/components/documenti/DichiarazioneTecnicaDialog";
 import type { EneaPractice, PipelineStage } from "@/integrations/supabase/types";
 import { PipelineSettingsDrawer } from "@/components/pratiche/PipelineSettingsDrawer";
+import { calculateMonthlyFinancialKpis } from "@/lib/monthly-financial-kpis";
 
 type PracticeWithRelations = EneaPractice & {
   pipeline_stages: PipelineStage | null;
@@ -175,6 +176,29 @@ type SortOption = "recenti" | "vecchie" | "stage";
 function daysAgo(val: string | null | undefined) {
   if (!val) return 0;
   return Math.floor((Date.now() - new Date(val).getTime()) / 86400000);
+}
+
+async function resolveCompanyNetPrice(companyId: string, brand: "enea" | "conto_termico") {
+  const { data: companyPrice, error: companyPriceError } = await supabase
+    .from("company_pricing")
+    .select("prezzo")
+    .eq("company_id", companyId)
+    .eq("brand", brand)
+    .maybeSingle();
+  if (companyPriceError) throw companyPriceError;
+  const configured = Number(companyPrice?.prezzo ?? 0);
+  if (configured > 0) return configured;
+
+  if (brand !== "enea") return 0;
+  const { data: service, error: serviceError } = await supabase
+    .from("service_catalog")
+    .select("prezzo_base")
+    .eq("categoria", "enea_bonus")
+    .eq("attivo", true)
+    .limit(1)
+    .maybeSingle();
+  if (serviceError) throw serviceError;
+  return Number(service?.prezzo_base ?? 0);
 }
 
 function getInitials(name: string) {
@@ -674,9 +698,15 @@ function PracticeDetailSheet({
     if (!practice || !abbinaCompanyId) return;
     setAbbinando(true);
     try {
+      const updates: { reseller_id: string; prezzo?: number } = { reseller_id: abbinaCompanyId };
+      if (Number(practice.prezzo ?? 0) <= 0 && practice.tipo_fatturazione !== "cliente_finale") {
+        const resolvedPrice = await resolveCompanyNetPrice(abbinaCompanyId, practice.brand);
+        if (resolvedPrice <= 0) throw new Error("Prezzo netto non configurato per il rivenditore selezionato");
+        updates.prezzo = resolvedPrice;
+      }
       const { error } = await supabase
         .from("enea_practices")
-        .update({ reseller_id: abbinaCompanyId })
+        .update(updates)
         .eq("id", practice.id);
       if (error) throw error;
       const nome = abbinaCompanies.find((c) => c.id === abbinaCompanyId)?.ragione_sociale ?? "rivenditore";
@@ -3248,6 +3278,83 @@ export default function KanbanBoard() {
     includeArchived: showArchived,
   });
 
+  // Il riepilogo economico non puo dipendere dalla vista Kanban: quella, per
+  // impostazione, esclude le archiviate. Una pratica chiusa resta invece nel
+  // fatturato del mese. La query dedicata prende sempre tutte le pratiche del
+  // mese corrente e mantiene soltanto i filtri economici espliciti.
+  const financialMonthWindow = useMemo(() => {
+    const now = new Date();
+    return {
+      from: new Date(now.getFullYear(), now.getMonth(), 1).toISOString(),
+      to: new Date(now.getFullYear(), now.getMonth() + 1, 1).toISOString(),
+    };
+  }, []);
+
+  const { data: monthlyFinancialPractices = [] } = useQuery({
+    queryKey: [
+      "enea-monthly-financial-practices",
+      financialMonthWindow.from,
+      financialMonthWindow.to,
+      brandFilter,
+      aziendaFilter,
+      operatoreFilter,
+    ],
+    enabled: isInternal,
+    queryFn: async () => {
+      let query = supabase
+        .from("enea_practices_public")
+        .select("id,created_at,prezzo,pagamento_stato,reseller_id,brand,operatore_id,tipo_fatturazione")
+        .gte("created_at", financialMonthWindow.from)
+        .lt("created_at", financialMonthWindow.to);
+      if (brandFilter !== "all") query = query.eq("brand", brandFilter as "enea" | "conto_termico");
+      if (aziendaFilter !== "all") query = query.eq("reseller_id", aziendaFilter);
+      if (operatoreFilter !== "all") query = query.eq("operatore_id", operatoreFilter);
+      const { data, error } = await query;
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const resellerIdsWithoutPrice = useMemo(
+    () => [...new Set(monthlyFinancialPractices
+      .filter((practice) =>
+        practice.tipo_fatturazione !== "cliente_finale" &&
+        Number(practice.prezzo ?? 0) <= 0 &&
+        practice.reseller_id,
+      )
+      .map((practice) => practice.reseller_id as string))],
+    [monthlyFinancialPractices],
+  );
+
+  const { data: monthlyCompanyPricing = [] } = useQuery({
+    queryKey: ["enea-monthly-company-pricing", resellerIdsWithoutPrice],
+    enabled: isInternal && resellerIdsWithoutPrice.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("company_pricing")
+        .select("company_id,brand,prezzo")
+        .in("company_id", resellerIdsWithoutPrice);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const { data: defaultEneaNetPrice = 0 } = useQuery({
+    queryKey: ["enea-default-net-price"],
+    enabled: isInternal,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("service_catalog")
+        .select("prezzo_base")
+        .eq("categoria", "enea_bonus")
+        .eq("attivo", true)
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return Number(data?.prezzo_base ?? 0);
+    },
+  });
+
   // Deep-link auto-open: se l'URL ha `?practice=<id>` apri la sheet di
   // dettaglio della pratica corrispondente. Usato dal redirect smart in
   // PraticaDetail quando l'utente arriva su /pratiche/:id con un id che
@@ -3378,21 +3485,24 @@ export default function KanbanBoard() {
     [practices],
   );
 
-  // KPI aggregates (staff only)
+  // KPI economici del mese corrente (staff only). `prezzo` e il netto IVA.
+  // Le righe storiche nate con prezzo=0 usano il listino aziendale; le nuove
+  // pratiche salvano direttamente il prezzo corretto alla creazione.
   const kpis = useMemo(() => {
     if (!isInternal) return null;
-    const active = filteredPractices.filter((p) => !p.archived_at);
-    const now = new Date();
-    const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-    const sum = (arr: typeof active) =>
-      arr.reduce((s, p) => s + Number(p.prezzo ?? 0), 0);
-    return {
-      fatturato: sum(active),
-      incassato: sum(active.filter((p) => p.pagamento_stato === "pagata")),
-      daIncassare: sum(active.filter((p) => p.pagamento_stato === "non_pagata")),
-      mese: sum(active.filter((p) => p.created_at?.startsWith(currentMonth))),
-    };
-  }, [filteredPractices, isInternal]);
+    const pricing = new Map(
+      monthlyCompanyPricing.map((row) => [`${row.company_id}:${row.brand}`, Number(row.prezzo)]),
+    );
+    return calculateMonthlyFinancialKpis(monthlyFinancialPractices.map((practice) => ({
+      created_at: practice.created_at,
+      prezzo: practice.prezzo,
+      pagamento_stato: practice.pagamento_stato,
+      prezzo_listino: practice.tipo_fatturazione === "cliente_finale"
+        ? 0
+        : pricing.get(`${practice.reseller_id}:${practice.brand}`) ??
+          (practice.brand === "enea" ? defaultEneaNetPrice : 0),
+    })));
+  }, [defaultEneaNetPrice, isInternal, monthlyCompanyPricing, monthlyFinancialPractices]);
 
   // Inline pagamento_stato update (staff only)
   const updatePagamentoMutation = useMutation({
@@ -4090,18 +4200,18 @@ export default function KanbanBoard() {
       {/* ── KPI cards (staff only) ────────────────────────────────────────── */}
       {isInternal && kpis && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 px-4 pt-3 shrink-0">
-          <KpiCard label="Fatturato" value={`€ ${kpis.fatturato.toFixed(2)}`} />
+          <KpiCard label="Fatturato mese · netto IVA" value={`€ ${kpis.fatturato.toFixed(2)}`} />
           <KpiCard
-            label="Incassato"
+            label="Incassato mese · netto IVA"
             value={`€ ${kpis.incassato.toFixed(2)}`}
             color="green"
           />
           <KpiCard
-            label="Da incassare"
+            label="Da incassare mese · netto IVA"
             value={`€ ${kpis.daIncassare.toFixed(2)}`}
             color="amber"
           />
-          <KpiCard label="Mese corrente" value={`€ ${kpis.mese.toFixed(2)}`} />
+          <KpiCard label="Pratiche del mese" value={String(kpis.pratiche)} />
         </div>
       )}
 

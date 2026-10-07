@@ -50,6 +50,34 @@ function json(body: unknown, status = 200) {
   });
 }
 
+async function resolveResellerNetPrice(
+  supabase: ReturnType<typeof createClient>,
+  companyId: string,
+): Promise<number> {
+  const { data: companyPrice, error: companyPriceError } = await supabase
+    .from("company_pricing")
+    .select("prezzo")
+    .eq("company_id", companyId)
+    .eq("brand", "enea")
+    .maybeSingle();
+  if (companyPriceError) throw companyPriceError;
+
+  const configured = Number(companyPrice?.prezzo ?? 0);
+  if (configured > 0) return configured;
+
+  const { data: service, error: serviceError } = await supabase
+    .from("service_catalog")
+    .select("prezzo_base")
+    .eq("categoria", "enea_bonus")
+    .eq("attivo", true)
+    .limit(1)
+    .maybeSingle();
+  if (serviceError) throw serviceError;
+  const fallback = Number(service?.prezzo_base ?? 0);
+  if (fallback <= 0) throw new Error("Prezzo netto ENEA non configurato");
+  return fallback;
+}
+
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 interface Payload {
@@ -327,6 +355,13 @@ serve(async (req) => {
     ].filter(Boolean).join("\n");
 
     // ── 4. Crea la pratica ──
+    // Per il rivenditore il prezzo salvato e sempre l'imponibile del suo
+    // listino. Il cliente finale viene valorizzato dal flusso di pagamento.
+    // Sul contenitore "Da abbinare" il prezzo resta 0 finche lo staff non
+    // assegna l'azienda corretta: non inventiamo un listino.
+    const resellerNetPrice = !isPrivato && matchType !== "creata"
+      ? await resolveResellerNetPrice(supabase, companyId)
+      : 0;
     const { data: practice, error: insertErr } = await supabase
       .from("enea_practices")
       .insert({
@@ -339,6 +374,7 @@ serve(async (req) => {
         invia_pratica_al_cliente:
           tipoServizio === "documenti_forniti" && p.invia_pratica_al_cliente === true,
         tipo_fatturazione: p.tipo_fatturazione === "cliente_finale" ? "cliente_finale" : "rivenditore",
+        pagamento_stato: "non_pagata",
         tipo_soggetto: fgasOnly ? null : p.tipo_soggetto === "azienda_piva" ? "azienda_piva" : "persona_fisica",
         prodotto_installato: fgasOnly ? "Pratica F-Gas" : p.prodotto?.trim() || (p.modulo ?? "Richiesta sito"),
         // Ragione sociale dichiarata dal rivenditore: sul segnaposto "Da
@@ -369,7 +405,13 @@ serve(async (req) => {
               },
             }
           : {},
-        prezzo: fgasOnly ? 35 : p.fgas?.requested === true ? 90 : null,
+        prezzo: fgasOnly
+          ? 35
+          : p.fgas?.requested === true
+            ? 90
+            : isPrivato
+              ? null
+              : resellerNetPrice,
         note: declared,
         fatture_urls: [],
         documenti_enea_urls: [],

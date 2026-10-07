@@ -78,7 +78,9 @@ async function recoverRecordedInvoiceEmail(
  * Completa gli effetti successivi a un pagamento già verificato.
  *
  * Invariante principale: la pratica non entra mai in `pronte_da_fare` prima
- * che fattura, invio SDI e richiesta di invio e-mail siano stati registrati.
+ * che il modulo sia completo e fattura, invio SDI e richiesta di invio e-mail
+ * siano stati registrati. Il pagamento catastale intermedio sblocca soltanto
+ * la prosecuzione del form.
  * Gli aggiornamenti di stato fungono anche da claim per evitare duplicazioni.
  */
 export async function finalizePaidCfOrder(
@@ -220,9 +222,13 @@ export async function finalizePaidCfOrder(
     }).eq("id", orderId);
   }
 
-  const email = String(practice.cliente_email ?? "").trim();
-  const name = `${String(practice.cliente_nome ?? "").trim()} ${String(practice.cliente_cognome ?? "").trim()}`.trim();
-  if (!email) throw new Error("E-mail cliente mancante: fattura non inviata");
+  // Nel pagamento catastale intermedio i dati anagrafici sono ancora nella
+  // bozza `dati_form`: i campi denormalizzati della pratica vengono compilati
+  // soltanto dall'invio finale. Usiamo quindi lo stesso estrattore fiscale che
+  // ha già validato l'identità prima di aprire il checkout.
+  const customer = extractBillingIdentity(practice);
+  const email = customer.email;
+  const name = customer.name;
 
   if (!customerEmailedAt) {
     if (!current?.invoice_email_requested_at) {
@@ -238,19 +244,24 @@ export async function finalizePaidCfOrder(
     return { ready: false, reason: "invoice_email_pending", invoiceId };
   }
 
-  const { data: readyStage } = await admin.from("pipeline_stages")
-    .select("id")
-    .is("reseller_id", null)
-    .eq("stage_type", "pronte_da_fare")
-    .eq("brand", practice.brand ?? "enea")
-    .limit(1)
-    .maybeSingle();
-  if (!readyStage?.id) throw new Error("Colonna 'Pronte da fare' non trovata");
+  const formCompleted = Boolean(practice.form_compilato_at);
+  let readyStageId: string | null = null;
+  if (formCompleted) {
+    const { data: readyStage } = await admin.from("pipeline_stages")
+      .select("id")
+      .is("reseller_id", null)
+      .eq("stage_type", "pronte_da_fare")
+      .eq("brand", practice.brand ?? "enea")
+      .limit(1)
+      .maybeSingle();
+    if (!readyStage?.id) throw new Error("Colonna 'Pronte da fare' non trovata");
+    readyStageId = String(readyStage.id);
+  }
 
   await admin.from("enea_practices").update({
     pagamento_stato: "pagata",
     data_incasso: paidAt,
-    current_stage_id: readyStage.id,
+    ...(readyStageId ? { current_stage_id: readyStageId } : {}),
   }).eq("id", practiceId);
   await admin.from("cf_payment_orders").update({
     status: "ready",
@@ -262,8 +273,12 @@ export async function finalizePaidCfOrder(
   await notifyAdmins(
     admin,
     practiceId,
-    `CF pronto — pagato e fatturato € ${(Number(order.totale_cents) / 100).toFixed(2)}`,
-    "Pagamento Stripe verificato; fattura emessa da Fatture in Cloud, inviata allo SDI e spedita al cliente via e-mail.",
+    formCompleted
+      ? `CF pronto — pagato e fatturato € ${(Number(order.totale_cents) / 100).toFixed(2)}`
+      : `Servizio catastale pagato — € ${(Number(order.totale_cents) / 100).toFixed(2)}`,
+    formCompleted
+      ? "Pagamento Stripe verificato; fattura emessa da Fatture in Cloud, inviata allo SDI e spedita al cliente via e-mail."
+      : "Pagamento catastale e fattura completati. Il cliente deve proseguire e inviare il resto del modulo; la pratica non è stata spostata.",
   );
   return { ready: true, invoiceId };
 }

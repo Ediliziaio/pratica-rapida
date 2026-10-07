@@ -127,6 +127,7 @@ type PracticeWithRelations = EneaPractice & {
 type CfPaymentOrderSummary = {
   provider: string;
   status: string;
+  servizio_catastale: boolean;
   paid_at: string | null;
   invoice_created_at: string | null;
   sdi_sent_at: string | null;
@@ -719,7 +720,7 @@ function PracticeDetailSheet({
       if (!practice?.id) return null;
       const db = supabase as unknown as CfPaymentReadClient;
       const { data, error } = await db.from("cf_payment_orders")
-        .select("provider,status,paid_at,invoice_created_at,sdi_sent_at,customer_emailed_at,fic_invoice_url,last_error_code,last_error_message")
+        .select("provider,status,servizio_catastale,paid_at,invoice_created_at,sdi_sent_at,customer_emailed_at,fic_invoice_url,last_error_code,last_error_message")
         .eq("practice_id", practice.id)
         .maybeSingle();
       if (error) throw error;
@@ -1277,7 +1278,11 @@ function PracticeDetailSheet({
                   ? "border-amber-300 bg-amber-50 text-amber-950"
                   : "border-emerald-200 bg-emerald-50 text-emerald-950"
               }`}>
-                <p className="font-semibold mb-2">Pagamento e fattura CF</p>
+                <p className="font-semibold mb-2">
+                  {cfPaymentOrder.servizio_catastale
+                    ? "Pagamento e fattura servizio catastale"
+                    : "Pagamento e fattura CF"}
+                </p>
                 <div className="grid grid-cols-1 gap-1">
                   <p>{cfPaymentOrder.paid_at ? "✓" : "○"} Pagamento incassato</p>
                   <p>{cfPaymentOrder.invoice_created_at ? "✓" : "○"} Fattura emessa da Fatture in Cloud</p>
@@ -2829,8 +2834,13 @@ function PracticeCard({
                 </span>
               )}
               {isInternal && hasCadastralService && (
-                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-violet-100 text-violet-700 dark:bg-violet-950 dark:text-violet-300">
-                  CATASTO
+                <span className={cn(
+                  "text-[10px] font-bold px-1.5 py-0.5 rounded-md",
+                  practice.pagamento_stato === "pagata"
+                    ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300"
+                    : "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300",
+                )}>
+                  {practice.pagamento_stato === "pagata" ? "CATASTO · PAGATO" : "CATASTO · DA PAGARE"}
                 </span>
               )}
               {hasFgasService && (

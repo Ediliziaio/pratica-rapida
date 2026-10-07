@@ -188,10 +188,13 @@ export default function FormPubblico() {
   // documenti (bonifici + fatture) che dovrà avere a portata di mano.
   const [showIntro, setShowIntro] = useState(true);
   const [stepIndex, setStepIndex] = useState(0);
+  const [cadastralResumeMode, setCadastralResumeMode] = useState<"at" | "after" | null>(null);
   const [formData, setFormData] = useState<FormClienteData>(emptyFormData());
   const [uploading, setUploading] = useState(false);
   const returningFromPayment = typeof window !== "undefined"
     && new URLSearchParams(window.location.search).get("pagamento") === "ok";
+  const paymentCancelled = typeof window !== "undefined"
+    && new URLSearchParams(window.location.search).get("pagamento") === "annullato";
 
   // ── Dynamic-path state ──────────────────────────────────────────────────────
   // Quando `dbModule` è risolto, usiamo `dynamicData` (shape libera dallo
@@ -212,8 +215,8 @@ export default function FormPubblico() {
       return;
     }
     let cancelled = false;
-    // Il nuovo percorso Fatture in Cloud/TS Pay raccoglie prima tutti i dati e
-    // genera il link di pagamento soltanto dopo l'invio completo del modulo.
+    // Il servizio catastale viene pagato subito dopo il relativo step; il
+    // pagamento della pratica CF completa resta invece al termine del modulo.
     supabase
       .rpc("get_practice_by_form_token", { p_token: token })
       .then(({ data, error }) => {
@@ -243,7 +246,7 @@ export default function FormPubblico() {
             setSubmitted(true);
           }
         } else {
-          setPractice(row as unknown as EneaPractice);
+          setPractice(row);
           // I contenitori di sistema ("Da abbinare", "Clienti privati") non
           // vanno MAI mostrati al cliente: sono nomi interni. Senza nome,
           // l'header ricade su "Pratica Rapida" e basta.
@@ -267,6 +270,23 @@ export default function FormPubblico() {
           if (row.dati_form && typeof row.dati_form === "object" && !Array.isArray(row.dati_form)) {
             setDynamicData(row.dati_form as Record<string, Record<string, unknown>>);
           }
+          if (isPaymentFlowComplete(row)) {
+            setShowIntro(false);
+            setCadastralResumeMode("after");
+          } else if (
+            row.payment_required &&
+            dynamicCadastralServiceRequested(row.dati_form) &&
+            (returningFromPayment || isPaymentConfirmed(row))
+          ) {
+            // La bozza è già idratata: quando webhook e fatturazione terminano
+            // il wizard riparte senza perdere i dati inseriti prima di Stripe.
+            setShowIntro(false);
+            setAwaitingPayment(true);
+            setPaymentUrl("");
+          } else if (paymentCancelled && dynamicCadastralServiceRequested(row.dati_form)) {
+            setShowIntro(false);
+            setCadastralResumeMode("at");
+          }
         }
         setLoading(false);
       }, (err) => {
@@ -279,14 +299,15 @@ export default function FormPubblico() {
     return () => {
       cancelled = true;
     };
-  }, [token]);
+  }, [token, returningFromPayment, paymentCancelled]);
 
   // Stripe torna subito sul portale, mentre webhook + Fatture in Cloud possono
   // impiegare alcuni secondi. In quel breve intervallo non mostriamo di nuovo
   // il pulsante di pagamento (rischio doppio click): attendiamo lo stato che
   // certifica fattura creata, SDI richiesto ed e-mail programmata.
+  const shouldPollPayment = returningFromPayment || Boolean(practice && isPaymentConfirmed(practice));
   useEffect(() => {
-    if (!token || !awaitingPayment || !returningFromPayment) return;
+    if (!token || !awaitingPayment || !shouldPollPayment) return;
     let cancelled = false;
     let attempts = 0;
     const poll = async () => {
@@ -298,7 +319,12 @@ export default function FormPubblico() {
       if (row && isPaymentFlowComplete(row)) {
         setPractice(row);
         setAwaitingPayment(false);
-        setSubmitted(true);
+        if (row.form_compilato_at) {
+          setSubmitted(true);
+        } else {
+          setShowIntro(false);
+          setCadastralResumeMode("after");
+        }
         return;
       }
       if (row?.payment_status === "failed") {
@@ -313,13 +339,10 @@ export default function FormPubblico() {
     };
     void poll();
     return () => { cancelled = true; };
-  }, [token, awaitingPayment, returningFromPayment]);
+  }, [token, awaitingPayment, shouldPollPayment]);
 
   const startRequiredPayment = async (required: boolean): Promise<boolean> => {
-    if (!token || !required || practice?.pagamento_stato === "pagata") {
-      setSubmitted(true);
-      return true;
-    }
+    if (!token || !required || (practice && isPaymentFlowComplete(practice))) return true;
 
     setAwaitingPayment(true);
     setPaymentError("");
@@ -403,6 +426,20 @@ export default function FormPubblico() {
 
   const totalSteps = useDynamic ? visibleDynamicSteps.length : hardcodedSteps.length;
   const safeStepIndex = totalSteps > 0 ? Math.min(stepIndex, totalSteps - 1) : 0;
+
+  // Dopo il pagamento catastale il cliente torna esattamente allo step
+  // successivo, conservando la bozza già salvata. Con pagamento annullato
+  // rimane invece sullo step catastale e può riprovare senza ricompilare.
+  useEffect(() => {
+    if (!cadastralResumeMode) return;
+    const cadastralIndex = useDynamic
+      ? visibleDynamicSteps.findIndex((step) => step.key === "catastali")
+      : hardcodedSteps.findIndex((step) => step.id === "catastali");
+    if (cadastralIndex < 0 || totalSteps === 0) return;
+    const offset = cadastralResumeMode === "after" ? 1 : 0;
+    setStepIndex(Math.min(cadastralIndex + offset, totalSteps - 1));
+    setCadastralResumeMode(null);
+  }, [cadastralResumeMode, useDynamic, visibleDynamicSteps, hardcodedSteps, totalSteps]);
 
   // Se il numero di step "visibili" si riduce sotto stepIndex (perché un
   // visible_if step-level è stato disattivato dal cambio di un campo),
@@ -540,6 +577,18 @@ export default function FormPubblico() {
       const ok = await saveDraft(
         useDynamic ? dynamicData : (formData as unknown as Record<string, unknown>),
       );
+      const cadastralPaymentNow =
+        isCadastralCurrentStep &&
+        currentCadastralServiceRequested &&
+        practice?.tipo_fatturazione !== "cliente_finale" &&
+        !(practice && isPaymentFlowComplete(practice));
+      if (cadastralPaymentNow) {
+        // Il pagamento deve leggere dal DB la stessa bozza mostrata a video:
+        // se il salvataggio fallisce non si crea alcun ordine fiscale.
+        if (!ok) return;
+        await startRequiredPayment(true);
+        return;
+      }
       // Procediamo anche se il save fallisce — il toast è già stato mostrato.
       // L'utente può sempre tornare indietro e riprovare. Lo stato locale è
       // preservato.
@@ -639,7 +688,7 @@ export default function FormPubblico() {
       }
 
       await startRequiredPayment(paymentRequired);
-      if (!paymentRequired) setSubmitted(true);
+      if (!paymentRequired || (practice && isPaymentFlowComplete(practice))) setSubmitted(true);
       setSubmitting(false);
       return;
     }
@@ -695,7 +744,7 @@ export default function FormPubblico() {
     }
 
     await startRequiredPayment(paymentRequired);
-    if (!paymentRequired) setSubmitted(true);
+    if (!paymentRequired || (practice && isPaymentFlowComplete(practice))) setSubmitted(true);
     setSubmitting(false);
   };
 
@@ -724,17 +773,23 @@ export default function FormPubblico() {
 
   if (awaitingPayment) {
     const paymentConfirmed = practice ? isPaymentConfirmed(practice) : false;
+    const cadastralPaymentBeforeCompletion = !practice?.form_compilato_at &&
+      dynamicCadastralServiceRequested(practice?.dati_form);
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="text-center space-y-5 max-w-md rounded-xl border bg-card p-6 shadow-sm">
           <CreditCard className="h-14 w-14 text-primary mx-auto" />
-          <h1 className="text-2xl font-bold">Ultimo passo: pagamento</h1>
+          <h1 className="text-2xl font-bold">
+            {cadastralPaymentBeforeCompletion ? "Pagamento servizio catastale" : "Ultimo passo: pagamento"}
+          </h1>
           <p className="text-muted-foreground">
             {returningFromPayment
               ? "Pagamento completato. Attendi qualche secondo: questa pagina si aggiornerà automaticamente. Non effettuare un secondo pagamento."
               : paymentConfirmed
-                ? "Pagamento confermato. Stiamo completando la fattura e l'invio della pratica."
-              : "I dati sono stati salvati. La pratica entrerà in lavorazione soltanto dopo la conferma del pagamento e l'invio della fattura."}
+                ? "Pagamento confermato. Stiamo completando la fattura."
+              : cadastralPaymentBeforeCompletion
+                ? "I dati inseriti finora sono stati salvati. Dopo il pagamento e l'invio della fattura tornerai automaticamente alla compilazione dell'impianto e delle sezioni successive."
+                : "I dati sono stati salvati. La pratica entrerà in lavorazione soltanto dopo la conferma del pagamento e l'invio della fattura."}
           </p>
           <div className="rounded-lg border bg-muted/30 p-3 text-sm text-muted-foreground">
             Verrai indirizzato alla pagina di pagamento sicuro, dove potrai verificare e confermare l’operazione.

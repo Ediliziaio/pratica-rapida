@@ -11,7 +11,7 @@ describe("calculateMonthlyFinancialKpis", () => {
       { created_at: "2026-09-30T08:00:00Z", prezzo: 999, pagamento_stato: "pagata" },
     ], now);
 
-    expect(result).toEqual({ fatturato: 165, incassato: 65, daIncassare: 100, pratiche: 2, senzaPrezzo: 0 });
+    expect(result).toEqual({ fatturato: 165, incassato: 65, daIncassare: 100, pratiche: 2, senzaPrezzo: 0, senzaPrezzoLabels: [] });
   });
 
   it("include le pratiche chiuse ricevute dalla query e tratta in verifica come da incassare", () => {
@@ -20,7 +20,7 @@ describe("calculateMonthlyFinancialKpis", () => {
       { created_at: "2026-10-04T08:00:00Z", prezzo: 65, pagamento_stato: "rimborsata" },
     ], now);
 
-    expect(result).toEqual({ fatturato: 65, incassato: 0, daIncassare: 65, pratiche: 2, senzaPrezzo: 0 });
+    expect(result).toEqual({ fatturato: 65, incassato: 0, daIncassare: 65, pratiche: 2, senzaPrezzo: 0, senzaPrezzoLabels: [] });
   });
 
   it("usa il listino netto quando una pratica rivenditore legacy ha prezzo zero", () => {
@@ -33,7 +33,7 @@ describe("calculateMonthlyFinancialKpis", () => {
       },
     ], now);
 
-    expect(result).toEqual({ fatturato: 65, incassato: 0, daIncassare: 65, pratiche: 1, senzaPrezzo: 0 });
+    expect(result).toEqual({ fatturato: 65, incassato: 0, daIncassare: 65, pratiche: 1, senzaPrezzo: 0, senzaPrezzoLabels: [] });
   });
 
   it("rispetta il cambio mese nel fuso Europe/Rome", () => {
@@ -42,14 +42,14 @@ describe("calculateMonthlyFinancialKpis", () => {
       { created_at: "2026-10-31T23:30:00Z", prezzo: 70, pagamento_stato: "pagata" },
     ], now);
 
-    expect(result).toEqual({ fatturato: 65, incassato: 65, daIncassare: 0, pratiche: 1, senzaPrezzo: 0 });
+    expect(result).toEqual({ fatturato: 65, incassato: 65, daIncassare: 0, pratiche: 1, senzaPrezzo: 0, senzaPrezzoLabels: [] });
   });
 
   it("segnala le pratiche senza prezzo invece di far sembrare completo il totale", () => {
     const result = calculateMonthlyFinancialKpis([
-      { created_at: "2026-10-03T08:00:00Z", prezzo: 0, prezzo_listino: 0, pagamento_stato: "non_pagata" },
+      { label: "Mario Rossi", created_at: "2026-10-03T08:00:00Z", prezzo: 0, prezzo_listino: 0, pagamento_stato: "non_pagata" },
     ], now);
 
-    expect(result).toEqual({ fatturato: 0, incassato: 0, daIncassare: 0, pratiche: 1, senzaPrezzo: 1 });
+    expect(result).toEqual({ fatturato: 0, incassato: 0, daIncassare: 0, pratiche: 1, senzaPrezzo: 1, senzaPrezzoLabels: ["Mario Rossi"] });
   });
 });

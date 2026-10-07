@@ -1,4 +1,5 @@
 export type MonthlyFinancialPractice = {
+  label?: string;
   created_at: string;
   prezzo: number | string | null;
   prezzo_listino?: number | string | null;
@@ -11,6 +12,7 @@ export type MonthlyFinancialKpis = {
   daIncassare: number;
   pratiche: number;
   senzaPrezzo: number;
+  senzaPrezzoLabels: string[];
 };
 
 const ROME_TIME_ZONE = "Europe/Rome";
@@ -48,6 +50,7 @@ export function calculateMonthlyFinancialKpis(
   let daIncassare = 0;
   let pratiche = 0;
   let senzaPrezzo = 0;
+  const senzaPrezzoLabels: string[] = [];
 
   for (const practice of practices) {
     const createdAt = new Date(practice.created_at);
@@ -55,7 +58,10 @@ export function calculateMonthlyFinancialKpis(
 
     pratiche += 1;
     const amount = netAmount(practice);
-    if (amount === 0) senzaPrezzo += 1;
+    if (amount === 0) {
+      senzaPrezzo += 1;
+      if (practice.label) senzaPrezzoLabels.push(practice.label);
+    }
     if (practice.pagamento_stato === "rimborsata") continue;
 
     fatturato += amount;
@@ -67,5 +73,5 @@ export function calculateMonthlyFinancialKpis(
     }
   }
 
-  return { fatturato, incassato, daIncassare, pratiche, senzaPrezzo };
+  return { fatturato, incassato, daIncassare, pratiche, senzaPrezzo, senzaPrezzoLabels };
 }

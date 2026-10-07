@@ -3303,7 +3303,7 @@ export default function KanbanBoard() {
     queryFn: async () => {
       let query = supabase
         .from("enea_practices_public")
-        .select("id,created_at,prezzo,pagamento_stato,reseller_id,brand,operatore_id,tipo_fatturazione")
+        .select("id,cliente_nome,cliente_cognome,created_at,prezzo,pagamento_stato,reseller_id,brand,operatore_id,tipo_fatturazione")
         .gte("created_at", financialMonthWindow.from)
         .lt("created_at", financialMonthWindow.to);
       if (brandFilter !== "all") query = query.eq("brand", brandFilter as "enea" | "conto_termico");
@@ -3517,6 +3517,7 @@ export default function KanbanBoard() {
       dashboardPricing.set(email, Number(row.prezzo ?? 0));
     }
     return calculateMonthlyFinancialKpis(monthlyFinancialPractices.map((practice) => ({
+      label: `${practice.cliente_nome ?? ""} ${practice.cliente_cognome ?? ""}`.trim(),
       created_at: practice.created_at,
       prezzo: practice.prezzo,
       pagamento_stato: practice.pagamento_stato,
@@ -4230,7 +4231,8 @@ export default function KanbanBoard() {
         <div className="px-4 pt-3 shrink-0">
           {kpis.senzaPrezzo > 0 && (
             <div className="mb-2 rounded-md border border-red-300 bg-red-50 px-3 py-2 text-xs font-medium text-red-800 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
-              Totale non completo: {kpis.senzaPrezzo} {kpis.senzaPrezzo === 1 ? "pratica è senza prezzo" : "pratiche sono senza prezzo"}.
+              Totale non completo: {kpis.senzaPrezzo} {kpis.senzaPrezzo === 1 ? "pratica è senza prezzo" : "pratiche sono senza prezzo"}
+              {kpis.senzaPrezzoLabels.length > 0 ? ` (${kpis.senzaPrezzoLabels.join(", ")})` : ""}.
             </div>
           )}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">

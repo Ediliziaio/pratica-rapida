@@ -5,6 +5,10 @@ import { normalizePhone } from "../_shared/phone.ts";
 import { resellerDisplayName } from "../_shared/reseller.ts";
 import { puoContattareCliente } from "../_shared/contatto-cliente.ts";
 import { isReviewExcluded } from "../_shared/review-exclusion.ts";
+import {
+  COMPILATION_REMINDER_STAGE_TYPES,
+  isCompletedDeliveryCommunication,
+} from "../_shared/reminder-safety.ts";
 
 const REQUIRED_ENV = ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"];
 for (const k of REQUIRED_ENV) {
@@ -90,6 +94,21 @@ interface RuleCondition {
   field: string;
   operator: string;
   value: string;
+}
+
+interface ReminderCandidate extends Record<string, unknown> {
+  id: string;
+  cliente_nome: string;
+  form_token: string;
+  tipo_servizio?: string | null;
+  tipo_fatturazione?: string | null;
+  pagamento_stato?: string | null;
+  cliente_email?: string | null;
+  cliente_telefono?: string | null;
+  prodotto_installato?: string | null;
+  conteggio_solleciti?: number | null;
+  azienda_dichiarata?: string | null;
+  companies?: { ragione_sociale?: string | null } | null;
 }
 
 /**
@@ -298,12 +317,18 @@ serve(async () => {
   // clienti la cui pratica era gia stata chiusa e messa in Archiviate.
   // Qui raccogliamo quelle colonne per escluderle anche quando il flag
   // manca: per non disturbare nessuno bastano entrambe le condizioni.
-  const { data: stagesArchiviate } = await supabase
+  const { data: pipelineStages } = await supabase
     .from("pipeline_stages")
-    .select("id")
-    .eq("stage_type", "archiviate");
+    .select("id, stage_type");
 
-  const idColonneArchiviate = (stagesArchiviate ?? []).map((s) => s.id);
+  const idColonneArchiviate = (pipelineStages ?? [])
+    .filter((s) => s.stage_type === "archiviate")
+    .map((s) => s.id);
+  const idColonneSollecito = (pipelineStages ?? [])
+    .filter((s) => COMPILATION_REMINDER_STAGE_TYPES.includes(
+      s.stage_type as (typeof COMPILATION_REMINDER_STAGE_TYPES)[number],
+    ))
+    .map((s) => s.id);
 
   // Lista pronta per il filtro `not in`, oppure null se non ci sono
   // colonne di tipo archiviate (allora non si filtra nulla).
@@ -340,12 +365,56 @@ serve(async () => {
             .is("archived_at", null)
             .is("form_compilato_at", null)
             .or(`ultimo_sollecito_privato.is.null,ultimo_sollecito_privato.lt.${sevenDaysAgo}`);
-          if (colonneArchiviateIn) {
-            qPrivato = qPrivato.not("current_stage_id", "in", colonneArchiviateIn);
+
+          // Fail-closed: il sollecito e ammesso soltanto nelle colonne che
+          // significano davvero "stiamo aspettando il cliente". Filtrare solo
+          // Archiviate ha permesso a una pratica gia in Recensione, con un
+          // form_compilato_at legacy nullo, di ricevere un nuovo sollecito.
+          let practices: ReminderCandidate[] = [];
+          if (idColonneSollecito.length === 0) {
+            const stageError = new Error("days_waiting_7: no eligible reminder stages configured");
+            console.error(stageError.message);
+            await reportError(stageError, { fn: "process-automations", step: "reminder-stage-guard" });
+          } else {
+            qPrivato = qPrivato.in("current_stage_id", idColonneSollecito);
+            const { data, error } = await qPrivato;
+            if (error) throw error;
+            practices = (data ?? []) as ReminderCandidate[];
           }
-          const { data: practices } = await qPrivato;
+
+          // Difesa indipendente dalla colonna: il ponte del cruscotto registra
+          // in modo permanente l'ingresso in "Da inserire su Excel". I log di
+          // consegna coprono inoltre le pratiche storiche precedenti al ponte.
+          // Qualunque errore nel reperire queste prove blocca l'intero lotto.
+          const completedPracticeIds = new Set<string>();
+          const candidateIds = practices.map((p) => String(p.id));
+          if (candidateIds.length > 0) {
+            const [closureResult, communicationResult] = await Promise.all([
+              supabase
+                .from("cruscotto_pratiche_da_crm")
+                .select("crm_pratica_id")
+                .in("crm_pratica_id", candidateIds),
+              supabase
+                .from("communication_log")
+                .select("practice_id,status,body_preview,metadata")
+                .in("practice_id", candidateIds)
+                .in("status", ["sent", "delivered", "read"]),
+            ]);
+            if (closureResult.error) throw closureResult.error;
+            if (communicationResult.error) throw communicationResult.error;
+
+            for (const row of closureResult.data ?? []) {
+              completedPracticeIds.add(row.crm_pratica_id);
+            }
+            for (const row of communicationResult.data ?? []) {
+              if (isCompletedDeliveryCommunication(row)) {
+                completedPracticeIds.add(row.practice_id);
+              }
+            }
+          }
 
           for (const p of practices ?? []) {
+            if (completedPracticeIds.has(String(p.id))) continue;
             // Applica filtri condition della rule (es. solo infissi, solo ENEA, ecc.).
             // Skippa la pratica se non match. Backward compat: rules senza
             // conditions (legacy) restituiscono true e procedono normalmente.

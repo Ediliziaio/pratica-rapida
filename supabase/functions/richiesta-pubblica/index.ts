@@ -50,6 +50,19 @@ function json(body: unknown, status = 200) {
   });
 }
 
+function fallbackResellerNetPrice(companyName: string | null): number {
+  const normalized = String(companyName ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+
+  if (normalized.includes("brianza serramenti") || /(^| )vans( |$)/.test(normalized)) return 60;
+  if (normalized.includes("rinaldi lab")) return 75;
+  return 65;
+}
+
 async function resolveResellerNetPrice(
   supabase: ReturnType<typeof createClient>,
   companyId: string,
@@ -74,8 +87,16 @@ async function resolveResellerNetPrice(
     .maybeSingle();
   if (serviceError) throw serviceError;
   const fallback = Number(service?.prezzo_base ?? 0);
-  if (fallback <= 0) throw new Error("Prezzo netto ENEA non configurato");
-  return fallback;
+  if (fallback > 0) return fallback;
+
+  const { data: company, error: companyError } = await supabase
+    .from("companies")
+    .select("ragione_sociale")
+    .eq("id", companyId)
+    .maybeSingle();
+  if (companyError) throw companyError;
+
+  return fallbackResellerNetPrice(company?.ragione_sociale ?? null);
 }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;

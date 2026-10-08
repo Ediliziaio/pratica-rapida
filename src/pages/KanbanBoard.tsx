@@ -198,7 +198,20 @@ async function resolveCompanyNetPrice(companyId: string, brand: "enea" | "conto_
     .limit(1)
     .maybeSingle();
   if (serviceError) throw serviceError;
-  return Number(service?.prezzo_base ?? 0);
+  const servicePrice = Number(service?.prezzo_base ?? 0);
+  if (servicePrice > 0) return servicePrice;
+
+  const { data: company, error: companyError } = await supabase
+    .from("companies")
+    .select("ragione_sociale")
+    .eq("id", companyId)
+    .maybeSingle();
+  if (companyError) throw companyError;
+
+  return fallbackMonthlyPracticePrice({
+    tipoFatturazione: "rivenditore",
+    resellerName: company?.ragione_sociale ?? null,
+  });
 }
 
 function getInitials(name: string) {

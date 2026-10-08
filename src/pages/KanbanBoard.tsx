@@ -3291,10 +3291,10 @@ export default function KanbanBoard() {
     includeArchived: showArchived,
   });
 
-  // Il riepilogo economico non puo dipendere dalla vista Kanban: quella, per
-  // impostazione, esclude le archiviate. Una pratica chiusa resta invece nel
-  // fatturato del mese. La query dedicata prende sempre tutte le pratiche del
-  // mese corrente e mantiene soltanto i filtri economici espliciti.
+  // Il fatturato nasce quando la pratica entra in "Da inserire su Excel"
+  // (stage_type=gestionale), non quando il cliente la crea. Il ponte CRM ->
+  // cruscotto conserva un evento permanente anche se la card viene poi
+  // spostata in recensione o archiviata.
   const financialMonthWindow = useMemo(() => {
     const now = new Date();
     return {
@@ -3314,17 +3314,32 @@ export default function KanbanBoard() {
     ],
     enabled: isInternal,
     queryFn: async () => {
+      const { data: closureEvents, error: closureEventsError } = await supabase
+        .from("cruscotto_pratiche_da_crm")
+        .select("crm_pratica_id,entrato_in_stage_at")
+        .gte("entrato_in_stage_at", financialMonthWindow.from)
+        .lt("entrato_in_stage_at", financialMonthWindow.to);
+      if (closureEventsError) throw closureEventsError;
+
+      const enteredAtByPractice = new Map(
+        (closureEvents ?? []).map((event) => [event.crm_pratica_id, event.entrato_in_stage_at]),
+      );
+      const closedPracticeIds = [...enteredAtByPractice.keys()];
+      if (closedPracticeIds.length === 0) return [];
+
       let query = supabase
         .from("enea_practices_public")
-        .select("id,cliente_nome,cliente_cognome,created_at,prezzo,pagamento_stato,reseller_id,brand,operatore_id,tipo_fatturazione")
-        .gte("created_at", financialMonthWindow.from)
-        .lt("created_at", financialMonthWindow.to);
+        .select("id,cliente_nome,cliente_cognome,prezzo,pagamento_stato,reseller_id,brand,operatore_id,tipo_fatturazione")
+        .in("id", closedPracticeIds);
       if (brandFilter !== "all") query = query.eq("brand", brandFilter as "enea" | "conto_termico");
       if (aziendaFilter !== "all") query = query.eq("reseller_id", aziendaFilter);
       if (operatoreFilter !== "all") query = query.eq("operatore_id", operatoreFilter);
       const { data, error } = await query;
       if (error) throw error;
-      return data ?? [];
+      return (data ?? []).map((practice) => ({
+        ...practice,
+        revenue_at: enteredAtByPractice.get(practice.id)!,
+      }));
     },
   });
 
@@ -3532,7 +3547,7 @@ export default function KanbanBoard() {
     }
     return calculateMonthlyFinancialKpis(monthlyFinancialPractices.map((practice) => ({
       label: `${practice.cliente_nome ?? ""} ${practice.cliente_cognome ?? ""}`.trim(),
-      created_at: practice.created_at,
+      revenue_at: practice.revenue_at,
       prezzo: practice.prezzo,
       pagamento_stato: practice.pagamento_stato,
       prezzo_listino: (() => {

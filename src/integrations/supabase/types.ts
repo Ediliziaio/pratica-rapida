@@ -1087,6 +1087,57 @@ export type Database = {
           },
         ]
       }
+      cruscotto_pratiche_da_crm: {
+        Row: {
+          brand: string
+          cliente_cognome: string
+          cliente_nome: string
+          crm_pratica_id: string
+          crm_reseller_id: string | null
+          cruscotto_pratica_id: string | null
+          entrato_in_stage_at: string
+          id: string
+          importata_at: string | null
+          nota: string
+          ricevuto_at: string
+          rivenditore_email: string
+          rivenditore_nome: string
+          stato: string
+        }
+        Insert: {
+          brand?: string
+          cliente_cognome?: string
+          cliente_nome?: string
+          crm_pratica_id: string
+          crm_reseller_id?: string | null
+          cruscotto_pratica_id?: string | null
+          entrato_in_stage_at?: string
+          id?: string
+          importata_at?: string | null
+          nota?: string
+          ricevuto_at?: string
+          rivenditore_email?: string
+          rivenditore_nome?: string
+          stato?: string
+        }
+        Update: {
+          brand?: string
+          cliente_cognome?: string
+          cliente_nome?: string
+          crm_pratica_id?: string
+          crm_reseller_id?: string | null
+          cruscotto_pratica_id?: string | null
+          entrato_in_stage_at?: string
+          id?: string
+          importata_at?: string | null
+          nota?: string
+          ricevuto_at?: string
+          rivenditore_email?: string
+          rivenditore_nome?: string
+          stato?: string
+        }
+        Relationships: []
+      }
       cruscotto_rivenditori: {
         Row: {
           email: string | null

@@ -1,6 +1,6 @@
 export type MonthlyFinancialPractice = {
   label?: string;
-  created_at: string;
+  revenue_at: string;
   prezzo: number | string | null;
   prezzo_listino?: number | string | null;
   pagamento_stato: string | null;
@@ -69,6 +69,8 @@ function netAmount(practice: MonthlyFinancialPractice): number {
 
 /**
  * Calcola il riepilogo economico del mese nel fuso operativo italiano.
+ * `revenue_at` e il momento in cui la pratica e entrata nella colonna
+ * "Da inserire su Excel", non la data in cui il cliente l'ha creata.
  * `prezzo` e gia l'imponibile: non va scorporata nuovamente l'IVA.
  * Le pratiche archiviate restano incluse, perche la chiusura non cancella il
  * fatturato del mese. I rimborsi, invece, non sono fatturato ne incasso.
@@ -86,8 +88,8 @@ export function calculateMonthlyFinancialKpis(
   const senzaPrezzoLabels: string[] = [];
 
   for (const practice of practices) {
-    const createdAt = new Date(practice.created_at);
-    if (Number.isNaN(createdAt.getTime()) || monthKey(createdAt) !== currentMonth) continue;
+    const revenueAt = new Date(practice.revenue_at);
+    if (Number.isNaN(revenueAt.getTime()) || monthKey(revenueAt) !== currentMonth) continue;
 
     pratiche += 1;
     const amount = netAmount(practice);

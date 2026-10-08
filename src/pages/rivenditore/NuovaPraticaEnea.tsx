@@ -22,6 +22,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { fallbackMonthlyPracticePrice } from "@/lib/monthly-financial-kpis";
+import { captureException } from "@/lib/sentry";
 import type { TipoFatturazione, TipoSoggetto, TipoServizio } from "@/integrations/supabase/types";
 
 // ── Costanti ──────────────────────────────────────────────────────────────────
@@ -65,8 +67,22 @@ async function resolveResellerNetPrice(companyId: string): Promise<number> {
     .maybeSingle();
   if (serviceError) throw serviceError;
   const fallback = Number(service?.prezzo_base ?? 0);
-  if (fallback <= 0) throw new Error("Prezzo netto ENEA non configurato");
-  return fallback;
+  if (fallback > 0) return fallback;
+
+  // Il catalogo legacy non contiene sempre una riga ENEA attiva. Il form non
+  // deve per questo bloccare il rivenditore: applica il listino operativo
+  // autorizzato anche quando manca la configurazione ridondante nel DB.
+  const { data: company, error: companyError } = await supabase
+    .from("companies")
+    .select("ragione_sociale")
+    .eq("id", companyId)
+    .maybeSingle();
+  if (companyError) throw companyError;
+
+  return fallbackMonthlyPracticePrice({
+    tipoFatturazione: "rivenditore",
+    resellerName: company?.ragione_sociale ?? null,
+  });
 }
 
 /** "150,00 € + IVA (183,00 €)" — il totale secco non dice nulla: la gente
@@ -774,6 +790,12 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
       setSubmitted({ id: practice.id, nome: `${nome.trim()} ${cognome.trim()}` });
     } catch (err: unknown) {
       console.error(err);
+      captureException(err, {
+        tags: {
+          flow: "nuova_pratica_enea",
+          reseller_id: effectiveResellerId,
+        },
+      });
       toast({ variant: "destructive", title: "Errore", description: "Impossibile inviare la pratica. Riprova." });
     } finally {
       setSubmitting(false);

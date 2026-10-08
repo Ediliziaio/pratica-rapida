@@ -59,6 +59,7 @@ describe("fallbackMonthlyPracticePrice", () => {
     ["rivenditore", "Brianza Serramenti", 60],
     ["rivenditore", "Vans Tappezzeria", 60],
     ["rivenditore", "Rinaldi Lab", 75],
+    ["rivenditore", "FV Tende", 65],
     ["rivenditore", "Service Casa", 65],
     ["cliente_finale", "Sima Home", 100],
     ["cliente_finale", "Tenda System SRLS", 150],

@@ -118,6 +118,7 @@ import { it } from "date-fns/locale";
 import DichiarazioneTecnicaDialog from "@/components/documenti/DichiarazioneTecnicaDialog";
 import type { EneaPractice, PipelineStage } from "@/integrations/supabase/types";
 import { PipelineSettingsDrawer } from "@/components/pratiche/PipelineSettingsDrawer";
+import { appendAprOperatorResponse, parseAprOperatorResponseState } from "@/lib/aprOperatorResponse";
 import { calculateMonthlyFinancialKpis, fallbackMonthlyPracticePrice } from "@/lib/monthly-financial-kpis";
 
 type PracticeWithRelations = EneaPractice & {
@@ -616,6 +617,8 @@ function PracticeDetailSheet({
   const [editOperatoreId, setEditOperatoreId] = useState<string>("");
   const [editPrezzo, setEditPrezzo] = useState<string>("");
   const [editPagamentoStato, setEditPagamentoStato] = useState<string>("non_pagata");
+  const [aprOperatorAnswer, setAprOperatorAnswer] = useState("");
+  const [savingAprOperatorAnswer, setSavingAprOperatorAnswer] = useState(false);
   // Dati cliente editabili dallo staff (CRM#5): correzione errori inseriti nel form.
   const [editClienteNome, setEditClienteNome] = useState("");
   const [editClienteCognome, setEditClienteCognome] = useState("");
@@ -655,6 +658,14 @@ function PracticeDetailSheet({
     setCatastoMappale(String(sheetCatastali.mappale ?? ""));
     setCatastoSubalterno(String(sheetCatastali.subalterno ?? ""));
   }, [practice?.id, sheetCatastali.foglio, sheetCatastali.mappale, sheetCatastali.subalterno]);
+
+  useEffect(() => {
+    setAprOperatorAnswer("");
+  }, [practice?.id, practice?.note_documenti_mancanti]);
+
+  const aprOperatorResponse = practice?.pipeline_stages?.stage_type === "intervento_operatore"
+    ? parseAprOperatorResponseState(practice.note_documenti_mancanti)
+    : null;
 
   // Eliminazione pratica — solo super_admin.
   const { roles } = useAuth();
@@ -867,6 +878,35 @@ function PracticeDetailSheet({
         variant: "destructive",
       });
       console.error("[KanbanBoard handleSave]", err);
+    }
+  }
+
+  async function handleAprOperatorAnswer() {
+    if (!practice || !aprOperatorResponse || aprOperatorResponse.answer) return;
+    const answer = aprOperatorAnswer.trim();
+    if (!answer) {
+      toast({ title: "Inserisci la risposta richiesta da APR", variant: "destructive" });
+      return;
+    }
+    setSavingAprOperatorAnswer(true);
+    try {
+      await updatePractice.mutateAsync({
+        id: practice.id,
+        updates: { note_documenti_mancanti: appendAprOperatorResponse(aprOperatorResponse.issuedNote, answer) },
+      });
+      toast({
+        title: "Risposta consegnata ad APR",
+        description: "APR riprenderà automaticamente questa pratica.",
+      });
+      setAprOperatorAnswer("");
+    } catch (err) {
+      toast({
+        title: "Risposta non salvata",
+        description: err instanceof Error ? err.message : "Riprova.",
+        variant: "destructive",
+      });
+    } finally {
+      setSavingAprOperatorAnswer(false);
     }
   }
 
@@ -2014,6 +2054,49 @@ function PracticeDetailSheet({
                       <p className="text-sm text-amber-800 dark:text-amber-300 whitespace-pre-wrap">
                         {practice.note_documenti_mancanti}
                       </p>
+                    </div>
+                  </section>
+                )}
+
+                {/* Risposta diretta alle domande APR — soltanto staff e soltanto vere domande al Titolare. */}
+                {isInternal && aprOperatorResponse && (
+                  <section>
+                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                      Risposta richiesta da APR
+                    </h3>
+                    <div className="rounded-lg border border-emerald-300 bg-emerald-50 dark:border-emerald-800 dark:bg-emerald-950/20 p-3 space-y-3">
+                      <div className="flex items-start gap-2">
+                        <HelpCircle className="h-4 w-4 text-emerald-700 shrink-0 mt-0.5" />
+                        <p className="text-sm text-emerald-950 dark:text-emerald-100 whitespace-pre-wrap">
+                          {aprOperatorResponse.question}
+                        </p>
+                      </div>
+                      {aprOperatorResponse.answer ? (
+                        <div className="rounded-md border border-emerald-200 bg-white/70 p-2 dark:border-emerald-900 dark:bg-background/40">
+                          <p className="text-xs font-semibold text-emerald-800 dark:text-emerald-300">Risposta inviata</p>
+                          <p className="text-sm whitespace-pre-wrap mt-1">{aprOperatorResponse.answer}</p>
+                          <p className="text-xs text-muted-foreground mt-2">APR riprenderà automaticamente la pratica.</p>
+                        </div>
+                      ) : (
+                        <>
+                          <Textarea
+                            value={aprOperatorAnswer}
+                            onChange={(event) => setAprOperatorAnswer(event.target.value.slice(0, 2_000))}
+                            placeholder="Scrivi qui il dato richiesto da APR…"
+                            rows={3}
+                            disabled={savingAprOperatorAnswer}
+                          />
+                          <Button
+                            type="button"
+                            onClick={handleAprOperatorAnswer}
+                            disabled={savingAprOperatorAnswer || !aprOperatorAnswer.trim()}
+                            className="w-full bg-emerald-700 hover:bg-emerald-800"
+                          >
+                            {savingAprOperatorAnswer ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Check className="h-4 w-4 mr-2" />}
+                            Consegna la risposta ad APR
+                          </Button>
+                        </>
+                      )}
                     </div>
                   </section>
                 )}

@@ -25,4 +25,24 @@ describe("risposta operatore APR nel CRM", () => {
     expect(answered).toBe(`${note}\nLarghezza 350 cm, altezza 250 cm`);
     expect(parseAprOperatorResponseState(answered)?.answer).toBe("Larghezza 350 cm, altezza 250 cm");
   });
+
+  it("mostra anche la domanda di ripiego che APR e il sorvegliante gia' usano", () => {
+    const fallback = "APR si e' fermato. Quale data di fine lavori va indicata?\nRisposta operatore:";
+    expect(parseAprOperatorResponseState(fallback)).toMatchObject({
+      issuedNote: fallback,
+      question: "Quale data di fine lavori va indicata?",
+      answer: null,
+    });
+    expect(parseAprOperatorResponseState(appendAprOperatorResponse(fallback, "06/10/2026"))?.answer)
+      .toBe("06/10/2026");
+  });
+
+  it("non apre un campo risposta per guasti, rivenditori o note senza marcatore", () => {
+    expect(parseAprOperatorResponseState("Guasto APR. Il lettore non ha risposto.\nRisposta operatore:"))
+      .toBeNull();
+    expect(parseAprOperatorResponseState("Domanda APR\nDestinatario: rivenditore\nQuale fattura?\nRisposta operatore:"))
+      .toBeNull();
+    expect(parseAprOperatorResponseState("APR si e' fermato. Il totale non e' stato letto."))
+      .toBeNull();
+  });
 });

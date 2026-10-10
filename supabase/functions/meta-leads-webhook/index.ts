@@ -31,6 +31,12 @@ const GRAPH_VERSION = "v19.0";
 const VERIFY_TOKEN  = Deno.env.get("META_LEADS_VERIFY_TOKEN") ?? "pr_3dbfa0f498ea36c8b85729e89531a009";
 const PAGE_TOKEN    = Deno.env.get("META_PAGE_ACCESS_TOKEN") ?? "";
 const APP_SECRET    = Deno.env.get("META_APP_SECRET") ?? "";
+// Non pianificare automaticamente i contatti storici recuperati dal cron.
+// Il recupero una-tantum dei destinatari precedenti resta un lotto separato,
+// soggetto a conferma esplicita del Titolare.
+const PRIVATE_FOLLOWUPS_ENABLED_FROM = new Date(
+  Deno.env.get("META_PRIVATE_FOLLOWUPS_ENABLED_FROM") ?? "2026-10-10T19:40:28Z",
+).getTime();
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -128,6 +134,32 @@ function mapFields(fieldData: Array<{ name: string; values: string[] }>) {
            telefono: telefono || null, citta: citta || null, extra };
 }
 
+function normalizeAnswer(value: string): string {
+  return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+}
+
+/** Solo la risposta esplicita del ramo Meta privati abilita i follow-up. */
+export function isPrivateMetaLead(fieldData: Array<{ name: string; values: string[] }>): boolean {
+  return fieldData.some((field) =>
+    (field.values ?? []).some((value) => {
+      const answer = normalizeAnswer(value);
+      return answer === "sono un privato" || answer === "privato" || answer === "cliente privato";
+    })
+  );
+}
+
+function shouldSchedulePrivateFollowups(
+  fieldData: Array<{ name: string; values: string[] }>,
+  metaCreatedAt: string | undefined,
+  phone: string | null,
+): boolean {
+  const createdMs = metaCreatedAt ? new Date(metaCreatedAt).getTime() : Date.now();
+  return !!phone
+    && Number.isFinite(createdMs)
+    && createdMs >= PRIVATE_FOLLOWUPS_ENABLED_FROM
+    && isPrivateMetaLead(fieldData);
+}
+
 const PENDING_MARKER = "[meta_pending]";
 
 /**
@@ -183,6 +215,7 @@ async function ingestLead(
   formId: string,
   fieldData: Array<{ name: string; values: string[] }>,
   stageId: string,
+  metaCreatedAt?: string,
 ): Promise<"inserted" | "duplicate" | "error"> {
   const m = mapFields(fieldData);
   const marker = `[meta_lead:${leadgenId}]`;
@@ -197,18 +230,41 @@ async function ingestLead(
       const { error } = await supabase.from("leads").update({
         nome: m.nome, cognome: m.cognome, email: m.email, telefono: m.telefono, citta: m.citta,
         note: noteLines.join("\n"),
+        meta_leadgen_id: leadgenId, meta_form_id: formId || null,
+        meta_created_at: metaCreatedAt || null, meta_field_data: fieldData,
       }).eq("id", existing[0].id);
       if (error) { console.error("[meta-leads-webhook] update error:", error.message); return "error"; }
+      if (shouldSchedulePrivateFollowups(fieldData, metaCreatedAt, m.telefono)) {
+        const { error: scheduleError } = await supabase.rpc("schedule_meta_private_lead_followups", {
+          p_lead_id: existing[0].id,
+          p_meta_created_at: metaCreatedAt || new Date().toISOString(),
+        });
+        if (scheduleError) {
+          console.error("[meta-leads-webhook] private follow-up schedule error:", scheduleError.message);
+        }
+      }
       return "inserted";
     }
     return "duplicate";
   }
 
-  const { error } = await supabase.from("leads").insert({
+  const { data: insertedLead, error } = await supabase.from("leads").insert({
     nome: m.nome, cognome: m.cognome, email: m.email, telefono: m.telefono, citta: m.citta,
     note: noteLines.join("\n"), source: "meta_ads", stage_id: stageId, page_url: "Meta Ads",
-  });
+    meta_leadgen_id: leadgenId, meta_form_id: formId || null,
+    meta_created_at: metaCreatedAt || null, meta_field_data: fieldData,
+  }).select("id").single();
   if (error) { console.error("[meta-leads-webhook] insert error:", error.message); return "error"; }
+
+  if (insertedLead && shouldSchedulePrivateFollowups(fieldData, metaCreatedAt, m.telefono)) {
+    const { error: scheduleError } = await supabase.rpc("schedule_meta_private_lead_followups", {
+      p_lead_id: insertedLead.id,
+      p_meta_created_at: metaCreatedAt || new Date().toISOString(),
+    });
+    if (scheduleError) {
+      console.error("[meta-leads-webhook] private follow-up schedule error:", scheduleError.message);
+    }
+  }
 
   try {
     const occupazione = m.extra.length > 0 ? m.extra.join(" · ") : "non specificato";
@@ -326,7 +382,7 @@ Deno.serve(async (req) => {
           scanned++;
           const created = lead.created_time ? Math.floor(new Date(lead.created_time).getTime() / 1000) : 0;
           if (created && created < sinceUnix) { reachedOld = true; break; } // /leads è ordinato desc
-          const res = await ingestLead(String(lead.id), String(form.id), lead.field_data ?? [], stageId);
+          const res = await ingestLead(String(lead.id), String(form.id), lead.field_data ?? [], stageId, lead.created_time);
           if (res === "inserted") inserted++;
           else if (res === "duplicate") duplicates++;
           else errors++;
@@ -382,7 +438,7 @@ Deno.serve(async (req) => {
           continue;
         }
 
-        await ingestLead(leadgenId, formId || String(lead.form_id ?? ""), lead.field_data ?? [], stageId);
+        await ingestLead(leadgenId, formId || String(lead.form_id ?? ""), lead.field_data ?? [], stageId, lead.created_time);
       } catch (e) {
         console.error("[meta-leads-webhook] error:", e);
       }

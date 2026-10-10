@@ -118,9 +118,9 @@ BEGIN
             AND lower(trim(ep.cliente_email)) = lower(trim(l.email)))
           OR
           (l.telefono IS NOT NULL AND ep.cliente_telefono IS NOT NULL
-            AND right(regexp_replace(ep.cliente_telefono, '\\D', '', 'g'), 9)
-              = right(regexp_replace(l.telefono, '\\D', '', 'g'), 9)
-            AND length(regexp_replace(l.telefono, '\\D', '', 'g')) >= 9)
+            AND right(regexp_replace(ep.cliente_telefono, '\D', '', 'g'), 9)
+              = right(regexp_replace(l.telefono, '\D', '', 'g'), 9)
+            AND length(regexp_replace(l.telefono, '\D', '', 'g')) >= 9)
         )
     );
 
@@ -133,7 +133,7 @@ BEGIN
       AND f.due_on <= (now() AT TIME ZONE 'Europe/Rome')::date
       AND l.source = 'meta_ads'
       AND l.telefono IS NOT NULL
-      AND length(regexp_replace(l.telefono, '\\D', '', 'g')) >= 9
+      AND length(regexp_replace(l.telefono, '\D', '', 'g')) >= 9
     ORDER BY f.due_on, f.created_at
     FOR UPDATE OF f SKIP LOCKED
     LIMIT LEAST(GREATEST(COALESCE(p_limit, 25), 1), 100)

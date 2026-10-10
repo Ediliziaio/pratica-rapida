@@ -8,14 +8,20 @@ export type AprOperatorResponseState = Readonly<{
 
 export function parseAprOperatorResponseState(note: string | null | undefined): AprOperatorResponseState | null {
   const normalized = (note ?? "").replace(/\r\n/g, "\n");
-  const markerIndex = normalized.indexOf(APR_OPERATOR_RESPONSE_MARKER);
+  const markerIndex = normalized.lastIndexOf(APR_OPERATOR_RESPONSE_MARKER);
   if (markerIndex < 0) return null;
 
   const issuedNote = normalized.slice(0, markerIndex + APR_OPERATOR_RESPONSE_MARKER.length).trimEnd();
-  if (!issuedNote.startsWith("Domanda APR\nDestinatario: titolare\n")) return null;
+  if (!issuedNote.endsWith(`\n${APR_OPERATOR_RESPONSE_MARKER}`)) return null;
+  const formalPrefix = "Domanda APR\nDestinatario: titolare\n";
+  const fallbackPrefix = "APR si e' fermato. ";
+  const prefix = issuedNote.startsWith(formalPrefix)
+    ? formalPrefix
+    : issuedNote.startsWith(fallbackPrefix) ? fallbackPrefix : null;
+  if (!prefix) return null;
 
   const question = issuedNote
-    .slice("Domanda APR\nDestinatario: titolare\n".length, -APR_OPERATOR_RESPONSE_MARKER.length)
+    .slice(prefix.length, -(`\n${APR_OPERATOR_RESPONSE_MARKER}`).length)
     .trim();
   if (!question) return null;
 

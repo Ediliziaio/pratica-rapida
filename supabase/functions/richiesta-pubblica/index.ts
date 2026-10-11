@@ -99,6 +99,31 @@ async function resolveResellerNetPrice(
   return fallbackResellerNetPrice(company?.ragione_sociale ?? null);
 }
 
+async function resolveCfNetPrice(
+  supabase: ReturnType<typeof createClient>,
+  companyId: string,
+): Promise<number> {
+  const keys = ["prezzo_cf_standard", "prezzo_cf_sima_home", "cf_sima_home_company_id"];
+  const { data, error } = await supabase
+    .from("platform_settings")
+    .select("key,value")
+    .in("key", keys);
+  if (error) throw error;
+
+  const settings = new Map((data ?? []).map((row) => [String(row.key), row.value]));
+  const asRecord = (value: unknown): Record<string, unknown> =>
+    value && typeof value === "object" && !Array.isArray(value)
+      ? value as Record<string, unknown>
+      : {};
+  const simaId = String(asRecord(settings.get("cf_sima_home_company_id")).company_id ?? "").trim();
+  const pricingKey = simaId && companyId === simaId ? "prezzo_cf_sima_home" : "prezzo_cf_standard";
+  const cents = Number(asRecord(settings.get(pricingKey)).imponibile_cents);
+  if (!Number.isInteger(cents) || cents <= 0) {
+    throw new Error(`Prezzo CF non configurato: ${pricingKey}`);
+  }
+  return cents / 100;
+}
+
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 interface Payload {
@@ -376,11 +401,13 @@ serve(async (req) => {
     ].filter(Boolean).join("\n");
 
     // ── 4. Crea la pratica ──
-    // Per il rivenditore il prezzo salvato e sempre l'imponibile del suo
-    // listino. Il cliente finale viene valorizzato dal flusso di pagamento.
-    // Sul contenitore "Da abbinare" il prezzo resta 0 finche lo staff non
-    // assegna l'azienda corretta: non inventiamo un listino.
-    const resellerNetPrice = !isPrivato && matchType !== "creata"
+    // Il prezzo salvato deve riflettere chi paga: listino azienda quando paga
+    // il rivenditore, listino CF quando paga il cliente finale. Sul contenitore
+    // "Da abbinare" resta 0 soltanto una pratica a carico del rivenditore:
+    // senza azienda reale non inventiamo il suo listino.
+    const cfFinale = p.tipo_fatturazione === "cliente_finale";
+    const cfNetPrice = cfFinale ? await resolveCfNetPrice(supabase, companyId) : 0;
+    const resellerNetPrice = !cfFinale && !isPrivato && matchType !== "creata"
       ? await resolveResellerNetPrice(supabase, companyId)
       : 0;
     const { data: practice, error: insertErr } = await supabase
@@ -430,8 +457,8 @@ serve(async (req) => {
           ? 35
           : p.fgas?.requested === true
             ? 90
-            : isPrivato
-              ? null
+            : cfFinale
+              ? cfNetPrice
               : resellerNetPrice,
         note: declared,
         fatture_urls: [],

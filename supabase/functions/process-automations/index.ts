@@ -458,6 +458,11 @@ serve(async (req) => {
             // esiste un template adatto e non inventiamo messaggi di soldi.
             const attesaPagamento =
               p.tipo_fatturazione === "cliente_finale" && p.pagamento_stato !== "pagata";
+            // Il percorso H24 e' autorizzato esclusivamente per ricordare la
+            // compilazione. I promemoria di pagamento restano nel normale
+            // giro in fascia operativa, anche se condividono lo stesso trigger
+            // legacy days_waiting_7.
+            if (compilationOnly && attesaPagamento) continue;
             if (attesaPagamento && rule.channel !== "email") continue;
             if (attesaPagamento && !p.cliente_email) continue;
             // Tetto: dopo 4 promemoria (~un mese) si smette di scrivere.

@@ -156,3 +156,44 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: "b3423ec9073bbd86dcc206273d7e093c"
+
+  deploy-eneasubito:
+    name: Build & Deploy EneaSubito (sito separato)
+    runs-on: ubuntu-latest
+    needs: [typecheck]
+    # Compilazione e progetto Cloudflare distinti dall'altro marchio: i due
+    # siti non condividono la pagina servita, la cartella public/ ne' il
+    # pacchetto. Gira in parallelo: se questo fallisce, l'altro sito esce
+    # lo stesso, e viceversa.
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install
+      - name: Build
+        run: bun run build:eneasubito
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+      - name: Nessuna traccia dell'altro marchio nel sito compilato
+        # Controllo bloccante: se un giorno un import riporta dentro codice o
+        # testi dell'altro sito, il deploy si ferma qui invece di pubblicarli.
+        run: |
+          if grep -rliE "praticarapida|pratica rapida" dist-eneasubito/ ; then
+            echo "::error::Il sito compilato contiene riferimenti all'altro marchio"
+            exit 1
+          fi
+          echo "Nessun riferimento trovato."
+      - name: Install Wrangler
+        run: npm install -g wrangler
+      - name: Create Pages project if not exists
+        run: wrangler pages project create eneasubito --production-branch=main || true
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: "b3423ec9073bbd86dcc206273d7e093c"
+      - name: Deploy to Cloudflare Pages
+        run: wrangler pages deploy dist-eneasubito --project-name=eneasubito --branch=main --commit-dirty=true
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: "b3423ec9073bbd86dcc206273d7e093c"

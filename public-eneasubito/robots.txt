@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# I moduli da far firmare non hanno motivo di finire nei risultati di ricerca.
+Disallow: /modulo-fine-lavori
+Disallow: /verbale-di-posa
+
+Sitemap: https://www.eneasubito.it/sitemap.xml

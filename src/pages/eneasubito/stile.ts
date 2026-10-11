@@ -5,6 +5,11 @@
  * EneaSubito non può toccare una virgola di Pratica Rapida.
  */
 export const STILE = `
+/* Questa applicazione non carica index.css (sarebbe il foglio dell'altro
+   marchio): le poche basi che servivano stanno qui. */
+html, body { margin: 0; padding: 0; }
+body { background: #F5F2EC; }
+
 .es-root {
   --es-carta: #F5F2EC;
   --es-superficie: #FFFFFF;

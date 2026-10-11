@@ -7,12 +7,12 @@ import { useParams } from "react-router-dom";
 
 import { Guscio, Spunta } from "./Guscio";
 import { trovaIntervento, type Intervento } from "./interventi";
-import NotFound from "@/pages/NotFound";
+import NonTrovata from "./NonTrovata";
 
 export function PaginaIntervento({ slug }: { slug?: string }) {
   const params = useParams();
   const intervento = trovaIntervento(slug ?? params.slug);
-  if (!intervento) return <NotFound />;
+  if (!intervento) return <NonTrovata />;
   return <Contenuto intervento={intervento} />;
 }
 

@@ -10,12 +10,12 @@ import { useParams } from "react-router-dom";
 
 import { Guscio } from "./Guscio";
 import { trovaDocumento, type Documento } from "./legali";
-import NotFound from "@/pages/NotFound";
+import NonTrovata from "./NonTrovata";
 
 export function PaginaLegale({ slug }: { slug?: string }) {
   const params = useParams();
   const documento = trovaDocumento(slug ?? params.slug);
-  if (!documento) return <NotFound />;
+  if (!documento) return <NonTrovata />;
   return <Contenuto documento={documento} />;
 }
 

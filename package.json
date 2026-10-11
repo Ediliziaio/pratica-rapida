@@ -11,7 +11,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "build:eneasubito": "vite build --config vite.eneasubito.config.ts"
+    "build:eneasubito": "vite build --config vite.eneasubito.config.ts",
+    "preview:eneasubito": "vite preview --config vite.eneasubito.config.ts --port 5183 --strictPort"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

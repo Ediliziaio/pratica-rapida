@@ -54,13 +54,13 @@ function Contenuto({ intervento }: { intervento: Intervento }) {
       <div className="es-wrap">
         <section className="es-richiamo">
           <div>
-            <b className="es-serif">Scopri gratis se la tua pratica si può fare</b>
+            <b className="es-serif">Fai partire la tua pratica ENEA</b>
             <span>
-              Cinque domande e la foto della fattura. Ti rispondiamo subito, e paghi 99 € solo se la
-              risposta è sì.
+              Il nome di chi è in fattura, la tua e-mail, la foto della fattura. Due minuti e 99 €: se
+              poi non si può fare, ti restituiamo tutto.
             </span>
           </div>
-          <a className="es-bottone es-bottone-pieno" href="/verifica">Verifica la tua pratica</a>
+          <a className="es-bottone es-bottone-pieno" href="/verifica">Fai partire la pratica</a>
         </section>
       </div>
     </Guscio>

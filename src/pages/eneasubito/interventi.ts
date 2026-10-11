@@ -36,7 +36,7 @@ export const INTERVENTI: Intervento[] = [
     slug: "infissi",
     titoloSeo: "Pratica ENEA per la sostituzione degli infissi — EneaSubito",
     descrizione:
-      "Hai sostituito finestre o portefinestre? La comunicazione all'ENEA va trasmessa entro 90 giorni dalla fine dei lavori. Verifica gratis se la tua pratica si può fare, paghi 99 € solo se la risposta è sì.",
+      "Hai sostituito finestre o portefinestre? La comunicazione all'ENEA va trasmessa entro 90 giorni dalla fine dei lavori. La facciamo noi a 99 €: ti servono il nome di chi è in fattura, la tua e-mail e la foto della fattura.",
     h1: "Pratica ENEA per la sostituzione degli infissi",
     occhiello: "Infissi e serramenti",
     intro:
@@ -66,7 +66,7 @@ export const INTERVENTI: Intervento[] = [
         titolo: "Dove si incaglia quasi sempre",
         paragrafi: [
           "La fattura senza le misure. Moltissimi installatori scrivono «fornitura e posa di serramenti» e un importo, e basta: senza i metri quadri la pratica non si compila. Noi lo vediamo subito e ti diciamo cosa farti mandare, invece di scoprirlo al novantesimo giorno.",
-          "Il certificato che non si trova. È il foglio del produttore, non dell'installatore, e spesso il cliente non sa nemmeno di averlo. Se manca, te lo chiediamo noi — ma solo dopo averti detto se la pratica si può fare.",
+          "Il certificato che non si trova. È il foglio del produttore, non dell'installatore, e spesso il cliente non sa nemmeno di averlo. Se manca lo cerchiamo noi, e non te lo chiediamo prima: all'inizio ci basta la fattura.",
         ],
       },
     ],
@@ -75,7 +75,7 @@ export const INTERVENTI: Intervento[] = [
     slug: "schermature-solari",
     titoloSeo: "Pratica ENEA per tende da sole e schermature solari — EneaSubito",
     descrizione:
-      "Tende da sole, pergotende e pergole: la comunicazione all'ENEA va trasmessa entro 90 giorni dalla fine dei lavori. Verifica gratis se la tua pratica si può fare, paghi 99 € solo se la risposta è sì.",
+      "Tende da sole, pergotende e pergole: la comunicazione all'ENEA va trasmessa entro 90 giorni dalla fine dei lavori. La facciamo noi a 99 €: ti servono il nome di chi è in fattura, la tua e-mail e la foto della fattura.",
     h1: "Pratica ENEA per tende da sole e schermature solari",
     occhiello: "Schermature solari",
     intro:
@@ -106,7 +106,7 @@ export const INTERVENTI: Intervento[] = [
         titolo: "Dove si incaglia quasi sempre",
         paragrafi: [
           "Il Gtot. È il valore che dice quanta luce solare la tenda lascia passare, e senza quello la pratica non si chiude. Nella maggior parte dei casi l'installatore lo scrive in fattura — quando non c'è, va chiesto a lui, ed è una delle prime cose che controlliamo.",
-          "Le pergole senza telo tecnico. Una pergola che fa solo ombra con le lamelle non è la stessa cosa di una schermatura: se il tuo caso non rientra te lo diciamo subito, gratis, prima che tu paghi qualcosa.",
+          "Le pergole senza telo tecnico. Una pergola che fa solo ombra con le lamelle non è la stessa cosa di una schermatura: se guardando i documenti risulta che il tuo caso non rientra, ti restituiamo i 99 €.",
         ],
       },
     ],
@@ -115,7 +115,7 @@ export const INTERVENTI: Intervento[] = [
     slug: "pompe-di-calore",
     titoloSeo: "Pratica ENEA per pompe di calore e climatizzatori — EneaSubito",
     descrizione:
-      "Hai installato una pompa di calore per il riscaldamento? La comunicazione all'ENEA va trasmessa entro 90 giorni dalla fine dei lavori. Verifica gratis se la tua pratica si può fare, paghi 99 € solo se la risposta è sì.",
+      "Hai installato una pompa di calore per il riscaldamento? La comunicazione all'ENEA va trasmessa entro 90 giorni dalla fine dei lavori. La facciamo noi a 99 €: ti servono il nome di chi è in fattura, la tua e-mail e la foto della fattura.",
     h1: "Pratica ENEA per le pompe di calore",
     occhiello: "Pompe di calore",
     intro:

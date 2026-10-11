@@ -2,8 +2,14 @@
  * eneasubito.it — la pagina di atterraggio del secondo marchio.
  *
  * Perimetro: infissi, schermature solari, pompe di calore. Il cliente dà il
- * minimo, il preflight risponde subito se la pratica si può fare, e solo dopo
- * il pagamento gli si chiede il resto.
+ * minimo — chi è in fattura, dove scrivergli, la fattura — paga, e solo dopo
+ * gli si chiede il resto.
+ *
+ * Qui c'era la promessa di una verifica gratuita prima del pagamento. Il
+ * Titolare l'ha eliminata l'11/10/2026: il suo esito incerto diceva «aspetta
+ * che ti facciamo sapere», cioè offriva al cliente l'occasione di andarsene.
+ * Al suo posto la garanzia che era già nei Termini: se non si può fare, si
+ * restituisce tutto.
  *
  * Deve dare l'idea di semplicità e di discount, quindi la pagina è volutamente
  * corta: sei blocchi, poche righe ciascuno, il prezzo nel titolo e il
@@ -28,9 +34,9 @@ import { STILE } from "./eneasubito/stile";
 const DETRAZIONE_PRIMA_CASA = "5.000 €";
 
 const PASSI: [string, string][] = [
-  ["Rispondi a 4 domande", "Che lavoro hai fatto, quando è finito, la foto della fattura. Due minuti."],
-  ["Ti diciamo se si può fare", "Subito, gratis, senza carta di credito e senza parlare con nessuno."],
-  ["Paghi 99 €", "Solo se la risposta è sì. Carta o Apple Pay."],
+  ["Dicci tre cose", "Chi è in fattura, la tua e-mail, la foto della fattura. Due minuti."],
+  ["Paghi 99 €", "Carta o Apple Pay. La fattura te la manda Stripe subito."],
+  ["Ti chiediamo il resto", "Con calma, dal tuo link: dati catastali, certificati, bonifico."],
   ["Ricevi la pratica", "La trasmettiamo all'ENEA e ti mandiamo la ricevuta col codice CPID."],
 ];
 
@@ -78,7 +84,7 @@ export default function EneaSubito() {
         <title>EneaSubito — la pratica ENEA a 99 €</title>
         <meta
           name="description"
-          content="Pratica ENEA per infissi, schermature solari e pompe di calore a 99 €. Quattro domande e la foto della fattura: ti diciamo subito, gratis, se si può fare."
+          content="Pratica ENEA per infissi, schermature solari e pompe di calore a 99 €. Chi è in fattura, la tua e-mail, la foto della fattura: in due minuti la pratica è partita."
         />
         <link rel="canonical" href="https://www.eneasubito.it/" />
         <meta property="og:title" content="EneaSubito — la pratica ENEA a 99 €" />
@@ -98,7 +104,7 @@ export default function EneaSubito() {
             <Link to="/schermature-solari">Schermature</Link>
             <Link to="/pompe-di-calore">Pompe di calore</Link>
           </nav>
-          <Link className="es-bottone es-bottone-pieno es-bottone-piccolo" to="/verifica">Verifica gratis</Link>
+          <Link className="es-bottone es-bottone-pieno es-bottone-piccolo" to="/verifica">Fai partire la pratica</Link>
         </div>
       </header>
 
@@ -109,29 +115,31 @@ export default function EneaSubito() {
             Devi fare una pratica ENEA veloce, online, economica e curata da professionisti?
           </h1>
           <p>
-            Verificheremo la fattibilità e <strong style={{ fontWeight: 600, color: "var(--es-inchiostro)" }}>solo
-            dopo</strong> procederai al pagamento.
+            Tre cose e la tua pratica parte. Il resto dei dati te li chiediamo{" "}
+            <strong style={{ fontWeight: 600, color: "var(--es-inchiostro)" }}>dopo</strong>, con calma.
           </p>
           <div className="es-azioni">
             <Link className="es-bottone es-bottone-pieno es-bottone-grande" to="/verifica">
-              Verifica gratis la tua pratica
+              Fai partire la tua pratica
             </Link>
           </div>
-          <p className="es-micro">Due minuti. Niente telefono, niente appuntamenti, niente carta di credito.</p>
+          <p className="es-micro">Due minuti. Niente telefono, niente appuntamenti, niente moduli lunghi.</p>
         </div>
 
-        {/* Il verdetto che riceverà davvero: è la prova, non un disegno. */}
+        {/* Cosa gli chiederemo davvero, prima che lo scopra cliccando: tre
+            righe, nessuna sorpresa. Prima qui stava un finto esito della
+            verifica gratuita, che non esiste piu'. */}
         <div className="es-anteprima">
           <div className="es-anteprima-testa">
-            <span className="es-etichetta">Esito della verifica</span>
-            <span className="es-pastiglia es-pastiglia-ok">Si può fare</span>
+            <span className="es-etichetta">Cosa ti serve</span>
+            <span className="es-pastiglia es-pastiglia-ok">Due minuti</span>
           </div>
           <ul className="es-esiti">
-            <li><span className="es-ok"><Spunta /></span>Sostituzione infissi — <b>ammissibile</b></li>
-            <li><span className="es-ok"><Spunta /></span>Sei nei termini, <b>mancano 34 giorni</b></li>
-            <li><span className="es-ok"><Spunta /></span>Fattura letta: 9.840,00 € · 6 pezzi</li>
+            <li><span className="es-ok"><Spunta /></span>Il <b>nome di chi è in fattura</b></li>
+            <li><span className="es-ok"><Spunta /></span>La tua <b>e-mail</b></li>
+            <li><span className="es-ok"><Spunta /></span>La <b>foto della fattura</b>, anche storta</li>
           </ul>
-          <p className="es-nota">Risposta in pochi secondi. Paghi solo se è sì.</p>
+          <p className="es-nota">Nient'altro. Il resto te lo chiediamo dopo.</p>
         </div>
       </section>
 
@@ -168,7 +176,7 @@ export default function EneaSubito() {
       <div className="es-wrap">
         <section id="prezzo" className="es-prezzo">
           <div className="es-prezzo-testo">
-            <h2 className="es-titolo es-serif">99 €, e li paghi alla fine</h2>
+            <h2 className="es-titolo es-serif">99 €, tutto compreso</h2>
             <ul className="es-elenco">
               {INCLUSO.map((voce) => (
                 <li key={voce}><span style={{ color: "var(--es-verde)" }}><Spunta /></span>{voce}</li>
@@ -180,8 +188,8 @@ export default function EneaSubito() {
               <b className="es-serif">99 €</b>
               <span style={{ fontSize: 16, color: "#A8B6AE" }}>tutto compreso</span>
             </div>
-            <p>Se non si può fare, non paghi niente.</p>
-            <Link className="es-bottone es-bottone-chiaro" to="/verifica">Verifica gratis</Link>
+            <p>Se la tua pratica non si può fare, ti restituiamo tutto.</p>
+            <Link className="es-bottone es-bottone-chiaro" to="/verifica">Fai partire la tua pratica</Link>
             <span className="es-firma">Pagamento sicuro con Stripe</span>
           </div>
         </section>

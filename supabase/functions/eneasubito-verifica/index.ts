@@ -1,12 +1,15 @@
 /**
  * eneasubito-verifica — la pratica nasce qui.
  *
- * La chiama il modulo gratuito del secondo marchio, in due momenti:
+ * La chiama il modulo del secondo marchio, in due momenti:
  *
- *  1. appena il cliente ha scritto un'e-mail valida, prima della parte
- *     difficile. Serve a non perderlo: da quel momento la bozza esiste sul
- *     server, e se si ferma sappiamo a chi scrivere;
- *  2. quando il preflight ha dato l'esito, per registrarlo sulla pratica.
+ *  1. quando il cliente preme per andare a pagare: nasce la pratica e torna
+ *     indietro il token, che serve per tutto il resto;
+ *  2. subito dopo, per attaccare alla pratica la fattura appena caricata.
+ *
+ * Qui registrava anche l'esito del preflight. Non piu': il preflight e' stato
+ * eliminato l'11/10/2026 (vedi verifica/logica.ts), non c'e' piu' nessun
+ * verdetto da scrivere.
  *
  * E' una funzione a se' e non un ramo di `richiesta-pubblica`: quella serve
  * l'altro marchio in produzione tutti i giorni, e non si tocca per aggiungere
@@ -47,11 +50,10 @@ interface Corpo {
   nome?: string;
   email?: string;
   famiglia?: string;
-  /** AAAA-MM-GG */
+  /** AAAA-MM-GG. Non arriva dal modulo, ma la pratica lo accetta. */
   fineLavori?: string;
-  esito?: "si_puo_fare" | "non_si_puo_fare" | "serve_un_controllo";
-  /** Le righe che il cliente ha visto come motivazione dell'esito. */
-  motivi?: string[];
+  /** Dove e' finita la fattura nello storage, dopo il caricamento. */
+  fatturaPath?: string;
 }
 
 Deno.serve(async (req) => {
@@ -80,7 +82,7 @@ Deno.serve(async (req) => {
     if (corpo.token) {
       const { data: esistente } = await db
         .from("enea_practices")
-        .select("id, form_token, canale")
+        .select("id, form_token, canale, fatture_urls")
         .eq("form_token", corpo.token)
         .maybeSingle();
 
@@ -90,10 +92,16 @@ Deno.serve(async (req) => {
         return json({ error: "Richiesta non valida" }, 404);
       }
 
-      await db
-        .from("enea_practices")
-        .update(campiDaCorpo(corpo, email))
-        .eq("id", esistente.id);
+      // La fattura si aggiunge a quelle che ci sono: un secondo caricamento
+      // non deve cancellare il primo. Il doppione si scarta, cosi' un invio
+      // ripetuto non lascia due volte lo stesso file.
+      const campi = campiDaCorpo(corpo, email);
+      if (corpo.fatturaPath) {
+        const gia = (esistente.fatture_urls as string[] | null) ?? [];
+        campi.fatture_urls = gia.includes(corpo.fatturaPath) ? gia : [...gia, corpo.fatturaPath];
+      }
+
+      await db.from("enea_practices").update(campi).eq("id", esistente.id);
 
       return json({ ok: true, token: esistente.form_token });
     }
@@ -170,19 +178,6 @@ function campiDaCorpo(corpo: Corpo, email: string): Record<string, unknown> {
   }
   if (corpo.fineLavori && /^\d{4}-\d{2}-\d{2}$/.test(corpo.fineLavori)) {
     campi.data_fine_lavori = corpo.fineLavori;
-  }
-  if (corpo.esito) {
-    // L'esito finisce nelle note interne in lingua leggibile: chi apre la
-    // pratica deve capire in due righe cosa ha visto il cliente, senza
-    // decifrare sigle.
-    const quando = new Date().toLocaleString("it-IT", { timeZone: "Europe/Rome" });
-    const titolo = {
-      si_puo_fare: "Verifica: si puo' fare",
-      non_si_puo_fare: "Verifica: non si puo' fare",
-      serve_un_controllo: "Verifica: serve un controllo nostro",
-    }[corpo.esito];
-    const righe = (corpo.motivi ?? []).map((m) => `· ${m}`).join("\n");
-    campi.note_interne = `${titolo} (${quando})\n${righe}`.trim();
   }
   return campi;
 }

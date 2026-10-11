@@ -10,8 +10,13 @@
  *  · l'interessato non è un rivenditore ma un privato cittadino, quindi
  *    cambiano le categorie di dati e le finalità;
  *  · i termini sono di un servizio al consumatore, non di un contratto fra
- *    imprese: ci stanno dentro le promesse fatte in pagina (verifica gratuita,
- *    prezzo, rimborso, tempi) e il recesso.
+ *    imprese: ci stanno dentro le promesse fatte in pagina (prezzo, rimborso,
+ *    tempi) e il recesso.
+ *
+ * L'11/10/2026 la verifica gratuita preliminare e' stata eliminata dal
+ * Titolare: il cliente paga e poi completa i dati. Questi testi sono stati
+ * riallineati, perche' un contratto che descrive un passaggio che non esiste
+ * piu' e' peggio di nessun contratto.
  *
  * I [SEGNAPOSTO] sono le cose che solo il Titolare può decidere. Finché ci
  * sono, le pagine non vanno pubblicate.
@@ -67,7 +72,7 @@ export const DOCUMENTI: Documento[] = [
       {
         titolo: "3. Perché li trattiamo",
         elenco: [
-          "Per eseguire il servizio che ci hai chiesto: verificare se la pratica si può fare, compilarla e trasmetterla all'ENEA (art. 6.1.b GDPR).",
+          "Per eseguire il servizio che ci hai chiesto: controllare che la pratica si possa fare, compilarla e trasmetterla all'ENEA (art. 6.1.b GDPR).",
           "Per adempiere a obblighi di legge, in particolare quelli fiscali e di fatturazione (art. 6.1.c GDPR).",
           "Per la sicurezza del servizio, la prevenzione degli abusi e la difesa di un diritto, sulla base del nostro legittimo interesse (art. 6.1.f GDPR).",
         ],
@@ -97,7 +102,7 @@ export const DOCUMENTI: Documento[] = [
         titolo: "6. Per quanto tempo li conserviamo",
         paragrafi: [
           "Conserviamo i dati della pratica per dieci anni: è il tempo entro cui può essere chiesto conto della detrazione, ed è il termine previsto per la documentazione contabile.",
-          "Se chiedi la verifica gratuita e non vai avanti, i dati e i documenti che hai caricato vengono cancellati entro 90 giorni.",
+          "Se apri una richiesta e non la porti a termine, i dati e i documenti che hai caricato vengono cancellati entro 90 giorni.",
         ],
       },
       {
@@ -133,7 +138,7 @@ export const DOCUMENTI: Documento[] = [
       {
         titolo: "2. Cosa comprende il servizio",
         elenco: [
-          "La verifica preliminare, gratuita, sulla fattibilità della tua pratica.",
+          "Il controllo di fattibilità della tua pratica.",
           "Il controllo dei documenti che ci fornisci.",
           "La compilazione completa della comunicazione e la sua trasmissione al portale ENEA.",
           "La consegna via e-mail della ricevuta ufficiale con il codice CPID.",
@@ -144,23 +149,24 @@ export const DOCUMENTI: Documento[] = [
         ],
       },
       {
-        titolo: "3. La verifica gratuita e il suo esito",
+        titolo: "3. Come si svolge",
         paragrafi: [
-          "La verifica è gratuita e non impegna nessuno dei due. Può avere tre esiti: la pratica si può fare, non si può fare, oppure serve un controllo da parte di un operatore, nel qual caso ti rispondiamo entro 24 ore.",
-          "L'esito si basa sulle informazioni e sui documenti che ci fornisci tu. Se risultano diversi da quelli reali, l'esito non vale.",
+          "Per avviare la pratica ti chiediamo tre cose: il nome e cognome dell'intestatario della fattura, un indirizzo e-mail e la fattura dell'installatore. Con queste la richiesta è aperta e si paga.",
+          "Subito dopo il pagamento ti mandiamo per e-mail un collegamento personale da cui completare i dati restanti: dati catastali, certificati del produttore, estremi del pagamento e date. La pratica viene trasmessa quando quei dati sono completi.",
+          "Il controllo di fattibilità lo facciamo noi su quello che ci fornisci tu. Se i documenti risultano diversi da quanto dichiarato, vale l'articolo 5.",
         ],
       },
       {
         titolo: "4. Prezzo e pagamento",
         paragrafi: [
-          "Il servizio costa 99 €, pagati dopo l'esito della verifica e prima della trasmissione. Il pagamento avviene tramite Stripe; la fattura ti viene inviata per e-mail automaticamente.",
+          "Il servizio costa 99 €, pagati all'apertura della richiesta e prima della trasmissione. Il pagamento avviene tramite Stripe; la fattura ti viene inviata per e-mail automaticamente.",
           "Il recupero dei dati catastali, se ce lo chiedi, è un servizio a parte ed è indicato con il suo prezzo al momento della richiesta.",
         ],
       },
       {
         titolo: "5. Quando ti rimborsiamo",
         elenco: [
-          "Se, dopo il pagamento, risulta che la pratica non si può fare, ti rimborsiamo l'intero importo.",
+          "Se risulta che la pratica non si può fare, ti rimborsiamo l'intero importo.",
           "Se i documenti non confermano quello che ci avevi dichiarato e per questo non possiamo procedere, ti rimborsiamo l'intero importo.",
           "Non è dovuto alcun rimborso quando la pratica è stata trasmessa e la ricevuta consegnata.",
         ],

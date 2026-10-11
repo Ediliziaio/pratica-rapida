@@ -1,5 +1,8 @@
 project_id = "xmkjrhwmmuzaqjqlvzxm"
 
+[functions.eneasubito-verifica]
+verify_jwt = false
+
 [functions.meta-leads-webhook]
 verify_jwt = false
 

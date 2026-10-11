@@ -21,6 +21,7 @@ import { useSearchParams } from "react-router-dom";
 
 import { Guscio } from "../Guscio";
 import { preparaDocumento } from "./immagine";
+import { salvaPratica } from "./pratica";
 import {
   GIORNI_DI_LAVORAZIONE,
   giorniRimasti,
@@ -32,6 +33,7 @@ import {
 } from "./logica";
 
 const MEMORIA = "eneasubito-verifica";
+const MEMORIA_TOKEN = "eneasubito-pratica";
 const PASSI = 4;
 
 const FAMIGLIE: { id: Famiglia; nome: string; esempi: string }[] = [
@@ -79,6 +81,26 @@ export default function Verifica() {
   const [preparazione, setPreparazione] = useState<string | null>(null);
   const [verdetto, setVerdetto] = useState<Verdetto | null>(null);
   const [inCorso, setInCorso] = useState(false);
+  // Token della pratica sul server. Si prende appena c'è l'e-mail, cioè
+  // prima dello scalino piu' ripido: se si ferma sulla fattura, sappiamo
+  // comunque a chi scrivere.
+  const [token, setToken] = useState<string | null>(() => {
+    try {
+      return localStorage.getItem(MEMORIA_TOKEN);
+    } catch {
+      return null;
+    }
+  });
+
+  function ricordaToken(nuovo: string | null) {
+    if (!nuovo) return;
+    setToken(nuovo);
+    try {
+      localStorage.setItem(MEMORIA_TOKEN, nuovo);
+    } catch {
+      // Spazio esaurito o navigazione privata: pazienza.
+    }
+  }
 
   // Si salva a ogni modifica: chi chiude la pagina e torna non ricomincia.
   useEffect(() => {
@@ -111,8 +133,19 @@ export default function Verifica() {
     setInCorso(true);
     // TODO(2): qui chiamerà il lettore vero.
     const lettura = await leggiFattura(fileScelto, parametri.get("lettore"));
-    setVerdetto(valuta(risposte, lettura));
+    const esito = valuta(risposte, lettura);
+    setVerdetto(esito);
     setInCorso(false);
+    // L'esito finisce sulla pratica, cosi' chi la apre vede in due righe
+    // cosa ha visto il cliente.
+    void salvaPratica({
+      token,
+      email: risposte.email,
+      famiglia: risposte.famiglia,
+      fineLavori: risposte.fineLavori,
+      esito: esito.esito,
+      motivi: esito.motivi.map((m) => m.testo),
+    }).then(ricordaToken);
   }
 
   if (verdetto) {
@@ -288,7 +321,20 @@ export default function Verifica() {
                 className="es-bottone es-bottone-pieno"
                 disabled={!puoAvanzare}
                 style={{ opacity: puoAvanzare ? 1 : 0.5 }}
-                onClick={() => setPasso((p) => p + 1)}
+                onClick={() => {
+                  // Passando oltre l'e-mail la pratica nasce sul server. Non
+                  // aspettiamo la risposta: se tarda o fallisce, il cliente
+                  // va avanti lo stesso.
+                  if (passo === 2) {
+                    void salvaPratica({
+                      token,
+                      email: risposte.email,
+                      famiglia: risposte.famiglia,
+                      fineLavori: risposte.fineLavori,
+                    }).then(ricordaToken);
+                  }
+                  setPasso((p) => p + 1);
+                }}
               >
                 Avanti
               </button>

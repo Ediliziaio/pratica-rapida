@@ -141,18 +141,16 @@ export function valuta(risposte: Risposte, lettura: LetturaFattura, oggi = new D
   if (rimasti < 0) {
     return {
       esito: "serve_un_controllo",
-      titolo: "Si può ancora fare, ma serve un foglio in più",
+      titolo: "Sei oltre i 90 giorni",
       spiegazione:
-        `Dalla data che hai messo sono passati ${passati} giorni, e il termine è 90. Non sei ` +
-        "spacciato: il termine non parte dalla fattura, parte da quando i lavori sono stati " +
-        "effettivamente finiti, e quella data si attesta con una dichiarazione di fine lavori. " +
-        "Non devi arrangiarti da solo: guardiamo la tua fattura, ti diciamo se il tuo caso si recupera " +
-        "e ti prepariamo il foglio da far firmare al tuo installatore. Ti rispondiamo entro 24 ore, e " +
-        "non paghi niente finché non è chiaro.",
+        `Dalla data che hai messo sono passati ${passati} giorni, e il termine è 90. La tua pratica ` +
+        "la lavoriamo lo stesso e la spesa resta detraibile, ma il CAF ti chiederà di pagare un " +
+        "ravvedimento. Se la data effettiva di fine lavori è più recente di quella che hai indicato, " +
+        "correggila: vale quella.",
       motivi: [
         ...motivi,
         { segno: "forse", testo: `Dalla data indicata sono passati ${passati} giorni` },
-        { segno: "forse", testo: "Serve la dichiarazione di fine lavori — ce ne occupiamo noi" },
+        { segno: "forse", testo: "Fuori termine: il CAF chiedera' un ravvedimento" },
       ],
     };
   }

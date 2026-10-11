@@ -34,10 +34,25 @@ const PASSI: [string, string][] = [
   ["Ricevi la pratica", "La trasmettiamo all'ENEA e ti mandiamo la ricevuta col codice CPID."],
 ];
 
-const FAMIGLIE: [string, string][] = [
-  ["Infissi", "Finestre, portefinestre, porte d'ingresso. Anche zanzariere e tapparelle sulla stessa fattura."],
-  ["Schermature solari", "Tende da sole, pergotende, pergole con telo tecnico."],
-  ["Pompe di calore", "Riscaldamento con pompa di calore, anche al posto della vecchia caldaia."],
+const FAMIGLIE: { nome: string; testo: string; azione: string; dove: string }[] = [
+  {
+    nome: "Infissi",
+    testo: "Finestre, portefinestre, porte d'ingresso. Anche zanzariere e tapparelle sulla stessa fattura.",
+    azione: "Richiedi la tua pratica ENEA per infissi",
+    dove: "/verifica?intervento=infissi",
+  },
+  {
+    nome: "Schermature solari",
+    testo: "Tende da sole, pergotende, pergole con telo tecnico.",
+    azione: "Richiedi la tua pratica ENEA per schermature solari",
+    dove: "/verifica?intervento=schermature",
+  },
+  {
+    nome: "Pompe di calore / climatizzatori",
+    testo: "Riscaldamento con pompa di calore, anche al posto della vecchia caldaia.",
+    azione: "Richiedi la tua pratica ENEA per pompe di calore",
+    dove: "/verifica?intervento=pompe_di_calore",
+  },
 ];
 
 const INCLUSO = [
@@ -48,14 +63,11 @@ const INCLUSO = [
 ];
 
 const DOMANDE: [string, string][] = [
-  ["Perché costa così poco?", "Perché non c'è uno studio dietro: c'è un sistema. Niente ufficio, niente segretaria, niente telefono."],
-  ["Entro quando devo farla?", "Entro 90 giorni dalla fine dei lavori. Se sei fuori termine non è detto che sia finita: provaci lo stesso, è gratis."],
   ["Serve lo SPID?", "No. Trasmettiamo dal nostro accesso professionale, la ricevuta porta il tuo nome."],
-  ["Mi garantite la detrazione?", "No, e diffida di chi te lo promette. Noi facciamo la comunicazione all'ENEA, che è uno degli adempimenti."],
   ["Quanto ci mettete?", "48 ore lavorative da quando abbiamo tutto."],
-  ["Come mi arriva?", "Via e-mail, in PDF, già pronta per la dichiarazione: la stampi e la firmi."],
-  ["E se sbaglio un dato?", "Lo confrontiamo con la fattura e te lo chiediamo. Correggerlo dopo costa 10 €."],
-  ["Posso chiamarvi?", "No, solo e-mail: rispondiamo entro 24 ore. È uno dei motivi per cui costa 99 € e non trecento."],
+  ["Come consegnate la pratica ENEA una volta pronta?", "Via e-mail, in PDF, già pronta per la dichiarazione: la stampi e la firmi."],
+  ["E se sbaglio un dato?", "Lo confrontiamo con la fattura e te lo chiediamo. E anche dopo aver ricevuto la pratica puoi scrivere all'assistenza: ci si mette una mano sopra."],
+  ["Come posso parlare con voi?", "Puoi contattare i nostri tecnici tramite la mail dedicata assistenza@eneasubito.it."],
 ];
 
 export default function EneaSubito() {
@@ -93,16 +105,19 @@ export default function EneaSubito() {
       {/* 1. Apertura: il prezzo nel titolo, il confronto subito sotto. */}
       <section id="top" className="es-wrap es-hero">
         <div className="es-hero-testo">
-          <h1 className="es-serif">La pratica ENEA a 99 €.</h1>
+          <h1 className="es-serif">
+            Devi fare una pratica ENEA veloce, online, economica e curata da professionisti?
+          </h1>
           <p>
-            Un tecnico ne chiede da 150 a 300. Noi 99, tutto online — e prima ti diciamo{" "}
-            <strong style={{ fontWeight: 600, color: "var(--es-inchiostro)" }}>gratis</strong> se la tua
-            pratica si può fare.
+            Verificheremo la fattibilità e <strong style={{ fontWeight: 600, color: "var(--es-inchiostro)" }}>solo
+            dopo</strong> procederai al pagamento.
           </p>
           <div className="es-azioni">
-            <Link className="es-bottone es-bottone-pieno" to="/verifica">Verifica gratis — 2 minuti</Link>
+            <Link className="es-bottone es-bottone-pieno es-bottone-grande" to="/verifica">
+              Verifica gratis la tua pratica
+            </Link>
           </div>
-          <p className="es-micro">Niente telefono, niente appuntamenti, niente carta per la verifica.</p>
+          <p className="es-micro">Due minuti. Niente telefono, niente appuntamenti, niente carta di credito.</p>
         </div>
 
         {/* Il verdetto che riceverà davvero: è la prova, non un disegno. */}
@@ -120,16 +135,7 @@ export default function EneaSubito() {
         </div>
       </section>
 
-      {/* 2. I tre numeri, una riga sola. */}
-      <div className="es-wrap">
-        <section className="es-striscia">
-          <div><b className="es-serif">90 giorni</b><span>per farla, dalla fine dei lavori</span></div>
-          <div><b className="es-serif">{DETRAZIONE_PRIMA_CASA}</b><span>di detrazione su 10.000 € di infissi</span></div>
-          <div><b className="es-serif">99 €</b><span>la pratica, pagata dopo la risposta</span></div>
-        </section>
-      </div>
-
-      {/* 3. Come funziona. */}
+      {/* 2. Come funziona. */}
       <section id="come-funziona" className="es-wrap es-sezione">
         <h2 className="es-titolo es-serif">Come funziona</h2>
         <div className="es-griglia es-griglia-4">
@@ -147,17 +153,15 @@ export default function EneaSubito() {
       <section id="cosa-copriamo" className="es-wrap es-sezione">
         <h2 className="es-titolo es-serif">Cosa facciamo</h2>
         <div className="es-griglia es-griglia-3">
-          {FAMIGLIE.map(([nome, testo]) => (
-            <article key={nome} className="es-scheda es-scheda-grande">
+          {FAMIGLIE.map((f) => (
+            <article key={f.nome} className="es-scheda es-scheda-grande">
               <Fulmine size={28} />
-              <h3>{nome}</h3>
-              <p>{testo}</p>
+              <h3>{f.nome}</h3>
+              <p>{f.testo}</p>
+              <Link className="es-bottone es-bottone-pieno" to={f.dove}>{f.azione}</Link>
             </article>
           ))}
         </div>
-        <p className="es-guida" style={{ marginTop: 18, fontSize: 16, color: "var(--es-inchiostro-debole)" }}>
-          Niente altro: cappotto, fotovoltaico, caldaie, pellet e Conto Termico non li trattiamo.
-        </p>
       </section>
 
       {/* 5. Prezzo. */}

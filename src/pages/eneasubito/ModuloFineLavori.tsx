@@ -140,7 +140,7 @@ export default function ModuloFineLavori({ documento = "fine-lavori" }: { docume
       <div className="mfl-barra">
         <p>
           Stampalo o salvalo in PDF e consegnalo all'impresa che ha fatto i lavori: deve compilarlo e
-          firmarlo lei. Poi rimandacelo e pensiamo a tutto noi.
+          firmarlo lei. Poi conservalo: serve a te, in caso di controlli.
         </p>
         <button type="button" className="mfl-stampa" onClick={() => window.print()}>
           Stampa o salva in PDF

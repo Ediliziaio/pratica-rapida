@@ -63,10 +63,11 @@ describe("i 90 giorni", () => {
     expect(v.esito).toBe("si_puo_fare");
   });
 
-  it("oltre i 90 giorni non è un muro: si chiede la dichiarazione di fine lavori", () => {
+  it("oltre i 90 giorni non è un muro: si lavora lo stesso, col ravvedimento", () => {
     const v = valuta(risposte({ fineLavori: "2026-05-02" }), { stato: "letta", totale: "9.840 €" }, OGGI);
     expect(v.esito).toBe("serve_un_controllo");
-    expect(v.spiegazione).toContain("dichiarazione di fine lavori");
+    expect(v.spiegazione).toContain("ravvedimento");
+    expect(v.spiegazione).toContain("detraibile");
   });
 
   it("avvisa quando il tempo è poco, ma non blocca", () => {

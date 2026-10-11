@@ -74,13 +74,28 @@ async function leggiFattura(_file: File | null, finta: string | null): Promise<L
 
 export default function Verifica() {
   const [parametri] = useSearchParams();
-  const [risposte, setRisposte] = useState<Risposte>(leggiMemoria);
-  const [passo, setPasso] = useState(0);
+  const [risposte, setRisposte] = useState<Risposte>(() => {
+    const salvate = leggiMemoria();
+    // I pulsanti delle schede in home arrivano qui con l'intervento gia'
+    // indicato: sarebbe scortese richiederlo.
+    const scelto = parametri.get("intervento");
+    const ammessi = ["infissi", "schermature", "pompe_di_calore"];
+    return scelto && ammessi.includes(scelto)
+      ? { ...salvate, famiglia: scelto as Risposte["famiglia"] }
+      : salvate;
+  });
+  const [passo, setPasso] = useState(() =>
+    ["infissi", "schermature", "pompe_di_calore"].includes(parametri.get("intervento") ?? "") ? 1 : 0,
+  );
   const [nomeFile, setNomeFile] = useState<string | null>(null);
   const [fileScelto, setFileScelto] = useState<File | null>(null);
   const [preparazione, setPreparazione] = useState<string | null>(null);
   const [verdetto, setVerdetto] = useState<Verdetto | null>(null);
   const [inCorso, setInCorso] = useState(false);
+  // Avviso per chi e' oltre i 90 giorni: compare una volta, non blocca, e
+  // dice cosa comporta davvero invece di limitarsi a un «sei in ritardo».
+  const [avvisoFuoriTermine, setAvvisoFuoriTermine] = useState(false);
+  const [avvisoGiaVisto, setAvvisoGiaVisto] = useState(false);
   // Token della pratica sul server. Si prende appena c'è l'e-mail, cioè
   // prima dello scalino piu' ripido: se si ferma sulla fattura, sappiamo
   // comunque a chi scrivere.
@@ -112,7 +127,17 @@ export default function Verifica() {
   }, [risposte]);
 
   function aggiorna(parziale: Partial<Risposte>) {
-    setRisposte((r) => ({ ...r, ...parziale }));
+    setRisposte((r) => {
+      const nuove = { ...r, ...parziale };
+      if (parziale.fineLavori !== undefined) {
+        const restano = giorniRimasti(nuove.fineLavori);
+        if (restano !== null && restano < 0 && !avvisoGiaVisto) {
+          setAvvisoFuoriTermine(true);
+          setAvvisoGiaVisto(true);
+        }
+      }
+      return nuove;
+    });
   }
 
   async function scegliFile(file: File | undefined) {
@@ -178,6 +203,33 @@ export default function Verifica() {
       descrizione="Quattro domande e la foto della fattura: ti diciamo subito se la tua pratica ENEA si può fare."
       percorso="/verifica"
     >
+      {avvisoFuoriTermine && (
+        <div className="es-velo" role="dialog" aria-modal="true" aria-labelledby="titolo-avviso">
+          <div className="es-finestra">
+            <h2 id="titolo-avviso" className="es-serif">Attenzione: sei oltre i 90 giorni</h2>
+            <p>
+              Con questa data sei fuori dal termine. Puoi comunque portare in detrazione la cifra spesa
+              e la tua pratica la lavoriamo lo stesso, ma il CAF ti chiederà di pagare un ravvedimento.
+            </p>
+            <p>
+              Se la data effettiva di fine lavori è più recente di quella che hai messo, inseriscila:
+              vale quella.
+            </p>
+            <p>
+              Il nostro consiglio è di chiedere al tuo installatore una dichiarazione di fine lavori con
+              la data effettiva di conclusione, da conservare in caso di futuri controlli.
+            </p>
+            <button
+              type="button"
+              className="es-bottone es-bottone-pieno"
+              onClick={() => setAvvisoFuoriTermine(false)}
+            >
+              Ho capito, proseguo
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="es-wrap">
         <div className="es-passo">
           <div className="es-avanzamento">
@@ -224,8 +276,8 @@ export default function Verifica() {
                 <summary>Non so quale data mettere</summary>
                 <p>
                   Succede quasi sempre. Prendi la fattura o il bonifico e guarda la data: se è di meno
-                  di tre mesi fa, scrivi quella e vai avanti — sei in tempo. Se è più vecchia, vai avanti
-                  lo stesso: c'è un modo di sistemarla e ci pensiamo noi.
+                  di 90 giorni fa, scrivi quella e vai avanti — sei in tempo. Se è più vecchia, vai
+                  avanti lo stesso e ti spieghiamo come stai messo.
                 </p>
               </details>
               <div className="es-campone">
@@ -240,7 +292,7 @@ export default function Verifica() {
               {rimasti !== null && (
                 <p className={`es-riscontro ${rimasti < GIORNI_DI_LAVORAZIONE ? "es-attenzione" : ""}`}>
                   {rimasti < 0
-                    ? `Da questa data sono passati ${90 - rimasti} giorni. Non fermarti qui: la data che conta è quella che certifica il tuo installatore, e spesso è più avanti. Vai avanti e ti spieghiamo come fare.`
+                    ? `Da questa data sono passati ${90 - rimasti} giorni: sei oltre il termine. Vai avanti lo stesso, la pratica la lavoriamo.`
                     : rimasti < GIORNI_DI_LAVORAZIONE
                       ? `Mancano ${rimasti} giorni: siamo al limite. Vai avanti, ti diciamo subito se ce la facciamo.`
                       : rimasti <= 15

@@ -18,6 +18,8 @@ body { background: #F5F2EC; }
   --es-inchiostro-debole: #5A6A62;
   --es-bordo: #DFD9CE;
   --es-verde: #0E5A48;
+  --es-azione: #0C8842;
+  --es-azione-scuro: #0A6F36;
   --es-verde-scuro: #0A4335;
   --es-verde-chiaro: #E7EDE8;
   --es-menta: #6FD3B0;
@@ -45,8 +47,8 @@ body { background: #F5F2EC; }
 .es-nav-links a { font-size: 15px; color: var(--es-inchiostro-tenue); text-decoration: none; }
 
 .es-bottone { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 52px; padding: 0 26px; border-radius: 10px; font-size: 16px; font-weight: 600; text-decoration: none; border: 1px solid transparent; cursor: pointer; font-family: inherit; }
-.es-bottone-pieno { background: var(--es-verde); color: #FFFFFF; }
-.es-bottone-pieno:hover { background: var(--es-verde-scuro); color: #FFFFFF; }
+.es-bottone-pieno { background: var(--es-azione); color: #FFFFFF; box-shadow: 0 2px 0 var(--es-azione-scuro); }
+.es-bottone-pieno:hover { background: var(--es-azione-scuro); color: #FFFFFF; }
 .es-bottone-vuoto { background: transparent; color: var(--es-inchiostro); border-color: #C9C2B5; }
 .es-bottone-chiaro { background: var(--es-carta); color: var(--es-inchiostro); }
 .es-bottone-piccolo { height: 46px; padding: 0 20px; font-size: 15px; }
@@ -107,7 +109,7 @@ body { background: #F5F2EC; }
 .es-scheda { background: var(--es-superficie); border: 1px solid var(--es-bordo); border-radius: 14px; padding: 24px; display: flex; flex-direction: column; gap: 12px; }
 .es-scheda h3 { margin: 0; font-size: 18px; font-weight: 600; }
 .es-scheda p { margin: 0; font-size: 15px; line-height: 1.55; color: var(--es-inchiostro-tenue); }
-.es-numero { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; background: var(--es-verde); color: #FFFFFF; border-radius: 999px; font-size: 16px; font-weight: 600; }
+.es-numero { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; background: var(--es-azione); color: #FFFFFF; border-radius: 999px; font-size: 16px; font-weight: 600; }
 .es-scheda-grande h3 { font-size: 24px; font-family: "Fraunces Variable", Fraunces, Georgia, serif; }
 .es-scheda-grande p { font-size: 16px; }
 
@@ -235,5 +237,13 @@ body { background: #F5F2EC; }
 .es-striscia b { font-size: 28px; font-weight: 600; letter-spacing: -0.5px; }
 .es-striscia span { font-size: 14px; line-height: 1.45; color: var(--es-inchiostro-debole); }
 @media (max-width: 640px) { .es-striscia { grid-template-columns: minmax(0, 1fr); } }
+
+
+.es-bottone-grande { height: 62px; padding: 0 34px; font-size: 18px; }
+.es-scheda .es-bottone { margin-top: auto; }
+.es-velo { position: fixed; inset: 0; background: rgba(20, 32, 26, .55); display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 50; }
+.es-finestra { background: var(--es-superficie); border-radius: 16px; padding: 28px; max-width: 540px; width: 100%; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 20px 60px rgba(20,32,26,.3); }
+.es-finestra h2 { margin: 0; font-family: "Fraunces Variable", Georgia, serif; font-size: 24px; font-weight: 600; letter-spacing: -0.3px; }
+.es-finestra p { margin: 0; font-size: 16px; line-height: 1.6; color: var(--es-inchiostro-tenue); }
 
 `;

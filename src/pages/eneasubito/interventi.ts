@@ -59,7 +59,7 @@ export const INTERVENTI: Intervento[] = [
           "La fattura dell'installatore, quella di saldo, con il dettaglio di quello che è stato montato",
           "Il certificato del produttore degli infissi, dove sono scritte le trasmittanze",
           "La ricevuta del bonifico, quello parlante con causale e codici fiscali",
-          "I dati catastali dell'immobile: foglio, mappale, subalterno",
+          "I dati catastali dell'immobile — non li trovi? Te li cerchiamo noi",
         ],
       },
       {
@@ -98,7 +98,8 @@ export const INTERVENTI: Intervento[] = [
           "La fattura dell'installatore con il dettaglio di quello che è stato montato",
           "Il valore Gtot della schermatura — di solito è scritto sulla fattura stessa",
           "L'esposizione: su che lato dell'edificio è montata",
-          "La ricevuta del bonifico e i dati catastali dell'immobile",
+          "La ricevuta del bonifico",
+          "I dati catastali dell'immobile — non li trovi? Te li cerchiamo noi",
         ],
       },
       {
@@ -136,7 +137,8 @@ export const INTERVENTI: Intervento[] = [
           "La fattura dell'installatore con marca, modello e potenza dell'apparecchio",
           "Le schede tecniche o le certificazioni dell'apparecchio installato",
           "I dati dell'impianto di casa: che riscaldamento avevi prima, con che terminali",
-          "La ricevuta del bonifico e i dati catastali dell'immobile",
+          "La ricevuta del bonifico",
+          "I dati catastali dell'immobile — non li trovi? Te li cerchiamo noi",
         ],
       },
       {

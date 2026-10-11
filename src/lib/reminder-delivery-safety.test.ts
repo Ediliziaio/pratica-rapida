@@ -52,6 +52,7 @@ describe("compilation reminder delivery safety", () => {
     expect(source).toContain('triggerGroup !== "compilation_reminders"');
     expect(source).toContain('rulesQuery.eq("trigger_event", "days_waiting_7")');
     expect(source).toContain('rule.trigger_event !== "days_waiting_7"');
+    expect(source).toContain("if (compilationOnly && attesaPagamento) continue;");
   });
 
   it("non applica una fascia oraria ai promemoria Meta H24", () => {

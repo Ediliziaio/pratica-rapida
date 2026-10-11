@@ -10,31 +10,10 @@ const json = (body: unknown, status = 200) => new Response(JSON.stringify(body),
   headers: { "Content-Type": "application/json" },
 });
 
-function romeParts(now = new Date()) {
-  const parts = new Intl.DateTimeFormat("en-GB", {
-    timeZone: "Europe/Rome",
-    weekday: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  }).formatToParts(now);
-  const pick = (type: string) => parts.find((p) => p.type === type)?.value ?? "";
-  return { weekday: pick("weekday"), hour: Number(pick("hour")), minute: Number(pick("minute")) };
-}
-
-export function isAllowedWhatsAppTime(now = new Date()): boolean {
-  const { weekday, hour, minute } = romeParts(now);
-  const minutes = hour * 60 + minute;
-  if (weekday === "Sun") return false;
-  if (weekday === "Sat") return minutes >= 8 * 60 + 30 && minutes < 14 * 60;
-  return minutes >= 8 * 60 + 30 && minutes < 22 * 60;
-}
-
 Deno.serve(async (req) => {
   if (req.method !== "POST") return json({ ok: false, error: "method_not_allowed" }, 405);
   const auth = req.headers.get("authorization") ?? "";
   if (auth !== `Bearer ${SERVICE_KEY}`) return json({ ok: false, error: "forbidden" }, 403);
-  if (!isAllowedWhatsAppTime()) return json({ ok: true, skipped: "outside_whatsapp_hours" });
 
   const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
   const { data: template, error: templateError } = await supabase
@@ -96,4 +75,3 @@ Deno.serve(async (req) => {
 
   return json({ ok: true, processed: results.length, results });
 });
-

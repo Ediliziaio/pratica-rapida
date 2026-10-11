@@ -153,8 +153,8 @@ $$;
 REVOKE ALL ON FUNCTION public.claim_due_meta_private_followups(integer) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.claim_due_meta_private_followups(integer) TO service_role;
 
--- Il cron gira ogni ora; la Edge Function applica le fasce Europe/Rome e
--- fuori fascia non effettua alcun invio.
+-- Il cron gira ogni ora. Per decisione del Titolare, i soli solleciti di
+-- compilazione per i privati Meta sono elaborati H24 e 7/7.
 SELECT cron.unschedule('meta-private-lead-followups-hourly')
 WHERE EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'meta-private-lead-followups-hourly');
 

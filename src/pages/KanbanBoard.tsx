@@ -3996,6 +3996,15 @@ export default function KanbanBoard() {
   }) => {
     const newStage = stages.find((s) => s.id === args.newStageId);
     const practice = practices.find((p) => p.id === args.practiceId);
+    if (practice && newStage?.stage_type === "pronte_da_fare"
+      && practice.tipo_servizio === "servizio_completo" && !practice.form_compilato_at) {
+      toast({
+        variant: "destructive",
+        title: "Form cliente non ancora inviato",
+        description: "La pratica non puo' entrare in Pronte da fare finche' il form non e' completo e inviato.",
+      });
+      return;
+    }
     if (practice && newStage && PACKAGE_FINAL_STAGE_TYPES.has(newStage.stage_type as string)) {
       const blockers = packageCompletionBlockers(practice);
       if (blockers.length > 0) {

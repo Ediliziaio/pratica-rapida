@@ -121,6 +121,7 @@ import type { EneaPractice, PipelineStage } from "@/integrations/supabase/types"
 import { PipelineSettingsDrawer } from "@/components/pratiche/PipelineSettingsDrawer";
 import { appendAprOperatorResponse, parseAprOperatorResponseState } from "@/lib/aprOperatorResponse";
 import { calculateMonthlyFinancialKpis, fallbackMonthlyPracticePrice } from "@/lib/monthly-financial-kpis";
+import { isEneaSubitoChannel, summarizeEneaSubitoMonth } from "@/lib/eneasubito-month";
 
 type PracticeWithRelations = EneaPractice & {
   pipeline_stages: PipelineStage | null;
@@ -2917,6 +2918,10 @@ function PracticeCard({
   onToggleSelect?: (id: string) => void;
 }) {
   const days = daysAgo(practice.updated_at);
+  // Le pratiche del secondo marchio si riconoscono a vista: riquadro verde
+  // acqua e targhetta. Stesso funzionamento di tutte le altre, ma il CRM non
+  // scrive mai al cliente e la fattura la fa Stripe.
+  const isEneaSubito = isEneaSubitoChannel(practice);
   const hasMissingDocs = practice.documenti_mancanti?.length > 0;
   const stageType = practice.pipeline_stages?.stage_type;
   const operatorName = practice.operatore_id ? operatorMap[practice.operatore_id] : null;
@@ -2991,7 +2996,9 @@ function PracticeCard({
               // animare `transform` / `top` / `left` in conflitto col library.
               transition: inDrag ? "none" : provided.draggableProps.style?.transition,
             }}
-            className={`group relative rounded-lg bg-background border p-3 space-y-2 text-sm ${
+            className={`group relative rounded-lg border p-3 space-y-2 text-sm ${
+              isEneaSubito ? "bg-teal-50 dark:bg-teal-950/40" : "bg-background"
+            } ${
               inDrag ? "" : "transition-all duration-150"
             } ${
               selectable ? "cursor-pointer" : "cursor-grab active:cursor-grabbing"
@@ -3000,7 +3007,13 @@ function PracticeCard({
                 ? "shadow-xl ring-2 ring-primary/30"
                 : isSelected
                 ? "shadow-md ring-2 ring-primary border-primary"
-                : `shadow-sm hover:shadow-md hover:-translate-y-0.5 ${fgasStandalone ? "border-l-4 border-l-violet-500" : ""}`
+                : `shadow-sm hover:shadow-md hover:-translate-y-0.5 ${
+                    isEneaSubito
+                      ? "border-l-4 border-l-teal-600"
+                      : fgasStandalone
+                      ? "border-l-4 border-l-violet-500"
+                      : ""
+                  }`
             }`}
           >
           {/* Top: name + brand + CF badge */}
@@ -3026,8 +3039,13 @@ function PracticeCard({
               </span>
             </div>
             <div className="flex items-center gap-1 shrink-0">
+              {isInternal && isEneaSubito && (
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200">
+                  ENEASUBITO
+                </span>
+              )}
               {/* CF badge — solo visibile agli operatori interni */}
-              {isInternal && practice.tipo_fatturazione === "cliente_finale" && (
+              {isInternal && !isEneaSubito && practice.tipo_fatturazione === "cliente_finale" && (
                 <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300">
                   CF
                 </span>
@@ -3423,7 +3441,7 @@ export default function KanbanBoard() {
 
       let query = supabase
         .from("enea_practices_public")
-        .select("id,cliente_nome,cliente_cognome,prezzo,pagamento_stato,reseller_id,brand,operatore_id,tipo_fatturazione")
+        .select("id,cliente_nome,cliente_cognome,prezzo,pagamento_stato,reseller_id,brand,operatore_id,tipo_fatturazione,canale")
         .in("id", closedPracticeIds);
       if (brandFilter !== "all") query = query.eq("brand", brandFilter as "enea" | "conto_termico");
       if (aziendaFilter !== "all") query = query.eq("reseller_id", aziendaFilter);
@@ -3437,15 +3455,29 @@ export default function KanbanBoard() {
     },
   });
 
+  // Due aziende diverse, due fatturati diversi. Le pratiche di EneaSubito le
+  // fattura la LLC con Stripe, una per cliente al momento del pagamento:
+  // sommarle al fatturato di Pratica Rapida darebbe un numero che non
+  // corrisponde a nessuna contabilita'. Quindi restano fuori dai KPI e hanno
+  // il loro riquadro.
+  const monthlyPraticaRapidaPractices = useMemo(
+    () => monthlyFinancialPractices.filter((practice) => !isEneaSubitoChannel(practice)),
+    [monthlyFinancialPractices],
+  );
+  const monthlyEneaSubitoPractices = useMemo(
+    () => monthlyFinancialPractices.filter((practice) => isEneaSubitoChannel(practice)),
+    [monthlyFinancialPractices],
+  );
+
   const resellerIdsWithoutPrice = useMemo(
-    () => [...new Set(monthlyFinancialPractices
+    () => [...new Set(monthlyPraticaRapidaPractices
       .filter((practice) =>
         practice.tipo_fatturazione !== "cliente_finale" &&
         Number(practice.prezzo ?? 0) <= 0 &&
         practice.reseller_id,
       )
       .map((practice) => practice.reseller_id as string))],
-    [monthlyFinancialPractices],
+    [monthlyPraticaRapidaPractices],
   );
 
   const { data: monthlyCompanyPricing = [] } = useQuery({
@@ -3639,7 +3671,7 @@ export default function KanbanBoard() {
       if (dashboardPricing.has(email)) duplicateDashboardEmails.add(email);
       dashboardPricing.set(email, Number(row.prezzo ?? 0));
     }
-    return calculateMonthlyFinancialKpis(monthlyFinancialPractices.map((practice) => ({
+    return calculateMonthlyFinancialKpis(monthlyPraticaRapidaPractices.map((practice) => ({
       label: `${practice.cliente_nome ?? ""} ${practice.cliente_cognome ?? ""}`.trim(),
       revenue_at: practice.revenue_at,
       prezzo: practice.prezzo,
@@ -3671,7 +3703,14 @@ export default function KanbanBoard() {
             });
       })(),
     })));
-  }, [isInternal, monthlyCompanyPricing, monthlyDashboardPricing, monthlyFinancialPractices, monthlyResellerCompanies]);
+  }, [isInternal, monthlyCompanyPricing, monthlyDashboardPricing, monthlyPraticaRapidaPractices, monthlyResellerCompanies]);
+
+  // Il riepilogo di EneaSubito: i nomi dei clienti del mese e quanto hanno
+  // pagato davvero, cosi' come l'ha scritto Stripe.
+  const eneaSubitoMese = useMemo(
+    () => (isInternal ? summarizeEneaSubitoMonth(monthlyEneaSubitoPractices) : null),
+    [isInternal, monthlyEneaSubitoPractices],
+  );
 
   // Inline pagamento_stato update (staff only)
   const updatePagamentoMutation = useMutation({
@@ -4398,6 +4437,36 @@ export default function KanbanBoard() {
           />
           <KpiCard label="Pratiche del mese" value={String(kpis.pratiche)} />
           </div>
+          {eneaSubitoMese && eneaSubitoMese.pratiche > 0 && (
+            <div className="mt-2 rounded-md border border-teal-300 bg-teal-50 px-3 py-2 dark:border-teal-800 dark:bg-teal-950/40">
+              <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                <span className="text-xs font-bold uppercase tracking-wide text-teal-800 dark:text-teal-200">
+                  EneaSubito · a parte
+                </span>
+                <span className="text-sm font-semibold text-teal-900 dark:text-teal-100">
+                  {eneaSubitoMese.pratiche}{" "}
+                  {eneaSubitoMese.pratiche === 1 ? "pratica" : "pratiche"} · incassato €{" "}
+                  {eneaSubitoMese.incassato.toFixed(2)}
+                </span>
+                <span className="text-[11px] text-teal-700 dark:text-teal-300">
+                  fatture emesse da Stripe, fuori dalle fatture ai fornitori
+                </span>
+              </div>
+              {eneaSubitoMese.clienti.length > 0 && (
+                <p className="mt-1 text-xs text-teal-800 dark:text-teal-200">
+                  {eneaSubitoMese.clienti.join(" · ")}
+                </p>
+              )}
+              {eneaSubitoMese.senzaImporto > 0 && (
+                <p className="mt-1 text-xs font-medium text-red-700 dark:text-red-300">
+                  {eneaSubitoMese.senzaImporto}{" "}
+                  {eneaSubitoMese.senzaImporto === 1
+                    ? "pratica è senza importo registrato: controllala su Stripe."
+                    : "pratiche sono senza importo registrato: controllale su Stripe."}
+                </p>
+              )}
+            </div>
+          )}
         </div>
       )}
 

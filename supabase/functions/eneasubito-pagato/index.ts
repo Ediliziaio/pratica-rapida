@@ -79,11 +79,16 @@ Deno.serve(async (req) => {
     .maybeSingle();
 
   const quando = new Date().toLocaleString("it-IT", { timeZone: "Europe/Rome" });
+  // Il prezzo lo diciamo a Stripe e Stripe ce lo rimanda: lo scriviamo come
+  // ce lo da' lui, senza ricalcolarlo. Serve al cruscotto per avere il totale
+  // del mese di EneaSubito senza doverlo indovinare da un listino.
+  const incassato = Number(sessione.amount_total ?? 0) / 100;
   const { error } = await db
     .from("enea_practices")
     .update({
       pagamento_stato: "pagata",
       data_incasso: new Date().toISOString().slice(0, 10),
+      ...(incassato > 0 ? { prezzo: incassato } : {}),
       ...(stage?.id ? { current_stage_id: stage.id } : {}),
       note_interne: `Pagamento ricevuto il ${quando}. Fattura emessa da Stripe (sessione ${sessione.id}).`,
     })

@@ -578,9 +578,11 @@
  * Define aspect-ratio early to prevent layout shift when images load
  * ============================================================ */
 
-/* Logos (aspect-ratio 1966/247 ≈ 8:1) */
-img[alt*="Pratica Rapida"],
-img[alt*="pratica rapida"],
+/* Logos (aspect-ratio 1966/247 ≈ 8:1).
+ * Le due varianti che selezionano il logo per `alt` nominano il marchio, e
+ * questo foglio lo carica anche il sito del secondo marchio: sono state
+ * spostate in styles/pratica-rapida.css, importato solo da main.tsx. Qui
+ * restano le regole per classe, che non nominano nessuno. */
 [class*="logo-img"],
 [class*="brand-logo"] {
   aspect-ratio: 1966 / 247;

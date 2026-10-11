@@ -2,6 +2,8 @@ import { createRoot } from "react-dom/client";
 import { HelmetProvider } from "react-helmet-async";
 import App from "./App.tsx";
 import "./index.css";
+// Subito dopo index.css: vedi il commento in testa al file.
+import "./styles/pratica-rapida.css";
 
 // Initialize Sentry after DOM is ready
 import { initSentry } from "@/lib/sentry";

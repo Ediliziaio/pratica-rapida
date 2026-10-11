@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { PRATICA_RAPIDA } from "@/lib/marchio";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -287,7 +288,7 @@ const App = () => (
                 <Route path="/news/:slug" element={<BlogPostPage />} />
                 <Route path="/auth" element={<AuthRoute />} />
                 <Route path="/blocked" element={<Blocked />} />
-                <Route path="/form/:token" element={<FormPubblico />} />
+                <Route path="/form/:token" element={<FormPubblico marchio={PRATICA_RAPIDA} />} />
                 <Route path="/paga/:token" element={<PagamentoCliente />} />
                 <Route path="/schermature-solari/:token" element={<ModuloClientePage />} />
                 <Route path="/modulo-infissi/:token" element={<ModuloClientePage />} />

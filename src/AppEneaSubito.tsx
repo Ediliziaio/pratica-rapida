@@ -17,6 +17,11 @@
 import { lazy, Suspense } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 
+// Il modulo che si apre dopo il pagamento avvisa con i messaggini in basso
+// (documento caricato, bozza salvata, errore di validazione). Senza questo
+// non comparirebbero e il cliente non saprebbe se il documento e' arrivato.
+import { Toaster } from "@/components/ui/toaster";
+
 const Home = lazy(() => import("./pages/EneaSubito"));
 const PaginaIntervento = lazy(() => import("./pages/eneasubito/PaginaIntervento"));
 const PaginaLegale = lazy(() => import("./pages/eneasubito/PaginaLegale"));
@@ -63,6 +68,7 @@ export default function AppEneaSubito() {
           <Route path="*" element={<NonTrovata />} />
         </Routes>
       </Suspense>
+      <Toaster />
     </BrowserRouter>
   );
 }

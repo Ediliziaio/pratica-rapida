@@ -8,7 +8,15 @@ export type FormCompletionCopy = {
  * davvero il pagamento. Per le pratiche a carico del rivenditore confermiamo
  * esclusivamente la ricezione dei dati.
  */
-export function getFormCompletionCopy(paymentRequired: boolean): FormCompletionCopy {
+export function getFormCompletionCopy(
+  paymentRequired: boolean,
+  /**
+   * Chi ha preso in carico la pratica. E' un parametro e non una costante
+   * perche' questo modulo serve due marchi, e il nome di uno non deve
+   * nemmeno finire dentro al pacchetto dell'altro.
+   */
+  marchio: string,
+): FormCompletionCopy {
   if (paymentRequired) {
     return {
       title: "Pagamento effettuato e pratica inviata ✓",
@@ -17,6 +25,6 @@ export function getFormCompletionCopy(paymentRequired: boolean): FormCompletionC
   }
   return {
     title: "Pratica inviata ✓",
-    message: "I dati sono stati registrati correttamente. La pratica è stata presa in carico da Pratica Rapida.",
+    message: `I dati sono stati registrati correttamente. La pratica è stata presa in carico da ${marchio}.`,
   };
 }

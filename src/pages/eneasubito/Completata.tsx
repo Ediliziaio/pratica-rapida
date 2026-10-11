@@ -1,63 +1,42 @@
 /**
  * /completa/:token — dove atterra chi ha appena pagato.
  *
- * Non e' una pagina di cortesia: e' il momento in cui il cliente ha dato dei
- * soldi a un sito che non conosceva mezz'ora fa, e deve sapere esattamente
- * cosa succede adesso e quando. Niente «grazie!» e via.
+ * Non e' una pagina di cortesia e non e' un «grazie, ti scriviamo». Il
+ * Titolare ha deciso l'11/10/2026 che dopo il pagamento si continua subito
+ * col modulo: il cliente ha appena dato dei soldi, e' sul pezzo, e mandarlo
+ * ad aspettare un'e-mail significa perderlo di nuovo. L'e-mail poi non
+ * partirebbe nemmeno, perche' questo canale non scrive mai al cliente.
  *
- * I dati che mancano (catastali, certificati, bonifico) glieli chiediamo
- * dopo, per e-mail: e' la parte noiosa, e chi ha pagato la fa. Finche' non
- * esiste il modulo lungo di questo marchio, quella richiesta parte a mano.
+ * Il modulo e' lo stesso che Pratica Rapida usa in produzione tutti i giorni:
+ * stessa macchina, stesso token della pratica, soltanto firmato EneaSubito.
+ * Qui sopra ci va una riga di conferma del pagamento, e basta.
  */
 import { useParams } from "react-router-dom";
 
-import { Guscio, Spunta } from "./Guscio";
-
-const PASSAGGI = [
-  "Ti abbiamo mandato la fattura per e-mail: è già nella tua posta.",
-  "Entro poche ore ti scriviamo per i dati che mancano — catastali, certificati, ricevuta del bonifico.",
-  "Compiliamo e trasmettiamo all'ENEA entro 48 ore lavorative da quando abbiamo tutto.",
-  "Ti arriva la ricevuta ufficiale in PDF, con il codice CPID: la stampi, la firmi e la conservi con la fattura.",
-];
+import FormPubblico from "@/pages/FormPubblico";
+import { ENEASUBITO } from "@/lib/marchio";
 
 export default function Completata() {
   const { token } = useParams();
   return (
-    <Guscio
-      titolo="Pagamento ricevuto — EneaSubito"
-      descrizione="Il pagamento è andato a buon fine: ecco cosa succede adesso."
-      percorso="/completa"
-    >
-      <div className="es-wrap">
-        <div className="es-verdetto es-verdetto-si">
-          <div className="es-verdetto-testa">
-            <h1 className="es-serif">Pagamento ricevuto.</h1>
-            <p>La tua pratica è in lavorazione. Non devi fare altro adesso: ti scriviamo noi.</p>
-          </div>
-
-          <ul className="es-motivi">
-            {PASSAGGI.map((p) => (
-              <li key={p}>
-                <span className="es-segno es-segno-ok">✓</span>
-                {p}
-              </li>
-            ))}
-          </ul>
-
-          <p className="es-nota">
-            Riferimento della tua pratica: <strong>{token?.slice(0, 8) ?? "—"}</strong>. Serve solo se ci
-            scrivi: tienilo a portata, ma non devi farne niente.
-          </p>
-
-          <div className="es-navigazione">
-            <a className="es-bottone es-bottone-pieno" href="mailto:assistenza@eneasubito.it">
-              Scrivici
-            </a>
-            <span className="es-aiuto">Rispondiamo entro 24 ore.</span>
-          </div>
-        </div>
+    <>
+      <div
+        style={{
+          background: "#0C8842",
+          color: "#fff",
+          padding: "14px 16px",
+          textAlign: "center",
+          fontFamily: "'Work Sans Variable', system-ui, sans-serif",
+          fontSize: 15,
+          lineHeight: 1.5,
+        }}
+      >
+        <strong>Pagamento ricevuto.</strong> La fattura è già nella tua posta. Ora completa i dati qui
+        sotto: ci vogliono pochi minuti e puoi fermarti e riprendere quando vuoi.
       </div>
-      <div style={{ height: 72 }} />
-    </Guscio>
+      {/* Il modulo si prende il token dall'indirizzo da solo: `token` qui
+          serve solo a non montare il modulo quando l'indirizzo e' monco. */}
+      {token ? <FormPubblico marchio={ENEASUBITO} /> : null}
+    </>
   );
 }

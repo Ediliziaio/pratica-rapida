@@ -1,0 +1,15 @@
+/* Regole che nominano il marchio Pratica Rapida.
+ *
+ * Stanno qui e non in index.css perche' quel foglio lo carica anche il sito
+ * del secondo marchio, e il nome di uno non deve finire nel pacchetto
+ * dell'altro — c'e' un controllo in pubblicazione che lo verifica.
+ *
+ * Caricato da main.tsx subito dopo index.css, cosi' l'ordine della cascata
+ * resta quello di prima. */
+
+/* Logo per `alt` (aspect-ratio 1966/247 ≈ 8:1): evita lo scatto di impaginazione
+ * mentre l'immagine carica. Le varianti per classe stanno in index.css. */
+img[alt*="Pratica Rapida"],
+img[alt*="pratica rapida"] {
+  aspect-ratio: 1966 / 247;
+}

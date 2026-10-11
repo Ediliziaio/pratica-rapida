@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
+import type { Marchio } from "@/lib/marchio";
 import { useAuth } from "@/hooks/useAuth";
 import type { EneaPractice, Json } from "@/integrations/supabase/types";
 
@@ -173,7 +174,13 @@ function isPaymentFlowComplete(practice: PublicEneaPractice): boolean {
   return practice.pagamento_stato === "pagata" && ["ready", "completed"].includes(practice.payment_status ?? "");
 }
 
-export default function FormPubblico() {
+/**
+ * Il marchio e' una proprieta' obbligatoria e non ha un valore di riposo: il
+ * nome «Pratica Rapida» non deve nemmeno finire dentro al pacchetto dell'altro
+ * sito, e un valore di riposo ce lo trascinerebbe. Chi monta questa pagina
+ * dichiara per chi sta parlando.
+ */
+export default function FormPubblico({ marchio }: { marchio: Marchio }) {
   const { token } = useParams<{ token: string }>();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -262,7 +269,7 @@ export default function FormPubblico() {
           setPractice(row);
           // I contenitori di sistema ("Da abbinare", "Clienti privati") non
           // vanno MAI mostrati al cliente: sono nomi interni. Senza nome,
-          // l'header ricade su "Pratica Rapida" e basta.
+          // l'header ricade sul solo marchio.
           const nomeAzienda = row.reseller_name ?? "";
           setResellerName(/Da abbinare|Clienti privati/i.test(nomeAzienda) ? "" : nomeAzienda);
 
@@ -387,7 +394,7 @@ export default function FormPubblico() {
 
     const result = data as { payment_url?: string; error?: string } | null;
     if (!result?.payment_url) {
-      setPaymentError(result?.error ?? "Link di pagamento non disponibile. Contatta Pratica Rapida senza ricompilare il modulo.");
+      setPaymentError(result?.error ?? `Link di pagamento non disponibile. Contatta ${marchio.nome} senza ricompilare il modulo.`);
       return false;
     }
 
@@ -429,7 +436,12 @@ export default function FormPubblico() {
   const cadastralServiceRequested = practice?.form_compilato_at
     ? dynamicCadastralServiceRequested(practice.dati_form)
     : currentCadastralServiceRequested;
-  const paymentRequired = practice?.tipo_fatturazione === "cliente_finale" || cadastralServiceRequested;
+  // Il marchio viene prima di tutto: se non incassa da qui, non si incassa,
+  // qualunque cosa dica la pratica. Una pratica di EneaSubito e' anche lei
+  // «cliente finale», ma ha gia' pagato, e con un'altra societa'.
+  const paymentRequired =
+    marchio.incassaDalModulo &&
+    (practice?.tipo_fatturazione === "cliente_finale" || cadastralServiceRequested);
 
   // Richiedente persona giuridica (P.IVA): il form chiede ragione sociale +
   // partita IVA e "sede legale" al posto dei dati anagrafici e della residenza.
@@ -866,7 +878,7 @@ export default function FormPubblico() {
   }
 
   if (submitted) {
-    const completionCopy = getFormCompletionCopy(paymentRequired);
+    const completionCopy = getFormCompletionCopy(paymentRequired, marchio.nome);
     // Branch dedicato al rivenditore/staff che ha compilato il modulo per
     // conto del cliente: testo + CTA "Torna al kanban" invece del messaggio
     // standard pensato per il cliente finale.
@@ -959,7 +971,7 @@ export default function FormPubblico() {
                 <p className="text-xs text-amber-800 mt-1 leading-relaxed">
                   Inserisci i dati di <strong>{clienteNomeCompleto}</strong> come se fossi tu il cliente
                   finale. Allega {requireCustomerInvoice ? "fatture e documenti tecnici" : "i documenti tecnici richiesti"}. Al termine la pratica
-                  apparirà a Pratica Rapida in <strong>“Pronte da fare”</strong>.
+                  apparirà a {marchio.nome} in <strong>“Pronte da fare”</strong>.
                 </p>
               </div>
               <Link
@@ -976,7 +988,7 @@ export default function FormPubblico() {
         <div className="text-center space-y-1">
           {resellerName && (
             <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
-              {resellerName} × Pratica Rapida
+              {resellerName} × {marchio.nome}
             </p>
           )}
           <h1 className="text-2xl font-bold">
@@ -1103,22 +1115,24 @@ export default function FormPubblico() {
           <p className="font-semibold text-foreground">Hai bisogno di aiuto?</p>
           <p className="text-muted-foreground">
             Scrivi a{" "}
-            <a href="mailto:supporto@praticarapida.it" className="text-primary underline">
-              supporto@praticarapida.it
+            <a href={`mailto:${marchio.assistenzaEmail}`} className="text-primary underline">
+              {marchio.assistenzaEmail}
             </a>
           </p>
-          <p className="text-muted-foreground">
-            Oppure su{" "}
-            <a
-              href="https://wa.me/390398682691"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-primary underline"
-            >
-              WhatsApp
-            </a>{" "}
-            <span className="text-xs">(solo messaggi, non rispondiamo a chiamate vocali)</span>
-          </p>
+          {marchio.whatsapp && (
+            <p className="text-muted-foreground">
+              Oppure su{" "}
+              <a
+                href={`https://wa.me/${marchio.whatsapp}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary underline"
+              >
+                WhatsApp
+              </a>{" "}
+              <span className="text-xs">(solo messaggi, non rispondiamo a chiamate vocali)</span>
+            </p>
+          )}
         </div>
       </div>
     </div>

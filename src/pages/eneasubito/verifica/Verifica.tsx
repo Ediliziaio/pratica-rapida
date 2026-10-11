@@ -44,7 +44,7 @@ const FAMIGLIE: { id: Famiglia; nome: string; esempi: string }[] = [
 ];
 
 function vuote(): Risposte {
-  return { famiglia: null, fineLavori: "", email: "", fatturaCaricata: false };
+  return { famiglia: null, nome: "", fineLavori: "", email: "", fatturaCaricata: false };
 }
 
 function leggiMemoria(): Risposte {
@@ -140,6 +140,7 @@ export default function Verifica() {
     // cosa ha visto il cliente.
     void salvaPratica({
       token,
+      nome: risposte.nome,
       email: risposte.email,
       famiglia: risposte.famiglia,
       fineLavori: risposte.fineLavori,
@@ -163,10 +164,11 @@ export default function Verifica() {
 
   const rimasti = giorniRimasti(risposte.fineLavori);
   const emailValida = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(risposte.email);
+  const nomeValido = risposte.nome.trim().length >= 2;
   const puoAvanzare = [
     risposte.famiglia !== null,
     rimasti !== null,
-    emailValida,
+    nomeValido && emailValida,
     risposte.fatturaCaricata,
   ][passo];
 
@@ -251,11 +253,22 @@ export default function Verifica() {
 
           {passo === 2 && (
             <>
-              <h1 className="es-domandona es-serif">Dove ti mandiamo la risposta?</h1>
+              <h1 className="es-domandona es-serif">Chi sei e dove ti rispondiamo</h1>
               <p className="es-aiuto">
                 Serve anche a non farti perdere quello che hai compilato: se ti interrompi, ti mandiamo il
                 link per riprendere.
               </p>
+              <div className="es-campone">
+                <label htmlFor="nome">Nome e cognome</label>
+                <input
+                  id="nome"
+                  type="text"
+                  autoComplete="name"
+                  placeholder="Mario Rossi"
+                  value={risposte.nome}
+                  onChange={(e) => aggiorna({ nome: e.target.value })}
+                />
+              </div>
               <div className="es-campone">
                 <label htmlFor="email">La tua e-mail</label>
                 <input
@@ -329,6 +342,7 @@ export default function Verifica() {
                   if (passo === 2) {
                     void salvaPratica({
                       token,
+                      nome: risposte.nome,
                       email: risposte.email,
                       famiglia: risposte.famiglia,
                       fineLavori: risposte.fineLavori,

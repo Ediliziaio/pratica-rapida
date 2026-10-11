@@ -17,6 +17,7 @@ const ENDPOINT = `${BASE}/functions/v1/eneasubito-verifica`;
 
 export interface DatiPratica {
   token?: string | null;
+  nome?: string;
   email?: string;
   famiglia?: string | null;
   fineLavori?: string;

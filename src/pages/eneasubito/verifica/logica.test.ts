@@ -12,6 +12,7 @@ const OGGI = new Date(2026, 9, 1); // 1 ottobre 2026
 function risposte(sovrascrivi: Partial<Risposte> = {}): Risposte {
   return {
     famiglia: "infissi",
+    nome: "Mario Rossi",
     fineLavori: "2026-09-01",
     email: "mario@esempio.it",
     fatturaCaricata: true,

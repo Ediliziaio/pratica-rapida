@@ -43,6 +43,8 @@ interface Corpo {
   website?: string;
   /** Presente dalla seconda chiamata in poi: aggiorna invece di creare. */
   token?: string;
+  /** Nome e cognome come li ha scritti lui, in un campo solo. */
+  nome?: string;
   email?: string;
   famiglia?: string;
   /** AAAA-MM-GG */
@@ -119,6 +121,12 @@ Deno.serve(async (req) => {
         tipo_soggetto: "persona_fisica",
         pagamento_stato: "non_pagata",
         cliente_email: email,
+        // La tabella pretende nome e cognome separati e non nulli. Il modulo
+        // ne chiede uno solo, perche' farne scrivere due e' un campo in piu'
+        // per niente: qui si divide al primo spazio e il resto e' cognome.
+        // Senza spazio il cognome resta vuoto — che e' la verita', non un
+        // segnaposto inventato.
+        ...spezzaNome(corpo.nome),
         ...campiDaCorpo(corpo, email),
       })
       .select("id, form_token")
@@ -133,10 +141,23 @@ Deno.serve(async (req) => {
   }
 });
 
+/** Nome e cognome dalla stringa unica che scrive il cliente. */
+function spezzaNome(intero?: string): { cliente_nome: string; cliente_cognome: string } {
+  const pulito = (intero ?? "").trim().replace(/\s+/g, " ");
+  if (!pulito) return { cliente_nome: "Da identificare", cliente_cognome: "" };
+  const spazio = pulito.indexOf(" ");
+  if (spazio < 0) return { cliente_nome: pulito, cliente_cognome: "" };
+  return {
+    cliente_nome: pulito.slice(0, spazio),
+    cliente_cognome: pulito.slice(spazio + 1),
+  };
+}
+
 /** Solo i campi che il modulo ha davvero raccolto finora. */
 function campiDaCorpo(corpo: Corpo, email: string): Record<string, unknown> {
   const campi: Record<string, unknown> = {};
   if (email) campi.cliente_email = email;
+  if (corpo.nome?.trim()) Object.assign(campi, spezzaNome(corpo.nome));
   if (corpo.famiglia && PRODOTTO[corpo.famiglia]) {
     campi.prodotto_installato = PRODOTTO[corpo.famiglia];
   }

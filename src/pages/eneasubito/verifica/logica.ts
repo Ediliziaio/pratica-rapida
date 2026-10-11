@@ -36,6 +36,8 @@ export const GIORNI_DI_LAVORAZIONE = 3;
 
 export interface Risposte {
   famiglia: Famiglia | null;
+  /** Nome e cognome, come li scrive lui: non si pretende la forma esatta. */
+  nome: string;
   /** Data di fine lavori in formato AAAA-MM-GG. */
   fineLavori: string;
   email: string;

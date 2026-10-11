@@ -40,7 +40,6 @@ const FAMIGLIE: { id: Famiglia; nome: string; esempi: string }[] = [
   { id: "infissi", nome: "Infissi", esempi: "Finestre, portefinestre, porte d'ingresso" },
   { id: "schermature", nome: "Schermature solari", esempi: "Tende da sole, pergotende, pergole" },
   { id: "pompe_di_calore", nome: "Pompa di calore", esempi: "Riscaldamento con pompa di calore" },
-  { id: "altro", nome: "Altro", esempi: "Cappotto, fotovoltaico, caldaia, pellet…" },
 ];
 
 function vuote(): Risposte {
@@ -261,11 +260,7 @@ export default function Verifica() {
           {passo === 1 && (
             <>
               <h1 className="es-domandona es-serif">Quando sono finiti i lavori?</h1>
-              <p className="es-aiuto">
-                Se non la ricordi con precisione, <strong>prendi la fattura o la ricevuta del
-                bonifico</strong>: la data è quella, o lì intorno. Da lì partono i 90 giorni per
-                trasmettere all'ENEA.
-              </p>
+              <p className="es-aiuto">Il giorno in cui l'installatore ha finito il montaggio.</p>
               {/* Molti arrivano qui proprio perché si sono dimenticati della
                   pratica. Mandarli a chiedere un documento all'installatore
                   sarebbe un vicolo cieco — quel foglio non lo fa quasi nessuno
@@ -275,9 +270,8 @@ export default function Verifica() {
               <details className="es-dettaglio">
                 <summary>Non so quale data mettere</summary>
                 <p>
-                  Succede quasi sempre. Prendi la fattura o il bonifico e guarda la data: se è di meno
-                  di 90 giorni fa, scrivi quella e vai avanti — sei in tempo. Se è più vecchia, vai
-                  avanti lo stesso e ti spieghiamo come stai messo.
+                  Non preoccuparti, succede spesso. Prendi l'ultima fattura o l'ultimo bonifico emesso
+                  per la fornitura e inserisci quella data.
                 </p>
               </details>
               <div className="es-campone">
@@ -289,17 +283,6 @@ export default function Verifica() {
                   onChange={(e) => aggiorna({ fineLavori: e.target.value })}
                 />
               </div>
-              {rimasti !== null && (
-                <p className={`es-riscontro ${rimasti < GIORNI_DI_LAVORAZIONE ? "es-attenzione" : ""}`}>
-                  {rimasti < 0
-                    ? `Da questa data sono passati ${90 - rimasti} giorni: sei oltre il termine. Vai avanti lo stesso, la pratica la lavoriamo.`
-                    : rimasti < GIORNI_DI_LAVORAZIONE
-                      ? `Mancano ${rimasti} giorni: siamo al limite. Vai avanti, ti diciamo subito se ce la facciamo.`
-                      : rimasti <= 15
-                        ? `Mancano ${rimasti} giorni alla scadenza. Siamo in tempo, ma non aspettare.`
-                        : `Mancano ${rimasti} giorni alla scadenza dei 90.`}
-                </p>
-              )}
             </>
           )}
 

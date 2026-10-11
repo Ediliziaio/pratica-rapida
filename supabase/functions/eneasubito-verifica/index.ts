@@ -115,6 +115,13 @@ Deno.serve(async (req) => {
         reseller_id: contenitore,
         brand: "enea",
         canale: "eneasubito",
+        // Secondo cancello sulle recensioni. Il primo e' il canale muto
+        // (_shared/contatto-cliente.ts), che le blocca tutte; questo e'
+        // l'esclusione puntuale che vale per questa singola pratica, e
+        // regge anche se un domani qualcuno riscrive le automazioni.
+        recensione_esclusa: true,
+        recensione_esclusa_motivo: "EneaSubito: nessuna comunicazione al cliente",
+        recensione_esclusa_at: new Date().toISOString(),
         current_stage_id: stage?.id ?? null,
         tipo_servizio: "servizio_completo",
         tipo_fatturazione: "cliente_finale",

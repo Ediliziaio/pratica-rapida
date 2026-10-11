@@ -197,3 +197,22 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: "b3423ec9073bbd86dcc206273d7e093c"
+      - name: Collega il dominio al progetto
+        # Dice a Cloudflare di rispondere anche per www.eneasubito.it. Finche'
+        # il DNS punta altrove resta in attesa e non cambia niente; quando il
+        # record verra' spostato, il sito e' gia' pronto a ricevere — cosi' non
+        # esiste la finestra in cui il nome risponde con un errore.
+        # Se il dominio e' gia' collegato l'API risponde con un errore: va
+        # bene, non e' una condizione da trattare.
+        run: |
+          for NOME in www.eneasubito.it eneasubito.it; do
+            echo "Collego $NOME..."
+            curl -sS -X POST \
+              "https://api.cloudflare.com/client/v4/accounts/b3423ec9073bbd86dcc206273d7e093c/pages/projects/eneasubito/domains" \
+              -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+              -H "Content-Type: application/json" \
+              --data "{\"name\":\"$NOME\"}" \
+              | python3 -c "import json,sys; d=json.load(sys.stdin); print('  ok' if d.get('success') else '  gia collegato o non ancora possibile:', [e.get('message') for e in d.get('errors',[])])" || true
+          done
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

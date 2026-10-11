@@ -1,5 +1,11 @@
 project_id = "xmkjrhwmmuzaqjqlvzxm"
 
+[functions.eneasubito-pagamento]
+verify_jwt = false
+
+[functions.eneasubito-pagato]
+verify_jwt = false
+
 [functions.eneasubito-verifica]
 verify_jwt = false
 

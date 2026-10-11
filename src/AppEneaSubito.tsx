@@ -22,6 +22,7 @@ const PaginaIntervento = lazy(() => import("./pages/eneasubito/PaginaIntervento"
 const PaginaLegale = lazy(() => import("./pages/eneasubito/PaginaLegale"));
 const Verifica = lazy(() => import("./pages/eneasubito/verifica/Verifica"));
 const ModuloFineLavori = lazy(() => import("./pages/eneasubito/ModuloFineLavori"));
+const Completata = lazy(() => import("./pages/eneasubito/Completata"));
 const NonTrovata = lazy(() => import("./pages/eneasubito/NonTrovata"));
 
 function Attesa() {
@@ -42,6 +43,8 @@ export default function AppEneaSubito() {
           <Route path="/pompe-di-calore" element={<PaginaIntervento slug="pompe-di-calore" />} />
 
           <Route path="/verifica" element={<Verifica />} />
+          {/* Dove Stripe riporta chi ha pagato. */}
+          <Route path="/completa/:token" element={<Completata />} />
 
           <Route path="/modulo-fine-lavori" element={<ModuloFineLavori documento="fine-lavori" />} />
           <Route path="/verbale-di-posa" element={<ModuloFineLavori documento="verbale" />} />

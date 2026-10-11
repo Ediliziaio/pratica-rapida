@@ -21,7 +21,7 @@ import { useSearchParams } from "react-router-dom";
 
 import { Guscio } from "../Guscio";
 import { preparaDocumento } from "./immagine";
-import { salvaPratica } from "./pratica";
+import { apriPagamento, salvaPratica } from "./pratica";
 import {
   GIORNI_DI_LAVORAZIONE,
   giorniRimasti,
@@ -152,6 +152,7 @@ export default function Verifica() {
     return (
       <SchermataVerdetto
         verdetto={verdetto}
+        token={token}
         ricomincia={() => {
           setVerdetto(null);
           setPasso(0);
@@ -351,8 +352,34 @@ export default function Verifica() {
   );
 }
 
-function SchermataVerdetto({ verdetto, ricomincia }: { verdetto: Verdetto; ricomincia: () => void }) {
+function SchermataVerdetto({
+  verdetto,
+  token,
+  ricomincia,
+}: {
+  verdetto: Verdetto;
+  token: string | null;
+  ricomincia: () => void;
+}) {
   const segni = { ok: "✓", no: "✕", forse: "!" } as const;
+  const [attesa, setAttesa] = useState(false);
+  const [intoppo, setIntoppo] = useState<string | null>(null);
+
+  async function versoLaCassa() {
+    if (!token) {
+      setIntoppo("Non riusciamo a collegare questa verifica. Scrivici e la sblocchiamo noi.");
+      return;
+    }
+    setAttesa(true);
+    const url = await apriPagamento(token);
+    if (url) {
+      window.location.href = url;
+      return;
+    }
+    setAttesa(false);
+    // Mai un pulsante che non fa niente senza spiegare perché.
+    setIntoppo("Il pagamento non si apre in questo momento. Scrivici e lo sistemiamo subito.");
+  }
   return (
     <Guscio
       titolo="Esito della verifica — EneaSubito"
@@ -379,8 +406,15 @@ function SchermataVerdetto({ verdetto, ricomincia }: { verdetto: Verdetto; ricom
 
           <div className="es-navigazione">
             {verdetto.esito === "si_puo_fare" && (
-              /* TODO(3): qui si va al pagamento Stripe, non a un ancoraggio. */
-              <a className="es-bottone es-bottone-pieno" href="/#prezzo">Paga 99 € e falla partire</a>
+              <button
+                type="button"
+                className="es-bottone es-bottone-pieno"
+                disabled={attesa}
+                style={{ opacity: attesa ? 0.6 : 1 }}
+                onClick={versoLaCassa}
+              >
+                {attesa ? "Un momento…" : "Paga 99 € e falla partire"}
+              </button>
             )}
             {verdetto.esito === "non_si_puo_fare" && (
               <a className="es-bottone es-bottone-pieno" href="mailto:assistenza@eneasubito.it">
@@ -402,6 +436,14 @@ function SchermataVerdetto({ verdetto, ricomincia }: { verdetto: Verdetto; ricom
             <button type="button" className="es-indietro" onClick={ricomincia}>
               Ricomincia
             </button>
+          </div>
+
+          <div>
+            {intoppo && (
+              <p className="es-riscontro es-attenzione" style={{ marginTop: 4 }}>
+                {intoppo} <a href="mailto:assistenza@eneasubito.it">assistenza@eneasubito.it</a>
+              </p>
+            )}
           </div>
         </div>
       </div>

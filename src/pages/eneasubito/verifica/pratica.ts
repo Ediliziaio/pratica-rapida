@@ -49,3 +49,29 @@ export async function salvaPratica(dati: DatiPratica): Promise<string | null> {
     return null;
   }
 }
+
+/**
+ * Apre il pagamento e restituisce l'indirizzo a cui mandare il cliente.
+ *
+ * `null` quando il conto di incasso non e' ancora collegato o qualcosa non
+ * va: in quel caso chi chiama lo dice in chiaro invece di lasciare un
+ * pulsante che non fa niente.
+ */
+export async function apriPagamento(token: string): Promise<string | null> {
+  if (!BASE || !token) return null;
+  try {
+    const risposta = await fetch(`${BASE}/functions/v1/eneasubito-pagamento`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(CHIAVE ? { apikey: CHIAVE, Authorization: `Bearer ${CHIAVE}` } : {}),
+      },
+      body: JSON.stringify({ token }),
+    });
+    if (!risposta.ok) return null;
+    const esito = (await risposta.json()) as { url?: string };
+    return esito.url ?? null;
+  } catch {
+    return null;
+  }
+}

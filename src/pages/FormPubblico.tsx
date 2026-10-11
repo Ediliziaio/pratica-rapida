@@ -289,7 +289,9 @@ export default function FormPubblico() {
             // Catasto per inserire i dati in autonomia senza pagare il servizio.
             setShowIntro(false);
             setCadastralResumeMode("at");
-          } else if (isPaymentFlowComplete(row)) {
+          } else if (row.payment_required && isPaymentFlowComplete(row)) {
+            // L'assenza di un pagamento richiesto non e' un ritorno da Stripe:
+            // il cliente deve iniziare dal primo step, non dopo il Catasto.
             setShowIntro(false);
             setCadastralResumeMode("after");
           } else if (
@@ -497,6 +499,18 @@ export default function FormPubblico() {
 
   const stepErrors = useDynamic ? dynamicErrors : hardcodedErrors;
   const canProceed = Object.keys(stepErrors).length === 0;
+  const submitErrors = useMemo(
+    () => useDynamic && dbModule
+      ? validateAllDynamicSteps(effectiveDynamicSchema ?? dbModule.schema, dynamicData)
+      : validateStep("recap", formData, prodottoTipo, isAzienda, requireCustomerInvoice),
+    [useDynamic, dbModule, effectiveDynamicSchema, dynamicData, formData, prodottoTipo, isAzienda, requireCustomerInvoice],
+  );
+  const firstIncompleteStep = useDynamic
+    ? visibleDynamicSteps.findIndex((step) =>
+      Object.keys(submitErrors).some((key) => key.startsWith(`${step.key}.`)))
+    : hardcodedSteps.findIndex((step) =>
+      Object.keys(validateStep(step.id, formData, prodottoTipo, isAzienda, requireCustomerInvoice)).length > 0);
+  const submitDisabledByMissingData = Object.keys(submitErrors).length > 0;
 
   // ── Navigation lock: previene click doppio durante saveDraft async ─────────
   // Prima del fix: se la rete era lenta, l'utente poteva cliccare "Avanti" 2
@@ -1038,18 +1052,31 @@ export default function FormPubblico() {
           </Button>
 
           {isLast ? (
-            <Button
-              type="button"
-              onClick={handleSubmit}
-              disabled={submitting || uploading || navigating}
-            >
-              {submitting ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Send className="h-4 w-4 mr-2" />
+            <div className="flex flex-col items-end gap-2">
+              {submitDisabledByMissingData && (
+                <button
+                  type="button"
+                  className="text-sm text-destructive underline"
+                  onClick={() => {
+                    if (firstIncompleteStep >= 0) setStepIndex(firstIncompleteStep);
+                  }}
+                >
+                  Dati obbligatori mancanti: vai alla prima sezione da completare
+                </button>
               )}
-              {paymentRequired ? "Invia e vai al pagamento" : "Invia pratica"}
-            </Button>
+              <Button
+                type="button"
+                onClick={handleSubmit}
+                disabled={submitting || uploading || navigating || submitDisabledByMissingData}
+              >
+                {submitting ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Send className="h-4 w-4 mr-2" />
+                )}
+                {paymentRequired ? "Invia e vai al pagamento" : "Invia pratica"}
+              </Button>
+            </div>
           ) : (
             <Button
               type="button"

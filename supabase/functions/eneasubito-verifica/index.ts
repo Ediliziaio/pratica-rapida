@@ -137,11 +137,7 @@ Deno.serve(async (req) => {
     return json({ ok: true, token: creata.form_token });
   } catch (e) {
     console.error("[eneasubito-verifica]", e);
-    // TEMPORANEO (11/10): il dettaglio esce nella risposta per capire perche'
-    // l'inserimento fallisce senza dover leggere i registri. Va tolto appena
-    // la catena funziona: un servizio pubblico non racconta i fatti suoi.
-    const dettaglio = e instanceof Error ? e.message : JSON.stringify(e);
-    return json({ error: "Non siamo riusciti a salvare la richiesta", dettaglio }, 500);
+    return json({ error: "Non siamo riusciti a salvare la richiesta" }, 500);
   }
 });
 

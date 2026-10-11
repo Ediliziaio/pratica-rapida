@@ -2,53 +2,117 @@
 --
 -- La view elenca le colonne una per una: senza ridefinirla il campo non arriva
 -- mai al CRM, e senza il campo non si possono distinguere a vista le pratiche
--- di EneaSubito né raggrupparle a parte nel cruscotto delle fatture.
+-- di EneaSubito ne' raggrupparle a parte nel cruscotto.
 --
--- È un cambiamento puramente additivo: replica la definizione corrente
--- (20260721100000_chiamate_assegnato_a.sql) aggiungendo in coda una sola
--- colonna. Nessuna colonna viene rimossa, rinominata o cambiata di gate, e
--- nessuna query esistente cambia risultato.
+-- ATTENZIONE a chi la ritocchera': il corpo qui sotto NON e' copiato dal file
+-- della migrazione precedente, e' il testo che il database restituisce per la
+-- view viva (pg_get_viewdef), letto l'11/10/2026. I due divergevano:
+-- in produzione `chiamate_assegnato_a` viene prima di `data_fine_lavori`,
+-- nel file era il contrario, e CREATE OR REPLACE VIEW pretende lo stesso
+-- ordine. Prima di riscrivere questa view, rileggere la definizione vera.
 --
--- Gate: solo operatori interni. Ai rivenditori il canale non serve e non li
--- riguarda (le pratiche EneaSubito stanno sotto la company PRIVATI).
+-- Cambiamento additivo: una colonna in coda, gated agli operatori interni.
+-- Nessuna colonna rimossa, rinominata o spostata, nessun tipo cambiato,
+-- security_invoker invariato: nessuna query esistente cambia risultato.
 
 CREATE OR REPLACE VIEW public.enea_practices_public
 WITH (security_invoker = true) AS
-SELECT
-  ep.id, ep.reseller_id, ep.current_stage_id, ep.brand,
-  ep.cliente_nome, ep.cliente_cognome, ep.cliente_email, ep.cliente_telefono,
-  ep.cliente_indirizzo, ep.cliente_cf, ep.prodotto_installato, ep.fornitore, ep.note,
-  CASE WHEN public.is_internal(auth.uid()) THEN ep.note_interne ELSE NULL END AS note_interne,
-  ep.fatture_urls, ep.documenti_enea_urls, ep.documenti_aggiuntivi_urls,
-  ep.documenti_mancanti, ep.note_documenti_mancanti,
-  CASE WHEN public.is_internal(auth.uid()) THEN ep.guadagno_lordo ELSE NULL END AS guadagno_lordo,
-  CASE WHEN public.is_internal(auth.uid()) THEN ep.guadagno_netto ELSE NULL END AS guadagno_netto,
-  CASE WHEN public.is_internal(auth.uid()) THEN ep.note_gestionale ELSE NULL END AS note_gestionale,
-  ep.data_invio_pratica, ep.operatore_id, ep.assigned_at,
-  ep.ultimo_sollecito_privato, ep.conteggio_solleciti, ep.ultimo_sollecito_fornitore,
-  ep.form_compilato_at,
-  CASE WHEN public.is_internal(auth.uid()) THEN ep.form_token
-       WHEN ep.reseller_id = public.get_reseller_company_id(auth.uid()) THEN ep.form_token
-       ELSE NULL END AS form_token,
-  ep.recensione_richiesta_at, ep.recensione_ricevuta_at, ep.recensione_testo, ep.recensione_stelle,
-  ep.archived_at, ep.created_at, ep.updated_at, ep.current_stage_entered_at,
-  ep.pratica_enea_conclusa_urls,
-  CASE WHEN public.is_internal(auth.uid()) THEN ep.tipo_fatturazione ELSE NULL END AS tipo_fatturazione,
-  CASE WHEN public.is_internal(auth.uid()) THEN ep.tipo_servizio ELSE NULL END AS tipo_servizio,
-  ep.tipo_soggetto, ep.archivio_path,
-  CASE WHEN public.is_internal(auth.uid()) THEN ep.prezzo ELSE NULL END AS prezzo,
-  CASE WHEN public.is_internal(auth.uid()) THEN ep.pagamento_stato ELSE NULL END AS pagamento_stato,
-  CASE WHEN public.is_internal(auth.uid()) THEN ep.data_incasso ELSE NULL END AS data_incasso,
-  CASE
-    WHEN public.is_internal(auth.uid()) THEN ep.dati_form
-    WHEN ep.reseller_id = public.get_reseller_company_id(auth.uid()) THEN ep.dati_form
-    ELSE '{}'::jsonb
-  END AS dati_form,
-  CASE WHEN public.is_internal(auth.uid()) THEN ep.azienda_dichiarata ELSE NULL END AS azienda_dichiarata,
-  ep.data_fine_lavori,
-  CASE WHEN public.is_internal(auth.uid()) THEN ep.chiamate_assegnato_a ELSE NULL END AS chiamate_assegnato_a,
-  CASE WHEN public.is_internal(auth.uid()) THEN ep.canale ELSE NULL END AS canale
-FROM public.enea_practices ep;
+SELECT id,
+    reseller_id,
+    current_stage_id,
+    brand,
+    cliente_nome,
+    cliente_cognome,
+    cliente_email,
+    cliente_telefono,
+    cliente_indirizzo,
+    cliente_cf,
+    prodotto_installato,
+    fornitore,
+    note,
+        CASE
+            WHEN is_internal(auth.uid()) THEN note_interne
+            ELSE NULL::text
+        END AS note_interne,
+    fatture_urls,
+    documenti_enea_urls,
+    documenti_aggiuntivi_urls,
+    documenti_mancanti,
+    note_documenti_mancanti,
+        CASE
+            WHEN is_internal(auth.uid()) THEN guadagno_lordo
+            ELSE NULL::numeric
+        END AS guadagno_lordo,
+        CASE
+            WHEN is_internal(auth.uid()) THEN guadagno_netto
+            ELSE NULL::numeric
+        END AS guadagno_netto,
+        CASE
+            WHEN is_internal(auth.uid()) THEN note_gestionale
+            ELSE NULL::text
+        END AS note_gestionale,
+    data_invio_pratica,
+    operatore_id,
+    assigned_at,
+    ultimo_sollecito_privato,
+    conteggio_solleciti,
+    ultimo_sollecito_fornitore,
+    form_compilato_at,
+        CASE
+            WHEN is_internal(auth.uid()) THEN form_token
+            WHEN reseller_id = get_reseller_company_id(auth.uid()) THEN form_token
+            ELSE NULL::text
+        END AS form_token,
+    recensione_richiesta_at,
+    recensione_ricevuta_at,
+    recensione_testo,
+    recensione_stelle,
+    archived_at,
+    created_at,
+    updated_at,
+    current_stage_entered_at,
+    pratica_enea_conclusa_urls,
+        CASE
+            WHEN is_internal(auth.uid()) THEN tipo_fatturazione
+            ELSE NULL::text
+        END AS tipo_fatturazione,
+        CASE
+            WHEN is_internal(auth.uid()) THEN tipo_servizio
+            ELSE NULL::text
+        END AS tipo_servizio,
+    tipo_soggetto,
+    archivio_path,
+        CASE
+            WHEN is_internal(auth.uid()) THEN prezzo
+            ELSE NULL::numeric
+        END AS prezzo,
+        CASE
+            WHEN is_internal(auth.uid()) THEN pagamento_stato
+            ELSE NULL::pagamento_stato
+        END AS pagamento_stato,
+        CASE
+            WHEN is_internal(auth.uid()) THEN data_incasso
+            ELSE NULL::timestamp with time zone
+        END AS data_incasso,
+        CASE
+            WHEN is_internal(auth.uid()) THEN dati_form
+            WHEN reseller_id = get_reseller_company_id(auth.uid()) THEN dati_form
+            ELSE '{}'::jsonb
+        END AS dati_form,
+        CASE
+            WHEN is_internal(auth.uid()) THEN azienda_dichiarata
+            ELSE NULL::text
+        END AS azienda_dichiarata,
+        CASE
+            WHEN is_internal(auth.uid()) THEN chiamate_assegnato_a
+            ELSE NULL::text
+        END AS chiamate_assegnato_a,
+    data_fine_lavori,
+        CASE
+            WHEN is_internal(auth.uid()) THEN canale
+            ELSE NULL::text
+        END AS canale
+   FROM enea_practices ep;
 
 GRANT SELECT ON public.enea_practices_public TO authenticated;
 

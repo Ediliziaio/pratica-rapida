@@ -34,10 +34,10 @@ import { STILE } from "./eneasubito/stile";
 const DETRAZIONE_PRIMA_CASA = "5.000 €";
 
 const PASSI: [string, string][] = [
-  ["Dicci tre cose", "Chi è in fattura, la tua e-mail, la foto della fattura. Due minuti."],
-  ["Paghi 99 €", "Carta o Apple Pay. La fattura te la manda Stripe subito."],
-  ["Ti chiediamo il resto", "Con calma, dal tuo link: dati catastali, certificati, bonifico."],
-  ["Ricevi la pratica", "La trasmettiamo all'ENEA e ti mandiamo la ricevuta col codice CPID."],
+  ["Prepari i tuoi dati", "E la fattura del tuo fornitore."],
+  ["Compili il modulo", "Semplice e veloce, anche dal telefono."],
+  ["Paghi comodamente online", "Carta o Apple Pay. La fattura ti arriva subito per e-mail."],
+  ["Ricevi la tua pratica", "Pronta per essere inserita nella dichiarazione dei redditi."],
 ];
 
 const FAMIGLIE: { nome: string; testo: string; azione: string; dove: string }[] = [
@@ -115,8 +115,9 @@ export default function EneaSubito() {
             Devi fare una pratica ENEA veloce, online, economica e curata da professionisti?
           </h1>
           <p>
-            Tre cose e la tua pratica parte. Il resto dei dati te li chiediamo{" "}
-            <strong style={{ fontWeight: 600, color: "var(--es-inchiostro)" }}>dopo</strong>, con calma.
+            Prepari i tuoi dati e la fattura del tuo fornitore, compili il modulo{" "}
+            <strong style={{ fontWeight: 600, color: "var(--es-inchiostro)" }}>anche dal telefono</strong>,
+            e ricevi la tua pratica.
           </p>
           <div className="es-azioni">
             <Link className="es-bottone es-bottone-pieno es-bottone-grande" to="/verifica">
@@ -137,9 +138,9 @@ export default function EneaSubito() {
           <ul className="es-esiti">
             <li><span className="es-ok"><Spunta /></span>Il <b>nome di chi è in fattura</b></li>
             <li><span className="es-ok"><Spunta /></span>La tua <b>e-mail</b></li>
-            <li><span className="es-ok"><Spunta /></span>La <b>foto della fattura</b>, anche storta</li>
+            <li><span className="es-ok"><Spunta /></span>La <b>fattura del tuo fornitore</b></li>
           </ul>
-          <p className="es-nota">Nient'altro. Il resto te lo chiediamo dopo.</p>
+          <p className="es-nota">Si compila in pochi minuti, anche dal telefono.</p>
         </div>
       </section>
 
@@ -157,9 +158,9 @@ export default function EneaSubito() {
         </div>
       </section>
 
-      {/* 4. Cosa copriamo. */}
+      {/* 4. Quali pratiche lavoriamo. */}
       <section id="cosa-copriamo" className="es-wrap es-sezione">
-        <h2 className="es-titolo es-serif">Cosa facciamo</h2>
+        <h2 className="es-titolo es-serif">Quali pratiche lavoriamo</h2>
         <div className="es-griglia es-griglia-3">
           {FAMIGLIE.map((f) => (
             <article key={f.nome} className="es-scheda es-scheda-grande">

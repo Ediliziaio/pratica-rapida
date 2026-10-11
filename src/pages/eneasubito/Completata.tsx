@@ -31,8 +31,8 @@ export default function Completata() {
           lineHeight: 1.5,
         }}
       >
-        <strong>Pagamento ricevuto.</strong> La fattura è già nella tua posta. Ora completa i dati qui
-        sotto: ci vogliono pochi minuti e puoi fermarti e riprendere quando vuoi.
+        <strong>Pagamento ricevuto.</strong> La fattura è già nella tua posta. Completa il modulo qui
+        sotto e la tua pratica parte.
       </div>
       {/* Il modulo si prende il token dall'indirizzo da solo: `token` qui
           serve solo a non montare il modulo quando l'indirizzo e' monco. */}

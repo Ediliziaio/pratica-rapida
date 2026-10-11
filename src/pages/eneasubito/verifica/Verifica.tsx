@@ -164,8 +164,7 @@ export default function Verifica() {
         <div className="es-passo">
           <h1 className="es-domandona es-serif">Fai partire la tua pratica</h1>
           <p className="es-aiuto">
-            Tre cose e hai finito. Il resto dei dati te li chiediamo dopo, con calma, quando la pratica
-            è già tua.
+            Ti servono i tuoi dati e la fattura del tuo fornitore. Si compila anche dal telefono.
           </p>
 
           <div className="es-campone">

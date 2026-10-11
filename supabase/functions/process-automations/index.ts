@@ -247,8 +247,24 @@ function rulePassesConditions(
   return conditions.every((c) => evaluateCondition(c, practice, stage));
 }
 
-serve(async () => {
-  if (!isBusinessHour()) {
+serve(async (req) => {
+  let triggerGroup: string | null = null;
+  try {
+    const body = await req.json();
+    triggerGroup = typeof body?.trigger_group === "string" ? body.trigger_group : null;
+  } catch {
+    // Le invocazioni cron legacy usano un body vuoto o non JSON.
+  }
+
+  if (triggerGroup && triggerGroup !== "compilation_reminders") {
+    return Response.json(
+      { processed: 0, reason: "unknown_trigger_group", trigger_group: triggerGroup },
+      { status: 400 },
+    );
+  }
+
+  const compilationOnly = triggerGroup === "compilation_reminders";
+  if (!compilationOnly && !isBusinessHour()) {
     return Response.json({ processed: 0, reason: "outside_business_hours" });
   }
 
@@ -259,7 +275,7 @@ serve(async () => {
   // Usa current_stage_entered_at (set dal trigger DB) → timer corretto anche
   // se la pratica viene editata mentre è in stage.
   let autoArchived = 0;
-  try {
+  if (!compilationOnly) try {
     const tenDaysAgo = new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString();
     const { data: stagesAA } = await supabase
       .from("pipeline_stages")
@@ -297,11 +313,15 @@ serve(async () => {
     await reportError(err, { fn: "process-automations", step: "auto-archive" });
   }
 
-  const { data: rules } = await supabase
+  let rulesQuery = supabase
     .from("automation_rules")
     .select("*")
     .eq("is_enabled", true)
     .order("order_index");
+  if (compilationOnly) {
+    rulesQuery = rulesQuery.eq("trigger_event", "days_waiting_7");
+  }
+  const { data: rules } = await rulesQuery;
 
   if (!rules?.length) return Response.json({ processed: 0, auto_archived: autoArchived });
 
@@ -348,7 +368,12 @@ serve(async () => {
       );
       const ruleMin = (rule as { min_hour?: number }).min_hour ?? 9;
       const ruleMax = (rule as { max_hour?: number }).max_hour ?? 18;
-      if (romeHour < ruleMin || romeHour >= ruleMax) continue; // skip rule outside its window
+      // Il Titolare ha autorizzato i soli solleciti di compilazione H24, 7/7.
+      // Ogni altra automazione conserva la propria finestra oraria.
+      if (
+        rule.trigger_event !== "days_waiting_7" &&
+        (romeHour < ruleMin || romeHour >= ruleMax)
+      ) continue;
 
       switch (rule.trigger_event) {
 

@@ -43,4 +43,23 @@ describe("compilation reminder delivery safety", () => {
     expect(source).toContain("isCompletedDeliveryCommunication");
     expect(source).toContain("if (completedPracticeIds.has(String(p.id))) continue;");
   });
+
+  it("isola il percorso H24 ai soli solleciti di compilazione", () => {
+    const source = readFileSync(
+      resolve(process.cwd(), "supabase/functions/process-automations/index.ts"),
+      "utf8",
+    );
+    expect(source).toContain('triggerGroup !== "compilation_reminders"');
+    expect(source).toContain('rulesQuery.eq("trigger_event", "days_waiting_7")');
+    expect(source).toContain('rule.trigger_event !== "days_waiting_7"');
+  });
+
+  it("non applica una fascia oraria ai promemoria Meta H24", () => {
+    const source = readFileSync(
+      resolve(process.cwd(), "supabase/functions/process-meta-private-followups/index.ts"),
+      "utf8",
+    );
+    expect(source).not.toContain("outside_whatsapp_hours");
+    expect(source).not.toContain("isAllowedWhatsAppTime");
+  });
 });

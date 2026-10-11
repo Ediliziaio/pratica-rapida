@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-import { isDocumentiForniti } from "../_shared/contatto-cliente.ts";
+import { isCanaleMuto, isDocumentiForniti } from "../_shared/contatto-cliente.ts";
 
 // WhatsApp passa dalla edge function send-whatsapp (router provider):
 // niente più chiamate dirette a Meta da qui → nessun WA_* env richiesto.
@@ -185,7 +185,10 @@ serve(async (req) => {
     // invece di pretendere il servizio completo: le pratiche piu' vecchie del
     // campo non hanno alcun tipo_servizio, e un default-deny bloccherebbe
     // l'invio anche a chi il modulo lo aspetta.
-    if (isDocumentiForniti({ tipo_servizio: pratica?.dati_pratica?.tipo_servizio })) {
+    if (
+      isDocumentiForniti({ tipo_servizio: pratica?.dati_pratica?.tipo_servizio }) ||
+      isCanaleMuto({ canale: pratica?.dati_pratica?.canale })
+    ) {
       return new Response(
         JSON.stringify({
           error: "Pratica con documenti forniti dal rivenditore: il cliente finale non va contattato.",

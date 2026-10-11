@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { reportError } from "../_shared/error.ts";
 import { normalizePhone } from "../_shared/phone.ts";
 import { resellerDisplayName } from "../_shared/reseller.ts";
-import { puoContattareCliente } from "../_shared/contatto-cliente.ts";
+import { isCanaleMuto, puoContattareCliente } from "../_shared/contatto-cliente.ts";
 import { isReviewExcluded } from "../_shared/review-exclusion.ts";
 import {
   COMPILATION_REMINDER_STAGE_TYPES,
@@ -474,6 +474,11 @@ serve(async (req) => {
             // loro esiste SOLO il promemoria pagamento, mai il sollecito
             // compilazione (il modulo non e' affar loro).
             if (!attesaPagamento && !puoContattareCliente(p)) continue;
+            // Il promemoria pagamento passa anche dove il cliente non e'
+            // contattabile per il resto — ma non dai canali muti, dove l'unica
+            // cosa che il cliente riceve e' quello che gli manda Stripe. Senza
+            // questa riga EneaSubito spedirebbe solleciti di pagamento.
+            if (isCanaleMuto(p)) continue;
             try {
               if (attesaPagamento) {
                 await invoke(supabase, "send-email", {

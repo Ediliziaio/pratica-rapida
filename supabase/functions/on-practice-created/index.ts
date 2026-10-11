@@ -4,6 +4,7 @@ import { reportError } from "../_shared/error.ts";
 import { resellerDisplayName } from "../_shared/reseller.ts";
 import {
   isDocumentiForniti,
+  isCanaleMuto,
   puoContattareCliente,
 } from "../_shared/contatto-cliente.ts";
 
@@ -141,7 +142,10 @@ serve(async (req) => {
   // Il nuovo flusso FIC/TS Pay raccoglie prima i dati del modulo e genera la
   // proforma soltanto all'invio. Il vecchio link Stripe resta disponibile solo
   // come rollback quando il rollout è spento.
+  // Dai canali muti non parte nulla, nemmeno la richiesta di pagamento:
+  // quella cassa e' un'altra, e al cliente scrive Stripe.
   const attesaPagamentoClienteLegacy =
+    !isCanaleMuto(practice) &&
     practice.tipo_fatturazione === "cliente_finale" &&
     practice.pagamento_stato !== "pagata" &&
     !ficRolloutEnabled;

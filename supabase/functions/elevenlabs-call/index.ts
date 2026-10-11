@@ -45,7 +45,7 @@ serve(async (req) => {
   // Fetch the practice
   const { data: practice, error: practiceError } = await supabase
     .from("enea_practices")
-    .select("id, cliente_telefono, cliente_nome, brand, tipo_servizio")
+    .select("id, cliente_telefono, cliente_nome, brand, tipo_servizio, canale")
     .eq("id", practice_id)
     .single();
 

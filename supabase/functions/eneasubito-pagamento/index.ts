@@ -93,7 +93,7 @@ Deno.serve(async (req) => {
             currency: "eur",
             unit_amount: importo,
             product_data: {
-              name: "Pratica ENEA",
+              name: "EneaSubito — Pratica ENEA",
               description: pratica.prodotto_installato
                 ? `${pratica.prodotto_installato} — compilazione e trasmissione all'ENEA`
                 : "Compilazione e trasmissione della comunicazione all'ENEA",
@@ -101,9 +101,25 @@ Deno.serve(async (req) => {
           },
         },
       ],
-      // La fattura la emette Stripe da sola a pagamento riuscito: e' il
-      // pezzo che mancava, e sono due righe.
-      invoice_creation: { enabled: true },
+      // La fattura la emette Stripe da sola a pagamento riuscito.
+      //
+      // Descrizione e piè di pagina si impostano **per singola fattura**: in
+      // testa resta il nome dell'account (la societa' che vende davvero, e
+      // quello non si puo' cambiare per vendita), ma qui dentro compare
+      // EneaSubito e il recapito giusto. Cosi' il cliente capisce da chi ha
+      // comprato e dove scrivere, e le fatture dell'altra attivita' che passa
+      // dallo stesso conto restano identiche a prima.
+      invoice_creation: {
+        enabled: true,
+        invoice_data: {
+          description: pratica.prodotto_installato
+            ? `Pratica ENEA — ${pratica.prodotto_installato}. Compilazione e trasmissione al portale ENEA.`
+            : "Pratica ENEA. Compilazione e trasmissione al portale ENEA.",
+          footer:
+            "EneaSubito è un servizio di PR Consulting LLC — eneasubito.it — assistenza@eneasubito.it",
+          metadata: { canale: "eneasubito", pratica_id: pratica.id },
+        },
+      },
       // Il riferimento serve al webhook per ritrovare la pratica senza
       // fidarsi di niente che arrivi dal browser.
       client_reference_id: pratica.id,

@@ -17,6 +17,7 @@ import {
   useUpdateEneaPractice,
 } from "@/hooks/useEneaPractices";
 import { supabase } from "@/integrations/supabase/client";
+import { resolveCfNetPriceEur } from "@/lib/cfPracticePriceClient";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -722,18 +723,28 @@ function PracticeDetailSheet({
     if (!practice || !abbinaCompanyId) return;
     setAbbinando(true);
     try {
-      const updates: { reseller_id: string; prezzo?: number } = { reseller_id: abbinaCompanyId };
-      if (Number(practice.prezzo ?? 0) <= 0 && practice.tipo_fatturazione !== "cliente_finale") {
+      const nome = abbinaCompanies.find((c) => c.id === abbinaCompanyId)?.ragione_sociale ?? "rivenditore";
+      const updates: { reseller_id: string; prezzo?: number; note?: string | null } = {
+        reseller_id: abbinaCompanyId,
+      };
+      if (practice.tipo_fatturazione === "cliente_finale") {
+        updates.prezzo = await resolveCfNetPriceEur(abbinaCompanyId);
+      } else if (Number(practice.prezzo ?? 0) <= 0) {
         const resolvedPrice = await resolveCompanyNetPrice(abbinaCompanyId, practice.brand);
         if (resolvedPrice <= 0) throw new Error("Prezzo netto non configurato per il rivenditore selezionato");
         updates.prezzo = resolvedPrice;
       }
+      const cleanedNote = String(practice.note ?? "")
+        .split("\n")
+        .filter((line) => !line.includes("AZIENDA NON TROVATA") && !line.includes("pratica DA ABBINARE"))
+        .join("\n")
+        .trim();
+      updates.note = cleanedNote || null;
       const { error } = await supabase
         .from("enea_practices")
         .update(updates)
         .eq("id", practice.id);
       if (error) throw error;
-      const nome = abbinaCompanies.find((c) => c.id === abbinaCompanyId)?.ragione_sociale ?? "rivenditore";
       toast({ title: "Pratica abbinata", description: `Assegnata a ${nome}.` });
       setShowAbbina(false);
       setAbbinaCompanyId("");

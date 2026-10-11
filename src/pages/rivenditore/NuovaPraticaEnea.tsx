@@ -2,6 +2,7 @@ import { useState, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { resolveCfNetPriceEur } from "@/lib/cfPracticePriceClient";
 import { useAuth } from "@/hooks/useAuth";
 import { usePipelineStages } from "@/hooks/useEneaPractices";
 import { Button } from "@/components/ui/button";
@@ -629,7 +630,9 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
     setSubmitting(true);
 
     try {
-      const prezzoNettoRivenditore = await resolveResellerNetPrice(effectiveResellerId);
+      const prezzoNettoPratica = tipoFatturazione === "cliente_finale"
+        ? await resolveCfNetPriceEur(effectiveResellerId)
+        : await resolveResellerNetPrice(effectiveResellerId);
       // Trova stage iniziale in base al tipo servizio:
       // - servizio_completo → "inviata" (in attesa che il cliente compili il modulo)
       // - documenti_forniti → "attesa_compilazione" (il rivenditore deve completare lui
@@ -691,7 +694,7 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
                 },
               }
             : {},
-          prezzo: isFgasOnly ? 35 : hasFgas ? 90 : prezzoNettoRivenditore,
+          prezzo: isFgasOnly ? 35 : hasFgas ? 90 : prezzoNettoPratica,
           note: note.trim() || null,
           // Prova dell'accettazione del contratto di servizio da parte del
           // rivenditore che sta inserendo questa pratica.

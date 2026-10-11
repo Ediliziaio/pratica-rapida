@@ -10,21 +10,32 @@ import { supabase } from "@/integrations/supabase/client";
  * l'upload diretto via supabase.storage (vedi i componenti chiamanti).
  */
 export async function uploadPublicFormFile(token: string, kind: string, file: File): Promise<string> {
-  const content_base64 = await fileToBase64(file);
+  // Chiediamo alla Edge Function un token limitato a un singolo path dopo che
+  // ha validato il form_token. Il file viaggia poi direttamente verso Storage:
+  // niente conversione base64, niente +33% di peso e niente payload JSON che
+  // falliscono su PDF perfettamente validi vicino al limite dichiarato.
   const { data, error } = await supabase.functions.invoke("form-upload", {
-    body: { token, kind, filename: file.name, content_base64 },
+    body: {
+      action: "create_signed_upload",
+      token,
+      kind,
+      filename: file.name,
+      size: file.size,
+      content_type: file.type || "application/octet-stream",
+    },
   });
   if (error) throw error;
-  const r = data as { success?: boolean; path?: string; error?: string };
-  if (!r?.success || !r.path) throw new Error(r?.error ?? "Upload fallito");
-  return r.path;
-}
+  const r = data as { success?: boolean; path?: string; upload_token?: string; error?: string };
+  if (!r?.success || !r.path || !r.upload_token) {
+    throw new Error(r?.error ?? "Impossibile preparare il caricamento");
+  }
 
-function fileToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result));
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
+  const { error: uploadError } = await supabase.storage
+    .from("enea-documents")
+    .uploadToSignedUrl(r.path, r.upload_token, file, {
+      contentType: file.type || "application/octet-stream",
+      upsert: false,
+    });
+  if (uploadError) throw uploadError;
+  return r.path;
 }

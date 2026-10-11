@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { importSPKI, jwtVerify } from "https://esm.sh/jose@5.9.6";
 import {
+  extractBillingIdentity,
   getFicConfig,
   getIssuedDocument,
   isDocumentPaid,
@@ -38,6 +39,24 @@ function cloudEvent(req: Request, body: JsonObject) {
   };
 }
 
+function resourceIds(data: JsonObject): number[] {
+  // Fatture in Cloud usa due envelope CloudEvents:
+  // - structured: body.data.ids
+  // - binary: headers ce-* + body.data.ids (quindi event.data.data.ids)
+  // Il vecchio lettore gestiva soltanto il primo caso e perdeva l'ID negli
+  // eventi `invoices.email_sent`, lasciando l'ordine in `sdi_pending` anche
+  // dopo l'invio effettivo dell'e-mail al cliente.
+  const nested = data.data;
+  const candidates = Array.isArray(data.ids)
+    ? data.ids
+    : nested && typeof nested === "object" && !Array.isArray(nested) && Array.isArray((nested as JsonObject).ids)
+      ? (nested as JsonObject).ids
+      : [];
+  return (candidates as unknown[])
+    .map(Number)
+    .filter((id) => Number.isInteger(id) && id > 0);
+}
+
 serve(async (req) => {
   try {
     await verifyWebhook(req);
@@ -62,9 +81,7 @@ serve(async (req) => {
   }
   const event = cloudEvent(req, body);
   if (!event.id || !event.type) return new Response("Invalid CloudEvent", { status: 400 });
-  const ids = Array.isArray(event.data?.ids)
-    ? (event.data.ids as unknown[]).map(Number).filter((id) => Number.isInteger(id) && id > 0)
-    : [];
+  const ids = resourceIds(event.data);
 
   const admin = createClient(SUPABASE_URL, SERVICE_KEY);
   const { data: previous } = await admin.from("fic_webhook_events").select("status").eq("event_id", event.id).maybeSingle();
@@ -107,19 +124,21 @@ serve(async (req) => {
         }
         await admin.from("enea_practices").update({ pagamento_stato: "pagata", data_incasso: order.paid_at ?? paidAt }).eq("id", order.practice_id);
 
-        // Il pagamento confermato sblocca la pratica indipendentemente dalla
-        // fatturazione: il relativo interruttore governa soltanto gli effetti
-        // fiscali, non deve lasciare una pratica pagata fuori dal flusso operativo.
+        // Il pagamento confermato sblocca la pratica soltanto se il modulo è
+        // completo. Il servizio catastale pagato a metà wizard resta nella
+        // colonna corrente finché il cliente non invia tutte le sezioni.
         const practice = (order.enea_practices ?? {}) as JsonObject;
-        const { data: readyStage } = await admin.from("pipeline_stages")
-          .select("id")
-          .is("reseller_id", null)
-          .eq("stage_type", "pronte_da_fare")
-          .eq("brand", practice.brand ?? "enea")
-          .limit(1)
-          .maybeSingle();
-        if (readyStage?.id) {
-          await admin.from("enea_practices").update({ current_stage_id: readyStage.id }).eq("id", order.practice_id);
+        if (practice.form_compilato_at) {
+          const { data: readyStage } = await admin.from("pipeline_stages")
+            .select("id")
+            .is("reseller_id", null)
+            .eq("stage_type", "pronte_da_fare")
+            .eq("brand", practice.brand ?? "enea")
+            .limit(1)
+            .maybeSingle();
+          if (readyStage?.id) {
+            await admin.from("enea_practices").update({ current_stage_id: readyStage.id }).eq("id", order.practice_id);
+          }
         }
 
         // Interruttore Cabina di Regia: senza approvazione esplicita il denaro
@@ -196,8 +215,12 @@ serve(async (req) => {
           updated_at: sdiSentAt,
         }).eq("id", order.id);
 
-        const email = String(practice.cliente_email ?? "").trim();
-        const name = `${String(practice.cliente_nome ?? "").trim()} ${String(practice.cliente_cognome ?? "").trim()}`.trim();
+        // Prima dell'invio finale del modulo, anagrafica ed e-mail vivono
+        // nella bozza dati_form. Non dipendere dai campi denormalizzati ancora
+        // nulli, altrimenti il pagamento catastale resta senza e-mail fattura.
+        const customer = extractBillingIdentity(practice);
+        const email = customer.email;
+        const name = customer.name;
         if (!order.customer_emailed_at && email) {
           try {
             await scheduleDocumentEmail(config, invoiceId, email, name, "invoice");
@@ -228,7 +251,7 @@ serve(async (req) => {
     } else if (event.type === "it.fattureincloud.webhooks.issued_documents.invoices.email_sent") {
       for (const invoiceId of ids) {
         const { data: order } = await admin.from("cf_payment_orders")
-          .select("id,practice_id,status,paid_at,sdi_sent_at,fic_invoice_id,enea_practices:practice_id(brand)")
+          .select("id,practice_id,status,paid_at,sdi_sent_at,fic_invoice_id,enea_practices:practice_id(brand,form_compilato_at)")
           .eq("fic_invoice_id", invoiceId)
           .maybeSingle();
         if (!order) continue;
@@ -242,18 +265,22 @@ serve(async (req) => {
         }).eq("id", order.id);
 
         const practice = (order.enea_practices ?? {}) as JsonObject;
-        const { data: readyStage } = await admin.from("pipeline_stages")
-          .select("id")
-          .is("reseller_id", null)
-          .eq("stage_type", "pronte_da_fare")
-          .eq("brand", practice.brand ?? "enea")
-          .limit(1)
-          .maybeSingle();
-        if (!readyStage?.id) throw new Error("Colonna 'Pronte da fare' non trovata");
+        let readyStageId: string | null = null;
+        if (practice.form_compilato_at) {
+          const { data: readyStage } = await admin.from("pipeline_stages")
+            .select("id")
+            .is("reseller_id", null)
+            .eq("stage_type", "pronte_da_fare")
+            .eq("brand", practice.brand ?? "enea")
+            .limit(1)
+            .maybeSingle();
+          if (!readyStage?.id) throw new Error("Colonna 'Pronte da fare' non trovata");
+          readyStageId = String(readyStage.id);
+        }
         await admin.from("enea_practices").update({
           pagamento_stato: "pagata",
           data_incasso: order.paid_at ?? emailedAt,
-          current_stage_id: readyStage.id,
+          ...(readyStageId ? { current_stage_id: readyStageId } : {}),
         }).eq("id", order.practice_id);
 
         const { data: admins } = await admin.from("user_roles").select("user_id").eq("role", "super_admin");
@@ -261,8 +288,12 @@ serve(async (req) => {
           await admin.from("notifications").insert(admins.map((row) => ({
             user_id: row.user_id,
             tipo: "pagamento_ricevuto",
-            titolo: "CF pronto — pagamento e fattura completati",
-            messaggio: "Pagamento verificato; fattura Fatture in Cloud inviata allo SDI e al cliente via e-mail.",
+            titolo: readyStageId
+              ? "CF pronto — pagamento e fattura completati"
+              : "Servizio catastale pagato e fatturato",
+            messaggio: readyStageId
+              ? "Pagamento verificato; fattura Fatture in Cloud inviata allo SDI e al cliente via e-mail."
+              : "Pagamento catastale verificato e fattura inviata. Il cliente deve ancora completare il modulo; la pratica non è stata spostata.",
             link: `/pratiche/${order.practice_id}`,
           })));
         }

@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { reportError } from "../_shared/error.ts";
+import { isReviewRequestTemplate } from "../_shared/review-exclusion.ts";
 
 const REQUIRED_ENV = ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "RESEND_API_KEY"];
 for (const k of REQUIRED_ENV) {
@@ -536,6 +537,44 @@ serve(async (req) => {
       status: 400,
       headers: { ...CORS, "Content-Type": "application/json" },
     });
+  }
+
+  // Guardia centrale per automazioni e invii manuali/bulk. Le richieste
+  // recensione senza pratica non sono verificabili e quindi falliscono chiuse.
+  if (isReviewRequestTemplate(template)) {
+    const practiceId = data?.practice_id;
+    if (!practiceId) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: "review_request_requires_practice_id",
+      }), {
+        status: 400,
+        headers: { ...CORS, "Content-Type": "application/json" },
+      });
+    }
+    const { data: reviewPolicy, error: reviewPolicyError } = await supabase
+      .from("enea_practices")
+      .select("recensione_esclusa")
+      .eq("id", practiceId)
+      .single();
+    if (reviewPolicyError) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: "review_policy_unavailable",
+      }), {
+        status: 503,
+        headers: { ...CORS, "Content-Type": "application/json" },
+      });
+    }
+    if (reviewPolicy?.recensione_esclusa === true) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: "review_request_excluded_for_practice",
+      }), {
+        status: 409,
+        headers: { ...CORS, "Content-Type": "application/json" },
+      });
+    }
   }
 
   try {

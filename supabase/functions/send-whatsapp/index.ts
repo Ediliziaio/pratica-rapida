@@ -12,6 +12,7 @@ import {
   sendOpenWAMedia,
   sendOpenWAText,
 } from "../_shared/openwa.ts";
+import { isReviewRequestTemplate } from "../_shared/review-exclusion.ts";
 
 // Provider attivo: "meta" (Cloud API ufficiale) o "openwa" (gateway
 // self-hosted whatsapp-web.js). Con "openwa" i template vengono
@@ -149,6 +150,44 @@ serve(async (req) => {
       status: 400,
       headers: { ...CORS, "Content-Type": "application/json" },
     });
+  }
+
+  // Guardia centrale: copre automazioni, chat e invii multipli. In questo
+  // modo una pratica esclusa non puo ricevere una recensione neppure tramite
+  // un percorso manuale che bypassi process-automations.
+  if (isTemplateMode && isReviewRequestTemplate(template_name)) {
+    if (!practice_id) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: "review_request_requires_practice_id",
+      }), {
+        status: 400,
+        headers: { ...CORS, "Content-Type": "application/json" },
+      });
+    }
+    const { data: reviewPolicy, error: reviewPolicyError } = await supabase
+      .from("enea_practices")
+      .select("recensione_esclusa")
+      .eq("id", practice_id)
+      .single();
+    if (reviewPolicyError) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: "review_policy_unavailable",
+      }), {
+        status: 503,
+        headers: { ...CORS, "Content-Type": "application/json" },
+      });
+    }
+    if (reviewPolicy?.recensione_esclusa === true) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: "review_request_excluded_for_practice",
+      }), {
+        status: 409,
+        headers: { ...CORS, "Content-Type": "application/json" },
+      });
+    }
   }
 
   // Normalizza il phone UNA volta (usato in più punti sotto).

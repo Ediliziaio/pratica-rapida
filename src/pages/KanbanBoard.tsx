@@ -118,6 +118,8 @@ import { it } from "date-fns/locale";
 import DichiarazioneTecnicaDialog from "@/components/documenti/DichiarazioneTecnicaDialog";
 import type { EneaPractice, PipelineStage } from "@/integrations/supabase/types";
 import { PipelineSettingsDrawer } from "@/components/pratiche/PipelineSettingsDrawer";
+import { appendAprOperatorResponse, parseAprOperatorResponseState } from "@/lib/aprOperatorResponse";
+import { calculateMonthlyFinancialKpis, fallbackMonthlyPracticePrice } from "@/lib/monthly-financial-kpis";
 
 type PracticeWithRelations = EneaPractice & {
   pipeline_stages: PipelineStage | null;
@@ -127,6 +129,7 @@ type PracticeWithRelations = EneaPractice & {
 type CfPaymentOrderSummary = {
   provider: string;
   status: string;
+  servizio_catastale: boolean;
   paid_at: string | null;
   invoice_created_at: string | null;
   sdi_sent_at: string | null;
@@ -174,6 +177,42 @@ type SortOption = "recenti" | "vecchie" | "stage";
 function daysAgo(val: string | null | undefined) {
   if (!val) return 0;
   return Math.floor((Date.now() - new Date(val).getTime()) / 86400000);
+}
+
+async function resolveCompanyNetPrice(companyId: string, brand: "enea" | "conto_termico") {
+  const { data: companyPrice, error: companyPriceError } = await supabase
+    .from("company_pricing")
+    .select("prezzo")
+    .eq("company_id", companyId)
+    .eq("brand", brand)
+    .maybeSingle();
+  if (companyPriceError) throw companyPriceError;
+  const configured = Number(companyPrice?.prezzo ?? 0);
+  if (configured > 0) return configured;
+
+  if (brand !== "enea") return 0;
+  const { data: service, error: serviceError } = await supabase
+    .from("service_catalog")
+    .select("prezzo_base")
+    .eq("categoria", "enea_bonus")
+    .eq("attivo", true)
+    .limit(1)
+    .maybeSingle();
+  if (serviceError) throw serviceError;
+  const servicePrice = Number(service?.prezzo_base ?? 0);
+  if (servicePrice > 0) return servicePrice;
+
+  const { data: company, error: companyError } = await supabase
+    .from("companies")
+    .select("ragione_sociale")
+    .eq("id", companyId)
+    .maybeSingle();
+  if (companyError) throw companyError;
+
+  return fallbackMonthlyPracticePrice({
+    tipoFatturazione: "rivenditore",
+    resellerName: company?.ragione_sociale ?? null,
+  });
 }
 
 function getInitials(name: string) {
@@ -578,6 +617,8 @@ function PracticeDetailSheet({
   const [editOperatoreId, setEditOperatoreId] = useState<string>("");
   const [editPrezzo, setEditPrezzo] = useState<string>("");
   const [editPagamentoStato, setEditPagamentoStato] = useState<string>("non_pagata");
+  const [aprOperatorAnswer, setAprOperatorAnswer] = useState("");
+  const [savingAprOperatorAnswer, setSavingAprOperatorAnswer] = useState(false);
   // Dati cliente editabili dallo staff (CRM#5): correzione errori inseriti nel form.
   const [editClienteNome, setEditClienteNome] = useState("");
   const [editClienteCognome, setEditClienteCognome] = useState("");
@@ -617,6 +658,14 @@ function PracticeDetailSheet({
     setCatastoMappale(String(sheetCatastali.mappale ?? ""));
     setCatastoSubalterno(String(sheetCatastali.subalterno ?? ""));
   }, [practice?.id, sheetCatastali.foglio, sheetCatastali.mappale, sheetCatastali.subalterno]);
+
+  useEffect(() => {
+    setAprOperatorAnswer("");
+  }, [practice?.id, practice?.note_documenti_mancanti]);
+
+  const aprOperatorResponse = practice?.pipeline_stages?.stage_type === "intervento_operatore"
+    ? parseAprOperatorResponseState(practice.note_documenti_mancanti)
+    : null;
 
   // Eliminazione pratica — solo super_admin.
   const { roles } = useAuth();
@@ -673,9 +722,15 @@ function PracticeDetailSheet({
     if (!practice || !abbinaCompanyId) return;
     setAbbinando(true);
     try {
+      const updates: { reseller_id: string; prezzo?: number } = { reseller_id: abbinaCompanyId };
+      if (Number(practice.prezzo ?? 0) <= 0 && practice.tipo_fatturazione !== "cliente_finale") {
+        const resolvedPrice = await resolveCompanyNetPrice(abbinaCompanyId, practice.brand);
+        if (resolvedPrice <= 0) throw new Error("Prezzo netto non configurato per il rivenditore selezionato");
+        updates.prezzo = resolvedPrice;
+      }
       const { error } = await supabase
         .from("enea_practices")
-        .update({ reseller_id: abbinaCompanyId })
+        .update(updates)
         .eq("id", practice.id);
       if (error) throw error;
       const nome = abbinaCompanies.find((c) => c.id === abbinaCompanyId)?.ragione_sociale ?? "rivenditore";
@@ -719,7 +774,7 @@ function PracticeDetailSheet({
       if (!practice?.id) return null;
       const db = supabase as unknown as CfPaymentReadClient;
       const { data, error } = await db.from("cf_payment_orders")
-        .select("provider,status,paid_at,invoice_created_at,sdi_sent_at,customer_emailed_at,fic_invoice_url,last_error_code,last_error_message")
+        .select("provider,status,servizio_catastale,paid_at,invoice_created_at,sdi_sent_at,customer_emailed_at,fic_invoice_url,last_error_code,last_error_message")
         .eq("practice_id", practice.id)
         .maybeSingle();
       if (error) throw error;
@@ -826,6 +881,35 @@ function PracticeDetailSheet({
     }
   }
 
+  async function handleAprOperatorAnswer() {
+    if (!practice || !aprOperatorResponse || aprOperatorResponse.answer) return;
+    const answer = aprOperatorAnswer.trim();
+    if (!answer) {
+      toast({ title: "Inserisci la risposta richiesta da APR", variant: "destructive" });
+      return;
+    }
+    setSavingAprOperatorAnswer(true);
+    try {
+      await updatePractice.mutateAsync({
+        id: practice.id,
+        updates: { note_documenti_mancanti: appendAprOperatorResponse(aprOperatorResponse.issuedNote, answer) },
+      });
+      toast({
+        title: "Risposta consegnata ad APR",
+        description: "APR riprenderà automaticamente questa pratica.",
+      });
+      setAprOperatorAnswer("");
+    } catch (err) {
+      toast({
+        title: "Risposta non salvata",
+        description: err instanceof Error ? err.message : "Riprova.",
+        variant: "destructive",
+      });
+    } finally {
+      setSavingAprOperatorAnswer(false);
+    }
+  }
+
   async function handleArchive() {
     if (!practice) return;
     const restoring = !!practice.archived_at;
@@ -887,6 +971,54 @@ function PracticeDetailSheet({
       console.error("resendFormLink failed:", err);
     } finally {
       setResendingLink(false);
+    }
+  }
+
+  const [reopeningCadastralForm, setReopeningCadastralForm] = useState(false);
+  async function reopenCadastralFormWithoutService() {
+    if (!practice) return;
+    const confirmed = window.confirm(
+      "Confermi la rinuncia al servizio Catasto? Il checkout non pagato verrà annullato e il modulo sarà riaperto direttamente ai dati catastali, conservando risposte e allegati.",
+    );
+    if (!confirmed) return;
+
+    setReopeningCadastralForm(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("reopen-cadastral-form", {
+        body: { practice_id: practice.id },
+      });
+      if (error) {
+        let message = error.message;
+        const context = (error as { context?: Response }).context;
+        if (context && typeof context.json === "function") {
+          try {
+            message = (await context.json())?.error ?? message;
+          } catch {
+            // Manteniamo il messaggio originale se la risposta non è JSON.
+          }
+        }
+        throw new Error(message);
+      }
+      const result = data as { success?: boolean; error?: string } | null;
+      if (!result?.success) throw new Error(result?.error ?? "Riapertura non riuscita");
+
+      await Promise.all([
+        sheetQueryClient.invalidateQueries({ queryKey: ["enea_practices"] }),
+        sheetQueryClient.invalidateQueries({ queryKey: ["cf-payment-order", practice.id] }),
+      ]);
+      toast({
+        title: "Modulo riaperto al Catasto",
+        description: "Il checkout non pagato è stato annullato. Il cliente può usare lo stesso link e inserire i dati catastali senza pagare.",
+      });
+      onClose();
+    } catch (err) {
+      toast({
+        variant: "destructive",
+        title: "Riapertura bloccata",
+        description: err instanceof Error ? err.message : "Riprova.",
+      });
+    } finally {
+      setReopeningCadastralForm(false);
     }
   }
 
@@ -1277,7 +1409,11 @@ function PracticeDetailSheet({
                   ? "border-amber-300 bg-amber-50 text-amber-950"
                   : "border-emerald-200 bg-emerald-50 text-emerald-950"
               }`}>
-                <p className="font-semibold mb-2">Pagamento e fattura CF</p>
+                <p className="font-semibold mb-2">
+                  {cfPaymentOrder.servizio_catastale
+                    ? "Pagamento e fattura servizio catastale"
+                    : "Pagamento e fattura CF"}
+                </p>
                 <div className="grid grid-cols-1 gap-1">
                   <p>{cfPaymentOrder.paid_at ? "✓" : "○"} Pagamento incassato</p>
                   <p>{cfPaymentOrder.invoice_created_at ? "✓" : "○"} Fattura emessa da Fatture in Cloud</p>
@@ -1406,6 +1542,20 @@ function PracticeDetailSheet({
                   >
                     <Building2 className="h-3.5 w-3.5" />
                     {isDaAbbinare ? "Abbina rivenditore" : "Cambia rivenditore"}
+                  </Button>
+                )}
+
+                {isSuperAdmin && sheetHasCadastralService && practice.pagamento_stato !== "pagata" && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 text-xs gap-1 text-violet-700 hover:text-violet-800 hover:bg-violet-50 border-violet-300"
+                    onClick={reopenCadastralFormWithoutService}
+                    disabled={reopeningCadastralForm}
+                    title="Annulla il servizio catastale non pagato e riapre lo stesso modulo allo step Catasto"
+                  >
+                    {reopeningCadastralForm ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RotateCcw className="h-3.5 w-3.5" />}
+                    Riapri senza servizio Catasto
                   </Button>
                 )}
 
@@ -1904,6 +2054,49 @@ function PracticeDetailSheet({
                       <p className="text-sm text-amber-800 dark:text-amber-300 whitespace-pre-wrap">
                         {practice.note_documenti_mancanti}
                       </p>
+                    </div>
+                  </section>
+                )}
+
+                {/* Risposta diretta alle domande APR — soltanto staff e soltanto vere domande al Titolare. */}
+                {isInternal && aprOperatorResponse && (
+                  <section>
+                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                      Risposta richiesta da APR
+                    </h3>
+                    <div className="rounded-lg border border-emerald-300 bg-emerald-50 dark:border-emerald-800 dark:bg-emerald-950/20 p-3 space-y-3">
+                      <div className="flex items-start gap-2">
+                        <HelpCircle className="h-4 w-4 text-emerald-700 shrink-0 mt-0.5" />
+                        <p className="text-sm text-emerald-950 dark:text-emerald-100 whitespace-pre-wrap">
+                          {aprOperatorResponse.question}
+                        </p>
+                      </div>
+                      {aprOperatorResponse.answer ? (
+                        <div className="rounded-md border border-emerald-200 bg-white/70 p-2 dark:border-emerald-900 dark:bg-background/40">
+                          <p className="text-xs font-semibold text-emerald-800 dark:text-emerald-300">Risposta inviata</p>
+                          <p className="text-sm whitespace-pre-wrap mt-1">{aprOperatorResponse.answer}</p>
+                          <p className="text-xs text-muted-foreground mt-2">APR riprenderà automaticamente la pratica.</p>
+                        </div>
+                      ) : (
+                        <>
+                          <Textarea
+                            value={aprOperatorAnswer}
+                            onChange={(event) => setAprOperatorAnswer(event.target.value.slice(0, 2_000))}
+                            placeholder="Scrivi qui il dato richiesto da APR…"
+                            rows={3}
+                            disabled={savingAprOperatorAnswer}
+                          />
+                          <Button
+                            type="button"
+                            onClick={handleAprOperatorAnswer}
+                            disabled={savingAprOperatorAnswer || !aprOperatorAnswer.trim()}
+                            className="w-full bg-emerald-700 hover:bg-emerald-800"
+                          >
+                            {savingAprOperatorAnswer ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Check className="h-4 w-4 mr-2" />}
+                            Consegna la risposta ad APR
+                          </Button>
+                        </>
+                      )}
                     </div>
                   </section>
                 )}
@@ -2829,8 +3022,13 @@ function PracticeCard({
                 </span>
               )}
               {isInternal && hasCadastralService && (
-                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-violet-100 text-violet-700 dark:bg-violet-950 dark:text-violet-300">
-                  CATASTO
+                <span className={cn(
+                  "text-[10px] font-bold px-1.5 py-0.5 rounded-md",
+                  practice.pagamento_stato === "pagata"
+                    ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300"
+                    : "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300",
+                )}>
+                  {practice.pagamento_stato === "pagata" ? "CATASTO · PAGATO" : "CATASTO · DA PAGARE"}
                 </span>
               )}
               {hasFgasService && (
@@ -3176,6 +3374,110 @@ export default function KanbanBoard() {
     includeArchived: showArchived,
   });
 
+  // Il fatturato nasce quando la pratica entra in "Da inserire su Excel"
+  // (stage_type=gestionale), non quando il cliente la crea. Il ponte CRM ->
+  // cruscotto conserva un evento permanente anche se la card viene poi
+  // spostata in recensione o archiviata.
+  const financialMonthWindow = useMemo(() => {
+    const now = new Date();
+    return {
+      from: new Date(now.getFullYear(), now.getMonth(), 1).toISOString(),
+      to: new Date(now.getFullYear(), now.getMonth() + 1, 1).toISOString(),
+    };
+  }, []);
+
+  const { data: monthlyFinancialPractices = [] } = useQuery({
+    queryKey: [
+      "enea-monthly-financial-practices",
+      financialMonthWindow.from,
+      financialMonthWindow.to,
+      brandFilter,
+      aziendaFilter,
+      operatoreFilter,
+    ],
+    enabled: isInternal,
+    queryFn: async () => {
+      const { data: closureEvents, error: closureEventsError } = await supabase
+        .from("cruscotto_pratiche_da_crm")
+        .select("crm_pratica_id,entrato_in_stage_at")
+        .gte("entrato_in_stage_at", financialMonthWindow.from)
+        .lt("entrato_in_stage_at", financialMonthWindow.to);
+      if (closureEventsError) throw closureEventsError;
+
+      const enteredAtByPractice = new Map(
+        (closureEvents ?? []).map((event) => [event.crm_pratica_id, event.entrato_in_stage_at]),
+      );
+      const closedPracticeIds = [...enteredAtByPractice.keys()];
+      if (closedPracticeIds.length === 0) return [];
+
+      let query = supabase
+        .from("enea_practices_public")
+        .select("id,cliente_nome,cliente_cognome,prezzo,pagamento_stato,reseller_id,brand,operatore_id,tipo_fatturazione")
+        .in("id", closedPracticeIds);
+      if (brandFilter !== "all") query = query.eq("brand", brandFilter as "enea" | "conto_termico");
+      if (aziendaFilter !== "all") query = query.eq("reseller_id", aziendaFilter);
+      if (operatoreFilter !== "all") query = query.eq("operatore_id", operatoreFilter);
+      const { data, error } = await query;
+      if (error) throw error;
+      return (data ?? []).map((practice) => ({
+        ...practice,
+        revenue_at: enteredAtByPractice.get(practice.id)!,
+      }));
+    },
+  });
+
+  const resellerIdsWithoutPrice = useMemo(
+    () => [...new Set(monthlyFinancialPractices
+      .filter((practice) =>
+        practice.tipo_fatturazione !== "cliente_finale" &&
+        Number(practice.prezzo ?? 0) <= 0 &&
+        practice.reseller_id,
+      )
+      .map((practice) => practice.reseller_id as string))],
+    [monthlyFinancialPractices],
+  );
+
+  const { data: monthlyCompanyPricing = [] } = useQuery({
+    queryKey: ["enea-monthly-company-pricing", resellerIdsWithoutPrice],
+    enabled: isInternal && resellerIdsWithoutPrice.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("company_pricing")
+        .select("company_id,brand,prezzo")
+        .in("company_id", resellerIdsWithoutPrice);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const { data: monthlyResellerCompanies = [] } = useQuery({
+    queryKey: ["enea-monthly-reseller-companies", resellerIdsWithoutPrice],
+    enabled: isInternal && resellerIdsWithoutPrice.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("companies")
+        .select("id,email,ragione_sociale,prezzo_cf_imponibile_cents")
+        .in("id", resellerIdsWithoutPrice);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  // Fonte prezzi usata anche dalla fatturazione mensile. Le pratiche CRM
+  // storiche hanno spesso `prezzo=0`: in quel caso il rivenditore va risolto
+  // tramite la sua e-mail, esattamente come fa fic-monthly-invoices.
+  const { data: monthlyDashboardPricing = [] } = useQuery({
+    queryKey: ["enea-monthly-dashboard-pricing"],
+    enabled: isInternal && resellerIdsWithoutPrice.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("cruscotto_rivenditori")
+        .select("email,prezzo");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
   // Deep-link auto-open: se l'URL ha `?practice=<id>` apri la sheet di
   // dettaglio della pratica corrispondente. Usato dal redirect smart in
   // PraticaDetail quando l'utente arriva su /pratiche/:id con un id che
@@ -3306,21 +3608,59 @@ export default function KanbanBoard() {
     [practices],
   );
 
-  // KPI aggregates (staff only)
+  // KPI economici del mese corrente (staff only). `prezzo` e il netto IVA.
+  // Le righe storiche nate con prezzo=0 usano il listino aziendale; le nuove
+  // pratiche salvano direttamente il prezzo corretto alla creazione.
   const kpis = useMemo(() => {
     if (!isInternal) return null;
-    const active = filteredPractices.filter((p) => !p.archived_at);
-    const now = new Date();
-    const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-    const sum = (arr: typeof active) =>
-      arr.reduce((s, p) => s + Number(p.prezzo ?? 0), 0);
-    return {
-      fatturato: sum(active),
-      incassato: sum(active.filter((p) => p.pagamento_stato === "pagata")),
-      daIncassare: sum(active.filter((p) => p.pagamento_stato === "non_pagata")),
-      mese: sum(active.filter((p) => p.created_at?.startsWith(currentMonth))),
-    };
-  }, [filteredPractices, isInternal]);
+    const pricing = new Map(
+      monthlyCompanyPricing.map((row) => [`${row.company_id}:${row.brand}`, Number(row.prezzo)]),
+    );
+    const companyEmail = new Map(
+      monthlyResellerCompanies.map((company) => [company.id, String(company.email ?? "").trim().toLowerCase()]),
+    );
+    const resellerCompany = new Map(monthlyResellerCompanies.map((company) => [company.id, company]));
+    const dashboardPricing = new Map<string, number>();
+    const duplicateDashboardEmails = new Set<string>();
+    for (const row of monthlyDashboardPricing) {
+      const email = String(row.email ?? "").trim().toLowerCase();
+      if (!email) continue;
+      if (dashboardPricing.has(email)) duplicateDashboardEmails.add(email);
+      dashboardPricing.set(email, Number(row.prezzo ?? 0));
+    }
+    return calculateMonthlyFinancialKpis(monthlyFinancialPractices.map((practice) => ({
+      label: `${practice.cliente_nome ?? ""} ${practice.cliente_cognome ?? ""}`.trim(),
+      revenue_at: practice.revenue_at,
+      prezzo: practice.prezzo,
+      pagamento_stato: practice.pagamento_stato,
+      prezzo_listino: (() => {
+        const company = resellerCompany.get(practice.reseller_id);
+        if (practice.tipo_fatturazione === "cliente_finale") {
+          const companyOverride = Number(company?.prezzo_cf_imponibile_cents ?? 0) / 100;
+          return companyOverride > 0
+            ? companyOverride
+            : fallbackMonthlyPracticePrice({
+                tipoFatturazione: practice.tipo_fatturazione,
+                resellerName: company?.ragione_sociale ?? null,
+              });
+        }
+
+        const configuredPrice = pricing.get(`${practice.reseller_id}:${practice.brand}`);
+        if (configuredPrice && configuredPrice > 0) return configuredPrice;
+
+        const email = companyEmail.get(practice.reseller_id) ?? "";
+        const dashboardPrice = email && !duplicateDashboardEmails.has(email)
+          ? dashboardPricing.get(email) ?? 0
+          : 0;
+        return dashboardPrice > 0
+          ? dashboardPrice
+          : fallbackMonthlyPracticePrice({
+              tipoFatturazione: practice.tipo_fatturazione,
+              resellerName: company?.ragione_sociale ?? null,
+            });
+      })(),
+    })));
+  }, [isInternal, monthlyCompanyPricing, monthlyDashboardPricing, monthlyFinancialPractices, monthlyResellerCompanies]);
 
   // Inline pagamento_stato update (staff only)
   const updatePagamentoMutation = useMutation({
@@ -4017,19 +4357,27 @@ export default function KanbanBoard() {
 
       {/* ── KPI cards (staff only) ────────────────────────────────────────── */}
       {isInternal && kpis && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 px-4 pt-3 shrink-0">
-          <KpiCard label="Fatturato" value={`€ ${kpis.fatturato.toFixed(2)}`} />
+        <div className="px-4 pt-3 shrink-0">
+          {kpis.senzaPrezzo > 0 && (
+            <div className="mb-2 rounded-md border border-red-300 bg-red-50 px-3 py-2 text-xs font-medium text-red-800 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
+              Totale non completo: {kpis.senzaPrezzo} {kpis.senzaPrezzo === 1 ? "pratica è senza prezzo" : "pratiche sono senza prezzo"}
+              {kpis.senzaPrezzoLabels.length > 0 ? ` (${kpis.senzaPrezzoLabels.join(", ")})` : ""}.
+            </div>
+          )}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <KpiCard label="Fatturato mese · netto IVA" value={`€ ${kpis.fatturato.toFixed(2)}`} />
           <KpiCard
-            label="Incassato"
+            label="Incassato mese · netto IVA"
             value={`€ ${kpis.incassato.toFixed(2)}`}
             color="green"
           />
           <KpiCard
-            label="Da incassare"
+            label="Da incassare mese · netto IVA"
             value={`€ ${kpis.daIncassare.toFixed(2)}`}
             color="amber"
           />
-          <KpiCard label="Mese corrente" value={`€ ${kpis.mese.toFixed(2)}`} />
+          <KpiCard label="Pratiche del mese" value={String(kpis.pratiche)} />
+          </div>
         </div>
       )}
 

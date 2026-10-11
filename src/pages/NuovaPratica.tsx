@@ -2,6 +2,7 @@ import React, { useState, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { fallbackMonthlyPracticePrice } from "@/lib/monthly-financial-kpis";
 import { useAuth } from "@/hooks/useAuth";
 import { useCompany } from "@/hooks/useCompany";
 import { useToast } from "@/hooks/use-toast";
@@ -332,7 +333,33 @@ export default function NuovaPratica() {
     enabled: !!companyId && !!brand,
   });
 
-  const prezzoNetto: number = companyPricingRow?.prezzo ?? praticaService?.prezzo_base ?? 65;
+  const { data: pricingCompany } = useQuery({
+    queryKey: ["pricing-company-name", companyId],
+    queryFn: async () => {
+      if (!companyId) return null;
+      const { data, error } = await supabase
+        .from("companies")
+        .select("ragione_sociale")
+        .eq("id", companyId)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!companyId,
+  });
+
+  const configuredPrice = Number(companyPricingRow?.prezzo ?? 0);
+  const catalogPrice = Number(praticaService?.prezzo_base ?? 0);
+  const prezzoNetto: number = configuredPrice > 0
+    ? configuredPrice
+    : catalogPrice > 0
+      ? catalogPrice
+      : brand === "enea"
+        ? fallbackMonthlyPracticePrice({
+            tipoFatturazione: "rivenditore",
+            resellerName: pricingCompany?.ragione_sociale ?? null,
+          })
+        : 65;
   const prezzoIva    = prezzoNetto * 0.22;
   const prezzoTotale = prezzoNetto + prezzoIva;
 

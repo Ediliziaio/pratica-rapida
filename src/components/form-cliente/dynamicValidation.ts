@@ -30,12 +30,21 @@ export function checkVisibleIf(
   if (parts.length !== 2) return false;
   const [stepKey, fieldKey] = parts;
   const val = formData[stepKey]?.[fieldKey];
-  // Confronto loose-coerce: visible_if.equals può essere boolean/number/string,
-  // ma in DB l'utente potrebbe aver salvato la stringa "true"/"false" ecc.
-  if (typeof visibleIf.equals === "boolean" && typeof val === "string") {
-    return val === String(visibleIf.equals);
+  const matches = (expected: string | number | boolean | undefined) => {
+    // Confronto loose-coerce: la condizione può essere boolean/number/string,
+    // mentre il DB storico può contenere "true"/"false" come stringhe.
+    if (typeof expected === "boolean" && typeof val === "string") {
+      return val === String(expected);
+    }
+    return val === expected;
+  };
+  if (visibleIf.not_equals !== undefined) {
+    return !matches(visibleIf.not_equals);
   }
-  return val === visibleIf.equals;
+  if (visibleIf.equals !== undefined) {
+    return matches(visibleIf.equals);
+  }
+  return false;
 }
 
 /**

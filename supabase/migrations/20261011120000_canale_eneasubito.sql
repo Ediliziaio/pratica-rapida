@@ -1,18 +1,25 @@
--- Da dove arriva la pratica.
+-- Da quale porta e' entrata la pratica.
 --
--- Serve a distinguere le pratiche del secondo marchio (clienti privati che
--- arrivano dal sito) da quelle dei rivenditori, senza duplicare niente: la
--- macchina resta una sola, cambia solo chi ha bussato.
+-- Serve a riconoscere le pratiche del secondo marchio senza duplicare niente:
+-- la macchina resta una sola, cambia solo chi ha bussato.
 --
--- Nota: la colonna `brand` esiste gia' ma dice un'altra cosa — distingue la
--- linea di servizio (enea / conto_termico), non il canale di arrivo. Una
--- pratica di EneaSubito resta brand = 'enea'.
+-- **La colonna nasce vuota, di proposito.** Dentro Pratica Rapida non ci sono
+-- solo rivenditori: ci sono anche clienti finali che pagano online, con
+-- prezzi diversi. Mettere 'rivenditore' come valore predefinito avrebbe
+-- scritto una falsita' su centinaia di righe. Vuoto vuol dire «non
+-- classificata», che e' la verita': l'informazione su quelle pratiche si
+-- ricava gia' da tipo_fatturazione e dal contenitore del rivenditore.
 --
--- Non rompe niente: colonna nuova con valore predefinito, le pratiche
--- esistenti diventano tutte 'rivenditore', che e' cio' che sono.
+-- Il vincolo lascia aperti i valori che servirebbero a una classificazione
+-- futura, cosi' quel giorno non si rifa' la colonna — ma classificare le
+-- pratiche esistenti e' una decisione del Titolare, non di questa migrazione.
+--
+-- Nota: `brand` esiste gia' ma dice un'altra cosa — la linea di servizio
+-- (enea / conto_termico), non la porta d'ingresso. Una pratica di EneaSubito
+-- resta brand = 'enea'.
 
 ALTER TABLE public.enea_practices
-  ADD COLUMN IF NOT EXISTS canale text NOT NULL DEFAULT 'rivenditore';
+  ADD COLUMN IF NOT EXISTS canale text;
 
 DO $$
 BEGIN
@@ -21,15 +28,13 @@ BEGIN
   ) THEN
     ALTER TABLE public.enea_practices
       ADD CONSTRAINT enea_practices_canale_check
-      CHECK (canale IN ('rivenditore', 'eneasubito'));
+      CHECK (canale IS NULL OR canale IN ('rivenditore', 'privato_sito', 'eneasubito'));
   END IF;
 END $$;
 
 COMMENT ON COLUMN public.enea_practices.canale IS
-  'Da dove arriva la pratica: rivenditore (Pratica Rapida) oppure eneasubito (cliente privato dal sito del secondo marchio). Non confondere con brand, che e'' la linea di servizio.';
+  'Porta d''ingresso della pratica. Vuoto = non classificata (tutte quelle precedenti al secondo marchio). eneasubito = cliente privato dal sito del secondo marchio. Non confondere con brand, che e'' la linea di servizio.';
 
--- Le pratiche di EneaSubito si filtrano spesso da sole in coda: l'indice
--- parziale costa niente e serve solo a loro.
 CREATE INDEX IF NOT EXISTS idx_enea_practices_canale_eneasubito
   ON public.enea_practices (created_at DESC)
   WHERE canale = 'eneasubito';

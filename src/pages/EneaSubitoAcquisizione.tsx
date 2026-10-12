@@ -233,11 +233,11 @@ export default function EneaSubitoAcquisizione() {
           allarme={medio !== null && medio > TETTO_COSTO_PRATICA}
         />
         <Riquadro
-          titolo="Arrivati · hanno pagato"
+          titolo="Richieste · hanno pagato"
           valore={`${arrivate} · ${pagate}`}
           nota={
             conversione === null
-              ? "Nessuno è ancora arrivato"
+              ? "Nessuna richiesta aperta"
               : `Paga ${Math.round(conversione * 100)} su 100 · incassato ${euro(incassato)}${
                   totaleSpeso > 0 ? `, speso ${euro(totaleSpeso)}` : ""
                 }`
@@ -276,7 +276,7 @@ export default function EneaSubitoAcquisizione() {
             <thead className="bg-muted/50 text-xs uppercase tracking-wide text-muted-foreground">
               <tr>
                 <th className="text-left font-semibold px-3 py-2">Da dove</th>
-                <th className="text-right font-semibold px-3 py-2">Arrivati</th>
+                <th className="text-right font-semibold px-3 py-2">Richieste</th>
                 <th className="text-right font-semibold px-3 py-2">Hanno pagato</th>
                 <th className="text-right font-semibold px-3 py-2">Incassato</th>
                 <th className="text-right font-semibold px-3 py-2">Speso</th>
@@ -331,6 +331,12 @@ export default function EneaSubitoAcquisizione() {
           </div>
         </div>
       )}
+
+      <p className="text-xs text-muted-foreground">
+        «Richieste» sono le persone arrivate fino a premere il pulsante di pagamento, non i
+        visitatori del sito: quelli non li contiamo, e li leggi nel pannello di Google Ads insieme a
+        quanto sono costati. Qui si misura quanti di loro diventano clienti.
+      </p>
 
       {righe.some((r) => r.gruppo === "sconosciuta") && (
         <p className="text-xs text-muted-foreground">

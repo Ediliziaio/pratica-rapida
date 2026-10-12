@@ -21,11 +21,19 @@ La pagina mostra, mese per mese:
 | Pratiche vendute | Quante sono state **pagate** finora | Meno di quelle attese a oggi |
 | Media al giorno | Il passo realizzato | Sotto 3,0 |
 | Costo per pratica | Spesa ÷ pratiche **pagate** | Sopra 20 € |
-| Arrivati · hanno pagato | Quanti hanno aperto il modulo e quanti sono arrivati in fondo | Sotto 30 su 100 |
+| Richieste · hanno pagato | Quanti hanno aperto una richiesta e quanti l'hanno pagata | Sotto 30 su 100 |
 
 Sotto c'è la tabella **da dove arrivano**: una riga per gruppo, con quanti sono
 arrivati, quanti hanno pagato, i loro nomi, l'incassato, la spesa che hai
 dichiarato e il costo per pratica venduta.
+
+**Attenzione a cosa significa «richieste».** Sono le persone arrivate fino a
+premere il pulsante di pagamento: la pratica nasce in quel momento. **Non sono
+i visitatori del sito** — quelli non li contiamo da nessuna parte, di proposito,
+perché contarli vorrebbe dire mettere uno strumento di tracciamento e un banner
+dei cookie. I visitatori e quanto sono costati li leggi nel pannello di Google
+Ads; qui leggi quanti di loro sono diventati clienti. I due pannelli si guardano
+insieme, ed è il motivo per cui la spesa la inserisci a mano.
 
 **Chi apre il modulo e non paga non è un cliente.** L'obiettivo dei tre al
 giorno conta le *vendite*, e il costo per pratica si divide per quelle: pagare
@@ -86,6 +94,24 @@ diversa, quella spesa sparisce dai conti.
 Su Google Ads non serve fare niente a mano: basta lasciare attivo il
 **tagging automatico** (`gclid`), che il sito riconosce da solo e conta come
 clic pagato anche senza etichette.
+
+### Collegamenti pronti da incollare
+
+Per gli annunci, uno per famiglia — il tipo di intervento arriva già scelto e
+il cliente trova una domanda in meno:
+
+```
+https://www.eneasubito.it/verifica?intervento=infissi
+https://www.eneasubito.it/verifica?intervento=schermature
+https://www.eneasubito.it/verifica?intervento=pompe_di_calore
+```
+
+Per una newsletter o un volantino dai CAF, dove il tagging automatico non c'è:
+
+```
+https://www.eneasubito.it/?utm_source=caf&utm_medium=passaparola&utm_campaign=caf-lissone
+https://www.eneasubito.it/?utm_source=newsletter&utm_medium=email&utm_campaign=ottobre
+```
 
 ---
 

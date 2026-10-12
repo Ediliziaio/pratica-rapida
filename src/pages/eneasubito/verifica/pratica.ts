@@ -15,6 +15,8 @@
  */
 import { createClient } from "@supabase/supabase-js";
 
+import { provenienzaDiQuestaVisita, type Provenienza } from "../provenienza";
+
 const BASE = import.meta.env.VITE_SUPABASE_URL ?? "";
 const CHIAVE = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? "";
 const ENDPOINT = `${BASE}/functions/v1/eneasubito-verifica`;
@@ -31,6 +33,8 @@ export interface DatiPratica {
   famiglia?: string | null;
   /** Dove e' finita la fattura dentro lo storage, una volta caricata. */
   fatturaPath?: string;
+  /** Da dove e' arrivato. Si allega solo alla nascita della pratica. */
+  provenienza?: Provenienza;
 }
 
 /**
@@ -40,10 +44,13 @@ export interface DatiPratica {
 export async function salvaPratica(dati: DatiPratica): Promise<string | null> {
   if (!BASE) return null;
   try {
+    // La provenienza si allega solo quando la pratica nasce: e' il primo
+    // tocco, e un aggiornamento successivo non deve poterlo riscrivere.
+    const provenienza = dati.token ? undefined : (dati.provenienza ?? provenienzaDiQuestaVisita());
     const risposta = await fetch(ENDPOINT, {
       method: "POST",
       headers: intestazioni(),
-      body: JSON.stringify({ ...dati, website: "" }),
+      body: JSON.stringify({ ...dati, provenienza, website: "" }),
     });
     if (!risposta.ok) return null;
     const esito = (await risposta.json()) as { token?: string | null };

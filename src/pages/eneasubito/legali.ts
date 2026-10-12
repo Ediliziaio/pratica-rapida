@@ -64,6 +64,7 @@ export const DOCUMENTI: Documento[] = [
           "Documenti che carichi: fattura dell'installatore, ricevuta del bonifico, certificati del produttore, eventuali altri allegati.",
           "Dati tecnici dell'intervento: tipo di lavoro, data di fine lavori, misure e valori ricavati dai documenti.",
           "Dati di navigazione strettamente necessari al funzionamento del sito.",
+          "Da dove sei arrivato: il nome del sito che ti ha portato qui (per esempio google.com) e, se hai cliccato un nostro annuncio, il riferimento di quell'annuncio. Non conserviamo l'indirizzo completo della pagina di partenza, che potrebbe contenere quello che hai cercato.",
         ],
         paragrafi: [
           "I dati della tua carta non li raccogliamo e non li vediamo mai: il pagamento è gestito da Stripe, che li tratta come titolare autonomo.",
@@ -73,6 +74,7 @@ export const DOCUMENTI: Documento[] = [
         titolo: "3. Perché li trattiamo",
         elenco: [
           "Per eseguire il servizio che ci hai chiesto: controllare che la pratica si possa fare, compilarla e trasmetterla all'ENEA (art. 6.1.b GDPR).",
+          "Per sapere quale dei nostri annunci funziona e quanto ci costa: è il nostro legittimo interesse a non sprecare soldi in pubblicità (art. 6.1.f GDPR). Non ti profiliamo e non ti seguiamo su altri siti.",
           "Per adempiere a obblighi di legge, in particolare quelli fiscali e di fatturazione (art. 6.1.c GDPR).",
           "Per la sicurezza del servizio, la prevenzione degli abusi e la difesa di un diritto, sulla base del nostro legittimo interesse (art. 6.1.f GDPR).",
         ],
@@ -218,6 +220,7 @@ export const DOCUMENTI: Documento[] = [
         titolo: "2. Cosa viene salvato sul tuo dispositivo",
         elenco: [
           "Quello che serve a far funzionare il sito e a non farti perdere quello che stai compilando: se interrompi il modulo, i dati restano sul tuo dispositivo così puoi riprendere.",
+          "Da quale annuncio o da quale sito sei arrivato, per la sola durata di questa visita: si cancella da solo quando chiudi la scheda del browser. Non è un cookie e non ti segue da nessuna parte.",
         ],
       },
       {

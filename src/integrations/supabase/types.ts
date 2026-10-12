@@ -1512,6 +1512,7 @@ export type Database = {
           azienda_dichiarata: string | null
           brand: Database["public"]["Enums"]["practice_brand"]
           canale: string | null
+          provenienza: Json | null
           chiamate_assegnato_a: string | null
           cliente_cf: string | null
           cliente_cognome: string
@@ -1568,6 +1569,7 @@ export type Database = {
           azienda_dichiarata?: string | null
           brand?: Database["public"]["Enums"]["practice_brand"]
           canale?: string | null
+          provenienza?: Json | null
           chiamate_assegnato_a?: string | null
           cliente_cf?: string | null
           cliente_cognome: string
@@ -1626,6 +1628,7 @@ export type Database = {
           azienda_dichiarata?: string | null
           brand?: Database["public"]["Enums"]["practice_brand"]
           canale?: string | null
+          provenienza?: Json | null
           chiamate_assegnato_a?: string | null
           cliente_cf?: string | null
           cliente_cognome?: string
@@ -2882,6 +2885,7 @@ export type Database = {
           azienda_dichiarata: string | null
           brand: Database["public"]["Enums"]["practice_brand"] | null
           canale: string | null
+          provenienza: Json | null
           chiamate_assegnato_a: string | null
           cliente_cf: string | null
           cliente_cognome: string | null
@@ -2934,6 +2938,7 @@ export type Database = {
           azienda_dichiarata?: never
           brand?: Database["public"]["Enums"]["practice_brand"] | null
           canale?: never
+          provenienza?: never
           chiamate_assegnato_a?: never
           cliente_cf?: string | null
           cliente_cognome?: string | null
@@ -2986,6 +2991,7 @@ export type Database = {
           azienda_dichiarata?: never
           brand?: Database["public"]["Enums"]["practice_brand"] | null
           canale?: never
+          provenienza?: never
           chiamate_assegnato_a?: never
           cliente_cf?: string | null
           cliente_cognome?: string | null
@@ -3611,6 +3617,9 @@ export interface EneaPractice {
   // 'eneasubito' = secondo marchio: fatturato dalla LLC via Stripe, e il CRM
   // non scrive mai al cliente (vedi _shared/contatto-cliente.ts). Solo interno.
   canale: string | null
+  // Da quale annuncio, ricerca o sito e' arrivato il cliente. Solo canale
+  // eneasubito, scritto alla nascita e mai piu' toccato. Solo interno.
+  provenienza: Record<string, string> | null
   created_at: string
   updated_at: string
 }

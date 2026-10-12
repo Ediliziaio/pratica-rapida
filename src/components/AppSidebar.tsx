@@ -24,6 +24,7 @@ import {
   BookOpen,
   PhoneCall,
   Gauge,
+  TrendingUp,
   Send,
 } from "lucide-react";
 import type React from "react";
@@ -425,6 +426,15 @@ export function AppSidebar() {
         ],
       },
     ];
+    // EneaSubito — il secondo marchio. Riservato al titolare: e' li' che si
+    // vede da dove arrivano i clienti e quanto costa ciascuno.
+    if (superAdmin) {
+      groups.push({
+        items: [
+          { title: "EneaSubito", url: "/eneasubito/acquisizione", icon: TrendingUp },
+        ],
+      });
+    }
     // Configurazione — solo super_admin
     if (superAdmin) {
       groups.push({

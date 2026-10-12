@@ -54,6 +54,47 @@ interface Corpo {
   fineLavori?: string;
   /** Dove e' finita la fattura nello storage, dopo il caricamento. */
   fatturaPath?: string;
+  /** Da dove e' arrivato: si accetta solo alla nascita della pratica. */
+  provenienza?: Record<string, unknown>;
+}
+
+/**
+ * I soli campi della provenienza che si conservano, e quanto possono essere
+ * lunghi. Tutto il resto si butta.
+ *
+ * E' un elenco chiuso e non un filtro generico perche' quella roba arriva
+ * dall'indirizzo del browser, cioe' da chiunque: senza un elenco, il primo
+ * che passa puo' farci scrivere in banca dati quello che vuole.
+ */
+const CAMPI_PROVENIENZA = [
+  "sorgente",
+  "mezzo",
+  "campagna",
+  "parola",
+  "variante",
+  "gclid",
+  "rinvio",
+  "pagina",
+  "quando",
+] as const;
+
+const LUNGHEZZA_MASSIMA = 120;
+
+function provenienzaPulita(grezza: unknown): Record<string, string> | null {
+  if (!grezza || typeof grezza !== "object" || Array.isArray(grezza)) return null;
+  const dentro = grezza as Record<string, unknown>;
+  const pulita: Record<string, string> = {};
+  for (const campo of CAMPI_PROVENIENZA) {
+    const valore = dentro[campo];
+    if (typeof valore !== "string") continue;
+    const ripulito = valore
+      .replace(/[\u0000-\u001f\u007f]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim()
+      .slice(0, LUNGHEZZA_MASSIMA);
+    if (ripulito) pulita[campo] = ripulito;
+  }
+  return Object.keys(pulita).length > 0 ? pulita : null;
 }
 
 Deno.serve(async (req) => {
@@ -107,6 +148,7 @@ Deno.serve(async (req) => {
     }
 
     // ── Prima volta: si crea la pratica ────────────────────────────────────
+    const provenienza = provenienzaPulita(corpo.provenienza);
     const contenitore = await contenitorePrivati(db);
     const { data: stage } = await db
       .from("pipeline_stages")
@@ -135,6 +177,10 @@ Deno.serve(async (req) => {
         tipo_fatturazione: "cliente_finale",
         tipo_soggetto: "persona_fisica",
         pagamento_stato: "non_pagata",
+        // Da dove arriva. Si scrive qui e non si tocca mai piu': vale il
+        // primo tocco, e sapere da dove viene e' quello che permette di dire
+        // quanto e' costata davvero la pubblicita'.
+        ...(provenienza ? { provenienza } : {}),
         cliente_email: email,
         // La tabella pretende nome e cognome separati e non nulli. Il modulo
         // ne chiede uno solo, perche' farne scrivere due e' un campo in piu'

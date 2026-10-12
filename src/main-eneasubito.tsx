@@ -8,6 +8,13 @@ import { createRoot } from "react-dom/client";
 import { HelmetProvider } from "react-helmet-async";
 
 import AppEneaSubito from "./AppEneaSubito.tsx";
+import { catturaProvenienza } from "./pages/eneasubito/provenienza";
+
+// Da dove arriva chi entra. Si prende qui, prima che il sito disegni
+// qualunque cosa, perche' l'indirizzo con i parametri della campagna e il
+// sito di partenza esistono solo adesso: dopo la prima navigazione interna
+// sono gia' spariti. Vedi pages/eneasubito/provenienza.ts.
+catturaProvenienza(window.location.href, document.referrer);
 
 createRoot(document.getElementById("root")!).render(
   <HelmetProvider>

@@ -9,6 +9,7 @@ AS $$
 DECLARE
   v_date_text text;
   v_invoice_path text;
+  v_invoice_paths text[] := ARRAY[]::text[];
 BEGIN
   IF OLD.form_compilato_at IS NOT NULL OR NEW.form_compilato_at IS NULL
      OR NEW.tipo_fatturazione IS DISTINCT FROM 'cliente_finale'
@@ -29,8 +30,38 @@ BEGIN
       USING ERRCODE = 'P0001';
   END IF;
 
-  v_invoice_path := nullif(trim(NEW.dati_form->'documenti'->>'fattura_url'), '');
-  IF v_invoice_path IS NOT NULL THEN
+  -- I moduli dinamici possono collocare l'upload in sezioni diverse.
+  -- Usiamo le stesse chiavi fiscali riconosciute da submit_form_by_token.
+  SELECT COALESCE(array_agg(DISTINCT path), ARRAY[]::text[])
+    INTO v_invoice_paths
+  FROM (
+    SELECT nullif(btrim(field_entry.value #>> '{}'), '') AS path
+    FROM jsonb_each(COALESCE(NEW.dati_form, '{}'::jsonb)) AS section_entry
+    CROSS JOIN LATERAL jsonb_each(
+      CASE WHEN jsonb_typeof(section_entry.value) = 'object'
+        THEN section_entry.value ELSE '{}'::jsonb END
+    ) AS field_entry
+    WHERE lower(field_entry.key) IN
+      ('fattura', 'fattura_url', 'fattura_installatore', 'fattura_lavori')
+      AND jsonb_typeof(field_entry.value) = 'string'
+    UNION ALL
+    SELECT nullif(btrim(invoice_element.value #>> '{}'), '') AS path
+    FROM jsonb_each(COALESCE(NEW.dati_form, '{}'::jsonb)) AS section_entry
+    CROSS JOIN LATERAL jsonb_each(
+      CASE WHEN jsonb_typeof(section_entry.value) = 'object'
+        THEN section_entry.value ELSE '{}'::jsonb END
+    ) AS field_entry
+    CROSS JOIN LATERAL jsonb_array_elements(
+      CASE WHEN jsonb_typeof(field_entry.value) = 'array'
+        THEN field_entry.value ELSE '[]'::jsonb END
+    ) AS invoice_element
+    WHERE lower(field_entry.key) IN
+      ('fattura', 'fattura_url', 'fattura_installatore', 'fattura_lavori')
+      AND jsonb_typeof(invoice_element.value) = 'string'
+  ) AS invoice_paths
+  WHERE path IS NOT NULL;
+
+  FOREACH v_invoice_path IN ARRAY v_invoice_paths LOOP
     -- Il renderer precedente usava /dynamic/, il nuovo usa /fattura/.
     IF v_invoice_path NOT LIKE NEW.id::text || '/fattura/%'
        AND v_invoice_path NOT LIKE NEW.id::text || '/dynamic/%' THEN
@@ -47,7 +78,8 @@ BEGIN
     IF NOT v_invoice_path = ANY(COALESCE(NEW.fatture_urls, ARRAY[]::text[])) THEN
       NEW.fatture_urls := array_append(COALESCE(NEW.fatture_urls, ARRAY[]::text[]), v_invoice_path);
     END IF;
-  ELSIF COALESCE(array_length(NEW.fatture_urls, 1), 0) = 0 THEN
+  END LOOP;
+  IF COALESCE(array_length(NEW.fatture_urls, 1), 0) = 0 THEN
     RAISE EXCEPTION 'Fattura obbligatoria nel modulo cliente'
       USING ERRCODE = 'P0001';
   END IF;

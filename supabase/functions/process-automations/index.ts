@@ -651,22 +651,17 @@ serve(async (req) => {
                 .from("communication_log")
                 .select("id")
                 .eq("practice_id", p.id)
-                .in("channel", ["email", "whatsapp"])
+                .eq("channel", rule.channel)
                 .eq("status", "sent")
                 .filter("metadata->>trigger_event", "eq", rule.trigger_event)
                 .limit(1)
                 .maybeSingle();
               if (alreadySent) continue;
 
-              if (p.cliente_email) {
+              if (rule.channel === "email" && p.cliente_email) {
                 await invoke(supabase, "send-email", {
                   to: p.cliente_email,
-                  // Rispetta rule.template_id se configurato; fallback al
-                  // template di default "recensione" (per compatibilità
-                  // con regole legacy).
-                  template: rule.channel === "email"
-                    ? ((rule as { template_id?: string }).template_id ?? "recensione")
-                    : "recensione",
+                  template: (rule as { template_id?: string }).template_id ?? "recensione",
                   data: {
                     nome: p.cliente_nome,
                     token: p.form_token,
@@ -676,16 +671,12 @@ serve(async (req) => {
                   },
                 });
               }
-              if (p.cliente_telefono) {
-                // Fallback "sollecito_recensione" era un nome template LEGACY
-                // non più in getDefaultTemplates() v3. Inviarlo a Meta torna
-                // #132001. Fallback corretto v3: pratica_inviata_recensione
-                // (che include sia notifica invio sia richiesta recensione).
+              if (rule.channel === "whatsapp" && p.cliente_telefono) {
+                // Il sollecito usa il template Meta dedicato e approvato.
+                // Non riutilizzare il template dell'invio iniziale della pratica.
                 await invoke(supabase, "send-whatsapp", {
                   to: normalizePhone(p.cliente_telefono),
-                  template_name: rule.channel === "whatsapp"
-                    ? ((rule as { template_id?: string }).template_id ?? "pratica_inviata_recensione")
-                    : "pratica_inviata_recensione",
+                  template_name: (rule as { template_id?: string }).template_id ?? "sollecito_recensione",
                   components: [{
                     type: "body",
                     parameters: [
@@ -694,6 +685,7 @@ serve(async (req) => {
                     ],
                   }],
                   practice_id: p.id,
+                  trigger_event: rule.trigger_event,
                 });
               }
             } catch (sendErr) {
@@ -772,13 +764,12 @@ serve(async (req) => {
                 });
               }
               if (rule.channel === "whatsapp" && p.cliente_telefono) {
-                // Fallback "pratica_completata" era LEGACY (5 template vecchi),
-                // sostituito dal v3 "pratica_inviata_recensione" che include
-                // notifica chiusura + email destinazione + richiesta recensione.
-                // Senza questo fix: cron tentava invio template inesistente → #132001.
+                // Usa il template di chiusura/recensione realmente approvato
+                // su Meta. Un nome non presente causa #132001 e non deve
+                // diventare un ciclo di tentativi a ogni esecuzione del cron.
                 await invoke(supabase, "send-whatsapp", {
                   to: normalizePhone(p.cliente_telefono),
-                  template_name: templateId ?? "pratica_inviata_recensione",
+                  template_name: templateId ?? "invio_avvenuto_recensione",
                   components: [{
                     type: "body",
                     parameters: [
@@ -787,6 +778,7 @@ serve(async (req) => {
                     ],
                   }],
                   practice_id: p.id,
+                  trigger_event: rule.trigger_event,
                 });
               }
             } catch (sendErr) {

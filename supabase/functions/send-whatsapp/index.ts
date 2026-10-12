@@ -107,6 +107,7 @@ serve(async (req) => {
     media_url?: string;
     media_caption?: string;
     media_filename?: string; // solo per document
+    trigger_event?: string;
   };
   try {
     payload = await req.json();
@@ -129,6 +130,7 @@ serve(async (req) => {
     to, template_name, language, components, practice_id,
     text_body, sent_by_user_id,
     media_type, media_url, media_caption, media_filename,
+    trigger_event,
   } = payload;
 
   if (!to || typeof to !== "string") {
@@ -467,6 +469,10 @@ serve(async (req) => {
       status: success ? "sent" : "failed",
       wa_message_id: wa_message_id ?? null,
       error_message: error_message ?? null,
+      metadata: {
+        ...(isTemplateMode ? { template: template_name } : {}),
+        ...(trigger_event ? { trigger_event } : {}),
+      },
     });
     if (commErr) {
       await reportError(new Error(`communication_log insert failed: ${commErr.message}`), {

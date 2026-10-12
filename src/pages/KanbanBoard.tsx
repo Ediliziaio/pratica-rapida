@@ -39,6 +39,7 @@ import {
   SheetClose,
 } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
+import { dividiPerInvioMultiplo, puoAprireChatManuale } from "@/lib/inviiManuali";
 import { BulkSendDialog } from "@/components/kanban/BulkSendDialog";
 import { PracticeChatDialog } from "@/components/kanban/PracticeChatDialog";
 import {
@@ -3209,6 +3210,35 @@ export default function KanbanBoard() {
   const [bulkArchiveConfirm, setBulkArchiveConfirm] = useState(false);
   // Bulk send (WhatsApp / Email) — apre dialog con selettore template
   const [bulkSendChannel, setBulkSendChannel] = useState<"whatsapp" | "email" | null>(null);
+  /**
+   * Apre l'invio multiplo escludendo i canali muti, e lo dice.
+   *
+   * Senza il conteggio l'esclusione sarebbe silenziosa: si selezionano dieci
+   * pratiche, ne partono otto e nessuno capisce perche'. Se sono mute tutte,
+   * il dialogo non si apre affatto.
+   */
+  const apriInvioMultiplo = (canale: "whatsapp" | "email") => {
+    const selezionate = practices.filter((p) => selectedIds.has(p.id));
+    const { inviabili, escluse } = dividiPerInvioMultiplo(selezionate);
+    const mute = escluse.length;
+    if (mute > 0 && inviabili.length === 0) {
+      toast({
+        variant: "destructive",
+        title: "Nessun invio possibile",
+        description: selezionate.length === 1
+          ? "La pratica selezionata e' di un canale che non riceve messaggi."
+          : `Tutte le ${selezionate.length} pratiche selezionate sono di un canale che non riceve messaggi.`,
+      });
+      return;
+    }
+    if (mute > 0) {
+      toast({
+        title: mute === 1 ? "Una pratica esclusa" : `${mute} pratiche escluse`,
+        description: "Sono di un canale che non riceve messaggi e restano fuori dall'invio.",
+      });
+    }
+    setBulkSendChannel(canale);
+  };
 
   // Practice chat dialog (WhatsApp + email in-app, sostituisce wa.me + mailto:)
   // Stato: la practice corrente da mostrare nel dialog (null = chiuso).
@@ -4903,7 +4933,20 @@ export default function KanbanBoard() {
         allPractices={practices}
         onClose={() => setSelectedPractice(null)}
         onMove={handleMoveFromSheet}
-        onOpenChat={(p) => setChatDialogPractice(p)}
+        onOpenChat={(p) => {
+          // Canale muto: da qui non parte nessun messaggio, nemmeno a mano.
+          // Il guardiano di contatto-cliente zittisce gli invii automatici;
+          // la chat e l'invio multiplo sono invii manuali e lo aggiravano.
+          if (!puoAprireChatManuale(p)) {
+            toast({
+              variant: "destructive",
+              title: "Questa pratica non si contatta",
+              description: "Il cliente di questo canale non riceve messaggi: ne' automatici, ne' scritti a mano. Lo ha deciso il Titolare.",
+            });
+            return;
+          }
+          setChatDialogPractice(p);
+        }}
       />
 
       <PipelineSettingsDrawer open={settingsOpen} onClose={() => setSettingsOpen(false)} />
@@ -4960,7 +5003,7 @@ export default function KanbanBoard() {
             variant="outline"
             size="sm"
             className="h-8 gap-1.5"
-            onClick={() => setBulkSendChannel("whatsapp")}
+            onClick={() => apriInvioMultiplo("whatsapp")}
             title="Invia WhatsApp a tutte le pratiche selezionate"
           >
             <MessageCircle className="h-3.5 w-3.5" />
@@ -4970,7 +5013,7 @@ export default function KanbanBoard() {
             variant="outline"
             size="sm"
             className="h-8 gap-1.5"
-            onClick={() => setBulkSendChannel("email")}
+            onClick={() => apriInvioMultiplo("email")}
             title="Invia email a tutte le pratiche selezionate"
           >
             <Mail className="h-3.5 w-3.5" />
@@ -5030,6 +5073,8 @@ export default function KanbanBoard() {
           defaultChannel={bulkSendChannel}
           practices={practices
             .filter((p) => selectedIds.has(p.id))
+            // Canale muto escluso dall'invio multiplo: vedi apriInvioMultiplo.
+            .filter((p) => puoAprireChatManuale(p))
             .map((p) => ({
               id: p.id,
               cliente_nome: p.cliente_nome,

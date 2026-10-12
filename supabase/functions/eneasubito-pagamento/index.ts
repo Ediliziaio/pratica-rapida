@@ -53,7 +53,7 @@ Deno.serve(async (req) => {
 
   const { data: pratica } = await db
     .from("enea_practices")
-    .select("id, canale, cliente_email, pagamento_stato, archived_at, prodotto_installato")
+    .select("id, canale, cliente_nome, cliente_cognome, cliente_email, pagamento_stato, archived_at, prodotto_installato")
     .eq("form_token", token)
     .maybeSingle();
 
@@ -79,13 +79,48 @@ Deno.serve(async (req) => {
     httpClient: Stripe.createFetchHttpClient(),
   });
 
+  // ── La scheda cliente la facciamo noi ─────────────────────────────────────
+  //
+  // Senza, Stripe pesca quella che ha gia' con quella e-mail: il 12/10/2026 su
+  // una fattura di EneaSubito e' uscita la ragione sociale e l'indirizzo
+  // dell'altro marchio, perche' in quel conto esisteva una scheda vecchia
+  // lasciata da LeadConnector. I due marchi non si devono sfiorare, e il nome
+  // sulla fattura dev'essere quello del beneficiario che ci ha dato lui nel
+  // modulo — e' l'unico che conta per la detrazione.
+  //
+  // `customer_update` con name e address a "never" impedisce che la pagina di
+  // pagamento riscriva quel nome con quello che trova salvato altrove.
+  const intestatario = [pratica.cliente_nome, pratica.cliente_cognome]
+    .filter((pezzo) => (pezzo ?? "").trim())
+    .join(" ")
+    .trim();
+
+  let cliente: string | undefined;
+  try {
+    const creato = await stripe.customers.create({
+      ...(intestatario ? { name: intestatario } : {}),
+      ...(pratica.cliente_email ? { email: pratica.cliente_email } : {}),
+      metadata: { canale: "eneasubito", pratica_id: String(pratica.id) },
+    });
+    cliente = creato.id;
+  } catch (e) {
+    // Se la scheda non si crea si incassa lo stesso: meglio una fattura con
+    // l'intestazione imprecisa che un cliente che non puo' pagare. Resta
+    // scritto nei registri.
+    console.error("[eneasubito-pagamento] scheda cliente non creata", e);
+  }
+
   try {
     const sessione = await stripe.checkout.sessions.create({
       mode: "payment",
       // Apple Pay e Google Pay compaiono da soli con "card" sui dispositivi
       // che li hanno: e' la strada che toglie la tastiera dal pagamento.
       payment_method_types: ["card"],
-      customer_email: pratica.cliente_email ?? undefined,
+      // O la scheda che abbiamo appena creato, o — solo se non ci siamo
+      // riusciti — l'indirizzo da solo.
+      ...(cliente
+        ? { customer: cliente, customer_update: { name: "never", address: "never" } }
+        : { customer_email: pratica.cliente_email ?? undefined }),
       // La ricevuta la deve mandare Stripe, al cliente, da solo.
       //
       // Senza questa riga non parte niente: la fattura nasce dentro il

@@ -42,6 +42,7 @@ import {
 } from "@/components/form-cliente/invoiceRequestPolicy";
 import { useFormModuleByProdotto } from "@/hooks/useFormSchema";
 import { getFormCompletionCopy } from "@/lib/formCompletionCopy";
+import { withCfCustomerDate } from "@/features/cfCustomerEvidence";
 
 // Refactor DB-first: se `useFormModuleByProdotto` matcha un modulo (CMS in
 // /admin/moduli), il form usa il renderer DINAMICO. Altrimenti fallback
@@ -420,10 +421,13 @@ export default function FormPubblico({ marchio }: { marchio: Marchio }) {
   // Lista di step "visibili" in base allo stato corrente. Per il path dinamico
   // applichiamo `visible_if` step-level; per il path hardcoded usiamo STEPS.
   const requireCustomerInvoice = customerMustUploadInvoice(practice?.tipo_fatturazione);
+  const isCf = practice?.tipo_fatturazione === "cliente_finale";
   const effectiveDynamicSchema = useMemo(() => {
     if (!dbModule) return null;
-    return applyInvoiceRequestPolicy(dbModule.schema, requireCustomerInvoice);
-  }, [dbModule, requireCustomerInvoice]);
+    return withCfCustomerDate(
+      applyInvoiceRequestPolicy(dbModule.schema, requireCustomerInvoice), isCf,
+    );
+  }, [dbModule, requireCustomerInvoice, isCf]);
 
   const visibleDynamicSteps = useMemo(() => {
     if (!useDynamic || !effectiveDynamicSchema) return [];
@@ -495,8 +499,9 @@ export default function FormPubblico({ marchio }: { marchio: Marchio }) {
       prodottoTipo,
       isAzienda,
       requireCustomerInvoice,
+      isCf,
     )),
-    [useDynamic, hardcodedStep.id, formData, prodottoTipo, isAzienda, requireCustomerInvoice],
+    [useDynamic, hardcodedStep.id, formData, prodottoTipo, isAzienda, requireCustomerInvoice, isCf],
   );
   // Path dinamico
   const dynamicStep = visibleDynamicSteps[safeStepIndex];
@@ -514,14 +519,14 @@ export default function FormPubblico({ marchio }: { marchio: Marchio }) {
   const submitErrors = useMemo(
     () => useDynamic && dbModule
       ? validateAllDynamicSteps(effectiveDynamicSchema ?? dbModule.schema, dynamicData)
-      : validateStep("recap", formData, prodottoTipo, isAzienda, requireCustomerInvoice),
-    [useDynamic, dbModule, effectiveDynamicSchema, dynamicData, formData, prodottoTipo, isAzienda, requireCustomerInvoice],
+      : validateStep("recap", formData, prodottoTipo, isAzienda, requireCustomerInvoice, isCf),
+    [useDynamic, dbModule, effectiveDynamicSchema, dynamicData, formData, prodottoTipo, isAzienda, requireCustomerInvoice, isCf],
   );
   const firstIncompleteStep = useDynamic
     ? visibleDynamicSteps.findIndex((step) =>
       Object.keys(submitErrors).some((key) => key.startsWith(`${step.key}.`)))
     : hardcodedSteps.findIndex((step) =>
-      Object.keys(validateStep(step.id, formData, prodottoTipo, isAzienda, requireCustomerInvoice)).length > 0);
+      Object.keys(validateStep(step.id, formData, prodottoTipo, isAzienda, requireCustomerInvoice, isCf)).length > 0);
   const submitDisabledByMissingData = Object.keys(submitErrors).length > 0;
 
   // ── Navigation lock: previene click doppio durante saveDraft async ─────────
@@ -746,6 +751,7 @@ export default function FormPubblico({ marchio }: { marchio: Marchio }) {
       prodottoTipo,
       isAzienda,
       requireCustomerInvoice,
+      isCf,
     );
     if (Object.keys(allErrors).length > 0) {
       toast({
@@ -1038,6 +1044,7 @@ export default function FormPubblico({ marchio }: { marchio: Marchio }) {
               publicToken={token}
               isAzienda={isAzienda}
               requireCustomerInvoice={requireCustomerInvoice}
+              requireCfDate={isCf}
             />
           )}
         </div>
@@ -1156,6 +1163,7 @@ interface StepBodyProps {
   publicToken?: string;
   isAzienda?: boolean;
   requireCustomerInvoice: boolean;
+  requireCfDate: boolean;
 }
 
 function StepBody(props: StepBodyProps) {
@@ -1199,6 +1207,7 @@ function StepBody(props: StepBodyProps) {
           publicToken={props.publicToken}
           practiceId={props.practiceId}
           requireCustomerInvoice={props.requireCustomerInvoice}
+          requireCfDate={props.requireCfDate}
         />
       );
     case "recap":

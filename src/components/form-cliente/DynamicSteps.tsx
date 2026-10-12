@@ -493,6 +493,7 @@ function UploadControl({
   onChange,
   practiceId,
   publicToken,
+  errorKey,
 }: FieldControlProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -501,6 +502,7 @@ function UploadControl({
     : undefined;
   const maxSizeMb = field.max_size_mb ?? 20;
   const multiple = !!field.multiple;
+  const uploadKind = errorKey === "documenti.fattura_url" ? "fattura" : "dynamic";
 
   // Normalizzazione value → array di path. Backward-compat: un vecchio valore
   // string viene trattato come lista a un elemento.
@@ -529,11 +531,11 @@ function UploadControl({
     }
     try {
       if (publicToken) {
-        return await uploadPublicFormFile(publicToken, "dynamic", file);
+        return await uploadPublicFormFile(publicToken, uploadKind, file);
       }
       const { supabase } = await import("@/integrations/supabase/client");
       const ext = (file.name.split(".").pop() ?? "bin").toLowerCase();
-      const uploadPath = `${practiceId}/dynamic/${crypto.randomUUID()}.${ext}`;
+      const uploadPath = `${practiceId}/${uploadKind}/${crypto.randomUUID()}.${ext}`;
       const { error } = await supabase.storage
         .from("enea-documents")
         .upload(uploadPath, file, { upsert: false });

@@ -23,6 +23,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { isStaffCfIntake } from "@/features/cfCustomerEvidence";
 import { fallbackMonthlyPracticePrice } from "@/lib/monthly-financial-kpis";
 import { captureException } from "@/lib/sentry";
 import type { TipoFatturazione, TipoSoggetto, TipoServizio } from "@/integrations/supabase/types";
@@ -427,6 +428,9 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
   const docConfig = getDocConfig(tipoProdotto);
   const isFgasOnly = fgasChoice === "fgas_only";
   const hasFgas = fgasChoice === "enea_fgas_full" || isFgasOnly;
+  const staffCfIntake = isStaffCfIntake({
+    isInternal, publicMode, isFgasOnly, tipoServizio, tipoFatturazione,
+  });
 
   // ── Validazione ────────────────────────────────────────────────────────────
   const validate = () => {
@@ -456,8 +460,8 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
     if (!nome.trim())      e.nome = "Nome obbligatorio";
     if (!cognome.trim())   e.cognome = "Cognome obbligatorio";
     if (!telefono.trim())  e.telefono = "Telefono obbligatorio";
-    if (!dataFineLavori)   e.dataFineLavori = "La data di fine lavori è obbligatoria";
-    if (fatturaFiles.length === 0) e.fattura = "La fattura è obbligatoria";
+    if (!staffCfIntake && !dataFineLavori) e.dataFineLavori = "La data di fine lavori è obbligatoria";
+    if (!staffCfIntake && fatturaFiles.length === 0) e.fattura = "La fattura è obbligatoria";
     // Documenti forniti: i moduli di raccolta dati compilati sono obbligatori per ogni prodotto
     if (!isFgasOnly && tipoServizio === "documenti_forniti" && !documentiMode)
       e.documentiMode = "Scegli se allegare i moduli cartacei o compilare il form online";
@@ -675,7 +679,7 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
           cliente_telefono: telefono.trim(),
           cliente_cf: cf.trim() || null,
           cliente_indirizzo: indirizzo.trim() || null,
-          data_fine_lavori: dataFineLavori ? format(dataFineLavori, "yyyy-MM-dd") : null,
+          data_fine_lavori: staffCfIntake ? null : dataFineLavori ? format(dataFineLavori, "yyyy-MM-dd") : null,
           dati_form: tipoProdotto === "pompe_calore" && !isPrivato
             ? {
                 fgas: {
@@ -712,7 +716,7 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
 
       // Upload documenti in parallelo
       const [fatture, docExtra, docExtra2Res, moduliRes, fgasPlateRes, fgasInterventionRes] = await Promise.all([
-        uploadFiles(fatturaFiles, practice.id, "fattura"),
+        uploadFiles(staffCfIntake ? [] : fatturaFiles, practice.id, "fattura"),
         uploadFiles(docExtra1, practice.id, "doc_extra"),
         uploadFiles(docExtra2, practice.id, "libretto"),
         uploadFiles(moduliRaccoltaFiles, practice.id, "moduli_raccolta"),
@@ -1430,7 +1434,11 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {staffCfIntake ? (
+          <p className="rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900">
+            La data di fine lavori e la fattura saranno richieste al cliente nel modulo che riceverà via link.
+          </p>
+        ) : <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1.5">
             <Label htmlFor="data-fine-lavori" className="text-sm">{isFgasOnly ? "Data dell'intervento" : "Data di fine lavori"} *</Label>
             <Popover>
@@ -1470,7 +1478,7 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
               </p>
             )}
           </div>
-        </div>
+        </div>}
 
         {/* Invio della pratica conclusa al cliente — solo "Documenti Forniti".
             Con questo servizio il cliente non viene mai contattato, quindi
@@ -1525,18 +1533,20 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
       {/* ── 6. Documenti ────────────────────────────────────────────────── */}
       <Section number={S.documenti} title="Documenti da allegare">
         {/* Fattura — sempre obbligatoria */}
-        {errors.fattura && (
-          <p className="text-xs text-destructive flex items-center gap-1" data-error>
-            <AlertCircle className="h-3.5 w-3.5" />{errors.fattura}
-          </p>
-        )}
-        <FileDropzone
-          label="Fattura di acquisto/installazione"
-          required
-          files={fatturaFiles}
-          onAdd={(f) => setFatturaFiles((p) => [...p, ...f])}
-          onRemove={(i) => setFatturaFiles((p) => p.filter((_, j) => j !== i))}
-        />
+        {!staffCfIntake && <>
+          {errors.fattura && (
+            <p className="text-xs text-destructive flex items-center gap-1" data-error>
+              <AlertCircle className="h-3.5 w-3.5" />{errors.fattura}
+            </p>
+          )}
+          <FileDropzone
+            label="Fattura di acquisto/installazione"
+            required
+            files={fatturaFiles}
+            onAdd={(f) => setFatturaFiles((p) => [...p, ...f])}
+            onRemove={(i) => setFatturaFiles((p) => p.filter((_, j) => j !== i))}
+          />
+        </>}
 
         {/* Logica condizionale per prodotto */}
         {tipoProdotto && tipoProdotto !== "pompe_calore" && docConfig?.hasExtra && (

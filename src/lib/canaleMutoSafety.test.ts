@@ -21,6 +21,7 @@ import {
   puoContattareCliente,
   puoInviarePraticaAlCliente,
 } from "../../supabase/functions/_shared/contatto-cliente";
+import { dividiPerInvioMultiplo, puoAprireChatManuale } from "./inviiManuali";
 
 describe("EneaSubito non scrive mai al cliente", () => {
   const pratica = { tipo_servizio: "servizio_completo", canale: "eneasubito" };
@@ -69,5 +70,39 @@ describe("Pratica Rapida resta identica a prima", () => {
 
   it("un canale che non e' muto non cambia niente", () => {
     expect(puoContattareCliente({ tipo_servizio: "servizio_completo", canale: "rivenditore" })).toBe(true);
+  });
+});
+
+describe("Nemmeno a mano: chat e invio multiplo dal CRM", () => {
+  const muta = { canale: "eneasubito" };
+  const normale = { canale: null };
+
+  it("sulla pratica muta la chat non si apre", () => {
+    expect(puoAprireChatManuale(muta)).toBe(false);
+  });
+
+  it("sulle altre pratiche la chat si apre come prima", () => {
+    expect(puoAprireChatManuale(normale)).toBe(true);
+    expect(puoAprireChatManuale({})).toBe(true);
+    expect(puoAprireChatManuale({ canale: "rivenditore" })).toBe(true);
+  });
+
+  it("l'invio multiplo lascia fuori le mute e tiene le altre", () => {
+    const { inviabili, escluse } = dividiPerInvioMultiplo([normale, muta, normale, muta]);
+    expect(inviabili).toHaveLength(2);
+    expect(escluse).toHaveLength(2);
+  });
+
+  it("se sono mute tutte, non resta niente da inviare", () => {
+    const { inviabili, escluse } = dividiPerInvioMultiplo([muta, muta]);
+    expect(inviabili).toHaveLength(0);
+    expect(escluse).toHaveLength(2);
+  });
+
+  it("una selezione senza mute non cambia di una virgola", () => {
+    const selezione = [normale, { canale: "rivenditore" }, {}];
+    const { inviabili, escluse } = dividiPerInvioMultiplo(selezione);
+    expect(inviabili).toEqual(selezione);
+    expect(escluse).toHaveLength(0);
   });
 });

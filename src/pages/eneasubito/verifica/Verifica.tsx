@@ -23,7 +23,6 @@ import { apriPagamento, caricaFattura, salvaPratica } from "./pratica";
 import { completa, type Famiglia, type Richiesta } from "./logica";
 
 const MEMORIA = "eneasubito-verifica";
-const MEMORIA_TOKEN = "eneasubito-pratica";
 
 const FAMIGLIE: { id: Famiglia; nome: string; esempi: string }[] = [
   { id: "infissi", nome: "Infissi", esempi: "Finestre, portefinestre, porte d'ingresso" },
@@ -62,13 +61,13 @@ export default function Verifica() {
   const [preparazione, setPreparazione] = useState<string | null>(null);
   const [attesa, setAttesa] = useState<string | null>(null);
   const [intoppo, setIntoppo] = useState<string | null>(null);
-  const [token, setToken] = useState<string | null>(() => {
-    try {
-      return localStorage.getItem(MEMORIA_TOKEN);
-    } catch {
-      return null;
-    }
-  });
+  // Il token della pratica vive solo per questa visita, e di proposito.
+  // Quando restava in memoria da una volta all'altra, chi tornava sul sito
+  // continuava a parlare della pratica vecchia: se quella era gia' pagata,
+  // Stripe rifiutava e il pulsante non apriva piu' niente. Ogni richiesta
+  // nuova e' una pratica nuova; un secondo tentativo nella stessa visita
+  // riusa il token perche' resta nello stato di questa pagina.
+  const [token, setToken] = useState<string | null>(null);
 
   // Si salva a ogni modifica: chi chiude la pagina e torna non ricomincia.
   // Il documento no: quello resta sul dispositivo da cui l'ha scelto.
@@ -83,11 +82,6 @@ export default function Verifica() {
   function ricordaToken(nuovo: string | null): string | null {
     if (!nuovo) return null;
     setToken(nuovo);
-    try {
-      localStorage.setItem(MEMORIA_TOKEN, nuovo);
-    } catch {
-      // Pazienza: il token resta comunque in memoria per questa visita.
-    }
     return nuovo;
   }
 
@@ -142,14 +136,15 @@ export default function Verifica() {
     }
 
     setAttesa("Apro il pagamento…");
-    const url = await apriPagamento(buono);
-    if (url) {
-      window.location.href = url;
+    const esito = await apriPagamento(buono);
+    if ("url" in esito) {
+      window.location.href = esito.url;
       return;
     }
     setAttesa(null);
-    // Mai un pulsante che non fa niente senza spiegare perche'.
-    setIntoppo("Il pagamento non si apre in questo momento. Scrivici e lo sistemiamo subito:");
+    // Mai un pulsante che non fa niente senza spiegare perche', e mai una
+    // frase generica al posto del motivo vero.
+    setIntoppo(`${esito.errore} Se ricapita scrivici e lo sistemiamo subito:`);
   }
 
   const pronto = completa(richiesta, file !== null);
@@ -249,7 +244,7 @@ export default function Verifica() {
               style={{ opacity: pronto && !attesa ? 1 : 0.5 }}
               onClick={versoLaCassa}
             >
-              {attesa ?? "Paga 99 € e falla partire"}
+              {attesa ?? "I documenti corrispondono, vai al pagamento per proseguire"}
             </button>
           </div>
 

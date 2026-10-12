@@ -99,24 +99,28 @@ export async function caricaFattura(token: string, file: File): Promise<boolean>
 }
 
 /**
- * Apre il pagamento e restituisce l'indirizzo a cui mandare il cliente.
+ * Apre il pagamento. Torna l'indirizzo a cui mandare il cliente, oppure il
+ * motivo per cui non si e' aperto.
  *
- * `null` quando il conto di incasso non e' collegato o qualcosa non va: in
- * quel caso chi chiama lo dice in chiaro, invece di lasciare un pulsante che
- * non fa niente.
+ * Il motivo lo dice il server e arriva fino alla pagina: «risulta gia'
+ * pagata» e «il conto di incasso non e' collegato» sono due guasti diversi e
+ * si risolvono in modo diverso. Schiacciarli in un'unica frase generica
+ * costa un pomeriggio di indagini, ed e' gia' successo.
  */
-export async function apriPagamento(token: string): Promise<string | null> {
-  if (!BASE || !token) return null;
+export type EsitoPagamento = { url: string } | { errore: string };
+
+export async function apriPagamento(token: string): Promise<EsitoPagamento> {
+  if (!BASE || !token) return { errore: "Il collegamento al pagamento non e' configurato." };
   try {
     const risposta = await fetch(`${BASE}/functions/v1/eneasubito-pagamento`, {
       method: "POST",
       headers: intestazioni(),
       body: JSON.stringify({ token }),
     });
-    if (!risposta.ok) return null;
-    const esito = (await risposta.json()) as { url?: string };
-    return esito.url ?? null;
+    const esito = (await risposta.json().catch(() => ({}))) as { url?: string; error?: string };
+    if (esito.url) return { url: esito.url };
+    return { errore: esito.error ?? `Il pagamento ha risposto ${risposta.status}.` };
   } catch {
-    return null;
+    return { errore: "Non siamo riusciti a raggiungere il pagamento." };
   }
 }

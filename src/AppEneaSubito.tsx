@@ -16,11 +16,37 @@
  */
 import { lazy, Suspense } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 // Il modulo che si apre dopo il pagamento avvisa con i messaggini in basso
 // (documento caricato, bozza salvata, errore di validazione). Senza questo
 // non comparirebbero e il cliente non saprebbe se il documento e' arrivato.
 import { Toaster } from "@/components/ui/toaster";
+
+/**
+ * Il modulo che si apre dopo il pagamento e' quello di Pratica Rapida, e
+ * chiede al server lo schema dei campi: senza questi due involucri la pagina
+ * resta bianca con «No QueryClient set». E' successo in produzione il
+ * 12/10/2026 — il modulo era stato controllato leggendo il codice invece che
+ * aprendolo nel browser.
+ *
+ * Le impostazioni sono le stesse del sito principale: stessa macchina,
+ * stesso comportamento.
+ */
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 30_000,
+      gcTime: 5 * 60_000,
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+    mutations: {
+      retry: 0,
+    },
+  },
+});
 
 const Home = lazy(() => import("./pages/EneaSubito"));
 const PaginaIntervento = lazy(() => import("./pages/eneasubito/PaginaIntervento"));
@@ -36,6 +62,8 @@ function Attesa() {
 
 export default function AppEneaSubito() {
   return (
+    <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
     <BrowserRouter>
       <Suspense fallback={<Attesa />}>
         <Routes>
@@ -70,5 +98,7 @@ export default function AppEneaSubito() {
       </Suspense>
       <Toaster />
     </BrowserRouter>
+    </TooltipProvider>
+    </QueryClientProvider>
   );
 }

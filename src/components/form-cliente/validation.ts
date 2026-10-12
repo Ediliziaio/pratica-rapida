@@ -198,9 +198,12 @@ export function validateProdotto(d: FormClienteData, tipo: ProdottoTipo): ErrorM
   return e;
 }
 
-export function validateDocumenti(d: FormClienteData, requireCustomerInvoice = true): ErrorMap {
+export function validateDocumenti(d: FormClienteData, requireCustomerInvoice = true, requireCfDate = false): ErrorMap {
   const e: ErrorMap = {};
   const doc = d.documenti;
+  if (requireCfDate && !/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(doc.data_fine_lavori ?? "")) {
+    e["documenti.data_fine_lavori"] = "Indica la data di fine lavori";
+  }
   if (requireCustomerInvoice && !doc.fattura_url) {
     e["documenti.fattura_url"] = "Carica la fattura dell'installatore";
   }
@@ -218,6 +221,7 @@ export function validateStep(
   prodottoTipo: ProdottoTipo,
   isAzienda = false,
   requireCustomerInvoice = true,
+  requireCfDate = false,
 ): ErrorMap {
   switch (step) {
     case "richiedente":
@@ -235,7 +239,7 @@ export function validateStep(
     case "prodotto":
       return validateProdotto(data, prodottoTipo);
     case "documenti":
-      return validateDocumenti(data, requireCustomerInvoice);
+      return validateDocumenti(data, requireCustomerInvoice, requireCfDate);
     case "recap":
       // Tutti gli step precedenti devono passare prima del submit
       return {
@@ -246,7 +250,7 @@ export function validateStep(
         ...validateEdificio(data),
         ...validateImpianto(data),
         ...validateProdotto(data, prodottoTipo),
-        ...validateDocumenti(data, requireCustomerInvoice),
+        ...validateDocumenti(data, requireCustomerInvoice, requireCfDate),
       };
     default:
       return {};

@@ -42,6 +42,7 @@ import {
 } from "@/components/form-cliente/invoiceRequestPolicy";
 import { useFormModuleByProdotto } from "@/hooks/useFormSchema";
 import { getFormCompletionCopy } from "@/lib/formCompletionCopy";
+import { shouldStartCadastralCheckout } from "@/lib/cadastralCheckoutGate";
 import { withCfCustomerDate } from "@/features/cfCustomerEvidence";
 
 // Refactor DB-first: se `useFormModuleByProdotto` matcha un modulo (CMS in
@@ -627,11 +628,14 @@ export default function FormPubblico({ marchio }: { marchio: Marchio }) {
       const ok = await saveDraft(
         useDynamic ? dynamicData : (formData as unknown as Record<string, unknown>),
       );
-      const cadastralPaymentNow =
-        isCadastralCurrentStep &&
-        currentCadastralServiceRequested &&
-        practice?.tipo_fatturazione !== "cliente_finale" &&
-        !(practice && isPaymentFlowComplete(practice));
+      const cadastralPaymentNow = shouldStartCadastralCheckout({
+        isCadastralStep: isCadastralCurrentStep,
+        serviceRequested: currentCadastralServiceRequested,
+        billingType: practice?.tipo_fatturazione,
+        // `payment_required` appartiene allo snapshot caricato prima che il
+        // cliente selezioni il servizio: non deve mai sbloccare il passaggio.
+        paymentConfirmed: Boolean(practice && isPaymentConfirmed(practice)),
+      });
       if (cadastralPaymentNow) {
         // Il pagamento deve leggere dal DB la stessa bozza mostrata a video:
         // se il salvataggio fallisce non si crea alcun ordine fiscale.

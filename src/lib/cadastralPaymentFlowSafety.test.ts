@@ -38,6 +38,12 @@ describe("pagamento catastale durante la compilazione", () => {
     expect(payment).toBeGreaterThan(gate);
   });
 
+  it("decide il pagamento dai dati correnti e non dallo snapshot payment_required iniziale", () => {
+    expect(formSource).toContain("shouldStartCadastralCheckout({");
+    expect(formSource).toContain("paymentConfirmed: Boolean(practice && isPaymentConfirmed(practice))");
+    expect(formSource).not.toContain("!(practice && isPaymentFlowComplete(practice));");
+  });
+
   it("consente il pagamento intermedio solo al servizio catastale non-CF", () => {
     expect(createPaymentSource).toContain(
       '!practice.form_compilato_at && (!cadastralService || practice.tipo_fatturazione === "cliente_finale")',

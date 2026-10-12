@@ -86,6 +86,18 @@ Deno.serve(async (req) => {
       // che li hanno: e' la strada che toglie la tastiera dal pagamento.
       payment_method_types: ["card"],
       customer_email: pratica.cliente_email ?? undefined,
+      // La ricevuta la deve mandare Stripe, al cliente, da solo.
+      //
+      // Senza questa riga non parte niente: la fattura nasce dentro il
+      // pagamento, Stripe la crea gia' saldata e non la spedisce. Verificato
+      // il 12/10/2026 sulla fattura LTP8YB7Q-0001: finalizzata e pagata, ma
+      // nella sua cronologia nessun invio, e il pulsante «Send receipt»
+      // ancora da premere. Con `receipt_email` l'invio e' forzato — lo dice
+      // la pagina stessa delle impostazioni, dove l'interruttore generale
+      // vale «tranne quando si passa receipt_email».
+      ...(pratica.cliente_email
+        ? { payment_intent_data: { receipt_email: pratica.cliente_email } }
+        : {}),
       line_items: [
         {
           quantity: 1,

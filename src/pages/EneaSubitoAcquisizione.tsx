@@ -35,7 +35,12 @@ import {
   TETTO_COSTO_PRATICA,
   type SpesaPubblicitaria,
 } from "@/lib/eneasubito-acquisizione";
-import { raggruppa, type Gruppo, type ProvenienzaGrezza } from "@/lib/eneasubito-provenienza";
+import {
+  quotaDiConversione,
+  raggruppa,
+  type Gruppo,
+  type ProvenienzaGrezza,
+} from "@/lib/eneasubito-provenienza";
 import type { Json } from "@/integrations/supabase/types";
 
 interface PraticaRiga {
@@ -161,10 +166,13 @@ export default function EneaSubitoAcquisizione() {
     return cruscotto(gruppi, spesa[mese]);
   }, [pratiche, spesa, mese]);
 
-  const passo = useMemo(() => andamento(pratiche.length, mese), [pratiche.length, mese]);
+  const arrivate = righe.reduce((s, r) => s + r.arrivate, 0);
+  const pagate = righe.reduce((s, r) => s + r.pagate, 0);
+  const passo = useMemo(() => andamento(pagate, mese), [pagate, mese]);
   const medio = costoMedio(righe);
   const totaleSpeso = spesaTotale(spesa[mese]);
   const incassato = righe.reduce((s, r) => s + r.incassato, 0);
+  const conversione = quotaDiConversione(arrivate, pagate);
 
   function scriviSpesa(gruppo: Gruppo, valore: string) {
     setBozzaSpesa((b) => ({ ...b, [gruppo]: valore }));
@@ -207,16 +215,16 @@ export default function EneaSubitoAcquisizione() {
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         <Riquadro
-          titolo="Pratiche del mese"
-          valore={String(passo.pratiche)}
+          titolo="Pratiche vendute"
+          valore={String(passo.pagate)}
           nota={`Per stare sul passo ne servivano ${passo.atteseAOggi}`}
-          allarme={!passo.inPari && passo.pratiche > 0}
+          allarme={!passo.inPari && passo.pagate > 0}
         />
         <Riquadro
           titolo="Media al giorno"
           valore={passo.mediaAlGiorno.toFixed(1)}
           nota={`Obiettivo ${PRATICHE_AL_GIORNO},0`}
-          allarme={!passo.inPari && passo.pratiche > 0}
+          allarme={!passo.inPari && passo.pagate > 0}
         />
         <Riquadro
           titolo="Costo per pratica"
@@ -225,9 +233,16 @@ export default function EneaSubitoAcquisizione() {
           allarme={medio !== null && medio > TETTO_COSTO_PRATICA}
         />
         <Riquadro
-          titolo="Incassato · speso"
-          valore={`${euro(incassato)}`}
-          nota={totaleSpeso > 0 ? `Pubblicità ${euro(totaleSpeso)}` : "Nessuna spesa dichiarata"}
+          titolo="Arrivati · hanno pagato"
+          valore={`${arrivate} · ${pagate}`}
+          nota={
+            conversione === null
+              ? "Nessuno è ancora arrivato"
+              : `Paga ${Math.round(conversione * 100)} su 100 · incassato ${euro(incassato)}${
+                  totaleSpeso > 0 ? `, speso ${euro(totaleSpeso)}` : ""
+                }`
+          }
+          allarme={conversione !== null && conversione < 0.3 && arrivate >= 10}
         />
       </div>
 
@@ -261,7 +276,8 @@ export default function EneaSubitoAcquisizione() {
             <thead className="bg-muted/50 text-xs uppercase tracking-wide text-muted-foreground">
               <tr>
                 <th className="text-left font-semibold px-3 py-2">Da dove</th>
-                <th className="text-right font-semibold px-3 py-2">Pratiche</th>
+                <th className="text-right font-semibold px-3 py-2">Arrivati</th>
+                <th className="text-right font-semibold px-3 py-2">Hanno pagato</th>
                 <th className="text-right font-semibold px-3 py-2">Incassato</th>
                 <th className="text-right font-semibold px-3 py-2">Speso</th>
                 <th className="text-right font-semibold px-3 py-2">Costo a pratica</th>
@@ -276,7 +292,8 @@ export default function EneaSubitoAcquisizione() {
                       <div className="text-xs text-muted-foreground mt-0.5">{r.clienti.join(" · ")}</div>
                     )}
                   </td>
-                  <td className="px-3 py-2 text-right tabular-nums">{r.pratiche}</td>
+                  <td className="px-3 py-2 text-right tabular-nums text-muted-foreground">{r.arrivate}</td>
+                  <td className="px-3 py-2 text-right tabular-nums font-medium">{r.pagate}</td>
                   <td className="px-3 py-2 text-right tabular-nums">{euro(r.incassato)}</td>
                   <td className="px-3 py-2 text-right">
                     <Input
@@ -302,7 +319,7 @@ export default function EneaSubitoAcquisizione() {
           <div className="flex items-center justify-between gap-3 border-t bg-muted/30 px-3 py-2">
             <p className="text-xs text-muted-foreground">
               Scrivi quanto hai speso in ogni riga, poi salva. Dove non lo scrivi, il costo resta
-              vuoto: non lo stimo.
+              vuoto: non lo stimo. Il costo si divide per chi ha pagato, non per chi è arrivato.
             </p>
             <Button
               size="sm"

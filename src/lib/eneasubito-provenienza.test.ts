@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { costoPerPratica, leggi, raggruppa } from "./eneasubito-provenienza";
+import {
+  costoPerPratica,
+  leggi,
+  quotaDiConversione,
+  raggruppa,
+} from "./eneasubito-provenienza";
 
 describe("leggi — da cosa e' arrivato", () => {
   it("un clic con identificativo Google e' pagato, qualunque altra cosa dica l'indirizzo", () => {
@@ -54,39 +59,57 @@ describe("raggruppa", () => {
     ...over,
   });
 
-  it("conta le pratiche per gruppo e somma solo le pagate", () => {
+  // Chi apre il modulo e non paga non e' un cliente: i due numeri restano
+  // separati, perche' l'obiettivo del Titolare e' tre VENDITE al giorno.
+  it("tiene separati chi arriva da chi paga", () => {
     const righe = raggruppa([
       pratica(),
       pratica({ cliente_nome: "Anna", pagamento_stato: "non_pagata" }),
       pratica({ cliente_nome: "Ugo", provenienza: { rinvio: "google.com" } }),
     ]);
     const annunci = righe.find((r) => r.gruppo === "google_annunci")!;
-    expect(annunci.pratiche).toBe(2);
+    expect(annunci.arrivate).toBe(2);
+    expect(annunci.pagate).toBe(1);
     expect(annunci.incassato).toBe(99);
-    expect(righe.find((r) => r.gruppo === "google_ricerca")!.pratiche).toBe(1);
+    expect(righe.find((r) => r.gruppo === "google_ricerca")!.pagate).toBe(1);
   });
 
-  it("non somma i rimborsi", () => {
+  it("non somma i rimborsi e non li conta come vendite", () => {
     const righe = raggruppa([pratica({ pagamento_stato: "rimborsata" })]);
     expect(righe[0].incassato).toBe(0);
-    expect(righe[0].pratiche).toBe(1);
+    expect(righe[0].arrivate).toBe(1);
+    expect(righe[0].pagate).toBe(0);
   });
 
-  it("mette in cima il gruppo piu' numeroso", () => {
+  it("mette in cima il gruppo che vende di piu', non quello piu' visitato", () => {
     const righe = raggruppa([
-      pratica({ provenienza: { rinvio: "google.com" } }),
-      pratica(),
+      // Tre arrivi dalla ricerca gratuita ma nessuno paga.
+      pratica({ provenienza: { rinvio: "google.com" }, pagamento_stato: "non_pagata" }),
+      pratica({ provenienza: { rinvio: "google.com" }, pagamento_stato: "non_pagata" }),
+      pratica({ provenienza: { rinvio: "google.com" }, pagamento_stato: "non_pagata" }),
+      // Uno solo dall'annuncio, ma paga.
       pratica(),
     ]);
     expect(righe[0].gruppo).toBe("google_annunci");
   });
 
-  it("elenca i clienti in ordine", () => {
+  it("elenca solo i clienti che hanno pagato, in ordine", () => {
     const righe = raggruppa([
       pratica({ cliente_nome: "Zeno", cliente_cognome: "Verdi" }),
       pratica({ cliente_nome: "Anna", cliente_cognome: "Bianchi" }),
+      pratica({ cliente_nome: "Ugo", cliente_cognome: "Neri", pagamento_stato: "non_pagata" }),
     ]);
     expect(righe[0].clienti).toEqual(["Anna Bianchi", "Zeno Verdi"]);
+  });
+});
+
+describe("quotaDiConversione", () => {
+  it("dice quanti fra gli arrivati hanno pagato", () => {
+    expect(quotaDiConversione(10, 3)).toBe(0.3);
+  });
+
+  it("non risponde se non e' arrivato nessuno", () => {
+    expect(quotaDiConversione(0, 0)).toBeNull();
   });
 });
 

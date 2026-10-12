@@ -18,13 +18,21 @@ La pagina mostra, mese per mese:
 
 | Riquadro | Cosa dice | Quando è un problema |
 |---|---|---|
-| Pratiche del mese | Quante ne sono entrate finora | Se sono meno di quelle attese a oggi |
+| Pratiche vendute | Quante sono state **pagate** finora | Meno di quelle attese a oggi |
 | Media al giorno | Il passo realizzato | Sotto 3,0 |
-| Costo per pratica | Spesa pubblicitaria ÷ pratiche | Sopra 20 € |
-| Incassato · speso | Quanto è entrato e quanto si è speso | — |
+| Costo per pratica | Spesa ÷ pratiche **pagate** | Sopra 20 € |
+| Arrivati · hanno pagato | Quanti hanno aperto il modulo e quanti sono arrivati in fondo | Sotto 30 su 100 |
 
-Sotto c'è la tabella **da dove arrivano**: una riga per gruppo, con i nomi dei
-clienti, l'incassato, la spesa che hai dichiarato e il costo per pratica.
+Sotto c'è la tabella **da dove arrivano**: una riga per gruppo, con quanti sono
+arrivati, quanti hanno pagato, i loro nomi, l'incassato, la spesa che hai
+dichiarato e il costo per pratica venduta.
+
+**Chi apre il modulo e non paga non è un cliente.** L'obiettivo dei tre al
+giorno conta le *vendite*, e il costo per pratica si divide per quelle: pagare
+per far aprire dei moduli non è un risultato. I due numeri stanno comunque
+affiancati, perché la loro differenza dice un'altra cosa importante — quanta
+gente si perde alla cassa. Se arrivano in tanti e paga meno di uno su tre, il
+problema non è la pubblicità: è il sito.
 
 **Il conteggio è sulla data di creazione della pratica, non su quella di
 incasso.** Qui si misura l'acquisizione: quante persone sono arrivate. Il
@@ -109,13 +117,19 @@ primo segnale da guardare.
 
 Si guarda il **lunedì mattina**, dieci minuti. Tre regole, in quest'ordine.
 
-**a) Un gruppo sopra i 20 € a pratica.**
+**a) Un gruppo sopra i 20 € a pratica venduta.**
 Non si spegne subito: prima si guarda se il problema è il costo del clic o la
 percentuale di chi paga. Se in due settimane non rientra, si spegne.
 
-**b) Un gruppo su cui si è speso e da cui non è entrata nessuna pratica.**
-Compare in tabella con zero pratiche. Dopo **30 € spesi a vuoto** si spegne,
-senza discutere: non è un investimento, è una perdita.
+**b) Un gruppo su cui si è speso e da cui non è entrata nessuna vendita.**
+Compare in tabella con zero pagate — anche se qualcuno è arrivato. Dopo **30 €
+spesi a vuoto** si spegne, senza discutere: non è un investimento, è una
+perdita.
+
+**b-bis) Arrivano in tanti e paga meno di uno su tre.**
+Qui non si tocca la pubblicità, perché sta funzionando: si guarda il sito. O il
+modulo perde pezzi, o la pagina promette una cosa diversa da quella che trovano
+alla cassa.
 
 **c) Un gruppo sotto i 10 € a pratica.**
 È il caso buono e va sfruttato: si alza il budget del 50% e si riguarda la

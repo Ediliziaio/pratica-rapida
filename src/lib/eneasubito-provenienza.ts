@@ -129,10 +129,17 @@ export function leggi(p: ProvenienzaGrezza | null | undefined): Lettura {
 export interface RigaConteggio {
   gruppo: Gruppo;
   etichetta: string;
-  pratiche: number;
+  /** Quante persone sono arrivate fino ad aprire una pratica. */
+  arrivate: number;
+  /**
+   * Quante hanno pagato. E' questo il numero che conta: l'obiettivo del
+   * Titolare e' tre VENDITE al giorno, non tre moduli aperti. La differenza
+   * fra arrivate e pagate e' quanta gente si perde alla cassa.
+   */
+  pagate: number;
   incassato: number;
   aPagamento: boolean;
-  /** I nomi dei clienti, per il controllo a vista. */
+  /** I nomi di chi ha pagato, per il controllo a vista. */
   clienti: string[];
 }
 
@@ -159,47 +166,60 @@ export function raggruppa(pratiche: readonly PraticaDaContare[]): RigaConteggio[
     const riga = mappa.get(lettura.gruppo) ?? {
       gruppo: lettura.gruppo,
       etichetta: lettura.etichetta,
-      pratiche: 0,
+      arrivate: 0,
+      pagate: 0,
       incassato: 0,
       aPagamento: lettura.aPagamento,
       clienti: [],
     };
-    riga.pratiche += 1;
+    riga.arrivate += 1;
     // Basta una pratica pagata perche' il gruppo sia costato: e' il caso in
     // cui una campagna e' marcata a pagamento solo su alcuni annunci.
     riga.aPagamento = riga.aPagamento || lettura.aPagamento;
 
-    const nome = `${pratica.cliente_nome ?? ""} ${pratica.cliente_cognome ?? ""}`.trim();
-    if (nome) riga.clienti.push(nome);
-
-    const importo = Number(pratica.prezzo ?? 0);
-    if (
-      Number.isFinite(importo) &&
-      importo > 0 &&
-      pratica.pagamento_stato === "pagata"
-    ) {
-      riga.incassato += importo;
+    if (pratica.pagamento_stato === "pagata") {
+      riga.pagate += 1;
+      const nome = `${pratica.cliente_nome ?? ""} ${pratica.cliente_cognome ?? ""}`.trim();
+      if (nome) riga.clienti.push(nome);
+      const importo = Number(pratica.prezzo ?? 0);
+      if (Number.isFinite(importo) && importo > 0) riga.incassato += importo;
     }
     mappa.set(lettura.gruppo, riga);
   }
 
   for (const riga of mappa.values()) riga.clienti.sort((a, b) => a.localeCompare(b, "it"));
 
-  // Prima i gruppi piu' numerosi: in cima si legge dove sta il grosso.
+  // Prima i gruppi che vendono di piu': in cima si legge dove sta il grosso.
   return [...mappa.values()].sort(
-    (a, b) => b.pratiche - a.pratiche || a.etichetta.localeCompare(b.etichetta, "it"),
+    (a, b) => b.pagate - a.pagate || b.arrivate - a.arrivate ||
+      a.etichetta.localeCompare(b.etichetta, "it"),
   );
 }
 
 /**
- * Quanto e' costata una pratica, dato quanto si e' speso in quel gruppo.
+ * Quanto e' costata una pratica VENDUTA, dato quanto si e' speso.
+ *
+ * Si divide per le pagate e non per le arrivate: il tetto di 20 € che il
+ * Titolare si e' dato e' il costo di acquisire un cliente, e chi apre il
+ * modulo e poi non paga non e' un cliente.
  *
  * `null` quando non si puo' dire: senza la spesa inserita a mano non si
  * inventa un costo. Un numero inventato qui diventerebbe la base di una
  * decisione su dove mettere i soldi.
  */
-export function costoPerPratica(pratiche: number, spesa: number | null | undefined): number | null {
+export function costoPerPratica(pagate: number, spesa: number | null | undefined): number | null {
   if (!Number.isFinite(spesa ?? NaN) || (spesa ?? 0) <= 0) return null;
-  if (pratiche <= 0) return null;
-  return (spesa as number) / pratiche;
+  if (pagate <= 0) return null;
+  return (spesa as number) / pagate;
+}
+
+/**
+ * Quanti, fra quelli arrivati, hanno pagato. Da 0 a 1.
+ *
+ * `null` quando non e' arrivato nessuno: una percentuale su zero non
+ * significa niente e messa a video sembrerebbe un dato.
+ */
+export function quotaDiConversione(arrivate: number, pagate: number): number | null {
+  if (arrivate <= 0) return null;
+  return pagate / arrivate;
 }

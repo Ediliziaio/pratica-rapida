@@ -19,7 +19,8 @@ const IL_13_OTTOBRE = new Date("2026-10-13T09:00:00Z");
 const riga = (over: Partial<RigaConteggio> = {}): RigaConteggio => ({
   gruppo: "google_annunci",
   etichetta: "Google — annuncio a pagamento",
-  pratiche: 10,
+  arrivate: 14,
+  pagate: 10,
   incassato: 990,
   aPagamento: true,
   clienti: [],
@@ -59,6 +60,7 @@ describe("andamento", () => {
   it("misura sul passo, non sul totale del mese", () => {
     // Il 13 ottobre con 39 pratiche si e' esattamente in pari: 13 x 3.
     const a = andamento(39, "2026-10", IL_13_OTTOBRE);
+    expect(a.pagate).toBe(39);
     expect(a.atteseAOggi).toBe(39);
     expect(a.inPari).toBe(true);
     expect(a.mediaAlGiorno).toBe(3);
@@ -79,7 +81,7 @@ describe("cruscotto", () => {
   });
 
   it("segnala quando si sfonda il tetto dei venti euro", () => {
-    const righe = cruscotto([riga({ pratiche: 4 })], { google_annunci: 120 });
+    const righe = cruscotto([riga({ pagate: 4 })], { google_annunci: 120 });
     expect(righe[0].costo).toBe(30);
     expect(righe[0].sopraIlTetto).toBe(true);
   });
@@ -96,7 +98,7 @@ describe("cruscotto", () => {
   it("mostra comunque un gruppo su cui si e' speso senza ricavare niente", () => {
     const righe = cruscotto([riga()], { google_annunci: 120, chatgpt: 80 });
     const buttati = righe.find((r) => r.gruppo === "chatgpt")!;
-    expect(buttati.pratiche).toBe(0);
+    expect(buttati.pagate).toBe(0);
     expect(buttati.spesa).toBe(80);
     expect(buttati.sopraIlTetto).toBe(true);
   });
@@ -111,7 +113,7 @@ describe("i totali del mese", () => {
   it("danno il costo medio su tutte le pratiche, non la media dei costi", () => {
     // 200 € su 14 pratiche = 14,28 a pratica. La media fra 12 e 20 darebbe 16.
     const righe = cruscotto(
-      [riga({ pratiche: 10 }), riga({ gruppo: "chatgpt", etichetta: "ChatGPT", pratiche: 4 })],
+      [riga({ pagate: 10 }), riga({ gruppo: "chatgpt", etichetta: "ChatGPT", pagate: 4 })],
       { google_annunci: 120, chatgpt: 80 },
     );
     expect(costoMedio(righe)).toBeCloseTo(200 / 14, 5);

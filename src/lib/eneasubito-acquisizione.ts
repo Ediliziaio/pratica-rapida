@@ -70,8 +70,8 @@ export function giorniDelMese(mese: string): number {
 }
 
 export interface Andamento {
-  /** Pratiche entrate finora nel mese. */
-  pratiche: number;
+  /** Pratiche VENDUTE finora nel mese: e' questo l'obiettivo. */
+  pagate: number;
   /** Quante dovrebbero essercene a oggi per stare sull'obiettivo. */
   atteseAOggi: number;
   /** Quante ne servono per chiudere il mese in obiettivo. */
@@ -83,7 +83,7 @@ export interface Andamento {
 }
 
 export function andamento(
-  pratiche: number,
+  pagate: number,
   mese: string,
   adesso: Date = new Date(),
   obiettivoGiornaliero: number = PRATICHE_AL_GIORNO,
@@ -92,11 +92,11 @@ export function andamento(
   const totali = giorniDelMese(mese);
   const atteseAOggi = passati * obiettivoGiornaliero;
   return {
-    pratiche,
+    pagate,
     atteseAOggi,
     attesePerIlMese: totali * obiettivoGiornaliero,
-    mediaAlGiorno: passati > 0 ? pratiche / passati : 0,
-    inPari: pratiche >= atteseAOggi,
+    mediaAlGiorno: passati > 0 ? pagate / passati : 0,
+    inPari: pagate >= atteseAOggi,
   };
 }
 
@@ -127,7 +127,7 @@ export function cruscotto(
   const conSpesa: RigaCruscotto[] = righe.map((riga) => {
     viste.add(riga.gruppo);
     const spesa = Number.isFinite(spese[riga.gruppo] ?? NaN) ? (spese[riga.gruppo] as number) : null;
-    const costo = costoPerPratica(riga.pratiche, spesa);
+    const costo = costoPerPratica(riga.pagate, spesa);
     return { ...riga, spesa, costo, sopraIlTetto: costo !== null && costo > tetto };
   });
 
@@ -136,7 +136,8 @@ export function cruscotto(
     conSpesa.push({
       gruppo,
       etichetta: gruppo,
-      pratiche: 0,
+      arrivate: 0,
+      pagate: 0,
       incassato: 0,
       aPagamento: true,
       clienti: [],
@@ -165,6 +166,6 @@ export function spesaTotale(spesaDelMese: Partial<Record<Gruppo, number>> | unde
  */
 export function costoMedio(righe: readonly RigaCruscotto[]): number | null {
   const spesa = righe.reduce((s, r) => s + (r.spesa ?? 0), 0);
-  const pratiche = righe.reduce((p, r) => p + r.pratiche, 0);
-  return costoPerPratica(pratiche, spesa);
+  const pagate = righe.reduce((p, r) => p + r.pagate, 0);
+  return costoPerPratica(pagate, spesa);
 }

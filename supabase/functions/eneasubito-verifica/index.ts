@@ -121,9 +121,7 @@ Deno.serve(async (req) => {
       .limit(1)
       .maybeSingle();
 
-    const { data: creata, error } = await db
-      .from("enea_practices")
-      .insert({
+    const campiPratica = {
         reseller_id: contenitore,
         brand: "enea",
         canale: "eneasubito",
@@ -151,9 +149,24 @@ Deno.serve(async (req) => {
         // segnaposto inventato.
         ...spezzaNome(corpo.nome),
         ...campiDaCorpo(corpo, email),
-      })
-      .select("id, form_token")
-      .single();
+    };
+
+    const nasci = (campi: Record<string, unknown>) =>
+      db.from("enea_practices").insert(campi).select("id, form_token").single();
+
+    let { data: creata, error } = await nasci(campiPratica);
+
+    // Se la colonna `provenienza` non esiste ancora — codice pubblicato prima
+    // della migrazione — la pratica nasce lo stesso, senza quel campo. E'
+    // successo con `canale` il 11/10/2026: la creazione falliva e il sito
+    // smetteva di incassare. Sapere da dove arriva un cliente e' utile;
+    // incassare e' indispensabile, e fra le due non c'e' partita.
+    if (error && String(error.message ?? "").toLowerCase().includes("provenienza")) {
+      console.error("[eneasubito-verifica] colonna provenienza assente: eseguire la migrazione");
+      const senzaProvenienza = { ...campiPratica } as Record<string, unknown>;
+      delete senzaProvenienza.provenienza;
+      ({ data: creata, error } = await nasci(senzaProvenienza));
+    }
 
     if (error || !creata) throw error ?? new Error("Creazione pratica fallita");
 

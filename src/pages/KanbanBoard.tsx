@@ -18,6 +18,7 @@ import {
 } from "@/hooks/useEneaPractices";
 import { supabase } from "@/integrations/supabase/client";
 import { resolveCfNetPriceEur } from "@/lib/cfPracticePriceClient";
+import { isCompletedFormWaitingForPayment } from "@/lib/completedFormPipeline";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -2946,6 +2947,13 @@ function PracticeCard({
     : practice.form_compilato_at
       ? "in lavorazione"
       : "in attesa cliente";
+  const completedFormWaitingForPayment = isCompletedFormWaitingForPayment({
+    formCompleted: Boolean(practice.form_compilato_at),
+    stageType,
+    paymentState: practice.pagamento_stato,
+    billingType: practice.tipo_fatturazione,
+    hasCadastralService,
+  });
   const fgasStatusLabel = fgasIsComplete
     ? "conclusa"
     : fgasStatus === "in_lavorazione"
@@ -3135,7 +3143,14 @@ function PracticeCard({
           )}
 
           {/* Form status dot */}
-          {practice.form_compilato_at ? (
+          {completedFormWaitingForPayment ? (
+            <div className="flex items-center gap-1.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-amber-500 shrink-0" />
+              <span className="text-[11px] font-medium text-amber-700 dark:text-amber-400">
+                Form compilato · pagamento da completare
+              </span>
+            </div>
+          ) : practice.form_compilato_at ? (
             <div className="flex items-center gap-1.5">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shrink-0" />
               <span className="text-[11px] text-emerald-700 dark:text-emerald-400">Form compilato</span>

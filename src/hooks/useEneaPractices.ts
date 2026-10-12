@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { useCompany } from "./useCompany";
@@ -48,6 +49,7 @@ export function useEneaPractices(filters?: {
   limit?: number;
   offset?: number;
 }) {
+  const queryClient = useQueryClient();
   const { resellerId: myResellerId, isInternal } = useAuth();
   // Quando un super_admin impersona un'azienda (CompanyContext.companyId override),
   // il JWT resta del super_admin (RLS bypassa filter tenant) — DEVE filtrare client-side
@@ -55,6 +57,34 @@ export function useEneaPractices(filters?: {
   const effectiveResellerScope = isImpersonating
     ? impersonatedCompanyId
     : (!isInternal ? myResellerId : null);
+
+  // I form pubblici, i webhook di pagamento e le automazioni aggiornano le
+  // pratiche fuori da questa pagina. Senza una subscription il Kanban poteva
+  // restare visivamente fermo sulla vecchia colonna per tutta la sessione,
+  // anche se il database aveva già spostato la pratica. Realtime è il percorso
+  // principale; il refetch periodico e al ritorno sulla finestra sono la rete
+  // di sicurezza se il websocket cade.
+  useEffect(() => {
+    let refreshTimer: ReturnType<typeof setTimeout> | null = null;
+    const channel = supabase
+      .channel(`enea-practices-live-${crypto.randomUUID()}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "enea_practices" },
+        () => {
+          if (refreshTimer) clearTimeout(refreshTimer);
+          refreshTimer = setTimeout(() => {
+            void queryClient.invalidateQueries({ queryKey: ["enea_practices"] });
+          }, 250);
+        },
+      )
+      .subscribe();
+
+    return () => {
+      if (refreshTimer) clearTimeout(refreshTimer);
+      void supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
 
   return useQuery({
     queryKey: ["enea_practices", filters, effectiveResellerScope],
@@ -121,6 +151,8 @@ export function useEneaPractices(filters?: {
         companies: { id: string; ragione_sociale: string } | null;
       })[];
     },
+    refetchOnWindowFocus: "always",
+    refetchInterval: 60_000,
   });
 }
 

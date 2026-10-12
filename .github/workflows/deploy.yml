@@ -15,7 +15,7 @@ name: Deploy to Cloudflare Pages + Supabase Functions
 #   - typecheck: BLOCCANTE (tsc -p tsconfig.app.json: se TS errors, deploy stop)
 #   - lint:      NON bloccante (0 errori oggi, restano solo warning; promuovibile a bloccante)
 #   - test:      NON bloccante (solo test dummy oggi)
-#   - db-migrate: BLOCCANTE per le funzioni (se DB_PASSWORD non settato, skip)
+#   - db-migrate: BLOCCANTE per sito e funzioni (senza DB_PASSWORD, stop)
 
 on:
   push:
@@ -75,11 +75,11 @@ jobs:
           # Evita che un rate limit sulla risoluzione di "latest" blocchi
           # migrazioni e, per dipendenza, lasci non pubblicate le Edge Functions.
           version: 2.117.0
-      - name: Link + Push migrations (skip if no DB_PASSWORD)
+      - name: Link + Push migrations
         run: |
           if [ -z "$SUPABASE_DB_PASSWORD" ]; then
-            echo "SUPABASE_DB_PASSWORD not set — skipping db push"
-            exit 0
+            echo "::error::SUPABASE_DB_PASSWORD not set — cannot deploy frontend before migrations"
+            exit 1
           fi
           PROJECT_REF="${SUPABASE_PROJECT_REF:-xmkjrhwmmuzaqjqlvzxm}"
           supabase link --project-ref "$PROJECT_REF"
@@ -131,7 +131,8 @@ jobs:
   deploy-frontend:
     name: Build & Deploy Frontend (Cloudflare Pages)
     runs-on: ubuntu-latest
-    needs: [typecheck]
+    # Il form CF dipende dal trigger DB: mai pubblicare il sito prima della migrazione.
+    needs: [typecheck, db-migrate]
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2

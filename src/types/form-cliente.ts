@@ -167,6 +167,7 @@ export type Finanziamento = "si" | "in_parte" | "no";
 
 export interface DocumentiData {
   finanziamento: Finanziamento | null;
+  data_fine_lavori?: string;
   fattura_url?: string;
   bonifico_url?: string;
 }

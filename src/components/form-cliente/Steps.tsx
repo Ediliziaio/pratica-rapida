@@ -937,6 +937,7 @@ export interface StepDocumentiProps {
   publicToken?: string;
   practiceId: string;
   requireCustomerInvoice?: boolean;
+  requireCfDate?: boolean;
 }
 
 export function StepDocumenti({
@@ -949,6 +950,7 @@ export function StepDocumenti({
   publicToken,
   practiceId,
   requireCustomerInvoice = true,
+  requireCfDate = false,
 }: StepDocumentiProps) {
   const fatturaRef = useRef<HTMLInputElement>(null);
   const bonificoRef = useRef<HTMLInputElement>(null);
@@ -1062,6 +1064,15 @@ export function StepDocumenti({
 
   return (
     <div className="space-y-6">
+      {requireCfDate && (
+        <div className="space-y-2">
+          <Label htmlFor="cliente-data-fine-lavori">Data di fine lavori *</Label>
+          <Input id="cliente-data-fine-lavori" type="date"
+            value={data.documenti.data_fine_lavori ?? ""}
+            onChange={(event) => patchSection("documenti", { data_fine_lavori: event.target.value })} />
+          <FieldError errors={errors} field="documenti.data_fine_lavori" />
+        </div>
+      )}
       {/* La fattura viene chiesta soltanto al cliente finale che paga la pratica. */}
       {requireCustomerInvoice && (
         <div className="space-y-2">

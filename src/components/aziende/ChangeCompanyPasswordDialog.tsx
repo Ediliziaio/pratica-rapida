@@ -12,7 +12,6 @@
 
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
@@ -20,6 +19,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { generateTemporaryPassword } from "@/lib/companyCredentials";
+import { updateCompanyCredentials } from "@/lib/companyCredentialDelivery";
 import {
   KeyRound, Eye, EyeOff, Loader2, RefreshCw, Copy, Check, ShieldAlert,
 } from "lucide-react";
@@ -30,47 +31,35 @@ interface Props {
   company: { id: string; ragione_sociale: string; email?: string | null } | null;
 }
 
-/** Genera password "leggibile" di 12 caratteri (lettere + cifre) — niente
- *  caratteri ambigui (O/0/I/l/1) per ridurre errori di digitazione vocale. */
-function generatePassword(): string {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
-  let s = "";
-  const arr = new Uint32Array(12);
-  crypto.getRandomValues(arr);
-  for (let i = 0; i < 12; i++) s += chars[arr[i] % chars.length];
-  return s;
-}
-
 export default function ChangeCompanyPasswordDialog({ open, onOpenChange, company }: Props) {
   const { toast } = useToast();
   const [password, setPassword] = useState("");
   const [showPwd, setShowPwd] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [resultEmail, setResultEmail] = useState<string | null>(null);
+  const [sendEmail, setSendEmail] = useState(true);
+  const [result, setResult] = useState<{ loginEmail: string; deliveryEmail: string | null; emailSent: boolean } | null>(null);
 
   const reset = () => {
     setPassword("");
     setShowPwd(false);
     setCopied(false);
-    setResultEmail(null);
+    setSendEmail(true);
+    setResult(null);
   };
 
   const setMut = useMutation({
     mutationFn: async () => {
       if (!company) throw new Error("Nessuna azienda selezionata");
       if (password.length < 8) throw new Error("Password minimo 8 caratteri");
-      const { data, error } = await supabase.functions.invoke("set-company-password", {
-        body: { company_id: company.id, new_password: password },
-      });
-      if (error) throw new Error(error.message);
-      if (data?.error) throw new Error(data.error);
-      return data as { success: boolean; user_id: string; email: string | null };
+      return updateCompanyCredentials({ company, password, sendEmail });
     },
     onSuccess: (data) => {
-      setResultEmail(data.email);
+      setResult(data);
       toast({
-        title: "Password aggiornata ✓",
-        description: "L'azienda dovrà cambiare password al prossimo accesso.",
+        title: data.emailSent ? "Credenziali inviate ✓" : "Password aggiornata ✓",
+        description: data.emailSent
+          ? `Email inviata a ${data.deliveryEmail}.`
+          : "L'azienda dovrà cambiare password al prossimo accesso.",
       });
     },
     onError: (err: Error) => {
@@ -113,7 +102,7 @@ export default function ChangeCompanyPasswordDialog({ open, onOpenChange, compan
           </DialogDescription>
         </DialogHeader>
 
-        {resultEmail ? (
+        {result ? (
           /* ── Success state ──────────────────────────────────────────── */
           <div className="py-2 space-y-4">
             <div className="rounded-lg bg-emerald-50 border border-emerald-200 p-4">
@@ -121,15 +110,17 @@ export default function ChangeCompanyPasswordDialog({ open, onOpenChange, compan
                 <Check className="h-4 w-4" />Password impostata correttamente
               </p>
               <p className="text-xs text-emerald-800 leading-relaxed">
-                Comunica queste credenziali all'azienda. Al primo accesso il portale
-                la costringerà a scegliere una nuova password personale.
+                {result.emailSent
+                  ? `Le credenziali sono state inviate a ${result.deliveryEmail}.`
+                  : "Comunica queste credenziali all'azienda."}
+                {" "}Al primo accesso il portale richiederà una nuova password personale.
               </p>
             </div>
 
             <div className="space-y-2">
               <div>
                 <Label className="text-[11px] text-muted-foreground">Email accesso</Label>
-                <Input value={resultEmail} readOnly className="font-mono text-sm bg-muted/50" />
+                <Input value={result.loginEmail} readOnly className="font-mono text-sm bg-muted/50" />
               </div>
               <div>
                 <Label className="text-[11px] text-muted-foreground">Password temporanea</Label>
@@ -167,7 +158,7 @@ export default function ChangeCompanyPasswordDialog({ open, onOpenChange, compan
                 <Label htmlFor="company-pwd">Nuova password temporanea *</Label>
                 <button
                   type="button"
-                  onClick={() => setPassword(generatePassword())}
+                  onClick={() => setPassword(generateTemporaryPassword())}
                   className="text-[11px] font-medium text-primary hover:underline inline-flex items-center gap-1"
                 >
                   <RefreshCw className="h-3 w-3" />Genera sicura
@@ -198,6 +189,16 @@ export default function ChangeCompanyPasswordDialog({ open, onOpenChange, compan
               </p>
             </div>
 
+            <label className="flex items-center gap-2 text-sm cursor-pointer">
+              <input
+                type="checkbox"
+                checked={sendEmail}
+                onChange={(event) => setSendEmail(event.target.checked)}
+                disabled={!company.email}
+              />
+              Invia le credenziali a <strong>{company.email ?? "—"}</strong>
+            </label>
+
             <DialogFooter className="gap-2">
               <Button variant="outline" onClick={() => handleClose(false)} disabled={setMut.isPending}>
                 Annulla
@@ -209,7 +210,7 @@ export default function ChangeCompanyPasswordDialog({ open, onOpenChange, compan
                 {setMut.isPending ? (
                   <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Impostazione…</>
                 ) : (
-                  <>Imposta password</>
+                  <>{sendEmail ? "Imposta password e invia email" : "Imposta password"}</>
                 )}
               </Button>
             </DialogFooter>

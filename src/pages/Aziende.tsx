@@ -26,7 +26,8 @@ import { STATO_CONFIG } from "@/lib/pratiche-config";
 import type { PraticaStato } from "@/lib/pratiche-config";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
-import { generateTemporaryPassword, getFunctionErrorMessage } from "@/lib/companyCredentials";
+import { generateTemporaryPassword } from "@/lib/companyCredentials";
+import { updateCompanyCredentials } from "@/lib/companyCredentialDelivery";
 
 interface CompanyStats {
   statoCounts: Record<string, number>;
@@ -200,53 +201,18 @@ export default function Aziende() {
     mutationFn: async () => {
       if (!credCompany) throw new Error("Nessuna azienda selezionata");
       if (!credPassword || credPassword.length < 8) throw new Error("Password troppo corta (min 8)");
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.access_token) throw new Error("Sessione scaduta, rieffettua il login.");
-      const authorization = { Authorization: `Bearer ${session.access_token}` };
-
-      // 1. Imposta la nuova password sull'account azienda_admin (edge function esistente)
-      const { data: setRes, error: setErr } = await supabase.functions.invoke("set-company-password", {
-        body: { company_id: credCompany.id, new_password: credPassword },
-        headers: authorization,
+      return updateCompanyCredentials({
+        company: credCompany,
+        password: credPassword,
+        sendEmail: credSendEmail,
       });
-      if (setErr) {
-        throw new Error(await getFunctionErrorMessage(setErr, "Impostazione password fallita"));
-      }
-      const r = setRes as { success?: boolean; email?: string; error?: string };
-      if (!r?.success) throw new Error(r?.error ?? "Reset password fallito");
-      const dest = r.email ?? credCompany.email;
-      // 2. (opzionale) Invia email con le credenziali
-      if (credSendEmail && !dest) {
-        throw new Error("Password impostata, ma email non inviata: nessun indirizzo disponibile");
-      }
-      if (credSendEmail && dest) {
-        const { data: emailResult, error: emailError } = await supabase.functions.invoke("send-email", {
-          body: {
-            to: dest,
-            template: "benvenuto_azienda",
-            data: {
-              ragione_sociale: credCompany.ragione_sociale,
-              email: dest,
-              password: credPassword,
-              login_url: "https://pannello.praticarapida.it",
-            },
-          },
-          headers: authorization,
-        });
-        if (emailError) {
-          const detail = await getFunctionErrorMessage(emailError, "Invio email fallito");
-          throw new Error(`Password impostata, ma email non inviata: ${detail}`);
-        }
-        if (emailResult?.error) {
-          throw new Error(`Password impostata, ma email non inviata: ${emailResult.error}`);
-        }
-      }
-      return { dest };
     },
-    onSuccess: ({ dest }) => {
+    onSuccess: ({ deliveryEmail, emailSent }) => {
       toast({
         title: "Credenziali aggiornate",
-        description: credSendEmail ? `Email con le credenziali inviata a ${dest}.` : "Nuova password impostata.",
+        description: emailSent
+          ? `Email con le credenziali inviata a ${deliveryEmail}.`
+          : "Nuova password impostata.",
       });
       setCredCompany(null);
     },

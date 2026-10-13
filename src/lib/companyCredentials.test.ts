@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { generateTemporaryPassword, getFunctionErrorMessage } from "./companyCredentials";
 
 describe("credenziali temporanee dei rivenditori", () => {
-  it("genera sempre password di 12 caratteri con maiuscola, minuscola e numero", () => {
+  it("genera sempre password di 12 caratteri con maiuscola, minuscola, numero e simbolo", () => {
     for (let attempt = 0; attempt < 100; attempt += 1) {
       const password = generateTemporaryPassword();
 
@@ -10,6 +10,7 @@ describe("credenziali temporanee dei rivenditori", () => {
       expect(password).toMatch(/[A-Z]/);
       expect(password).toMatch(/[a-z]/);
       expect(password).toMatch(/[0-9]/);
+      expect(password).toMatch(/[!@#$%]/);
     }
   });
 

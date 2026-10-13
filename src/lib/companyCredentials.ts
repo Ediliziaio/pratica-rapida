@@ -1,7 +1,8 @@
 const UPPERCASE = "ABCDEFGHJKLMNPQRSTUVWXYZ";
 const LOWERCASE = "abcdefghijkmnpqrstuvwxyz";
 const DIGITS = "23456789";
-const PASSWORD_ALPHABET = `${UPPERCASE}${LOWERCASE}${DIGITS}`;
+const SYMBOLS = "!@#$%";
+const PASSWORD_ALPHABET = `${UPPERCASE}${LOWERCASE}${DIGITS}${SYMBOLS}`;
 
 function secureRandomIndex(length: number): number {
   const value = new Uint32Array(1);
@@ -16,6 +17,7 @@ export function generateTemporaryPassword(length = 12): string {
     UPPERCASE[secureRandomIndex(UPPERCASE.length)],
     LOWERCASE[secureRandomIndex(LOWERCASE.length)],
     DIGITS[secureRandomIndex(DIGITS.length)],
+    SYMBOLS[secureRandomIndex(SYMBOLS.length)],
   ];
 
   while (characters.length < length) {

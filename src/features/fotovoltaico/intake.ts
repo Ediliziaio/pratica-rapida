@@ -16,7 +16,11 @@ export type PhotovoltaicIntake = {
   indirizzoImpianto: string;
   noteFinali: string;
   confermaDati: boolean;
+  accettaCosto: boolean;
 };
+
+export const PHOTOVOLTAICO_PRICE_EUR = 240;
+export const PHOTOVOLTAICO_IVA_PERCENT = 22;
 
 export const EMPTY_PHOTOVOLTAICO_INTAKE: PhotovoltaicIntake = {
   statoImpianto: "",
@@ -27,6 +31,7 @@ export const EMPTY_PHOTOVOLTAICO_INTAKE: PhotovoltaicIntake = {
   indirizzoImpianto: "",
   noteFinali: "",
   confermaDati: false,
+  accettaCosto: false,
 };
 
 const validEmail = (value: string) => /^\S+@\S+\.\S+$/.test(value.trim());
@@ -41,5 +46,6 @@ export function validatePhotovoltaicSubmission(data: PhotovoltaicIntake): string
   if (!validEmail(data.proprietarioEmail)) errors.push("Inserisci un'e-mail valida del proprietario.");
   if (!data.indirizzoImpianto.trim()) errors.push("Inserisci l'indirizzo dell'impianto.");
   if (!data.confermaDati) errors.push("Conferma la correttezza dei dati trasmessi.");
+  if (!data.accettaCosto) errors.push("Accetta il costo della pratica per procedere con l'invio.");
   return errors;
 }

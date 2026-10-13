@@ -16,6 +16,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   EMPTY_PHOTOVOLTAICO_INTAKE,
+  PHOTOVOLTAICO_IVA_PERCENT,
+  PHOTOVOLTAICO_PRICE_EUR,
   validatePhotovoltaicSubmission,
   type PhotovoltaicIntake,
 } from "@/features/fotovoltaico/intake";
@@ -200,7 +202,11 @@ export default function NuovaPraticaGse() {
     stato_impianto: data.statoImpianto || null,
     pod: null,
     distributore: null,
-    form_data: data,
+    form_data: {
+      ...data,
+      prezzoImponibileEuro: PHOTOVOLTAICO_PRICE_EUR,
+      ivaPercentuale: PHOTOVOLTAICO_IVA_PERCENT,
+    },
   });
 
   const uploadPendingFiles = async (id: string) => {
@@ -489,6 +495,12 @@ export default function NuovaPraticaGse() {
                 <label className="flex items-start gap-3 rounded-lg border p-4">
                   <Checkbox checked={data.confermaDati} onCheckedChange={(checked) => set("confermaDati", checked === true)} />
                   <span className="text-sm">Confermo che i dati riportati corrispondono alle informazioni e ai documenti disponibili alla data di invio.</span>
+                </label>
+                <label className="flex items-start gap-3 rounded-lg border border-emerald-200 bg-emerald-50 p-4">
+                  <Checkbox checked={data.accettaCosto} onCheckedChange={(checked) => set("accettaCosto", checked === true)} />
+                  <span className="text-sm text-emerald-950">
+                    Inviando la pratica, accetto il costo del servizio di <strong>240,00 € + IVA 22%</strong> per ogni pratica Fotovoltaico / GSE affidata a Pratica Rapida.
+                  </span>
                 </label>
                 <div className="rounded-lg bg-slate-50 p-4 text-sm text-slate-700">
                   Dopo il controllo iniziale Pratica Rapida contatterà direttamente il proprietario per bolletta, documento, dati catastali, IBAN, mandato e firme necessarie.

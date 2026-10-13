@@ -139,8 +139,9 @@ export default function NuovaPraticaGse() {
     if (!effectiveCompanyId) return;
     let cancelled = false;
     const load = async () => {
-      const [{ data: company }, { data: draftRows }] = await Promise.all([
+      const [{ data: company }, { data: profile }, { data: draftRows }] = await Promise.all([
         supabase.from("companies").select("ragione_sociale, email, telefono").eq("id", effectiveCompanyId).maybeSingle(),
+        supabase.from("profiles").select("email, telefono").eq("id", user?.id ?? "").maybeSingle(),
         photovoltaicDb
           .from("fotovoltaico_practices")
           .select("id, proprietario_nome, riferimento_interno, updated_at, form_data")
@@ -152,12 +153,16 @@ export default function NuovaPraticaGse() {
       ]);
       if (cancelled) return;
       setCompanyName(company?.ragione_sociale ?? "");
-      setCompanyContact((company as CompanyContact | null) ?? null);
+      setCompanyContact(company ? {
+        ragione_sociale: company.ragione_sociale,
+        email: company.email ?? (!isInternal ? profile?.email ?? user?.email ?? null : null),
+        telefono: company.telefono ?? (!isInternal ? profile?.telefono ?? null : null),
+      } : null);
       setDrafts((draftRows ?? []) as DraftSummary[]);
     };
     void load();
     return () => { cancelled = true; };
-  }, [effectiveCompanyId]);
+  }, [effectiveCompanyId, isInternal, user?.email, user?.id]);
 
   useEffect(() => {
     if (!practiceId || !effectiveCompanyId) return;

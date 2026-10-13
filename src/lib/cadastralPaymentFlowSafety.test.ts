@@ -79,7 +79,8 @@ describe("pagamento catastale durante la compilazione", () => {
   it("riapre al Catasto senza perdere la bozza e rimuove il metadato al nuovo invio", () => {
     expect(formSource).toContain('shouldReopenAtCadastralStep(row.dati_form)');
     expect(formSource).toContain('setCadastralResumeMode("at")');
-    expect(formSource).toContain("withoutWorkflowMetadata(dynamicData)");
+    expect(formSource).toContain("withoutWorkflowMetadata(");
+    expect(formSource).toContain("normalizeCfCustomerCompletionDate(dynamicData)");
   });
 
   it("blocca la riapertura se esiste qualsiasi effetto di pagamento o fiscale", () => {

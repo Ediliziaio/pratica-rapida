@@ -26,6 +26,7 @@ import {
   Gauge,
   TrendingUp,
   Send,
+  Sun,
 } from "lucide-react";
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
@@ -385,7 +386,8 @@ export function AppSidebar() {
         collapsible: true,
         defaultOpen: true,
         items: [
-          { title: "Pratiche", url: "/kanban", icon: Kanban },
+          { title: "Pratiche ENEA", url: "/kanban", icon: Kanban },
+          { title: "Pratiche Fotovoltaico / GSE", url: "/fotovoltaico/pratiche", icon: Sun },
           { title: "Attività", url: "/coda-pratiche", icon: ListChecks },
           { title: "Chiamate", url: "/admin/chiamate", icon: PhoneCall, badge: daChiamare },
           { title: "Automazioni", url: "/admin/automazioni", icon: Zap },
@@ -472,8 +474,10 @@ export function AppSidebar() {
       {
         items: [
           { title: "Dashboard ENEA", url: "/enea/dashboard", icon: BarChart3 },
-          { title: "Le mie Pratiche", url: "/kanban", icon: Kanban },
+          { title: "Le mie Pratiche ENEA", url: "/kanban", icon: Kanban },
           { title: "Nuova Pratica ENEA", url: "/enea/nuova", icon: FilePlus, end: true },
+          { title: "Fotovoltaico / GSE", url: "/fotovoltaico/nuova", icon: Sun, end: true },
+          { title: "Le mie Pratiche Fotovoltaico / GSE", url: "/fotovoltaico/pratiche", icon: Archive },
           { title: "Archivio ENEA", url: "/enea/archivio", icon: Archive },
           { title: "Documenti utili", url: "/documenti-utili", icon: Download },
           TUTORIAL_NAV_ITEM,

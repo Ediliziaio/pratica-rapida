@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { Link } from "react-router-dom";
 import { FilePlus2, RefreshCw, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -40,6 +41,7 @@ const plantLabels: Record<string, string> = {
 
 const selectClass =
   "h-9 w-full rounded-md border border-input bg-background px-2 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+const photovoltaicDb = supabase as unknown as SupabaseClient;
 
 function PracticeCard({ practice, isInternal, moving, onMove }: {
   practice: PracticeRow;
@@ -81,7 +83,7 @@ export default function PraticheGse() {
   const load = async () => {
     setLoading(true);
     setError(null);
-    const { data, error: queryError } = await (supabase as any)
+    const { data, error: queryError } = await photovoltaicDb
       .from("fotovoltaico_practices")
       .select("id, status, riferimento_interno, proprietario_nome, proprietario_telefono, proprietario_email, indirizzo_impianto, stato_impianto, pod, distributore, updated_at, submitted_at, companies(ragione_sociale)")
       .is("archived_at", null)
@@ -100,7 +102,7 @@ export default function PraticheGse() {
     const previousRows = rows;
     setMovingId(id);
     setRows((current) => current.map((practice) => practice.id === id ? { ...practice, status } : practice));
-    const { error: updateError } = await (supabase as any).from("fotovoltaico_practices").update({ status }).eq("id", id);
+    const { error: updateError } = await photovoltaicDb.from("fotovoltaico_practices").update({ status }).eq("id", id);
     if (updateError) {
       setRows(previousRows);
       toast.error("Spostamento non riuscito", { description: updateError.message });

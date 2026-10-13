@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { ArrowLeft, ArrowRight, CheckCircle2, FileUp, Save, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -64,6 +65,10 @@ const ATTACHMENTS: AttachmentCategory[] = [
 
 const selectClass =
   "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+
+// Queste tabelle sono create dalla migrazione della funzionalità. Il client
+// senza schema generato evita cast ripetuti finché i tipi Supabase sono aggiornati.
+const photovoltaicDb = supabase as unknown as SupabaseClient;
 
 function Field({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
   return (
@@ -136,7 +141,7 @@ export default function NuovaPraticaGse() {
     const load = async () => {
       const [{ data: company }, { data: draftRows }] = await Promise.all([
         supabase.from("companies").select("ragione_sociale, email, telefono").eq("id", effectiveCompanyId).maybeSingle(),
-        (supabase as any)
+        photovoltaicDb
           .from("fotovoltaico_practices")
           .select("id, proprietario_nome, riferimento_interno, updated_at, form_data")
           .eq("reseller_id", effectiveCompanyId)
@@ -158,7 +163,7 @@ export default function NuovaPraticaGse() {
     if (!practiceId || !effectiveCompanyId) return;
     let cancelled = false;
     const loadDraft = async () => {
-      const { data: row, error } = await (supabase as any)
+      const { data: row, error } = await photovoltaicDb
         .from("fotovoltaico_practices")
         .select("id, form_data, status")
         .eq("id", practiceId)
@@ -204,7 +209,7 @@ export default function NuovaPraticaGse() {
           .from("fotovoltaico-documents")
           .upload(path, file, { contentType: file.type || "application/octet-stream", upsert: false });
         if (uploadError) throw uploadError;
-        const { error: attachmentError } = await (supabase as any)
+        const { error: attachmentError } = await photovoltaicDb
           .from("fotovoltaico_attachments")
           .insert({
             practice_id: id,
@@ -230,14 +235,14 @@ export default function NuovaPraticaGse() {
     try {
       const id = practiceId ?? crypto.randomUUID();
       if (practiceId) {
-        const { error } = await (supabase as any)
+        const { error } = await photovoltaicDb
           .from("fotovoltaico_practices")
           .update(baseRow(id))
           .eq("id", id)
           .eq("status", "bozza");
         if (error) throw error;
       } else {
-        const { error } = await (supabase as any).from("fotovoltaico_practices").insert(baseRow(id));
+        const { error } = await photovoltaicDb.from("fotovoltaico_practices").insert(baseRow(id));
         if (error) throw error;
         setPracticeId(id);
         setSearchParams({ draft: id });
@@ -263,7 +268,7 @@ export default function NuovaPraticaGse() {
     if (!id) return;
     setSaving(true);
     try {
-      const { error } = await (supabase as any)
+      const { error } = await photovoltaicDb
         .from("fotovoltaico_practices")
         .update({ status: "ricevuta_da_controllare", submitted_at: new Date().toISOString() })
         .eq("id", id)

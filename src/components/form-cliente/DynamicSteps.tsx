@@ -29,7 +29,11 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { maskDataNascita, formatDataNascitaInput } from "./validation-utils";
+import {
+  maskDataNascita,
+  formatDataNascitaInput,
+  normalizeItalianDateToIso,
+} from "./validation-utils";
 import { uploadPublicFormFile } from "./uploadFormFile";
 import { ComuneCombobox } from "./ComuneCombobox";
 
@@ -288,6 +292,7 @@ function TextareaControl({ field, fieldId, value, onChange }: FieldControlProps)
 // Campo data: input testuale con formattazione automatica gg/mm/aaaa al posto
 // del calendario nativo (ostico per molti clienti, soprattutto su desktop).
 function DateControl({ field, fieldId, value, onChange }: FieldControlProps) {
+  const storesIsoDate = field.key === "data_fine_lavori";
   return (
     <Input
       id={fieldId}
@@ -296,7 +301,10 @@ function DateControl({ field, fieldId, value, onChange }: FieldControlProps) {
       placeholder={field.placeholder || "gg/mm/aaaa"}
       maxLength={10}
       value={typeof value === "string" ? formatDataNascitaInput(value) : ""}
-      onChange={(e) => onChange(maskDataNascita(e.target.value))}
+      onChange={(e) => {
+        const masked = maskDataNascita(e.target.value);
+        onChange(storesIsoDate ? normalizeItalianDateToIso(masked) : masked);
+      }}
     />
   );
 }

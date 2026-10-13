@@ -43,7 +43,10 @@ import {
 import { useFormModuleByProdotto } from "@/hooks/useFormSchema";
 import { getFormCompletionCopy } from "@/lib/formCompletionCopy";
 import { shouldStartCadastralCheckout } from "@/lib/cadastralCheckoutGate";
-import { withCfCustomerDate } from "@/features/cfCustomerEvidence";
+import {
+  normalizeCfCustomerCompletionDate,
+  withCfCustomerDate,
+} from "@/features/cfCustomerEvidence";
 
 // Refactor DB-first: se `useFormModuleByProdotto` matcha un modulo (CMS in
 // /admin/moduli), il form usa il renderer DINAMICO. Altrimenti fallback
@@ -715,7 +718,9 @@ export default function FormPubblico({ marchio }: { marchio: Marchio }) {
       };
       const indirizzo = extractIndirizzo(dynamicData);
 
-      const submissionData = withoutWorkflowMetadata(dynamicData);
+      const submissionData = withoutWorkflowMetadata(
+        normalizeCfCustomerCompletionDate(dynamicData),
+      );
       const { error: submitError } = await supabase.rpc("submit_form_by_token", {
         p_token: token,
         p_cliente_nome: r.nome,

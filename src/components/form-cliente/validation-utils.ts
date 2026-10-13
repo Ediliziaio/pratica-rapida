@@ -155,6 +155,26 @@ export function formatDataNascitaInput(value: string): string {
 }
 
 /**
+ * Converte una data italiana completa (gg/mm/aaaa) nel formato ISO richiesto
+ * dal database. Durante la digitazione conserva il valore parziale, così il
+ * campo resta utilizzabile senza salti del cursore.
+ */
+export function normalizeItalianDateToIso(value: string): string {
+  const italian = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(value);
+  if (!italian) return value;
+  const [, day, month, year] = italian;
+  const parsed = new Date(Number(year), Number(month) - 1, Number(day));
+  if (
+    parsed.getFullYear() !== Number(year) ||
+    parsed.getMonth() !== Number(month) - 1 ||
+    parsed.getDate() !== Number(day)
+  ) {
+    return value;
+  }
+  return `${year}-${month}-${day}`;
+}
+
+/**
  * Partita IVA italiana: 11 cifre numeriche.
  */
 export function isValidPiva(value: string): boolean {

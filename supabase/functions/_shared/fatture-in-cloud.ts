@@ -240,6 +240,86 @@ export async function createProforma(config: FicConfig, payload: JsonObject) {
   });
 }
 
+/**
+ * Crea direttamente la fattura definitiva per un pagamento Stripe gia'
+ * verificato. Nessuna proforma viene generata nel nuovo percorso Stripe.
+ */
+export function paidInvoicePayload(
+  practiceId: string,
+  product: string,
+  customer: BillingIdentity,
+  price: PaymentPricing,
+  paidAt: string,
+): JsonObject {
+  const paidDate = paidAt.slice(0, 10);
+  const paymentAccountId = Number(Deno.env.get("FIC_STRIPE_PAYMENT_ACCOUNT_ID") ?? "");
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(paidDate)) {
+    throw new Error("Data pagamento Stripe non valida per la fattura");
+  }
+  if (!Number.isInteger(paymentAccountId) || paymentAccountId <= 0) {
+    throw new Error("Conto di accredito Stripe/Qonto non configurato in Fatture in Cloud");
+  }
+  if (!Array.isArray(price.lines) || price.lines.length === 0 || price.grossCents <= 0) {
+    throw new Error("Dettaglio importi non disponibile per la fattura Fatture in Cloud");
+  }
+
+  return {
+    data: {
+      type: "invoice",
+      entity: {
+        name: customer.name,
+        email: customer.email,
+        tax_code: customer.taxCode,
+        address_street: customer.street,
+        address_postal_code: customer.postalCode,
+        address_city: customer.city,
+        address_province: customer.province,
+        country: customer.country,
+        ei_code: "0000000",
+      },
+      date: paidDate,
+      subject: `PraticaRapida:${practiceId}`,
+      visible_subject: `Servizio pratica ${product || "ENEA"}`,
+      currency: { id: "EUR" },
+      language: { code: "it" },
+      e_invoice: true,
+      ei_data: { vat_kind: "I", payment_method: "MP08" },
+      items_list: price.lines.map((line) => ({
+        code: line.code,
+        name: line.name,
+        net_price: line.netCents / 100,
+        qty: 1,
+        vat: { id: Number(Deno.env.get("FIC_VAT_TYPE_ID") ?? "0") },
+      })),
+      payments_list: [{
+        amount: price.grossCents / 100,
+        due_date: paidDate,
+        status: "paid",
+        paid_date: paidDate,
+        payment_account: { id: paymentAccountId },
+      }],
+      show_tspay_button: false,
+      show_payments: true,
+      show_payment_method: true,
+      notes: `Riferimento pratica Pratica Rapida: ${practiceId}`,
+    },
+  };
+}
+
+export async function createPaidInvoice(
+  config: FicConfig,
+  practiceId: string,
+  product: string,
+  customer: BillingIdentity,
+  price: PaymentPricing,
+  paidAt: string,
+) {
+  return await ficRequest<{ data: JsonObject }>(config, `/c/${config.companyId}/issued_documents`, {
+    method: "POST",
+    body: JSON.stringify(paidInvoicePayload(practiceId, product, customer, price, paidAt)),
+  });
+}
+
 export async function getIssuedDocument(config: FicConfig, documentId: number) {
   return await ficRequest<{ data: JsonObject }>(
     config,

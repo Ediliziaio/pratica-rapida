@@ -1,15 +1,15 @@
 import {
-  createProforma,
+  createPaidInvoice,
   ensureFicWebhookSubscription,
   extractBillingIdentity,
   getFicConfig,
-  proformaPayload,
   scheduleDocumentEmail,
   sendEInvoice,
   transformProformaToInvoice,
+  type BillingIdentity,
   type JsonObject,
 } from "./fatture-in-cloud.ts";
-import { createTestPaymentPricing } from "./fic-pricing.ts";
+import type { PaymentPricing } from "./fic-pricing.ts";
 
 type AdminClient = {
   from: (table: string) => any;
@@ -19,6 +19,31 @@ export interface FinalizeResult {
   ready: boolean;
   reason?: "test" | "invoicing_disabled" | "sdi_dry_run" | "invoice_email_pending";
   invoiceId?: number;
+}
+
+function billingSnapshot(value: unknown): BillingIdentity {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    throw new Error("Snapshot fiscale mancante per la fattura post-pagamento");
+  }
+  const row = value as Record<string, unknown>;
+  const required = ["name", "email", "taxCode", "street", "postalCode", "city", "province", "country"] as const;
+  if (required.some((key) => typeof row[key] !== "string" || !String(row[key]).trim())) {
+    throw new Error("Snapshot fiscale incompleto per la fattura post-pagamento");
+  }
+  return Object.fromEntries(required.map((key) => [key, String(row[key]).trim()])) as unknown as BillingIdentity;
+}
+
+function pricingSnapshot(value: unknown, expectedGrossCents: number): PaymentPricing {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    throw new Error("Snapshot prezzi mancante per la fattura post-pagamento");
+  }
+  const price = value as unknown as PaymentPricing;
+  if (!Array.isArray(price.lines) || price.lines.length === 0 ||
+      price.lines.some((line) => !line || !Number.isInteger(line.netCents) || line.netCents <= 0) ||
+      Number(price.grossCents) !== expectedGrossCents) {
+    throw new Error("Snapshot prezzi non coerente con il pagamento Stripe");
+  }
+  return price;
 }
 
 async function notifyAdmins(
@@ -120,34 +145,7 @@ export async function finalizePaidCfOrder(
   await ensureFicWebhookSubscription(config);
   let invoiceId = Number(order.fic_invoice_id ?? 0);
   let invoiceUrl = String(order.fic_invoice_url ?? "");
-  let proformaId = Number(order.fic_proforma_id ?? 0);
-
-  // Un collaudo fiscale autorizzato deve attraversare lo stesso percorso di
-  // un cliente reale. Gli ordini di test creati prima dell'autorizzazione non
-  // avevano una proforma: la creiamo ora, senza generare un secondo addebito.
-  if (!invoiceId && (!Number.isInteger(proformaId) || proformaId <= 0)) {
-    if (order.is_test_payment !== true) {
-      throw new Error("Proforma tecnica Fatture in Cloud mancante");
-    }
-    const customer = extractBillingIdentity(practice);
-    const price = createTestPaymentPricing(Number(order.iva_percent), Number(order.imponibile_cents));
-    if (price.grossCents !== Number(order.totale_cents)) {
-      throw new Error("Importo del collaudo fiscale non coerente con il pagamento Stripe");
-    }
-    const created = await createProforma(
-      config,
-      proformaPayload(practiceId, String(practice.prodotto_installato ?? "ENEA"), customer, price),
-    );
-    proformaId = Number(created.data.id);
-    if (!Number.isInteger(proformaId) || proformaId <= 0) {
-      throw new Error("Fatture in Cloud non ha restituito l'ID della proforma di collaudo");
-    }
-    await admin.from("cf_payment_orders").update({
-      fic_proforma_id: proformaId,
-      fic_document_url: null,
-      updated_at: new Date().toISOString(),
-    }).eq("id", orderId);
-  }
+  const proformaId = Number(order.fic_proforma_id ?? 0);
 
   if (!invoiceId) {
     const { data: claimed, error: claimError } = await admin.from("cf_payment_orders")
@@ -162,7 +160,20 @@ export async function finalizePaidCfOrder(
       throw new Error("Fatturazione già in corso o da verificare: nessun secondo documento è stato creato");
     }
 
-    const invoice = await transformProformaToInvoice(config, proformaId, paidAt);
+    // Gli ordini gia' aperti prima di questa correzione conservano il vecchio
+    // percorso di trasformazione. I nuovi ordini Stripe non creano proforme:
+    // dopo il pagamento generano direttamente la fattura dallo snapshot
+    // immutabile registrato all'apertura del checkout.
+    const invoice = Number.isInteger(proformaId) && proformaId > 0
+      ? await transformProformaToInvoice(config, proformaId, paidAt)
+      : await createPaidInvoice(
+        config,
+        practiceId,
+        String(order.product_snapshot ?? practice.prodotto_installato ?? "ENEA"),
+        billingSnapshot(order.billing_snapshot),
+        pricingSnapshot(order.pricing_snapshot, Number(order.totale_cents)),
+        paidAt,
+      );
     invoiceId = Number(invoice.data.id);
     invoiceUrl = String(invoice.data.url ?? "");
     if (!Number.isInteger(invoiceId) || invoiceId <= 0) {

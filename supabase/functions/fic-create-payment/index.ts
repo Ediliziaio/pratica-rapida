@@ -247,6 +247,9 @@ serve(async (req) => {
       imponibile_cents: price.netCents,
       iva_percent: vatPercent,
       totale_cents: price.grossCents,
+      billing_snapshot: customer,
+      pricing_snapshot: price,
+      product_snapshot: practice.prodotto_installato ?? "ENEA",
       is_test_payment: isTestPayment,
       status: "creating",
     };
@@ -292,19 +295,9 @@ serve(async (req) => {
     }
     if (!reserved) throw new Error("Impossibile riservare l'ordine di pagamento");
 
-    const config = getFicConfig();
-    const created = await createProforma(
-      config,
-      proformaPayload(practice.id, practice.prodotto_installato ?? "ENEA", customer, price),
-    );
-    const document = created.data ?? {};
-    const proformaId = Number(document.id);
-    const documentUrl = String(document.url ?? "").trim();
-    if (!Number.isInteger(proformaId) || proformaId <= 0 || !documentUrl) {
-      throw new Error("Fatture in Cloud non ha restituito ID e URL della proforma");
-    }
-
-    let paymentUrl = documentUrl;
+    let proformaId: number | null = null;
+    let documentUrl: string | null = null;
+    let paymentUrl = "";
     let stripeSessionId: string | null = null;
     if (paymentProvider === "stripe_fatture_in_cloud") {
       const stripeKey = Deno.env.get("STRIPE_SECRET_KEY")?.trim() ?? "";
@@ -350,6 +343,21 @@ serve(async (req) => {
       stripeSessionId = session.id;
       paymentUrl = String(session.url ?? "");
       if (!paymentUrl) throw new Error("Stripe non ha restituito il link di pagamento");
+    } else {
+      // Compatibilita' con l'eventuale percorso TS Pay: in quel solo caso la
+      // proforma e' il documento che espone il pulsante di pagamento.
+      const config = getFicConfig();
+      const created = await createProforma(
+        config,
+        proformaPayload(practice.id, practice.prodotto_installato ?? "ENEA", customer, price),
+      );
+      const document = created.data ?? {};
+      proformaId = Number(document.id);
+      documentUrl = String(document.url ?? "").trim();
+      if (!Number.isInteger(proformaId) || proformaId <= 0 || !documentUrl) {
+        throw new Error("Fatture in Cloud non ha restituito ID e URL della proforma");
+      }
+      paymentUrl = documentUrl;
     }
 
     await admin.from("cf_payment_orders").update({

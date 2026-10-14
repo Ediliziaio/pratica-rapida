@@ -508,10 +508,15 @@ export default function NuovaPraticaGse() {
                   </label>
                 </div>
                 {data.schemaUnifilare === "richiesto_a_pratica_rapida" && (
-                  <label className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4">
-                    <Checkbox checked={data.confermaSottoSeiKw} onCheckedChange={(checked) => set("confermaSottoSeiKw", checked === true)} />
-                    <span className="text-sm text-amber-950">Confermo che la potenza nominale dell'impianto è <strong>fino a 6 kW compresi</strong>.</span>
-                  </label>
+                  <div className="space-y-3">
+                    <label className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4">
+                      <Checkbox checked={data.confermaSottoSeiKw} onCheckedChange={(checked) => set("confermaSottoSeiKw", checked === true)} />
+                      <span className="text-sm text-amber-950">Confermo che la potenza nominale dell'impianto è <strong>fino a 6 kW compresi</strong>.</span>
+                    </label>
+                    <div className="rounded-lg border border-sky-200 bg-sky-50 p-4 text-sm leading-6 text-sky-950">
+                      <strong>Prosegui nel caricamento dei documenti.</strong> Verrai avvisato tramite e-mail e direttamente sul portale quando lo schema unifilare sarà pronto da firmare e timbrare.
+                    </div>
+                  </div>
                 )}
               </Section>
               <Section title="Progetto e documenti tecnici">

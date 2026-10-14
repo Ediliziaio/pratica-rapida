@@ -18,6 +18,19 @@ describe("validatePhotovoltaicAttachment", () => {
     })).toContain("esclusivamente file PDF");
   });
 
+  it("richiede il PDF per lo schema iniziale ma accetta una foto nitida dello schema firmato", () => {
+    expect(validatePhotovoltaicAttachment("schema_unifilare_rivenditore", {
+      name: "schema.pdf",
+      type: "application/pdf",
+      size: 1024,
+    })).toBeNull();
+    expect(validatePhotovoltaicAttachment("schema_unifilare_firmato", {
+      name: "foto-schema.jpg",
+      type: "image/jpeg",
+      size: 1024,
+    })).toBeNull();
+  });
+
   it("accetta una fotografia nel fascicolo tecnico", () => {
     expect(validatePhotovoltaicAttachment("fascicolo_tecnico", {
       name: "targhetta-inverter.jpg",

@@ -13,7 +13,9 @@ import { it } from "date-fns/locale";
 import {
   PHOTOVOLTAICO_PIPELINE,
   PHOTOVOLTAICO_RESELLER_LABELS,
+  UNIFILARE_STATUS_LABELS,
   type PhotovoltaicStatus,
+  type UnifilareStatus,
 } from "@/features/fotovoltaico/workflow";
 
 type PracticeRow = {
@@ -29,6 +31,9 @@ type PracticeRow = {
   distributore: string | null;
   updated_at: string;
   submitted_at: string | null;
+  unifilare_choice: "fornito_dal_rivenditore" | "richiesto_a_pratica_rapida" | null;
+  unifilare_status: UnifilareStatus;
+  net_total_eur: number;
   companies?: { ragione_sociale?: string | null } | null;
 };
 
@@ -59,7 +64,16 @@ function PracticeCard({ practice, isInternal, moving, onMove }: {
         <p><span className="text-muted-foreground">Impianto:</span> {practice.stato_impianto ? plantLabels[practice.stato_impianto] ?? practice.stato_impianto : "-"}</p>
         <p><span className="text-muted-foreground">Telefono:</span> {practice.proprietario_telefono || "-"}</p>
         <p className="line-clamp-2"><span className="text-muted-foreground">Indirizzo:</span> {practice.indirizzo_impianto || "-"}</p>
+        <div className="flex flex-wrap gap-1">
+          <Badge variant={practice.unifilare_status === "firmato_ricevuto" || practice.unifilare_status === "fornito_dal_rivenditore" ? "default" : "outline"}>
+            {UNIFILARE_STATUS_LABELS[practice.unifilare_status]}
+          </Badge>
+          {practice.unifilare_choice === "richiesto_a_pratica_rapida" && <Badge variant="secondary">Servizio schema incluso</Badge>}
+        </div>
         <p className="text-[11px] text-muted-foreground">Aggiornata {format(new Date(practice.updated_at), "d MMM, HH:mm", { locale: it })}</p>
+        {practice.unifilare_choice === "richiesto_a_pratica_rapida" && (
+          <Button asChild variant="outline" size="sm" className="w-full"><Link to={`/fotovoltaico/pratiche/${practice.id}/schema`}>Gestisci schema unifilare</Link></Button>
+        )}
         {isInternal && practice.status !== "bozza" && (
           <div className="border-t pt-2">
             <label className="mb-1 block text-[11px] font-medium text-muted-foreground">Sposta manualmente in</label>
@@ -85,7 +99,7 @@ export default function PraticheGse() {
     setError(null);
     const { data, error: queryError } = await photovoltaicDb
       .from("fotovoltaico_practices")
-      .select("id, status, riferimento_interno, proprietario_nome, proprietario_telefono, proprietario_email, indirizzo_impianto, stato_impianto, pod, distributore, updated_at, submitted_at, companies(ragione_sociale)")
+      .select("id, status, riferimento_interno, proprietario_nome, proprietario_telefono, proprietario_email, indirizzo_impianto, stato_impianto, pod, distributore, updated_at, submitted_at, unifilare_choice, unifilare_status, net_total_eur, companies(ragione_sociale)")
       .is("archived_at", null)
       .order("created_at", { ascending: false });
     if (queryError) setError(queryError.message);
@@ -154,8 +168,14 @@ export default function PraticheGse() {
               <CardContent className="space-y-2 text-sm">
                 <p><span className="text-muted-foreground">Impianto:</span> {practice.stato_impianto ? plantLabels[practice.stato_impianto] ?? practice.stato_impianto : "-"}</p>
                 <p><span className="text-muted-foreground">Telefono:</span> {practice.proprietario_telefono || "-"}</p>
+                <p><span className="text-muted-foreground">Schema:</span> {UNIFILARE_STATUS_LABELS[practice.unifilare_status]}</p>
                 <p className="pt-2 text-xs text-muted-foreground">Aggiornata {format(new Date(practice.updated_at), "d MMM yyyy, HH:mm", { locale: it })}</p>
                 {practice.status === "bozza" && <Button asChild variant="outline" size="sm" className="mt-2 w-full"><Link to={`/fotovoltaico/nuova?draft=${practice.id}`}>Continua la compilazione</Link></Button>}
+                {practice.unifilare_choice === "richiesto_a_pratica_rapida" && practice.status !== "bozza" && (
+                  <Button asChild variant={practice.unifilare_status === "inviato_da_firmare" ? "default" : "outline"} size="sm" className="mt-2 w-full">
+                    <Link to={`/fotovoltaico/pratiche/${practice.id}/schema`}>{practice.unifilare_status === "inviato_da_firmare" ? "Scarica e ricarica lo schema" : "Vedi stato schema"}</Link>
+                  </Button>
+                )}
               </CardContent>
             </Card>
           ))}

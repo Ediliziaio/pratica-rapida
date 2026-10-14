@@ -9,6 +9,25 @@ export type PhotovoltaicStatus =
   | "attivazione_gse"
   | "conclusa";
 
+export type UnifilareStatus =
+  | "non_definito"
+  | "fornito_dal_rivenditore"
+  | "richiesto"
+  | "bozza_in_preparazione"
+  | "bozza_pronta"
+  | "inviato_da_firmare"
+  | "firmato_ricevuto";
+
+export const UNIFILARE_STATUS_LABELS: Record<UnifilareStatus, string> = {
+  non_definito: "Schema da definire",
+  fornito_dal_rivenditore: "Schema fornito",
+  richiesto: "Schema richiesto",
+  bozza_in_preparazione: "Schema in preparazione",
+  bozza_pronta: "Bozza schema pronta",
+  inviato_da_firmare: "Schema da firmare",
+  firmato_ricevuto: "Schema firmato ricevuto",
+};
+
 export type PipelineColumn = {
   key: Exclude<PhotovoltaicStatus, "bozza">;
   title: string;

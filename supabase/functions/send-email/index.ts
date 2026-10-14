@@ -49,6 +49,7 @@ const TEMPLATE_RECIPIENT: Record<string, RecipientType | "internal"> = {
   registrazione_azienda:       "reseller",
   sollecito_fornitore:         "reseller",
   recupera_password:           "reseller", // account portale = rivenditore in maggioranza
+  fotovoltaico_schema_da_firmare: "reseller",
 
 };
 
@@ -161,12 +162,25 @@ const HARDCODED_TEMPLATES = new Set<string>([
   "pagamento_privato_ok",   // privato che ha pagato la pratica ENEA dal sito
   "richiesta_pagamento_cliente", // pratica a carico del cliente finale: link a /paga/:token
   "promemoria_pagamento_cliente", // sollecito gentile a 7 giorni se non ha ancora pagato
+  "fotovoltaico_schema_da_firmare",
 ]);
 
 function renderTemplate(template: string, data: Record<string, string>): { subject: string; html: string } {
   const r = (s: string) => s.replace(/\{\{(\w+)\}\}/g, (_, k) => data[k] ?? "");
 
   switch (template) {
+    case "fotovoltaico_schema_da_firmare":
+      return {
+        subject: r("Schema unifilare pronto da firmare — {{proprietario_nome}}"),
+        html: base(`
+          <h2>Lo schema unifilare è pronto</h2>
+          <p>Abbiamo preparato lo schema per la pratica fotovoltaica di <strong>${r("{{proprietario_nome}}")}</strong>.</p>
+          <p>Entra nella tua area riservata, scaricalo, fallo controllare, firmare e timbrare dall'installatore/responsabile tecnico, quindi ricaricalo nello stesso spazio.</p>
+          <p>Puoi caricare un <strong>PDF firmato digitalmente</strong>, una <strong>scansione</strong> oppure una <strong>foto nitida e completa</strong>. Penseremo noi a inserirlo nella pratica.</p>
+          ${cta("Scarica e ricarica lo schema", r("{{link}}"))}
+        `),
+      };
+
     case "pratica_ricevuta":
       return {
         subject: r("Pratica ricevuta — {{cliente_nome}} {{cliente_cognome}}"),

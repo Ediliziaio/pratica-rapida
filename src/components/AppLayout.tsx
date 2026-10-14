@@ -10,6 +10,7 @@ import { useCompany } from "@/hooks/useCompany";
 import { Building2, X, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
+import { UnifilareReadyDialog } from "@/components/fotovoltaico/UnifilareReadyDialog";
 
 export function AppLayout({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
@@ -71,6 +72,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
           <DisclaimerBanner />
         </main>
         <GuideWelcomeDialog />
+        <UnifilareReadyDialog />
       </div>
     </SidebarProvider>
   );

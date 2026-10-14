@@ -78,6 +78,7 @@ const ArchivioEnea = lazy(() => import("./pages/rivenditore/ArchivioEnea"));
 const ServizioEneaFgas = lazy(() => import("./pages/ServizioEneaFgas"));
 const NuovaPraticaGse = lazy(() => import("./pages/fotovoltaico/NuovaPraticaGse"));
 const PraticheGse = lazy(() => import("./pages/fotovoltaico/PraticheGse"));
+const SchemaUnifilareGse = lazy(() => import("./pages/fotovoltaico/SchemaUnifilareGse"));
 
 /**
  * QueryClient con default sensibili per ridurre carico backend e migliorare
@@ -341,6 +342,7 @@ const App = () => (
                 {/* Fotovoltaico: percorso isolato, senza riuso della pipeline ENEA. */}
                 <Route path="/fotovoltaico/nuova" element={<ProtectedRoute><RoleGuard allowed={[...ALL_AUTH_ROLES]}><NuovaPraticaGse /></RoleGuard></ProtectedRoute>} />
                 <Route path="/fotovoltaico/pratiche" element={<ProtectedRoute><RoleGuard allowed={[...ALL_AUTH_ROLES]}><PraticheGse /></RoleGuard></ProtectedRoute>} />
+                <Route path="/fotovoltaico/pratiche/:id/schema" element={<ProtectedRoute><RoleGuard allowed={[...ALL_AUTH_ROLES]}><SchemaUnifilareGse /></RoleGuard></ProtectedRoute>} />
                 <Route path="/documenti-utili" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES, ...RESELLER_ROLES, "admin_interno", "azienda_admin", "azienda_user"]}><DocumentiUtili /></RoleGuard></ProtectedRoute>} />
                 <Route path="/admin/gestionale" element={<Navigate to="/kanban" replace />} />
                 <Route path="/admin/automazioni" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><Automazioni /></RoleGuard></ProtectedRoute>} />

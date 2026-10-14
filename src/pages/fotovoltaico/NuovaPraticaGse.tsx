@@ -18,6 +18,8 @@ import {
   EMPTY_PHOTOVOLTAICO_INTAKE,
   PHOTOVOLTAICO_IVA_PERCENT,
   PHOTOVOLTAICO_PRICE_EUR,
+  PHOTOVOLTAICO_UNIFILARE_PRICE_EUR,
+  photovoltaicNetPrice,
   validatePhotovoltaicSubmission,
   type PhotovoltaicIntake,
 } from "@/features/fotovoltaico/intake";
@@ -62,6 +64,12 @@ const ATTACHMENTS: AttachmentCategory[] = [
     label: "Carica documenti e fotografie tecniche",
     help: "PDF e immagini · puoi selezionare tutti i file insieme",
     accept: "application/pdf,image/jpeg,image/png,image/webp",
+  },
+  {
+    key: "schema_unifilare_rivenditore",
+    label: "Carica lo schema unifilare",
+    help: "Obbligatorio se non richiedi a Pratica Rapida la preparazione dello schema · solo PDF",
+    accept: "application/pdf",
   },
 ];
 
@@ -202,12 +210,29 @@ export default function NuovaPraticaGse() {
     stato_impianto: data.statoImpianto || null,
     pod: null,
     distributore: null,
+    unifilare_choice: data.schemaUnifilare || null,
+    unifilare_status: data.schemaUnifilare === "richiesto_a_pratica_rapida" ? "richiesto" : "fornito_dal_rivenditore",
+    base_price_eur: PHOTOVOLTAICO_PRICE_EUR,
+    unifilare_price_eur: data.schemaUnifilare === "richiesto_a_pratica_rapida" ? PHOTOVOLTAICO_UNIFILARE_PRICE_EUR : 0,
+    net_total_eur: photovoltaicNetPrice(data),
     form_data: {
       ...data,
-      prezzoImponibileEuro: PHOTOVOLTAICO_PRICE_EUR,
+      prezzoPraticaImponibileEuro: PHOTOVOLTAICO_PRICE_EUR,
+      prezzoSchemaUnifilareImponibileEuro: data.schemaUnifilare === "richiesto_a_pratica_rapida" ? PHOTOVOLTAICO_UNIFILARE_PRICE_EUR : 0,
+      prezzoImponibileEuro: photovoltaicNetPrice(data),
       ivaPercentuale: PHOTOVOLTAICO_IVA_PERCENT,
     },
   });
+
+  const hasStoredAttachment = async (id: string, category: string): Promise<boolean> => {
+    const { count, error } = await photovoltaicDb
+      .from("fotovoltaico_attachments")
+      .select("id", { count: "exact", head: true })
+      .eq("practice_id", id)
+      .eq("category", category);
+    if (error) throw error;
+    return (count ?? 0) > 0;
+  };
 
   const uploadPendingFiles = async (id: string) => {
     if (!effectiveCompanyId) throw new Error("Azienda non disponibile");
@@ -275,13 +300,32 @@ export default function NuovaPraticaGse() {
       toast.error(errors[0], { description: errors.length > 1 ? `Altri ${errors.length - 1} dati da completare.` : undefined });
       return;
     }
+    if (data.schemaUnifilare === "fornito_dal_rivenditore") {
+      let hasSchema = (files.schema_unifilare_rivenditore?.length ?? 0) > 0;
+      if (!hasSchema && practiceId) {
+        try {
+          hasSchema = await hasStoredAttachment(practiceId, "schema_unifilare_rivenditore");
+        } catch {
+          toast.error("Non riesco a verificare lo schema unifilare già caricato. Riprova.");
+          return;
+        }
+      }
+      if (!hasSchema) {
+        toast.error("Carica lo schema unifilare in PDF oppure richiedi la preparazione a Pratica Rapida.");
+        return;
+      }
+    }
     const id = await saveDraft(true);
     if (!id) return;
     setSaving(true);
     try {
       const { error } = await photovoltaicDb
         .from("fotovoltaico_practices")
-        .update({ status: "ricevuta_da_controllare", submitted_at: new Date().toISOString() })
+        .update({
+          status: "ricevuta_da_controllare",
+          submitted_at: new Date().toISOString(),
+          unifilare_requested_at: data.schemaUnifilare === "richiesto_a_pratica_rapida" ? new Date().toISOString() : null,
+        })
         .eq("id", id)
         .eq("status", "bozza");
       if (error) throw error;
@@ -449,11 +493,32 @@ export default function NuovaPraticaGse() {
           {step === 1 && (
             <>
               <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">Qui chiediamo soltanto le fatture di vendita e il materiale tecnico dell'installatore. Bolletta e documenti personali saranno richiesti direttamente al proprietario.</div>
+              <Section title="Schema unifilare">
+                <p className="text-sm text-muted-foreground">Scegli una sola possibilità. Se ci incarichi della preparazione, produrremo la bozza tecnica da far controllare e firmare al tuo responsabile tecnico.</p>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <label className={`cursor-pointer rounded-xl border p-4 transition-colors ${data.schemaUnifilare === "fornito_dal_rivenditore" ? "border-emerald-500 bg-emerald-50" : "bg-white hover:border-emerald-300"}`}>
+                    <input type="radio" name="schema-unifilare" className="mr-2" checked={data.schemaUnifilare === "fornito_dal_rivenditore"} onChange={() => set("schemaUnifilare", "fornito_dal_rivenditore")} />
+                    <span className="font-medium">Allego il nostro schema</span>
+                    <span className="mt-1 block text-xs text-muted-foreground">Lo schema deve essere già controllato e firmato dal tecnico abilitato.</span>
+                  </label>
+                  <label className={`cursor-pointer rounded-xl border p-4 transition-colors ${data.schemaUnifilare === "richiesto_a_pratica_rapida" ? "border-emerald-500 bg-emerald-50" : "bg-white hover:border-emerald-300"}`}>
+                    <input type="radio" name="schema-unifilare" className="mr-2" checked={data.schemaUnifilare === "richiesto_a_pratica_rapida"} onChange={() => set("schemaUnifilare", "richiesto_a_pratica_rapida")} />
+                    <span className="font-medium">Richiedo la preparazione a Pratica Rapida</span>
+                    <span className="mt-1 block text-xs text-muted-foreground">Servizio per impianti fino a 6 kW. Il documento dovrà essere verificato e firmato dal responsabile tecnico dell'installatore.</span>
+                  </label>
+                </div>
+                {data.schemaUnifilare === "richiesto_a_pratica_rapida" && (
+                  <label className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4">
+                    <Checkbox checked={data.confermaSottoSeiKw} onCheckedChange={(checked) => set("confermaSottoSeiKw", checked === true)} />
+                    <span className="text-sm text-amber-950">Confermo che la potenza nominale dell'impianto è <strong>fino a 6 kW compresi</strong>.</span>
+                  </label>
+                )}
+              </Section>
               <Section title="Progetto e documenti tecnici">
-                <p className="text-sm text-muted-foreground">Le fatture vanno caricate nel loro spazio, esclusivamente in PDF. Nel secondo spazio puoi caricare in un unico blocco lo schema unifilare e, se già disponibili, dichiarazione di conformità, autotest, certificazioni CEI 0-21 e schede tecniche. Non devi trascrivere i dati né rinominare i file.</p>
+                <p className="text-sm text-muted-foreground">Le fatture vanno caricate nel loro spazio, esclusivamente in PDF. Nel fascicolo tecnico puoi caricare in un unico blocco dichiarazione di conformità, autotest, certificazioni CEI 0-21 e schede tecniche. Non devi trascrivere i dati né rinominare i file.</p>
                 <div className="rounded-lg bg-slate-50 p-3 text-sm text-slate-700"><strong>Foto tecniche utili:</strong> pannelli, targhetta inverter, targhette dell'accumulo, quadri elettrici e zona contatori.</div>
                 <div className="grid gap-3">
-                  {ATTACHMENTS.map((attachment) => (
+                  {ATTACHMENTS.filter((attachment) => attachment.key !== "schema_unifilare_rivenditore" || data.schemaUnifilare === "fornito_dal_rivenditore").map((attachment) => (
                   <label key={attachment.key} className="flex cursor-pointer items-start gap-3 rounded-xl border bg-white p-4 hover:border-emerald-400">
                     <FileUp className="mt-0.5 h-5 w-5 shrink-0 text-emerald-700" />
                     <span className="min-w-0 flex-1">
@@ -485,6 +550,7 @@ export default function NuovaPraticaGse() {
                   <div><dt className="text-muted-foreground">Proprietario</dt><dd className="font-medium">{data.proprietarioNome || "Da compilare"}</dd></div>
                   <div><dt className="text-muted-foreground">Contatto</dt><dd className="font-medium">{data.proprietarioTelefono || "Da compilare"}</dd></div>
                   <div><dt className="text-muted-foreground">Stato impianto</dt><dd className="font-medium">{data.statoImpianto || "Da compilare"}</dd></div>
+                  <div><dt className="text-muted-foreground">Schema unifilare</dt><dd className="font-medium">{data.schemaUnifilare === "richiesto_a_pratica_rapida" ? "Preparazione richiesta a Pratica Rapida" : data.schemaUnifilare === "fornito_dal_rivenditore" ? "Allegato dal rivenditore" : "Da scegliere"}</dd></div>
                   <div><dt className="text-muted-foreground">Nuovi allegati</dt><dd className="font-medium">{pendingFileCount}</dd></div>
                 </dl>
               </Section>
@@ -499,9 +565,16 @@ export default function NuovaPraticaGse() {
                 <label className="flex items-start gap-3 rounded-lg border border-emerald-200 bg-emerald-50 p-4">
                   <Checkbox checked={data.accettaCosto} onCheckedChange={(checked) => set("accettaCosto", checked === true)} />
                   <span className="text-sm text-emerald-950">
-                    Inviando la pratica, accetto il costo del servizio di <strong>240,00 € + IVA 22%</strong> per ogni pratica Fotovoltaico / GSE affidata a Pratica Rapida.
+                    Inviando la pratica, accetto il preventivo riepilogato qui sotto.
                   </span>
                 </label>
+                <div className="rounded-xl border bg-white p-4 text-sm">
+                  <div className="flex items-center justify-between gap-4 py-1"><span>Gestione pratica Fotovoltaico / GSE</span><strong>{PHOTOVOLTAICO_PRICE_EUR},00 € + IVA</strong></div>
+                  {data.schemaUnifilare === "richiesto_a_pratica_rapida" && (
+                    <div className="flex items-center justify-between gap-4 border-t py-2"><span>Disegno tecnico schema unifilare</span><strong>{PHOTOVOLTAICO_UNIFILARE_PRICE_EUR},00 € + IVA</strong></div>
+                  )}
+                  <div className="mt-2 flex items-center justify-between gap-4 border-t-2 pt-3 text-base"><span>Totale imponibile</span><strong>{photovoltaicNetPrice(data)},00 € + IVA {PHOTOVOLTAICO_IVA_PERCENT}%</strong></div>
+                </div>
                 <div className="rounded-lg bg-slate-50 p-4 text-sm text-slate-700">
                   Dopo il controllo iniziale Pratica Rapida contatterà direttamente il proprietario per bolletta, documento, dati catastali, IBAN, mandato e firme necessarie.
                 </div>

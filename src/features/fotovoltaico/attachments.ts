@@ -6,8 +6,13 @@ export function validatePhotovoltaicAttachment(category: string, file: Attachmen
   if (file.size > PHOTOVOLTAICO_MAX_FILE_SIZE) {
     return `${file.name}: dimensione massima 15 MB`;
   }
-  if (category === "fatture_vendita" && (file.type !== "application/pdf" || !file.name.toLowerCase().endsWith(".pdf"))) {
-    return `${file.name}: nello spazio fatture sono ammessi esclusivamente file PDF`;
+  if (["fatture_vendita", "schema_unifilare_rivenditore", "schema_unifilare_bozza"].includes(category)
+    && (file.type !== "application/pdf" || !file.name.toLowerCase().endsWith(".pdf"))) {
+    return `${file.name}: in questo spazio sono ammessi esclusivamente file PDF`;
+  }
+  if (category === "schema_unifilare_firmato"
+    && !["application/pdf", "image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+    return `${file.name}: carica un PDF, una scansione o una foto nitida (JPG, PNG o WebP)`;
   }
   return null;
 }

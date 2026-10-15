@@ -52,7 +52,23 @@ describe("compilation reminder delivery safety", () => {
     expect(source).toContain('triggerGroup !== "compilation_reminders"');
     expect(source).toContain('rulesQuery.eq("trigger_event", "days_waiting_7")');
     expect(source).toContain('rule.trigger_event !== "days_waiting_7"');
-    expect(source).toContain("if (compilationOnly && attesaPagamento) continue;");
+    expect(source).toContain("!compilationOnly &&");
+    expect(source).not.toContain("if (compilationOnly && attesaPagamento) continue;");
+  });
+
+  it("non esclude i clienti finali non pagati dal sollecito di compilazione H24", () => {
+    const source = readFileSync(
+      resolve(process.cwd(), "supabase/functions/process-automations/index.ts"),
+      "utf8",
+    );
+    const reminderCase = source.slice(
+      source.indexOf('case "days_waiting_7"'),
+      source.indexOf('case "days_waiting_fornitore_30"'),
+    );
+
+    expect(reminderCase).toContain("const attesaPagamento =\n              !compilationOnly &&");
+    expect(reminderCase).toContain('if (!attesaPagamento && rule.channel === "whatsapp"');
+    expect(reminderCase).toContain('template_name: (rule as { template_id?: string }).template_id ?? "sollecito_compilazione"');
   });
 
   it("non applica una fascia oraria ai promemoria Meta H24", () => {

@@ -1,5 +1,14 @@
 import type { PaymentPricing } from "./fic-pricing.ts";
 
+// Questo file gira su Deno, ma da qui lo importa anche un test che gira nel
+// progetto dell'app (directInvoiceAfterStripeSafety.test.ts). Il controllo di
+// tipi dell'app non conosce `Deno` e si ferma con «Cannot find name 'Deno'» —
+// ed e' un controllo BLOCCANTE in CI: finche' fallisce non si pubblica nulla,
+// ne' questo sito ne' l'altro. La dichiarazione qui sotto esiste solo per i
+// tipi, sparisce in compilazione e non cambia una virgola a tempo di
+// esecuzione: su Deno vale il `Deno` vero.
+declare const Deno: { env: { get(nome: string): string | undefined } };
+
 const API_BASE = "https://api-v2.fattureincloud.it";
 
 export type JsonObject = Record<string, unknown>;

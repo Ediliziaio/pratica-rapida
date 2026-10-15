@@ -450,19 +450,20 @@ serve(async (req) => {
             // e continuare con le altre, non bloccare l'intero loop. La
             // pratica fallita verrà riprovata al prossimo cron tick perché
             // `ultimo_sollecito_privato` non viene aggiornato.
-            // Pratica a carico del cliente finale non ancora pagata: il
-            // sollecito "compila il modulo" sarebbe sbagliato due volte — lo
-            // inviterebbe a compilare senza pagare (il submit ora lo blocca)
-            // e suonerebbe come se il pagamento non servisse. Il promemoria
-            // giusto e' quello del pagamento, solo email: su WhatsApp non
-            // esiste un template adatto e non inventiamo messaggi di soldi.
+            // Nel giro H24 dedicato ai solleciti di compilazione, anche un
+            // cliente finale non ancora pagato deve poter ricevere il link:
+            // finche form_compilato_at e' nullo il lavoro richiesto al cliente
+            // e' ancora completare il modulo. Nel giro ordinario conserviamo
+            // invece il percorso separato del promemoria di pagamento via
+            // email, senza trasformarlo in un WhatsApp sul pagamento.
             const attesaPagamento =
-              p.tipo_fatturazione === "cliente_finale" && p.pagamento_stato !== "pagata";
+              !compilationOnly &&
+              p.tipo_fatturazione === "cliente_finale" &&
+              p.pagamento_stato !== "pagata";
             // Il percorso H24 e' autorizzato esclusivamente per ricordare la
             // compilazione. I promemoria di pagamento restano nel normale
             // giro in fascia operativa, anche se condividono lo stesso trigger
             // legacy days_waiting_7.
-            if (compilationOnly && attesaPagamento) continue;
             if (attesaPagamento && rule.channel !== "email") continue;
             if (attesaPagamento && !p.cliente_email) continue;
             // Tetto: dopo 4 promemoria (~un mese) si smette di scrivere.

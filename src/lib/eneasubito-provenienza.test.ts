@@ -45,7 +45,7 @@ describe("leggi — da cosa e' arrivato", () => {
 
   it("senza provenienza registrata lo dice in chiaro", () => {
     expect(leggi(null).gruppo).toBe("sconosciuta");
-    expect(leggi(null).etichetta).toBe("Non so da dove arriva");
+    expect(leggi(null).etichetta).toBe("Nessuna pubblicità registrata");
   });
 });
 

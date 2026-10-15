@@ -275,7 +275,7 @@ export default function EneaSubitoAcquisizione() {
           <table className="w-full text-sm">
             <thead className="bg-muted/50 text-xs uppercase tracking-wide text-muted-foreground">
               <tr>
-                <th className="text-left font-semibold px-3 py-2">Da dove</th>
+                <th className="text-left font-semibold px-3 py-2">Cosa l'ha portato</th>
                 <th className="text-right font-semibold px-3 py-2">Richieste</th>
                 <th className="text-right font-semibold px-3 py-2">Hanno pagato</th>
                 <th className="text-right font-semibold px-3 py-2">Incassato</th>
@@ -340,9 +340,10 @@ export default function EneaSubitoAcquisizione() {
 
       {righe.some((r) => r.gruppo === "sconosciuta") && (
         <p className="text-xs text-muted-foreground">
-          «Non so da dove arriva» sono pratiche nate prima che registrassimo la provenienza, oppure
-          di chi ha ricaricato la pagina perdendo il riferimento. È normale che ce ne siano alcune:
-          se diventano la maggioranza, qualcosa si è rotto.
+          «Nessuna pubblicità registrata» parla del canale, non della persona: la pratica ha nome e
+          cognome come tutte le altre, è l'annuncio che non risulta. Succede con le pratiche nate
+          prima che registrassimo la provenienza, o con chi ha ricaricato la pagina perdendo il
+          riferimento. È normale che ce ne siano alcune: se diventano la maggioranza, qualcosa si è rotto.
         </p>
       )}
     </div>

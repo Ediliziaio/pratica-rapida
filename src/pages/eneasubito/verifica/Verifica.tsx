@@ -1,14 +1,26 @@
 /**
- * /verifica — il modulo di EneaSubito.
+ * /verifica — il modulo di EneaSubito, in due schermate.
  *
- * Una schermata sola, tre cose, e poi la cassa. Nessun esito da leggere,
- * nessun «ti facciamo sapere»: quel passaggio e' stato eliminato dal Titolare
- * l'11/10/2026 perche' offriva a un potenziale cliente l'occasione di andarsene.
+ * Nessun esito da leggere, nessun «ti facciamo sapere»: quel passaggio e'
+ * stato eliminato dal Titolare l'11/10/2026 perche' offriva a un potenziale
+ * cliente l'occasione di andarsene.
  *
  * Tutto il resto — catastali, certificati, bonifico, date — si chiede DOPO il
  * pagamento, con il modulo che Pratica Rapida usa gia' tutti i giorni. La
  * misura sulle bozze del CRM dice che documenti e catastali si mangiano il 64%
  * degli abbandoni: davanti alla cassa non ci devono stare.
+ *
+ * **Perche' due schermate e non una (15/10/2026).** Prima stava tutto insieme
+ * e non si salvava niente finche' non erano pronte tutte e quattro le cose,
+ * fattura compresa. Chi cercava «pratica enea infissi» dall'ufficio la fattura
+ * non ce l'aveva addosso: compilava, si bloccava, se ne andava — e per noi non
+ * era mai esistito. Il primo giorno di pubblicita' sono arrivate 25 persone e
+ * nessuna ha lasciato un contatto.
+ *
+ * Ora la pratica nasce **alla fine del primo passo**, con nome e indirizzo. Da
+ * li' quella persona esiste, si conta e la si puo' richiamare. La fattura
+ * resta obbligatoria per pagare: quello che cambia e' che chi non ce l'ha non
+ * svanisce piu'.
  *
  * Il nome che si chiede qui e' quello del BENEFICIARIO, cioe' l'intestatario
  * della fattura: e' lui che porta la spesa in detrazione, e se sbagliamo
@@ -20,9 +32,21 @@ import { useSearchParams } from "react-router-dom";
 import { Guscio } from "../Guscio";
 import { preparaDocumento } from "./immagine";
 import { apriPagamento, caricaFattura, salvaPratica } from "./pratica";
-import { completa, type Famiglia, type Richiesta } from "./logica";
+import { completa, datiCompleti, type Famiglia, type Richiesta } from "./logica";
 
 const MEMORIA = "eneasubito-verifica";
+/**
+ * Il token vive nella scheda del browser, non oltre.
+ *
+ * In `localStorage` restava da una visita all'altra e chi tornava continuava a
+ * parlare della pratica vecchia: se quella era gia' pagata, Stripe rifiutava e
+ * il pulsante non apriva piu' niente. Tenerlo solo nello stato di React pero'
+ * non basta piu': ora la pratica nasce al primo passo, e un semplice
+ * ricaricamento della pagina ne farebbe nascere una seconda per la stessa
+ * persona. `sessionStorage` e' la misura giusta — regge il ricaricamento,
+ * muore con la scheda.
+ */
+const TOKEN = "eneasubito-token";
 
 const FAMIGLIE: { id: Famiglia; nome: string; esempi: string }[] = [
   { id: "infissi", nome: "Infissi", esempi: "Finestre, portefinestre, porte d'ingresso" },
@@ -45,6 +69,14 @@ function leggiMemoria(): Richiesta {
   }
 }
 
+function leggiToken(): string | null {
+  try {
+    return sessionStorage.getItem(TOKEN);
+  } catch {
+    return null;
+  }
+}
+
 export default function Verifica() {
   const [parametri] = useSearchParams();
   const [richiesta, setRichiesta] = useState<Richiesta>(() => {
@@ -56,18 +88,15 @@ export default function Verifica() {
       ? { ...salvata, famiglia: scelto as Famiglia }
       : salvata;
   });
+  const [token, setToken] = useState<string | null>(() => leggiToken());
+  // Chi ricarica la pagina a meta' strada riprende da dove era, invece di
+  // ricominciare: la pratica esiste gia' e il token ce l'abbiamo.
+  const [passo, setPasso] = useState<1 | 2>(() => (leggiToken() ? 2 : 1));
   const [file, setFile] = useState<File | null>(null);
   const [nomeFile, setNomeFile] = useState<string | null>(null);
   const [preparazione, setPreparazione] = useState<string | null>(null);
   const [attesa, setAttesa] = useState<string | null>(null);
   const [intoppo, setIntoppo] = useState<string | null>(null);
-  // Il token della pratica vive solo per questa visita, e di proposito.
-  // Quando restava in memoria da una volta all'altra, chi tornava sul sito
-  // continuava a parlare della pratica vecchia: se quella era gia' pagata,
-  // Stripe rifiutava e il pulsante non apriva piu' niente. Ogni richiesta
-  // nuova e' una pratica nuova; un secondo tentativo nella stessa visita
-  // riusa il token perche' resta nello stato di questa pagina.
-  const [token, setToken] = useState<string | null>(null);
 
   // Si salva a ogni modifica: chi chiude la pagina e torna non ricomincia.
   // Il documento no: quello resta sul dispositivo da cui l'ha scelto.
@@ -82,6 +111,11 @@ export default function Verifica() {
   function ricordaToken(nuovo: string | null): string | null {
     if (!nuovo) return null;
     setToken(nuovo);
+    try {
+      sessionStorage.setItem(TOKEN, nuovo);
+    } catch {
+      // Navigazione privata: si prosegue con il token tenuto in memoria.
+    }
     return nuovo;
   }
 
@@ -103,15 +137,13 @@ export default function Verifica() {
   }
 
   /**
-   * Dal modulo alla cassa, senza fermate.
+   * Fine del primo passo: qui nasce la pratica.
    *
-   * L'ordine conta: prima nasce la pratica (serve il token per tutto il
-   * resto), poi sale la fattura, infine si apre il pagamento. Se la fattura
-   * non sale non ci si ferma: il cliente va a pagare lo stesso e il documento
-   * si richiede dopo. Se non nasce la pratica, invece, non c'e' niente da
-   * pagare e glielo si dice in chiaro.
+   * Se il salvataggio fallisce non si prosegue, e si dice perche': senza
+   * pratica non c'e' niente da pagare, e mandare una persona verso una cassa
+   * che non esiste e' il modo peggiore di perderla.
    */
-  async function versoLaCassa() {
+  async function avanza() {
     setIntoppo(null);
     setAttesa("Un momento…");
 
@@ -123,13 +155,32 @@ export default function Verifica() {
         famiglia: richiesta.famiglia,
       }),
     );
-    const buono = salvato ?? token;
+    setAttesa(null);
+
+    if (!salvato && !token) {
+      setIntoppo(
+        "Non riusciamo a registrare la richiesta in questo momento. Scrivici e la apriamo noi:",
+      );
+      return;
+    }
+    setPasso(2);
+  }
+
+  /**
+   * Secondo passo: la fattura sale e si apre il pagamento.
+   *
+   * Se la fattura non sale non ci si ferma: il cliente va a pagare lo stesso e
+   * il documento si richiede dopo.
+   */
+  async function versoLaCassa() {
+    const buono = token ?? leggiToken();
     if (!buono) {
-      setAttesa(null);
-      setIntoppo("Non riusciamo a registrare la richiesta in questo momento. Scrivici e la apriamo noi:");
+      setIntoppo("La richiesta non risulta aperta. Ricontrolla i tuoi dati, oppure scrivici:");
+      setPasso(1);
       return;
     }
 
+    setIntoppo(null);
     if (file) {
       setAttesa("Carico la fattura…");
       await caricaFattura(buono, file);
@@ -147,6 +198,7 @@ export default function Verifica() {
     setIntoppo(`${esito.errore} Se ricapita scrivici e lo sistemiamo subito:`);
   }
 
+  const primoPronto = datiCompleti(richiesta);
   const pronto = completa(richiesta, file !== null);
 
   return (
@@ -157,99 +209,145 @@ export default function Verifica() {
     >
       <div className="es-wrap">
         <div className="es-passo">
-          <h1 className="es-domandona es-serif">Fai partire la tua pratica</h1>
-          <p className="es-aiuto">
-            Ti servono i tuoi dati e la fattura del tuo fornitore. Si compila anche dal telefono.
-          </p>
+          <p className="es-etichetta">Passo {passo} di 2</p>
 
-          <div className="es-campone">
-            <label htmlFor="intervento">Che lavoro hai fatto</label>
-            <div className="es-scelte" id="intervento">
-              {FAMIGLIE.map((f) => (
+          {passo === 1 ? (
+            <>
+              <h1 className="es-domandona es-serif">Fai partire la tua pratica</h1>
+              <p className="es-aiuto">
+                Cominciamo da due cose. La fattura te la chiediamo dopo: se non ce l'hai sottomano,
+                riprendi con calma quando ce l'hai.
+              </p>
+
+              <div className="es-campone">
+                <label htmlFor="intervento">Che lavoro hai fatto</label>
+                <div className="es-scelte" id="intervento">
+                  {FAMIGLIE.map((f) => (
+                    <button
+                      key={f.id}
+                      type="button"
+                      className="es-scelta"
+                      aria-pressed={richiesta.famiglia === f.id}
+                      onClick={() => aggiorna({ famiglia: f.id })}
+                    >
+                      <b>{f.nome}</b>
+                      <span>{f.esempi}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="es-campone">
+                <label htmlFor="nome">Nome e cognome di chi è in fattura</label>
+                <input
+                  id="nome"
+                  type="text"
+                  autoComplete="name"
+                  placeholder="Mario Rossi"
+                  value={richiesta.nome}
+                  onChange={(e) => aggiorna({ nome: e.target.value })}
+                />
+                <p className="es-aiuto">
+                  Dev'essere l'intestatario della fattura: è lui il beneficiario, cioè chi porta la
+                  spesa in detrazione.
+                </p>
+              </div>
+
+              <div className="es-campone">
+                <label htmlFor="email">La tua e-mail</label>
+                <input
+                  id="email"
+                  type="email"
+                  autoComplete="email"
+                  placeholder="nome@esempio.it"
+                  value={richiesta.email}
+                  onChange={(e) => aggiorna({ email: e.target.value })}
+                />
+                <p className="es-aiuto">
+                  È qui che ti mandiamo la ricevuta del pagamento e la pratica finita.
+                </p>
+              </div>
+
+              <div className="es-navigazione">
                 <button
-                  key={f.id}
                   type="button"
-                  className="es-scelta"
-                  aria-pressed={richiesta.famiglia === f.id}
-                  onClick={() => aggiorna({ famiglia: f.id })}
+                  className="es-bottone es-bottone-pieno es-bottone-grande"
+                  disabled={!primoPronto || attesa !== null}
+                  style={{ opacity: primoPronto && !attesa ? 1 : 0.5 }}
+                  onClick={avanza}
                 >
-                  <b>{f.nome}</b>
-                  <span>{f.esempi}</span>
+                  {attesa ?? "Continua"}
                 </button>
-              ))}
-            </div>
-          </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <h1 className="es-domandona es-serif">Ci siamo quasi</h1>
+              <p className="es-aiuto">
+                Resta la fattura del tuo fornitore. Una foto va benissimo.
+              </p>
 
-          <div className="es-campone">
-            <label htmlFor="nome">Nome e cognome di chi è in fattura</label>
-            <input
-              id="nome"
-              type="text"
-              autoComplete="name"
-              placeholder="Mario Rossi"
-              value={richiesta.nome}
-              onChange={(e) => aggiorna({ nome: e.target.value })}
-            />
-            <p className="es-aiuto">
-              Dev'essere l'intestatario della fattura: è lui il beneficiario, cioè chi porta la spesa in
-              detrazione.
-            </p>
-          </div>
+              <div className="es-campone">
+                <label htmlFor="scatta">La fattura dell'installatore</label>
+                <div className="es-carica">
+                  <label htmlFor="scatta">
+                    Scatta una foto
+                    <input
+                      id="scatta"
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      onChange={(e) => scegliFile(e.target.files?.[0])}
+                    />
+                  </label>
+                  <label htmlFor="scegli">
+                    Scegli un file
+                    <input
+                      id="scegli"
+                      type="file"
+                      accept="application/pdf,image/jpeg,image/png"
+                      onChange={(e) => scegliFile(e.target.files?.[0])}
+                    />
+                  </label>
+                </div>
+                {nomeFile && <p className="es-riscontro">Caricato: {nomeFile}</p>}
+                {preparazione && <p className="es-aiuto">{preparazione}</p>}
+              </div>
 
-          <div className="es-campone">
-            <label htmlFor="email">La tua e-mail</label>
-            <input
-              id="email"
-              type="email"
-              autoComplete="email"
-              placeholder="nome@esempio.it"
-              value={richiesta.email}
-              onChange={(e) => aggiorna({ email: e.target.value })}
-            />
-            <p className="es-aiuto">È qui che ti mandiamo la ricevuta del pagamento e la pratica finita.</p>
-          </div>
+              <div className="es-navigazione">
+                <button
+                  type="button"
+                  className="es-bottone es-bottone-pieno es-bottone-grande"
+                  disabled={!pronto || attesa !== null}
+                  style={{ opacity: pronto && !attesa ? 1 : 0.5 }}
+                  onClick={versoLaCassa}
+                >
+                  {attesa ?? "Vai al pagamento"}
+                </button>
+              </div>
 
-          <div className="es-campone">
-            <label htmlFor="scatta">La fattura dell'installatore</label>
-            <div className="es-carica">
-              <label htmlFor="scatta">
-                Scatta una foto
-                <input
-                  id="scatta"
-                  type="file"
-                  accept="image/*"
-                  capture="environment"
-                  onChange={(e) => scegliFile(e.target.files?.[0])}
-                />
-              </label>
-              <label htmlFor="scegli">
-                Scegli un file
-                <input
-                  id="scegli"
-                  type="file"
-                  accept="application/pdf,image/jpeg,image/png"
-                  onChange={(e) => scegliFile(e.target.files?.[0])}
-                />
-              </label>
-            </div>
-            {nomeFile && <p className="es-riscontro">Caricato: {nomeFile}</p>}
-            {preparazione && <p className="es-aiuto">{preparazione}</p>}
-          </div>
+              <p className="es-micro">
+                <button
+                  type="button"
+                  className="es-collegamento"
+                  onClick={() => {
+                    setIntoppo(null);
+                    setPasso(1);
+                  }}
+                >
+                  Torna indietro e correggi i tuoi dati
+                </button>
+              </p>
+            </>
+          )}
 
-          <div className="es-navigazione">
-            <button
-              type="button"
-              className="es-bottone es-bottone-pieno es-bottone-grande"
-              disabled={!pronto || attesa !== null}
-              style={{ opacity: pronto && !attesa ? 1 : 0.5 }}
-              onClick={versoLaCassa}
-            >
-              {attesa ?? "I documenti corrispondono, vai al pagamento per proseguire"}
-            </button>
-          </div>
-
+          {/* Il recapito sta qui, non solo nel pie' di pagina: e' il punto in cui
+              il cliente decide se tirare fuori 99 euro, ed e' li' che vuole
+              sapere che dall'altra parte c'e' qualcuno. Prima compariva
+              soltanto in caso di errore, cioe' quando ormai era tardi. */}
           <p className="es-micro">
-            Pagamento sicuro con Stripe. Se la tua pratica non si può fare, ti restituiamo tutto.
+            Pagamento sicuro con Stripe. Hai un dubbio? Scrivici a{" "}
+            <a href="mailto:assistenza@eneasubito.it">assistenza@eneasubito.it</a>
           </p>
 
           {intoppo && (

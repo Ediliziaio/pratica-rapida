@@ -50,14 +50,25 @@ export interface Richiesta {
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 /**
+ * Il primo passo e' completo?
+ *
+ * Da qui la pratica puo' gia' nascere, e deve: dal 15/10/2026 il modulo e'
+ * in due schermate proprio perche' chi non ha la fattura sottomano non
+ * sparisca nel nulla. Con nome e indirizzo in mano lo si puo' richiamare;
+ * senza, per noi non e' mai esistito.
+ */
+export function datiCompleti(richiesta: Richiesta): boolean {
+  return (
+    richiesta.famiglia !== null &&
+    richiesta.nome.trim().length >= 2 &&
+    EMAIL_RE.test(richiesta.email.trim())
+  );
+}
+
+/**
  * Si puo' mandare alla cassa? Tutto obbligatorio: senza fattura non si
  * incassa, e senza nome non sappiamo di chi e' la detrazione.
  */
 export function completa(richiesta: Richiesta, fatturaScelta: boolean): boolean {
-  return (
-    richiesta.famiglia !== null &&
-    richiesta.nome.trim().length >= 2 &&
-    EMAIL_RE.test(richiesta.email.trim()) &&
-    fatturaScelta
-  );
+  return datiCompleti(richiesta) && fatturaScelta;
 }

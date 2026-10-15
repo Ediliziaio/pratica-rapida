@@ -112,14 +112,6 @@ Deno.serve(async (req) => {
     // ── Prima volta: si crea la pratica ────────────────────────────────────
     const provenienza = provenienzaPulita(corpo.provenienza);
     const contenitore = await contenitorePrivati(db);
-    const { data: stage } = await db
-      .from("pipeline_stages")
-      .select("id")
-      .is("reseller_id", null)
-      .eq("stage_type", "inviata")
-      .order("order_index", { ascending: true })
-      .limit(1)
-      .maybeSingle();
 
     const campiPratica = {
         reseller_id: contenitore,
@@ -132,7 +124,16 @@ Deno.serve(async (req) => {
         recensione_esclusa: true,
         recensione_esclusa_motivo: "EneaSubito: nessuna comunicazione al cliente",
         recensione_esclusa_at: new Date().toISOString(),
-        current_stage_id: stage?.id ?? null,
+        // Nessuna colonna finche' non ha pagato, e non e' un dettaglio.
+        //
+        // Dal 15/10/2026 la pratica nasce alla fine del primo passo del
+        // modulo, cioe' molto prima della cassa: se nascesse gia' dentro una
+        // colonna, la lavagna del Titolare si riempirebbe ogni giorno di
+        // richieste a meta' che nessuno deve lavorare. Senza colonna la
+        // pratica esiste — si conta nel cruscotto, si puo' richiamare — ma
+        // resta fuori dal lavoro quotidiano. La colonna gliela mette
+        // `eneasubito-pagato` quando i 99 euro arrivano davvero.
+        current_stage_id: null,
         tipo_servizio: "servizio_completo",
         tipo_fatturazione: "cliente_finale",
         tipo_soggetto: "persona_fisica",

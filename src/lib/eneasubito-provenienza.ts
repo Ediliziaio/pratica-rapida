@@ -11,7 +11,9 @@
  * dentro la pratica, resterebbe sbagliata per sempre.
  *
  * Nessuna regola inventa niente: se i fatti non bastano, il gruppo e'
- * «Non so da dove arriva», che e' una risposta onesta e si vede subito.
+ * «Nessuna pubblicita' registrata», che e' una risposta onesta e si vede
+ * subito. Attenzione a come si legge: parla del CANALE che ha portato la
+ * persona, non della persona, che ha nome e cognome come tutte le altre.
  */
 
 export interface ProvenienzaGrezza {
@@ -67,7 +69,7 @@ export function leggi(p: ProvenienzaGrezza | null | undefined): Lettura {
   if (!p || Object.keys(p).length === 0) {
     return {
       gruppo: "sconosciuta",
-      etichetta: "Non so da dove arriva",
+      etichetta: "Nessuna pubblicità registrata",
       aPagamento: false,
     };
   }

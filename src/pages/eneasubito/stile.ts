@@ -188,6 +188,9 @@ body { background: #F5F2EC; }
 .es-barra { flex-grow: 1; height: 6px; background: #E4DFD4; border-radius: 999px; overflow: hidden; }
 .es-barra i { display: block; height: 100%; background: var(--es-verde); border-radius: 999px; transition: width .25s ease; }
 .es-domandona { margin: 0; font-size: clamp(26px, 3.4vw, 34px); line-height: 1.15; font-weight: 600; letter-spacing: -0.5px; }
+/* Il «torna indietro» del secondo passo: e' un pulsante perche' non porta a
+   un altro indirizzo, ma deve avere l'aspetto di un collegamento. */
+.es-collegamento { background: none; border: 0; padding: 0; font: inherit; color: var(--es-verde); text-decoration: underline; cursor: pointer; }
 .es-aiuto { margin: 0; font-size: 16px; line-height: 1.55; color: var(--es-inchiostro-debole); }
 .es-scelte { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
 .es-scelta { text-align: left; background: var(--es-superficie); border: 1px solid var(--es-bordo); border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 6px; cursor: pointer; font-family: inherit; color: inherit; }

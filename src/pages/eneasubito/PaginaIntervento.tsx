@@ -56,8 +56,8 @@ function Contenuto({ intervento }: { intervento: Intervento }) {
           <div>
             <b className="es-serif">Fai partire la tua pratica ENEA</b>
             <span>
-              Il nome di chi è in fattura, la tua e-mail, la foto della fattura. Due minuti e 99 €: se
-              poi non si può fare, ti restituiamo tutto.
+              Il nome di chi è in fattura, la tua e-mail, la foto della fattura. Due minuti e 99 €,
+              e in 48 ore lavorative la pratica è pronta.
             </span>
           </div>
           <a className="es-bottone es-bottone-pieno" href="/verifica">Fai partire la pratica</a>

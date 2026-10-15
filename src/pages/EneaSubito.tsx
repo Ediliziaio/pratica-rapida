@@ -8,8 +8,10 @@
  * Qui c'era la promessa di una verifica gratuita prima del pagamento. Il
  * Titolare l'ha eliminata l'11/10/2026: il suo esito incerto diceva «aspetta
  * che ti facciamo sapere», cioè offriva al cliente l'occasione di andarsene.
- * Al suo posto la garanzia che era già nei Termini: se non si può fare, si
- * restituisce tutto.
+ *
+ * Il 14/10/2026 ha tolto anche la frase sul rimborso: una proposta
+ * pubblicitaria non porta negazioni. La garanzia resta dov'è sempre stata,
+ * nei Termini di servizio, art. 5.
  *
  * Deve dare l'idea di semplicità e di discount, quindi la pagina è volutamente
  * corta: sei blocchi, poche righe ciascuno, il prezzo nel titolo e il
@@ -189,7 +191,7 @@ export default function EneaSubito() {
               <b className="es-serif">99 €</b>
               <span style={{ fontSize: 16, color: "#A8B6AE" }}>tutto compreso</span>
             </div>
-            <p>Se la tua pratica non si può fare, ti restituiamo tutto.</p>
+            <p>Pronta in 48 ore lavorative.</p>
             <Link className="es-bottone es-bottone-chiaro" to="/verifica">Fai partire la tua pratica</Link>
             <span className="es-firma">Pagamento sicuro con Stripe</span>
           </div>

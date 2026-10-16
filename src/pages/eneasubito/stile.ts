@@ -185,9 +185,24 @@ body { background: #F5F2EC; }
 /* La chat: sta sopra tutto, in basso a destra, e non copre i pulsanti del
    modulo perche' su schermo stretto si restringe. */
 .es-chat-bolla { position: fixed; right: 20px; bottom: 20px; z-index: 60; display: flex; align-items: center;
-  gap: 8px; height: 46px; padding: 0 18px; border: 0; border-radius: 999px; cursor: pointer;
-  background: var(--es-verde); color: #fff; font-family: inherit; font-size: 15px; font-weight: 600;
-  box-shadow: 0 6px 20px rgba(14,90,72,.28); }
+  gap: 10px; height: 58px; padding: 0 22px 0 18px; border: 0; border-radius: 999px; cursor: pointer;
+  background: var(--es-verde); color: #fff; font-family: inherit; text-align: left; line-height: 1.15;
+  box-shadow: 0 8px 26px rgba(14,90,72,.34); transition: transform .15s ease, box-shadow .15s ease; }
+.es-chat-bolla:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(14,90,72,.42); }
+.es-chat-bolla > span { display: block; font-size: 15px; font-weight: 600; }
+.es-chat-bolla b { display: flex; align-items: center; gap: 5px; font-size: 12.5px; font-weight: 500; opacity: .92; }
+/* Il puntino che pulsa: dice «c'e' qualcuno» senza scriverlo. Con due anelli
+   che si allargano, come la spia di una linea aperta. */
+.es-chat-pallino { position: relative; display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+  background: #7CE2B0; flex-shrink: 0; }
+.es-chat-pallino::after { content: ""; position: absolute; inset: 0; border-radius: 50%;
+  background: #7CE2B0; animation: es-pulsa 2s ease-out infinite; }
+@keyframes es-pulsa { 0% { transform: scale(1); opacity: .7; } 70% { transform: scale(2.6); opacity: 0; } 100% { opacity: 0; } }
+/* Chi ha chiesto meno animazioni nel sistema operativo non le subisce. */
+@media (prefers-reduced-motion: reduce) {
+  .es-chat-pallino::after { animation: none; }
+  .es-chat-bolla { transition: none; }
+}
 .es-chat { position: fixed; right: 20px; bottom: 20px; z-index: 60; width: min(380px, calc(100vw - 32px));
   max-height: min(560px, calc(100vh - 40px)); display: flex; flex-direction: column; overflow: hidden;
   background: #fff; border: 1px solid var(--es-bordo); border-radius: 16px;

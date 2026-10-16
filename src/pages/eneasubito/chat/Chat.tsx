@@ -70,13 +70,25 @@ export function Chat() {
         type="button"
         className="es-chat-bolla"
         onClick={() => setStato("aperta")}
-        aria-label="Apri l'assistenza"
+        aria-label="Apri l'assistenza online"
       >
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-             strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.1A8.4 8.4 0 0 1 12 3a8.4 8.4 0 0 1 9 8.5z" />
+        {/* Operatore con cuffia e microfono: si capisce in un colpo d'occhio
+            che di la' c'e' qualcuno, molto piu' di un fumetto generico. */}
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <circle cx="12" cy="8" r="3.2" />
+          <path d="M5.5 20.5a6.5 6.5 0 0 1 13 0" />
+          <path d="M4 12.5v-1a8 8 0 0 1 16 0v1" />
+          <path d="M4 12h1.6v4H4a1.6 1.6 0 0 1-1.6-1.6v-.8A1.6 1.6 0 0 1 4 12z" fill="currentColor" />
+          <path d="M20 12h-1.6v4H20a1.6 1.6 0 0 0 1.6-1.6v-.8A1.6 1.6 0 0 0 20 12z" fill="currentColor" />
         </svg>
-        Assistenza
+        <span>
+          Assistenza
+          <b>
+            <i className="es-chat-pallino" aria-hidden="true" />
+            online
+          </b>
+        </span>
       </button>
     );
   }

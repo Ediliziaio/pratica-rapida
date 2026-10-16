@@ -9,6 +9,9 @@ verify_jwt = false
 [functions.eneasubito-verifica]
 verify_jwt = false
 
+[functions.eneasubito-chat]
+verify_jwt = false
+
 [functions.meta-leads-webhook]
 verify_jwt = false
 

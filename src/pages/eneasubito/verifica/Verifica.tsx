@@ -296,8 +296,9 @@ export default function Verifica() {
                 />
                 {restano === null && (
                   <p className="es-aiuto">
-                    Facoltativa. Il termine per l'ENEA corre da quel giorno: sapendola ti diciamo
-                    subito quanto tempo ti resta. Se la data esatta ti sfugge, prosegui pure.
+                    Facoltativa. La trovi sulla fattura, sull'ultimo bonifico, oppure sul
+                    documento di fine lavori se il tuo installatore te l'ha rilasciato. Se la data
+                    esatta ti sfugge, prosegui pure.
                   </p>
                 )}
                 {/* Il numero si dice solo quando e' poco: vedi

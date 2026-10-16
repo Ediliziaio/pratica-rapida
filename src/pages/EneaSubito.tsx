@@ -28,6 +28,7 @@ import { Link } from "react-router-dom";
 import "@fontsource-variable/fraunces";
 import "@fontsource-variable/work-sans";
 
+import { Chat } from "./eneasubito/chat/Chat";
 import { Fulmine, Spunta } from "./eneasubito/Guscio";
 import { STILE } from "./eneasubito/stile";
 
@@ -210,6 +211,11 @@ export default function EneaSubito() {
           ))}
         </div>
       </section>
+
+      {/* La home non passa dal Guscio, quindi la chat va messa qui a mano:
+          ed e' proprio la pagina dove serve di piu', perche' e' dove
+          atterra chi arriva dall'annuncio senza conoscerci. */}
+      <Chat />
 
       <div className="es-wrap">
         <footer className="es-pie">

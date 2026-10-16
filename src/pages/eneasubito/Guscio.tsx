@@ -15,6 +15,7 @@ import { Link } from "react-router-dom";
 import "@fontsource-variable/fraunces";
 import "@fontsource-variable/work-sans";
 
+import { Chat } from "./chat/Chat";
 import { STILE } from "./stile";
 
 export function Fulmine({ size = 26 }: { size?: number }) {
@@ -75,6 +76,10 @@ export function Guscio({ titolo, descrizione, percorso, children }: GuscioProps)
       </header>
 
       {children}
+
+      {/* Sta nel guscio e non nelle singole pagine: dev'esserci ovunque, e
+          soprattutto sul modulo, che e' il punto in cui uno si blocca. */}
+      <Chat />
 
       <div className="es-wrap">
         <footer className="es-pie">

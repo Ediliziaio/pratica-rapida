@@ -182,6 +182,40 @@ body { background: #F5F2EC; }
 .es-richiamo div { flex: 1 1 420px; display: flex; flex-direction: column; gap: 8px; }
 .es-richiamo b { font-size: 22px; font-weight: 600; }
 .es-richiamo span { font-size: 16px; line-height: 1.55; color: #4A4028; }
+/* La chat: sta sopra tutto, in basso a destra, e non copre i pulsanti del
+   modulo perche' su schermo stretto si restringe. */
+.es-chat-bolla { position: fixed; right: 20px; bottom: 20px; z-index: 60; display: flex; align-items: center;
+  gap: 8px; height: 46px; padding: 0 18px; border: 0; border-radius: 999px; cursor: pointer;
+  background: var(--es-verde); color: #fff; font-family: inherit; font-size: 15px; font-weight: 600;
+  box-shadow: 0 6px 20px rgba(14,90,72,.28); }
+.es-chat { position: fixed; right: 20px; bottom: 20px; z-index: 60; width: min(380px, calc(100vw - 32px));
+  max-height: min(560px, calc(100vh - 40px)); display: flex; flex-direction: column; overflow: hidden;
+  background: #fff; border: 1px solid var(--es-bordo); border-radius: 16px;
+  box-shadow: 0 18px 50px rgba(20,32,26,.22); }
+.es-chat-testa { display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 14px 16px; background: var(--es-verde); color: #fff; }
+.es-chat-testa b { display: block; font-size: 15px; }
+.es-chat-testa span { display: block; font-size: 13px; opacity: .85; }
+.es-chat-testa button { background: none; border: 0; color: #fff; cursor: pointer; padding: 4px; line-height: 0; }
+.es-chat-corpo { flex: 1 1 auto; overflow-y: auto; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; }
+.es-chat-intro { margin: 0 0 4px; font-size: 14px; line-height: 1.5; color: var(--es-inchiostro-debole); }
+.es-chat-voce { text-align: left; padding: 10px 12px; border: 1px solid var(--es-bordo); border-radius: 10px;
+  background: #fff; font: inherit; font-size: 14px; line-height: 1.4; cursor: pointer; color: var(--es-inchiostro); }
+.es-chat-voce:hover { border-color: var(--es-verde); }
+.es-chat-torna { align-self: flex-start; background: none; border: 0; padding: 0 0 4px; font: inherit;
+  font-size: 13px; color: var(--es-verde); cursor: pointer; }
+.es-chat-domanda { margin: 0; font-size: 15px; font-weight: 600; }
+.es-chat-risposta { margin: 0; font-size: 14px; line-height: 1.6; }
+.es-chat-coda { margin: 4px 0 0; font-size: 13px; line-height: 1.5; color: var(--es-inchiostro-debole); }
+.es-chat-esito { margin: 0; font-size: 14px; line-height: 1.5; color: var(--es-verde); font-weight: 600; }
+.es-chat-piede { border-top: 1px solid var(--es-bordo); padding: 12px 16px; display: flex;
+  flex-direction: column; gap: 8px; }
+.es-chat-piede textarea, .es-chat-piede input { width: 100%; padding: 9px 11px; border: 1px solid var(--es-bordo);
+  border-radius: 9px; font: inherit; font-size: 14px; resize: vertical; }
+.es-chat-manda { height: 40px; border: 0; border-radius: 9px; background: var(--es-verde); color: #fff;
+  font: inherit; font-size: 15px; font-weight: 600; cursor: pointer; }
+.es-chat-manda:disabled { opacity: .45; cursor: default; }
+
 /* Modulo di verifica */
 .es-passo { max-width: 680px; margin: 0 auto; padding: 48px 0 72px; display: flex; flex-direction: column; gap: 24px; }
 .es-avanzamento { display: flex; align-items: center; gap: 12px; font-size: 14px; color: var(--es-inchiostro-debole); }

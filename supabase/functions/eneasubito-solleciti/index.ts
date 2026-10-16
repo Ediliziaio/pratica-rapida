@@ -69,53 +69,44 @@ function giorniRimasti(fineLavori: string | null): number | null {
 }
 
 /**
- * Se Resend e' davvero autorizzato a spedire da eneasubito.it.
+ * L'esito di una spedizione, in tre casi e non in due.
  *
- * Senza questo controllo, un dominio non ancora verificato produce il danno
- * peggiore possibile: la riga «messaggio 1 inviato» si scrive prima di
- * spedire — perche' e' quella che impedisce i doppioni — e poi la spedizione
- * fallisce. Risultato: quella persona il primo messaggio non lo riceve mai
- * piu', e nessuno se ne accorge.
- *
- * Quindi si chiede prima, una volta per giro, e se la risposta non e' «sono
- * pronto» non si scrive e non si spedisce niente: il giro successivo
- * ritrovera' tutto intatto.
+ * La differenza che conta non e' «riuscita o fallita» ma **sappiamo con
+ * certezza che non e' partita, oppure non lo sappiamo**. Quando Resend
+ * rifiuta la richiesta con un errore suo (4xx), la mail non e' partita: e'
+ * certo, e allora la riga «gia' mandato» va tolta, perche' il messaggio deve
+ * riprovarci piu' tardi. Quando invece cade la rete o Resend sbaglia da solo
+ * (5xx, timeout), la mail **potrebbe** essere partita: li' si tiene la riga e
+ * si rinuncia al messaggio, perche' un doppione e' peggio di un messaggio
+ * perso.
  */
-async function dominioPronto(): Promise<string | null> {
-  if (!RESEND_API_KEY) return "RESEND_API_KEY mancante";
-  const dominio = DA.split("@")[1]?.replace(">", "").trim();
-  if (!dominio) return "indirizzo di partenza illeggibile";
-  try {
-    const risposta = await fetch("https://api.resend.com/domains", {
-      headers: { Authorization: `Bearer ${RESEND_API_KEY}` },
-    });
-    if (!risposta.ok) return `Resend non risponde (${risposta.status})`;
-    const elenco = (await risposta.json())?.data as
-      | Array<{ name?: string; status?: string }>
-      | undefined;
-    const nostro = (elenco ?? []).find((d) => d.name === dominio);
-    if (!nostro) return `${dominio} non e' fra i domini di Resend`;
-    if (nostro.status !== "verified") {
-      return `${dominio} non e' ancora verificato (${nostro.status})`;
-    }
-    return null;
-  } catch (e) {
-    return `controllo del dominio fallito: ${e}`;
-  }
+interface EsitoInvio {
+  /** Nessun dubbio: la mail non e' partita. Si puo' riprovare senza rischi. */
+  certamenteNonPartita: boolean;
+  guasto: string | null;
 }
 
-async function spedisci(a: string, oggetto: string, testo: string): Promise<string | null> {
-  if (!RESEND_API_KEY) return "RESEND_API_KEY mancante";
-  const risposta = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${RESEND_API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ from: DA, to: [a], subject: oggetto, text: testo }),
-  });
-  if (risposta.ok) return null;
-  return `Resend ${risposta.status}: ${(await risposta.text()).slice(0, 300)}`;
+async function spedisci(a: string, oggetto: string, testo: string): Promise<EsitoInvio> {
+  if (!RESEND_API_KEY) {
+    return { certamenteNonPartita: true, guasto: "RESEND_API_KEY mancante" };
+  }
+  let risposta: Response;
+  try {
+    risposta = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${RESEND_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ from: DA, to: [a], subject: oggetto, text: testo }),
+    });
+  } catch (e) {
+    // La richiesta e' partita e non sappiamo cosa ne sia stato.
+    return { certamenteNonPartita: false, guasto: `rete: ${e}` };
+  }
+  if (risposta.ok) return { certamenteNonPartita: false, guasto: null };
+  const dettaglio = `Resend ${risposta.status}: ${(await risposta.text()).slice(0, 300)}`;
+  return { certamenteNonPartita: risposta.status < 500, guasto: dettaglio };
 }
 
 Deno.serve(async (req) => {
@@ -165,17 +156,6 @@ Deno.serve(async (req) => {
     }
   }
 
-  // Prima di toccare qualunque cosa: siamo in grado di spedire davvero?
-  // Si chiede solo quando si spedisce sul serio — il giro a vuoto non ne ha
-  // bisogno e non deve dipendere da Resend per funzionare.
-  if (!soloProva && ATTIVI) {
-    const perche = await dominioPronto();
-    if (perche) {
-      console.error("[eneasubito-solleciti] non spedisco:", perche);
-      return json({ ok: false, fermo: perche, mandati: 0 }, 503);
-    }
-  }
-
   // ── Collaudo: una mail vera, a noi, senza toccare nessuna pratica ──────
   //
   // Serve a vedere con gli occhi che la mail parte, che arriva, che non
@@ -183,11 +163,9 @@ Deno.serve(async (req) => {
   // automatico dimostra. Accetta SOLO indirizzi del nostro dominio, percio'
   // non puo' raggiungere un cliente nemmeno per sbaglio, e scrive zero righe.
   if (saggioNostro && saggio) {
-    const perche = await dominioPronto();
-    if (perche) return json({ ok: false, fermo: perche }, 503);
     const numero = Number(indirizzo.searchParams.get("numero") ?? "1");
     const quale = SOLLECITI.find((s) => s.numero === numero) ?? SOLLECITI[0];
-    const guasto = await spedisci(
+    const esito = await spedisci(
       saggio,
       `[COLLAUDO] ${quale.oggetto}`,
       corpo(quale.numero, {
@@ -198,7 +176,9 @@ Deno.serve(async (req) => {
         linkDisiscrizione: `${SITO}/stop/collaudo`,
       }),
     );
-    return guasto ? json({ ok: false, guasto }, 502) : json({ ok: true, mandata: quale.numero });
+    return esito.guasto
+      ? json({ ok: false, guasto: esito.guasto }, 502)
+      : json({ ok: true, mandata: quale.numero });
   }
 
   const db = createClient(SUPABASE_URL, SERVICE_KEY);
@@ -301,15 +281,29 @@ Deno.serve(async (req) => {
       continue;
     }
 
-    const guasto = await spedisci(email, tocca.oggetto, testo);
-    if (guasto) {
-      // La riga resta, col motivo: cosi' non riparte ogni ora all'infinito.
-      await db
-        .from("eneasubito_solleciti")
-        .update({ errore: guasto })
-        .eq("pratica_id", p.id)
-        .eq("numero", tocca.numero);
-      esito.errori.push(`messaggio ${tocca.numero}: ${guasto}`);
+    const inviata = await spedisci(email, tocca.oggetto, testo);
+    if (inviata.guasto) {
+      if (inviata.certamenteNonPartita) {
+        // Resend ha rifiutato: la mail non e' partita, e la riga che dice il
+        // contrario va tolta. Senza questo, un dominio non ancora autorizzato
+        // o una chiave sbagliata brucerebbero il primo messaggio di ogni
+        // persona, una volta sola e per sempre, senza che nessuno se ne
+        // accorga. Fra un'ora si riprova.
+        await db
+          .from("eneasubito_solleciti")
+          .delete()
+          .eq("pratica_id", p.id)
+          .eq("numero", tocca.numero);
+      } else {
+        // Non sappiamo se sia partita: la riga resta, col motivo. Un
+        // doppione e' peggio di un messaggio perso.
+        await db
+          .from("eneasubito_solleciti")
+          .update({ errore: inviata.guasto })
+          .eq("pratica_id", p.id)
+          .eq("numero", tocca.numero);
+      }
+      esito.errori.push(`messaggio ${tocca.numero}: ${inviata.guasto}`);
       continue;
     }
     esito.mandati += 1;

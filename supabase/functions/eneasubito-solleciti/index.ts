@@ -29,6 +29,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import {
   corpo,
   qualeTocca,
+  SOLLECITI,
   TERMINE_GIORNI,
   type StatoPratica,
 } from "../_shared/eneasubito-solleciti.ts";
@@ -163,6 +164,35 @@ Deno.serve(async (req) => {
       console.error("[eneasubito-solleciti] non spedisco:", perche);
       return json({ ok: false, fermo: perche, mandati: 0 }, 503);
     }
+  }
+
+  // ── Collaudo: una mail vera, a noi, senza toccare nessuna pratica ──────
+  //
+  // Serve a vedere con gli occhi che la mail parte, che arriva, che non
+  // finisce nello spam e che il testo si legge: tre cose che nessun test
+  // automatico dimostra. Accetta SOLO indirizzi del nostro dominio, percio'
+  // non puo' raggiungere un cliente nemmeno per sbaglio, e scrive zero righe.
+  const saggio = indirizzo.searchParams.get("saggio");
+  if (saggio) {
+    if (!saggio.toLowerCase().endsWith("@eneasubito.it")) {
+      return json({ error: "il collaudo scrive solo a indirizzi @eneasubito.it" }, 400);
+    }
+    const perche = await dominioPronto();
+    if (perche) return json({ ok: false, fermo: perche }, 503);
+    const numero = Number(indirizzo.searchParams.get("numero") ?? "1");
+    const quale = SOLLECITI.find((s) => s.numero === numero) ?? SOLLECITI[0];
+    const guasto = await spedisci(
+      saggio,
+      `[COLLAUDO] ${quale.oggetto}`,
+      corpo(quale.numero, {
+        nome: "Mario Rossi",
+        intervento: "gli infissi",
+        giorniRimasti: 23,
+        linkRipresa: `${SITO}/verifica`,
+        linkDisiscrizione: `${SITO}/stop/collaudo`,
+      }),
+    );
+    return guasto ? json({ ok: false, guasto }, 502) : json({ ok: true, mandata: quale.numero });
   }
 
   const db = createClient(SUPABASE_URL, SERVICE_KEY);

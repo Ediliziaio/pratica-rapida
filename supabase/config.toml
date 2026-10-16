@@ -12,6 +12,14 @@ verify_jwt = false
 [functions.eneasubito-chat]
 verify_jwt = false
 
+[functions.eneasubito-disiscrizione]
+verify_jwt = false
+
+# La chiama l'orologio del database: si difende con la chiave
+# nell'indirizzo, non col JWT.
+[functions.eneasubito-solleciti]
+verify_jwt = false
+
 [functions.meta-leads-webhook]
 verify_jwt = false
 

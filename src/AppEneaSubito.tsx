@@ -52,6 +52,7 @@ const Home = lazy(() => import("./pages/EneaSubito"));
 const PaginaIntervento = lazy(() => import("./pages/eneasubito/PaginaIntervento"));
 const PaginaLegale = lazy(() => import("./pages/eneasubito/PaginaLegale"));
 const Verifica = lazy(() => import("./pages/eneasubito/verifica/Verifica"));
+const Disiscrizione = lazy(() => import("./pages/eneasubito/Disiscrizione"));
 const ModuloFineLavori = lazy(() => import("./pages/eneasubito/ModuloFineLavori"));
 const Completata = lazy(() => import("./pages/eneasubito/Completata"));
 const NonTrovata = lazy(() => import("./pages/eneasubito/NonTrovata"));
@@ -78,6 +79,11 @@ export default function AppEneaSubito() {
           <Route path="/verifica" element={<Verifica />} />
           {/* Dove Stripe riporta chi ha pagato. */}
           <Route path="/completa/:token" element={<Completata />} />
+
+          {/* Il «non voglio piu' messaggi» dei solleciti: un clic solo,
+              nessuna conferma. Ogni passaggio in piu' diventa una
+              segnalazione di spam, e quella penalizza il dominio. */}
+          <Route path="/stop/:token" element={<Disiscrizione />} />
 
           <Route path="/modulo-fine-lavori" element={<ModuloFineLavori documento="fine-lavori" />} />
           <Route path="/verbale-di-posa" element={<ModuloFineLavori documento="verbale" />} />

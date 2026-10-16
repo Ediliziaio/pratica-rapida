@@ -125,11 +125,16 @@ Nome, cosa facciamo, da quanto. Nessuna grafica.*
 *Video: trenta secondi, il calendario che scorre.*
 
 > **Deciso il 16/10/2026: la data si chiede nel primo passo**, facoltativa.
-> Quindi per chi l'ha lasciata questo messaggio diventa personale — «ti
-> restano 23 giorni» — ed è il più forte dei cinque. Per chi non l'ha
-> lasciata resta il testo generico qui sopra. Sul modulo la stessa data serve
-> già a un altro scopo: appena la scrive, la persona legge subito quanto
-> tempo le resta.
+> Per chi l'ha lasciata questo messaggio diventa personale — «ti restano 23
+> giorni» — ed è il più forte dei cinque. Per chi non l'ha lasciata resta il
+> testo generico qui sopra.
+>
+> **Il numero però si dice solo quando è poco: sotto i 30 giorni.** Chi ha
+> finito i lavori da una settimana e legge «ti restano 83 giorni» rimanda,
+> e la scadenza da leva diventa rassicurazione. Sopra quella soglia il
+> messaggio parla della detrazione, non del calendario. Vale anche sul
+> modulo, dove la stessa data mostra il conto alla rovescia soltanto quando
+> serve a mettere fretta.
 
 ---
 

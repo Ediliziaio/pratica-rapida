@@ -32,7 +32,14 @@ import { useSearchParams } from "react-router-dom";
 import { Guscio } from "../Guscio";
 import { preparaDocumento } from "./immagine";
 import { apriPagamento, caricaFattura, salvaPratica } from "./pratica";
-import { completa, datiCompleti, giorniRimasti, type Famiglia, type Richiesta } from "./logica";
+import {
+  completa,
+  datiCompleti,
+  giorniRimasti,
+  GIORNI_PER_METTERE_FRETTA,
+  type Famiglia,
+  type Richiesta,
+} from "./logica";
 
 const MEMORIA = "eneasubito-verifica";
 /**
@@ -293,8 +300,13 @@ export default function Verifica() {
                     subito quanto tempo ti resta. Se la data esatta ti sfugge, prosegui pure.
                   </p>
                 )}
-                {restano !== null && restano > 0 && (
-                  <p className="es-riscontro">
+                {/* Il numero si dice solo quando e' poco: vedi
+                    GIORNI_PER_METTERE_FRETTA in logica.ts. */}
+                {restano !== null && restano > GIORNI_PER_METTERE_FRETTA && (
+                  <p className="es-riscontro">Sei nei termini.</p>
+                )}
+                {restano !== null && restano > 0 && restano <= GIORNI_PER_METTERE_FRETTA && (
+                  <p className="es-riscontro es-attenzione">
                     Ti restano <b>{restano} giorni</b> per trasmettere la pratica.
                   </p>
                 )}

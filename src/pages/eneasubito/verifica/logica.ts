@@ -21,6 +21,17 @@ export type Famiglia = "infissi" | "schermature" | "pompe_di_calore";
 export const TERMINE_GIORNI = 90;
 
 /**
+ * Sotto quanti giorni si dice alla persona quanti gliene restano.
+ *
+ * Decisione del Titolare, 16/10/2026. Il conteggio mostrato sempre fa il
+ * danno opposto a quello per cui serve: chi ha finito i lavori ieri legge
+ * «ti restano 89 giorni», tira un sospiro e rimanda. Il numero vale solo
+ * quando e' poco — allora e' una spinta. Sopra la soglia si conferma che e'
+ * nei termini, senza regalargli il conto alla rovescia.
+ */
+export const GIORNI_PER_METTERE_FRETTA = 30;
+
+/**
  * Giorni passati dalla fine dei lavori. `null` se la data non e' utilizzabile.
  * Confronta solo la parte di calendario: l'ora non c'entra e introdurrebbe
  * errori di un giorno a cavallo della mezzanotte.

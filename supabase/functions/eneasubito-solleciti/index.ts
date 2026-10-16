@@ -38,8 +38,6 @@ const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") ?? "";
 /** Interruttore: finché non è «true» si prepara tutto senza spedire. */
 const ATTIVI = (Deno.env.get("SOLLECITI_ATTIVI") ?? "").toLowerCase() === "true";
-/** Chiave nell'indirizzo: la chiama solo l'orologio del database. */
-const TOKEN = Deno.env.get("SOLLECITI_TOKEN") ?? "";
 
 const DA = "EneaSubito <assistenza@eneasubito.it>";
 const SITO = "https://www.eneasubito.it";
@@ -107,12 +105,15 @@ Deno.serve(async (req) => {
     }
   }
 
-  // Il giro vero chiede la chiave, e se la chiave non e' configurata si
-  // rifiuta: una funzione che spedisce a dei clienti non deve restare aperta
-  // perche' qualcuno si e' scordato di impostare un segreto.
+  // Il giro vero lo puo' chiamare solo chi ha la chiave di servizio, che e'
+  // gia' nella cassaforte del database: non si crea un segreto nuovo da
+  // tenere aggiornato in due posti, e soprattutto non finisce nell'indirizzo.
+  // Un segreto scritto nella URL lo registrano i log, i proxy e la cronologia
+  // di chi lo prova una volta a mano; nell'intestazione no.
   if (!soloProva) {
-    if (!TOKEN) return json({ error: "SOLLECITI_TOKEN non configurato" }, 503);
-    if (indirizzo.searchParams.get("token") !== TOKEN) {
+    const atteso = `Bearer ${SERVICE_KEY}`;
+    const dato = req.headers.get("Authorization") ?? "";
+    if (dato.length !== atteso.length || dato !== atteso) {
       return json({ error: "non autorizzato" }, 401);
     }
   }

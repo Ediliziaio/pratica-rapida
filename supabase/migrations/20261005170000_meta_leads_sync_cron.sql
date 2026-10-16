@@ -1,3 +1,8 @@
+-- ATTENZIONE: la chiave scritta qui sotto e' BRUCIATA. Questo repository e'
+-- pubblico: e' stata leggibile da chiunque e resta nella cronologia di git.
+-- Non riusarla. La sostituisce
+-- 20261016191000_meta_leads_cron_chiave_in_cassaforte.sql, che la legge dalla
+-- cassaforte del database.
 -- Rete di sicurezza per i lead Meta Ads: ogni ora importa i lead degli ultimi
 -- 30 giorni (dedup su leadgen_id), così entrano nel CRM anche se il webhook
 -- realtime non viene consegnato da Meta. Applicata direttamente in produzione

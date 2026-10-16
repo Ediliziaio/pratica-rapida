@@ -164,6 +164,47 @@ Nome, cosa facciamo, da quanto. Nessuna grafica.*
 
 ---
 
+## Com'è costruita (16/10/2026)
+
+La regola che decide **quale** messaggio tocca sta in
+`supabase/functions/_shared/eneasubito-solleciti.ts` con i suoi test; la
+funzione `eneasubito-solleciti` la applica una volta all'ora.
+
+Tre cose che valgono più della macchina intera:
+
+- **Mai due volte lo stesso.** La riga nella tabella si scrive *prima* di
+  spedire, e c'è un vincolo di unicità: se due giri si accavallano, il secondo
+  si rompe e non manda. Meglio un messaggio perso che un messaggio doppio.
+- **Uno per volta, dal primo.** Se l'orologio resta fermo tre giorni, al
+  ritorno non scarica tre messaggi addosso a nessuno: riprende dal primo che
+  manca. A chi non ha mai sentito la nostra voce non si apre con «ultimo
+  messaggio, sconto per 24 ore».
+- **Spento per difetto.** L'interruttore è `SOLLECITI_ATTIVI` nei segreti
+  della funzione: finché non è `true`, il giro gira e non spedisce. Così
+  l'orologio si può accendere prima, e si controlla nei registri che giri
+  bene, senza che parta una mail.
+
+**Nessuna chiave nuova.** Il giro vero lo chiama l'orologio del database con
+la chiave di servizio, che è già in cassaforte, passata nell'intestazione e
+non nell'indirizzo — un segreto scritto in una URL lo registrano i log, i
+proxy e la cronologia di chi lo prova una volta a mano. E non si scrive nelle
+migrazioni: questo repository è pubblico su GitHub, e una chiave scritta in
+una migrazione resta leggibile nella cronologia anche dopo essere stata
+cancellata dal file.
+
+### Il giro a vuoto
+
+    .../functions/v1/eneasubito-solleciti?prova=1
+
+Non spedisce e non chiede chiavi. Dice **quanti** messaggi partirebbero e di
+quale numero, e per quale ragione le altre pratiche tacciono — mai nomi né
+indirizzi, così non c'è niente da proteggere. Con `&quando=<ore>` risponde
+«cosa partirebbe fra N ore»: serve a provare tutto il calendario sulle
+pratiche vere senza aspettare dodici giorni e senza falsificare le date nel
+database.
+
+---
+
 ## Cosa manca per farli partire
 
 1. **Poter spedire da `eneasubito.it`.** Oggi il sistema manda le mail con
@@ -176,3 +217,7 @@ Nome, cosa facciamo, da quanto. Nessuna grafica.*
 3. **La disiscrizione in un clic** e la pagina privacy aggiornata di
    conseguenza.
 4. **I cinque video e i cinque fermi immagine.**
+5. **Accendere l'interruttore e l'orologio**, in questo ordine: prima
+   l'orologio (`20261016190000_eneasubito_solleciti_cron.sql`) con
+   `SOLLECITI_ATTIVI` ancora spento, per vedere un paio di giri a vuoto nei
+   registri; poi `SOLLECITI_ATTIVI=true`, quando il dominio è verificato.

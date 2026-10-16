@@ -327,7 +327,21 @@ Deno.serve(async (req) => {
   return json({
     ok: true,
     attivi: ATTIVI,
-    ...(soloProva ? { momento: adesso.toISOString(), conto } : {}),
+    ...(soloProva
+      ? {
+        momento: adesso.toISOString(),
+        conto,
+        // Cosa vede davvero la funzione: «spenta» puo' voler dire che
+        // l'interruttore e' su no, oppure che il segreto non e' mai
+        // arrivato, e sono due problemi diversi. Non sono valori segreti:
+        // un interruttore e la lunghezza di una chiave.
+        segreti: {
+          SOLLECITI_ATTIVI: Deno.env.get("SOLLECITI_ATTIVI") ?? "(non impostato)",
+          chiaveEneaSubito: (Deno.env.get("RESEND_API_KEY_ENEASUBITO") ?? "").length,
+          chiaveVecchia: (Deno.env.get("RESEND_API_KEY") ?? "").length,
+        },
+      }
+      : {}),
     ...esito,
   });
 });

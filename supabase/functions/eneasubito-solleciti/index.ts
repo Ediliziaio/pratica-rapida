@@ -142,12 +142,22 @@ Deno.serve(async (req) => {
     }
   }
 
+  // Il collaudo verso il nostro dominio non chiede la chiave: non puo' fare
+  // danno — scrive zero righe e l'unica cosa che ottiene chi lo chiama e' una
+  // mail nella nostra casella — e chiedere un segreto per una cosa innocua
+  // significa solo non usarla mai.
+  const saggio = indirizzo.searchParams.get("saggio");
+  const saggioNostro = !!saggio && saggio.toLowerCase().endsWith("@eneasubito.it");
+  if (saggio && !saggioNostro) {
+    return json({ error: "il collaudo scrive solo a indirizzi @eneasubito.it" }, 400);
+  }
+
   // Il giro vero lo puo' chiamare solo chi ha la chiave di servizio, che e'
   // gia' nella cassaforte del database: non si crea un segreto nuovo da
   // tenere aggiornato in due posti, e soprattutto non finisce nell'indirizzo.
   // Un segreto scritto nella URL lo registrano i log, i proxy e la cronologia
   // di chi lo prova una volta a mano; nell'intestazione no.
-  if (!soloProva) {
+  if (!soloProva && !saggioNostro) {
     const atteso = `Bearer ${SERVICE_KEY}`;
     const dato = req.headers.get("Authorization") ?? "";
     if (dato.length !== atteso.length || dato !== atteso) {
@@ -172,11 +182,7 @@ Deno.serve(async (req) => {
   // finisce nello spam e che il testo si legge: tre cose che nessun test
   // automatico dimostra. Accetta SOLO indirizzi del nostro dominio, percio'
   // non puo' raggiungere un cliente nemmeno per sbaglio, e scrive zero righe.
-  const saggio = indirizzo.searchParams.get("saggio");
-  if (saggio) {
-    if (!saggio.toLowerCase().endsWith("@eneasubito.it")) {
-      return json({ error: "il collaudo scrive solo a indirizzi @eneasubito.it" }, 400);
-    }
+  if (saggioNostro && saggio) {
     const perche = await dominioPronto();
     if (perche) return json({ ok: false, fermo: perche }, 503);
     const numero = Number(indirizzo.searchParams.get("numero") ?? "1");

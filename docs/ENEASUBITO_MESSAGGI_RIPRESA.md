@@ -14,11 +14,21 @@ e a chi si è disiscritto.
 
 | | quando | che lavoro fa |
 |---|---|---|
-| 1 | dopo 1 ora | ricorda, e dà il link per riprendere |
-| 2 | dopo 1 giorno | dice chi siamo |
-| 3 | dopo 3 giorni | mette in fila i numeri: 99 € contro la detrazione |
-| 4 | dopo 7 giorni | la scadenza vera dei 90 giorni |
-| 5 | dopo 12 giorni | l'ultimo, con lo sconto |
+| 1 | **il giorno dopo** | ricorda, e dà il link per riprendere |
+| 2 | dopo 3 giorni | dice chi siamo |
+| 3 | dopo 6 giorni | mette in fila i numeri: 99 € contro la detrazione |
+| 4 | dopo 9 giorni | la scadenza vera dei 90 giorni |
+| 5 | dopo 13 giorni | l'ultimo, con lo sconto |
+
+> **Deciso il 16/10/2026.** Il primo messaggio era dopo un'ora. A un'ora la
+> persona può essere ancora al computer a cercare la fattura nel cassetto: le
+> arriva «la tua pratica è aperta a metà» mentre è sulla pagina, come primo
+> contatto in assoluto da un marchio che non conosce, e sembra che la stiamo
+> guardando. Il giorno dopo si ricorda ancora e non la prendiamo in mezzo al
+> lavoro. Nella stessa decisione: **niente invii dalle 23 alle 7:30** — chi
+> compila alle due di notte, altrimenti, si prende la mail alle due di notte,
+> perché l'orologio gira ogni ora e non guarda la sveglia. Fuori fascia non si
+> perde niente: parte al primo giro utile del mattino.
 
 Si ferma appena la persona paga. Ogni messaggio porta la disiscrizione in un
 clic, che è obbligatoria e conviene: chi si toglie da solo è chi avrebbe
@@ -39,7 +49,7 @@ quello nel messaggio, e porta al video sulla pagina.
 
 ---
 
-## 1 · dopo un'ora
+## 1 · il giorno dopo
 
 **Oggetto:** La tua pratica ENEA è aperta a metà
 
@@ -57,7 +67,7 @@ pulsante che si accende.*
 
 ---
 
-## 2 · dopo un giorno
+## 2 · dopo tre giorni
 
 **Oggetto:** Chi siamo, in quattro righe
 
@@ -81,7 +91,7 @@ Nome, cosa facciamo, da quanto. Nessuna grafica.*
 
 ---
 
-## 3 · dopo tre giorni
+## 3 · dopo sei giorni
 
 **Oggetto:** 99 € contro dieci anni di detrazione
 
@@ -108,7 +118,7 @@ Nome, cosa facciamo, da quanto. Nessuna grafica.*
 
 ---
 
-## 4 · dopo sette giorni
+## 4 · dopo nove giorni
 
 **Oggetto:** I 90 giorni
 
@@ -138,7 +148,7 @@ Nome, cosa facciamo, da quanto. Nessuna grafica.*
 
 ---
 
-## 5 · dopo dodici giorni — l'ultimo
+## 5 · dopo tredici giorni — l'ultimo
 
 **Oggetto:** Ultimo messaggio
 

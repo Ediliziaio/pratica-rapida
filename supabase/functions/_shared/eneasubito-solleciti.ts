@@ -36,13 +36,57 @@ export interface Sollecito {
   oggetto: string;
 }
 
+/**
+ * Il calendario, deciso dal Titolare il 16/10/2026.
+ *
+ * Il primo messaggio **il giorno dopo**, non dopo un'ora. A un'ora la persona
+ * puo' essere ancora al computer a cercare la fattura nel cassetto: le arriva
+ * «la tua pratica e' aperta a meta'» mentre e' sulla pagina, come primo
+ * contatto in assoluto da un marchio che non conosce, e sembra che la stiamo
+ * guardando. Il giorno dopo si ricorda ancora e non la prendiamo in mezzo al
+ * lavoro.
+ */
 export const SOLLECITI: Sollecito[] = [
-  { numero: 1, dopoOre: 1, oggetto: "La tua pratica ENEA è aperta a metà" },
-  { numero: 2, dopoOre: 24, oggetto: "Chi siamo, in quattro righe" },
-  { numero: 3, dopoOre: 24 * 3, oggetto: "99 € contro dieci anni di detrazione" },
-  { numero: 4, dopoOre: 24 * 7, oggetto: "I 90 giorni" },
-  { numero: 5, dopoOre: 24 * 12, oggetto: "Ultimo messaggio" },
+  { numero: 1, dopoOre: 24, oggetto: "La tua pratica ENEA è aperta a metà" },
+  { numero: 2, dopoOre: 24 * 3, oggetto: "Chi siamo, in quattro righe" },
+  { numero: 3, dopoOre: 24 * 6, oggetto: "99 € contro dieci anni di detrazione" },
+  { numero: 4, dopoOre: 24 * 9, oggetto: "I 90 giorni" },
+  { numero: 5, dopoOre: 24 * 13, oggetto: "Ultimo messaggio" },
 ];
+
+/** Prima di quest'ora non si scrive a nessuno. */
+export const FASCIA_DA = { ora: 7, minuti: 30 };
+/** Da quest'ora in poi non si scrive piu'. */
+export const FASCIA_A = { ora: 23, minuti: 0 };
+
+/**
+ * Se e' un'ora in cui si puo' scrivere a una persona, in Italia.
+ *
+ * Senza questo, chi compila il modulo alle due di notte si becca la mail alle
+ * due di notte del giorno dopo: l'orologio gira ogni ora e non guarda la
+ * sveglia. Fuori fascia non si perde niente — il messaggio parte al primo
+ * giro utile del mattino.
+ */
+export function inFasciaUtile(adesso = new Date()): boolean {
+  // L'ora italiana, che non e' quella del server: l'ora legale la sposta due
+  // volte l'anno e non la vogliamo calcolare a mano.
+  const parti = new Intl.DateTimeFormat("it-IT", {
+    timeZone: "Europe/Rome",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(adesso);
+  const numero = (tipo: string) => Number(parti.find((x) => x.type === tipo)?.value ?? NaN);
+  const ora = numero("hour");
+  const minuti = numero("minute");
+  if (Number.isNaN(ora) || Number.isNaN(minuti)) return true;
+
+  const adessoInMinuti = ora * 60 + minuti;
+  return (
+    adessoInMinuti >= FASCIA_DA.ora * 60 + FASCIA_DA.minuti &&
+    adessoInMinuti < FASCIA_A.ora * 60 + FASCIA_A.minuti
+  );
+}
 
 export interface StatoPratica {
   /** Quando e' nata, in ISO. */
@@ -63,8 +107,11 @@ export interface StatoPratica {
  * l'orologio non ha girato per un giorno, o perche' la spedizione era spenta
  * — non le si scaricano addosso tre messaggi insieme. Si riprende dal primo
  * che manca e si va avanti un'ora dopo l'altra.
+ *
+ * E non di notte: fuori dalla fascia utile tace e riprende al mattino.
  */
 export function qualeTocca(p: StatoPratica, adesso = new Date()): Sollecito | null {
+  if (!inFasciaUtile(adesso)) return null;
   // Chi ha pagato ha finito: da li' in poi lo segue la pratica, non i
   // solleciti. Archiviata e disiscritta parlano da sole.
   if (p.pagata || p.archiviata || p.disiscritta) return null;

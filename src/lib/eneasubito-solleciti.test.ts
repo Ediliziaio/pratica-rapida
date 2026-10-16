@@ -10,6 +10,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   corpo,
+  inFasciaUtile,
   PREZZO_SCONTATO,
   qualeTocca,
   SOLLECITI,
@@ -39,14 +40,23 @@ describe("qualeTocca", () => {
     expect(qualeTocca(pratica({ creataIl: oreFa(0.2) }), ADESSO)).toBeNull();
   });
 
-  it("manda il primo dopo un'ora", () => {
-    expect(qualeTocca(pratica({ creataIl: oreFa(1.5) }), ADESSO)?.numero).toBe(1);
+  // Deciso dal Titolare il 16/10: il primo messaggio il giorno dopo, non
+  // dopo un'ora. A un'ora la persona puo' essere ancora al computer a cercare
+  // la fattura, e il primo contatto in assoluto non deve sembrare che la
+  // stiamo guardando.
+  it("il primo non parte in giornata", () => {
+    expect(qualeTocca(pratica({ creataIl: oreFa(1.5) }), ADESSO)).toBeNull();
+    expect(qualeTocca(pratica({ creataIl: oreFa(20) }), ADESSO)).toBeNull();
+  });
+
+  it("manda il primo il giorno dopo", () => {
+    expect(qualeTocca(pratica({ creataIl: oreFa(25) }), ADESSO)?.numero).toBe(1);
   });
 
   // Qualunque sia il tempo passato, se non e' partito niente si comincia dal
   // primo: a chi non ha mai sentito la nostra voce non si apre con «ultimo
   // messaggio, sconto per 24 ore».
-  it.each([1.5, 25, 24 * 4, 24 * 8, 24 * 13, 24 * 60])(
+  it.each([25, 24 * 4, 24 * 8, 24 * 13, 24 * 60])(
     "dopo %i ore senza averne mandato nessuno, parte sempre il primo",
     (ore) => {
       expect(qualeTocca(pratica({ creataIl: oreFa(ore) }), ADESSO)?.numero).toBe(1);
@@ -60,7 +70,7 @@ describe("qualeTocca", () => {
     [[1, 2, 3], 4],
     [[1, 2, 3, 4], 5],
   ])("con %j gia' partiti, tocca il %i", (gia, atteso) => {
-    const p = pratica({ creataIl: oreFa(24 * 20), giaInviati: gia as number[] });
+    const p = pratica({ creataIl: oreFa(24 * 30), giaInviati: gia as number[] });
     expect(qualeTocca(p, ADESSO)?.numero).toBe(atteso);
   });
 
@@ -102,6 +112,43 @@ describe("qualeTocca", () => {
   it("i cinque sono in ordine di tempo crescente", () => {
     const ore = SOLLECITI.map((s) => s.dopoOre);
     expect([...ore].sort((a, b) => a - b)).toEqual(ore);
+  });
+
+  it("il primo e' il giorno dopo e l'ultimo entro due settimane", () => {
+    expect(SOLLECITI[0].dopoOre).toBe(24);
+    expect(SOLLECITI[4].dopoOre).toBe(24 * 13);
+  });
+
+  // Chi compila alle due di notte non si becca la mail alle due di notte:
+  // l'orologio gira ogni ora e non guarda la sveglia.
+  it("di notte tace, al mattino riprende", () => {
+    const vecchia = pratica({ creataIl: new Date("2026-10-01T10:00:00Z").toISOString() });
+    // 02:00 in Italia (ora legale: UTC+2)
+    expect(qualeTocca(vecchia, new Date("2026-10-16T00:00:00Z"))).toBeNull();
+    // 09:00 in Italia
+    expect(qualeTocca(vecchia, new Date("2026-10-16T07:00:00Z"))?.numero).toBe(1);
+  });
+});
+
+describe("inFasciaUtile", () => {
+  // Le ore sono in UTC; d'estate l'Italia e' UTC+2, d'inverno UTC+1.
+  it.each([
+    ["2026-10-16T05:00:00Z", "07:00 italiane", false],
+    ["2026-10-16T05:29:00Z", "07:29 italiane", false],
+    ["2026-10-16T05:30:00Z", "07:30 italiane", true],
+    ["2026-10-16T12:00:00Z", "14:00 italiane", true],
+    ["2026-10-16T20:59:00Z", "22:59 italiane", true],
+    ["2026-10-16T21:00:00Z", "23:00 italiane", false],
+    ["2026-10-16T01:00:00Z", "03:00 italiane", false],
+  ])("%s (%s) -> %s", (quando, _etichetta, atteso) => {
+    expect(inFasciaUtile(new Date(quando as string))).toBe(atteso);
+  });
+
+  // Il cambio dell'ora legale non si calcola a mano: a gennaio l'Italia e'
+  // UTC+1, quindi la stessa ora UTC cade in una fascia diversa.
+  it("segue l'ora legale", () => {
+    expect(inFasciaUtile(new Date("2027-01-16T06:30:00Z"))).toBe(true); // 07:30
+    expect(inFasciaUtile(new Date("2027-01-16T06:00:00Z"))).toBe(false); // 07:00
   });
 });
 

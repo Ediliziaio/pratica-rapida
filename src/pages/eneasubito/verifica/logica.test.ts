@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { completa, giorniDaFineLavori, giorniRimasti, TERMINE_GIORNI } from "./logica";
+import { completa, datiCompleti, giorniDaFineLavori, giorniRimasti, TERMINE_GIORNI } from "./logica";
 
 const OGGI = new Date("2026-10-11T12:00:00Z");
 
@@ -38,7 +38,14 @@ describe("giorniRimasti", () => {
 });
 
 describe("completa", () => {
-  const buona = { famiglia: "infissi" as const, nome: "Mario Rossi", email: "mario@esempio.it" };
+  const buona = {
+    famiglia: "infissi" as const,
+    nome: "Mario Rossi",
+    email: "mario@esempio.it",
+    // Facoltativa: la data di fine lavori serve al conto dei giorni, non a
+    // sbarrare la strada. Il test qui sotto lo mette nero su bianco.
+    fineLavori: "",
+  };
 
   it("passa quando c'e' tutto", () => {
     expect(completa(buona, true)).toBe(true);
@@ -54,6 +61,14 @@ describe("completa", () => {
     ["senza fattura", buona, false],
   ])("si ferma %s", (_nome, richiesta, fattura) => {
     expect(completa(richiesta, fattura)).toBe(false);
+  });
+
+  // Il contatto vale piu' della data: chi non sa quando ha finito i lavori
+  // deve poter proseguire lo stesso, altrimenti il primo passo smette di
+  // fare il suo mestiere, che e' raccogliere nome e indirizzo.
+  it("passa anche senza la data di fine lavori", () => {
+    expect(completa({ ...buona, fineLavori: "" }, true)).toBe(true);
+    expect(datiCompleti({ ...buona, fineLavori: "" })).toBe(true);
   });
 
   it("non si fa ingannare da spazi", () => {

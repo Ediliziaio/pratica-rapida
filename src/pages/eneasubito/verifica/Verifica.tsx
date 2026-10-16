@@ -32,7 +32,7 @@ import { useSearchParams } from "react-router-dom";
 import { Guscio } from "../Guscio";
 import { preparaDocumento } from "./immagine";
 import { apriPagamento, caricaFattura, salvaPratica } from "./pratica";
-import { completa, datiCompleti, type Famiglia, type Richiesta } from "./logica";
+import { completa, datiCompleti, giorniRimasti, type Famiglia, type Richiesta } from "./logica";
 
 const MEMORIA = "eneasubito-verifica";
 /**
@@ -57,7 +57,7 @@ const FAMIGLIE: { id: Famiglia; nome: string; esempi: string }[] = [
 const AMMESSE = FAMIGLIE.map((f) => f.id) as string[];
 
 function vuota(): Richiesta {
-  return { famiglia: null, nome: "", email: "" };
+  return { famiglia: null, nome: "", email: "", fineLavori: "" };
 }
 
 function leggiMemoria(): Richiesta {
@@ -153,6 +153,7 @@ export default function Verifica() {
         nome: richiesta.nome.trim(),
         email: richiesta.email.trim(),
         famiglia: richiesta.famiglia,
+        fineLavori: richiesta.fineLavori || undefined,
       }),
     );
     setAttesa(null);
@@ -198,6 +199,8 @@ export default function Verifica() {
     setIntoppo(`${esito.errore} Se ricapita scrivici e lo sistemiamo subito:`);
   }
 
+  // Quanti giorni restano: null se la data manca o non e' leggibile.
+  const restano = richiesta.fineLavori ? giorniRimasti(richiesta.fineLavori) : null;
   const primoPronto = datiCompleti(richiesta);
   const pronto = completa(richiesta, file !== null);
 
@@ -266,6 +269,46 @@ export default function Verifica() {
                 <p className="es-aiuto">
                   È qui che ti mandiamo la ricevuta del pagamento e la pratica finita.
                 </p>
+              </div>
+
+              {/* La data e' facoltativa e sta qui per due motivi: dice alla
+                  persona quanto tempo le resta — ed e' l'unica urgenza vera
+                  che abbiamo, perche' il termine corre davvero da li' — e
+                  rende personale il messaggio di ripresa, che invece di
+                  «entro 90 giorni» puo' dire «ti restano 23 giorni».
+                  Facoltativa perche' il contatto vale piu' della data: chi
+                  non la sa deve poter proseguire lo stesso. */}
+              <div className="es-campone">
+                <label htmlFor="fine-lavori">Quando sono finiti i lavori</label>
+                <input
+                  id="fine-lavori"
+                  type="date"
+                  max={new Date().toISOString().slice(0, 10)}
+                  value={richiesta.fineLavori}
+                  onChange={(e) => aggiorna({ fineLavori: e.target.value })}
+                />
+                {restano === null && (
+                  <p className="es-aiuto">
+                    Facoltativa. Il termine per l'ENEA corre da quel giorno: sapendola ti diciamo
+                    subito quanto tempo ti resta. Se la data esatta ti sfugge, prosegui pure.
+                  </p>
+                )}
+                {restano !== null && restano > 0 && (
+                  <p className="es-riscontro">
+                    Ti restano <b>{restano} giorni</b> per trasmettere la pratica.
+                  </p>
+                )}
+                {restano === 0 && (
+                  <p className="es-riscontro es-attenzione">Oggi è l'ultimo giorno utile.</p>
+                )}
+                {restano !== null && restano < 0 && (
+                  <p className="es-riscontro es-attenzione">
+                    Dalla fine dei lavori sono passati più di 90 giorni. Il termine corre dalla data
+                    che attesta l'impresa: se può confermartene una più recente, il{" "}
+                    <a href="/modulo-fine-lavori">modulo di fine lavori</a> è pronto da far firmare.
+                    Intanto prosegui, poi ne parliamo.
+                  </p>
+                )}
               </div>
 
               <div className="es-navigazione">

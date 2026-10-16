@@ -31,6 +31,8 @@ export interface DatiPratica {
   nome?: string;
   email?: string;
   famiglia?: string | null;
+  /** Quando sono finiti i lavori, AAAA-MM-GG. Da li' corrono i 90 giorni. */
+  fineLavori?: string;
   /** Dove e' finita la fattura dentro lo storage, una volta caricata. */
   fatturaPath?: string;
   /** Da dove e' arrivato. Si allega solo alla nascita della pratica. */

@@ -45,6 +45,16 @@ export interface Richiesta {
   /** Nome e cognome del beneficiario: l'intestatario della fattura. */
   nome: string;
   email: string;
+  /**
+   * Quando sono finiti i lavori, AAAA-MM-GG. Facoltativa, e di proposito.
+   *
+   * Serve a dire alla persona quanti giorni le restano — il termine corre da
+   * qui — ed e' l'argomento piu' forte che abbiamo per farla muovere, sia
+   * sulla pagina sia nei messaggi di ripresa. Ma non puo' sbarrare la strada:
+   * il contatto vale piu' della data. Chi non la sa prosegue lo stesso, e la
+   * data si chiede dopo il pagamento come tutto il resto.
+   */
+  fineLavori: string;
 }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;

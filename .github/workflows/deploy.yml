@@ -260,6 +260,39 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: "b3423ec9073bbd86dcc206273d7e093c"
+      - name: Nessuna traccia dell'altro marchio sul sito VIVO
+        # Il controllo sul pacchetto compilato non basta: le Cloudflare Pages
+        # Function stanno in `functions/` alla radice e vengono pubblicate su
+        # entrambi i progetti, quindi non compaiono in dist-eneasubito. Il
+        # 16/10/2026 eneasubito.it/sitemap.xml serviva gli indirizzi di
+        # praticarapida.it e /rss.xml ci rimandava il visitatore: invisibile a
+        # quel controllo, visibile a chiunque aprisse l'indirizzo. Questo passo
+        # interroga il sito pubblicato, che e' l'unico posto dove la verita' si
+        # vede davvero.
+        run: |
+          set -u
+          sleep 20
+          FALLITI=""
+          for PERCORSO in /sitemap.xml /rss.xml /feed.xml /robots.txt /; do
+            CORPO=""
+            for TENTATIVO in 1 2 3; do
+              CORPO=$(curl -sL --max-time 20 "https://www.eneasubito.it${PERCORSO}" || true)
+              [ -n "$CORPO" ] && break
+              sleep 10
+            done
+            if printf '%s' "$CORPO" | grep -qiE "praticarapida|pratica rapida"; then
+              echo "::error::https://www.eneasubito.it${PERCORSO} contiene riferimenti all'altro marchio"
+              FALLITI="$FALLITI ${PERCORSO}"
+            else
+              echo "  ok ${PERCORSO}"
+            fi
+          done
+          if [ -n "$FALLITI" ]; then
+            echo "::error::Fughe di marchio sul sito vivo:${FALLITI}"
+            exit 1
+          fi
+          echo "Il sito pubblicato non nomina l'altro marchio."
+
       - name: Collega il dominio al progetto
         # Dice a Cloudflare di rispondere anche per www.eneasubito.it. Finche'
         # il DNS punta altrove resta in attesa e non cambia niente; quando il

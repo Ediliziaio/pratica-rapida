@@ -8,7 +8,28 @@
 // e restituisce XML valido con l'header giusto.
 const UPSTREAM = "https://xmkjrhwmmuzaqjqlvzxm.supabase.co/functions/v1/seo-sitemap";
 
-export async function onRequest() {
+
+// Queste Function vivono nella cartella `functions/` della radice, e
+// Cloudflare le pubblica su OGNI progetto Pages costruito da questo
+// repository — quindi anche su eneasubito.it, che con il blog e il sitemap
+// dell'altro marchio non c'entra niente. Fino al 16/10/2026
+// eneasubito.it/sitemap.xml rispondeva con gli indirizzi di praticarapida.it,
+// e eneasubito.it/rss.xml rimandava il visitatore sull'altro sito: il
+// collegamento fra i due marchi che non deve esistere, servito dal sito
+// stesso. Il controllo anti-fughe non lo vedeva perche' guarda il pacchetto
+// compilato, e queste non ci stanno dentro.
+function eAltroMarchio(request) {
+  try {
+    return new URL(request.url).hostname.replace(/^www\./, "") !== "praticarapida.it";
+  } catch {
+    return false;
+  }
+}
+
+export async function onRequest({ request, next }) {
+  // Su EneaSubito esiste gia' il suo sitemap statico: si lascia servire quello.
+  if (eAltroMarchio(request)) return next();
+
   try {
     const res = await fetch(UPSTREAM, { cf: { cacheTtl: 3600, cacheEverything: true } });
     const body = await res.text();

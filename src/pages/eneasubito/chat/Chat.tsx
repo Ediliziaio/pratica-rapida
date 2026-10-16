@@ -27,6 +27,50 @@ import { useEffect, useRef, useState } from "react";
 import { cerca, IN_VETRINA, type Domanda } from "./domande";
 import { mandaMessaggio } from "./invio";
 
+/**
+ * Il nome dell'evento con cui la si apre da fuori.
+ *
+ * Serve perche' la chat non vive solo nel suo bottone in basso a destra: c'e'
+ * anche un richiamo dentro la pagina, sotto il pulsante principale, che e' il
+ * punto in cui il dubbio viene davvero. Un evento del browser invece di uno
+ * stato condiviso: due righe, nessuna libreria, e chiunque puo' chiamarla.
+ */
+export const APRI_CHAT = "eneasubito:apri-chat";
+
+/** Il richiamo dentro la pagina. Apre la stessa chat del bottone. */
+export function RichiamoChat() {
+  return (
+    <button
+      type="button"
+      className="es-chat-richiamo"
+      onClick={() => window.dispatchEvent(new CustomEvent(APRI_CHAT))}
+    >
+      <span className="es-chat-richiamo-icona">
+        <OperatoreIcona size={24} />
+      </span>
+      <span>
+        <b>Un dubbio prima di partire?</b>
+        <i>Rispondiamo subito, anche adesso</i>
+      </span>
+      <span className="es-chat-richiamo-azione">Scrivici →</span>
+    </button>
+  );
+}
+
+/** Operatore con cuffia e microfono. */
+function OperatoreIcona({ size = 26 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="12" cy="8" r="3.2" />
+      <path d="M5.5 20.5a6.5 6.5 0 0 1 13 0" />
+      <path d="M4 12.5v-1a8 8 0 0 1 16 0v1" />
+      <path d="M4 12h1.6v4H4a1.6 1.6 0 0 1-1.6-1.6v-.8A1.6 1.6 0 0 1 4 12z" fill="currentColor" />
+      <path d="M20 12h-1.6v4H20a1.6 1.6 0 0 0 1.6-1.6v-.8A1.6 1.6 0 0 0 20 12z" fill="currentColor" />
+    </svg>
+  );
+}
+
 type Stato = "chiusa" | "aperta";
 
 export function Chat() {
@@ -36,6 +80,13 @@ export function Chat() {
   const [email, setEmail] = useState("");
   const [invio, setInvio] = useState<"fermo" | "in_corso" | "fatto" | "errore">("fermo");
   const pannello = useRef<HTMLDivElement>(null);
+
+  // La apre anche il richiamo dentro la pagina.
+  useEffect(() => {
+    const apri = () => setStato("aperta");
+    window.addEventListener(APRI_CHAT, apri);
+    return () => window.removeEventListener(APRI_CHAT, apri);
+  }, []);
 
   // Chi apre la chat si aspetta che Esc la chiuda.
   useEffect(() => {
@@ -72,16 +123,7 @@ export function Chat() {
         onClick={() => setStato("aperta")}
         aria-label="Apri l'assistenza online"
       >
-        {/* Operatore con cuffia e microfono: si capisce in un colpo d'occhio
-            che di la' c'e' qualcuno, molto piu' di un fumetto generico. */}
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-             strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <circle cx="12" cy="8" r="3.2" />
-          <path d="M5.5 20.5a6.5 6.5 0 0 1 13 0" />
-          <path d="M4 12.5v-1a8 8 0 0 1 16 0v1" />
-          <path d="M4 12h1.6v4H4a1.6 1.6 0 0 1-1.6-1.6v-.8A1.6 1.6 0 0 1 4 12z" fill="currentColor" />
-          <path d="M20 12h-1.6v4H20a1.6 1.6 0 0 0 1.6-1.6v-.8A1.6 1.6 0 0 0 20 12z" fill="currentColor" />
-        </svg>
+        <OperatoreIcona size={28} />
         <span>
           Assistenza
           <b>

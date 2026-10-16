@@ -29,6 +29,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 
+import { RichiamoChat } from "../chat/Chat";
 import { Guscio } from "../Guscio";
 import { preparaDocumento } from "./immagine";
 import { apriPagamento, caricaFattura, salvaPratica } from "./pratica";
@@ -335,6 +336,10 @@ export default function Verifica() {
                   {attesa ?? "Continua"}
                 </button>
               </div>
+
+              {/* Chi arriva qui dall'annuncio e si ferma, si ferma per
+                  diffidenza: e' il punto dove serve piu' che altrove. */}
+              <RichiamoChat />
             </>
           ) : (
             <>

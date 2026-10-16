@@ -184,11 +184,31 @@ body { background: #F5F2EC; }
 .es-richiamo span { font-size: 16px; line-height: 1.55; color: #4A4028; }
 /* La chat: sta sopra tutto, in basso a destra, e non copre i pulsanti del
    modulo perche' su schermo stretto si restringe. */
+/* Arancione e non verde, di proposito: il verde e' il colore del sito e il
+   bottone ci si confonde dentro. Qui serve che si veda — e' il rimedio alla
+   diffidenza di chi non ci conosce, non un accessorio. */
 .es-chat-bolla { position: fixed; right: 20px; bottom: 20px; z-index: 60; display: flex; align-items: center;
-  gap: 10px; height: 58px; padding: 0 22px 0 18px; border: 0; border-radius: 999px; cursor: pointer;
-  background: var(--es-verde); color: #fff; font-family: inherit; text-align: left; line-height: 1.15;
-  box-shadow: 0 8px 26px rgba(14,90,72,.34); transition: transform .15s ease, box-shadow .15s ease; }
-.es-chat-bolla:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(14,90,72,.42); }
+  gap: 11px; height: 62px; padding: 0 24px 0 20px; border: 0; border-radius: 999px; cursor: pointer;
+  background: #E8590C; color: #fff; font-family: inherit; text-align: left; line-height: 1.15;
+  box-shadow: 0 10px 28px rgba(232,89,12,.42); transition: transform .15s ease, box-shadow .15s ease;
+  /* Saltella tre volte all'arrivo, poi sta ferma: attirare l'attenzione una
+     volta funziona, farlo per sempre infastidisce e sembra una pubblicita'. */
+  animation: es-salta 1.1s ease-in-out .9s 3; }
+.es-chat-bolla:hover { transform: translateY(-2px); box-shadow: 0 14px 34px rgba(232,89,12,.5); }
+/* L'onda che si allarga dal bottone: continua, ma lenta e trasparente. */
+.es-chat-bolla::before { content: ""; position: absolute; inset: 0; border-radius: 999px;
+  border: 2px solid #E8590C; animation: es-onda 2.6s ease-out infinite; pointer-events: none; }
+@keyframes es-salta {
+  0%, 100% { transform: translateY(0); }
+  30% { transform: translateY(-10px); }
+  55% { transform: translateY(0); }
+  70% { transform: translateY(-4px); }
+}
+@keyframes es-onda {
+  0% { transform: scale(1); opacity: .55; }
+  70% { transform: scale(1.35); opacity: 0; }
+  100% { opacity: 0; }
+}
 .es-chat-bolla > span { display: block; font-size: 15px; font-weight: 600; }
 .es-chat-bolla b { display: flex; align-items: center; gap: 5px; font-size: 12.5px; font-weight: 500; opacity: .92; }
 /* Il puntino che pulsa: dice «c'e' qualcuno» senza scriverlo. Con due anelli
@@ -200,8 +220,26 @@ body { background: #F5F2EC; }
 @keyframes es-pulsa { 0% { transform: scale(1); opacity: .7; } 70% { transform: scale(2.6); opacity: 0; } 100% { opacity: 0; } }
 /* Chi ha chiesto meno animazioni nel sistema operativo non le subisce. */
 @media (prefers-reduced-motion: reduce) {
-  .es-chat-pallino::after { animation: none; }
+  .es-chat-pallino::after, .es-chat-bolla, .es-chat-bolla::before { animation: none; }
   .es-chat-bolla { transition: none; }
+}
+
+/* Il richiamo dentro la pagina: sta sotto il pulsante principale, dove il
+   dubbio viene davvero. Un bottone in un angolo lo si ignora; questo sta
+   nella riga di lettura. */
+.es-chat-richiamo { display: flex; align-items: center; gap: 14px; width: 100%; margin-top: 18px;
+  padding: 14px 18px; border: 1.5px solid #F3C4A4; border-radius: 14px; background: #FFF4EC;
+  font-family: inherit; text-align: left; cursor: pointer; color: var(--es-inchiostro);
+  transition: border-color .15s ease, background .15s ease; }
+.es-chat-richiamo:hover { border-color: #E8590C; background: #FFEADC; }
+.es-chat-richiamo-icona { display: flex; align-items: center; justify-content: center; width: 42px;
+  height: 42px; flex-shrink: 0; border-radius: 50%; background: #E8590C; color: #fff; }
+.es-chat-richiamo b { display: block; font-size: 15px; font-weight: 600; }
+.es-chat-richiamo i { display: block; font-style: normal; font-size: 13.5px; color: var(--es-inchiostro-debole); }
+.es-chat-richiamo-azione { margin-left: auto; flex-shrink: 0; font-size: 14px; font-weight: 600; color: #E8590C; }
+@media (max-width: 560px) {
+  .es-chat-richiamo-azione { display: none; }
+  .es-chat-bolla { padding: 0 18px 0 16px; }
 }
 .es-chat { position: fixed; right: 20px; bottom: 20px; z-index: 60; width: min(380px, calc(100vw - 32px));
   max-height: min(560px, calc(100vh - 40px)); display: flex; flex-direction: column; overflow: hidden;

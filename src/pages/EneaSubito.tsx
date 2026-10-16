@@ -28,7 +28,7 @@ import { Link } from "react-router-dom";
 import "@fontsource-variable/fraunces";
 import "@fontsource-variable/work-sans";
 
-import { Chat } from "./eneasubito/chat/Chat";
+import { Chat, RichiamoChat } from "./eneasubito/chat/Chat";
 import { Fulmine, Spunta } from "./eneasubito/Guscio";
 import { STILE } from "./eneasubito/stile";
 
@@ -128,6 +128,11 @@ export default function EneaSubito() {
             </Link>
           </div>
           <p className="es-micro">Due minuti. Niente telefono, niente appuntamenti, niente moduli lunghi.</p>
+
+          {/* Qui e non solo nell'angolo: e' il momento in cui uno sta per
+              cliccare e gli viene il dubbio. Un bottone che galleggia in
+              basso a destra, a quel punto, non lo guarda nessuno. */}
+          <RichiamoChat />
         </div>
 
         {/* Cosa gli chiederemo davvero, prima che lo scopra cliccando: tre

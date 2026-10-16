@@ -337,6 +337,12 @@ Deno.serve(async (req) => {
         // un interruttore e la lunghezza di una chiave.
         segreti: {
           SOLLECITI_ATTIVI: Deno.env.get("SOLLECITI_ATTIVI") ?? "(non impostato)",
+          // I nomi che somigliano: se l'interruttore risulta assente ma uno
+          // di questi compare scritto in un altro modo, il guasto e' un
+          // refuso e non una funzione che non legge i segreti.
+          nomiSimili: Object.keys(Deno.env.toObject()).filter((n) =>
+            /SOLLECIT|ATTIV/i.test(n)
+          ),
           chiaveEneaSubito: (Deno.env.get("RESEND_API_KEY_ENEASUBITO") ?? "").length,
           chiaveVecchia: (Deno.env.get("RESEND_API_KEY") ?? "").length,
         },

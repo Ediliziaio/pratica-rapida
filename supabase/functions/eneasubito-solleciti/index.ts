@@ -67,6 +67,42 @@ function giorniRimasti(fineLavori: string | null): number | null {
   return TERMINE_GIORNI - Math.floor((adesso - fine) / 86_400_000);
 }
 
+/**
+ * Se Resend e' davvero autorizzato a spedire da eneasubito.it.
+ *
+ * Senza questo controllo, un dominio non ancora verificato produce il danno
+ * peggiore possibile: la riga «messaggio 1 inviato» si scrive prima di
+ * spedire — perche' e' quella che impedisce i doppioni — e poi la spedizione
+ * fallisce. Risultato: quella persona il primo messaggio non lo riceve mai
+ * piu', e nessuno se ne accorge.
+ *
+ * Quindi si chiede prima, una volta per giro, e se la risposta non e' «sono
+ * pronto» non si scrive e non si spedisce niente: il giro successivo
+ * ritrovera' tutto intatto.
+ */
+async function dominioPronto(): Promise<string | null> {
+  if (!RESEND_API_KEY) return "RESEND_API_KEY mancante";
+  const dominio = DA.split("@")[1]?.replace(">", "").trim();
+  if (!dominio) return "indirizzo di partenza illeggibile";
+  try {
+    const risposta = await fetch("https://api.resend.com/domains", {
+      headers: { Authorization: `Bearer ${RESEND_API_KEY}` },
+    });
+    if (!risposta.ok) return `Resend non risponde (${risposta.status})`;
+    const elenco = (await risposta.json())?.data as
+      | Array<{ name?: string; status?: string }>
+      | undefined;
+    const nostro = (elenco ?? []).find((d) => d.name === dominio);
+    if (!nostro) return `${dominio} non e' fra i domini di Resend`;
+    if (nostro.status !== "verified") {
+      return `${dominio} non e' ancora verificato (${nostro.status})`;
+    }
+    return null;
+  } catch (e) {
+    return `controllo del dominio fallito: ${e}`;
+  }
+}
+
 async function spedisci(a: string, oggetto: string, testo: string): Promise<string | null> {
   if (!RESEND_API_KEY) return "RESEND_API_KEY mancante";
   const risposta = await fetch("https://api.resend.com/emails", {
@@ -115,6 +151,17 @@ Deno.serve(async (req) => {
     const dato = req.headers.get("Authorization") ?? "";
     if (dato.length !== atteso.length || dato !== atteso) {
       return json({ error: "non autorizzato" }, 401);
+    }
+  }
+
+  // Prima di toccare qualunque cosa: siamo in grado di spedire davvero?
+  // Si chiede solo quando si spedisce sul serio — il giro a vuoto non ne ha
+  // bisogno e non deve dipendere da Resend per funzionare.
+  if (!soloProva && ATTIVI) {
+    const perche = await dominioPronto();
+    if (perche) {
+      console.error("[eneasubito-solleciti] non spedisco:", perche);
+      return json({ ok: false, fermo: perche, mandati: 0 }, 503);
     }
   }
 

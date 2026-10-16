@@ -20,6 +20,11 @@
  *     cominciare: per questo c'e' l'interruttore `SOLLECITI_ATTIVI`, che
  *     parte spento.
  *
+ * Nota sui segreti: Supabase li legge quando l'istanza nasce. Cambiare
+ * `SOLLECITI_ATTIVI` nel pannello non basta — finche' resta in piedi
+ * un'istanza vecchia, quella continua a vedere il valore di prima. Si
+ * ripubblica la funzione e il valore nuovo entra in vigore.
+ *
  * Non e' un ramo di `send-email`: quella ha `modulistica@praticarapida.it`
  * scritto in ogni pie' di pagina, e userebbe l'indirizzo dell'altro marchio
  * nella casella dei clienti EneaSubito.

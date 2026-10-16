@@ -91,6 +91,22 @@ Deno.serve(async (req) => {
   // chiave.
   const soloProva = indirizzo.searchParams.get("prova") === "1";
 
+  // Solo nel giro a vuoto: si puo' chiedere «cosa partirebbe fra tre giorni».
+  // Serve a provare tutto il calendario sulle pratiche vere senza aspettare
+  // dodici giorni e senza falsificare le date nel database.
+  let adesso = new Date();
+  if (soloProva) {
+    const quando = indirizzo.searchParams.get("quando");
+    if (quando) {
+      const fra = Number(quando);
+      // Un numero sono ore da adesso; altrimenti si accetta una data intera.
+      const provato = Number.isFinite(fra)
+        ? new Date(Date.now() + fra * 3_600_000)
+        : new Date(quando);
+      if (!Number.isNaN(provato.getTime())) adesso = provato;
+    }
+  }
+
   // Il giro vero chiede la chiave, e se la chiave non e' configurata si
   // rifiuta: una funzione che spedisce a dei clienti non deve restare aperta
   // perche' qualcuno si e' scordato di impostare un segreto.
@@ -141,6 +157,10 @@ Deno.serve(async (req) => {
     errori: [],
     anteprima: [],
   };
+  // Perche' tacciono, in numeri e senza nomi: «zero messaggi» puo' voler dire
+  // che la macchina ragiona giusto o che non ha letto niente, e sono due cose
+  // molto diverse.
+  const conto = { candidate: pratiche?.length ?? 0, senzaIndirizzo: 0, disiscritte: 0, troppoPresto: 0, finite: 0 };
 
   for (const p of pratiche ?? []) {
     if (esito.mandati >= MASSIMO_PER_GIRO) break;
@@ -155,8 +175,12 @@ Deno.serve(async (req) => {
       email: email || null,
     };
 
-    const tocca = qualeTocca(stato);
+    const tocca = qualeTocca(stato, adesso);
     if (!tocca) {
+      if (!stato.email) conto.senzaIndirizzo += 1;
+      else if (stato.disiscritta) conto.disiscritte += 1;
+      else if (stato.giaInviati.length >= 5) conto.finite += 1;
+      else conto.troppoPresto += 1;
       esito.saltati += 1;
       continue;
     }
@@ -208,5 +232,10 @@ Deno.serve(async (req) => {
   }
 
   console.log("[eneasubito-solleciti]", JSON.stringify({ ...esito, anteprima: esito.anteprima.length }));
-  return json({ ok: true, attivi: ATTIVI, ...esito });
+  return json({
+    ok: true,
+    attivi: ATTIVI,
+    ...(soloProva ? { momento: adesso.toISOString(), conto } : {}),
+    ...esito,
+  });
 });

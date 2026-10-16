@@ -85,11 +85,21 @@ async function spedisci(a: string, oggetto: string, testo: string): Promise<stri
 
 Deno.serve(async (req) => {
   const indirizzo = new URL(req.url);
-  if (TOKEN && indirizzo.searchParams.get("token") !== TOKEN) {
-    return json({ error: "non autorizzato" }, 401);
-  }
-  // Serve a vedere cosa partirebbe, senza spedire niente.
+  // Il giro a vuoto: dice QUANTI messaggi partirebbero e di quale numero, mai
+  // a chi. Senza nomi ne' indirizzi non c'e' niente da proteggere, e si puo'
+  // controllare che la macchina ragioni giusto anche prima di avere la
+  // chiave.
   const soloProva = indirizzo.searchParams.get("prova") === "1";
+
+  // Il giro vero chiede la chiave, e se la chiave non e' configurata si
+  // rifiuta: una funzione che spedisce a dei clienti non deve restare aperta
+  // perche' qualcuno si e' scordato di impostare un segreto.
+  if (!soloProva) {
+    if (!TOKEN) return json({ error: "SOLLECITI_TOKEN non configurato" }, 503);
+    if (indirizzo.searchParams.get("token") !== TOKEN) {
+      return json({ error: "non autorizzato" }, 401);
+    }
+  }
 
   const db = createClient(SUPABASE_URL, SERVICE_KEY);
 
@@ -161,8 +171,9 @@ Deno.serve(async (req) => {
     const testo = corpo(tocca.numero, dati);
 
     if (soloProva || !ATTIVI) {
+      // Mai l'indirizzo: solo quale messaggio toccherebbe. Per controllare
+      // che il conto torni basta questo.
       esito.anteprima.push({
-        a: email,
         numero: tocca.numero,
         oggetto: tocca.oggetto,
         motivo: soloProva ? "prova" : "spedizione spenta",
@@ -190,7 +201,7 @@ Deno.serve(async (req) => {
         .update({ errore: guasto })
         .eq("pratica_id", p.id)
         .eq("numero", tocca.numero);
-      esito.errori.push(`${email}: ${guasto}`);
+      esito.errori.push(`messaggio ${tocca.numero}: ${guasto}`);
       continue;
     }
     esito.mandati += 1;

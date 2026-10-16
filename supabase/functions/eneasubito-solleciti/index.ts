@@ -36,7 +36,16 @@ import {
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") ?? "";
+/**
+ * La chiave di EneaSubito, che e' diversa da quella di Pratica Rapida.
+ *
+ * Su Resend una chiave di sola spedizione puo' essere legata a un dominio, e
+ * quella del CRM lo e' a `mail.praticarapida.it`: usata qui risponde «non
+ * sei autorizzata a spedire da eneasubito.it». Tenerle separate conviene
+ * comunque — se una va revocata, l'altro marchio continua a spedire.
+ */
+const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY_ENEASUBITO") ??
+  Deno.env.get("RESEND_API_KEY") ?? "";
 /** Interruttore: finché non è «true» si prepara tutto senza spedire. */
 const ATTIVI = (Deno.env.get("SOLLECITI_ATTIVI") ?? "").toLowerCase() === "true";
 

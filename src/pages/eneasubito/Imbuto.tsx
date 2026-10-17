@@ -12,6 +12,10 @@
  * quindi non c'e' niente da proteggere, ma non c'e' nemmeno motivo di
  * mostrarla a chi passa di li'.
  */
+// L'ora e' sempre quella di Roma, qualunque cosa pensi il computer che
+// guarda la pagina: sta aperta su una macchina dedicata il cui orologio puo'
+// essere regolato su un altro fuso, e un orario sbagliato su un cruscotto fa
+// piu' danno di nessun orario.
 import { useEffect, useState } from "react";
 
 import { Guscio } from "./Guscio";
@@ -79,7 +83,10 @@ export default function Imbuto() {
           <h1 className="es-domandona es-serif">Dove si fermano</h1>
           <p className="es-aiuto">
             Ultimi 7 giorni · si aggiorna da sola ogni due minuti
-            {aggiornato && ` · ultima lettura ${aggiornato.toLocaleTimeString("it-IT")}`}
+            {aggiornato &&
+              ` · ultima lettura ${aggiornato.toLocaleTimeString("it-IT", {
+                timeZone: "Europe/Rome",
+              })}`}
           </p>
 
           {guasto && <p className="es-aiuto">Non riesco a leggere i numeri in questo momento.</p>}

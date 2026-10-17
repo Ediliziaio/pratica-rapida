@@ -44,6 +44,67 @@ const ORDINE = [
   "pagamento",
 ];
 
+/** Come si chiama ogni passo in italiano, per chi guarda. */
+const NOMI: Record<string, string> = {
+  aperto: "Ha aperto il modulo",
+  lavoro: "Ha scelto il lavoro",
+  nome: "Ha scritto il nome",
+  email: "Ha scritto l'e-mail",
+  continua: "Ha premuto Continua",
+  passo2: "È arrivato al secondo passo",
+  fattura: "Ha caricato la fattura",
+  pagamento: "È andato al pagamento",
+};
+
+/**
+ * La pagina da lasciare aperta sul monitor.
+ *
+ * Una barra per passo, lunga quanto la quota di chi ci arriva: il punto dove
+ * la barra crolla e' il punto dove si perde la gente, e si vede in un colpo
+ * d'occhio senza leggere un numero. Si aggiorna da sola ogni due minuti.
+ */
+function paginaLeggibile(conta: Map<string, number>, aperto: number, giorni: number): string {
+  const righe = ORDINE.map((passo) => {
+    const quante = conta.get(passo) ?? 0;
+    const quota = aperto ? Math.round((quante / aperto) * 100) : 0;
+    return `<tr>
+      <td class="nome">${NOMI[passo] ?? passo}</td>
+      <td class="barra"><i style="width:${quota}%"></i></td>
+      <td class="num">${quante}</td>
+      <td class="quota">${aperto ? quota + "%" : "—"}</td>
+    </tr>`;
+  }).join("");
+
+  const persi = aperto - (conta.get("pagamento") ?? 0);
+  return `<!doctype html><html lang="it"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>EneaSubito — dove si fermano</title>
+<meta http-equiv="refresh" content="120">
+<style>
+  :root { color-scheme: light dark; --inchiostro:#14201a; --carta:#F7F4EE; --bordo:#E3DED3; --verde:#2F6B45; }
+  @media (prefers-color-scheme: dark) { :root { --inchiostro:#EDEAE3; --carta:#14201a; --bordo:#2C3A32; } }
+  body { margin:0; padding:40px 20px; background:var(--carta); color:var(--inchiostro);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; }
+  main { max-width: 760px; margin: 0 auto; }
+  h1 { font-size: 23px; margin: 0 0 4px; }
+  p.sotto { margin: 0 0 28px; opacity: .65; font-size: 14px; }
+  table { width:100%; border-collapse: collapse; }
+  td { padding: 11px 8px; border-bottom: 1px solid var(--bordo); vertical-align: middle; }
+  td.nome { white-space: nowrap; font-size: 15px; }
+  td.barra { width: 100%; }
+  td.barra i { display:block; height: 12px; border-radius: 999px; background: var(--verde); min-width: 2px; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+  td.quota { text-align: right; width: 56px; opacity: .6; font-variant-numeric: tabular-nums; }
+  footer { margin-top: 26px; font-size: 13px; opacity: .6; line-height: 1.6; }
+</style></head><body><main>
+<h1>Dove si fermano</h1>
+<p class="sotto">Ultimi ${giorni} giorni · si aggiorna da sola ogni due minuti</p>
+<table>${righe}</table>
+<footer>Il punto dove la barra crolla è il punto dove perdiamo la gente.<br>
+${aperto ? `Su ${aperto} che hanno aperto il modulo, ${persi} se ne sono andati senza pagare.` : "Nessuno ha ancora aperto il modulo in questo periodo."}</footer>
+</main></body></html>`;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
 
@@ -67,6 +128,16 @@ Deno.serve(async (req) => {
       conta.set(String(r.passo), (conta.get(String(r.passo)) ?? 0) + 1);
     }
     const aperto = conta.get("aperto") ?? 0;
+
+    // Chi la apre con il browser vuole guardarla, non leggerla: questa pagina
+    // sta su un monitor tutto il giorno. Chi la chiama da un programma vuole i
+    // numeri. Si guarda cosa ha chiesto e si risponde di conseguenza.
+    if ((req.headers.get("Accept") ?? "").includes("text/html")) {
+      return new Response(paginaLeggibile(conta, aperto, giorni), {
+        headers: { ...CORS, "Content-Type": "text/html; charset=utf-8" },
+      });
+    }
+
     return json({
       giorni,
       imbuto: ORDINE.map((passo) => {

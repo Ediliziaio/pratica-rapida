@@ -101,8 +101,11 @@ export default function Verifica() {
   // Chi ricarica la pagina a meta' strada riprende da dove era, invece di
   // ricominciare: la pratica esiste gia' e il token ce l'abbiamo.
   const [passo, setPasso] = useState<1 | 2>(() => (leggiToken() ? 2 : 1));
-  const [file, setFile] = useState<File | null>(null);
-  const [nomeFile, setNomeFile] = useState<string | null>(null);
+  // Le fatture, al plurale. Un impianto normale ne ha piu' d'una — la
+  // fornitura e l'installazione sono spesso due aziende e due documenti — e
+  // il primo cliente vero di EneaSubito si e' fermato proprio qui, perche' il
+  // modulo accettava un documento solo e il secondo cancellava il primo.
+  const [documenti, setDocumenti] = useState<File[]>([]);
   const [preparazione, setPreparazione] = useState<string | null>(null);
   const [attesa, setAttesa] = useState<string | null>(null);
   const [intoppo, setIntoppo] = useState<string | null>(null);
@@ -143,18 +146,28 @@ export default function Verifica() {
     setRichiesta((r) => ({ ...r, ...parziale }));
   }
 
-  async function scegliFile(scelto: File | undefined) {
-    if (!scelto) return;
+  async function scegliFile(scelti: FileList | null) {
+    if (!scelti || scelti.length === 0) return;
     segna("fattura");
-    setPreparazione("Preparo il documento…");
-    const pronto = await preparaDocumento(scelto);
-    setFile(pronto.file);
-    setNomeFile(pronto.file.name);
-    setPreparazione(
-      pronto.rimpicciolita
-        ? `Foto alleggerita da ${Math.round((pronto.byteIniziali / 1024 / 1024) * 10) / 10} MB a ${Math.round((pronto.byteFinali / 1024 / 1024) * 10) / 10} MB.`
-        : null,
-    );
+    setPreparazione(scelti.length > 1 ? "Preparo i documenti…" : "Preparo il documento…");
+    const pronti: File[] = [];
+    let alleggerita: string | null = null;
+    for (const grezzo of Array.from(scelti)) {
+      const pronto = await preparaDocumento(grezzo);
+      pronti.push(pronto.file);
+      if (pronto.rimpicciolita) {
+        const mb = (b: number) => Math.round((b / 1024 / 1024) * 10) / 10;
+        alleggerita = `Foto alleggerita da ${mb(pronto.byteIniziali)} MB a ${mb(pronto.byteFinali)} MB.`;
+      }
+    }
+    // Si aggiungono, non si sostituiscono: chi carica la seconda fattura non
+    // deve perdere la prima.
+    setDocumenti((gia) => [...gia, ...pronti]);
+    setPreparazione(alleggerita);
+  }
+
+  function togliDocumento(indice: number) {
+    setDocumenti((gia) => gia.filter((_, i) => i !== indice));
   }
 
   /**
@@ -204,9 +217,17 @@ export default function Verifica() {
     }
 
     setIntoppo(null);
-    if (file) {
-      setAttesa("Carico la fattura…");
-      await caricaFattura(buono, file);
+    if (documenti.length > 0) {
+      // Una per volta: il permesso di caricamento vale per un file solo, e se
+      // una non sale le altre devono salire lo stesso.
+      for (let i = 0; i < documenti.length; i++) {
+        setAttesa(
+          documenti.length > 1
+            ? `Carico i documenti… ${i + 1} di ${documenti.length}`
+            : "Carico la fattura…",
+        );
+        await caricaFattura(buono, documenti[i]);
+      }
     }
 
     setAttesa("Apro il pagamento…");
@@ -224,7 +245,7 @@ export default function Verifica() {
   // Quanti giorni restano: null se la data manca o non e' leggibile.
   const restano = richiesta.fineLavori ? giorniRimasti(richiesta.fineLavori) : null;
   const primoPronto = datiCompleti(richiesta);
-  const pronto = completa(richiesta, file !== null);
+  const pronto = completa(richiesta, documenti.length > 0);
 
   return (
     <Guscio
@@ -370,11 +391,12 @@ export default function Verifica() {
             <>
               <h1 className="es-domandona es-serif">Ci siamo quasi</h1>
               <p className="es-aiuto">
-                Resta la fattura del tuo fornitore. Una foto va benissimo.
+                Restano le fatture. Una foto va benissimo, e se sono più di una —
+                la fornitura e l'installazione spesso sono due documenti — caricale tutte.
               </p>
 
               <div className="es-campone">
-                <label htmlFor="scatta">La fattura dell'installatore</label>
+                <label htmlFor="scatta">Le fatture dei lavori</label>
                 <div className="es-carica">
                   <label htmlFor="scatta">
                     Scatta una foto
@@ -383,7 +405,7 @@ export default function Verifica() {
                       type="file"
                       accept="image/*"
                       capture="environment"
-                      onChange={(e) => scegliFile(e.target.files?.[0])}
+                      onChange={(e) => scegliFile(e.target.files)}
                     />
                   </label>
                   <label htmlFor="scegli">
@@ -392,11 +414,34 @@ export default function Verifica() {
                       id="scegli"
                       type="file"
                       accept="application/pdf,image/jpeg,image/png"
-                      onChange={(e) => scegliFile(e.target.files?.[0])}
+                      multiple
+                      onChange={(e) => scegliFile(e.target.files)}
                     />
                   </label>
                 </div>
-                {nomeFile && <p className="es-riscontro">Caricato: {nomeFile}</p>}
+                {documenti.length > 0 && (
+                  <ul className="es-elenco-file">
+                    {documenti.map((d, i) => (
+                      <li key={`${d.name}-${i}`}>
+                        <span>{d.name}</span>
+                        <button
+                          type="button"
+                          className="es-collegamento"
+                          onClick={() => togliDocumento(i)}
+                        >
+                          togli
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {documenti.length > 0 && (
+                  <p className="es-aiuto">
+                    Ne puoi aggiungere altre: {documenti.length === 1
+                      ? "per ora ce n'è una"
+                      : `per ora ce ne sono ${documenti.length}`}.
+                  </p>
+                )}
                 {preparazione && <p className="es-aiuto">{preparazione}</p>}
               </div>
 

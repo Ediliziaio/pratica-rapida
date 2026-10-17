@@ -357,4 +357,12 @@ body { background: #F5F2EC; }
 @media (max-width: 560px) {
   .es-imbuto-nome { white-space: normal; font-size: 14px; }
 }
+
+/* L'elenco delle fatture caricate: una riga per documento, col modo di
+   toglierne una senza ricominciare. */
+.es-elenco-file { list-style: none; margin: 12px 0 0; padding: 0; display: flex;
+  flex-direction: column; gap: 8px; }
+.es-elenco-file li { display: flex; align-items: center; gap: 12px; padding: 10px 14px;
+  border: 1px solid var(--es-bordo); border-radius: 12px; background: #fff; font-size: 14.5px; }
+.es-elenco-file li span { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 `;

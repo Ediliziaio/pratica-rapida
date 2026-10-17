@@ -53,6 +53,7 @@ const PaginaIntervento = lazy(() => import("./pages/eneasubito/PaginaIntervento"
 const PaginaLegale = lazy(() => import("./pages/eneasubito/PaginaLegale"));
 const Verifica = lazy(() => import("./pages/eneasubito/verifica/Verifica"));
 const Disiscrizione = lazy(() => import("./pages/eneasubito/Disiscrizione"));
+const Imbuto = lazy(() => import("./pages/eneasubito/Imbuto"));
 const ModuloFineLavori = lazy(() => import("./pages/eneasubito/ModuloFineLavori"));
 const Completata = lazy(() => import("./pages/eneasubito/Completata"));
 const NonTrovata = lazy(() => import("./pages/eneasubito/NonTrovata"));
@@ -84,6 +85,9 @@ export default function AppEneaSubito() {
               nessuna conferma. Ogni passaggio in piu' diventa una
               segnalazione di spam, e quella penalizza il dominio. */}
           <Route path="/stop/:token" element={<Disiscrizione />} />
+          {/* Pagina di servizio, non collegata da nessuna parte: solo
+              conteggi anonimi, da lasciare aperta su un monitor. */}
+          <Route path="/imbuto" element={<Imbuto />} />
 
           <Route path="/modulo-fine-lavori" element={<ModuloFineLavori documento="fine-lavori" />} />
           <Route path="/verbale-di-posa" element={<ModuloFineLavori documento="verbale" />} />

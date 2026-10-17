@@ -41,10 +41,12 @@ interface GuscioProps {
   descrizione: string;
   /** Percorso canonico, con la barra iniziale: "/" per la home. */
   percorso: string;
+  /** Pagina di servizio: non deve finire nei motori di ricerca. */
+  senzaIndicizzazione?: boolean;
   children: ReactNode;
 }
 
-export function Guscio({ titolo, descrizione, percorso, children }: GuscioProps) {
+export function Guscio({ titolo, descrizione, percorso, senzaIndicizzazione, children }: GuscioProps) {
   const canonico = `https://www.eneasubito.it${percorso}`;
   return (
     <div className="es-root">
@@ -53,6 +55,7 @@ export function Guscio({ titolo, descrizione, percorso, children }: GuscioProps)
         <title>{titolo}</title>
         <meta name="description" content={descrizione} />
         <link rel="canonical" href={canonico} />
+        {senzaIndicizzazione && <meta name="robots" content="noindex, nofollow" />}
         <meta property="og:title" content={titolo} />
         <meta property="og:description" content={descrizione} />
         <meta property="og:type" content="website" />

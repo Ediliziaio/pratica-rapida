@@ -344,4 +344,17 @@ body { background: #F5F2EC; }
 .es-finestra h2 { margin: 0; font-family: "Fraunces Variable", Georgia, serif; font-size: 24px; font-weight: 600; letter-spacing: -0.3px; }
 .es-finestra p { margin: 0; font-size: 16px; line-height: 1.6; color: var(--es-inchiostro-tenue); }
 
+
+/* L'imbuto: una barra per passo, lunga quanto la quota di chi ci arriva. */
+.es-imbuto { width: 100%; border-collapse: collapse; }
+.es-imbuto td { padding: 11px 8px; border-bottom: 1px solid var(--es-bordo); vertical-align: middle; }
+.es-imbuto-nome { white-space: nowrap; font-size: 15px; }
+.es-imbuto-barra { width: 100%; }
+.es-imbuto-barra i { display: block; height: 12px; border-radius: 999px;
+  background: var(--es-verde); min-width: 2px; transition: width .4s ease; }
+.es-imbuto-num { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+.es-imbuto-quota { text-align: right; width: 58px; opacity: .6; font-variant-numeric: tabular-nums; }
+@media (max-width: 560px) {
+  .es-imbuto-nome { white-space: normal; font-size: 14px; }
+}
 `;

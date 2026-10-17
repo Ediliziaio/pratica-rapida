@@ -7,12 +7,22 @@ const INVOICE_FIELD_KEYS = new Set([
   "fattura_lavori",
 ]);
 
+// Le fatture sono piu' d'una, come i bonifici qui sotto.
+//
+// Su un impianto e' il caso normale: la fornitura e l'installazione sono
+// spesso due aziende e due documenti. Il campo ne accettava uno solo — il
+// secondo sostituiva il primo — mentre il bonifico accanto diceva gia'
+// «carica tutti i bonifici»: una dimenticanza, non una scelta. Il primo
+// cliente di EneaSubito si e' fermato esattamente qui e ha scritto per
+// chiedere come fare; chi incontra lo stesso muro e non scrive, se ne va.
 const REQUIRED_INVOICE_FIELD = {
   key: "fattura_url",
-  label: "Fattura dell'installatore",
+  label: "Fatture dei lavori",
   type: "upload" as const,
   required: true,
-  help_text: "Fattura emessa dall'installatore per i lavori eseguiti (PDF, JPG o PNG, max 20 MB).",
+  multiple: true,
+  help_text:
+    "Carica tutte le fatture dei lavori: fornitura e installazione sono spesso due documenti separati (PDF, JPG o PNG, max 20 MB ciascuna).",
   max_size_mb: 20,
   accept: ["pdf", "jpg", "jpeg", "png"],
 };

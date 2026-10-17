@@ -32,6 +32,7 @@ import { useSearchParams } from "react-router-dom";
 import { RichiamoChat } from "../chat/Chat";
 import { Guscio } from "../Guscio";
 import { preparaDocumento } from "./immagine";
+import { segna } from "../passi";
 import { apriPagamento, caricaFattura, salvaPratica } from "./pratica";
 import {
   completa,
@@ -106,6 +107,17 @@ export default function Verifica() {
   const [attesa, setAttesa] = useState<string | null>(null);
   const [intoppo, setIntoppo] = useState<string | null>(null);
 
+  // L'imbuto: dove si ferma chi apre il modulo. Segnare «aperto» qui e non
+  // altrove conta le persone che la pagina l'hanno davvero vista, non quelle
+  // che hanno chiesto l'indirizzo e se ne sono andate prima.
+  useEffect(() => {
+    segna("aperto");
+  }, []);
+
+  useEffect(() => {
+    if (passo === 2) segna("passo2");
+  }, [passo]);
+
   // Si salva a ogni modifica: chi chiude la pagina e torna non ricomincia.
   // Il documento no: quello resta sul dispositivo da cui l'ha scelto.
   useEffect(() => {
@@ -133,6 +145,7 @@ export default function Verifica() {
 
   async function scegliFile(scelto: File | undefined) {
     if (!scelto) return;
+    segna("fattura");
     setPreparazione("Preparo il documento…");
     const pronto = await preparaDocumento(scelto);
     setFile(pronto.file);
@@ -152,6 +165,7 @@ export default function Verifica() {
    * che non esiste e' il modo peggiore di perderla.
    */
   async function avanza() {
+    segna("continua");
     setIntoppo(null);
     setAttesa("Un momento…");
 
@@ -239,7 +253,10 @@ export default function Verifica() {
                       type="button"
                       className="es-scelta"
                       aria-pressed={richiesta.famiglia === f.id}
-                      onClick={() => aggiorna({ famiglia: f.id })}
+                      onClick={() => {
+                        segna("lavoro");
+                        aggiorna({ famiglia: f.id });
+                      }}
                     >
                       <b>{f.nome}</b>
                       <span>{f.esempi}</span>
@@ -256,7 +273,12 @@ export default function Verifica() {
                   autoComplete="name"
                   placeholder="Mario Rossi"
                   value={richiesta.nome}
-                  onChange={(e) => aggiorna({ nome: e.target.value })}
+                  onChange={(e) => {
+                    // Al secondo carattere, non al primo: un tasto premuto per
+                    // sbaglio non e' «ha scritto il nome».
+                    if (e.target.value.trim().length >= 2) segna("nome");
+                    aggiorna({ nome: e.target.value });
+                  }}
                 />
                 <p className="es-aiuto">
                   Dev'essere l'intestatario della fattura: è lui il beneficiario, cioè chi porta la
@@ -272,7 +294,10 @@ export default function Verifica() {
                   autoComplete="email"
                   placeholder="nome@esempio.it"
                   value={richiesta.email}
-                  onChange={(e) => aggiorna({ email: e.target.value })}
+                  onChange={(e) => {
+                    if (e.target.value.includes("@")) segna("email");
+                    aggiorna({ email: e.target.value });
+                  }}
                 />
                 <p className="es-aiuto">
                   È qui che ti mandiamo la ricevuta del pagamento e la pratica finita.
@@ -381,7 +406,10 @@ export default function Verifica() {
                   className="es-bottone es-bottone-pieno es-bottone-grande"
                   disabled={!pronto || attesa !== null}
                   style={{ opacity: pronto && !attesa ? 1 : 0.5 }}
-                  onClick={versoLaCassa}
+                  onClick={() => {
+                    segna("pagamento");
+                    void versoLaCassa();
+                  }}
                 >
                   {attesa ?? "Vai al pagamento"}
                 </button>

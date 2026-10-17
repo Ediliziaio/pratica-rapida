@@ -237,9 +237,17 @@ body { background: #F5F2EC; }
 .es-chat-richiamo b { display: block; font-size: 15px; font-weight: 600; }
 .es-chat-richiamo i { display: block; font-style: normal; font-size: 13.5px; color: var(--es-inchiostro-debole); }
 .es-chat-richiamo-azione { margin-left: auto; flex-shrink: 0; font-size: 14px; font-weight: 600; color: #E8590C; }
+/* Su telefono il bottone galleggiante stava **sopra** il pulsante «Continua»
+   e sopra il testo del modulo: un aiuto che copre la strada e' un ostacolo,
+   non un aiuto. Si rimpicciolisce, si abbassa, e soprattutto la pagina si
+   tiene libero in fondo lo spazio che occupa, cosi' non copre mai niente. */
 @media (max-width: 560px) {
   .es-chat-richiamo-azione { display: none; }
-  .es-chat-bolla { padding: 0 18px 0 16px; }
+  .es-chat-bolla { height: 52px; right: 14px; bottom: 14px; padding: 0 16px 0 14px; gap: 9px; }
+  .es-chat-bolla > span { font-size: 14px; }
+  .es-chat-bolla b { font-size: 11.5px; }
+  /* Lo spazio che la bolla si prende, piu' un margine di sicurezza. */
+  .es-passo { padding-bottom: 104px; }
 }
 .es-chat { position: fixed; right: 20px; bottom: 20px; z-index: 60; width: min(380px, calc(100vw - 32px));
   max-height: min(560px, calc(100vh - 40px)); display: flex; flex-direction: column; overflow: hidden;

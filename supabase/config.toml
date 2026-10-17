@@ -15,6 +15,9 @@ verify_jwt = false
 [functions.eneasubito-disiscrizione]
 verify_jwt = false
 
+[functions.eneasubito-passi]
+verify_jwt = false
+
 # La chiama l'orologio del database: si difende con la chiave
 # nell'indirizzo, non col JWT.
 [functions.eneasubito-solleciti]

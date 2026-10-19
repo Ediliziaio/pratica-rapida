@@ -27,25 +27,30 @@ const reopenSource = readFileSync(
   "utf8",
 );
 
-describe("pagamento catastale durante la compilazione", () => {
-  it("salva la bozza prima di creare il pagamento e non avanza se il salvataggio fallisce", () => {
-    const save = formSource.indexOf("const ok = await saveDraft(");
-    const gate = formSource.indexOf("if (!ok) return;", save);
-    const payment = formSource.indexOf("await startRequiredPayment(true);", gate);
+describe("pagamento catastale al termine della compilazione", () => {
+  it("lo step Catasto salva la bozza e prosegue senza aprire il pagamento", () => {
+    const goNextStart = formSource.indexOf("const goNext = async () => {");
+    const goNextEnd = formSource.indexOf("const goBack = async () => {", goNextStart);
+    const goNextSource = formSource.slice(goNextStart, goNextEnd);
 
-    expect(save).toBeGreaterThan(0);
-    expect(gate).toBeGreaterThan(save);
-    expect(payment).toBeGreaterThan(gate);
+    expect(goNextSource).toContain("const ok = await saveDraft(");
+    expect(goNextSource).toContain("setStepIndex((i) => Math.min(i + 1, totalSteps - 1));");
+    expect(goNextSource).not.toContain("startRequiredPayment");
+    expect(goNextSource).not.toContain("shouldStartCadastralCheckout");
   });
 
-  it("decide il pagamento dai dati correnti e non dallo snapshot payment_required iniziale", () => {
-    expect(formSource).toContain("shouldStartCadastralCheckout({");
-    expect(formSource).toContain("paymentConfirmed: Boolean(practice && isPaymentConfirmed(practice))");
-    expect(formSource).not.toContain("!(practice && isPaymentFlowComplete(practice));");
+  it("crea il pagamento soltanto dopo l'invio finale del form", () => {
+    const firstSubmit = formSource.indexOf('supabase.rpc("submit_form_by_token"');
+    const firstPayment = formSource.indexOf("await startRequiredPayment(paymentRequired);", firstSubmit);
+
+    expect(firstSubmit).toBeGreaterThan(0);
+    expect(firstPayment).toBeGreaterThan(firstSubmit);
+    expect(formSource).not.toContain("shouldStartCadastralCheckout");
   });
 
-  it("consente il pagamento intermedio solo al servizio catastale non-CF", () => {
-    expect(createPaymentSource).toContain(
+  it("il servizio di pagamento rifiuta ogni modulo non ancora inviato", () => {
+    expect(createPaymentSource).toContain("if (!practice.form_compilato_at) {");
+    expect(createPaymentSource).not.toContain(
       '!practice.form_compilato_at && (!cadastralService || practice.tipo_fatturazione === "cliente_finale")',
     );
   });

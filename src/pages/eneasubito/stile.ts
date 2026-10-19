@@ -388,7 +388,9 @@ body { background: #F5F2EC; }
 /* La promessa dell'annuncio, ripetuta in cima al modulo: tre righe corte che
    si leggono senza scorrere, perche' chi arriva dal telefono vede quelle e
    decide li' se restare. */
-.es-promessa { list-style: none; margin: 4px 0 18px; padding: 14px 16px; display: flex;
+/* Niente margini propri: il passo li mette gia' fra un blocco e l'altro, e
+   sommandoli si sprecava mezzo schermo di telefono proprio dove si decide. */
+.es-promessa { list-style: none; margin: 0; padding: 14px 16px; display: flex;
   flex-direction: column; gap: 7px; border-radius: 14px; background: var(--es-verde-chiaro);
   border: 1px solid #CFDDD4; }
 .es-promessa li { position: relative; padding-left: 24px; font-size: 15.5px;

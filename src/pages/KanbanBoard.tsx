@@ -2856,10 +2856,20 @@ function KpiCard({
   label,
   value,
   color,
+  marchi,
 }: {
   label: string;
   value: string;
   color?: "green" | "amber";
+  /**
+   * La divisione fra i due marchi, quando serve.
+   *
+   * Il numero grande resta quello di Pratica Rapida, perche' e' quello che
+   * si guarda tutto il giorno; sotto, in piccolo, EneaSubito e il totale. Due
+   * borse diverse — i 99 € arrivano da Stripe, il resto si fattura ai
+   * rivenditori — ma sommarle serve a sapere quanto si e' fatto in tutto.
+   */
+  marchi?: { eneaSubito: string; totale: string };
 }) {
   const colorClasses =
     color === "green"
@@ -2871,6 +2881,15 @@ function KpiCard({
     <div className="rounded-lg border bg-card p-3">
       <p className="text-xs text-muted-foreground">{label}</p>
       <p className={`text-lg font-bold ${colorClasses}`}>{value}</p>
+      {marchi && (
+        <p className="mt-0.5 text-[11px] leading-tight text-muted-foreground">
+          <span className="text-teal-700 dark:text-teal-300">
+            EneaSubito {marchi.eneaSubito}
+          </span>
+          {" · "}
+          <span className="font-semibold text-foreground">tutto {marchi.totale}</span>
+        </p>
+      )}
     </div>
   );
 }
@@ -4469,18 +4488,42 @@ export default function KanbanBoard() {
             </div>
           )}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            <KpiCard label="Fatturato mese · netto IVA" value={`€ ${kpis.fatturato.toFixed(2)}`} />
+            <KpiCard
+              label="Fatturato mese · netto IVA"
+              value={`€ ${kpis.fatturato.toFixed(2)}`}
+              marchi={eneaSubitoMese && eneaSubitoMese.pratiche > 0
+                ? {
+                  eneaSubito: `€ ${eneaSubitoMese.incassato.toFixed(2)}`,
+                  totale: `€ ${(kpis.fatturato + eneaSubitoMese.incassato).toFixed(2)}`,
+                }
+                : undefined}
+            />
           <KpiCard
             label="Incassato mese · netto IVA"
             value={`€ ${kpis.incassato.toFixed(2)}`}
             color="green"
+            marchi={eneaSubitoMese && eneaSubitoMese.pratiche > 0
+              ? {
+                eneaSubito: `€ ${eneaSubitoMese.incassato.toFixed(2)}`,
+                totale: `€ ${(kpis.incassato + eneaSubitoMese.incassato).toFixed(2)}`,
+              }
+              : undefined}
           />
           <KpiCard
             label="Da incassare mese · netto IVA"
             value={`€ ${kpis.daIncassare.toFixed(2)}`}
             color="amber"
           />
-          <KpiCard label="Pratiche del mese" value={String(kpis.pratiche)} />
+          <KpiCard
+            label="Pratiche del mese"
+            value={String(kpis.pratiche)}
+            marchi={eneaSubitoMese && eneaSubitoMese.pratiche > 0
+              ? {
+                eneaSubito: String(eneaSubitoMese.pratiche),
+                totale: String(kpis.pratiche + eneaSubitoMese.pratiche),
+              }
+              : undefined}
+          />
           </div>
           {eneaSubitoMese && eneaSubitoMese.pratiche > 0 && (
             <div className="mt-2 rounded-md border border-teal-300 bg-teal-50 px-3 py-2 dark:border-teal-800 dark:bg-teal-950/40">

@@ -384,4 +384,17 @@ body { background: #F5F2EC; }
 .es-chat-suo b { display: block; margin-bottom: 2px; font-size: 11.5px; font-weight: 600;
   text-transform: uppercase; letter-spacing: .04em; opacity: .55; }
 .es-chat-mio p, .es-chat-suo p { margin: 0; white-space: pre-wrap; }
+
+/* La promessa dell'annuncio, ripetuta in cima al modulo: tre righe corte che
+   si leggono senza scorrere, perche' chi arriva dal telefono vede quelle e
+   decide li' se restare. */
+.es-promessa { list-style: none; margin: 4px 0 18px; padding: 14px 16px; display: flex;
+  flex-direction: column; gap: 7px; border-radius: 14px; background: var(--es-verde-chiaro);
+  border: 1px solid #CFDDD4; }
+.es-promessa li { position: relative; padding-left: 24px; font-size: 15.5px;
+  color: var(--es-inchiostro); }
+.es-promessa li::before { content: ""; position: absolute; left: 4px; top: 7px;
+  width: 7px; height: 11px; border: solid var(--es-verde); border-width: 0 2.2px 2.2px 0;
+  transform: rotate(45deg); }
+.es-promessa b { font-weight: 700; }
 `;

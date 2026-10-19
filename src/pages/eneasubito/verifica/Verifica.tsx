@@ -259,10 +259,25 @@ export default function Verifica() {
 
           {passo === 1 ? (
             <>
-              <h1 className="es-domandona es-serif">Fai partire la tua pratica</h1>
+              {/* La promessa dell'annuncio, ripetuta qui.
+                  Su 41 persone che aprivano questo modulo, 33 se ne andavano
+                  senza toccare niente. L'annuncio dice «99 €, la facciamo noi
+                  in 48 ore», e questa pagina non ne diceva una parola: la
+                  persona cliccava su una promessa, apriva la porta, e la
+                  promessa non c'era piu'. La prima cosa che leggeva era un
+                  ostacolo — «se non ce l'hai sottomano» — e la seconda una
+                  domanda a cui rispondere. */}
+              <h1 className="es-domandona es-serif">La tua pratica ENEA la facciamo noi</h1>
+              <ul className="es-promessa">
+                <li><b>99 €</b>, tutto compreso</li>
+                <li>Pronta in <b>48 ore</b></li>
+                <li>Bastano la fattura e i tuoi dati</li>
+              </ul>
+              {/* Niente negazioni in una pagina che deve convincere: deciso
+                  dal Titolare, e qui vale doppio — si apriva dicendo a una
+                  persona cosa poteva mancarle. */}
               <p className="es-aiuto">
-                Cominciamo da due cose. La fattura te la chiediamo dopo: se non ce l'hai sottomano,
-                riprendi con calma quando ce l'hai.
+                Cominciamo: ci vogliono davvero due minuti. La fattura te la chiediamo alla fine.
               </p>
 
               <div className="es-campone">

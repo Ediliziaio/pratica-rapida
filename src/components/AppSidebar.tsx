@@ -346,14 +346,15 @@ export function AppSidebar() {
   // Quante domande della chat EneaSubito sono rimaste senza risposta. Solo
   // per il titolare, che e' l'unico che risponde.
   const { data: messaggiEneaSubito = 0 } = useQuery({
-    queryKey: ["eneasubito-messaggi-aperti"],
+    queryKey: ["chat-aperte-count"],
     enabled: superAdmin,
     refetchInterval: 60_000,
     queryFn: async () => {
       const { count, error } = await supabase
-        .from("eneasubito_chat_messaggi" as never)
+        .from("chat_conversazioni" as never)
         .select("id", { count: "exact", head: true })
-        .is("risposto_at", null);
+        .eq("marchio", "eneasubito")
+        .is("chiusa_at", null);
       if (error) return 0;
       return count ?? 0;
     },

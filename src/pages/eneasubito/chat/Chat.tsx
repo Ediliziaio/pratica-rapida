@@ -8,15 +8,19 @@
  * uno dei clienti: nell'esportazione WhatsApp dell'altro marchio «mi potete
  * chiamare?» e' la piu' frequente in assoluto.
  *
- * **L'unica regola che conta: risponde sempre, subito.** Se uno scrive alle
- * undici di sera e legge «siamo offline», abbiamo ottenuto il contrario di
- * quello che volevamo. Per questo le risposte sono scritte (vedi domande.ts)
- * e non le genera nessun modello: su un argomento dove sbagliare vale
- * migliaia di euro di detrazione, prevedibile batte brillante.
+ * **Risponde sempre, subito**, con le risposte scritte a mano (domande.ts) e
+ * non generate da nessun modello: su un argomento dove sbagliare vale
+ * migliaia di euro di detrazione al cliente, prevedibile batte brillante.
  *
- * Promette **una risposta subito** e **una persona entro poche ore**. Mai una
- * persona in tempo reale, e mai una telefonata: il Titolare ha deciso il
- * 16/10/2026 che telefonate non se ne fanno.
+ * **E dal 19/10/2026 e' una chat vera.** Prima prometteva una chat e
+ * consegnava una mail; il Titolare l'ha detto con precisione: «non posso
+ * scrivere sulla chat e ricevere una risposta sulla mail». Ora chi scrive
+ * apre una conversazione, e la risposta dell'operatore compare qui dentro,
+ * dove l'ha chiesta. L'indirizzo e-mail resta facoltativo e serve a una cosa
+ * sola: riprendere chi se ne va prima che qualcuno risponda.
+ *
+ * Mai una telefonata: il Titolare ha deciso il 16/10/2026 che telefonate non
+ * se ne fanno.
  *
  * Nessun servizio esterno: con un account condiviso Crisp o Tawk i due marchi
  * risulterebbero collegati, e la pagina privacy che dice «l'unico servizio
@@ -25,8 +29,8 @@
 import { useEffect, useRef, useState } from "react";
 
 import { cerca, IN_VETRINA, type Domanda } from "./domande";
-import { inOrario, quandoRispondiamo, statoBreve } from "./orari";
-import { mandaMessaggio } from "./invio";
+import { APERTURA, inOrario, quandoRispondiamo, statoBreve } from "./orari";
+import { apri, chiaveSalvata, leggi, scrivi, type MessaggioChat } from "./conversazione";
 
 /**
  * Il nome dell'evento con cui la si apre da fuori.
@@ -79,14 +83,23 @@ export function Chat() {
   const [aperta, setAperta] = useState<Domanda | null>(null);
   const [scritto, setScritto] = useState("");
   const [email, setEmail] = useState("");
-  const [invio, setInvio] = useState<"fermo" | "in_corso" | "fatto" | "errore">("fermo");
-  const pannello = useRef<HTMLDivElement>(null);
+  const [intoppo, setIntoppo] = useState(false);
+  const [inviando, setInviando] = useState(false);
+
+  // La conversazione vera: finche' e' nulla, la chat e' solo l'elenco delle
+  // risposte pronte. Appena la persona scrive, nasce e resta.
+  const [chiave, setChiave] = useState<string | null>(() => chiaveSalvata());
+  const [messaggi, setMessaggi] = useState<MessaggioChat[]>([]);
+
+  const rifTesto = useRef<HTMLTextAreaElement>(null);
+  const rifFondo = useRef<HTMLDivElement>(null);
+  const [vuoleScrivere, setVuoleScrivere] = useState(false);
 
   // La apre anche il richiamo dentro la pagina.
   useEffect(() => {
-    const apri = () => setStato("aperta");
-    window.addEventListener(APRI_CHAT, apri);
-    return () => window.removeEventListener(APRI_CHAT, apri);
+    const apriPannello = () => setStato("aperta");
+    window.addEventListener(APRI_CHAT, apriPannello);
+    return () => window.removeEventListener(APRI_CHAT, apriPannello);
   }, []);
 
   // Chi apre la chat si aspetta che Esc la chiuda.
@@ -99,43 +112,75 @@ export function Chat() {
     return () => window.removeEventListener("keydown", suTasto);
   }, [stato]);
 
-  const rifEmail = useRef<HTMLInputElement>(null);
-  const rifTesto = useRef<HTMLTextAreaElement>(null);
-  // Il pulsante «scrivici» e' sempre li', anche prima che la persona abbia
-  // scritto qualcosa: la via per parlare con un umano non deve dipendere da
-  // quello che la macchina crede di aver capito.
-  const [vuoleScrivere, setVuoleScrivere] = useState(false);
+  /**
+   * Si ricontrolla ogni tre secondi, ma solo a pannello aperto.
+   *
+   * Non e' la via piu' elegante — esiste di meglio — ma e' quella che non
+   * costringe ad aprire le tabelle al browser anonimo. Con una o due
+   * conversazioni al giorno, tre secondi di attesa non li nota nessuno e il
+   * costo e' zero.
+   */
+  useEffect(() => {
+    if (stato !== "aperta" || !chiave) return;
+    let vivo = true;
+    async function aggiorna() {
+      const d = await leggi(chiave!);
+      if (vivo && d) setMessaggi(d.messaggi);
+    }
+    void aggiorna();
+    const orologio = setInterval(aggiorna, 3000);
+    return () => {
+      vivo = false;
+      clearInterval(orologio);
+    };
+  }, [stato, chiave]);
+
+  // Ogni messaggio nuovo porta la conversazione in fondo, dove si legge.
+  useEffect(() => {
+    rifFondo.current?.scrollIntoView({ block: "end" });
+  }, [messaggi.length, aperta]);
 
   const proposte = cerca(scritto);
   const scrittoAbbastanza = scritto.trim().length >= 10;
-  /**
-   * Si puo' SEMPRE mandare la domanda, appena c'e' qualcosa di scritto.
-   *
-   * Prima il modo per scrivere a un umano compariva soltanto quando la
-   * ricerca non trovava niente di somigliante. Sembrava sensato — se la
-   * risposta ce l'abbiamo, perche' far scrivere? — ed era la trappola: chi
-   * chiedeva «posso caricare piu' di una fattura?» si vedeva proporre
-   * quattro domande che contenevano la parola «fattura» e nessuna che
-   * rispondeva, e il modo per mandare la domanda spariva proprio perche' la
-   * ricerca aveva trovato qualcosa. Piu' la ricerca «funzionava», piu' la
-   * persona restava chiusa dentro.
-   *
-   * Un cliente vero ci ha scritto due volte — la seconda per dire «LA CHAT
-   * NON FUNZIONA» — e aveva ragione. Una via d'uscita che si chiude da sola
-   * e' peggio di nessuna via d'uscita, perche' intanto la persona ci ha
-   * provato e se n'e' andata convinta che non rispondiamo.
-   */
-  const daGirare = scrittoAbbastanza || vuoleScrivere;
+  const conversazioneViva = !!chiave && messaggi.length > 0;
   const emailBuona = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim());
 
+  /**
+   * Manda il messaggio, aprendo la conversazione se non c'e' ancora.
+   *
+   * La risposta arriva **qui dentro**, non per mail: e' la ragione per cui
+   * questa chat e' stata rifatta. L'indirizzo resta facoltativo, e serve solo
+   * a riprendere chi se ne va prima che rispondiamo.
+   */
   async function manda() {
-    setInvio("in_corso");
-    const esito = await mandaMessaggio({
-      testo: scritto.trim(),
-      email: email.trim(),
-      pagina: typeof window === "undefined" ? "" : window.location.pathname,
-    });
-    setInvio(esito ? "fatto" : "errore");
+    const testo = scritto.trim();
+    if (testo.length < 1 || inviando) return;
+    setInviando(true);
+    setIntoppo(false);
+
+    const pagina = typeof window === "undefined" ? "" : window.location.pathname;
+    let suo = chiave;
+    if (!suo) {
+      suo = await apri(pagina);
+      if (!suo) {
+        setInviando(false);
+        setIntoppo(true);
+        return;
+      }
+      setChiave(suo);
+    }
+
+    const andata = await scrivi(suo, testo, emailBuona ? email.trim() : undefined, pagina);
+    setInviando(false);
+    if (!andata) {
+      setIntoppo(true);
+      return;
+    }
+    setScritto("");
+    setAperta(null);
+    setVuoleScrivere(true);
+    const d = await leggi(suo);
+    if (d) setMessaggi(d.messaggi);
   }
 
   if (stato === "chiusa") {
@@ -162,34 +207,45 @@ export function Chat() {
   }
 
   return (
-    <div className="es-chat" ref={pannello} role="dialog" aria-label="Assistenza EneaSubito">
+    <div className="es-chat" role="dialog" aria-label="Assistenza EneaSubito">
       <div className="es-chat-testa">
         <div>
-          <b>Assistenza</b>
-          <span>Rispondiamo subito</span>
+          <strong>Assistenza</strong>
+          <span>{inOrario() ? "Rispondiamo subito" : `Rispondiamo dalle ${APERTURA}`}</span>
         </div>
         <button type="button" onClick={() => setStato("chiusa")} aria-label="Chiudi">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-               strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
-            <path d="M18 6 6 18M6 6l12 12" />
+               strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+            <path d="M6 6l12 12M18 6L6 18" />
           </svg>
         </button>
       </div>
 
       <div className="es-chat-corpo">
-        {aperta ? (
+        {conversazioneViva ? (
+          <>
+            {messaggi.map((m) => (
+              <div
+                key={m.id}
+                className={m.da === "cliente" ? "es-chat-mio" : "es-chat-suo"}
+              >
+                {m.da !== "cliente" && <b>Assistenza</b>}
+                <p>{m.testo}</p>
+              </div>
+            ))}
+            {/* Senza questo, chi scrive fuori orario resta a fissare la
+                conversazione aspettando una risposta che arriva domani. */}
+            <p className="es-chat-coda">{quandoRispondiamo()}</p>
+          </>
+        ) : aperta ? (
           <>
             <button type="button" className="es-chat-torna" onClick={() => setAperta(null)}>
               ← Tutte le domande
             </button>
-            <p className="es-chat-domanda">{aperta.domanda}</p>
+            <h3 className="es-chat-domanda">{aperta.domanda}</h3>
             {aperta.risposta.split("\n\n").map((paragrafo) => (
               <p key={paragrafo} className="es-chat-risposta">{paragrafo}</p>
             ))}
-            <p className="es-chat-coda">
-              Ti serve altro? Scrivi qui sotto, oppure a{" "}
-              <a href="mailto:assistenza@eneasubito.it">assistenza@eneasubito.it</a>.
-            </p>
             <button
               type="button"
               className="es-chat-scrivici"
@@ -204,8 +260,8 @@ export function Chat() {
         ) : (
           <>
             <p className="es-chat-intro">
-              Rispondiamo subito alle domande qui sotto. Per tutto il resto scrivici per mail.{" "}
-              {quandoRispondiamo()}
+              Rispondiamo subito alle domande qui sotto. Per tutto il resto scrivici: la risposta
+              arriva qui, in questa finestra.
             </p>
             {(scrittoAbbastanza ? proposte : IN_VETRINA).map((d) => (
               <button key={d.id} type="button" className="es-chat-voce" onClick={() => setAperta(d)}>
@@ -224,79 +280,58 @@ export function Chat() {
             </button>
           </>
         )}
+        <div ref={rifFondo} />
       </div>
 
       <div className="es-chat-piede">
-        {invio === "fatto" ? (
-          <p className="es-chat-esito">
-            Ricevuto. {quandoRispondiamo()}
+        <textarea
+          ref={rifTesto}
+          rows={2}
+          placeholder={conversazioneViva ? "Scrivi un messaggio…" : "Scrivi la tua domanda…"}
+          value={scritto}
+          onChange={(e) => {
+            setScritto(e.target.value);
+            if (!conversazioneViva) setAperta(null);
+            setIntoppo(false);
+          }}
+          onKeyDown={(e) => {
+            // Invio manda, come in qualunque chat. Chi vuole andare a capo
+            // tiene premuto shift.
+            if (e.key !== "Enter" || e.shiftKey) return;
+            e.preventDefault();
+            void manda();
+          }}
+          aria-label="Scrivi il tuo messaggio"
+        />
+
+        {/* L'indirizzo e' facoltativo e si chiede una volta sola: la risposta
+            arriva qui dentro, serve solo a riprendere chi se ne va prima. */}
+        {(vuoleScrivere || conversazioneViva) && (
+          <input
+            type="email"
+            placeholder="la tua e-mail (facoltativa, per avvisarti)"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            aria-label="La tua e-mail, facoltativa"
+          />
+        )}
+
+        <button
+          type="button"
+          className="es-chat-manda"
+          disabled={scritto.trim().length < 1 || inviando}
+          onClick={() => void manda()}
+        >
+          {inviando ? "Un momento…" : "Manda"}
+        </button>
+
+        {intoppo && (
+          <p className="es-chat-coda">
+            Non siamo riusciti a inviarlo. Scrivici a{" "}
+            <a href="mailto:assistenza@eneasubito.it">assistenza@eneasubito.it</a>.
           </p>
-        ) : (
-          <>
-            <textarea
-              ref={rifTesto}
-              rows={2}
-              placeholder="Scrivi la tua domanda…"
-              value={scritto}
-              onChange={(e) => {
-                setScritto(e.target.value);
-                setAperta(null);
-                if (invio === "errore") setInvio("fermo");
-              }}
-              onKeyDown={(e) => {
-                // Invio manda, come in qualunque chat. Prima andava a capo e
-                // basta: la persona premeva invio, non succedeva niente, e
-                // concludeva che la chat era rotta. Chi vuole andare a capo
-                // tiene premuto shift.
-                if (e.key !== "Enter" || e.shiftKey) return;
-                e.preventDefault();
-                if (!scrittoAbbastanza) return;
-                if (emailBuona) void manda();
-                else rifEmail.current?.focus();
-              }}
-              aria-label="Scrivi la tua domanda"
-            />
-            {daGirare && (
-              <>
-                <p className="es-chat-coda">
-                  {scritto.trim().length < 5
-                    ? "Scrivi qui sopra la tua domanda e lasciaci la tua e-mail: ti rispondiamo noi."
-                    : proposte.length > 0
-                      ? "Nessuna di quelle qui sopra risponde? Lasciaci la tua e-mail e ti rispondiamo noi."
-                      : "Questa la giriamo a un tecnico. Lasciaci la tua e-mail per la risposta."}
-                </p>
-                <input
-                  ref={rifEmail}
-                  type="email"
-                  placeholder="la tua e-mail"
-                  value={email}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && emailBuona && invio !== "in_corso") void manda();
-                  }}
-                  onChange={(e) => setEmail(e.target.value)}
-                  aria-label="La tua e-mail"
-                />
-                <button
-                  type="button"
-                  className="es-chat-manda"
-                  disabled={!emailBuona || scritto.trim().length < 5 || invio === "in_corso"}
-                  onClick={manda}
-                >
-                  {invio === "in_corso" ? "Un momento…" : "Manda"}
-                </button>
-              </>
-            )}
-            {invio === "errore" && (
-              <p className="es-chat-coda">
-                Non siamo riusciti a inviarlo. Scrivici a{" "}
-                <a href="mailto:assistenza@eneasubito.it">assistenza@eneasubito.it</a>.
-              </p>
-            )}
-          </>
         )}
       </div>
     </div>
   );
 }
-
-export default Chat;

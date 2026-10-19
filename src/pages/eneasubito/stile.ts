@@ -372,4 +372,16 @@ body { background: #F5F2EC; }
   border: 1.5px dashed #F3C4A4; border-radius: 12px; background: #FFF4EC; cursor: pointer;
   font-family: inherit; font-size: 14px; font-weight: 600; color: #B8470C; text-align: left; }
 .es-chat-scrivici:hover { border-color: #E8590C; background: #FFEADC; }
+
+/* I messaggi della conversazione: i suoi a sinistra, i miei a destra, come in
+   qualunque chat. Nessuno deve chiedersi chi ha scritto cosa. */
+.es-chat-mio, .es-chat-suo { max-width: 85%; margin-bottom: 10px; padding: 9px 13px;
+  border-radius: 14px; font-size: 14.5px; line-height: 1.45; }
+.es-chat-mio { margin-left: auto; background: var(--es-verde); color: #fff;
+  border-bottom-right-radius: 4px; }
+.es-chat-suo { margin-right: auto; background: #F0EDE6; color: var(--es-inchiostro);
+  border-bottom-left-radius: 4px; }
+.es-chat-suo b { display: block; margin-bottom: 2px; font-size: 11.5px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .04em; opacity: .55; }
+.es-chat-mio p, .es-chat-suo p { margin: 0; white-space: pre-wrap; }
 `;

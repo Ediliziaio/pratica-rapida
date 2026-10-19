@@ -343,6 +343,22 @@ export function AppSidebar() {
     },
   });
 
+  // Quante domande della chat EneaSubito sono rimaste senza risposta. Solo
+  // per il titolare, che e' l'unico che risponde.
+  const { data: messaggiEneaSubito = 0 } = useQuery({
+    queryKey: ["eneasubito-messaggi-aperti"],
+    enabled: superAdmin,
+    refetchInterval: 60_000,
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("eneasubito_chat_messaggi" as never)
+        .select("id", { count: "exact", head: true })
+        .is("risposto_at", null);
+      if (error) return 0;
+      return count ?? 0;
+    },
+  });
+
   // Conteggio clienti "da chiamare": pratiche nelle prime due stage
   // (inviata / attesa_compilazione) col form non ancora compilato. Badge sulla
   // voce "Chiamate". Polling 5min: è informativo, non richiede freschezza live.
@@ -434,6 +450,15 @@ export function AppSidebar() {
       groups.push({
         items: [
           { title: "EneaSubito", url: "/eneasubito/acquisizione", icon: TrendingUp },
+          // Il numerino non e' un vezzo: chi scrive dalla chat si e' sentito
+          // promettere una risposta per mail, e senza un segno visibile una
+          // promessa del genere si dimentica.
+          {
+            title: "Messaggi EneaSubito",
+            url: "/eneasubito/messaggi",
+            icon: MessageCircle,
+            badge: messaggiEneaSubito,
+          },
         ],
       });
     }

@@ -39,6 +39,7 @@ const ImpostazioniAzienda = lazy(() => import("./pages/ImpostazioniAzienda"));
 const Blocked = lazy(() => import("./pages/Blocked"));
 const FormPubblico = lazy(() => import("./pages/FormPubblico"));
 const EneaSubitoAcquisizione = lazy(() => import("./pages/EneaSubitoAcquisizione"));
+const EneaSubitoMessaggi = lazy(() => import("./pages/EneaSubitoMessaggi"));
 const PagamentoCliente = lazy(() => import("./pages/PagamentoCliente"));
 const ModuloClientePage = lazy(() => import("./pages/ModuloClientePage"));
 const KanbanBoard = lazy(() => import("./pages/KanbanBoard"));
@@ -318,6 +319,7 @@ const App = () => (
 
                 {/* Staff-only routes (super_admin + operatore — NOT admin_interno/company admins) */}
                 <Route path="/eneasubito/acquisizione" element={<ProtectedRoute><RoleGuard allowed={[...ADMIN_ROLES]}><EneaSubitoAcquisizione /></RoleGuard></ProtectedRoute>} />
+                <Route path="/eneasubito/messaggi" element={<ProtectedRoute><RoleGuard allowed={[...ADMIN_ROLES]}><EneaSubitoMessaggi /></RoleGuard></ProtectedRoute>} />
                 <Route path="/aziende" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><Aziende /></RoleGuard></ProtectedRoute>} />
                 <Route path="/aziende/:id" element={<ProtectedRoute><RoleGuard allowed={[...STAFF_ROLES]}><AziendaDetail /></RoleGuard></ProtectedRoute>} />
                 {/* Redirect legacy standalone routes to Impostazioni tabs */}

@@ -25,6 +25,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import { cerca, IN_VETRINA, type Domanda } from "./domande";
+import { inOrario, quandoRispondiamo, statoBreve } from "./orari";
 import { mandaMessaggio } from "./invio";
 
 /**
@@ -149,8 +150,11 @@ export function Chat() {
         <span>
           Assistenza
           <b>
-            <i className="es-chat-pallino" aria-hidden="true" />
-            online
+            {/* Il pallino verde acceso a mezzanotte e' una bugia piccola che
+                costa cara: chi scrive alle 23 aspetta una risposta subito,
+                non la riceve, e la mattina dopo non e' piu' un cliente. */}
+            {inOrario() && <i className="es-chat-pallino" aria-hidden="true" />}
+            {statoBreve()}
           </b>
         </span>
       </button>
@@ -200,8 +204,8 @@ export function Chat() {
         ) : (
           <>
             <p className="es-chat-intro">
-              Rispondiamo subito alle domande qui sotto. Per tutto il resto scrivici: ti rispondiamo
-              per mail entro poche ore.
+              Rispondiamo subito alle domande qui sotto. Per tutto il resto scrivici per mail.{" "}
+              {quandoRispondiamo()}
             </p>
             {(scrittoAbbastanza ? proposte : IN_VETRINA).map((d) => (
               <button key={d.id} type="button" className="es-chat-voce" onClick={() => setAperta(d)}>
@@ -225,7 +229,7 @@ export function Chat() {
       <div className="es-chat-piede">
         {invio === "fatto" ? (
           <p className="es-chat-esito">
-            Ricevuto. Ti rispondiamo per mail entro poche ore.
+            Ricevuto. {quandoRispondiamo()}
           </p>
         ) : (
           <>

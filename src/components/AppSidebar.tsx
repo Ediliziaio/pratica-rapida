@@ -348,15 +348,23 @@ export function AppSidebar() {
   const { data: messaggiEneaSubito = 0 } = useQuery({
     queryKey: ["chat-aperte-count"],
     enabled: superAdmin,
-    refetchInterval: 60_000,
+    refetchInterval: 30_000,
     queryFn: async () => {
-      const { count, error } = await supabase
+      // Si contano le righe lette, non si chiede un conteggio: la lettura
+      // e' la stessa che fa la pagina e che sappiamo funzionare. Con una
+      // manciata di conversazioni aperte non c'e' niente da ottimizzare, e
+      // un numerino che non compare mai e' peggio di un numerino lento.
+      const { data, error } = await supabase
         .from("chat_conversazioni" as never)
-        .select("id", { count: "exact", head: true })
+        .select("id")
         .eq("marchio", "eneasubito")
-        .is("chiusa_at", null);
-      if (error) return 0;
-      return count ?? 0;
+        .is("chiusa_at", null)
+        .limit(99);
+      if (error) {
+        console.error("[barra] conteggio chat fallito", error);
+        return 0;
+      }
+      return (data ?? []).length;
     },
   });
 

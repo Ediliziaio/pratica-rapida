@@ -48,6 +48,54 @@ function pulisci(valore: unknown, massimo: number): string {
     .slice(0, massimo);
 }
 
+const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY_ENEASUBITO") ??
+  Deno.env.get("RESEND_API_KEY") ?? "";
+const CASELLA = "assistenza@eneasubito.it";
+
+/**
+ * Porta la domanda nella casella dell'assistenza.
+ *
+ * Il mittente e' il nostro indirizzo (e' l'unico da cui siamo autorizzati a
+ * spedire), ma il «rispondi a» e' quello del cliente: cosi' si risponde
+ * premendo Rispondi, senza copiare indirizzi a mano. Chi deve rispondere in
+ * fretta non deve fare passaggi.
+ */
+async function avvisa(testo: string, email: string, pagina: string): Promise<void> {
+  if (!RESEND_API_KEY) {
+    console.error("[eneasubito-chat] nessuna chiave: la domanda resta solo nella tabella");
+    return;
+  }
+  const inizio = testo.length > 60 ? `${testo.slice(0, 60)}…` : testo;
+  try {
+    const risposta = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${RESEND_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: `EneaSubito <${CASELLA}>`,
+        to: [CASELLA],
+        reply_to: email,
+        subject: `Domanda dal sito: ${inizio}`,
+        text: [
+          testo,
+          "",
+          `Da: ${email}`,
+          pagina ? `Pagina: ${pagina}` : "",
+          "",
+          "Rispondi a questo messaggio: la risposta va direttamente a chi ha scritto.",
+        ].filter(Boolean).join("\n"),
+      }),
+    });
+    if (!risposta.ok) {
+      console.error("[eneasubito-chat] avviso non partito:", risposta.status, await risposta.text());
+    }
+  } catch (e) {
+    console.error("[eneasubito-chat] avviso non partito:", e);
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
   if (req.method !== "POST") return json({ error: "Metodo non consentito" }, 405);
@@ -77,6 +125,17 @@ Deno.serve(async (req) => {
       .from("eneasubito_chat_messaggi")
       .insert({ testo, email, pagina: pagina || null });
     if (error) throw error;
+
+    // La riga nella tabella non e' una risposta. La chat promette «ti
+    // rispondiamo per mail entro poche ore»: se il messaggio resta in un
+    // elenco che nessuno apre, quella promessa la stiamo facendo a nome di
+    // nessuno, ed e' peggio di non avere la chat — la persona ci ha provato
+    // e se n'e' andata convinta che non rispondiamo.
+    //
+    // Si avvisa dopo aver scritto la riga: se la mail non parte il messaggio
+    // resta comunque agli atti, mentre il contrario perderebbe la domanda.
+    await avvisa(testo, email, pagina);
+
     return json({ ok: true });
   } catch (e) {
     console.error("[eneasubito-chat]", e);

@@ -365,4 +365,11 @@ body { background: #F5F2EC; }
 .es-elenco-file li { display: flex; align-items: center; gap: 12px; padding: 10px 14px;
   border: 1px solid var(--es-bordo); border-radius: 12px; background: #fff; font-size: 14.5px; }
 .es-elenco-file li span { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* «Scrivici»: sempre in fondo all'elenco, perche' la via per parlare con una
+   persona non deve dipendere da quello che la macchina crede di aver capito. */
+.es-chat-scrivici { display: block; width: 100%; margin-top: 10px; padding: 11px 14px;
+  border: 1.5px dashed #F3C4A4; border-radius: 12px; background: #FFF4EC; cursor: pointer;
+  font-family: inherit; font-size: 14px; font-weight: 600; color: #B8470C; text-align: left; }
+.es-chat-scrivici:hover { border-color: #E8590C; background: #FFEADC; }
 `;

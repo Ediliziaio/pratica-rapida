@@ -99,6 +99,11 @@ export function Chat() {
   }, [stato]);
 
   const rifEmail = useRef<HTMLInputElement>(null);
+  const rifTesto = useRef<HTMLTextAreaElement>(null);
+  // Il pulsante «scrivici» e' sempre li', anche prima che la persona abbia
+  // scritto qualcosa: la via per parlare con un umano non deve dipendere da
+  // quello che la macchina crede di aver capito.
+  const [vuoleScrivere, setVuoleScrivere] = useState(false);
 
   const proposte = cerca(scritto);
   const scrittoAbbastanza = scritto.trim().length >= 10;
@@ -119,7 +124,7 @@ export function Chat() {
    * e' peggio di nessuna via d'uscita, perche' intanto la persona ci ha
    * provato e se n'e' andata convinta che non rispondiamo.
    */
-  const daGirare = scrittoAbbastanza;
+  const daGirare = scrittoAbbastanza || vuoleScrivere;
   const emailBuona = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim());
 
   async function manda() {
@@ -181,6 +186,16 @@ export function Chat() {
               Ti serve altro? Scrivi qui sotto, oppure a{" "}
               <a href="mailto:assistenza@eneasubito.it">assistenza@eneasubito.it</a>.
             </p>
+            <button
+              type="button"
+              className="es-chat-scrivici"
+              onClick={() => {
+                setVuoleScrivere(true);
+                rifTesto.current?.focus();
+              }}
+            >
+              Non è questo che chiedevo: scrivici
+            </button>
           </>
         ) : (
           <>
@@ -193,6 +208,16 @@ export function Chat() {
                 {d.domanda}
               </button>
             ))}
+            <button
+              type="button"
+              className="es-chat-scrivici"
+              onClick={() => {
+                setVuoleScrivere(true);
+                rifTesto.current?.focus();
+              }}
+            >
+              Nessuna di queste? Scrivici direttamente
+            </button>
           </>
         )}
       </div>
@@ -205,6 +230,7 @@ export function Chat() {
         ) : (
           <>
             <textarea
+              ref={rifTesto}
               rows={2}
               placeholder="Scrivi la tua domanda…"
               value={scritto}
@@ -229,9 +255,11 @@ export function Chat() {
             {daGirare && (
               <>
                 <p className="es-chat-coda">
-                  {proposte.length > 0
-                    ? "Nessuna di quelle qui sopra risponde? Lasciaci la tua e-mail e ti rispondiamo noi."
-                    : "Questa la giriamo a un tecnico. Lasciaci la tua e-mail per la risposta."}
+                  {scritto.trim().length < 5
+                    ? "Scrivi qui sopra la tua domanda e lasciaci la tua e-mail: ti rispondiamo noi."
+                    : proposte.length > 0
+                      ? "Nessuna di quelle qui sopra risponde? Lasciaci la tua e-mail e ti rispondiamo noi."
+                      : "Questa la giriamo a un tecnico. Lasciaci la tua e-mail per la risposta."}
                 </p>
                 <input
                   ref={rifEmail}
@@ -247,7 +275,7 @@ export function Chat() {
                 <button
                   type="button"
                   className="es-chat-manda"
-                  disabled={!emailBuona || invio === "in_corso"}
+                  disabled={!emailBuona || scritto.trim().length < 5 || invio === "in_corso"}
                   onClick={manda}
                 >
                   {invio === "in_corso" ? "Un momento…" : "Manda"}

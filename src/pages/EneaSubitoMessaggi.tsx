@@ -23,9 +23,30 @@ interface Conversazione {
   marchio: string;
   email: string | null;
   pagina: string | null;
+  pratica_id: string | null;
   created_at: string;
   ultimo_at: string;
   chiusa_at: string | null;
+}
+
+/** Chi sta scrivendo, se lo sappiamo da qualche parte. */
+interface Chi {
+  nome: string;
+  email: string | null;
+  prodotto: string | null;
+  pagata: boolean;
+}
+
+/**
+ * Il nome da mostrare.
+ *
+ * Nell'ordine: chi e' nella pratica che stava compilando, poi l'indirizzo che
+ * ha lasciato nella chat, e solo se non abbiamo nessuna delle due si dice la
+ * verita' — non sappiamo chi e'.
+ */
+function comeSiChiama(c: Conversazione, chi: Chi | undefined): string {
+  if (chi?.nome) return chi.nome;
+  return c.email ?? "Visitatore senza indirizzo";
 }
 
 interface Messaggio {
@@ -53,6 +74,37 @@ export default function EneaSubitoMessaggi() {
   const cache = useQueryClient();
   const { toast } = useToast();
   const fondo = useRef<HTMLDivElement>(null);
+
+  // Chi sono, pescato dalle pratiche che stavano compilando. Una lettura
+  // sola per tutte le conversazioni, non una per ciascuna.
+  const { data: chiSono = {} } = useQuery({
+    queryKey: ["chat-chi-sono", chiuse],
+    queryFn: async () => {
+      const { data: conv } = await supabase
+        .from("chat_conversazioni" as never)
+        .select("pratica_id")
+        .eq("marchio", "eneasubito")
+        .not("pratica_id", "is", null)
+        .limit(100);
+      const codici = [...new Set(((conv ?? []) as unknown as { pratica_id: string }[])
+        .map((c) => c.pratica_id))];
+      if (codici.length === 0) return {} as Record<string, Chi>;
+      const { data } = await supabase
+        .from("enea_practices")
+        .select("id, cliente_nome, cliente_cognome, cliente_email, prodotto_installato, pagamento_stato")
+        .in("id", codici);
+      const mappa: Record<string, Chi> = {};
+      for (const p of data ?? []) {
+        mappa[p.id] = {
+          nome: `${p.cliente_nome ?? ""} ${p.cliente_cognome ?? ""}`.trim(),
+          email: p.cliente_email ?? null,
+          prodotto: p.prodotto_installato ?? null,
+          pagata: p.pagamento_stato === "pagata",
+        };
+      }
+      return mappa;
+    },
+  });
 
   const { data: conversazioni = [], isLoading } = useQuery({
     queryKey: ["chat-conversazioni", chiuse],
@@ -142,11 +194,19 @@ export default function EneaSubitoMessaggi() {
           </Button>
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-medium">
-              {corrente.email ?? "Visitatore senza indirizzo"}
+              {comeSiChiama(corrente, corrente.pratica_id ? chiSono[corrente.pratica_id] : undefined)}
             </p>
-            <p className="text-xs text-muted-foreground">
-              dalle {quando(corrente.created_at)}
-              {corrente.pagina ? ` · ${corrente.pagina}` : ""}
+            <p className="truncate text-xs text-muted-foreground">
+              {(() => {
+                const chi = corrente.pratica_id ? chiSono[corrente.pratica_id] : undefined;
+                const pezzi = [
+                  chi?.email ?? corrente.email,
+                  chi?.prodotto,
+                  chi ? (chi.pagata ? "ha pagato" : "non ha ancora pagato") : null,
+                  corrente.pagina,
+                ].filter(Boolean);
+                return pezzi.join(" · ") || `dalle ${quando(corrente.created_at)}`;
+              })()}
             </p>
           </div>
           {!corrente.chiusa_at && (
@@ -238,15 +298,18 @@ export default function EneaSubitoMessaggi() {
             >
               <div className="flex items-baseline justify-between gap-3">
                 <span className="truncate text-sm font-medium">
-                  {c.email ?? "Visitatore senza indirizzo"}
+                  {comeSiChiama(c, c.pratica_id ? chiSono[c.pratica_id] : undefined)}
                 </span>
                 <span className="shrink-0 text-xs text-muted-foreground">
                   {quando(c.ultimo_at)}
                 </span>
               </div>
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                {c.chiusa_at ? "chiusa" : "aperta"}
-                {c.pagina ? ` · da ${c.pagina}` : ""}
+              <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                {[
+                  c.chiusa_at ? "chiusa" : "aperta",
+                  c.pratica_id ? chiSono[c.pratica_id]?.prodotto : null,
+                  c.pagina ? `da ${c.pagina}` : null,
+                ].filter(Boolean).join(" · ")}
               </p>
             </button>
           </li>

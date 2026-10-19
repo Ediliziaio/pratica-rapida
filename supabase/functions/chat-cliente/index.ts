@@ -50,7 +50,7 @@ const pulisci = (v: unknown, max: number) => String(v ?? "").trim().slice(0, max
  * Solo al primo messaggio: se avvisasse a ogni riga, chi scrive tre frasi di
  * fila riempirebbe la casella e l'avviso smetterebbe di voler dire qualcosa.
  */
-async function avvisa(marchio: string, testo: string, pagina: string) {
+async function avvisa(marchio: string, testo: string, pagina: string, chi: string) {
   const casella = CASELLA[marchio];
   if (!RESEND_API_KEY || !casella) return;
   const inizio = testo.length > 60 ? `${testo.slice(0, 60)}…` : testo;
@@ -64,9 +64,9 @@ async function avvisa(marchio: string, testo: string, pagina: string) {
       body: JSON.stringify({
         from: MITTENTE[marchio],
         to: [casella],
-        subject: `Chat: ${inizio}`,
+        subject: chi ? `Chat da ${chi}: ${inizio}` : `Chat: ${inizio}`,
         text: [
-          "Qualcuno ha scritto nella chat del sito.",
+          chi ? `${chi} ha scritto nella chat del sito.` : "Qualcuno ha scritto nella chat del sito.",
           "",
           testo,
           "",
@@ -104,9 +104,25 @@ Deno.serve(async (req) => {
     const marchio = pulisci(corpo.marchio, 20);
     if (!MARCHI.has(marchio)) return json({ error: "Marchio sconosciuto" }, 400);
     const pagina = pulisci(corpo.pagina, 120).split("?")[0];
+
+    // Se sta compilando il modulo, la pratica ce l'ha gia' e dentro c'e' il
+    // suo nome: cosi' l'operatore sa con chi parla senza chiedere niente.
+    // Il codice della pratica vale solo per questo marchio: uno dell'altro
+    // non deve poter legare una conversazione a una pratica che non e' sua.
+    let pratica_id: string | null = null;
+    const token = pulisci(corpo.pratica, 64);
+    if (token) {
+      const { data: pratica } = await db
+        .from("enea_practices")
+        .select("id, canale")
+        .eq("form_token", token)
+        .maybeSingle();
+      if (pratica && pratica.canale === marchio) pratica_id = pratica.id as string;
+    }
+
     const { data, error } = await db
       .from("chat_conversazioni")
-      .insert({ marchio, pagina: pagina || null })
+      .insert({ marchio, pagina: pagina || null, pratica_id })
       .select("chiave")
       .single();
     if (error) {
@@ -122,7 +138,7 @@ Deno.serve(async (req) => {
 
   const { data: conversazione } = await db
     .from("chat_conversazioni")
-    .select("id, marchio, chiusa_at")
+    .select("id, marchio, chiusa_at, pratica_id")
     .eq("chiave", chiave)
     .maybeSingle();
   if (!conversazione) return json({ error: "Conversazione non trovata" }, 404);
@@ -162,7 +178,19 @@ Deno.serve(async (req) => {
     // Era il primo? Allora l'operatore non sa ancora che esiste.
     if ((count ?? 0) === 0) {
       const pagina = pulisci(corpo.pagina, 120).split("?")[0];
-      await avvisa(conversazione.marchio, testo, pagina);
+      // Se sta compilando una pratica, il nome ce l'abbiamo: scriverlo
+      // nell'avviso evita all'operatore di aprire il computer per sapere con
+      // chi sta parlando.
+      let chi = "";
+      if (conversazione.pratica_id) {
+        const { data: p } = await db
+          .from("enea_practices")
+          .select("cliente_nome, cliente_cognome")
+          .eq("id", conversazione.pratica_id)
+          .maybeSingle();
+        if (p) chi = `${p.cliente_nome ?? ""} ${p.cliente_cognome ?? ""}`.trim();
+      }
+      await avvisa(conversazione.marchio, testo, pagina, chi);
     }
     return json({ ok: true });
   }

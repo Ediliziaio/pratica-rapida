@@ -51,9 +51,29 @@ function ricorda(chiave: string) {
   }
 }
 
+/**
+ * Il codice della pratica che questa persona sta compilando, se ne ha una.
+ *
+ * Non e' un dato nuovo che le chiediamo: e' quello che ci ha gia' dato nel
+ * modulo. Serve a non far leggere all'operatore «visitatore senza
+ * indirizzo» mentre il nome ce l'ha sotto il naso.
+ */
+function praticaInCorso(): string | undefined {
+  try {
+    return sessionStorage.getItem("eneasubito-token") ?? undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 /** Apre una conversazione nuova e restituisce la chiave. */
 export async function apri(pagina: string): Promise<string | null> {
-  const d = await chiama({ azione: "apri", marchio: "eneasubito", pagina });
+  const d = await chiama({
+    azione: "apri",
+    marchio: "eneasubito",
+    pagina,
+    pratica: praticaInCorso(),
+  });
   const chiave = typeof d?.chiave === "string" ? d.chiave : null;
   if (chiave) ricorda(chiave);
   return chiave;

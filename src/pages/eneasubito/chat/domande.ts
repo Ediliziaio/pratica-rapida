@@ -31,6 +31,30 @@ export interface Domanda {
 
 export const DOMANDE: Domanda[] = [
   {
+    // L'ha chiesta il primo cliente vero, il 17/10/2026, e nessuno l'aveva
+    // prevista: aveva tre fatture e il modulo ne accettava una sola.
+    id: "piu-fatture",
+    domanda: "Ho più di una fattura: le posso caricare tutte?",
+    risposta:
+      "Sì, caricale tutte. Su un impianto è normale averne più d'una — la fornitura e l'installazione sono spesso due aziende e due documenti.\n\nI 99 € valgono per la pratica, non per documento: il numero di fatture non cambia il prezzo.",
+    chiavi: [
+      "piu",
+      "due",
+      "tre",
+      "fatture",
+      "fattura",
+      "documenti",
+      "caricare",
+      "allegare",
+      "secondo",
+      "altra",
+      "separate",
+      "fornitura",
+      "installazione",
+    ],
+    inVetrina: true,
+  },
+  {
     id: "chi-siete",
     domanda: "Ma chi siete, mi posso fidare?",
     risposta:

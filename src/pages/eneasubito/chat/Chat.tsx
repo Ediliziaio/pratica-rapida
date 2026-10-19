@@ -98,11 +98,28 @@ export function Chat() {
     return () => window.removeEventListener("keydown", suTasto);
   }, [stato]);
 
+  const rifEmail = useRef<HTMLInputElement>(null);
+
   const proposte = cerca(scritto);
   const scrittoAbbastanza = scritto.trim().length >= 10;
-  // Si offre di prendere il messaggio solo quando non abbiamo niente da
-  // proporre: se la risposta ce l'abbiamo, farlo scrivere e' tempo perso.
-  const daGirare = scrittoAbbastanza && proposte.length === 0;
+  /**
+   * Si puo' SEMPRE mandare la domanda, appena c'e' qualcosa di scritto.
+   *
+   * Prima il modo per scrivere a un umano compariva soltanto quando la
+   * ricerca non trovava niente di somigliante. Sembrava sensato — se la
+   * risposta ce l'abbiamo, perche' far scrivere? — ed era la trappola: chi
+   * chiedeva «posso caricare piu' di una fattura?» si vedeva proporre
+   * quattro domande che contenevano la parola «fattura» e nessuna che
+   * rispondeva, e il modo per mandare la domanda spariva proprio perche' la
+   * ricerca aveva trovato qualcosa. Piu' la ricerca «funzionava», piu' la
+   * persona restava chiusa dentro.
+   *
+   * Un cliente vero ci ha scritto due volte — la seconda per dire «LA CHAT
+   * NON FUNZIONA» — e aveva ragione. Una via d'uscita che si chiude da sola
+   * e' peggio di nessuna via d'uscita, perche' intanto la persona ci ha
+   * provato e se n'e' andata convinta che non rispondiamo.
+   */
+  const daGirare = scrittoAbbastanza;
   const emailBuona = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim());
 
   async function manda() {
@@ -196,17 +213,34 @@ export function Chat() {
                 setAperta(null);
                 if (invio === "errore") setInvio("fermo");
               }}
+              onKeyDown={(e) => {
+                // Invio manda, come in qualunque chat. Prima andava a capo e
+                // basta: la persona premeva invio, non succedeva niente, e
+                // concludeva che la chat era rotta. Chi vuole andare a capo
+                // tiene premuto shift.
+                if (e.key !== "Enter" || e.shiftKey) return;
+                e.preventDefault();
+                if (!scrittoAbbastanza) return;
+                if (emailBuona) void manda();
+                else rifEmail.current?.focus();
+              }}
               aria-label="Scrivi la tua domanda"
             />
             {daGirare && (
               <>
                 <p className="es-chat-coda">
-                  Questa la giriamo a un tecnico. Lasciaci la tua e-mail per la risposta.
+                  {proposte.length > 0
+                    ? "Nessuna di quelle qui sopra risponde? Lasciaci la tua e-mail e ti rispondiamo noi."
+                    : "Questa la giriamo a un tecnico. Lasciaci la tua e-mail per la risposta."}
                 </p>
                 <input
+                  ref={rifEmail}
                   type="email"
                   placeholder="la tua e-mail"
                   value={email}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && emailBuona && invio !== "in_corso") void manda();
+                  }}
                   onChange={(e) => setEmail(e.target.value)}
                   aria-label="La tua e-mail"
                 />

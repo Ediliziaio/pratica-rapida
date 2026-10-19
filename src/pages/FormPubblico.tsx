@@ -42,7 +42,6 @@ import {
 } from "@/components/form-cliente/invoiceRequestPolicy";
 import { useFormModuleByProdotto } from "@/hooks/useFormSchema";
 import { getFormCompletionCopy } from "@/lib/formCompletionCopy";
-import { shouldStartCadastralCheckout } from "@/lib/cadastralCheckoutGate";
 import {
   normalizeCfCustomerCompletionDate,
   withCfCustomerDate,
@@ -631,21 +630,6 @@ export default function FormPubblico({ marchio }: { marchio: Marchio }) {
       const ok = await saveDraft(
         useDynamic ? dynamicData : (formData as unknown as Record<string, unknown>),
       );
-      const cadastralPaymentNow = shouldStartCadastralCheckout({
-        isCadastralStep: isCadastralCurrentStep,
-        serviceRequested: currentCadastralServiceRequested,
-        billingType: practice?.tipo_fatturazione,
-        // `payment_required` appartiene allo snapshot caricato prima che il
-        // cliente selezioni il servizio: non deve mai sbloccare il passaggio.
-        paymentConfirmed: Boolean(practice && isPaymentConfirmed(practice)),
-      });
-      if (cadastralPaymentNow) {
-        // Il pagamento deve leggere dal DB la stessa bozza mostrata a video:
-        // se il salvataggio fallisce non si crea alcun ordine fiscale.
-        if (!ok) return;
-        await startRequiredPayment(true);
-        return;
-      }
       // Procediamo anche se il save fallisce — il toast è già stato mostrato.
       // L'utente può sempre tornare indietro e riprovare. Lo stato locale è
       // preservato.

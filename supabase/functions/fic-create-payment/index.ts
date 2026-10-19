@@ -64,10 +64,10 @@ serve(async (req) => {
   if (practice.tipo_fatturazione !== "cliente_finale" && !cadastralService) {
     return json({ error: "La pratica non richiede un pagamento al cliente finale" }, 409);
   }
-  // Il solo servizio catastale si paga a metà wizard, quando anagrafica,
-  // residenza e dati del proprietario sono già salvati. Il pagamento completo
-  // della pratica CF continua invece a richiedere il modulo terminato.
-  if (!practice.form_compilato_at && (!cadastralService || practice.tipo_fatturazione === "cliente_finale")) {
+  // Qualunque pagamento parte soltanto dopo l'invio completo del modulo.
+  // In questo modo la richiesta catastale non interrompe il wizard e non può
+  // lasciare una pratica pagata ma priva dell'invio finale.
+  if (!practice.form_compilato_at) {
     return json({ error: "Completa il modulo prima del pagamento" }, 409);
   }
   const { data: existing } = await admin

@@ -49,6 +49,7 @@ const HomeMain = lazy(() => import("./pages/HomeMain"));
 const AreaRiservataVecchia = lazy(() => import("./pages/AreaRiservataVecchia"));
 const AreaRiservataVecchiaServizi = lazy(() => import("./pages/AreaRiservataVecchiaServizi"));
 const VecchioPraticaEnea = lazy(() => import("./pages/vecchio/PraticaEnea"));
+const ImbutoPrivati = lazy(() => import("./pages/ImbutoPrivati"));
 const VecchioFotovoltaicoOffGrid = lazy(() => import("./pages/vecchio/FotovoltaicoOffGrid"));
 const VecchioVisuraCatastale = lazy(() => import("./pages/vecchio/VisuraCatastale"));
 const VecchioVerificaPrezzi = lazy(() => import("./pages/vecchio/VerificaPrezzi"));
@@ -273,6 +274,7 @@ const App = () => (
                 <Route path="/area-riservata-vecchia" element={<AreaRiservataVecchia />} />
                 <Route path="/area-riservata-vecchia/servizi" element={<AreaRiservataVecchiaServizi />} />
                 <Route path="/area-riservata-vecchia/pratica-enea" element={<VecchioPraticaEnea />} />
+                <Route path="/imbuto" element={<ImbutoPrivati />} />
                 <Route path="/area-riservata-vecchia/fotovoltaico-off-grid" element={<VecchioFotovoltaicoOffGrid />} />
                 <Route path="/area-riservata-vecchia/visura-catastale" element={<VecchioVisuraCatastale />} />
                 <Route path="/area-riservata-vecchia/verifica-prezzi" element={<VecchioVerificaPrezzi />} />

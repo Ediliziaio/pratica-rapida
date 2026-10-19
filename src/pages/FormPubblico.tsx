@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { eUnPrivatoDalSito, segnaPrivato } from "@/lib/imbutoPrivato";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { AlertCircle, ArrowLeft, ArrowRight, CheckCircle, CreditCard, Loader2, Send, Briefcase, LayoutDashboard, FileText } from "lucide-react";
 
@@ -403,6 +404,7 @@ export default function FormPubblico({ marchio }: { marchio: Marchio }) {
     }
 
     setPaymentUrl(result.payment_url);
+    if (eUnPrivatoDalSito()) segnaPrivato("pagamento");
     window.location.assign(result.payment_url);
     return true;
   };
@@ -491,6 +493,25 @@ export default function FormPubblico({ marchio }: { marchio: Marchio }) {
       setStepIndex(totalSteps - 1);
     }
   }, [totalSteps, stepIndex]);
+
+  // ── Imbuto del privato arrivato dal sito ────────────────────────────────────
+  // Solo chi ha scelto «Sono un cliente privato» in questa scheda: il modulo lo
+  // aprono anche i clienti dei rivenditori, e quelli non vanno contati.
+  const contaPrivato = eUnPrivatoDalSito();
+  useEffect(() => {
+    if (contaPrivato && practice) segnaPrivato("modulo");
+  }, [contaPrivato, practice]);
+  useEffect(() => {
+    if (contaPrivato && practice && !showIntro) segnaPrivato("compila");
+  }, [contaPrivato, practice, showIntro]);
+  useEffect(() => {
+    if (contaPrivato && practice && !showIntro && totalSteps > 0 && safeStepIndex === totalSteps - 1) {
+      segnaPrivato("ultima");
+    }
+  }, [contaPrivato, practice, showIntro, totalSteps, safeStepIndex]);
+  useEffect(() => {
+    if (contaPrivato && returningFromPayment) segnaPrivato("pagato");
+  }, [contaPrivato, returningFromPayment]);
 
   // ── Validazione step corrente ───────────────────────────────────────────────
   // Path hardcoded
@@ -661,6 +682,7 @@ export default function FormPubblico({ marchio }: { marchio: Marchio }) {
   // ── Submit finale ───────────────────────────────────────────────────────────
   const handleSubmit = async () => {
     if (!practice || !token) return;
+    if (eUnPrivatoDalSito()) segnaPrivato("invio");
 
     if (useDynamic && dbModule) {
       // Validazione completa su tutti gli step visibili

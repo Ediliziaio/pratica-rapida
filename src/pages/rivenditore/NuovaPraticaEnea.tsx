@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,6 +26,7 @@ import { cn } from "@/lib/utils";
 import { isStaffCfIntake } from "@/features/cfCustomerEvidence";
 import { fallbackMonthlyPracticePrice } from "@/lib/monthly-financial-kpis";
 import { captureException } from "@/lib/sentry";
+import { segnaPrivato } from "@/lib/imbutoPrivato";
 import type { TipoFatturazione, TipoSoggetto, TipoServizio } from "@/integrations/supabase/types";
 
 // ── Costanti ──────────────────────────────────────────────────────────────────
@@ -506,6 +507,7 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
   // ── Submit ─────────────────────────────────────────────────────────────────
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isPrivato) segnaPrivato("invia");
     if (!validate()) {
       // Scroll al primo errore
       setTimeout(() => document.querySelector("[data-error]")?.scrollIntoView({ behavior: "smooth", block: "center" }), 50);
@@ -593,6 +595,7 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
               "Richiesta registrata ma senza link al modulo. Scrivici su WhatsApp senza ricompilare la richiesta.",
             );
           }
+          segnaPrivato("registrata");
           navigate(`/form/${res.form_token}`);
           return;
         }
@@ -855,6 +858,15 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
     : isFgasOnly
       ? { servizio: 0, prodotto: 1, soggetto: 0, fatturazione: 0, dati: 2, documenti: 3, fgas: 4, note: 5 }
     : { servizio: 1, prodotto: 2, soggetto: 3, fatturazione: 4, dati: 5, documenti: 6, fgas: 7, note: tipoProdotto === "pompe_calore" ? 8 : 7 };
+
+  // ── Imbuto del privato (solo dal sito) ──────────────────────────────────────
+  // Si guardano i campi, non si toccano: la misura sta fuori dal percorso.
+  useEffect(() => { if (publicMode) segnaPrivato("aperto"); }, [publicMode]);
+  useEffect(() => { if (isPrivato) segnaPrivato("privato"); }, [isPrivato]);
+  useEffect(() => { if (isPrivato && tipoProdotto) segnaPrivato("prodotto"); }, [isPrivato, tipoProdotto]);
+  useEffect(() => { if (isPrivato && nome.trim()) segnaPrivato("nome"); }, [isPrivato, nome]);
+  useEffect(() => { if (isPrivato && telefono.trim()) segnaPrivato("telefono"); }, [isPrivato, telefono]);
+  useEffect(() => { if (isPrivato && email.trim()) segnaPrivato("email"); }, [isPrivato, email]);
 
   // ── Success screen ─────────────────────────────────────────────────────────
   if (submitted) {

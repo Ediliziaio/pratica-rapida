@@ -33,11 +33,16 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 import {
   corpo,
+  inFasciaUtile,
   qualeTocca,
   SOLLECITI,
   TERMINE_GIORNI,
   type StatoPratica,
 } from "../_shared/eneasubito-solleciti.ts";
+import {
+  corpo as corpoCompletamento,
+  qualeTocca as qualeToccaCompletamento,
+} from "../_shared/eneasubito-completamento.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -217,15 +222,19 @@ Deno.serve(async (req) => {
   }
 
   const [{ data: gia }, { data: fuori }] = await Promise.all([
-    db.from("eneasubito_solleciti").select("pratica_id, numero"),
+    db.from("eneasubito_solleciti").select("pratica_id, numero, tipo"),
     db.from("eneasubito_disiscritti").select("email"),
   ]);
 
+  // Due serie, due memorie: il messaggio 1 di una non deve impedire il
+  // messaggio 1 dell'altra.
   const inviatiPer = new Map<string, number[]>();
+  const inviatiCompletamento = new Map<string, number[]>();
   for (const r of gia ?? []) {
-    const elenco = inviatiPer.get(r.pratica_id as string) ?? [];
+    const dove = (r.tipo ?? "ripresa") === "completamento" ? inviatiCompletamento : inviatiPer;
+    const elenco = dove.get(r.pratica_id as string) ?? [];
     elenco.push(r.numero as number);
-    inviatiPer.set(r.pratica_id as string, elenco);
+    dove.set(r.pratica_id as string, elenco);
   }
   const disiscritti = new Set((fuori ?? []).map((r) => String(r.email).toLowerCase()));
 
@@ -289,7 +298,7 @@ Deno.serve(async (req) => {
     // Meglio un messaggio perso che un messaggio doppio.
     const { error: erroreSegno } = await db
       .from("eneasubito_solleciti")
-      .insert({ pratica_id: p.id, numero: tocca.numero });
+      .insert({ pratica_id: p.id, numero: tocca.numero, tipo: "ripresa" });
     if (erroreSegno) {
       esito.saltati += 1;
       continue;
@@ -318,6 +327,93 @@ Deno.serve(async (req) => {
           .eq("numero", tocca.numero);
       }
       esito.errori.push(`messaggio ${tocca.numero}: ${inviata.guasto}`);
+      continue;
+    }
+    esito.mandati += 1;
+  }
+
+  // ── Secondo giro: ha pagato e non ha finito di compilare ───────────────
+  //
+  // Serie diversa perche' il motivo e' diverso: qui non si convince nessuno,
+  // si recupera un lavoro gia' pagato che non possiamo fare. Il tempo si
+  // conta dal pagamento, non dalla nascita della pratica.
+  const { data: pagate } = await db
+    .from("enea_practices")
+    .select("id, form_token, cliente_nome, cliente_cognome, cliente_email, data_incasso, archived_at, form_compilato_at")
+    .eq("canale", "eneasubito")
+    .eq("pagamento_stato", "pagata")
+    .is("form_compilato_at", null)
+    .is("archived_at", null)
+    .order("data_incasso", { ascending: true })
+    .limit(100);
+
+  for (const p of pagate ?? []) {
+    if (esito.mandati >= MASSIMO_PER_GIRO) break;
+
+    const email = String(p.cliente_email ?? "").trim().toLowerCase();
+    // `data_incasso` e' una data senza ora: si legge come mezzogiorno, cosi'
+    // il conto delle ore non parte da mezzanotte di un giorno gia' passato.
+    const pagataIl = p.data_incasso ? `${p.data_incasso}T12:00:00Z` : "";
+
+    const tocca = qualeToccaCompletamento(
+      {
+        pagataIl,
+        compilatoIl: (p.form_compilato_at as string | null) ?? null,
+        archiviata: Boolean(p.archived_at),
+        disiscritta: disiscritti.has(email),
+        giaInviati: inviatiCompletamento.get(p.id as string) ?? [],
+        email: email || null,
+      },
+      adesso,
+      inFasciaUtile,
+    );
+    if (!tocca) {
+      esito.saltati += 1;
+      continue;
+    }
+
+    const testo = corpoCompletamento(tocca.numero, {
+      nome: `${p.cliente_nome ?? ""} ${p.cliente_cognome ?? ""}`.trim(),
+      linkModulo: `${SITO}/completa/${p.form_token}`,
+      linkDisiscrizione: `${SITO}/stop/${p.form_token}`,
+    });
+
+    if (soloProva || !ATTIVI) {
+      esito.anteprima.push({
+        numero: tocca.numero,
+        oggetto: `[completamento] ${tocca.oggetto}`,
+        motivo: soloProva ? "prova" : "spedizione spenta",
+      });
+      esito.saltati += 1;
+      continue;
+    }
+
+    const { error: erroreSegno } = await db
+      .from("eneasubito_solleciti")
+      .insert({ pratica_id: p.id, numero: tocca.numero, tipo: "completamento" });
+    if (erroreSegno) {
+      esito.saltati += 1;
+      continue;
+    }
+
+    const inviata = await spedisci(email, tocca.oggetto, testo);
+    if (inviata.guasto) {
+      if (inviata.certamenteNonPartita) {
+        await db
+          .from("eneasubito_solleciti")
+          .delete()
+          .eq("pratica_id", p.id)
+          .eq("tipo", "completamento")
+          .eq("numero", tocca.numero);
+      } else {
+        await db
+          .from("eneasubito_solleciti")
+          .update({ errore: inviata.guasto })
+          .eq("pratica_id", p.id)
+          .eq("tipo", "completamento")
+          .eq("numero", tocca.numero);
+      }
+      esito.errori.push(`completamento ${tocca.numero}: ${inviata.guasto}`);
       continue;
     }
     esito.mandati += 1;

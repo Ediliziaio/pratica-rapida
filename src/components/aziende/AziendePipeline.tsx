@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -51,6 +52,9 @@ interface CrmLead {
   contacted_at: string | null;
   contacted_by: string | null;
   archived_at: string | null;
+  marketing_consent: boolean;
+  marketing_consent_at: string | null;
+  marketing_consent_source: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -64,6 +68,14 @@ interface Company {
   piva: string | null;
   is_active?: boolean;
   created_at: string;
+}
+
+interface NurtureEnrollment {
+  lead_id: string;
+  status: "active" | "sending" | "paused" | "completed" | "stopped";
+  next_step: number;
+  next_run_at: string;
+  stop_reason: string | null;
 }
 
 // ── Constants ────────────────────────────────────────────────────────────────
@@ -109,7 +121,7 @@ export default function AziendePipeline() {
   const [editingStage, setEditingStage]         = useState<CrmStage | null>(null);
   const [newStage, setNewStage]                 = useState({ name: "", color: "#6366f1" });
   const [leadForm, setLeadForm]                 = useState({
-    nome: "", cognome: "", email: "", telefono: "", citta: "", note: "",
+    nome: "", cognome: "", email: "", telefono: "", citta: "", note: "", marketingConsent: false,
   });
   const [editingLead, setEditingLead]           = useState<CrmLead | null>(null);
   const [confirmDeleteLead, setConfirmDeleteLead] = useState<CrmLead | null>(null);
@@ -176,6 +188,20 @@ export default function AziendePipeline() {
     staleTime: 2 * 60 * 1000, // 2min — lead può arrivare via realtime/manuale
   });
 
+  const { data: nurtureEnrollments = [] } = useQuery<NurtureEnrollment[]>({
+    queryKey: ["lead_nurture_enrollments"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("lead_nurture_enrollments")
+        .select("lead_id,status,next_step,next_run_at,stop_reason");
+      if (error) throw error;
+      return (data ?? []) as NurtureEnrollment[];
+    },
+    staleTime: 60 * 1000,
+  });
+
+  const nurtureByLead = new Map(nurtureEnrollments.map((row) => [row.lead_id, row]));
+
   const { data: companies = [] } = useQuery<Company[]>({
     queryKey: ["admin-companies"],
     queryFn: async () => {
@@ -203,7 +229,10 @@ export default function AziendePipeline() {
       const { error } = await supabase.from("leads").update({ stage_id: stageId }).eq("id", leadId);
       if (error) throw error;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["crm_leads"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["crm_leads"] });
+      queryClient.invalidateQueries({ queryKey: ["lead_nurture_enrollments"] });
+    },
     onError: (e: Error) => toast({ title: "Errore", description: e.message, variant: "destructive" }),
   });
 
@@ -221,13 +250,16 @@ export default function AziendePipeline() {
         note: leadForm.note.trim() || null,
         source: "manual",
         stage_id: defaultCrmStageId(sortedStages),
+        marketing_consent: leadForm.marketingConsent,
+        marketing_consent_source: leadForm.marketingConsent ? "operator_confirmed" : null,
       });
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["crm_leads"] });
+      queryClient.invalidateQueries({ queryKey: ["lead_nurture_enrollments"] });
       setShowAddLead(false);
-      setLeadForm({ nome: "", cognome: "", email: "", telefono: "", citta: "", note: "" });
+      setLeadForm({ nome: "", cognome: "", email: "", telefono: "", citta: "", note: "", marketingConsent: false });
       toast({ title: "Lead aggiunto" });
     },
     onError: (e: Error) => toast({ title: "Errore", description: e.message, variant: "destructive" }),
@@ -238,7 +270,10 @@ export default function AziendePipeline() {
       const { error } = await supabase.from("leads").delete().eq("id", leadId);
       if (error) throw error;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["crm_leads"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["crm_leads"] });
+      queryClient.invalidateQueries({ queryKey: ["lead_nurture_enrollments"] });
+    },
     onError: (e: Error) => toast({ title: "Errore", description: e.message, variant: "destructive" }),
   });
 
@@ -277,6 +312,7 @@ export default function AziendePipeline() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["crm_leads"] });
+      queryClient.invalidateQueries({ queryKey: ["lead_nurture_enrollments"] });
       toast({ title: "Lead segnato come contattato" });
     },
     onError: (e: Error) => toast({ title: "Errore", description: e.message, variant: "destructive" }),
@@ -295,11 +331,14 @@ export default function AziendePipeline() {
         telefono: lead.telefono?.trim() || null,
         citta: lead.citta?.trim() || null,
         note: lead.note?.trim() || null,
+        marketing_consent: lead.marketing_consent,
+        marketing_consent_source: lead.marketing_consent ? (lead.marketing_consent_source ?? "operator_confirmed") : null,
       }).eq("id", lead.id);
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["crm_leads"] });
+      queryClient.invalidateQueries({ queryKey: ["lead_nurture_enrollments"] });
       setEditingLead(null);
       toast({ title: "Lead aggiornato" });
     },
@@ -318,6 +357,7 @@ export default function AziendePipeline() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["crm_leads"] });
+      queryClient.invalidateQueries({ queryKey: ["lead_nurture_enrollments"] });
       toast({ title: "Lead archiviato" });
     },
     onError: (e: Error) => toast({ title: "Errore", description: e.message, variant: "destructive" }),
@@ -495,6 +535,7 @@ export default function AziendePipeline() {
               {stageLeads.map(lead => {
                 const sb = SOURCE_BADGE[lead.source] ?? SOURCE_BADGE.manual;
                 const isNew = lead.source === "public_form" && !lead.contacted_at;
+                const nurture = nurtureByLead.get(lead.id);
                 return (
                   <Card
                     key={lead.id}
@@ -634,6 +675,15 @@ export default function AziendePipeline() {
                           </span>
                         )}
                       </div>
+                      {nurture && ["active", "sending"].includes(nurture.status) ? (
+                        <p className="text-[10px] font-medium text-emerald-700 flex items-center gap-1">
+                          <Sparkles className="h-3 w-3" /> Percorso automatico · passo {Math.min(nurture.next_step + 1, 10)}/10
+                        </p>
+                      ) : lead.marketing_consent && lead.stage_id !== "attivo" ? (
+                        <p className="text-[10px] font-medium text-amber-700 flex items-center gap-1">
+                          <Sparkles className="h-3 w-3" /> Consenso presente · percorso non attivo
+                        </p>
+                      ) : null}
                       {lead.page_url && (
                         <p className="text-[9px] text-muted-foreground/60 flex items-center gap-1 truncate">
                           <Globe className="h-2.5 w-2.5 shrink-0" />Da: {lead.page_url.replace(/^https?:\/\//, "")}
@@ -903,6 +953,17 @@ export default function AziendePipeline() {
                 placeholder="Provenienza, interesse, dettagli..."
               />
             </div>
+            <label className="flex items-start gap-2 rounded-md border p-3 cursor-pointer">
+              <Checkbox
+                checked={leadForm.marketingConsent}
+                onCheckedChange={(checked) => setLeadForm(f => ({ ...f, marketingConsent: checked === true }))}
+                className="mt-0.5"
+              />
+              <span className="text-xs leading-relaxed">
+                Il lead ha autorizzato l'invio di informazioni commerciali via email/WhatsApp.
+                Attiva il percorso automatico di 60 giorni.
+              </span>
+            </label>
             <p className="text-[11px] text-muted-foreground">
               Almeno email o telefono richiesti per ricontattare il lead.
             </p>
@@ -972,6 +1033,23 @@ export default function AziendePipeline() {
                   onChange={(e) => setEditingLead({ ...editingLead, note: e.target.value })}
                 />
               </div>
+              <label className="flex items-start gap-2 rounded-md border p-3 cursor-pointer">
+                <Checkbox
+                  checked={editingLead.marketing_consent}
+                  onCheckedChange={(checked) => setEditingLead({
+                    ...editingLead,
+                    marketing_consent: checked === true,
+                    marketing_consent_source: checked === true
+                      ? (editingLead.marketing_consent_source ?? "operator_confirmed")
+                      : null,
+                  })}
+                  className="mt-0.5"
+                />
+                <span className="text-xs leading-relaxed">
+                  Consenso commerciale confermato. Se lo attivi, il percorso parte dall'inizio;
+                  se lo disattivi, gli invii si fermano.
+                </span>
+              </label>
               {editingLead.page_url && (
                 <p className="text-[11px] text-muted-foreground flex items-center gap-1">
                   <Globe className="h-3 w-3" />Provenienza: {editingLead.page_url}

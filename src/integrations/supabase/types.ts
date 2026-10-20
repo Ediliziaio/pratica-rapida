@@ -1802,6 +1802,9 @@ export type Database = {
           created_at: string
           email: string | null
           id: string
+          marketing_consent: boolean
+          marketing_consent_at: string | null
+          marketing_consent_source: string | null
           nome: string
           note: string | null
           page_url: string | null
@@ -1820,6 +1823,9 @@ export type Database = {
           created_at?: string
           email?: string | null
           id?: string
+          marketing_consent?: boolean
+          marketing_consent_at?: string | null
+          marketing_consent_source?: string | null
           nome: string
           note?: string | null
           page_url?: string | null
@@ -1838,6 +1844,9 @@ export type Database = {
           created_at?: string
           email?: string | null
           id?: string
+          marketing_consent?: boolean
+          marketing_consent_at?: string | null
+          marketing_consent_source?: string | null
           nome?: string
           note?: string | null
           page_url?: string | null
@@ -1847,6 +1856,97 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      lead_nurture_deliveries: {
+        Row: {
+          attempted_at: string
+          attempts: number
+          channel: string
+          error_message: string | null
+          id: string
+          lead_id: string
+          provider_id: string | null
+          sent_at: string | null
+          status: string
+          step_index: number
+        }
+        Insert: {
+          attempted_at?: string
+          attempts?: number
+          channel: string
+          error_message?: string | null
+          id?: string
+          lead_id: string
+          provider_id?: string | null
+          sent_at?: string | null
+          status: string
+          step_index: number
+        }
+        Update: {
+          attempted_at?: string
+          attempts?: number
+          channel?: string
+          error_message?: string | null
+          id?: string
+          lead_id?: string
+          provider_id?: string | null
+          sent_at?: string | null
+          status?: string
+          step_index?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_nurture_deliveries_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lead_nurture_enrollments: {
+        Row: {
+          lead_id: string
+          next_run_at: string
+          next_step: number
+          opt_out_token: string
+          started_at: string
+          status: string
+          stop_reason: string | null
+          stopped_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          lead_id: string
+          next_run_at?: string
+          next_step?: number
+          opt_out_token?: string
+          started_at?: string
+          status?: string
+          stop_reason?: string | null
+          stopped_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          lead_id?: string
+          next_run_at?: string
+          next_step?: number
+          opt_out_token?: string
+          started_at?: string
+          status?: string
+          stop_reason?: string | null
+          stopped_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_nurture_enrollments_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: true
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       news_articles: {
         Row: {

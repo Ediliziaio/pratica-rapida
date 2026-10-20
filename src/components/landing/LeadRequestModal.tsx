@@ -46,11 +46,13 @@ interface FormState {
   website: string;
   /** Required GDPR consent. */
   privacyAccepted: boolean;
+  /** Optional, specific consent for the two-month commercial nurture. */
+  marketingConsent: boolean;
 }
 
 const emptyForm: FormState = {
   nome: "", cognome: "", email: "", telefono: "", citta: "", note: "",
-  website: "", privacyAccepted: false,
+  website: "", privacyAccepted: false, marketingConsent: false,
 };
 
 /** Minimum time (ms) the form must be visible before a submission is plausibly human. */
@@ -125,6 +127,8 @@ export default function LeadRequestModal({
         source: "public_form",
         page_url: typeof window !== "undefined" ? window.location.origin + location.pathname : null,
         stage_id: "lead",
+        marketing_consent: form.marketingConsent,
+        marketing_consent_source: form.marketingConsent ? "public_form" : null,
       });
       if (error) throw error;
       setSubmitted(true);
@@ -270,6 +274,21 @@ export default function LeadRequestModal({
                   >
                     GDPR e dell'informativa privacy
                   </a>.
+                </span>
+              </label>
+
+              <label className="flex items-start gap-2 cursor-pointer p-2 -mx-2 rounded hover:bg-muted/50 transition-colors">
+                <Checkbox
+                  id="lead-marketing"
+                  checked={form.marketingConsent}
+                  onCheckedChange={(checked) =>
+                    setForm((f) => ({ ...f, marketingConsent: checked === true }))
+                  }
+                  className="mt-0.5"
+                />
+                <span className="text-[11px] text-muted-foreground leading-relaxed">
+                  Desidero ricevere via email e WhatsApp informazioni e consigli sui servizi
+                  Pratica Rapida. Posso revocare il consenso in qualsiasi momento. (Facoltativo)
                 </span>
               </label>
 

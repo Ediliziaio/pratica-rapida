@@ -3,48 +3,161 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const URL = Deno.env.get("SUPABASE_URL")!;
 const KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const APP = "https://app.praticarapida.it";
-const OFFSETS = [0, 1, 3, 6, 10, 16, 24, 34, 46, 60] as const;
+const SITE = "https://www.praticarapida.it";
+const MEDIA = `${SITE}/lead-nurture`;
+const WHATSAPP = "https://wa.me/390398682691";
+const OFFSETS = [0, 2, 5, 9, 14, 21, 25, 29, 45, 60] as const;
 
-const STEPS = [
+type EmailCreative = {
+  subject: string;
+  preheader: string;
+  eyebrow: string;
+  title: string;
+  body: string;
+  hero_url?: string;
+  hero_alt?: string;
+  cta_label: string;
+  cta_url: string;
+  secondary_label?: string;
+  secondary_url?: string;
+  proof_heading: string;
+  proof_text: string;
+};
+
+type NurtureStep = {
+  channel: "email" | "whatsapp";
+  whatsapp?: string;
+  email: EmailCreative;
+  attachment?: { filename: string; path: string; content_type: string };
+};
+
+const STEPS: readonly NurtureStep[] = [
   {
-    channel: "email", subject: "Grazie per aver contattato Pratica Rapida",
-    body: `Grazie per la richiesta. Pratica Rapida è il tuo ufficio pratiche esterno: tu segui il cliente, noi gestiamo la pratica ENEA dall'inizio alla consegna. La prima pratica è in omaggio, così puoi verificare direttamente come lavoriamo.`,
+    channel: "email",
+    email: {
+      subject: "Grazie per l'interesse: partiamo da una pratica reale",
+      preheader: "Tu ci affidi il cliente. Al resto pensiamo noi.",
+      eyebrow: "PraticaRapida",
+      title: "La pratica ENEA non deve pesare sul tuo ufficio.",
+      body: "<p style=\"margin:0;\">Tu inserisci pochi dati del cliente e la fattura. Un nostro operatore raccoglie ciò che manca, controlla i documenti e lavora la pratica per te.</p>",
+      cta_label: "Dimmi se hai già un lavoro concluso",
+      cta_url: `${WHATSAPP}?text=Ho%20un%20lavoro%20concluso%20da%20usare%20come%20prima%20pratica`,
+      proof_heading: "La prima pratica è in omaggio per 30 giorni.",
+      proof_text: "Nessun abbonamento, anticipo o volume minimo.",
+    },
   },
   {
-    channel: "whatsapp", subject: "La prima pratica è in omaggio",
-    body: `Ciao {{nome}}, sono Giuliano di Pratica Rapida. Anche se oggi non hai una pratica pronta, salva questo numero: quando finirai il prossimo lavoro ci penseremo noi. La prima pratica ENEA è in omaggio. Per qualsiasi domanda puoi rispondere qui.`,
+    channel: "email",
+    email: {
+      subject: "Guarda quanto tempo serve per affidarci una pratica",
+      preheader: "Una demo breve e concreta del portale.",
+      eyebrow: "Video breve",
+      title: "Il portale è semplice. Dietro ci sono persone vere.",
+      body: "<p style=\"margin:0;\">In meno di venti secondi vedi quanto è facile inserire una pratica. Da quel momento lavoriamo noi e puoi sempre raggiungerci anche al telefono.</p>",
+      hero_url: `${MEDIA}/portale-demo-breve.gif?v=2`, hero_alt: "Portale PraticaRapida",
+      cta_label: "Guarda il video (19 secondi) ▶", cta_url: `${MEDIA}/portale-demo-breve.mp4?v=2`,
+      proof_heading: "Tu non devi imparare un software.", proof_text: "Inserisci pochi dati; il lavoro lo fanno i nostri operatori.",
+    },
   },
   {
-    channel: "email", subject: "Affidare una pratica richiede meno di un minuto",
-    body: `Inserisci pochi dati e la fattura dalla tua area riservata. Da quel momento lavorano persone vere: contattiamo il cliente in nome tuo, raccogliamo ciò che manca, controlliamo e trasmettiamo la pratica. Se vuoi vedere il portale in funzione, rispondi a questa email: ti mandiamo una breve dimostrazione.`,
+    channel: "whatsapp",
+    whatsapp: "Ciao {{nome}}, hai un lavoro concluso di recente? Puoi usarlo per provare PraticaRapida: la prima pratica ENEA è in omaggio. Rispondi qui e ti aiutiamo noi a partire.",
+    email: {
+      subject: "La prima pratica te la offriamo noi",
+      preheader: "Scegli anche un lavoro concluso di recente e mettici alla prova.",
+      eyebrow: "Una prova concreta",
+      title: "Non aspettare il prossimo preventivo.",
+      body: "<p style=\"margin:0;\">Scegli un lavoro concluso di recente. Regala al cliente la pratica ENEA e guarda come lavoriamo: <strong>la prima pratica la offriamo noi</strong>.</p>",
+      cta_label: "Voglio provare la prima pratica", cta_url: `${WHATSAPP}?text=Voglio%20provare%20la%20prima%20pratica%20in%20omaggio`,
+      proof_heading: "Zero vincoli.", proof_text: "Nessun canone, nessun pacchetto prepagato, nessun volume minimo.",
+    },
   },
   {
-    channel: "whatsapp", subject: "Non serve aspettare il prossimo preventivo",
-    body: `Ciao {{nome}}, per provare Pratica Rapida non devi aspettare un nuovo preventivo. Puoi scegliere anche un lavoro concluso di recente e regalare al cliente la pratica ENEA: la prima la offriamo noi. Tu vedi subito come lavoriamo, senza alcun impegno.`,
+    channel: "email",
+    email: {
+      subject: "Listino PraticaRapida 2026",
+      preheader: "Costi chiari, nessun canone e pagamento solo a lavoro concluso.",
+      eyebrow: "Listino allegato", title: "Sai subito quanto costa ogni servizio.",
+      body: "<p style=\"margin:0;\">Ti allego il listino completo. Per le pratiche ENEA il prezzo riservato ai rivenditori è <strong>65 € + IVA</strong>: niente anticipo, abbonamento o pacchetto prepagato.</p>",
+      cta_label: "Apri il listino PDF", cta_url: `${MEDIA}/Pratica_Rapida_Servizi_e_prezzi_2026.pdf`,
+      proof_heading: "Paghi soltanto le pratiche concluse.", proof_text: "La fatturazione avviene a fine mese.",
+    },
+    attachment: {
+      filename: "Pratica_Rapida_Servizi_e_prezzi_2026.pdf",
+      path: `${MEDIA}/Pratica_Rapida_Servizi_e_prezzi_2026.pdf`,
+      content_type: "application/pdf",
+    },
   },
   {
-    channel: "email", subject: "Il portale è semplice. Ma dietro ci sono persone vere",
-    body: `L'area riservata serve per inserire e seguire le pratiche in tempo reale. Il valore vero, però, sono gli operatori: rispondiamo al telefono, parliamo con il cliente, controlliamo i documenti e gestiamo i casi particolari. Con documentazione completa lavoriamo entro 48 ore lavorative.`,
+    channel: "email",
+    email: {
+      subject: "Non ti vendiamo un altro software",
+      preheader: "Il portale è semplice. Il valore sono le persone che lavorano per te.",
+      eyebrow: "Persone vere, non ticket",
+      title: "Il portale è solo il mezzo.",
+      body: "<p style=\"margin:0;\">Un operatore prende in carico la pratica, parla con il cliente in nome tuo, controlla i documenti e gestisce le eccezioni. Se hai una domanda, <strong>rispondiamo anche al telefono</strong>.</p>",
+      cta_label: "Parla con una persona", cta_url: "tel:+390398682691",
+      secondary_label: "Oppure scrivici su WhatsApp", secondary_url: `${WHATSAPP}?text=Vorrei%20parlare%20con%20un%20operatore`,
+      proof_heading: "Entro 48 ore lavorative.", proof_text: "Con dati e documentazione completi, la pratica viene lavorata entro 48 ore.",
+    },
   },
   {
-    channel: "whatsapp", subject: "Quanto ti costa davvero una pratica fatta internamente?",
-    body: `Ciao {{nome}}, con Pratica Rapida non acquisti un software e non devi imparare a usare un altro portale. A 65 € + IVA affidaci il lavoro: nessun abbonamento, nessun anticipo e a fine mese paghi soltanto le pratiche concluse.`,
+    channel: "whatsapp",
+    whatsapp: "Ciao {{nome}}, con PraticaRapida non compri un software: affidi il lavoro a persone vere. 65 € + IVA, niente anticipo o abbonamento; a fine mese paghi solo le pratiche concluse. Hai un lavoro recente su cui provarci?",
+    email: {
+      subject: "65 € + IVA. Solo quando il lavoro è concluso.",
+      preheader: "Nessun software da imparare, nessun canone.",
+      eyebrow: "Un costo chiaro", title: "Paghi il lavoro. Non il portale.",
+      body: "<p style=\"margin:0;\">La pratica ENEA costa <strong>65 € + IVA</strong>. Niente abbonamenti, anticipi o pacchetti: a fine mese fatturiamo soltanto le pratiche concluse.</p>",
+      cta_label: "Mettiamoci alla prova", cta_url: `${WHATSAPP}?text=Vorrei%20provare%20PraticaRapida`,
+      proof_heading: "Tu non devi imparare nulla.", proof_text: "Inserisci pochi dati. Al resto pensiamo noi.",
+    },
   },
   {
-    channel: "email", subject: "Il cliente ricorda chi gli risolve anche la burocrazia",
-    body: `Quando consegni al cliente anche la pratica ENEA pronta, il servizio non finisce con l'installazione. Aumenti il valore percepito, mantieni il rapporto e puoi includere o rivendere la pratica nel tuo servizio senza occuparti della compilazione.`,
+    channel: "email",
+    email: {
+      subject: "La tua prima pratica gratuita scade tra 5 giorni",
+      preheader: "Basta anche un lavoro già concluso: usalo per vedere come lavoriamo.",
+      eyebrow: "Promozione in scadenza", title: "Hai ancora 5 giorni per provarci gratuitamente.",
+      body: "<p style=\"margin:0;\">Non serve aspettare un nuovo preventivo: puoi scegliere un lavoro concluso di recente e offrire la pratica al cliente. Noi ti seguiamo dall'inizio alla consegna.</p>",
+      cta_label: "Attiva la pratica gratuita", cta_url: `${WHATSAPP}?text=Voglio%20attivare%20la%20prima%20pratica%20gratuita`,
+      proof_heading: "La scadenza è personale.", proof_text: "È calcolata a 30 giorni dal tuo ingresso nel percorso.",
+    },
   },
   {
-    channel: "whatsapp", subject: "La tua area riservata resta pronta",
-    body: `Ciao {{nome}}, la tua area Pratica Rapida ti permette di inserire una richiesta, vedere lo stato in tempo reale e ritrovare i documenti conclusi. Quando arriva il lavoro giusto, scrivici: ti aiutiamo noi anche al telefono.`,
+    channel: "whatsapp",
+    whatsapp: "Ciao {{nome}}, la possibilità di provare gratuitamente la prima pratica scade domani. Se hai un lavoro già concluso, rispondi qui: ti aiutiamo noi ad attivarla.",
+    email: {
+      subject: "La pratica gratuita scade domani",
+      preheader: "Rispondi a questa email e ti aiutiamo ad attivarla.",
+      eyebrow: "Ultimo giorno", title: "Se vuoi provarci, questo è il momento.",
+      body: "<p style=\"margin:0;\">Puoi partire anche da un lavoro già concluso. Rispondi a questa email: verifichiamo insieme il caso e ti aiutiamo ad avviare la pratica.</p>",
+      cta_label: "Attiva la pratica gratuita", cta_url: `${WHATSAPP}?text=Voglio%20attivare%20la%20prima%20pratica%20gratuita`,
+      proof_heading: "Nessun vincolo dopo la prova.", proof_text: "Deciderai tu se continuare.",
+    },
   },
   {
-    channel: "email", subject: "Una prova concreta, senza vincoli",
-    body: `Non chiediamo canoni, pacchetti prepagati o volumi minimi. Ti omaggiamo la prima pratica proprio perché il modo più semplice per valutare Pratica Rapida è vederci lavorare su un caso reale. Rispondi a questa email: prepariamo noi la tua area riservata.`,
+    channel: "email",
+    email: {
+      subject: "Circa 250 recensioni raccontano come lavoriamo",
+      preheader: "Google e Trustpilot: la fiducia si costruisce pratica dopo pratica.",
+      eyebrow: "Prova sociale", title: "I clienti soddisfatti si ricordano del servizio.",
+      body: "<p style=\"margin:0;\">Tra Google e Trustpilot abbiamo raccolto <strong>circa 250 recensioni</strong>. Una pratica ben gestita non è solo burocrazia: è reputazione anche per chi l'ha proposta al cliente.</p>",
+      cta_label: "Leggi le recensioni Google", cta_url: "https://www.google.com/search?q=PraticaRapida+recensioni",
+      secondary_label: "Guarda anche Trustpilot", secondary_url: "https://it.trustpilot.com/review/praticarapida.it",
+      proof_heading: "Il cliente vede il tuo nome.", proof_text: "Noi lavoriamo la pratica in nome e per conto della tua azienda.",
+    },
   },
   {
-    channel: "email", subject: "Quando avrai la prossima pratica, siamo qui",
-    body: `Chiudiamo qui i promemoria automatici. Quando terminerai un lavoro su infissi, schermature solari, pompe di calore, climatizzazione o insufflaggio, ricorda che puoi affidare a noi l'intera pratica ENEA. Rispondi a questa email o chiamaci allo 039 868 2691.`,
+    channel: "email",
+    email: {
+      subject: "Chiudiamo qui: quando ti servirà, sai dove trovarci",
+      preheader: "Quando arriverà il lavoro giusto, sai dove trovarci.",
+      eyebrow: "Ultimo messaggio", title: "Quando sarai pronto, noi ci siamo.",
+      body: "<p style=\"margin:0;\">Non riceverai altri promemoria automatici. Quando terminerai un lavoro su infissi, schermature solari, pompe di calore, climatizzazione o insufflaggio, scrivici: saremo felici di occuparci della pratica.</p>",
+      cta_label: "Salva il contatto WhatsApp", cta_url: `${WHATSAPP}?text=Salvo%20il%20contatto%20PraticaRapida`,
+      proof_heading: "039 868 2691", proof_text: "modulistica@praticarapida.it · Puoi rispondere direttamente a questa email.",
+    },
   },
 ] as const;
 
@@ -70,9 +183,17 @@ function validRecipient(channel: string, email: string | null, phone: string | n
   return (phone ?? "").replace(/\D/g, "").length >= 8;
 }
 
-function contentIsSafe(body: string): boolean {
-  const urls = body.match(/https?:\/\/\S+/g) ?? [];
-  return urls.every((url) => url.startsWith(APP));
+function contentIsSafe(step: NurtureStep): boolean {
+  const allowed = [APP, SITE, WHATSAPP, "tel:+390398682691", "https://www.google.com/", "https://it.trustpilot.com/"];
+  const urls = [step.email.hero_url, step.email.cta_url, step.email.secondary_url, step.attachment?.path].filter(Boolean) as string[];
+  return urls.every((url) => allowed.some((prefix) => url.startsWith(prefix)));
+}
+
+function promotionMessageIsTimely(stepIndex: number, expiresAt: string): boolean {
+  if (stepIndex !== 6 && stepIndex !== 7) return true;
+  const remainingDays = (new Date(expiresAt).getTime() - Date.now()) / 86_400_000;
+  if (stepIndex === 6) return remainingDays > 4 && remainingDays <= 6;
+  return remainingDays > 0 && remainingDays <= 2;
 }
 
 Deno.serve(async (req) => {
@@ -112,7 +233,7 @@ Deno.serve(async (req) => {
     const { data: alreadySent = [] } = await db.from("lead_nurture_deliveries")
       .select("id").eq("lead_id", lead.lead_id).eq("step_index", lead.step_index)
       .eq("status", "sent").limit(1);
-    const contentOk = contentIsSafe(step.body);
+    const contentOk = contentIsSafe(step);
     if (!recipientOk || !contentOk) {
       await db.from("lead_nurture_enrollments").update({
         status: "stopped",
@@ -134,20 +255,25 @@ Deno.serve(async (req) => {
       results.push({ lead_id: lead.lead_id, step: lead.step_index, ok: true, reason: "duplicate_prevented" });
       continue;
     }
-    if ((channel === "email" && !lead.email) || (channel === "whatsapp" && !lead.telefono)) {
+    if (!promotionMessageIsTimely(Number(lead.step_index), lead.promotion_expires_at)) {
+      await db.from("lead_nurture_deliveries").upsert({ lead_id: lead.lead_id, step_index: lead.step_index, channel, status: "skipped", error_message: "promotion_window_missed" }, { onConflict: "lead_id,step_index,channel" });
+    } else if ((channel === "email" && !lead.email) || (channel === "whatsapp" && !lead.telefono)) {
       await db.from("lead_nurture_deliveries").upsert({ lead_id: lead.lead_id, step_index: lead.step_index, channel, status: "skipped", error_message: "recipient_channel_unavailable" }, { onConflict: "lead_id,step_index,channel" });
     } else {
-      const rendered = step.body.replaceAll("{{nome}}", lead.nome || "");
+      const rendered = (step.whatsapp ?? "")
+        .replaceAll("{{nome}}", lead.nome || "")
+        .replaceAll("{{video}}", `${MEDIA}/il-nostro-portale.mp4`);
       try {
         const sent = channel === "email"
           ? await invoke("send-email", {
               to: lead.email,
-              template: "chat_messaggio_diretto",
+              template: "lead_nurture",
               idempotency_key: `lead-${lead.lead_id}-${lead.step_index}`,
+              ...(step.attachment ? { attachments: [step.attachment] } : {}),
               data: {
-                nome: "",
-                subject: step.subject,
-                messaggio: `${rendered}\n\nPratica Rapida · 039 868 2691 · modulistica@praticarapida.it\n<a href="${URL}/functions/v1/lead-nurture-optout?token=${lead.opt_out_token}">Non desidero ricevere altri messaggi</a>`,
+                ...step.email,
+                nome: lead.nome || "",
+                unsubscribe_url: `${URL}/functions/v1/lead-nurture-optout?token=${lead.opt_out_token}`,
               },
             })
           : await invoke("send-whatsapp", { to: lead.telefono, text_body: `${rendered}\n\nPer non ricevere altri messaggi scrivi STOP.` });

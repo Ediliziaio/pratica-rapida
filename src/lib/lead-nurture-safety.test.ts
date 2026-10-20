@@ -10,6 +10,10 @@ const processor = readFileSync(
   resolve(process.cwd(), "supabase/functions/process-lead-nurture/index.ts"),
   "utf8",
 );
+const emailSender = readFileSync(
+  resolve(process.cwd(), "supabase/functions/send-email/index.ts"),
+  "utf8",
+);
 
 describe("lead nurture safety gates", () => {
   it("is installed disabled until the owner approves the final messages", () => {
@@ -33,5 +37,27 @@ describe("lead nurture safety gates", () => {
     expect(processor).toContain("const recipientOk");
     expect(processor).toContain("const { data: alreadySent = [] }");
     expect(processor).toContain("const contentOk");
+  });
+
+  it("uses the approved multimedia sequence and the dedicated responsive template", () => {
+    expect(processor).toContain('const OFFSETS = [0, 2, 5, 9, 14, 21, 25, 29, 45, 60]');
+    expect(processor).toContain('template: "lead_nurture"');
+    expect(processor).toContain('portale-demo-breve.gif');
+    expect(processor).toContain('Pratica_Rapida_Servizi_e_prezzi_2026.pdf');
+    expect(processor).toContain('attachments: [step.attachment]');
+    expect(emailSender).toContain('case "lead_nurture"');
+    expect(emailSender).toContain('@media only screen and (max-width:620px)');
+  });
+
+  it("only sends expiring-promotion messages inside the real 30-day window", () => {
+    expect(migration).toContain("promotion_expires_at timestamptz");
+    expect(migration).toContain("now() + interval '30 days'");
+    expect(processor).toContain("promotionMessageIsTimely");
+    expect(processor).toContain('error_message: "promotion_window_missed"');
+  });
+
+  it("keeps media links and every CTA in the controlled allowlist", () => {
+    expect(processor).toContain('const allowed = [APP, SITE, WHATSAPP');
+    expect(processor).toContain('return urls.every');
   });
 });

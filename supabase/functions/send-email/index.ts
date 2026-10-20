@@ -48,6 +48,7 @@ const TEMPLATE_RECIPIENT: Record<string, RecipientType | "internal"> = {
   notifica_pratica_disponibile:"reseller",
   pratica_ricevuta:            "reseller",
   registrazione_azienda:       "reseller",
+  lead_nurture:                "reseller",
   sollecito_fornitore:         "reseller",
   recupera_password:           "reseller", // account portale = rivenditore in maggioranza
   fotovoltaico_schema_da_firmare: "reseller",
@@ -158,6 +159,7 @@ const HARDCODED_TEMPLATES = new Set<string>([
   "notifica_docs_mancanti",
   "notifica_pratica_disponibile",
   "chat_messaggio_diretto", // email libera dall'area /admin/chat
+  "lead_nurture",          // percorso commerciale multimediale per lead B2B consenzienti
   "whatsapp_disconnesso",   // alert interno: sessione OpenWA caduta/bannata
   "rivenditore_invito",     // richiesta dal sito, azienda non registrata
   "pagamento_privato_ok",   // privato che ha pagato la pratica ENEA dal sito
@@ -171,6 +173,50 @@ function renderTemplate(template: string, data: Record<string, string>): { subje
   const r = (s: string) => s.replace(/\{\{(\w+)\}\}/g, (_, k) => data[k] ?? "");
 
   switch (template) {
+    case "lead_nurture": {
+      const secondary = data.secondary_label && data.secondary_url
+        ? `<a href="${r("{{secondary_url}}")}" style="color:#116b3a;text-decoration:underline;font-weight:700;">${r("{{secondary_label}}")}</a>`
+        : "";
+      const hero = data.hero_url
+        ? `<a href="${r("{{cta_url}}")}" style="display:block;text-decoration:none;">
+             <img src="${r("{{hero_url}}")}" alt="${r("{{hero_alt}}")}" width="600" style="display:block;width:100%;max-width:600px;height:auto;border:0;">
+           </a>`
+        : "";
+      return {
+        subject: r("{{subject}}"),
+        html: `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+          <style>
+            @media only screen and (max-width:620px){.shell{width:100%!important}.pad{padding:24px 18px!important}.button{display:block!important;text-align:center!important}}
+          </style></head>
+          <body style="margin:0;padding:0;background:#ffffff;font-family:Arial,Helvetica,sans-serif;color:#202b25;">
+            <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">${r("{{preheader}}")}</div>
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center">
+              <table role="presentation" width="600" class="shell" cellpadding="0" cellspacing="0" style="width:600px;max-width:600px;background:#fff;">
+                <tr><td style="padding:26px 24px 12px;">
+                  <img src="https://www.praticarapida.it/pratica-rapida-logo.png" width="160" alt="PraticaRapida" style="display:block;width:160px;max-width:52%;height:auto;border:0;">
+                </td></tr>
+                <tr><td class="pad" style="padding:18px 24px 12px;font-size:16px;line-height:1.6;">
+                  <p style="margin:0 0 16px;">Buongiorno${r("{{nome}}") ? ` ${r("{{nome}}")}` : ""},</p>
+                  <div style="color:#202b25;">${r("{{body}}")}</div>
+                </td></tr>
+                ${hero ? `<tr><td style="padding:12px 24px 4px;">${hero}</td></tr>` : ""}
+                <tr><td class="pad" style="padding:14px 24px 12px;font-size:16px;line-height:1.6;">
+                  <table role="presentation" cellpadding="0" cellspacing="0"><tr><td style="padding:4px 0 14px;">
+                    <a class="button" href="${r("{{cta_url}}")}" style="display:inline-block;background:#0b9a50;color:#fff;text-decoration:none;font-weight:700;font-size:15px;padding:12px 20px;border-radius:7px;">${r("{{cta_label}}")}</a>
+                  </td></tr></table>
+                  <p style="margin:4px 0 14px;"><strong>${r("{{proof_heading}}")}</strong> ${r("{{proof_text}}")}</p>
+                  ${secondary ? `<p style="margin:4px 0 18px;font-size:15px;">${secondary}</p>` : ""}
+                  <p style="margin:22px 0 0;">A presto,<br><strong>Giuliano Beretta</strong><br>PraticaRapida</p>
+                </td></tr>
+                <tr><td style="padding:18px 24px 28px;border-top:1px solid #e5e7eb;color:#6a766f;font-size:12px;line-height:1.7;">
+                  039 868 2691 · <a href="mailto:modulistica@praticarapida.it" style="color:#356348;">modulistica@praticarapida.it</a><br>
+                  <a href="${r("{{unsubscribe_url}}")}" style="color:#6a766f;">Non desidero ricevere altri messaggi</a>
+                </td></tr>
+              </table>
+            </td></tr></table>
+          </body></html>`,
+      };
+    }
     case "fotovoltaico_schema_da_firmare":
       return {
         subject: r("Schema unifilare pronto da firmare — {{proprietario_nome}}"),

@@ -13,11 +13,16 @@ CREATE TABLE IF NOT EXISTS public.lead_nurture_enrollments (
   next_step smallint NOT NULL DEFAULT 0 CHECK (next_step >= 0),
   next_run_at timestamptz NOT NULL DEFAULT now(),
   started_at timestamptz NOT NULL DEFAULT now(),
+  promotion_expires_at timestamptz NOT NULL DEFAULT (now() + interval '30 days'),
   stopped_at timestamptz,
   stop_reason text,
   opt_out_token uuid NOT NULL DEFAULT gen_random_uuid(),
   updated_at timestamptz NOT NULL DEFAULT now()
 );
+
+ALTER TABLE public.lead_nurture_enrollments
+  ADD COLUMN IF NOT EXISTS promotion_expires_at timestamptz
+  NOT NULL DEFAULT (now() + interval '30 days');
 
 CREATE UNIQUE INDEX IF NOT EXISTS lead_nurture_opt_out_token_idx
   ON public.lead_nurture_enrollments(opt_out_token);
@@ -88,7 +93,8 @@ BEGIN
     VALUES (NEW.id, 'active', 0, now())
     ON CONFLICT (lead_id) DO UPDATE SET
       status = 'active', next_step = 0, next_run_at = now(),
-      started_at = now(), stopped_at = NULL, stop_reason = NULL, updated_at = now();
+      started_at = now(), promotion_expires_at = now() + interval '30 days',
+      stopped_at = NULL, stop_reason = NULL, updated_at = now();
   END IF;
   RETURN NEW;
 END $$;
@@ -109,7 +115,7 @@ CREATE TRIGGER leads_nurture_enroll_after_consent
 CREATE OR REPLACE FUNCTION public.claim_due_lead_nurture(p_limit integer DEFAULT 20)
 RETURNS TABLE(
   lead_id uuid, nome text, email text, telefono text, step_index smallint,
-  opt_out_token uuid
+  opt_out_token uuid, started_at timestamptz, promotion_expires_at timestamptz
 ) LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 BEGIN
   -- Recupera automaticamente soltanto claim tecnici rimasti orfani dopo un
@@ -134,7 +140,8 @@ BEGIN
     SET status = 'sending', updated_at = now()
   FROM due d, public.leads l
   WHERE e.lead_id = d.lead_id AND l.id = e.lead_id
-  RETURNING e.lead_id, l.nome, l.email, l.telefono, e.next_step, e.opt_out_token;
+  RETURNING e.lead_id, l.nome, l.email, l.telefono, e.next_step,
+    e.opt_out_token, e.started_at, e.promotion_expires_at;
 END $$;
 
 REVOKE ALL ON FUNCTION public.claim_due_lead_nurture(integer) FROM PUBLIC;

@@ -46,8 +46,26 @@ Deno.serve(async (req) => {
     return Response.json({ ricevuto: true, ignorato: evento.type });
   }
   const sessione = evento.data.object as Stripe.Checkout.Session;
+
+  // Paghi solo quando la pratica e' inviata (21/10/2026): la cassa ora blocca
+  // la carta e basta, e Stripe chiude la sessione con «unpaid». Si riconosce
+  // dal pagamento in attesa di incasso, non dallo stato della sessione.
+  let cartaBloccata = false;
+  let pagamentoId = "";
   if (sessione.payment_status !== "paid") {
-    return Response.json({ ricevuto: true, ignorato: "non_pagata" });
+    pagamentoId = typeof sessione.payment_intent === "string"
+      ? sessione.payment_intent
+      : sessione.payment_intent?.id ?? "";
+    if (pagamentoId) {
+      try {
+        const pagamento = await stripe.paymentIntents.retrieve(pagamentoId);
+        cartaBloccata = pagamento.status === "requires_capture";
+      } catch (e) {
+        console.error("[eneasubito-pagato] pagamento non leggibile", e);
+        return new Response("Pagamento non leggibile", { status: 500 });
+      }
+    }
+    if (!cartaBloccata) return Response.json({ ricevuto: true, ignorato: "non_pagata" });
   }
 
   const praticaId = String(sessione.metadata?.pratica_id ?? sessione.client_reference_id ?? "").trim();
@@ -59,7 +77,7 @@ Deno.serve(async (req) => {
   // toccare le pratiche dell'altro marchio.
   const { data: pratica } = await db
     .from("enea_practices")
-    .select("id, canale, pagamento_stato")
+    .select("id, canale, pagamento_stato, carta_bloccata_at, current_stage_id")
     .eq("id", praticaId)
     .maybeSingle();
   if (!pratica || pratica.canale !== "eneasubito") {
@@ -67,6 +85,7 @@ Deno.serve(async (req) => {
   }
   // Stripe puo' consegnare lo stesso evento piu' volte.
   if (pratica.pagamento_stato === "pagata") return Response.json({ ricevuto: true, gia_registrato: true });
+  if (cartaBloccata && pratica.carta_bloccata_at) return Response.json({ ricevuto: true, gia_registrato: true });
 
   // Pagata: ora tocca al cliente completare i dati che mancano.
   const { data: stage } = await db
@@ -79,6 +98,25 @@ Deno.serve(async (req) => {
     .maybeSingle();
 
   const quando = new Date().toLocaleString("it-IT", { timeZone: "Europe/Rome" });
+
+  if (cartaBloccata) {
+    const { error: erroreBlocco } = await db
+      .from("enea_practices")
+      .update({
+        carta_bloccata_at: new Date().toISOString(),
+        stripe_payment_intent: pagamentoId,
+        ...(stage?.id ? { current_stage_id: stage.id } : {}),
+        note_interne:
+          `Carta bloccata il ${quando} (pagamento ${pagamentoId}). L'addebito parte quando la pratica entra in «Da inserire su Excel».`,
+      })
+      .eq("id", pratica.id);
+    if (erroreBlocco) {
+      console.error("[eneasubito-pagato] blocco non registrato", erroreBlocco);
+      return new Response("Aggiornamento fallito", { status: 500 });
+    }
+    return Response.json({ ricevuto: true, pratica: pratica.id, carta_bloccata: true });
+  }
+
   // Il prezzo lo diciamo a Stripe e Stripe ce lo rimanda: lo scriviamo come
   // ce lo da' lui, senza ricalcolarlo. Serve al cruscotto per avere il totale
   // del mese di EneaSubito senza doverlo indovinare da un listino.
@@ -89,7 +127,9 @@ Deno.serve(async (req) => {
       pagamento_stato: "pagata",
       data_incasso: new Date().toISOString().slice(0, 10),
       ...(incassato > 0 ? { prezzo: incassato } : {}),
-      ...(stage?.id ? { current_stage_id: stage.id } : {}),
+      // Chi paga dal link mandato alla consegna ha gia' la sua colonna: non
+      // si torna indietro.
+      ...(stage?.id && !pratica.current_stage_id ? { current_stage_id: stage.id } : {}),
       note_interne: `Pagamento ricevuto il ${quando}. Fattura emessa da Stripe (sessione ${sessione.id}).`,
     })
     .eq("id", pratica.id);

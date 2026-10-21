@@ -226,6 +226,8 @@ Deno.serve(async (req) => {
     )
     .eq("canale", "eneasubito")
     .neq("pagamento_stato", "pagata")
+    // Chi ha la carta bloccata ha gia' detto si': non si insegue per pagare.
+    .is("carta_bloccata_at", null)
     .is("archived_at", null)
     .order("created_at", { ascending: true })
     .limit(300);
@@ -241,7 +243,7 @@ Deno.serve(async (req) => {
     db.from("enea_practices")
       .select("cliente_email")
       .eq("canale", "eneasubito")
-      .eq("pagamento_stato", "pagata"),
+      .or("pagamento_stato.eq.pagata,carta_bloccata_at.not.is.null"),
   ]);
   // Senza sapere chi ha gia' pagato non si scrive a nessuno: il 21/10 due
   // clienti paganti hanno ricevuto due solleciti ciascuno, uno per ogni
@@ -392,9 +394,11 @@ Deno.serve(async (req) => {
   // conta dal pagamento, non dalla nascita della pratica.
   const { data: pagate } = await db
     .from("enea_practices")
-    .select("id, form_token, cliente_nome, cliente_cognome, cliente_email, data_incasso, archived_at, form_compilato_at")
+    .select("id, form_token, cliente_nome, cliente_cognome, cliente_email, data_incasso, carta_bloccata_at, archived_at, form_compilato_at")
     .eq("canale", "eneasubito")
-    .eq("pagamento_stato", "pagata")
+    // Anche chi ha solo la carta bloccata deve finire di compilare: senza
+    // i dati la pratica non parte, e senza pratica non si incassa.
+    .or("pagamento_stato.eq.pagata,carta_bloccata_at.not.is.null")
     .is("form_compilato_at", null)
     .is("archived_at", null)
     .order("data_incasso", { ascending: true })
@@ -406,7 +410,9 @@ Deno.serve(async (req) => {
     const email = String(p.cliente_email ?? "").trim().toLowerCase();
     // `data_incasso` e' una data senza ora: si legge come mezzogiorno, cosi'
     // il conto delle ore non parte da mezzanotte di un giorno gia' passato.
-    const pagataIl = p.data_incasso ? `${p.data_incasso}T12:00:00Z` : "";
+    const pagataIl = p.data_incasso
+      ? `${p.data_incasso}T12:00:00Z`
+      : String(p.carta_bloccata_at ?? "");
 
     const tocca = qualeToccaCompletamento(
       {

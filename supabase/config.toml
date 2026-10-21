@@ -29,6 +29,9 @@ verify_jwt = false
 [functions.eneasubito-solleciti]
 verify_jwt = false
 
+[functions.eneasubito-incassa]
+verify_jwt = false
+
 [functions.meta-leads-webhook]
 verify_jwt = false
 

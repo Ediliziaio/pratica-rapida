@@ -53,13 +53,16 @@ Deno.serve(async (req) => {
 
   const { data: pratica } = await db
     .from("enea_practices")
-    .select("id, canale, cliente_nome, cliente_cognome, cliente_email, pagamento_stato, archived_at, prodotto_installato")
+    .select("id, canale, cliente_nome, cliente_cognome, cliente_email, pagamento_stato, archived_at, prodotto_installato, carta_bloccata_at")
     .eq("form_token", token)
     .maybeSingle();
 
   if (!pratica || pratica.canale !== "eneasubito") return json({ error: "Pratica non trovata" }, 404);
   if (pratica.archived_at) return json({ error: "Questa richiesta e' stata annullata" }, 409);
   if (pratica.pagamento_stato === "pagata") return json({ error: "Risulta gia' pagata" }, 409);
+  if (pratica.carta_bloccata_at) {
+    return json({ error: "La carta e' gia' registrata: l'addebito parte quando la pratica e' inviata" }, 409);
+  }
 
   // ── L'importo: dal database, mai dal browser ──────────────────────────────
   const { data: riga } = await db
@@ -130,9 +133,23 @@ Deno.serve(async (req) => {
       // ancora da premere. Con `receipt_email` l'invio e' forzato — lo dice
       // la pagina stessa delle impostazioni, dove l'interruttore generale
       // vale «tranne quando si passa receipt_email».
-      ...(pratica.cliente_email
-        ? { payment_intent_data: { receipt_email: pratica.cliente_email } }
-        : {}),
+      //
+      // Paghi solo quando la pratica e' inviata (Titolare, 21/10/2026): la
+      // carta qui si BLOCCA e basta. L'addebito lo fa `eneasubito-incassa`
+      // quando la pratica entra in «Da inserire su Excel».
+      payment_intent_data: {
+        capture_method: "manual",
+        metadata: { pratica_id: pratica.id, canale: "eneasubito" },
+        ...(pratica.cliente_email ? { receipt_email: pratica.cliente_email } : {}),
+      },
+      // Il pulsante di Stripe dice «Paga»: sopra, la frase che spiega che
+      // adesso non si paga niente.
+      custom_text: {
+        submit: {
+          message:
+            "Nessun addebito adesso: i 99 € vengono addebitati solo quando la tua pratica è stata inviata all'ENEA. Se non riusciamo a inviarla, non paghi niente.",
+        },
+      },
       line_items: [
         {
           quantity: 1,

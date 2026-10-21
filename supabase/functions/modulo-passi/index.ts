@@ -1,5 +1,5 @@
 /**
- * praticarapida-passi — registra dove si ferma il cliente privato.
+ * modulo-passi — registra dove si ferma il cliente privato.
  *
  * Riceve una visita anonima e il nome di un passo, e scrive una riga. Non
  * accetta nient'altro: nessun nome, nessun indirizzo, nessun testo libero.

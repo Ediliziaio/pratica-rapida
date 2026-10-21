@@ -43,7 +43,7 @@ export default function ImbutoPrivati() {
     let vivo = true;
     async function leggi() {
       try {
-        const r = await fetch(`${BASE}/functions/v1/praticarapida-passi?giorni=${giorni}`);
+        const r = await fetch(`${BASE}/functions/v1/modulo-passi?giorni=${giorni}`);
         const d = await r.json();
         if (!vivo) return;
         setRighe(d.imbuto ?? []);

@@ -75,7 +75,7 @@ export function segnaPrivato(passo: PassoPrivato): void {
   fatti.add(passo);
   if (passo === "privato") scrivi(CHIAVE_PRIVATO, "1");
   try {
-    void fetch(`${BASE}/functions/v1/praticarapida-passi`, {
+    void fetch(`${BASE}/functions/v1/modulo-passi`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

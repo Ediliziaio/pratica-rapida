@@ -18,7 +18,7 @@ verify_jwt = false
 [functions.eneasubito-passi]
 verify_jwt = false
 
-[functions.praticarapida-passi]
+[functions.modulo-passi]
 verify_jwt = false
 
 [functions.chat-cliente]

@@ -142,6 +142,19 @@ jobs:
                   --data-binary @-
               echo "Photovoltaic unifilar service migration applied through Supabase Management API"
             fi
+            if jq -e --arg name enea_fotovoltaico_off_grid \
+              'any(.[]; .name == $name)' <<< "$MIGRATIONS" > /dev/null; then
+              echo "ENEA off-grid module migration already applied"
+            else
+              jq -n --rawfile query supabase/migrations/20261021120000_enea_fotovoltaico_off_grid.sql \
+                '{query: $query, name: "enea_fotovoltaico_off_grid"}' \
+                | curl --fail-with-body --silent --show-error --output /dev/null \
+                  --request POST "https://api.supabase.com/v1/projects/${PROJECT_REF}/database/migrations" \
+                  --header "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
+                  --header "Content-Type: application/json" \
+                  --data-binary @-
+              echo "ENEA off-grid module migration applied through Supabase Management API"
+            fi
           else
             supabase link --project-ref "$PROJECT_REF"
             supabase db push --linked

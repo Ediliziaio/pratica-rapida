@@ -126,6 +126,18 @@ export function validateDynamicStep(
             if (sub.required && subEmpty) {
               errors[`${step.key}.${field.key}.${idx}.${sub.key}`] =
                 `${sub.label} è obbligatorio`;
+              continue;
+            }
+            if (!subEmpty && sub.type === "number") {
+              const numberValue = Number(subStr.trim());
+              const subErrorKey = `${step.key}.${field.key}.${idx}.${sub.key}`;
+              if (Number.isNaN(numberValue)) {
+                errors[subErrorKey] = "Numero non valido";
+              } else if (sub.min !== undefined && numberValue < sub.min) {
+                errors[subErrorKey] = `Minimo ${sub.min}`;
+              } else if (sub.max !== undefined && numberValue > sub.max) {
+                errors[subErrorKey] = `Massimo ${sub.max}`;
+              }
             }
           }
         });

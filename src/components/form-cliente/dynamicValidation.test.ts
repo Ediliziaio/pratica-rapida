@@ -27,3 +27,38 @@ describe("dynamic form conditional payment documents", () => {
       .toEqual({});
   });
 });
+
+describe("dynamic repeated technical fields", () => {
+  const step = {
+    key: "prodotto",
+    label: "Fotovoltaico off-grid",
+    fields: [{
+      key: "impianti",
+      label: "Sezioni impianto",
+      type: "array" as const,
+      required: true,
+      item_template: {
+        fields: [{
+          key: "inclinazione_gradi",
+          label: "Inclinazione",
+          type: "number" as const,
+          required: true,
+          min: 0,
+          max: 90,
+        }],
+      },
+    }],
+  };
+
+  it("blocca un'inclinazione fuori dall'intervallo ENEA", () => {
+    expect(validateDynamicStep(step, { prodotto: { impianti: [{ inclinazione_gradi: 91 }] } }))
+      .toHaveProperty("prodotto.impianti.0.inclinazione_gradi", "Massimo 90");
+  });
+
+  it("accetta i limiti 0 e 90", () => {
+    expect(validateDynamicStep(step, { prodotto: { impianti: [{ inclinazione_gradi: 0 }] } }))
+      .toEqual({});
+    expect(validateDynamicStep(step, { prodotto: { impianti: [{ inclinazione_gradi: 90 }] } }))
+      .toEqual({});
+  });
+});

@@ -5,6 +5,7 @@ import { findFormModuleByProdotto } from "./formModuleMatching";
 const modules = [
   { slug: "enea-infissi", prodotto_match: ["infiss", "serrament"] },
   { slug: "enea-vepa", prodotto_match: ["vepa", "vetrat"] },
+  { slug: "enea-fotovoltaico-off-grid", prodotto_match: ["fotovoltaico off-grid", "fotovoltaico off grid"] },
 ];
 
 describe("findFormModuleByProdotto", () => {
@@ -20,7 +21,13 @@ describe("findFormModuleByProdotto", () => {
     expect(findFormModuleByProdotto(modules, "Infissi / Serramenti")?.slug).toBe("enea-infissi");
   });
 
-  it("non abbina prodotti senza un pattern configurato", () => {
+  it("instrada il fotovoltaico off-grid al modulo ENEA dedicato", () => {
+    expect(findFormModuleByProdotto(modules, "Fotovoltaico off-grid domestico")?.slug)
+      .toBe("enea-fotovoltaico-off-grid");
+  });
+
+  it("non confonde l'off-grid con il fotovoltaico GSE", () => {
     expect(findFormModuleByProdotto(modules, "Fotovoltaico")).toBeNull();
+    expect(findFormModuleByProdotto(modules, "Allaccio fotovoltaico GSE")).toBeNull();
   });
 });

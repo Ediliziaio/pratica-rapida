@@ -189,6 +189,7 @@ serve(async (req) => {
   let fattureFiles: File[] = [];
   let docExtraFiles: File[] = [];
   let librettoFiles: File[] = [];
+  let schemaUnifilareFiles: File[] = [];
   let moduliFiles: File[] = [];
   let fgasPlateFiles: File[] = [];
   let fgasInterventionFiles: File[] = [];
@@ -201,6 +202,7 @@ serve(async (req) => {
       fattureFiles = [...grab("fattura"), ...grab("fatture")];
       docExtraFiles = [...grab("doc_extra"), ...grab("documenti")];
       librettoFiles = grab("libretto");
+      schemaUnifilareFiles = grab("schema_unifilare");
       moduliFiles = grab("moduli_raccolta");
       fgasPlateFiles = grab("fgas_targhetta");
       fgasInterventionFiles = grab("fgas_rapporto");
@@ -238,6 +240,7 @@ serve(async (req) => {
   if (nome.length < 2 || cognome.length < 2) return json({ success: false, error: "Nome e cognome del cliente obbligatori" }, 400);
   if (telefono.replace(/\D/g, "").length < 8) return json({ success: false, error: "Telefono del cliente non valido" }, 400);
   const fgasOnly = p.fgas?.package === "fgas_only";
+  const isOffGrid = /fotovoltaico\s+off[\s-]?grid/i.test(p.prodotto ?? "");
   // ENEA e F-Gas non possono essere aperte senza la data dell'intervento.
   // La verifica lato server impedisce di aggirare l'obbligo presente nella UI.
   if ((p.modulo === "pratica-enea" || p.modulo === "pratica-fgas") && !isValidIsoDate(dataFineLavori)) {
@@ -258,11 +261,15 @@ serve(async (req) => {
   if (fgasOnly && !["no", "si", "non_so"].includes(p.fgas?.gas_movement ?? "")) {
     return json({ success: false, error: "Indica se è stato aggiunto o recuperato gas" }, 400);
   }
+  if (isOffGrid && schemaUnifilareFiles.length === 0) {
+    return json({ success: false, error: "Lo schema unifilare firmato e timbrato è obbligatorio" }, 400);
+  }
 
   const allFiles = [
     ...fattureFiles,
     ...docExtraFiles,
     ...librettoFiles,
+    ...schemaUnifilareFiles,
     ...moduliFiles,
     ...fgasPlateFiles,
     ...fgasInterventionFiles,
@@ -484,10 +491,11 @@ serve(async (req) => {
       }
       return paths;
     };
-    const [fattureUrls, docExtraUrls, librettoUrls, moduliUrls, fgasPlateUrls, fgasInterventionUrls] = await Promise.all([
+    const [fattureUrls, docExtraUrls, librettoUrls, schemaUnifilareUrls, moduliUrls, fgasPlateUrls, fgasInterventionUrls] = await Promise.all([
       uploadAll(fattureFiles, "fattura"),
       uploadAll(docExtraFiles, "doc_extra"),
       uploadAll(librettoFiles, "libretto"),
+      uploadAll(schemaUnifilareFiles, "schema_unifilare"),
       uploadAll(moduliFiles, "moduli_raccolta"),
       uploadAll(fgasPlateFiles, "fgas_targhetta"),
       uploadAll(fgasInterventionFiles, "fgas_rapporto_intervento"),
@@ -495,6 +503,7 @@ serve(async (req) => {
     const aggiuntivi = [
       ...docExtraUrls,
       ...librettoUrls,
+      ...schemaUnifilareUrls,
       ...moduliUrls,
       ...fgasPlateUrls,
       ...fgasInterventionUrls,

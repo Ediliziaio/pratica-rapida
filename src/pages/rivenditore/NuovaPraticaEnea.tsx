@@ -93,7 +93,13 @@ async function resolveResellerNetPrice(companyId: string): Promise<number> {
 const euroScomposto = (p: { imponibileCents: number; totaleCents: number }) =>
   `${euro(p.imponibileCents)} + IVA (${euro(p.totaleCents)})`;
 
-type TipoProdotto = "schermature_solari" | "infissi" | "vepa" | "pompe_calore" | "insufflaggio_tetti";
+export type TipoProdotto =
+  | "schermature_solari"
+  | "infissi"
+  | "vepa"
+  | "pompe_calore"
+  | "insufflaggio_tetti"
+  | "fotovoltaico_off_grid";
 type MovimentoGasFgas = "no" | "si" | "non_so";
 type SceltaFgas = "enea_only" | "enea_fgas_full" | "fgas_only";
 
@@ -110,6 +116,7 @@ const PRODOTTI: {
   { id: "vepa", label: "VEPA – Vetrate Panoramiche", short: "VEPA", icon: Maximize2, color: "text-purple-600 bg-purple-50 border-purple-200" },
   { id: "pompe_calore", label: "Pompe di Calore / Climatizzazione", short: "Pompe di calore", icon: Thermometer, color: "text-green-600 bg-green-50 border-green-200" },
   { id: "insufflaggio_tetti", label: "Insufflaggio Tetti", short: "Insufflaggio", icon: Layers, color: "text-orange-600 bg-orange-50 border-orange-200" },
+  { id: "fotovoltaico_off_grid", label: "Fotovoltaico off-grid domestico", short: "Fotovoltaico off-grid", icon: Sun, color: "text-emerald-700 bg-emerald-50 border-emerald-200" },
 ];
 
 // ── Dropzone helper ───────────────────────────────────────────────────────────
@@ -234,7 +241,15 @@ async function uploadFiles(
 const CONTRATTO_URL = "/contratto-di-servizio.pdf";
 const CONTRATTO_VERSIONE = "2026-08-03";
 
-export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: boolean } = {}) {
+export default function NuovaPraticaEnea({
+  publicMode = false,
+  initialProduct = null,
+  lockProduct = false,
+}: {
+  publicMode?: boolean;
+  initialProduct?: TipoProdotto | null;
+  lockProduct?: boolean;
+} = {}) {
   const { resellerId, isInternal } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -343,7 +358,7 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
   // contattato, ma il rivenditore può volere che la pratica conclusa gli venga
   // comunque inviata. null = non ha ancora risposto (la domanda è obbligatoria).
   const [inviaPraticaCliente, setInviaPraticaCliente] = useState<boolean | null>(null);
-  const [tipoProdotto, setTipoProdotto] = useState<TipoProdotto | null>(null);
+  const [tipoProdotto, setTipoProdotto] = useState<TipoProdotto | null>(initialProduct);
   const [tipoSoggetto, setTipoSoggetto] = useState<TipoSoggetto | null>(null);
   const [tipoFatturazione, setTipoFatturazione] = useState<TipoFatturazione | null>(null);
 
@@ -361,6 +376,7 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
   const [fatturaFiles, setFatturaFiles] = useState<File[]>([]);
   const [docExtra1, setDocExtra1] = useState<File[]>([]); // doc condizionale 1
   const [docExtra2, setDocExtra2] = useState<File[]>([]); // doc condizionale 2 (solo pompe di calore: libretto)
+  const [schemaUnifilareFiles, setSchemaUnifilareFiles] = useState<File[]>([]);
   // Pacchetto F-Gas: al rivenditore chiediamo soltanto ciò che non possiamo
   // ricavare dalla pratica ENEA o dai documenti. Tutti i campi tecnici restano
   // a carico di PraticaRapida nel back-office.
@@ -420,6 +436,13 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
         return {
           flagQuestion: "La fattura riporta lo spessore dell'insufflaggio e la conducibilità termica?",
           extraLabel: "Documento con spessore insufflaggio e conducibilità termica",
+          hasExtra: true,
+          hasLibretto: false,
+        };
+      case "fotovoltaico_off_grid":
+        return {
+          flagQuestion: "La fattura riporta la potenza di picco dell’impianto?",
+          extraLabel: "Scheda tecnica o altro documento che riporta la potenza di picco",
           hasExtra: true,
           hasLibretto: false,
         };
@@ -500,6 +523,8 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
       e.docExtra1 = "Il documento aggiuntivo è obbligatorio";
     if (docConfig?.hasExtra && flagDocCompleto === null)
       e.flagDoc = "Rispondi alla domanda sui documenti";
+    if (tipoProdotto === "fotovoltaico_off_grid" && schemaUnifilareFiles.length === 0)
+      e.schemaUnifilare = "Carica lo schema unifilare firmato e timbrato";
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -572,6 +597,7 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
         fatturaFiles.forEach((f) => fd.append("fattura", f));
         docExtra1.forEach((f) => fd.append("doc_extra", f));
         docExtra2.forEach((f) => fd.append("libretto", f));
+        schemaUnifilareFiles.forEach((f) => fd.append("schema_unifilare", f));
         moduliRaccoltaFiles.forEach((f) => fd.append("moduli_raccolta", f));
         fgasPlateFiles.forEach((f) => fd.append("fgas_targhetta", f));
         fgasInterventionFiles.forEach((f) => fd.append("fgas_rapporto", f));
@@ -718,10 +744,11 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
       if (insertError || !practice) throw insertError ?? new Error("Insert fallito");
 
       // Upload documenti in parallelo
-      const [fatture, docExtra, docExtra2Res, moduliRes, fgasPlateRes, fgasInterventionRes] = await Promise.all([
+      const [fatture, docExtra, docExtra2Res, schemaUnifilareRes, moduliRes, fgasPlateRes, fgasInterventionRes] = await Promise.all([
         uploadFiles(staffCfIntake ? [] : fatturaFiles, practice.id, "fattura"),
         uploadFiles(docExtra1, practice.id, "doc_extra"),
         uploadFiles(docExtra2, practice.id, "libretto"),
+        uploadFiles(schemaUnifilareFiles, practice.id, "schema_unifilare"),
         uploadFiles(moduliRaccoltaFiles, practice.id, "moduli_raccolta"),
         uploadFiles(fgasPlateFiles, practice.id, "fgas_targhetta"),
         uploadFiles(fgasInterventionFiles, practice.id, "fgas_rapporto_intervento"),
@@ -731,6 +758,7 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
         ...fatture.failed,
         ...docExtra.failed,
         ...docExtra2Res.failed,
+        ...schemaUnifilareRes.failed,
         ...moduliRes.failed,
         ...fgasPlateRes.failed,
         ...fgasInterventionRes.failed,
@@ -744,7 +772,7 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
       }
 
       if (
-        fatture.urls.length || docExtra.urls.length || docExtra2Res.urls.length || moduliRes.urls.length ||
+        fatture.urls.length || docExtra.urls.length || docExtra2Res.urls.length || schemaUnifilareRes.urls.length || moduliRes.urls.length ||
         fgasPlateRes.urls.length || fgasInterventionRes.urls.length
       ) {
         await supabase.from("enea_practices").update({
@@ -752,6 +780,7 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
           documenti_aggiuntivi_urls: [
             ...docExtra.urls,
             ...docExtra2Res.urls,
+            ...schemaUnifilareRes.urls,
             ...moduliRes.urls,
             ...fgasPlateRes.urls,
             ...fgasInterventionRes.urls,
@@ -814,11 +843,11 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
 
   const resetForm = () => {
     setRichiedenteTipo(null);
-    setTipoServizio(null); setDocumentiMode(null); setTipoProdotto(null);
+    setTipoServizio(null); setDocumentiMode(null); setTipoProdotto(initialProduct);
     setTipoSoggetto(null); setTipoFatturazione(null);
     setNome(""); setCognome(""); setEmail(""); setTelefono("");
     setCf(""); setIndirizzo(""); setNote("");
-    setFatturaFiles([]); setDocExtra1([]); setDocExtra2([]);
+    setFatturaFiles([]); setDocExtra1([]); setDocExtra2([]); setSchemaUnifilareFiles([]);
     setFgasChoice(null); setFgasAddressSame(null); setFgasInstallationAddress("");
     setFgasGasMovement(null); setFgasPlateFiles([]); setFgasInterventionFiles([]);
     setModuliRaccoltaFiles([]);
@@ -1056,7 +1085,7 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
             <AlertCircle className="h-3.5 w-3.5" />{errors.tipoServizio}
           </p>
         )}
-        <div className="grid sm:grid-cols-3 gap-3">
+        <div className={cn("grid gap-3", lockProduct ? "sm:grid-cols-2" : "sm:grid-cols-3")}>
           {/* Servizio Completo */}
           <button
             type="button"
@@ -1114,7 +1143,7 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
 
           {/* Percorso indipendente: nessun modulo ENEA e nessun contatto al
               cliente. Fattura, data e targhette arrivano direttamente in CRM. */}
-          <button
+          {!lockProduct && <button
             type="button"
             onClick={() => {
               setTipoProdotto("pompe_calore");
@@ -1143,7 +1172,7 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
             <p className="text-xs text-muted-foreground leading-relaxed">
               Carica fattura e targhette. Al resto pensiamo noi, senza aprire una pratica ENEA.
             </p>
-          </button>
+          </button>}
         </div>
 
         {/* Sotto-scelta per "Documenti Forniti": cartaceo vs form online */}
@@ -1247,7 +1276,7 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
           </p>
         )}
         <div className="grid sm:grid-cols-2 gap-2.5">
-          {PRODOTTI.map((prod) => {
+          {PRODOTTI.filter((prod) => !lockProduct || prod.id === initialProduct).map((prod) => {
             const Icon = prod.icon;
             const selected = tipoProdotto === prod.id;
             return (
@@ -1255,11 +1284,13 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
                 key={prod.id}
                 type="button"
                 onClick={() => {
+                  if (lockProduct) return;
                   if (isFgasOnly && prod.id === "pompe_calore") return;
                   setTipoProdotto(prod.id);
                   setFlagDocCompleto(null);
                   setDocExtra1([]);
                   setDocExtra2([]);
+                  setSchemaUnifilareFiles([]);
                   setFgasChoice(null);
                   setFgasAddressSame(null);
                   setFgasInstallationAddress("");
@@ -1630,6 +1661,26 @@ export default function NuovaPraticaEnea({ publicMode = false }: { publicMode?: 
               onAdd={(f) => setDocExtra2((p) => [...p, ...f])}
               onRemove={(i) => setDocExtra2((p) => p.filter((_, j) => j !== i))}
             />
+          </div>
+        )}
+
+        {tipoProdotto === "fotovoltaico_off_grid" && (
+          <div className="space-y-2 rounded-lg border border-emerald-200 bg-emerald-50/50 p-4">
+            {errors.schemaUnifilare && (
+              <p className="text-xs text-destructive flex items-center gap-1" data-error>
+                <AlertCircle className="h-3.5 w-3.5" />{errors.schemaUnifilare}
+              </p>
+            )}
+            <FileDropzone
+              label="Schema unifilare firmato e timbrato"
+              required
+              files={schemaUnifilareFiles}
+              onAdd={(f) => setSchemaUnifilareFiles((p) => [...p, ...f])}
+              onRemove={(i) => setSchemaUnifilareFiles((p) => p.filter((_, j) => j !== i))}
+            />
+            <p className="text-xs text-muted-foreground">
+              Deve essere già firmato e timbrato dal tecnico installatore o dal responsabile tecnico dell’azienda. Pratica Rapida non prepara lo schema unifilare per gli impianti off-grid.
+            </p>
           </div>
         )}
 

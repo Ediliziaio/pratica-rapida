@@ -166,17 +166,19 @@ serve(async (req) => {
     });
   }
 
-  // 2. Primo contatto WA al cliente privato (gated by practice_created/whatsapp)
+  // 2. Primo contatto WA al cliente privato (gated by practice_created/whatsapp).
+  // `modulo_cliente_enea` e' il template Meta approvato e accetta esattamente
+  // due parametri: nome e link. `contatta_cliente` era soltanto un fallback
+  // OpenWA e su Meta falliva con #132001.
   if (!reseller_only && !attesaPagamentoClienteLegacy && whatsappEnabled && puoContattareCliente(practice) && practice.cliente_telefono) {
     const phone = practice.cliente_telefono.replace(/\D/g, "").replace(/^0039/, "39").replace(/^\+/, "");
     steps.client_wa = await invoke("send-whatsapp", {
       to: phone,
-      template_name: "contatta_cliente",
+      template_name: "modulo_cliente_enea",
       components: [{
         type: "body",
         parameters: [
           { type: "text", text: practice.cliente_nome },
-          { type: "text", text: resellerName },
           { type: "text", text: `https://app.praticarapida.it/form/${practice.form_token}` },
         ],
       }],

@@ -44,6 +44,7 @@ try {
   const sessione = await stripe("POST", "checkout/sessions", {
     mode: "payment",
     "payment_method_types[0]": "card",
+    customer_creation: "always",
     customer_email: "prova@eneasubito.it",
     "payment_intent_data[capture_method]": "manual",
     "payment_intent_data[receipt_email]": "prova@eneasubito.it",
@@ -53,8 +54,6 @@ try {
     "line_items[0][price_data][currency]": "eur",
     "line_items[0][price_data][unit_amount]": "9900",
     "line_items[0][price_data][product_data][name]": "EneaSubito — Pratica ENEA (PROVA)",
-    "invoice_creation[enabled]": "true",
-    "invoice_creation[invoice_data][footer]": "EneaSubito è un servizio di PR Consulting LLC",
     success_url: "https://www.eneasubito.it/",
     cancel_url: "https://www.eneasubito.it/",
   });
@@ -74,11 +73,29 @@ try {
   const incassato = await stripe("POST", `payment_intents/${pi.id}/capture`, {});
   console.log(`3) L'incasso riesce: ${incassato.status === "succeeded" ? "SÌ (" + incassato.amount_received / 100 + " €)" : "NO (" + incassato.status + ")"}`);
 
-  await new Promise((r) => setTimeout(r, 4000));
-  const dopo = await stripe("GET", `checkout/sessions/${sessione.id}`);
-  let fattura = null;
-  if (dopo.invoice) fattura = await stripe("GET", `invoices/${dopo.invoice}`);
-  console.log(`4) Fattura dopo l'incasso: ${fattura ? `${fattura.status} (${fattura.number ?? "senza numero"})` : "NESSUNA"}`);
+  // La fattura non puo' nascere dalla cassa con la carta bloccata (Stripe lo
+  // vieta): la si fa all'incasso, gia' saldata, e se ne manda il PDF.
+  const cliente = incassato.customer ?? fatta.customer;
+  const fattura0 = await stripe("POST", "invoices", {
+    customer: cliente,
+    collection_method: "send_invoice",
+    days_until_due: "0",
+    auto_advance: "false",
+    description: "Pratica ENEA. Compilazione e trasmissione al portale ENEA.",
+    footer: "EneaSubito è un servizio di PR Consulting LLC",
+    "metadata[pagamento]": incassato.id,
+  });
+  await stripe("POST", "invoiceitems", {
+    customer: cliente,
+    invoice: fattura0.id,
+    currency: "eur",
+    amount: String(incassato.amount_received),
+    description: "EneaSubito — Pratica ENEA (PROVA)",
+  });
+  await stripe("POST", `invoices/${fattura0.id}/finalize`, {});
+  const pagata = await stripe("POST", `invoices/${fattura0.id}/pay`, { paid_out_of_band: "true" });
+  console.log(`4) Fattura fatta all'incasso: ${pagata.status === "paid" ? "SÌ, saldata" : "NO (" + pagata.status + ")"} — numero ${pagata.number ?? "?"}, importo ${pagata.total / 100} €`);
+  console.log(`5) PDF della fattura disponibile: ${pagata.invoice_pdf ? "SÌ" : "NO"}`);
   console.log("\nFINE PROVA");
 } catch (e) {
   console.log(`\nERRORE: ${e.message}`);

@@ -56,6 +56,8 @@ const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
  */
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY_ENEASUBITO") ??
   Deno.env.get("RESEND_API_KEY") ?? "";
+/** La chiave dell'orologio orario: senza almeno 32 caratteri non vale. */
+const CHIAVE_OROLOGIO = (Deno.env.get("SOLLECITI_CHIAVE") ?? "").trim();
 /** Interruttore: finché non è «true» si prepara tutto senza spedire. */
 const ATTIVI = (Deno.env.get("SOLLECITI_ATTIVI") ?? "").toLowerCase() === "true";
 
@@ -167,10 +169,22 @@ Deno.serve(async (req) => {
   // tenere aggiornato in due posti, e soprattutto non finisce nell'indirizzo.
   // Un segreto scritto nella URL lo registrano i log, i proxy e la cronologia
   // di chi lo prova una volta a mano; nell'intestazione no.
+  //
+  // Dal 17/10 al 21/10 nessuna chiave del progetto superava questo confronto
+  // (ne' quella della cassaforte usata dall'orologio, ne' quella nuova), e
+  // nessun sollecito e' mai partito. Per questo l'orologio ha ora una chiave
+  // sua, `SOLLECITI_CHIAVE`, tenuta in due posti soli: i segreti della
+  // funzione e la cassaforte del database. Viaggia nell'intestazione
+  // `x-solleciti-chiave`, mai nell'indirizzo.
   if (!soloProva && !saggioNostro) {
     const atteso = `Bearer ${SERVICE_KEY}`;
     const dato = req.headers.get("Authorization") ?? "";
-    if (dato.length !== atteso.length || dato !== atteso) {
+    const chiaveOrologio = req.headers.get("x-solleciti-chiave") ?? "";
+    const perOrologio = CHIAVE_OROLOGIO.length >= 32 &&
+      chiaveOrologio.length === CHIAVE_OROLOGIO.length &&
+      chiaveOrologio === CHIAVE_OROLOGIO;
+    const perServizio = dato.length === atteso.length && dato === atteso;
+    if (!perOrologio && !perServizio) {
       return json({ error: "non autorizzato" }, 401);
     }
   }

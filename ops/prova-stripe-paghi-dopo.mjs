@@ -78,6 +78,7 @@ try {
   const cliente = incassato.customer ?? fatta.customer;
   const fattura0 = await stripe("POST", "invoices", {
     customer: cliente,
+    currency: "eur",
     collection_method: "send_invoice",
     days_until_due: "0",
     auto_advance: "false",

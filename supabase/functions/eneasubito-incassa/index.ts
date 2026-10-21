@@ -65,6 +65,9 @@ async function fattura(
   if (!cliente) return null;
   const bozza = await stripe.invoices.create({
     customer: cliente,
+    // Il conto e' americano: senza, la fattura nasce in dollari e rifiuta la
+    // riga in euro (provato il 21/10/2026).
+    currency: pagamento.currency,
     collection_method: "send_invoice",
     days_until_due: 0,
     auto_advance: false,

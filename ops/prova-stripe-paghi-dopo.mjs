@@ -13,10 +13,15 @@ import { createInterface } from "node:readline/promises";
 const domanda = createInterface({ input: process.stdin, output: process.stdout });
 await domanda.question("\nCopia ora la chiave di PROVA di Stripe (sk_test_...), poi torna qui e premi Invio... ");
 domanda.close();
-const chiave = execSync("pbpaste").toString().trim();
+const appunti = execSync("pbpaste").toString();
 execSync("pbcopy < /dev/null");
-if (!chiave.startsWith("sk_test_") && !chiave.startsWith("rk_test_")) {
-  console.log("FERMO: negli appunti non c'è una chiave di PROVA (deve cominciare con sk_test_). Non ho usato niente e ho svuotato gli appunti.");
+// Copiata dalla tabella di Stripe la chiave va a capo su tre righe: si
+// tolgono spazi e a capo e la si cerca dentro tutto il testo.
+const compatto = appunti.replace(/\s+/g, "");
+const chiave = (compatto.match(/(?:sk|rk)_test_[A-Za-z0-9]+/) ?? [""])[0];
+if (!chiave) {
+  const tipo = compatto.slice(0, 3).replace(/[A-Za-z0-9]/g, "x");
+  console.log(`FERMO: negli appunti non c'è una chiave di PROVA. Ho trovato ${compatto.length} caratteri${compatto.includes("live") ? ", con la parola «live»: è il conto VERO" : ""} (inizio: ${tipo}...). Non ho usato niente e ho svuotato gli appunti.`);
   process.exit(1);
 }
 

@@ -255,7 +255,7 @@ export default function Verifica() {
   return (
     <Guscio
       titolo="Fai partire la tua pratica ENEA — EneaSubito"
-      descrizione="Chi sei, dove scriverti, la foto della fattura. Poi 99 € e la pratica parte."
+      descrizione="Chi sei, dove scriverti, la foto della fattura. Paghi 99 € solo quando la pratica è stata inviata."
       percorso="/verifica"
     >
       <div className="es-wrap">
@@ -277,8 +277,10 @@ export default function Verifica() {
                   siamo, e la prima cosa da dirgli e' perche' affidarla. */}
               <p className="es-aiuto">
                 <b>Non rischiare di perdere la detrazione:</b> affida la pratica a dei professionisti.
+                E ci paghi solo quando la tua pratica è stata inviata.
               </p>
               <ul className="es-promessa">
+                <li><b>Paghi solo a pratica inviata</b>: prima nessun addebito</li>
                 <li><b>99 €</b>, tutto compreso</li>
                 <li>Pronta in <b>48 ore</b></li>
                 <li>Bastano la fattura e i tuoi dati</li>
@@ -481,7 +483,7 @@ export default function Verifica() {
                     void versoLaCassa();
                   }}
                 >
-                  {attesa ?? "Vai al pagamento"}
+                  {attesa ?? "Continua: nessun addebito adesso"}
                 </button>
               </div>
 
@@ -505,7 +507,9 @@ export default function Verifica() {
               sapere che dall'altra parte c'e' qualcuno. Prima compariva
               soltanto in caso di errore, cioe' quando ormai era tardi. */}
           <p className="es-micro">
-            Pagamento sicuro con Stripe. Hai un dubbio? Scrivici a{" "}
+            Inserisci la carta: i 99 € li addebitiamo solo quando la tua pratica è stata
+            inviata all'ENEA. Se non riusciamo a inviarla, non paghi niente. Pagamento
+            sicuro con Stripe. Hai un dubbio? Scrivici a{" "}
             <a href="mailto:assistenza@eneasubito.it">assistenza@eneasubito.it</a>
           </p>
 

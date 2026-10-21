@@ -1583,7 +1583,7 @@ export default function NuovaPraticaEnea({
             </p>
           )}
           <FileDropzone
-            label="Fattura di acquisto/installazione"
+            label="Fattura di vendita/installazione"
             required
             files={fatturaFiles}
             onAdd={(f) => setFatturaFiles((p) => [...p, ...f])}

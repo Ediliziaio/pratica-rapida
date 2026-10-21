@@ -3626,6 +3626,9 @@ export interface EneaPractice {
   // Da quale annuncio, ricerca o sito e' arrivato il cliente. Solo canale
   // eneasubito, scritto alla nascita e mai piu' toccato. Solo interno.
   provenienza: Record<string, string> | null
+  // Primo ingresso nello stage "Invio pratica chiusa"; termine immutabile
+  // del contatore iniziato a created_at.
+  ciclo_chiuso_at: string | null
   created_at: string
   updated_at: string
 }

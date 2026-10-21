@@ -256,7 +256,7 @@ export default function Verifica() {
   return (
     <Guscio
       titolo="Fai partire la tua pratica ENEA — EneaSubito"
-      descrizione="Chi sei, dove scriverti, la foto della fattura. Paghi 99 € solo quando la pratica è stata inviata."
+      descrizione="Chi sei, dove scriverti, la foto della fattura. Paghi 99 € solo quando hai ricevuto la pratica."
       percorso="/verifica"
     >
       <div className="es-wrap">
@@ -278,7 +278,7 @@ export default function Verifica() {
                   siamo, e la prima cosa da dirgli e' perche' affidarla. */}
               <p className="es-aiuto">
                 <b>Non rischiare di perdere la detrazione:</b> affida la pratica a dei professionisti.
-                E ci paghi solo quando la tua pratica è stata inviata.
+                E ci paghi solo quando hai ricevuto la tua pratica.
               </p>
               <ul className="es-promessa">
                 <li><b>99 €</b>, tutto compreso</li>
@@ -509,8 +509,8 @@ export default function Verifica() {
               sapere che dall'altra parte c'e' qualcuno. Prima compariva
               soltanto in caso di errore, cioe' quando ormai era tardi. */}
           <p className="es-micro">
-            Inserisci la carta: i 99 € li addebitiamo solo quando la tua pratica è stata
-            inviata all'ENEA. Se non riusciamo a inviarla, non paghi niente. Pagamento
+            La carta fa solo da garanzia: i 99 € li addebitiamo quando hai ricevuto la
+            tua pratica. Se non riusciamo a fartela avere, non paghi niente. Pagamento
             sicuro con Stripe. Hai un dubbio? Scrivici a{" "}
             <a href="mailto:assistenza@eneasubito.it">assistenza@eneasubito.it</a>
           </p>

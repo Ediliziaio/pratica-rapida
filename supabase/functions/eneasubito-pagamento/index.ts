@@ -61,7 +61,7 @@ Deno.serve(async (req) => {
   if (pratica.archived_at) return json({ error: "Questa richiesta e' stata annullata" }, 409);
   if (pratica.pagamento_stato === "pagata") return json({ error: "Risulta gia' pagata" }, 409);
   if (pratica.carta_bloccata_at) {
-    return json({ error: "La carta e' gia' registrata: l'addebito parte quando la pratica e' inviata" }, 409);
+    return json({ error: "La carta e' gia' registrata: l'addebito parte quando ricevi la pratica" }, 409);
   }
 
   // ── L'importo: dal database, mai dal browser ──────────────────────────────
@@ -147,7 +147,7 @@ Deno.serve(async (req) => {
       custom_text: {
         submit: {
           message:
-            "Nessun addebito adesso: i 99 € vengono addebitati solo quando la tua pratica è stata inviata all'ENEA. Se non riusciamo a inviarla, non paghi niente.",
+            "Nessun addebito adesso: la carta fa solo da garanzia. I 99 € vengono addebitati quando hai ricevuto la tua pratica. Se non riusciamo a fartela avere, non paghi niente.",
         },
       },
       line_items: [

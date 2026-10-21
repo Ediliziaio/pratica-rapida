@@ -152,7 +152,7 @@ Deno.serve(async (req) => {
             [
               "Gentile cliente,",
               "",
-              `la tua pratica ENEA è stata inviata e abbiamo addebitato i ${incassato} € che avevamo bloccato sulla tua carta.`,
+              `ti abbiamo mandato la tua pratica ENEA, quindi abbiamo addebitato i ${incassato} € sulla carta che avevi lasciato in garanzia.`,
               "",
               `La fattura: ${f.pdf || f.pagina}`,
               "",
@@ -255,13 +255,13 @@ Deno.serve(async (req) => {
 
   const mandata = await manda(
     pratica.cliente_email,
-    "La tua pratica ENEA è stata inviata",
+    "La tua pratica ENEA è pronta",
     [
       intestatario ? `Gentile ${intestatario},` : "Gentile cliente,",
       "",
-      "la tua pratica ENEA è stata inviata.",
+      "ti abbiamo mandato la tua pratica ENEA.",
       "",
-      "Il blocco dei 99 € sulla tua carta è scaduto prima della consegna, quindi non ti abbiamo addebitato nulla. Puoi pagare da qui:",
+      "La garanzia sulla tua carta è scaduta prima della consegna, quindi non ti abbiamo addebitato nulla. Puoi pagare i 99 € da qui:",
       link,
       "",
       "Il team di EneaSubito",

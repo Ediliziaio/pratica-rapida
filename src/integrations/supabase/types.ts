@@ -1514,6 +1514,7 @@ export type Database = {
           canale: string | null
           provenienza: Json | null
           chiamate_assegnato_a: string | null
+          ciclo_chiuso_at: string | null
           cliente_cf: string | null
           cliente_cognome: string
           cliente_email: string | null
@@ -1571,6 +1572,7 @@ export type Database = {
           canale?: string | null
           provenienza?: Json | null
           chiamate_assegnato_a?: string | null
+          ciclo_chiuso_at?: string | null
           cliente_cf?: string | null
           cliente_cognome: string
           cliente_email?: string | null
@@ -1630,6 +1632,7 @@ export type Database = {
           canale?: string | null
           provenienza?: Json | null
           chiamate_assegnato_a?: string | null
+          ciclo_chiuso_at?: string | null
           cliente_cf?: string | null
           cliente_cognome?: string
           cliente_email?: string | null
@@ -2887,6 +2890,7 @@ export type Database = {
           canale: string | null
           provenienza: Json | null
           chiamate_assegnato_a: string | null
+          ciclo_chiuso_at: string | null
           cliente_cf: string | null
           cliente_cognome: string | null
           cliente_email: string | null
@@ -2940,6 +2944,7 @@ export type Database = {
           canale?: never
           provenienza?: never
           chiamate_assegnato_a?: never
+          ciclo_chiuso_at?: string | null
           cliente_cf?: string | null
           cliente_cognome?: string | null
           cliente_email?: string | null
@@ -2993,6 +2998,7 @@ export type Database = {
           canale?: never
           provenienza?: never
           chiamate_assegnato_a?: never
+          ciclo_chiuso_at?: string | null
           cliente_cf?: string | null
           cliente_cognome?: string | null
           cliente_email?: string | null

@@ -19,6 +19,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { resolveCfNetPriceEur } from "@/lib/cfPracticePriceClient";
 import { isCompletedFormWaitingForPayment } from "@/lib/completedFormPipeline";
+import { practiceCycleDays } from "@/lib/practiceCycle";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -2938,7 +2939,8 @@ function PracticeCard({
   isSelected?: boolean;
   onToggleSelect?: (id: string) => void;
 }) {
-  const days = daysAgo(practice.updated_at);
+  const days = practiceCycleDays(practice);
+  const cycleClosed = !!practice.ciclo_chiuso_at;
   // Le pratiche del secondo marchio si riconoscono a vista: riquadro verde
   // acqua e targhetta. Stesso funzionamento di tutte le altre, ma il CRM non
   // scrive mai al cliente e la fattura la fa Stripe.
@@ -3193,7 +3195,14 @@ function PracticeCard({
 
           {/* Footer row */}
           <div className="flex items-center justify-between pt-0.5">
-            <span className={`text-[11px] font-medium ${agingIntent}`}>{days}g fa</span>
+            <span
+              className={`text-[11px] font-medium ${agingIntent}`}
+              title={cycleClosed
+                ? "Durata dalla creazione al primo ingresso in Invio pratica chiusa"
+                : "Giorni trascorsi dalla creazione della pratica"}
+            >
+              {days}g {cycleClosed ? "totali" : "in corso"}
+            </span>
             <div className="flex items-center gap-1.5">
               {hasMissingDocs && (
                 <span className="flex items-center gap-0.5 text-[11px] text-amber-600 font-medium">
@@ -3808,7 +3817,8 @@ export default function KanbanBoard() {
       "Nome", "Cognome", "Email", "Telefono", "Codice Fiscale", "Brand",
       "Azienda", "Stage", "Prodotto", "Fornitore", "Note",
       "Guadagno Netto (€)", "Guadagno Lordo (€)", "Solleciti",
-      "Form Compilato", "Operatore", "Archiviata", "Creata il", "Aggiornata il",
+      "Form Compilato", "Operatore", "Archiviata", "Creata il", "Ciclo chiuso il",
+      "Giorni lavorazione", "Aggiornata il",
     ];
     const rows = filteredPractices.map((p) => [
       p.cliente_nome,
@@ -3829,6 +3839,8 @@ export default function KanbanBoard() {
       p.operatore_id ? (operatorMap[p.operatore_id] ?? "") : "",
       p.archived_at ? "Sì" : "No",
       format(new Date(p.created_at), "dd/MM/yyyy HH:mm"),
+      p.ciclo_chiuso_at ? format(new Date(p.ciclo_chiuso_at), "dd/MM/yyyy HH:mm") : "",
+      practiceCycleDays(p),
       format(new Date(p.updated_at), "dd/MM/yyyy HH:mm"),
     ]);
     const csv = [headers, ...rows]
@@ -3868,6 +3880,10 @@ export default function KanbanBoard() {
         : "",
       Solleciti: p.conteggio_solleciti ?? 0,
       "Creata il": format(new Date(p.created_at), "dd/MM/yyyy"),
+      "Ciclo chiuso il": p.ciclo_chiuso_at
+        ? format(new Date(p.ciclo_chiuso_at), "dd/MM/yyyy")
+        : "",
+      "Giorni lavorazione": practiceCycleDays(p),
       Archiviata: p.archived_at ? "Sì" : "No",
     }));
     const ws = XLSX.utils.json_to_sheet(rows);

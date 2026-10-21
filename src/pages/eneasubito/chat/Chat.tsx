@@ -55,7 +55,7 @@ export function RichiamoChat() {
       </span>
       <span>
         <b>Un dubbio prima di partire?</b>
-        <i>Rispondiamo subito, anche adesso</i>
+        <i>Assistenza via chat e via e-mail</i>
       </span>
       <span className="es-chat-richiamo-azione">Scrivici →</span>
     </button>

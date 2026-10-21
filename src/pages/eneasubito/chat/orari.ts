@@ -27,7 +27,10 @@ export function inOrario(adesso = new Date()): boolean {
 
 /** Cosa scrivere sotto «Assistenza», sul bottone. */
 export function statoBreve(adesso = new Date()): string {
-  return inOrario(adesso) ? "online" : `rispondiamo dalle ${APERTURA}`;
+  // Niente orari sulla pagina, deciso dal Titolare il 21/10/2026: tre
+  // promesse diverse («subito», «dalle 9», «entro 24 ore») a chi e' gia'
+  // diffidente sembravano qualcuno che non c'e'.
+  return inOrario(adesso) ? "online" : "chat ed e-mail";
 }
 
 /** La frase che spiega quando arriva la risposta. */

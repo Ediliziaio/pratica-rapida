@@ -103,7 +103,7 @@ export function Guscio({ titolo, descrizione, percorso, senzaIndicizzazione, chi
           <nav>
             <span style={{ fontWeight: 600, color: "var(--es-inchiostro)" }}>Assistenza</span>
             <a href="mailto:assistenza@eneasubito.it">assistenza@eneasubito.it</a>
-            <span>Risposta entro 24 ore</span>
+            <span>Assistenza via chat e via e-mail</span>
           </nav>
         </footer>
       </div>

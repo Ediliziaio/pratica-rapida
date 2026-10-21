@@ -57,10 +57,15 @@ const MEMORIA = "eneasubito-verifica";
  */
 const TOKEN = "eneasubito-token";
 
+// I nomi sono quelli di chi ha fatto i lavori, non quelli dell'ENEA: deciso
+// dal Titolare il 21/10/2026. «Schermature solari» non lo dice nessuno, e chi
+// ha messo un condizionatore non sa che per l'ENEA e' una pompa di calore:
+// leggeva le tre voci, pensava «non e' per me» e se ne andava (83 % alla
+// prima domanda). Dietro, le famiglie restano le stesse.
 const FAMIGLIE: { id: Famiglia; nome: string; esempi: string }[] = [
-  { id: "infissi", nome: "Infissi", esempi: "Finestre, portefinestre, porte d'ingresso" },
-  { id: "schermature", nome: "Schermature solari", esempi: "Tende da sole, pergotende, pergole" },
-  { id: "pompe_di_calore", nome: "Pompa di calore", esempi: "Riscaldamento con pompa di calore" },
+  { id: "infissi", nome: "Infissi / Finestre", esempi: "Finestre, portefinestre, porte d'ingresso" },
+  { id: "schermature", nome: "Tende da sole, pergole, zanzariere, tapparelle", esempi: "Anche pergotende e persiane" },
+  { id: "pompe_di_calore", nome: "Climatizzatore", esempi: "Condizionatori e pompe di calore" },
 ];
 
 const AMMESSE = FAMIGLIE.map((f) => f.id) as string[];
@@ -268,6 +273,11 @@ export default function Verifica() {
                   ostacolo — «se non ce l'hai sottomano» — e la seconda una
                   domanda a cui rispondere. */}
               <h1 className="es-domandona es-serif">La tua pratica ENEA la facciamo noi</h1>
+              {/* Deciso dal Titolare il 21/10/2026: chi arriva non sa chi
+                  siamo, e la prima cosa da dirgli e' perche' affidarla. */}
+              <p className="es-aiuto">
+                <b>Non rischiare di perdere la detrazione:</b> affida la pratica a dei professionisti.
+              </p>
               <ul className="es-promessa">
                 <li><b>99 €</b>, tutto compreso</li>
                 <li>Pronta in <b>48 ore</b></li>
@@ -277,7 +287,7 @@ export default function Verifica() {
                   dal Titolare, e qui vale doppio — si apriva dicendo a una
                   persona cosa poteva mancarle. */}
               <p className="es-aiuto">
-                Cominciamo: ci vogliono davvero due minuti. La fattura te la chiediamo alla fine.
+                Il modulo è facile e veloce: bastano due minuti. La fattura te la chiediamo alla fine.
               </p>
 
               <div className="es-campone">

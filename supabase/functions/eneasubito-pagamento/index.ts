@@ -4,7 +4,7 @@
  * Separata da `stripe-checkout` per un motivo che non e' di ordine: quella
  * incassa con il conto Stripe dell'altra societa' ed emette fattura da
  * Fatture in Cloud. Qui incassa **PR Consulting LLC** con il suo conto, e la
- * fattura la emette Stripe da solo (`invoice_creation`). Due catene distinte
+ * fattura la emette Stripe all'incasso (`eneasubito-incassa`). Due catene distinte
  * che non si devono incrociare mai.
  *
  * L'importo NON arriva dal browser: si legge da `platform_settings`. Il
@@ -165,25 +165,12 @@ Deno.serve(async (req) => {
           },
         },
       ],
-      // La fattura la emette Stripe da sola a pagamento riuscito.
-      //
-      // Descrizione e piè di pagina si impostano **per singola fattura**: in
-      // testa resta il nome dell'account (la societa' che vende davvero, e
-      // quello non si puo' cambiare per vendita), ma qui dentro compare
-      // EneaSubito e il recapito giusto. Cosi' il cliente capisce da chi ha
-      // comprato e dove scrivere, e le fatture dell'altra attivita' che passa
-      // dallo stesso conto restano identiche a prima.
-      invoice_creation: {
-        enabled: true,
-        invoice_data: {
-          description: pratica.prodotto_installato
-            ? `Pratica ENEA — ${pratica.prodotto_installato}. Compilazione e trasmissione al portale ENEA.`
-            : "Pratica ENEA. Compilazione e trasmissione al portale ENEA.",
-          footer:
-            "EneaSubito è un servizio di PR Consulting LLC — eneasubito.it — assistenza@eneasubito.it",
-          metadata: { canale: "eneasubito", pratica_id: pratica.id },
-        },
-      },
+      // Niente `invoice_creation` qui: con la carta bloccata Stripe lo
+      // rifiuta («Post-payment invoice creation does not support separate
+      // authorization and capture», provato il 21/10/2026 sul conto di
+      // prova). La fattura la fa `eneasubito-incassa` al momento
+      // dell'incasso, gia' saldata, con la stessa descrizione e lo stesso
+      // piè di pagina.
       // Il riferimento serve al webhook per ritrovare la pratica senza
       // fidarsi di niente che arrivi dal browser.
       client_reference_id: pratica.id,

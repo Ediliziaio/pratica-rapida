@@ -34,6 +34,7 @@ import { Guscio } from "../Guscio";
 import { preparaDocumento } from "./immagine";
 import { segna } from "../passi";
 import { apriPagamento, caricaFattura, salvaPratica } from "./pratica";
+import { TreTempi } from "./TreTempi";
 import {
   completa,
   datiCompleti,
@@ -280,11 +281,11 @@ export default function Verifica() {
                 E ci paghi solo quando la tua pratica è stata inviata.
               </p>
               <ul className="es-promessa">
-                <li><b>Paghi solo a pratica inviata</b>: prima nessun addebito</li>
                 <li><b>99 €</b>, tutto compreso</li>
                 <li>Pronta in <b>48 ore</b></li>
                 <li>Bastano la fattura e i tuoi dati</li>
               </ul>
+              <TreTempi />
               {/* Niente negazioni in una pagina che deve convincere: deciso
                   dal Titolare, e qui vale doppio — si apriva dicendo a una
                   persona cosa poteva mancarle. */}
@@ -472,6 +473,7 @@ export default function Verifica() {
                 {preparazione && <p className="es-aiuto">{preparazione}</p>}
               </div>
 
+              <TreTempi />
               <div className="es-navigazione">
                 <button
                   type="button"

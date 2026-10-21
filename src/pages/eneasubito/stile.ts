@@ -399,4 +399,19 @@ body { background: #F5F2EC; }
   width: 7px; height: 11px; border: solid var(--es-verde); border-width: 0 2.2px 2.2px 0;
   transform: rotate(45deg); }
 .es-promessa b { font-weight: 700; }
+
+/* Come si paga, in tre disegni: si legge senza leggere. */
+.es-tempi { margin: 14px 0 4px; padding: 14px 10px 10px; border-radius: 14px;
+  background: var(--es-superficie); border: 1.5px solid var(--es-verde); }
+.es-tempi-fila { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.es-tempo { position: relative; display: flex; flex-direction: column; align-items: center;
+  text-align: center; gap: 3px; padding: 0 4px; }
+.es-tempo-icona { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%;
+  background: var(--es-verde-chiaro); color: var(--es-verde); margin-bottom: 2px; }
+.es-tempo b { font-size: 19px; font-weight: 800; color: var(--es-inchiostro); line-height: 1.15; }
+.es-tempo:first-child b { color: var(--es-azione); }
+.es-tempo span:last-of-type { font-size: 12.5px; line-height: 1.3; color: var(--es-inchiostro-tenue); }
+.es-tempo-freccia { position: absolute; right: -9px; top: 13px; font-style: normal; font-size: 16px;
+  color: var(--es-inchiostro-debole); }
+.es-tempi-nota { margin: 10px 0 0; text-align: center; font-size: 13px; color: var(--es-inchiostro-debole); }
 `;

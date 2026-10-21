@@ -235,10 +235,31 @@ Deno.serve(async (req) => {
     return json({ error: "lettura fallita" }, 500);
   }
 
-  const [{ data: gia }, { data: fuori }] = await Promise.all([
+  const [{ data: gia }, { data: fuori }, { data: pagateEmail, error: errorePagate }] = await Promise.all([
     db.from("eneasubito_solleciti").select("pratica_id, numero, tipo"),
     db.from("eneasubito_disiscritti").select("email"),
+    db.from("enea_practices")
+      .select("cliente_email")
+      .eq("canale", "eneasubito")
+      .eq("pagamento_stato", "pagata"),
   ]);
+  // Senza sapere chi ha gia' pagato non si scrive a nessuno: il 21/10 due
+  // clienti paganti hanno ricevuto due solleciti ciascuno, uno per ogni
+  // richiesta doppia rimasta «non pagata» prima del pagamento.
+  if (errorePagate) {
+    console.error("[eneasubito-solleciti] lettura pagate fallita", errorePagate);
+    return json({ error: "lettura pagate fallita" }, 500);
+  }
+  const hannoPagato = new Set(
+    (pagateEmail ?? []).map((r) => String(r.cliente_email ?? "").trim().toLowerCase()).filter(Boolean),
+  );
+  // Una persona, una serie: chi ha aperto piu' richieste con la stessa
+  // e-mail riceve i messaggi solo per la piu' recente.
+  const ultimaPerEmail = new Map<string, string>();
+  for (const p of pratiche ?? []) {
+    const e = String(p.cliente_email ?? "").trim().toLowerCase();
+    if (e) ultimaPerEmail.set(e, p.id as string);
+  }
 
   // Due serie, due memorie: il messaggio 1 di una non deve impedire il
   // messaggio 1 dell'altra.
@@ -261,12 +282,30 @@ Deno.serve(async (req) => {
   // Perche' tacciono, in numeri e senza nomi: «zero messaggi» puo' voler dire
   // che la macchina ragiona giusto o che non ha letto niente, e sono due cose
   // molto diverse.
-  const conto = { candidate: pratiche?.length ?? 0, senzaIndirizzo: 0, disiscritte: 0, troppoPresto: 0, finite: 0 };
+  const conto = {
+    candidate: pratiche?.length ?? 0,
+    senzaIndirizzo: 0,
+    disiscritte: 0,
+    troppoPresto: 0,
+    finite: 0,
+    giaPagato: 0,
+    doppioni: 0,
+  };
 
   for (const p of pratiche ?? []) {
     if (esito.mandati >= MASSIMO_PER_GIRO) break;
 
     const email = String(p.cliente_email ?? "").trim().toLowerCase();
+    if (email && hannoPagato.has(email)) {
+      conto.giaPagato += 1;
+      esito.saltati += 1;
+      continue;
+    }
+    if (email && ultimaPerEmail.get(email) !== p.id) {
+      conto.doppioni += 1;
+      esito.saltati += 1;
+      continue;
+    }
     const stato: StatoPratica = {
       creataIl: String(p.created_at),
       pagata: p.pagamento_stato === "pagata",

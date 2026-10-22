@@ -4288,7 +4288,7 @@ export default function KanbanBoard() {
       style={{ height: "calc(100vh - 3.5rem)" }}
     >
       {/* ── Toolbar row 1: title · search · actions ────────────────────── */}
-      <div className="flex items-center gap-2 px-4 py-2.5 border-b bg-background shrink-0">
+      <div className="flex items-center gap-2 px-4 py-2.5 border-b bg-background shrink-0 min-w-0">
         {/* Title + count */}
         <div className="flex items-center gap-2 shrink-0">
           <span className="font-semibold text-sm tracking-tight">
@@ -4317,7 +4317,7 @@ export default function KanbanBoard() {
         </div>
 
         {/* Search */}
-        <div className="relative flex-1 max-w-sm mx-2">
+        <div className="relative flex-1 min-w-[8rem] max-w-sm mx-2">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
           <Input
             placeholder="Cerca cliente, CF, email..."
@@ -4348,7 +4348,7 @@ export default function KanbanBoard() {
               title="Crea una nuova pratica (direct-channel)"
             >
               <Plus className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Nuova pratica</span>
+              <span className="hidden xl:inline">Nuova pratica</span>
             </Button>
           )}
           <Button
@@ -4358,7 +4358,7 @@ export default function KanbanBoard() {
             onClick={() => setFiltersOpen(true)}
           >
             <Filter className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Filtri</span>
+            <span className="hidden xl:inline">Filtri</span>
             {hasActiveFilters && (
               <span className="absolute -top-1 -right-1 h-3.5 w-3.5 rounded-full bg-primary text-primary-foreground text-[9px] flex items-center justify-center font-bold leading-none">
                 {activeFilterCount}
@@ -4373,7 +4373,7 @@ export default function KanbanBoard() {
                 className="h-8 px-2.5 gap-1.5 text-xs"
               >
                 <Download className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">Esporta</span>
+                <span className="hidden xl:inline">Esporta</span>
                 <ChevronDown className="h-3 w-3 ml-0.5" />
               </Button>
             </DropdownMenuTrigger>
@@ -4398,7 +4398,7 @@ export default function KanbanBoard() {
       </div>
 
       {/* ── Toolbar row 2: brand segment · view toggle · archive · sort ─────── */}
-      <div className="flex items-center gap-3 px-4 py-1.5 border-b bg-background shrink-0">
+      <div className="flex items-center gap-3 px-4 py-1.5 border-b bg-background shrink-0 overflow-x-auto">
         {isInternal && (
           <div className="inline-flex items-center gap-0.5 bg-muted rounded-md p-0.5">
             {(["all", "enea", "conto_termico"] as const).map((b) => (

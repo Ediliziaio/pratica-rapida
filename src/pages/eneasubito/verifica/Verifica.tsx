@@ -274,27 +274,20 @@ export default function Verifica() {
                   ostacolo — «se non ce l'hai sottomano» — e la seconda una
                   domanda a cui rispondere. */}
               <h1 className="es-domandona es-serif">La tua pratica ENEA la facciamo noi</h1>
-              {/* Deciso dal Titolare il 21/10/2026: chi arriva non sa chi
-                  siamo, e la prima cosa da dirgli e' perche' affidarla. */}
-              <p className="es-aiuto">
-                <b>Non rischiare di perdere la detrazione:</b> affida la pratica a dei professionisti.
-                E ci paghi solo quando hai ricevuto la tua pratica.
+              {/* Il 22/10 la parte alta (frase, promessa, tre disegni, nota sul
+                  modulo) riempiva tutto il primo schermo del telefono e la
+                  prima domanda finiva sotto: in 24 ore 1 su 26 sceglieva il
+                  lavoro, prima 1 su 6. Stesse cose, in meno spazio: la
+                  domanda torna nel primo schermo. */}
+              <p className="es-aiuto es-aiuto-stretto">
+                <b>Non rischiare la detrazione:</b> affidala a dei professionisti. 99 €, pronta in 48 ore.
               </p>
-              <ul className="es-promessa">
-                <li><b>99 €</b>, tutto compreso</li>
-                <li>Pronta in <b>48 ore</b></li>
-                <li>Bastano la fattura e i tuoi dati</li>
-              </ul>
-              <TreTempi />
-              {/* Niente negazioni in una pagina che deve convincere: deciso
-                  dal Titolare, e qui vale doppio — si apriva dicendo a una
-                  persona cosa poteva mancarle. */}
-              <p className="es-aiuto">
-                Il modulo è facile e veloce: bastano due minuti. La fattura te la chiediamo alla fine.
-              </p>
+              <TreTempi compatto />
 
               <div className="es-campone">
-                <label htmlFor="intervento">Che lavoro hai fatto</label>
+                <label htmlFor="intervento">
+                  Che lavoro hai fatto? <span className="es-etichetta-nota">Facile e veloce: bastano due minuti</span>
+                </label>
                 <div className="es-scelte" id="intervento">
                   {FAMIGLIE.map((f) => (
                     <button

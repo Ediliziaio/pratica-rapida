@@ -35,9 +35,9 @@ const PASSI = [
   { icona: SPUNTA, grande: "99 €", piccolo: "solo dopo, mai prima" },
 ];
 
-export function TreTempi() {
+export function TreTempi({ compatto = false }: { compatto?: boolean }) {
   return (
-    <div className="es-tempi" role="list" aria-label="Come funziona il pagamento">
+    <div className={compatto ? "es-tempi es-tempi-compatto" : "es-tempi"} role="list" aria-label="Come funziona il pagamento">
       <div className="es-tempi-fila">
         {PASSI.map((p, i) => (
           <div key={p.grande} className="es-tempo" role="listitem">
@@ -48,7 +48,7 @@ export function TreTempi() {
           </div>
         ))}
       </div>
-      <p className="es-tempi-nota">Come in albergo: la carta fa solo da garanzia.</p>
+      {!compatto && <p className="es-tempi-nota">Come in albergo: la carta fa solo da garanzia.</p>}
     </div>
   );
 }

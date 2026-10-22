@@ -414,4 +414,14 @@ body { background: #F5F2EC; }
 .es-tempo-freccia { position: absolute; right: -9px; top: 13px; font-style: normal; font-size: 16px;
   color: var(--es-inchiostro-debole); }
 .es-tempi-nota { margin: 10px 0 0; text-align: center; font-size: 13px; color: var(--es-inchiostro-debole); }
+/* In cima alla pagina: la stessa idea, in una fila bassa, perche' la prima
+   domanda resti nel primo schermo del telefono. */
+.es-tempi-compatto { margin: 10px 0 14px; padding: 9px 6px 8px; }
+.es-tempi-compatto .es-tempo-icona { width: 30px; height: 30px; margin-bottom: 0; }
+.es-tempi-compatto .es-tempo-icona svg { width: 18px; height: 18px; }
+.es-tempi-compatto .es-tempo b { font-size: 15.5px; }
+.es-tempi-compatto .es-tempo span:last-of-type { font-size: 11.5px; line-height: 1.25; }
+.es-tempi-compatto .es-tempo-freccia { top: 6px; }
+.es-aiuto-stretto { margin-top: 6px; }
+.es-etichetta-nota { display: block; font-weight: 400; font-size: 13px; color: var(--es-inchiostro-debole); margin-top: 2px; }
 `;

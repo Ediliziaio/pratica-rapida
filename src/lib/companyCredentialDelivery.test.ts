@@ -4,9 +4,13 @@ vi.mock("@/integrations/supabase/client", () => ({
   supabase: {},
 }));
 
-import { resolveCredentialAddresses } from "./companyCredentialDelivery";
+import { COMPANY_LOGIN_URL, resolveCredentialAddresses } from "./companyCredentialDelivery";
 
 describe("destinatario delle credenziali azienda", () => {
+  it("indirizza sempre il cliente alla pagina di accesso attiva", () => {
+    expect(COMPANY_LOGIN_URL).toBe("https://app.praticarapida.it/auth");
+  });
+
   it("invia al contatto aziendale corrente ma conserva l'email Auth come login", () => {
     expect(resolveCredentialAddresses("groupedile@gmail.com", "amministrazione@serviscasa.com"))
       .toEqual({

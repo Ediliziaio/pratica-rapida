@@ -155,7 +155,7 @@ const SAMPLE_TEST_DATA: Record<string, string> = {
   note: "Manca la planimetria firmata e la copia documento installatore.",
   tipo_modulo: "Schermature",
   link: "https://app.praticarapida.it/test-link",
-  login_url: "https://pannello.praticarapida.it",
+  login_url: "https://app.praticarapida.it/auth",
   app_url: "https://app.praticarapida.it",
   base_url: "https://app.praticarapida.it",
   token: "TEST-TOKEN-1234",

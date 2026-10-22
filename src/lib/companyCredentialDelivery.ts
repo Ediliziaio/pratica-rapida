@@ -13,6 +13,8 @@ export interface CompanyCredentialResult {
   emailSent: boolean;
 }
 
+export const COMPANY_LOGIN_URL = "https://app.praticarapida.it/auth";
+
 function normalizeEmail(value?: string | null): string | null {
   const normalized = value?.trim();
   return normalized || null;
@@ -74,7 +76,7 @@ export async function updateCompanyCredentials({
         ragione_sociale: company.ragione_sociale,
         email: loginEmail,
         password,
-        login_url: "https://pannello.praticarapida.it",
+        login_url: COMPANY_LOGIN_URL,
       },
     },
     headers: authorization,

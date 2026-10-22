@@ -556,7 +556,7 @@ serve(async (req) => {
             ragione_sociale: ragione || "Rivenditore",
             cliente: `${nome} ${cognome}`.trim(),
             servizio: p.prodotto?.trim() || p.modulo || "pratica",
-            login_url: "https://pannello.praticarapida.it/auth",
+            login_url: "https://app.praticarapida.it/auth",
           },
         }),
       }).catch((e) => console.warn("[richiesta-pubblica] invito email failed:", e));

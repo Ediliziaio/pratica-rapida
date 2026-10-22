@@ -354,7 +354,7 @@ function renderTemplate(template: string, data: Record<string, string>): { subje
             <tr>
               <td style="padding:12px 18px;font-weight:bold;color:#555;width:32%;border-bottom:1px solid #eee;">🌐 Pannello</td>
               <td style="padding:12px 18px;border-bottom:1px solid #eee;">
-                <a href="${r("{{login_url}}")}" style="color:#00843D;font-weight:bold;">pannello.praticarapida.it</a>
+                <a href="${r("{{login_url}}")}" style="color:#00843D;font-weight:bold;">app.praticarapida.it/auth</a>
               </td>
             </tr>
             <tr>

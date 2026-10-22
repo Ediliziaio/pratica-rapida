@@ -154,7 +154,7 @@ Deno.serve(async (req) => {
   // Step 5 — Send welcome email with credentials
   const resendKey = Deno.env.get("RESEND_API_KEY");
   const fromDomain = Deno.env.get("EMAIL_FROM_DOMAIN") ?? "praticarapida.it";
-  const loginUrl = Deno.env.get("APP_URL") ?? "https://pannello.praticarapida.it/auth";
+  const loginUrl = "https://app.praticarapida.it/auth";
 
   if (resendKey) {
     const subject = "✅ Benvenuto su Pratica Rapida — Le tue credenziali di accesso";
@@ -174,7 +174,7 @@ Deno.serve(async (req) => {
       <tr>
         <td style="padding:12px 18px;font-weight:bold;color:#555;width:32%;border-bottom:1px solid #eee;">🌐 Pannello</td>
         <td style="padding:12px 18px;border-bottom:1px solid #eee;">
-          <a href="${loginUrl}" style="color:#00843D;font-weight:bold;">pannello.praticarapida.it</a>
+          <a href="${loginUrl}" style="color:#00843D;font-weight:bold;">app.praticarapida.it/auth</a>
         </td>
       </tr>
       <tr>

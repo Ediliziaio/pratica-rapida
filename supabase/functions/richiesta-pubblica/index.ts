@@ -412,7 +412,9 @@ serve(async (req) => {
     // il rivenditore, listino CF quando paga il cliente finale. Sul contenitore
     // "Da abbinare" resta 0 soltanto una pratica a carico del rivenditore:
     // senza azienda reale non inventiamo il suo listino.
-    const cfFinale = p.tipo_fatturazione === "cliente_finale";
+    // Il privato paga direttamente: il browser non puo' trasformarlo in una
+    // pratica a carico del rivenditore omettendo tipo_fatturazione.
+    const cfFinale = isPrivato || p.tipo_fatturazione === "cliente_finale";
     const cfNetPrice = cfFinale ? await resolveCfNetPrice(supabase, companyId) : 0;
     const resellerNetPrice = !cfFinale && !isPrivato && matchType !== "creata"
       ? await resolveResellerNetPrice(supabase, companyId)
@@ -428,8 +430,11 @@ serve(async (req) => {
         // riceve comunque la pratica, quindi il flag non c'entra.
         invia_pratica_al_cliente:
           tipoServizio === "documenti_forniti" && p.invia_pratica_al_cliente === true,
-        tipo_fatturazione: p.tipo_fatturazione === "cliente_finale" ? "cliente_finale" : "rivenditore",
+        tipo_fatturazione: cfFinale ? "cliente_finale" : "rivenditore",
         pagamento_stato: "non_pagata",
+        // Il privato del sito compila e paga dopo: la riga serve al form e
+        // al checkout, ma la RLS la nasconde dal CRM fino all'incasso.
+        public_private_checkout_required: isPrivato,
         tipo_soggetto: fgasOnly ? null : p.tipo_soggetto === "azienda_piva" ? "azienda_piva" : "persona_fisica",
         prodotto_installato: fgasOnly ? "Pratica F-Gas" : p.prodotto?.trim() || (p.modulo ?? "Richiesta sito"),
         // Ragione sociale dichiarata dal rivenditore: sul segnaposto "Da
@@ -524,7 +529,7 @@ serve(async (req) => {
     // Col servizio a carico del cliente finale la chiamata serve anche su
     // "documenti forniti": non per il modulo (i dati li ha dati il rivenditore)
     // ma perche' al cliente deve arrivare il link di pagamento.
-    const cfDalSito = p.tipo_fatturazione === "cliente_finale" && !p.requires_payment;
+    const cfDalSito = cfFinale && !p.requires_payment;
     if ((tipoServizio === "servizio_completo" && !p.requires_payment) || cfDalSito) {
       fetch(`${SUPABASE_URL}/functions/v1/on-practice-created`, {
         method: "POST",
@@ -563,28 +568,30 @@ serve(async (req) => {
     }
 
     // ── 7. Notifica super_admin ──
-    try {
-      const { data: admins } = await supabase
-        .from("user_roles")
-        .select("user_id")
-        .eq("role", "super_admin");
-      if (admins && admins.length > 0) {
-        await supabase.from("notifications").insert(
-          admins.map((a) => ({
-            user_id: a.user_id,
-            tipo: "richiesta_pubblica",
-            titolo: matchType === "privato"
-              ? `👤 Richiesta dal sito — CLIENTE PRIVATO (${nome} ${cognome})`
-              : matchType === "creata"
+    // La richiesta privata non pagata non deve affiorare neppure nel campanello.
+    // Il webhook del pagamento produce la notifica quando l'incasso e' vero.
+    if (!isPrivato) {
+      try {
+        const { data: admins } = await supabase
+          .from("user_roles")
+          .select("user_id")
+          .eq("role", "super_admin");
+        if (admins && admins.length > 0) {
+          await supabase.from("notifications").insert(
+            admins.map((a) => ({
+              user_id: a.user_id,
+              tipo: "richiesta_pubblica",
+              titolo: matchType === "creata"
                 ? `⚠️ Richiesta dal sito — azienda DA ABBINARE (${ragione})`
                 : `📥 Nuova richiesta dal sito — ${ragione}`,
-            messaggio: `${nome} ${cognome} · ${p.prodotto ?? p.modulo ?? ""}${allFiles.length ? ` · ${allFiles.length} file` : ""}${matchType === "creata" ? " — azienda non trovata: invito inviato al rivenditore, verifica e abbina la pratica" : ""}${matchType === "privato" ? " — in attesa del pagamento con carta" : ""}`,
-            link: `/pratiche/${practice.id}`,
-          })),
-        );
+              messaggio: `${nome} ${cognome} · ${p.prodotto ?? p.modulo ?? ""}${allFiles.length ? ` · ${allFiles.length} file` : ""}${matchType === "creata" ? " — azienda non trovata: invito inviato al rivenditore, verifica e abbina la pratica" : ""}`,
+              link: `/pratiche/${practice.id}`,
+            })),
+          );
+        }
+      } catch (notifErr) {
+        console.warn("[richiesta-pubblica] notify failed:", notifErr);
       }
-    } catch (notifErr) {
-      console.warn("[richiesta-pubblica] notify failed:", notifErr);
     }
 
     return json({

@@ -519,9 +519,13 @@ export default function NuovaPraticaEnea({
       }
     }
     // Prodotti con flag: se NO → doc extra obbligatorio
-    if (docConfig?.hasExtra && flagDocCompleto === false && docExtra1.length === 0)
+    // Al privato niente domanda tecnica ne' certificati (Titolare, 27/10/2026):
+    // trasmittanza, GTOT, metri quadri sono richieste da rivenditore. Dei 20
+    // privati che premevano «Invia» in cinque giorni, ne passavano 4; il dato
+    // tecnico si recupera dopo, dalla fattura o nel modulo che segue.
+    if (!isPrivato && docConfig?.hasExtra && flagDocCompleto === false && docExtra1.length === 0)
       e.docExtra1 = "Il documento aggiuntivo è obbligatorio";
-    if (docConfig?.hasExtra && flagDocCompleto === null)
+    if (!isPrivato && docConfig?.hasExtra && flagDocCompleto === null)
       e.flagDoc = "Rispondi alla domanda sui documenti";
     if (tipoProdotto === "fotovoltaico_off_grid" && schemaUnifilareFiles.length === 0)
       e.schemaUnifilare = "Carica lo schema unifilare firmato e timbrato";
@@ -1592,7 +1596,7 @@ export default function NuovaPraticaEnea({
         </>}
 
         {/* Logica condizionale per prodotto */}
-        {tipoProdotto && tipoProdotto !== "pompe_calore" && docConfig?.hasExtra && (
+        {tipoProdotto && tipoProdotto !== "pompe_calore" && docConfig?.hasExtra && !isPrivato && (
           <div className="space-y-3 rounded-lg border border-blue-200 bg-blue-50/50 dark:border-blue-900/40 dark:bg-blue-950/20 p-4">
             <div className="flex items-start gap-2">
               <HelpCircle className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />

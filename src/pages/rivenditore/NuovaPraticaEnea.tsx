@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -484,8 +484,23 @@ export default function NuovaPraticaEnea({
     if (!nome.trim())      e.nome = "Nome obbligatorio";
     if (!cognome.trim())   e.cognome = "Cognome obbligatorio";
     if (!telefono.trim())  e.telefono = "Telefono obbligatorio";
-    if (!staffCfIntake && !dataFineLavori) e.dataFineLavori = "La data di fine lavori è obbligatoria";
-    if (!staffCfIntake && fatturaFiles.length === 0) e.fattura = "La fattura è obbligatoria";
+    // Al privato che arriva dal sito la fattura e la data NON si chiedono qui.
+    //
+    // Era il muro: su 21 persone che hanno premuto Invia nella settimana del
+    // 20/10/2026, 4 sono state registrate. La fattura in PDF e la data esatta
+    // di fine lavori sono le due cose che nessuno ha addosso mentre guarda il
+    // telefono dopo aver cliccato un annuncio. Si chiedono dopo il pagamento,
+    // nel modulo tecnico, dove la persona e' seduta e ha i documenti davanti.
+    // Stessa correzione gia' fatta su EneaSubito il 15/10, dove i primi
+    // clienti paganti sono arrivati dopo.
+    if (!staffCfIntake && !isPrivato && !dataFineLavori) e.dataFineLavori = "La data di fine lavori è obbligatoria";
+    if (!staffCfIntake && !isPrivato && fatturaFiles.length === 0) e.fattura = "La fattura è obbligatoria";
+    // Il codice fiscale invece serve subito: paga prima di compilare, e la
+    // fattura la emette una societa' italiana a un privato — senza codice
+    // fiscale non si puo' emettere. E' un dato che la gente ha in portafoglio,
+    // non un PDF da cercare.
+    if (isPrivato && cf.trim().replace(/\s/g, "").length !== 16)
+      e.cf = "Codice fiscale obbligatorio: serve per emettere la fattura";
     // Documenti forniti: i moduli di raccolta dati compilati sono obbligatori per ogni prodotto
     if (!isFgasOnly && tipoServizio === "documenti_forniti" && !documentiMode)
       e.documentiMode = "Scegli se allegare i moduli cartacei o compilare il form online";
@@ -616,9 +631,19 @@ export default function NuovaPraticaEnea({
         };
         if (!res.success) throw new Error(res.error ?? "Invio fallito");
 
-        // ── Cliente privato: prima completa il modulo, poi paga con TS Pay ──
-        // Il modulo raccoglie i dati fiscali necessari a emettere correttamente
-        // la fattura soltanto dopo il pagamento.
+        // ── Cliente privato: prima paga, poi compila il modulo ──
+        //
+        // Invertito il 27/10/2026 per decisione del Titolare. Prima si
+        // compilava e si pagava dopo, per avere i dati fiscali al momento di
+        // fatturare: ma per compilare serviva la fattura dell'installatore, e
+        // quel muro fermava quattro persone su cinque. Il dato fiscale che
+        // serve davvero — il codice fiscale — ora si chiede nel primo passo,
+        // quindi la fattura si puo' emettere lo stesso.
+        //
+        // La cassa manda al modulo appena il pagamento e' andato a buon fine
+        // (stripe-checkout, success: "form"), quindi la persona ci arriva
+        // comunque — ma avendo gia' pagato, e non prima di sapere se le
+        // conviene.
         if (isPrivato) {
           if (!res.form_token) {
             throw new Error(
@@ -626,7 +651,7 @@ export default function NuovaPraticaEnea({
             );
           }
           segnaPrivato("registrata");
-          navigate(`/form/${res.form_token}`);
+          navigate(`/paga/${res.form_token}`);
           return;
         }
 
@@ -887,10 +912,24 @@ export default function NuovaPraticaEnea({
   // numerazione va ricalcolata o si vedrebbe "2, 5, 6, 7".
   // (le sezioni nascoste restano a 0: non vengono renderizzate)
   const S = isPrivato
-    ? { servizio: 0, prodotto: 1, soggetto: 0, fatturazione: 0, dati: 2, documenti: 3, fgas: 0, note: 4 }
+    ? { servizio: 0, prodotto: 1, soggetto: 0, fatturazione: 0, dati: 2, documenti: 0, fgas: 0, note: 0 }
     : isFgasOnly
       ? { servizio: 0, prodotto: 1, soggetto: 0, fatturazione: 0, dati: 2, documenti: 3, fgas: 4, note: 5 }
     : { servizio: 1, prodotto: 2, soggetto: 3, fatturazione: 4, dati: 5, documenti: 6, fgas: 7, note: tipoProdotto === "pompe_calore" ? 8 : 7 };
+
+  /**
+   * Giorni passati dalla fine dei lavori, o null se la data non c'e'.
+   *
+   * Serve a dire alla persona se e' ancora in tempo **prima** che paghi: il
+   * termine e' 90 giorni, e incassare per una pratica che non si puo' piu'
+   * trasmettere vuol dire rimborsare.
+   */
+  const giorniPassati = useMemo(() => {
+    if (!dataFineLavori) return null;
+    const giorno = (d: Date) => Date.UTC(d.getFullYear(), d.getMonth(), d.getDate());
+    const passati = Math.floor((giorno(new Date()) - giorno(dataFineLavori)) / 86_400_000);
+    return passati >= 0 ? passati : null;
+  }, [dataFineLavori]);
 
   // ── Imbuto del privato (solo dal sito) ──────────────────────────────────────
   // Si guardano i campi, non si toccano: la misura sta fuori dal percorso.
@@ -1279,6 +1318,33 @@ export default function NuovaPraticaEnea({
             <AlertCircle className="h-3.5 w-3.5" />{errors.tipoProdotto}
           </p>
         )}
+        {/* Al privato un menu' a tendina invece delle schede: cinque schede
+            occupano mezzo schermo di telefono e spingono tutto il resto sotto
+            la piega, proprio dove si decide se restare. Deciso dal Titolare il
+            27/10/2026. Per i rivenditori restano le schede, che sul computer
+            si leggono meglio. */}
+        {isPrivato ? (
+          <Select
+            value={tipoProdotto ?? ""}
+            onValueChange={(valore) => {
+              setTipoProdotto(valore as TipoProdotto);
+              setFlagDocCompleto(null);
+              setErrors((p) => ({ ...p, tipoProdotto: "" }));
+            }}
+          >
+            <SelectTrigger
+              id="tipo-prodotto"
+              className={cn("h-11", errors.tipoProdotto && "border-destructive")}
+            >
+              <SelectValue placeholder="Scegli il lavoro che hai fatto" />
+            </SelectTrigger>
+            <SelectContent>
+              {PRODOTTI.map((prod) => (
+                <SelectItem key={prod.id} value={prod.id}>{prod.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        ) : (
         <div className="grid sm:grid-cols-2 gap-2.5">
           {PRODOTTI.filter((prod) => !lockProduct || prod.id === initialProduct).map((prod) => {
             const Icon = prod.icon;
@@ -1323,6 +1389,7 @@ export default function NuovaPraticaEnea({
             );
           })}
         </div>
+        )}
       </Section>
 
       {/* ── 3. Tipo di Soggetto ────────────────────────────────────────────
@@ -1470,15 +1537,28 @@ export default function NuovaPraticaEnea({
           <div className="space-y-1.5">
             <Label htmlFor="cf" className="text-sm">
               {tipoSoggetto === "azienda_piva" ? "Partita IVA" : "Codice Fiscale"}
+              {isPrivato && " *"}
             </Label>
-            <Input id="cf" value={cf} onChange={(e) => setCf(e.target.value.toUpperCase())}
-              placeholder={tipoSoggetto === "azienda_piva" ? "12345678901" : "RSSMRA80A01H501Z"} />
+            <Input id="cf" value={cf}
+              onChange={(e) => { setCf(e.target.value.toUpperCase()); setErrors((p) => ({ ...p, cf: "" })); }}
+              placeholder={tipoSoggetto === "azienda_piva" ? "12345678901" : "RSSMRA80A01H501Z"}
+              className={errors.cf ? "border-destructive" : ""} />
+            {isPrivato && !errors.cf && (
+              <p className="text-xs text-muted-foreground">Serve per emettere la fattura a tuo nome.</p>
+            )}
+            {errors.cf && <p className="text-xs text-destructive" data-error>{errors.cf}</p>}
           </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="indirizzo" className="text-sm">Indirizzo immobile</Label>
-            <Input id="indirizzo" value={indirizzo} onChange={(e) => setIndirizzo(e.target.value)}
-              placeholder="Via Roma 1, Milano" />
-          </div>
+          {/* L'indirizzo dell'immobile al privato si chiede dopo il pagamento,
+              nel modulo tecnico, insieme ai dati catastali che stanno sullo
+              stesso documento: chiederglielo qui sarebbe un campo in piu' da
+              riempire prima di sapere se il servizio gli conviene. */}
+          {!isPrivato && (
+            <div className="space-y-1.5">
+              <Label htmlFor="indirizzo" className="text-sm">Indirizzo immobile</Label>
+              <Input id="indirizzo" value={indirizzo} onChange={(e) => setIndirizzo(e.target.value)}
+                placeholder="Via Roma 1, Milano" />
+            </div>
+          )}
         </div>
 
         {staffCfIntake ? (
@@ -1487,7 +1567,16 @@ export default function NuovaPraticaEnea({
           </p>
         ) : <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1.5">
-            <Label htmlFor="data-fine-lavori" className="text-sm">{isFgasOnly ? "Data dell'intervento" : "Data di fine lavori"} *</Label>
+            <Label htmlFor="data-fine-lavori" className="text-sm">
+              {isFgasOnly ? "Data dell'intervento" : "Data di fine lavori"}
+              {isPrivato ? " (facoltativa)" : " *"}
+            </Label>
+            {isPrivato && (
+              <p className="text-xs text-muted-foreground">
+                La trovi sull'ultima fattura, sul bonifico, oppure sul documento che ti ha
+                rilasciato l'installatore. Se non la sai, prosegui lo stesso.
+              </p>
+            )}
             <Popover>
               <PopoverTrigger asChild>
                 <Button
@@ -1523,6 +1612,30 @@ export default function NuovaPraticaEnea({
               <p id="data-fine-lavori-error" className="text-xs text-destructive" data-error>
                 {errors.dataFineLavori}
               </p>
+            )}
+            {/* Il termine vero: 90 giorni dalla fine dei lavori. Si dice solo
+                quando manca poco o quando e' passato — scriverlo sempre lo
+                trasformerebbe da urgenza in rassicurazione, e chi ha ottanta
+                giorni davanti rimanderebbe. */}
+            {isPrivato && giorniPassati !== null && giorniPassati >= 80 && giorniPassati <= 90 && (
+              <p className="text-xs font-semibold text-destructive">
+                Mancano pochi giorni allo scadere del termine: restano{" "}
+                {90 - giorniPassati} {90 - giorniPassati === 1 ? "giorno" : "giorni"}.
+              </p>
+            )}
+            {isPrivato && giorniPassati !== null && giorniPassati > 90 && (
+              <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-xs leading-relaxed text-amber-900">
+                <p className="font-semibold">Il termine di presentazione è scaduto.</p>
+                <p className="mt-1.5 font-semibold">Cosa succede ora?</p>
+                <p className="mt-1">
+                  Se il tuo installatore ti rilascia un documento con una data che rientra nei
+                  90 giorni, dovrai allegarlo e il problema è risolto.
+                </p>
+                <p className="mt-1">
+                  Altrimenti, prima della presentazione della dichiarazione dei redditi, dovrai
+                  pagare un ravvedimento tramite F24 pari a 250,00 €.
+                </p>
+              </div>
             )}
           </div>
         </div>}
@@ -1926,6 +2039,22 @@ export default function NuovaPraticaEnea({
         </label>
       )}
 
+      {/* Il riquadro che dice «si può fare».
+          Chi arriva da un annuncio ha appena scelto il prodotto e sta per
+          tirare fuori la carta: prima di chiederglielo gli si dice che il suo
+          caso lo sappiamo lavorare, e quanto tempo gli costa il resto. Deciso
+          dal Titolare il 27/10/2026. */}
+      {isPrivato && tipoProdotto && (
+        <div className="rounded-lg border border-primary/30 bg-primary/5 p-4">
+          <p className="text-sm font-semibold text-foreground">
+            Ottimo, possiamo lavorare la tua pratica.
+          </p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Procedi al pagamento e all'inserimento dei dati. Tempo richiesto: circa 3 minuti.
+          </p>
+        </div>
+      )}
+
       {/* ── Accettazione contratto di servizio (obbligatoria, ogni pratica) ── */}
       <label className="flex items-start gap-2.5 text-xs text-muted-foreground cursor-pointer select-none rounded-lg border bg-muted/20 p-3">
         <input
@@ -1975,7 +2104,7 @@ export default function NuovaPraticaEnea({
                 {isPrivato ? "Un momento..." : "Invio in corso..."}
               </>
             ) : isPrivato ? (
-              "Prosegui"
+              "Procedi al pagamento"
             ) : isFgasOnly ? (
               publicMode ? "Invia pratica Solo F-Gas" : "Invia pratica Solo F-Gas — 35,00 € + IVA 22%"
             ) : fgasChoice === "enea_fgas_full" ? (

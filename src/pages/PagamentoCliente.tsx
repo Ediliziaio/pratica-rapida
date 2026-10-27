@@ -35,6 +35,10 @@ interface Pagamento {
   imponibile_cents?: number | null;
   iva_percent?: number | null;
   totale_cents?: number | null;
+  // Vero solo per la richiesta nata sulla pagina pubblica da un privato: lui
+  // paga prima e compila dopo. Assente finche' in produzione gira la versione
+  // precedente della RPC, e in quel caso vale il comportamento di prima.
+  public_private_checkout_required?: boolean | null;
 }
 
 function Riquadro({ children }: { children: React.ReactNode }) {
@@ -83,7 +87,21 @@ export default function PagamentoCliente() {
         setErrore("Link non valido o scaduto. Se pensi sia un errore scrivici e controlliamo noi.");
       } else {
         const rolloutEnabled = ((rolloutRes.data?.value ?? {}) as { enabled?: boolean }).enabled === true;
-        if (rolloutEnabled && riga.tipo_fatturazione === "cliente_finale" && riga.pagamento_stato !== "pagata") {
+        // Il rimbalzo sul modulo e' per il cliente finale di un rivenditore:
+        // lui compila e paga alla fine (rollout TS Pay).
+        //
+        // Il privato che arriva dalla pagina pubblica fa il contrario, per
+        // decisione del Titolare del 27/10: lascia contatto e prodotto, paga,
+        // e solo dopo compila. Se lo rimbalzassimo qui, il pagamento non
+        // arriverebbe mai prima del modulo e l'ordine sarebbe di nuovo quello
+        // vecchio.
+        const privatoDelSito = riga.public_private_checkout_required === true;
+        if (
+          rolloutEnabled &&
+          !privatoDelSito &&
+          riga.tipo_fatturazione === "cliente_finale" &&
+          riga.pagamento_stato !== "pagata"
+        ) {
           window.location.replace(`/form/${token}`);
           return;
         }

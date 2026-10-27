@@ -1691,6 +1691,10 @@ export default function NuovaPraticaEnea({
       </Section>
 
       {/* ── 6. Documenti ────────────────────────────────────────────────── */}
+      {/* I documenti al privato si chiedono dopo il pagamento, nel modulo
+          tecnico: la fattura in PDF era il muro che fermava quattro persone
+          su cinque. */}
+      {!isPrivato && (
       <Section number={S.documenti} title="Documenti da allegare">
         {/* Fattura — sempre obbligatoria */}
         {!staffCfIntake && <>
@@ -1808,6 +1812,7 @@ export default function NuovaPraticaEnea({
           </div>
         )}
       </Section>
+      )}
 
       {/* ── 7. Pacchetto F-Gas — solo installatori/rivenditori ────────────
           Non replichiamo il portale ministeriale: chiediamo solo le prove e le
@@ -2001,6 +2006,10 @@ export default function NuovaPraticaEnea({
       )}
 
       {/* ── 7. Note aggiuntive ───────────────────────────────────────────── */}
+      {/* Le note al privato non si chiedono: chi arriva da un annuncio non
+          ha niente da annotare, e un campo in piu' prima del pagamento e'
+          solo una ragione per fermarsi. */}
+      {!isPrivato && (
       <Section number={S.note} title="Note aggiuntive (opzionale)">
         <Textarea
           value={note}
@@ -2012,6 +2021,7 @@ export default function NuovaPraticaEnea({
         />
         <p className="text-xs text-muted-foreground text-right">{note.length}/2000</p>
       </Section>
+      )}
 
       {/* ── Consenso (publicMode) — nel flusso normale, NON nella barra sticky ── */}
       {publicMode && (

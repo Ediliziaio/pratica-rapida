@@ -18,6 +18,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Navbar, Footer } from "@/components/landing";
 import { SEO } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
+import { eUnPrivatoDalSito, segnaPrivato } from "@/lib/imbutoPrivato";
 
 interface Pagamento {
   cliente_nome: string | null;
@@ -138,6 +139,11 @@ export default function PagamentoCliente() {
 
   const vaiAlPagamento = async () => {
     if (!token || !dati) return;
+    // Il privato del sito ora paga PRIMA di compilare, quindi e' qui che si
+    // decide la vendita: senza questo segno, nell'imbuto «si e' fermato senza
+    // cliccare» e «ha visto il prezzo su Stripe e se n'e' andato» sarebbero lo
+    // stesso buco, e sono due problemi diversi.
+    if (eUnPrivatoDalSito()) segnaPrivato("pagamento");
     setAvvio(true);
     setErrore(null);
     try {

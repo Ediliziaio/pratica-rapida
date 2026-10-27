@@ -30,6 +30,7 @@ import { reportError } from "../_shared/error.ts";
 import { normalizePhone } from "../_shared/phone.ts";
 import { PLACEHOLDER_COMPANY, PRIVATI_COMPANY } from "../_shared/reseller.ts";
 import { isDocumentiForniti } from "../_shared/contatto-cliente.ts";
+import { serveLaDataDellIntervento } from "../_shared/data-intervento.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -241,9 +242,9 @@ serve(async (req) => {
   if (telefono.replace(/\D/g, "").length < 8) return json({ success: false, error: "Telefono del cliente non valido" }, 400);
   const fgasOnly = p.fgas?.package === "fgas_only";
   const isOffGrid = /fotovoltaico\s+off[\s-]?grid/i.test(p.prodotto ?? "");
-  // ENEA e F-Gas non possono essere aperte senza la data dell'intervento.
-  // La verifica lato server impedisce di aggirare l'obbligo presente nella UI.
-  if ((p.modulo === "pratica-enea" || p.modulo === "pratica-fgas") && !isValidIsoDate(dataFineLavori)) {
+  // Chi deve dare la data e chi no sta in _shared, sotto test: qui si applica
+  // soltanto. La verifica lato server impedisce di aggirare l'obbligo della UI.
+  if (serveLaDataDellIntervento({ modulo: p.modulo, isPrivato }) && !isValidIsoDate(dataFineLavori)) {
     return json({ success: false, error: fgasOnly ? "Data dell'intervento obbligatoria" : "Data di fine lavori obbligatoria" }, 400);
   }
   if (fgasOnly && fattureFiles.length === 0) {

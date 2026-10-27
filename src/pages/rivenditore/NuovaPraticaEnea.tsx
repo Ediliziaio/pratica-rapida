@@ -242,6 +242,29 @@ async function uploadFiles(
 const CONTRATTO_URL = "/contratto-di-servizio.pdf";
 const CONTRATTO_VERSIONE = "2026-08-03";
 
+/**
+ * Il motivo del rifiuto, scritto in italiano.
+ *
+ * Quando la funzione risponde 400 il client di Supabase butta via il corpo e
+ * lascia solo «Edge Function returned a non-2xx status code»: chi compila
+ * legge una frase in inglese che non dice cosa manca, e riprova uguale. Il
+ * motivo vero e' nel corpo della risposta, che qui riapriamo.
+ */
+async function motivoLeggibile(errore: unknown): Promise<string> {
+  const generico = "Non siamo riusciti a registrare la richiesta. Riprova tra poco.";
+  try {
+    const risposta = (errore as { context?: Response }).context;
+    if (risposta && typeof risposta.json === "function") {
+      const corpo = (await risposta.json()) as { error?: string };
+      const motivo = corpo?.error?.trim();
+      if (motivo) return motivo;
+    }
+  } catch {
+    // Corpo gia' letto o illeggibile: resta il messaggio generico.
+  }
+  return generico;
+}
+
 export default function NuovaPraticaEnea({
   publicMode = false,
   initialProduct = null,
@@ -623,7 +646,7 @@ export default function NuovaPraticaEnea({
         fgasInterventionFiles.forEach((f) => fd.append("fgas_rapporto", f));
 
         const { data, error: fnErr } = await supabase.functions.invoke("richiesta-pubblica", { body: fd });
-        if (fnErr) throw new Error(fnErr.message);
+        if (fnErr) throw new Error(await motivoLeggibile(fnErr));
         const res = data as {
           success: boolean;
           error?: string;

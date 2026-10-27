@@ -1,5 +1,6 @@
 import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { avvisoTermine, giorniDaFineLavori, giorniRimasti } from "@/lib/terminiEnea";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { resolveCfNetPriceEur } from "@/lib/cfPracticePriceClient";
@@ -924,12 +925,8 @@ export default function NuovaPraticaEnea({
    * termine e' 90 giorni, e incassare per una pratica che non si puo' piu'
    * trasmettere vuol dire rimborsare.
    */
-  const giorniPassati = useMemo(() => {
-    if (!dataFineLavori) return null;
-    const giorno = (d: Date) => Date.UTC(d.getFullYear(), d.getMonth(), d.getDate());
-    const passati = Math.floor((giorno(new Date()) - giorno(dataFineLavori)) / 86_400_000);
-    return passati >= 0 ? passati : null;
-  }, [dataFineLavori]);
+  const giorniPassati = useMemo(() => giorniDaFineLavori(dataFineLavori), [dataFineLavori]);
+  const avviso = avvisoTermine(giorniPassati);
 
   // ── Imbuto del privato (solo dal sito) ──────────────────────────────────────
   // Si guardano i campi, non si toccano: la misura sta fuori dal percorso.
@@ -1617,13 +1614,14 @@ export default function NuovaPraticaEnea({
                 quando manca poco o quando e' passato — scriverlo sempre lo
                 trasformerebbe da urgenza in rassicurazione, e chi ha ottanta
                 giorni davanti rimanderebbe. */}
-            {isPrivato && giorniPassati !== null && giorniPassati >= 80 && giorniPassati <= 90 && (
+            {isPrivato && avviso === "manca_poco" && giorniPassati !== null && (
               <p className="text-xs font-semibold text-destructive">
                 Mancano pochi giorni allo scadere del termine: restano{" "}
-                {90 - giorniPassati} {90 - giorniPassati === 1 ? "giorno" : "giorni"}.
+                {giorniRimasti(giorniPassati)}{" "}
+                {giorniRimasti(giorniPassati) === 1 ? "giorno" : "giorni"}.
               </p>
             )}
-            {isPrivato && giorniPassati !== null && giorniPassati > 90 && (
+            {isPrivato && avviso === "scaduto" && (
               <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-xs leading-relaxed text-amber-900">
                 <p className="font-semibold">Il termine di presentazione è scaduto.</p>
                 <p className="mt-1.5 font-semibold">Cosa succede ora?</p>

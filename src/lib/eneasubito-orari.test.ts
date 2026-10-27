@@ -34,9 +34,14 @@ describe("inOrario", () => {
 });
 
 describe("cosa diciamo", () => {
-  it("il pallino dice «online» solo quando lo siamo", () => {
+  // Si controlla la regola, non la frase: la scritta fuori orario e' cambiata
+  // il 21/10/2026 per decisione del Titolare, e un test legato alle parole
+  // esatte diventa rosso per una modifica voluta. Quello che non deve mai
+  // succedere e' dire «online» quando non lo siamo.
+  it("non dice «online» fuori orario", () => {
     expect(statoBreve(alle(12))).toBe("online");
-    expect(statoBreve(alle(22))).toBe("rispondiamo dalle 9");
+    expect(statoBreve(alle(22))).not.toBe("online");
+    expect(statoBreve(alle(7))).not.toBe("online");
   });
 
   // La promessa dev'essere mantenibile: dopo le 18 non si dice «poche ore».

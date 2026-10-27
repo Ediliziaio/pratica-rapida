@@ -29,6 +29,7 @@ import "@fontsource-variable/fraunces";
 import "@fontsource-variable/work-sans";
 
 import { Chat, RichiamoChat } from "./eneasubito/chat/Chat";
+import { ConsensoMisure } from "./eneasubito/ConsensoMisure";
 import { Fulmine, Spunta } from "./eneasubito/Guscio";
 import { STILE } from "./eneasubito/stile";
 
@@ -221,6 +222,7 @@ export default function EneaSubito() {
           ed e' proprio la pagina dove serve di piu', perche' e' dove
           atterra chi arriva dall'annuncio senza conoscerci. */}
       <Chat />
+      <ConsensoMisure />
 
       <div className="es-wrap">
         <footer className="es-pie">

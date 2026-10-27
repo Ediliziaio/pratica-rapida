@@ -45,7 +45,7 @@ export const DOCUMENTI: Documento[] = [
     titolo: "Informativa sulla privacy",
     titoloSeo: "Informativa sulla privacy — EneaSubito",
     descrizione: "Chi tratta i tuoi dati quando usi EneaSubito, quali dati, perché e per quanto tempo.",
-    aggiornato: "1 ottobre 2026",
+    aggiornato: "27 ottobre 2026",
     sezioni: [
       {
         titolo: "1. Chi tratta i tuoi dati",
@@ -87,6 +87,7 @@ export const DOCUMENTI: Documento[] = [
         elenco: [
           "ENEA, quando trasmettiamo la comunicazione: è lo scopo stesso del servizio.",
           "Stripe, per il pagamento e l'emissione della fattura.",
+          "Microsoft Clarity, solo se acconsenti alle misure anonime: vede come scorri e tocchi le pagine, mai quello che scrivi nei campi, che viene oscurato prima di partire dal tuo dispositivo.",
           "I fornitori tecnici che ospitano il sito e la banca dati, e il servizio di posta elettronica che recapita le comunicazioni.",
         ],
         paragrafi: [
@@ -207,13 +208,13 @@ export const DOCUMENTI: Documento[] = [
     slug: "cookie",
     titolo: "Cookie",
     titoloSeo: "Cookie — EneaSubito",
-    descrizione: "Quali cookie usa EneaSubito: nessuno di profilazione, nessuno strumento pubblicitario.",
-    aggiornato: "1 ottobre 2026",
+    descrizione: "Quali cookie usa EneaSubito: nessuno di profilazione, nessuno strumento pubblicitario; misure anonime solo se le accetti.",
+    aggiornato: "27 ottobre 2026",
     sezioni: [
       {
         titolo: "1. In breve",
         paragrafi: [
-          "Questo sito non usa cookie di profilazione, non ti segue su altri siti e non ospita strumenti pubblicitari. Non c'è nessun banner da accettare perché non c'è niente da accettare.",
+          "Questo sito non usa cookie di profilazione, non ti segue su altri siti e non ospita strumenti pubblicitari. Ti chiediamo un solo permesso, facoltativo: registrare in forma anonima come usi il sito, per capire dove si inceppa. Se dici di no, non cambia niente.",
         ],
       },
       {
@@ -227,15 +228,16 @@ export const DOCUMENTI: Documento[] = [
         titolo: "3. Servizi esterni",
         elenco: [
           "Stripe, solo nel momento in cui apri la pagina di pagamento, per la sicurezza della transazione.",
+          "Microsoft Clarity, solo se rispondi «Va bene» alla domanda in fondo alla pagina: registra in forma anonima come scorri e tocchi le pagine, per aiutarci a migliorarle. Quello che scrivi nei campi viene oscurato prima di partire dal tuo dispositivo. Clarity usa propri cookie di misura; il servizio è fornito da Microsoft Corporation, informativa su privacy.microsoft.com.",
         ],
         paragrafi: [
-          "È l'unico. I caratteri tipografici, le immagini e tutto il resto sono ospitati direttamente da noi: nessun altro servizio esterno viene contattato mentre leggi queste pagine, e nessuno riceve il tuo indirizzo IP.",
+          "Nient'altro. I caratteri tipografici, le immagini e tutto il resto sono ospitati direttamente da noi. Se rispondi «No, grazie», Clarity non viene nemmeno caricato.",
         ],
       },
       {
         titolo: "4. Come cancellarli",
         paragrafi: [
-          "Puoi cancellare in qualsiasi momento quanto salvato dal sito dalle impostazioni del tuo browser. Cancellando i dati del sito perderai anche l'eventuale modulo lasciato a metà.",
+          "Puoi cancellare in qualsiasi momento quanto salvato dal sito dalle impostazioni del tuo browser: anche la tua risposta sulle misure anonime, che ti verrà così richiesta di nuovo. Cancellando i dati del sito perderai anche l'eventuale modulo lasciato a metà.",
         ],
       },
     ],

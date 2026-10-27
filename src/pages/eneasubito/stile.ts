@@ -423,5 +423,17 @@ body { background: #F5F2EC; }
 .es-tempi-compatto .es-tempo span:last-of-type { font-size: 11.5px; line-height: 1.25; }
 .es-tempi-compatto .es-tempo-freccia { top: 6px; }
 .es-aiuto-stretto { margin-top: 6px; }
+/* La domanda sulle misure anonime: in fondo, piccola, e non copre il pulsante
+   della chat (che sta in basso a destra). */
+.es-consenso { position: fixed; left: 12px; right: 12px; bottom: 84px; z-index: 40; max-width: 520px;
+  margin: 0 auto; background: var(--es-superficie); border: 1px solid var(--es-bordo); border-radius: 14px;
+  box-shadow: 0 6px 24px rgba(20,32,26,.12); padding: 12px 14px; font-size: 13.5px; line-height: 1.4;
+  color: var(--es-inchiostro-tenue); }
+.es-consenso p { margin: 0 0 10px; }
+.es-consenso a { color: var(--es-verde); }
+.es-consenso-bottoni { display: flex; gap: 8px; justify-content: flex-end; }
+.es-consenso-bottoni button { border-radius: 999px; padding: 7px 14px; font-size: 13.5px; font-weight: 600; cursor: pointer; }
+.es-consenso-no { background: transparent; border: 1px solid var(--es-bordo); color: var(--es-inchiostro-tenue); }
+.es-consenso-si { background: var(--es-verde); border: 1px solid var(--es-verde); color: #fff; }
 .es-etichetta-nota { display: block; font-weight: 400; font-size: 13px; color: var(--es-inchiostro-debole); margin-top: 2px; }
 `;

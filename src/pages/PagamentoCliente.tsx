@@ -238,7 +238,7 @@ export default function PagamentoCliente() {
           <>
             <p className="text-sm">
               Ultimo passaggio: ci servono ancora alcuni dati sull'immobile e sull'impianto.
-              Sono circa 5 minuti.
+              Sono circa 3 minuti.
             </p>
             <Button asChild className="w-full">
               {/* ?pagamento=ok: il webhook potrebbe non aver ancora scritto
@@ -333,7 +333,7 @@ export default function PagamentoCliente() {
             avvisiamo appena è pronta.</>
           ) : (
             <>Dopo il pagamento ti chiediamo gli ultimi dati sull'immobile con un breve modulo
-            online — bastano circa 5 minuti — e da lì in poi pensiamo a tutto noi.</>
+            online — bastano circa 3 minuti — e da lì in poi pensiamo a tutto noi.</>
           )}
         </p>
 

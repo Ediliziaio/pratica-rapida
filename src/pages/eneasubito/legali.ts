@@ -129,8 +129,8 @@ export const DOCUMENTI: Documento[] = [
     slug: "termini",
     titolo: "Termini di servizio",
     titoloSeo: "Termini di servizio — EneaSubito",
-    descrizione: "Cosa comprende il servizio EneaSubito, quanto costa, quando ti rimborsiamo e in quanto tempo consegniamo.",
-    aggiornato: "1 ottobre 2026",
+    descrizione: "Cosa comprende il servizio EneaSubito, quanto costa, quando paghi e in quanto tempo consegniamo.",
+    aggiornato: "27 ottobre 2026",
     sezioni: [
       {
         titolo: "1. Chi siamo",
@@ -154,23 +154,25 @@ export const DOCUMENTI: Documento[] = [
       {
         titolo: "3. Come si svolge",
         paragrafi: [
-          "Per avviare la pratica ti chiediamo tre cose: il nome e cognome dell'intestatario della fattura, un indirizzo e-mail e la fattura dell'installatore. Con queste la richiesta è aperta e si paga.",
-          "Subito dopo il pagamento ti mandiamo per e-mail un collegamento personale da cui completare i dati restanti: dati catastali, certificati del produttore, estremi del pagamento e date. La pratica viene trasmessa quando quei dati sono completi.",
+          "Per avviare la pratica ti chiediamo tre cose: il nome e cognome dell'intestatario della fattura, un indirizzo e-mail e la fattura dell'installatore. Con queste, e con la carta lasciata come garanzia, la richiesta è aperta.",
+          "Subito dopo ti mandiamo per e-mail un collegamento personale da cui completare i dati restanti: dati catastali, certificati del produttore, estremi del pagamento e date. La pratica viene trasmessa quando quei dati sono completi.",
           "Il controllo di fattibilità lo facciamo noi su quello che ci fornisci tu. Se i documenti risultano diversi da quanto dichiarato, vale l'articolo 5.",
         ],
       },
       {
         titolo: "4. Prezzo e pagamento",
         paragrafi: [
-          "Il servizio costa 99 €, pagati all'apertura della richiesta e prima della trasmissione. Il pagamento avviene tramite Stripe; la fattura ti viene inviata per e-mail automaticamente.",
+          "Il servizio costa 99 €. All'apertura della richiesta non ti addebitiamo nulla: la carta, tramite Stripe, resta solo a garanzia dell'importo. I 99 € vengono addebitati quando la pratica è pronta e ti viene consegnata, mai prima; la fattura ti arriva per e-mail insieme all'addebito.",
+          "Se la garanzia sulla carta scade prima della consegna (di norma dopo sette giorni), ti mandiamo per e-mail un collegamento per pagare quando la pratica è pronta.",
           "Il recupero dei dati catastali, se ce lo chiedi, è un servizio a parte ed è indicato con il suo prezzo al momento della richiesta.",
         ],
       },
       {
-        titolo: "5. Quando ti rimborsiamo",
+        titolo: "5. Quando non paghi",
         elenco: [
-          "Se risulta che la pratica non si può fare, ti rimborsiamo l'intero importo.",
-          "Se i documenti non confermano quello che ci avevi dichiarato e per questo non possiamo procedere, ti rimborsiamo l'intero importo.",
+          "Se risulta che la pratica non si può fare, non ti addebitiamo nulla e la garanzia sulla carta viene annullata.",
+          "Se i documenti non confermano quello che ci avevi dichiarato e per questo non possiamo procedere, non ti addebitiamo nulla.",
+          "Se per qualunque motivo avessi già pagato, in questi casi ti rimborsiamo l'intero importo.",
           "Non è dovuto alcun rimborso quando la pratica è stata trasmessa e la ricevuta consegnata.",
         ],
       },
@@ -192,7 +194,7 @@ export const DOCUMENTI: Documento[] = [
         titolo: "8. Diritto di recesso",
         paragrafi: [
           "In quanto consumatore hai diritto di recedere entro 14 giorni dalla conclusione del contratto. Se ci chiedi di cominciare subito l'esecuzione e il servizio viene completato entro quel termine, il diritto di recesso si esaurisce con la consegna della pratica, come previsto dalla normativa sui contratti a distanza.",
-          "Pagando ci chiedi espressamente di cominciare subito: è il senso del servizio, visto che i 90 giorni corrono. Se la pratica viene trasmessa e consegnata prima che siano passati i 14 giorni, il recesso si esaurisce con la consegna, come previsto per i servizi completamente eseguiti su richiesta del consumatore. Finché non abbiamo trasmesso, puoi recedere e ti rimborsiamo.",
+          "Aprendo la richiesta ci chiedi espressamente di cominciare subito: è il senso del servizio, visto che i 90 giorni corrono. Se la pratica viene trasmessa e consegnata prima che siano passati i 14 giorni, il recesso si esaurisce con la consegna, come previsto per i servizi completamente eseguiti su richiesta del consumatore. Finché non abbiamo trasmesso, puoi recedere: annulliamo la garanzia sulla carta e non ti addebitiamo nulla.",
         ],
       },
       {

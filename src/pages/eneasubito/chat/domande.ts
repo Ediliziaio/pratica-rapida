@@ -109,8 +109,8 @@ export const DOMANDE: Domanda[] = [
   },
   {
     id: "non-si-puo-fare",
-    domanda: "E se pago e poi la mia pratica non si può fare?",
-    risposta: "I 99 € tornano indietro. Sta scritto nei Termini di servizio, articolo 5.",
+    domanda: "E se la mia pratica non si può fare?",
+    risposta: "Non paghi nulla: i 99 € si addebitano solo quando ricevi la pratica. Sta scritto nei Termini di servizio, articolo 5.",
     chiavi: ["rimborso", "non si puo", "indietro", "soldi", "garanzia"],
     inVetrina: true,
   },
@@ -118,14 +118,14 @@ export const DOMANDE: Domanda[] = [
     id: "pagamento-sicuro",
     domanda: "Il pagamento è sicuro?",
     risposta:
-      "Si paga con Stripe, lo stesso circuito dei negozi online. I dati della carta arrivano a loro: noi vediamo solo che il pagamento è andato a buon fine.",
+      "Si paga con Stripe, lo stesso circuito dei negozi online. I dati della carta arrivano a loro, non a noi. All'inizio la carta fa solo da garanzia: i 99 € vengono addebitati quando hai ricevuto la tua pratica.",
     chiavi: ["pagamento", "sicuro", "carta", "stripe", "bonifico"],
   },
   {
     id: "fattura",
     domanda: "Riceverò la fattura?",
     risposta:
-      "Certo. Viene emessa in automatico subito dopo il pagamento e te la mandiamo per mail.",
+      "Certo. Viene emessa in automatico quando i 99 € vengono addebitati, cioè alla consegna della pratica, e te la mandiamo per mail.",
     chiavi: ["fattura", "ricevuta fiscale", "fatturazione"],
   },
   {
@@ -235,7 +235,7 @@ export const DOMANDE: Domanda[] = [
     id: "a-che-punto",
     domanda: "A che punto è la mia pratica?",
     risposta:
-      "Se sono passate meno di 48 ore lavorative dal pagamento, è in lavorazione. Se ne sono passate di più, controlla anche la posta indesiderata: la mandiamo per mail. Se lì non c'è, scrivici e te la rimandiamo subito.",
+      "Se sono passate meno di 48 ore lavorative da quando hai completato il modulo, è in lavorazione. Se ne sono passate di più, controlla anche la posta indesiderata: la mandiamo per mail. Se lì non c'è, scrivici e te la rimandiamo subito.",
     chiavi: ["a che punto", "stato", "aggiornamento", "novita", "quando arriva"],
   },
 ];

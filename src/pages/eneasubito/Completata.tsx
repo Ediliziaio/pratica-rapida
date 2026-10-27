@@ -31,8 +31,8 @@ export default function Completata() {
           lineHeight: 1.5,
         }}
       >
-        <strong>Pagamento ricevuto.</strong> La fattura è già nella tua posta. Completa il modulo qui
-        sotto e la tua pratica parte.
+        <strong>Ci siamo.</strong> Nessun addebito adesso: i 99 € li paghi quando ricevi la pratica.
+        Completa il modulo qui sotto e la tua pratica parte.
       </div>
       {/* Il modulo si prende il token dall'indirizzo da solo: `token` qui
           serve solo a non montare il modulo quando l'indirizzo e' monco. */}

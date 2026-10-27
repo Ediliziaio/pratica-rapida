@@ -9,6 +9,7 @@ import {
   COMPILATION_REMINDER_STAGE_TYPES,
   isCompletedDeliveryCommunication,
 } from "../_shared/reminder-safety.ts";
+import { ePrivatoDelSitoDaPagare, qualePromemoria } from "../_shared/promemoria-privati-sito.ts";
 
 const REQUIRED_ENV = ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"];
 for (const k of REQUIRED_ENV) {
@@ -249,18 +250,34 @@ function rulePassesConditions(
 
 serve(async (req) => {
   let triggerGroup: string | null = null;
+  let soloProva = false;
   try {
     const body = await req.json();
     triggerGroup = typeof body?.trigger_group === "string" ? body.trigger_group : null;
+    soloProva = body?.prova === true;
   } catch {
     // Le invocazioni cron legacy usano un body vuoto o non JSON.
   }
 
-  if (triggerGroup && triggerGroup !== "compilation_reminders") {
+  if (triggerGroup && triggerGroup !== "compilation_reminders" && triggerGroup !== "payment_pending") {
     return Response.json(
       { processed: 0, reason: "unknown_trigger_group", trigger_group: triggerGroup },
       { status: 400 },
     );
+  }
+
+  // Promemoria di pagamento al privato della pagina pubblica (27/10/2026).
+  // L'orologio «payment-pending-reminders-every-30m» chiedeva questo gruppo
+  // da tempo e riceveva 400: ora ha il suo giro, con le sue fasce.
+  if (triggerGroup === "payment_pending") {
+    const db = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+    try {
+      return Response.json(await promemoriaPrivatiSito(db, soloProva));
+    } catch (err) {
+      console.error("[payment_pending] failed:", err);
+      await reportError(err, { fn: "process-automations", step: "payment_pending" });
+      return Response.json({ processed: 0, error: "payment_pending_failed" }, { status: 500 });
+    }
   }
 
   const compilationOnly = triggerGroup === "compilation_reminders";
@@ -440,6 +457,12 @@ serve(async (req) => {
 
           for (const p of practices ?? []) {
             if (completedPracticeIds.has(String(p.id))) continue;
+            // Il privato della pagina pubblica che non ha pagato non riceve
+            // ne' il sollecito di compilazione (paga prima, compila dopo) ne'
+            // il promemoria generico: ha la sua serie nel gruppo
+            // «payment_pending». Il 24/10 il giro H24 gli aveva scritto
+            // quaranta minuti dopo la richiesta, e poi piu' niente.
+            if (ePrivatoDelSitoDaPagare(p as { public_private_checkout_required?: boolean | null; pagamento_stato?: string | null })) continue;
             // Applica filtri condition della rule (es. solo infissi, solo ENEA, ecc.).
             // Skippa la pratica se non match. Backward compat: rules senza
             // conditions (legacy) restituiscono true e procedono normalmente.
@@ -809,3 +832,95 @@ serve(async (req) => {
 
   return Response.json({ processed, auto_archived: autoArchived });
 });
+
+
+/**
+ * Giro dei promemoria di pagamento ai privati della pagina pubblica.
+ * Le regole (quando, quante volte, in che fascia) stanno in
+ * `_shared/promemoria-privati-sito.ts`; qui si leggono le pratiche e si
+ * spedisce. Solo e-mail; il contatore si aggiorna solo a invio riuscito.
+ */
+async function promemoriaPrivatiSito(
+  db: ReturnType<typeof createClient>,
+  soloProva = false,
+): Promise<Record<string, unknown>> {
+  const adesso = new Date();
+  const { data: pratiche, error } = await db
+    .from("enea_practices")
+    .select("id, form_token, cliente_nome, cliente_email, prodotto_installato, pagamento_stato, archived_at, created_at, conteggio_solleciti, ultimo_sollecito_privato, canale, tipo_servizio, public_private_checkout_required")
+    .eq("public_private_checkout_required", true)
+    .neq("pagamento_stato", "pagata")
+    .is("archived_at", null)
+    .not("cliente_email", "is", null)
+    .gte("created_at", new Date(adesso.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString())
+    .order("created_at", { ascending: true })
+    .limit(200);
+  if (error) throw error;
+
+  // Le due lezioni dei solleciti EneaSubito (21/10): chi ha gia' pagato con
+  // la stessa e-mail non si insegue, e chi ha aperto piu' richieste riceve
+  // una sola serie, sulla piu' recente.
+  const emailDi = (e: unknown) => String(e ?? "").trim().toLowerCase();
+  const indirizzi = [...new Set((pratiche ?? []).map((p) => emailDi(p.cliente_email)).filter(Boolean))];
+  const hannoPagato = new Set<string>();
+  if (indirizzi.length) {
+    const { data: pagate, error: errPagate } = await db
+      .from("enea_practices")
+      .select("cliente_email")
+      .in("cliente_email", indirizzi)
+      .eq("pagamento_stato", "pagata");
+    if (errPagate) throw errPagate;
+    for (const r of pagate ?? []) hannoPagato.add(emailDi(r.cliente_email));
+  }
+  const ultimaPerEmail = new Map<string, string>();
+  for (const p of pratiche ?? []) ultimaPerEmail.set(emailDi(p.cliente_email), String(p.id));
+
+  const conto = { candidate: pratiche?.length ?? 0, mandati: 0, nonToccaAncora: 0, giaPagato: 0, doppioni: 0, errori: 0, prova: soloProva, anteprima: [] as unknown[] };
+  for (const p of pratiche ?? []) {
+    if (isCanaleMuto(p)) continue;
+    const email = emailDi(p.cliente_email);
+    if (hannoPagato.has(email)) { conto.giaPagato += 1; continue; }
+    if (ultimaPerEmail.get(email) !== String(p.id)) { conto.doppioni += 1; continue; }
+    const numero = qualePromemoria({
+      creataIl: String(p.created_at),
+      inviati: Number(p.conteggio_solleciti ?? 0),
+      ultimoIl: (p.ultimo_sollecito_privato as string | null) ?? null,
+      pagata: p.pagamento_stato === "pagata",
+      archiviata: Boolean(p.archived_at),
+      email: (p.cliente_email as string | null) ?? null,
+    }, adesso);
+    if (!numero) {
+      conto.nonToccaAncora += 1;
+      continue;
+    }
+    if (soloProva) {
+      // Mai l'indirizzo: solo quale messaggio toccherebbe.
+      conto.anteprima.push({ numero, nata: p.created_at });
+      continue;
+    }
+    try {
+      await invoke(db, "send-email", {
+        to: p.cliente_email,
+        template: "promemoria_pagamento_privato",
+        data: {
+          nome: p.cliente_nome ?? "",
+          prodotto: p.prodotto_installato ?? "i tuoi lavori",
+          link: `https://app.praticarapida.it/paga/${p.form_token}`,
+          numero: String(numero),
+          practice_id: p.id,
+          trigger_event: `promemoria_privato_${numero}`,
+        },
+      });
+      await db.from("enea_practices").update({
+        ultimo_sollecito_privato: adesso.toISOString(),
+        conteggio_solleciti: numero,
+      }).eq("id", p.id);
+      conto.mandati += 1;
+    } catch (err) {
+      conto.errori += 1;
+      console.error(`[payment_pending] pratica ${p.id} non inviata:`, err);
+      await reportError(err, { fn: "process-automations", step: "payment_pending", practice_id: p.id });
+    }
+  }
+  return { processed: conto.mandati, ...conto };
+}

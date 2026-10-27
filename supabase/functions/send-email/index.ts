@@ -40,6 +40,7 @@ const TEMPLATE_RECIPIENT: Record<string, RecipientType | "internal"> = {
   pagamento_privato_ok:    "client",
   richiesta_pagamento_cliente: "client",
   promemoria_pagamento_cliente: "client",
+  promemoria_pagamento_privato: "client",
 
   // Rivenditore / azienda
   benvenuto_azienda:           "reseller",
@@ -162,6 +163,7 @@ const HARDCODED_TEMPLATES = new Set<string>([
   "pagamento_privato_ok",   // privato che ha pagato la pratica ENEA dal sito
   "richiesta_pagamento_cliente", // pratica a carico del cliente finale: link a /paga/:token
   "promemoria_pagamento_cliente", // sollecito gentile a 7 giorni se non ha ancora pagato
+  "promemoria_pagamento_privato", // privato della pagina pubblica: 4 promemoria dopo 1, 3, 6, 10 giorni
   "fotovoltaico_schema_da_firmare",
 ]);
 
@@ -464,6 +466,29 @@ function renderTemplate(template: string, data: Record<string, string>): { subje
           </p>
         `),
       };
+
+    case "promemoria_pagamento_privato": {
+      // Il privato che ha lasciato i contatti sulla pagina pubblica e non ha
+      // ancora pagato. Niente installatore da nominare (ha scritto lui),
+      // niente urgenza finta: il termine dei 90 giorni e' vero e basta.
+      const ultimo = data.numero === "4";
+      return {
+        subject: ultimo
+          ? r("Ultimo promemoria per la tua pratica ENEA")
+          : r("La tua pratica ENEA ti aspetta"),
+        html: base(`
+          <h2>Ciao ${r("{{nome}}")},</h2>
+          <p>hai chiesto a Pratica Rapida di occuparci della tua pratica ENEA per <strong>${r("{{prodotto}}")}</strong>. Manca solo il pagamento: appena arriva, ti chiediamo i documenti e prepariamo noi la pratica.</p>
+          <p>Ricorda che la comunicazione all'ENEA va inviata <strong>entro 90 giorni dalla fine dei lavori</strong>: farla per tempo ti mette al sicuro la detrazione.</p>
+          ${cta("Riprendi e completa il pagamento", r("{{link}}"))}
+          <p style="color:#888;font-size:13px;">
+            ${ultimo ? "Questo &egrave; l'ultimo promemoria che ti mandiamo.<br>" : ""}
+            Se hai gi&agrave; pagato, ignora pure questo messaggio.<br>
+            Hai un dubbio? Rispondi a questa e-mail o scrivici a <a href="mailto:modulistica@praticarapida.it" style="color:#888;">modulistica@praticarapida.it</a>.
+          </p>
+        `),
+      };
+    }
 
     case "notifica_docs_mancanti":
       // Notifica A - email to reseller when practice moved to documenti_mancanti

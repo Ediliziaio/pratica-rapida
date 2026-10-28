@@ -379,6 +379,42 @@ export function CoverOutsourcing() {
   );
 }
 
+export function CoverCaldaiaPompa2026() {
+  return (
+    <svg viewBox="0 0 400 220" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
+      <rect width="400" height="220" fill="#071b10" />
+      <rect width="190" height="220" fill="#21120d" />
+      <line x1="200" y1="24" x2="200" y2="196" stroke="rgba(255,255,255,.18)" strokeWidth="2" />
+
+      <rect x="42" y="57" width="105" height="112" rx="9" fill="#382016" stroke="#fb7185" strokeWidth="2" />
+      <rect x="56" y="71" width="77" height="19" rx="4" fill="rgba(251,113,133,.18)" />
+      <circle cx="94" cy="128" r="23" fill="none" stroke="rgba(251,113,133,.5)" strokeWidth="3" />
+      <path d="M78 128h32M94 112v32" stroke="rgba(251,113,133,.45)" strokeWidth="2" />
+      <circle cx="145" cy="58" r="19" fill="#9f1239" />
+      <path d="M136 49l18 18M154 49l-18 18" stroke="#fff" strokeWidth="4" strokeLinecap="round" />
+      <text x="95" y="191" fontSize="11" fontWeight="800" fill="#fda4af" textAnchor="middle" fontFamily="system-ui, sans-serif">CALDAIA FOSSILE</text>
+
+      <rect x="253" y="57" width="105" height="112" rx="9" fill="#0b3623" stroke="#4ade80" strokeWidth="2" />
+      <circle cx="305" cy="112" r="31" fill="none" stroke="rgba(74,222,128,.55)" strokeWidth="3" />
+      {[0, 60, 120, 180, 240, 300].map((deg) => (
+        <line key={deg}
+          x1={305 + Math.cos(deg * Math.PI / 180) * 6}
+          y1={112 + Math.sin(deg * Math.PI / 180) * 6}
+          x2={305 + Math.cos(deg * Math.PI / 180) * 25}
+          y2={112 + Math.sin(deg * Math.PI / 180) * 25}
+          stroke="#4ade80" strokeWidth="3" strokeLinecap="round" />
+      ))}
+      <circle cx="305" cy="112" r="5" fill="#4ade80" />
+      <circle cx="357" cy="58" r="19" fill="#15803d" />
+      <path d="M347 58l7 7 13-15" stroke="#fff" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+      <text x="305" y="191" fontSize="11" fontWeight="800" fill="#86efac" textAnchor="middle" fontFamily="system-ui, sans-serif">POMPA DI CALORE</text>
+
+      <rect x="137" y="16" width="126" height="28" rx="14" fill="#00843D" />
+      <text x="200" y="34" fontSize="11" fontWeight="900" fill="#fff" textAnchor="middle" fontFamily="system-ui, sans-serif">DETRAZIONI 2026</text>
+    </svg>
+  );
+}
+
 export const BLOG_COVER_MAP: Record<string, React.ComponentType> = {
   "ecobonus-2026-nuove-aliquote-serramenti": CoverEcobonus2026,
   "pratica-enea-serramenti-guida-2026": CoverEneaSerramenti,
@@ -386,4 +422,5 @@ export const BLOG_COVER_MAP: Record<string, React.ComponentType> = {
   "errori-pratiche-enea-da-evitare-2026": CoverErroriEnea,
   "scadenza-90-giorni-enea-ct-2026": CoverScadenza90,
   "outsourcing-pratiche-enea-installatori-2026": CoverOutsourcing,
+  "caldaia-fossile-pompa-calore-detrazione-2026": CoverCaldaiaPompa2026,
 };

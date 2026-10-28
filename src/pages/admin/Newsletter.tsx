@@ -185,7 +185,7 @@ export default function Newsletter() {
     queryKey: ["admin-leads-newsletter"],
     queryFn: async () => {
       const { data, error } = await supabase.from("leads")
-        .select("id, nome, cognome, email, stage_id, archived_at")
+        .select("id, nome, cognome, email, stage_id, archived_at, note, source")
         .is("archived_at", null)
         .order("created_at", { ascending: false });
       if (error) throw error;

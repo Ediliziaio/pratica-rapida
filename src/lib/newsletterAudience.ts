@@ -19,11 +19,15 @@ export interface NewsletterLead {
   email: string | null;
   stage_id: string | null;
   archived_at: string | null;
+  note: string | null;
+  source: string | null;
 }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const NON_RESELLER_NAME_RE = /(?:^|\b)(prova|test|pratica\s*rapida|intern[oa]|demo)(?:\b|$)|da abbinare|rivenditore eliminato|clienti privati/i;
 const SUSPICIOUS_EMAIL_DOMAIN_RE = /(?:gmail\.con|gimail\.it|gmail\.it)$/i;
+const PRIVATE_LEAD_NOTE_RE = /\b(?:sono\s+(?:un|una)\s+privat[oa]|cliente\s+privat[oa]|lead\s+privat[oa])\b/i;
+const PRIVATE_LEAD_SOURCE_RE = /\bprivat[oa]\b/i;
 
 function hasDeliverableEmail(value: string | null): boolean {
   const email = value?.trim() ?? "";
@@ -88,7 +92,9 @@ export function buildNewsletterAudience(
     }));
 
   const eligibleLeads = leads
-    .filter(lead => !lead.archived_at)
+    .filter(lead => !lead.archived_at
+      && !PRIVATE_LEAD_NOTE_RE.test(lead.note ?? "")
+      && !PRIVATE_LEAD_SOURCE_RE.test(lead.source ?? ""))
     .map(lead => ({
       id: lead.id,
       ragione_sociale: `${lead.nome ?? ""} ${lead.cognome ?? ""}`.trim() || "Rivenditore",

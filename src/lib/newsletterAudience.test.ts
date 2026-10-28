@@ -20,11 +20,13 @@ const companies: NewsletterCompany[] = [
 ];
 
 const leads: NewsletterLead[] = [
-  { id: "lead", nome: "Nuovo", cognome: "Rivenditore", email: "lead@example.com", stage_id: "lead-stage", archived_at: null },
-  { id: "lead-duplicate", nome: "Duplicato", cognome: "Azienda", email: "info@example.com", stage_id: "active-stage", archived_at: null },
-  { id: "lead-private", nome: "Clienti privati", cognome: "sito", email: "privati-lead@example.com", stage_id: "lead-stage", archived_at: null },
-  { id: "lead-archived", nome: "Archiviato", cognome: "", email: "archiviato@example.com", stage_id: "lead-stage", archived_at: "2026-09-01T10:00:00Z" },
-  { id: "lead-typo", nome: "Email", cognome: "Errata", email: "cliente@gmail.con", stage_id: "lead-stage", archived_at: null },
+  { id: "lead", nome: "Nuovo", cognome: "Rivenditore", email: "lead@example.com", stage_id: "lead-stage", archived_at: null, note: null, source: null },
+  { id: "lead-duplicate", nome: "Duplicato", cognome: "Azienda", email: "info@example.com", stage_id: "active-stage", archived_at: null, note: null, source: null },
+  { id: "lead-private", nome: "Clienti privati", cognome: "sito", email: "privati-lead@example.com", stage_id: "lead-stage", archived_at: null, note: null, source: null },
+  { id: "lead-private-note", nome: "Camilla", cognome: "Mühlbacher", email: "camilla@example.com", stage_id: "lead-stage", archived_at: null, note: "Risposta: sono un privato", source: "meta" },
+  { id: "lead-private-source", nome: "Mario", cognome: "Rossi", email: "mario@example.com", stage_id: "lead-stage", archived_at: null, note: null, source: "sito privato" },
+  { id: "lead-archived", nome: "Archiviato", cognome: "", email: "archiviato@example.com", stage_id: "lead-stage", archived_at: "2026-09-01T10:00:00Z", note: null, source: null },
+  { id: "lead-typo", nome: "Email", cognome: "Errata", email: "cliente@gmail.con", stage_id: "lead-stage", archived_at: null, note: null, source: null },
 ];
 
 describe("newsletter audience", () => {

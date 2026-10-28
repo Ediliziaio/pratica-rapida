@@ -27,7 +27,7 @@ const portalRows = [
 function Logo() {
   return (
     <img
-      src="/pratica-rapida-logo-horizontal-official.png"
+      src="/pratica-rapida-logo.png"
       alt="PraticaRapida"
       className="h-auto w-[230px] sm:w-[290px]"
     />

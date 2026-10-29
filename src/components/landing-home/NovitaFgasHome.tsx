@@ -14,17 +14,17 @@ export default function NovitaFgasHome() {
       >
         <div className="max-w-2xl">
           <p className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-[.18em]" style={{ color: "hsl(var(--pr-green))" }}>
-            <Sparkles size={14} /> Regole 2026
+            <Sparkles size={14} /> Legge di Bilancio 2027
           </p>
           <h2 className="mt-1 text-xl sm:text-2xl font-black tracking-tight text-foreground">
-            Caldaia fossile o pompa di calore? Cambia anche la detrazione
+            Ecobonus al 65%? Cosa sappiamo davvero
           </h2>
           <p className="mt-2 text-sm sm:text-base text-muted-foreground leading-relaxed">
-            Le caldaie uniche alimentate a combustibili fossili sono escluse dall'agevolazione. Pompe di calore e sistemi ibridi restano ammessi quando rispettano requisiti e documentazione.
+            Il disegno di legge è stato approvato dal Governo, ma il ritorno del 65% non è ancora confermato. Facciamo il punto sulle indicazioni disponibili e sui prossimi passaggi.
           </p>
         </div>
         <Link
-          to="/blog/caldaia-fossile-pompa-calore-detrazione-2026"
+          to="/blog/legge-bilancio-2027-ecobonus-65-cosa-sappiamo"
           className="inline-flex shrink-0 items-center justify-center gap-2 text-white font-bold px-8 py-4 rounded-full text-base transition-all hover:brightness-110 active:scale-[0.97]"
           style={{ background: "hsl(var(--pr-green))", boxShadow: "0 4px 24px hsla(152,80%,35%,0.35)" }}
         >

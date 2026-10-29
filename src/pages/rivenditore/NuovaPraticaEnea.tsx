@@ -497,10 +497,15 @@ export default function NuovaPraticaEnea({
       if (isPrivato && !EMAIL_RE.test(email.trim())) {
         e.email = "Email obbligatoria: ci serve per la ricevuta e per farti completare la pratica";
       }
-      if (!accettoPagamento) e.accettoPagamento = "Devi accettare le condizioni per inviare la richiesta";
+      if (!accettoPagamento) {
+        e.accettoPagamento = isPrivato
+          ? "Spunta la casella qui sopra per proseguire"
+          : "Devi accettare le condizioni per inviare la richiesta";
+      }
     }
     // Contratto di servizio: obbligatorio per ogni pratica, in ogni modalità.
-    if (!accettoContratto) e.accettoContratto = "Devi accettare le condizioni di servizio per inviare la pratica";
+    // Il privato lo accetta insieme alla privacy, con la sua casella unica.
+    if (!accettoContratto && !(publicMode && isPrivato)) e.accettoContratto = "Devi accettare le condizioni di servizio per inviare la pratica";
     if (!tipoServizio && !isFgasOnly) e.tipoServizio = "Seleziona il tipo di servizio";
     if (!tipoProdotto)     e.tipoProdotto = "Seleziona il prodotto";
     if (!tipoSoggetto && !isFgasOnly) e.tipoSoggetto = "Seleziona il tipo di soggetto";
@@ -2044,8 +2049,40 @@ export default function NuovaPraticaEnea({
       </Section>
       )}
 
+      {/* ── Consenso del privato: una casella sola, grande.
+          Sul telefono le due caselline da 13 pixel non si vedevano, e la
+          seconda era scritta come una frase: chi premeva riceveva un errore
+          senza capire cosa mancasse (29/10/2026, deciso dal Titolare). ── */}
+      {publicMode && isPrivato && (
+        <label className="flex items-start gap-3 text-sm text-foreground cursor-pointer select-none rounded-lg border bg-muted/20 p-4">
+          <input
+            type="checkbox"
+            checked={accettoPagamento}
+            onChange={(e) => {
+              setAccettoPagamento(e.target.checked);
+              setAccettoContratto(e.target.checked);
+              setErrors((p) => ({ ...p, accettoPagamento: "", accettoContratto: "" }));
+            }}
+            className="mt-0.5 h-5 w-5 shrink-0 accent-primary"
+          />
+          <span>
+            Accetto la privacy e le{" "}
+            <a
+              href={CONTRATTO_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="font-medium text-primary underline underline-offset-2"
+            >
+              condizioni del servizio
+            </a>.
+            {errors.accettoPagamento && <span className="block text-destructive mt-0.5" data-error>{errors.accettoPagamento}</span>}
+          </span>
+        </label>
+      )}
+
       {/* ── Consenso (publicMode) — nel flusso normale, NON nella barra sticky ── */}
-      {publicMode && (
+      {publicMode && !isPrivato && (
         <label className="flex items-start gap-2.5 text-xs text-muted-foreground cursor-pointer select-none rounded-lg border bg-muted/20 p-3">
           <input
             type="checkbox"
@@ -2054,9 +2091,7 @@ export default function NuovaPraticaEnea({
             className="mt-0.5 accent-primary"
           />
           <span>
-            {isPrivato ? (
-              <>Acconsento al trattamento dei miei dati (GDPR) per la gestione della pratica ENEA.</>
-            ) : (
+            {(
               <>
                 Dichiaro di aver informato il cliente finale e acconsento al trattamento dei dati (GDPR)
                 per la gestione della pratica.
@@ -2080,6 +2115,14 @@ export default function NuovaPraticaEnea({
           <p className="text-sm font-semibold text-foreground">
             Ottimo, possiamo lavorare la tua pratica.
           </p>
+          {/* Il prezzo si dice prima del pulsante: «Procedi al pagamento»
+              senza una cifra frena (deciso dal Titolare il 29/10/2026). La
+              cifra e' quella del listino; su Stripe la rilegge il server. */}
+          {prezzoPrivato?.attivo && (
+            <p className="mt-2 text-base font-semibold text-foreground">
+              {euro(prezzoPrivato.totaleCents)} IVA inclusa, tutto compreso.
+            </p>
+          )}
           <p className="mt-1 text-sm text-muted-foreground">
             Procedi al pagamento e all'inserimento dei dati. Tempo richiesto: circa 3 minuti.
           </p>
@@ -2087,6 +2130,7 @@ export default function NuovaPraticaEnea({
       )}
 
       {/* ── Accettazione contratto di servizio (obbligatoria, ogni pratica) ── */}
+      {!(publicMode && isPrivato) && (
       <label className="flex items-start gap-2.5 text-xs text-muted-foreground cursor-pointer select-none rounded-lg border bg-muted/20 p-3">
         <input
           type="checkbox"
@@ -2108,6 +2152,7 @@ export default function NuovaPraticaEnea({
           {errors.accettoContratto && <span className="block text-destructive mt-0.5" data-error>{errors.accettoContratto}</span>}
         </span>
       </label>
+      )}
 
       {/* ── Submit ───────────────────────────────────────────────────────── */}
       <div className="sticky bottom-4">

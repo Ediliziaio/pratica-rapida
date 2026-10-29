@@ -375,6 +375,11 @@ serve(async (req) => {
     //  di _shared/contatto-cliente.ts in on-stage-changed, on-practice-created
     //  e process-automations bloccano ogni messaggio/email al privato.
     const tipoServizio = fgasOnly || isDocumentiForniti(p) ? "documenti_forniti" : "servizio_completo";
+    // Nel percorso "documenti forniti + form online" questa riga serve solo
+    // a conservare token e allegati mentre il rivenditore compila. Non e' una
+    // pratica ricevuta finche' submit_form_by_token non completa il modulo.
+    const resellerOnlineDraft =
+      !fgasOnly && tipoServizio === "documenti_forniti" && p.documenti_mode === "form_online";
     const targetStageType =
       tipoServizio === "servizio_completo"
         ? "inviata"
@@ -451,8 +456,9 @@ serve(async (req) => {
         cliente_cf: p.cliente?.cf?.trim() || null,
         cliente_indirizzo: p.cliente?.indirizzo?.trim() || null,
         data_fine_lavori: dataFineLavori || null,
-        dati_form: p.fgas
-          ? {
+        dati_form: {
+          ...(p.fgas
+            ? {
               fgas: {
                 requested: p.fgas.requested === true,
                 package: p.fgas.package ?? (p.fgas.requested === true ? "enea_fgas_full" : "enea_only"),
@@ -465,7 +471,11 @@ serve(async (req) => {
                 intervention_date_source: dataFineLavori || null,
               },
             }
-          : {},
+            : {}),
+          ...(resellerOnlineDraft
+            ? { workflow: { reseller_form_draft: true } }
+            : {}),
+        },
         prezzo: fgasOnly
           ? 35
           : p.fgas?.requested === true
@@ -531,7 +541,10 @@ serve(async (req) => {
     // "documenti forniti": non per il modulo (i dati li ha dati il rivenditore)
     // ma perche' al cliente deve arrivare il link di pagamento.
     const cfDalSito = cfFinale && !p.requires_payment;
-    if ((tipoServizio === "servizio_completo" && !p.requires_payment) || cfDalSito) {
+    if (
+      (tipoServizio === "servizio_completo" && !p.requires_payment) ||
+      (cfDalSito && !resellerOnlineDraft)
+    ) {
       fetch(`${SUPABASE_URL}/functions/v1/on-practice-created`, {
         method: "POST",
         headers: {
@@ -551,7 +564,7 @@ serve(async (req) => {
     // ── 6b. Azienda NON trovata → email di invito al rivenditore ──
     // Nessun account creato: invitiamo il rivenditore a registrarsi per seguire
     // la pratica. (Per le aziende già abbinate la pratica appare nel loro portale.)
-    if (matchType === "creata" && aziendaEmail) {
+    if (!resellerOnlineDraft && matchType === "creata" && aziendaEmail) {
       fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
         method: "POST",
         headers: { Authorization: `Bearer ${SERVICE_KEY}`, "Content-Type": "application/json" },
@@ -571,7 +584,7 @@ serve(async (req) => {
     // ── 7. Notifica super_admin ──
     // La richiesta privata non pagata non deve affiorare neppure nel campanello.
     // Il webhook del pagamento produce la notifica quando l'incasso e' vero.
-    if (!isPrivato) {
+    if (!isPrivato && !resellerOnlineDraft) {
       try {
         const { data: admins } = await supabase
           .from("user_roles")

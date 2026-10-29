@@ -4,6 +4,7 @@ import { reportError } from "../_shared/error.ts";
 import { normalizePhone } from "../_shared/phone.ts";
 import { resellerDisplayName } from "../_shared/reseller.ts";
 import {
+  isDocumentiForniti,
   puoContattareCliente,
   puoInviarePraticaAlCliente,
 } from "../_shared/contatto-cliente.ts";
@@ -514,6 +515,28 @@ serve(async (req) => {
 
     // Messaggio 3 — form compilato, pronte da fare → email+WA conferma al cliente
     case "pronte_da_fare": {
+      // Nel percorso "documenti forniti + form online" la pratica e' ricevuta
+      // soltanto ora. Prima del submit era una bozza tecnica invisibile al CRM
+      // e non doveva generare alcuna conferma. L'idempotenza evita duplicati se
+      // questa funzione viene richiamata manualmente sullo stesso stage.
+      if (isDocumentiForniti(practice) && practice.form_compilato_at) {
+        const resellerConfirmationAlreadySent = await hasSuccessfulTemplateCommunication(
+          supabase,
+          practice_id,
+          "email",
+          "pratica_ricevuta",
+        );
+        if (resellerConfirmationAlreadySent) {
+          steps.reseller_confirmation = "already_sent";
+        } else {
+          const sent = await invoke("on-practice-created", {
+            practice_id,
+            reseller_only: true,
+          });
+          steps.reseller_confirmation = sent ? "sent" : "failed";
+        }
+      }
+
       if (puoContattareCliente(practice) && practice.form_compilato_at) {
         const formEmailEnabled = await isRuleEnabled(supabase, "form_compiled", "email");
 

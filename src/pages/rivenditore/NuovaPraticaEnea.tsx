@@ -737,6 +737,11 @@ export default function NuovaPraticaEnea({
           : documentiMode === "moduli_cartacei"
             ? "pronte_da_fare"
             : "attesa_compilazione";
+      // Questa riga e' una bozza tecnica finche' il rivenditore non invia il
+      // form online completo. Il CRM interno la rendera' visibile soltanto al
+      // submit finale, quando dati_form viene sostituito dai dati del modulo.
+      const resellerOnlineDraft =
+        !isFgasOnly && tipoServizio === "documenti_forniti" && documentiMode === "form_online";
       const initialStage = stages.find((s) => s.stage_type === targetStageType) ?? stages[0];
 
       const prodottoLabel = PRODOTTI.find((p) => p.id === tipoProdotto)?.label ?? tipoProdotto ?? "";
@@ -762,8 +767,9 @@ export default function NuovaPraticaEnea({
           cliente_cf: cf.trim() || null,
           cliente_indirizzo: indirizzo.trim() || null,
           data_fine_lavori: staffCfIntake ? null : dataFineLavori ? format(dataFineLavori, "yyyy-MM-dd") : null,
-          dati_form: tipoProdotto === "pompe_calore" && !isPrivato
-            ? {
+          dati_form: {
+            ...(tipoProdotto === "pompe_calore" && !isPrivato
+              ? {
                 fgas: {
                   requested: hasFgas,
                   package: fgasChoice,
@@ -779,7 +785,11 @@ export default function NuovaPraticaEnea({
                   intervention_date_source: dataFineLavori ? format(dataFineLavori, "yyyy-MM-dd") : null,
                 },
               }
-            : {},
+              : {}),
+            ...(resellerOnlineDraft
+              ? { workflow: { reseller_form_draft: true } }
+              : {}),
+          },
           prezzo: isFgasOnly ? 35 : hasFgas ? 90 : prezzoNettoPratica,
           note: note.trim() || null,
           // Prova dell'accettazione del contratto di servizio da parte del
@@ -845,16 +855,6 @@ export default function NuovaPraticaEnea({
       if (!isFgasOnly && tipoServizio === "servizio_completo") {
         supabase.functions.invoke("on-practice-created", {
           body: { practice_id: practice.id },
-        }).catch(console.error); // non-blocking
-      }
-
-      // "documenti_forniti" + FORM ONLINE, servizio a carico del cliente: il
-      // rivenditore compila lui il modulo, ma il pagamento resta del cliente e
-      // il link glielo deve mandare qualcuno. Negli altri rami ci pensa la
-      // chiamata a on-practice-created gia' presente; qui non c'era.
-      if (!isFgasOnly && tipoServizio === "documenti_forniti" && documentiMode === "form_online" && tipoFatturazione === "cliente_finale") {
-        supabase.functions.invoke("on-practice-created", {
-          body: { practice_id: practice.id, reseller_only: true },
         }).catch(console.error); // non-blocking
       }
 

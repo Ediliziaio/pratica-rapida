@@ -25,7 +25,7 @@ describe("richieste private non pagate nel CRM", () => {
   });
 
   it("non mostra una notifica prematura e rende visibile la pratica dopo il pagamento", () => {
-    expect(intake).toContain("if (!isPrivato) {");
+    expect(intake).toContain("if (!isPrivato && !resellerOnlineDraft) {");
     expect(migration).toContain("n.tipo = 'richiesta_pubblica'");
     expect(source("supabase/functions/stripe-webhook/index.ts"))
       .toContain('pagamento_stato: "pagata"');

@@ -2120,7 +2120,7 @@ export default function NuovaPraticaEnea({
               cifra e' quella del listino; su Stripe la rilegge il server. */}
           {prezzoPrivato?.attivo && (
             <p className="mt-2 text-base font-semibold text-foreground">
-              {euro(prezzoPrivato.totaleCents)} IVA inclusa, tutto compreso.
+              {euro(prezzoPrivato.imponibileCents)} + IVA, tutto compreso.
             </p>
           )}
           <p className="mt-1 text-sm text-muted-foreground">

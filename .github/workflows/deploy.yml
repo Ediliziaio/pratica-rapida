@@ -181,6 +181,19 @@ jobs:
                   --data-binary @-
               echo "Incomplete reseller online drafts migration applied through Supabase Management API"
             fi
+            if jq -e --arg name restore_legacy_reseller_drafts_for_owner \
+              'any(.[]; .name == $name)' <<< "$MIGRATIONS" > /dev/null; then
+              echo "Legacy reseller drafts owner visibility migration already applied"
+            else
+              jq -n --rawfile query supabase/migrations/20261029143000_restore_legacy_reseller_drafts_for_owner.sql \
+                '{query: $query, name: "restore_legacy_reseller_drafts_for_owner"}' \
+                | curl --fail-with-body --silent --show-error --output /dev/null \
+                  --request POST "https://api.supabase.com/v1/projects/${PROJECT_REF}/database/migrations" \
+                  --header "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
+                  --header "Content-Type: application/json" \
+                  --data-binary @-
+              echo "Legacy reseller drafts owner visibility migration applied through Supabase Management API"
+            fi
           else
             supabase link --project-ref "$PROJECT_REF"
             supabase db push --linked

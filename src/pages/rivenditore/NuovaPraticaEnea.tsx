@@ -18,12 +18,9 @@ import {
   CheckCircle, Upload, X, Loader2, FileText,
   Sun, Home, Maximize2, Thermometer, Sparkles,
   FolderUp, User, Building2, AlertCircle, ExternalLink,
-  HelpCircle, Info, Layers, Calendar as CalendarIcon,
+  HelpCircle, Info, Layers,
 } from "lucide-react";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
-import { it } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { isStaffCfIntake } from "@/features/cfCustomerEvidence";
 import { fallbackMonthlyPracticePrice } from "@/lib/monthly-financial-kpis";
@@ -1655,37 +1652,25 @@ export default function NuovaPraticaEnea({
                 rilasciato l'installatore. Se non la sai, prosegui lo stesso.
               </p>
             )}
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  id="data-fine-lavori"
-                  type="button"
-                  variant="outline"
-                  aria-required="true"
-                  aria-invalid={Boolean(errors.dataFineLavori)}
-                  aria-describedby={errors.dataFineLavori ? "data-fine-lavori-error" : undefined}
-                  className={cn(
-                    "w-full h-10 justify-start text-left font-normal",
-                    !dataFineLavori && "text-muted-foreground",
-                    errors.dataFineLavori && "border-destructive",
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {dataFineLavori ? format(dataFineLavori, "dd/MM/yyyy", { locale: it }) : "Seleziona data"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={dataFineLavori}
-                  onSelect={(date) => {
-                    setDataFineLavori(date);
-                    if (date) setErrors((previous) => ({ ...previous, dataFineLavori: "" }));
-                  }}
-                  locale={it}
-                />
-              </PopoverContent>
-            </Popover>
+            <Input
+              id="data-fine-lavori"
+              type="date"
+              value={dataFineLavori ? format(dataFineLavori, "yyyy-MM-dd") : ""}
+              aria-required={!isPrivato}
+              aria-invalid={Boolean(errors.dataFineLavori)}
+              aria-describedby={errors.dataFineLavori ? "data-fine-lavori-error" : undefined}
+              onChange={(event) => {
+                const value = event.target.value;
+                if (!value) {
+                  setDataFineLavori(undefined);
+                  return;
+                }
+                const [year, month, day] = value.split("-").map(Number);
+                setDataFineLavori(new Date(year, month - 1, day, 12));
+                setErrors((previous) => ({ ...previous, dataFineLavori: "" }));
+              }}
+              className={cn(errors.dataFineLavori && "border-destructive")}
+            />
             {errors.dataFineLavori && (
               <p id="data-fine-lavori-error" className="text-xs text-destructive" data-error>
                 {errors.dataFineLavori}

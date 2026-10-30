@@ -836,7 +836,9 @@ export default function NuovaPraticaEnea({
         const { data, error } = await supabase.rpc("create_enea_reseller_online_draft", {
           p_reseller_id: effectiveResellerId,
           p_current_stage_id: initialStage.id,
-          p_tipo_servizio: "pratica_only",
+          // Il vincolo attivo in produzione usa il nome normalizzato.
+          // La RPC accetta anche l'alias storico, ma non deve scriverlo.
+          p_tipo_servizio: "documenti_forniti",
           p_invia_pratica_al_cliente: inviaPraticaCliente === true,
           p_tipo_fatturazione: tipoFatturazione,
           p_tipo_soggetto: tipoSoggetto,

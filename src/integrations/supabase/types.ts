@@ -3123,6 +3123,33 @@ export type Database = {
         Returns: boolean
       }
       clear_must_change_password: { Args: never; Returns: undefined }
+      create_enea_reseller_online_draft: {
+        Args: {
+          p_cliente_cf: string | null
+          p_cliente_cognome: string
+          p_cliente_email: string | null
+          p_cliente_indirizzo: string | null
+          p_cliente_nome: string
+          p_cliente_telefono: string
+          p_contratto_versione: string
+          p_current_stage_id: string
+          p_data_fine_lavori: string | null
+          p_dati_form: Json
+          p_invia_pratica_al_cliente: boolean
+          p_note: string | null
+          p_prezzo: number
+          p_prodotto_installato: string
+          p_reseller_id: string
+          p_tipo_fatturazione: string
+          p_tipo_servizio: string
+          p_tipo_soggetto: string
+        }
+        Returns: {
+          dati_form: Json
+          form_token: string
+          id: string
+        }[]
+      }
       get_cron_health: {
         Args: never
         Returns: {

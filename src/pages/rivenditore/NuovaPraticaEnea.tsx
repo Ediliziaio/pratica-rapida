@@ -766,9 +766,7 @@ export default function NuovaPraticaEnea({
 
       const prodottoLabel = PRODOTTI.find((p) => p.id === tipoProdotto)?.label ?? tipoProdotto ?? "";
 
-      const { data: practice, error: insertError } = await supabase
-        .from("enea_practices")
-        .insert({
+      const practicePayload = {
           reseller_id: effectiveResellerId,
           brand: "enea",
           current_stage_id: initialStage?.id ?? null,
@@ -823,9 +821,49 @@ export default function NuovaPraticaEnea({
           documenti_enea_urls: [],
           documenti_aggiuntivi_urls: [],
           documenti_mancanti: [],
-        })
-        .select()
-        .single();
+        } as const;
+
+      let practice: { id: string; form_token: string | null; dati_form: unknown } | null = null;
+      let insertError: { message: string } | null = null;
+
+      if (resellerOnlineDraft) {
+        if (!initialStage?.id) throw new Error("Stage iniziale non configurato");
+
+        // La bozza deve restare invisibile nel CRM interno fino all'invio del
+        // form completo. La policy SELECT che la nasconde impedisce però anche
+        // INSERT ... RETURNING dal browser. La RPC dedicata crea la riga con le
+        // stesse verifiche di autorizzazione e restituisce soltanto ID e token.
+        const { data, error } = await supabase.rpc("create_enea_reseller_online_draft", {
+          p_reseller_id: effectiveResellerId,
+          p_current_stage_id: initialStage.id,
+          p_tipo_servizio: "pratica_only",
+          p_invia_pratica_al_cliente: inviaPraticaCliente === true,
+          p_tipo_fatturazione: tipoFatturazione,
+          p_tipo_soggetto: tipoSoggetto,
+          p_prodotto_installato: prodottoLabel,
+          p_cliente_nome: nome.trim(),
+          p_cliente_cognome: cognome.trim(),
+          p_cliente_email: email.trim() || null,
+          p_cliente_telefono: telefono.trim(),
+          p_cliente_cf: cf.trim() || null,
+          p_cliente_indirizzo: indirizzo.trim() || null,
+          p_data_fine_lavori: dataFineLavori ? format(dataFineLavori, "yyyy-MM-dd") : null,
+          p_dati_form: practicePayload.dati_form,
+          p_prezzo: prezzoNettoPratica,
+          p_note: note.trim() || null,
+          p_contratto_versione: CONTRATTO_VERSIONE,
+        });
+        practice = data?.[0] ?? null;
+        insertError = error;
+      } else {
+        const { data, error } = await supabase
+          .from("enea_practices")
+          .insert(practicePayload)
+          .select("id, form_token, dati_form")
+          .single();
+        practice = data;
+        insertError = error;
+      }
 
       if (insertError || !practice) throw insertError ?? new Error("Insert fallito");
 

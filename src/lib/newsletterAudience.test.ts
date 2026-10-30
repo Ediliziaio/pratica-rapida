@@ -30,6 +30,17 @@ const leads: NewsletterLead[] = [
 ];
 
 describe("newsletter audience", () => {
+  it("does not put unassigned existing customers into the first €50 column", () => {
+    const result = buildNewsletterAudience(
+      companies,
+      leads,
+      {},
+      "lead",
+      ["clienti_50"],
+    );
+    expect(result.recipients).toEqual([]);
+  });
+
   it("starts safely with zero recipients when no stage is selected", () => {
     const result = buildNewsletterAudience(companies, leads, {}, "active-stage", []);
     expect(result.recipients).toEqual([]);

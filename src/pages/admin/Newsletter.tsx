@@ -24,10 +24,18 @@ import {
   type NewsletterCompany,
   type NewsletterLead,
 } from "@/lib/newsletterAudience";
+import {
+  DEFAULT_CRM_STAGES,
+  NEW_LEAD_STAGE_ID,
+  containsFiftyEuroPrice,
+  isFiftyEuroAudienceSafe,
+  normalizeCrmStages,
+  type CrmPipelineStage,
+} from "@/lib/crmPipeline";
 
 // ── Tipi e costanti ───────────────────────────────────────────────────────────
 
-interface CrmStage { id: string; name: string; color: string; order: number; }
+type CrmStage = CrmPipelineStage;
 interface NewsletterRecord {
   id: string;
   subject: string;
@@ -41,13 +49,7 @@ interface NewsletterRecord {
   sentBy?: string | null;
 }
 
-const DEFAULT_STAGES: CrmStage[] = [
-  { id: "lead",       name: "Nuovo Lead",       color: "#6366f1", order: 0 },
-  { id: "contatto",   name: "Primo Contatto",    color: "#f59e0b", order: 1 },
-  { id: "demo",       name: "Demo Programmata",  color: "#8b5cf6", order: 2 },
-  { id: "onboarding", name: "In Onboarding",     color: "#3b82f6", order: 3 },
-  { id: "attivo",     name: "Cliente Attivo",    color: "#10b981", order: 4 },
-];
+const DEFAULT_STAGES = DEFAULT_CRM_STAGES;
 
 const KEY_STAGES      = "crm_pipeline_stages";
 const KEY_ASSIGNMENTS = "crm_company_stages";
@@ -154,7 +156,7 @@ export default function Newsletter() {
     queryFn: async () => {
       const { data } = await supabase.from("platform_settings")
         .select("value").eq("key", KEY_STAGES).single();
-      return (data?.value as unknown as CrmStage[]) ?? DEFAULT_STAGES;
+      return normalizeCrmStages((data?.value as unknown as CrmStage[]) ?? DEFAULT_STAGES);
     },
     staleTime: 10 * 60 * 1000,
   });
@@ -234,7 +236,7 @@ export default function Newsletter() {
       companies,
       leads,
       assignments,
-      sortedStages[0]?.id,
+      NEW_LEAD_STAGE_ID,
       selectedStages,
     );
   }, [companies, leads, assignments, sortedStages, selectedStages, customActive, customEmail]);
@@ -245,8 +247,21 @@ export default function Newsletter() {
       ? "Tutti i rivenditori attivi"
       : sortedStages.filter(s => selectedStages.includes(s.id)).map(s => s.name).join(", ") || "Nessuna pipeline";
 
+  const hasFiftyEuroPrice = containsFiftyEuroPrice(subject, body);
+  const fiftyEuroAudienceSafe = !hasFiftyEuroPrice
+    || isFiftyEuroAudienceSafe(selectedStages, customActive);
+
   // ── Invio ────────────────────────────────────────────────────────────────────
   const send = async () => {
+    if (!fiftyEuroAudienceSafe) {
+      toast({
+        title: "Invio bloccato",
+        description: "Il prezzo €50 può essere inviato solo ed esclusivamente alla pipeline Clienti €50.",
+        variant: "destructive",
+      });
+      setConfirmSend(false);
+      return;
+    }
     setSending(true);
     let ok = 0;
     const failed: string[] = [];
@@ -317,7 +332,10 @@ export default function Newsletter() {
     }
   };
 
-  const canSend = subject.trim().length > 0 && htmlHasText(body) && recipients.length > 0;
+  const canSend = subject.trim().length > 0
+    && htmlHasText(body)
+    && recipients.length > 0
+    && fiftyEuroAudienceSafe;
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
@@ -450,6 +468,18 @@ export default function Newsletter() {
                 Usa la barra per grassetto, corsivo, sottolineato e dimensione del testo.
               </p>
             </div>
+
+            {hasFiftyEuroPrice && (
+              <div className={`rounded-md border px-3 py-2 text-sm ${
+                fiftyEuroAudienceSafe
+                  ? "border-emerald-300 bg-emerald-50 text-emerald-800"
+                  : "border-destructive/40 bg-destructive/10 text-destructive"
+              }`}>
+                {fiftyEuroAudienceSafe
+                  ? "Protezione €50 attiva: invio riservato esclusivamente alla pipeline Clienti €50."
+                  : "Invio bloccato: un contenuto con il prezzo €50 può essere inviato solo alla pipeline Clienti €50, senza altre pipeline o destinatari di prova."}
+              </div>
+            )}
 
             <div className="flex items-center gap-2">
               <Button variant="outline" onClick={() => setShowPreview(true)} disabled={!htmlHasText(body)}>

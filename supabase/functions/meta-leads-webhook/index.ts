@@ -72,17 +72,13 @@ const CORS = {
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
 };
 
-/** Restituisce l'id della prima fase della pipeline (order 0), fallback "lead". */
-async function firstStageId(): Promise<string> {
-  try {
-    const { data } = await supabase.from("platform_settings")
-      .select("value").eq("key", "crm_pipeline_stages").single();
-    const stages = (data?.value as Array<{ id: string; order: number }>) ?? [];
-    const first = [...stages].sort((a, b) => a.order - b.order)[0];
-    return first?.id ?? "lead";
-  } catch {
-    return "lead";
-  }
+/**
+ * I lead Meta entrano sempre nella fase stabile "Nuovo Lead". La prima
+ * colonna visiva è riservata ai Clienti €50 e non deve mai riceverli in modo
+ * automatico.
+ */
+function newLeadStageId(): string {
+  return "lead";
 }
 
 /** Verifica la firma X-Hub-Signature-256 (se META_APP_SECRET è impostato). */
@@ -359,7 +355,7 @@ Deno.serve(async (req) => {
     const days = Math.max(1, Math.min(90, parseInt(url.searchParams.get("days") ?? "7", 10) || 7));
     const sinceUnix = Math.floor(Date.now() / 1000) - days * 86400;
     const pageToken = await resolvePageToken(pageId);
-    const stageId = await firstStageId();
+    const stageId = newLeadStageId();
 
     const fr = await fetch(`https://graph.facebook.com/${GRAPH_VERSION}/${pageId}/leadgen_forms?limit=200&access_token=${pageToken}`);
     const fj = await fr.json().catch(() => ({}));
@@ -414,7 +410,7 @@ Deno.serve(async (req) => {
   let body: { entry?: Array<{ changes?: Array<{ field?: string; value?: Record<string, unknown> }> }> };
   try { body = JSON.parse(raw); } catch { return new Response("Bad JSON", { status: 400 }); }
 
-  const stageId = await firstStageId();
+  const stageId = newLeadStageId();
 
   for (const entry of body.entry ?? []) {
     for (const change of entry.changes ?? []) {

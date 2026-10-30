@@ -24,15 +24,18 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
+import {
+  CLIENTI_50_STAGE_ID,
+  DEFAULT_CRM_STAGES,
+  NEW_LEAD_STAGE_ID,
+  defaultCrmStageId,
+  normalizeCrmStages,
+  type CrmPipelineStage,
+} from "@/lib/crmPipeline";
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
-interface CrmStage {
-  id: string;
-  name: string;
-  color: string;
-  order: number;
-}
+type CrmStage = CrmPipelineStage;
 
 interface CrmLead {
   id: string;
@@ -65,13 +68,7 @@ interface Company {
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
-const DEFAULT_STAGES: CrmStage[] = [
-  { id: "lead",       name: "Nuovo Lead",       color: "#6366f1", order: 0 },
-  { id: "contatto",   name: "Primo Contatto",    color: "#f59e0b", order: 1 },
-  { id: "demo",       name: "Demo Programmata",  color: "#8b5cf6", order: 2 },
-  { id: "onboarding", name: "In Onboarding",     color: "#3b82f6", order: 3 },
-  { id: "attivo",     name: "Cliente Attivo",    color: "#10b981", order: 4 },
-];
+const DEFAULT_STAGES = DEFAULT_CRM_STAGES;
 
 const KEY_STAGES      = "crm_pipeline_stages";
 const KEY_ASSIGNMENTS = "crm_company_stages";
@@ -140,7 +137,7 @@ export default function AziendePipeline() {
     queryFn: async () => {
       const { data } = await supabase.from("platform_settings")
         .select("value").eq("key", KEY_STAGES).single();
-      return (data?.value as unknown as CrmStage[]) ?? DEFAULT_STAGES;
+      return normalizeCrmStages((data?.value as unknown as CrmStage[]) ?? DEFAULT_STAGES);
     },
     staleTime: 10 * 60 * 1000, // 10min
   });
@@ -223,7 +220,7 @@ export default function AziendePipeline() {
         citta: leadForm.citta.trim() || null,
         note: leadForm.note.trim() || null,
         source: "manual",
-        stage_id: sortedStages[0]?.id ?? "lead",
+        stage_id: defaultCrmStageId(sortedStages),
       });
       if (error) throw error;
     },
@@ -356,7 +353,7 @@ export default function AziendePipeline() {
 
   const saveStages = useMutation({
     mutationFn: async (newStages: CrmStage[]) => {
-      await upsertSetting(KEY_STAGES, newStages);
+      await upsertSetting(KEY_STAGES, normalizeCrmStages(newStages));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["crm_stages"] });
@@ -382,11 +379,13 @@ export default function AziendePipeline() {
   };
 
   const updateStage = (updated: CrmStage) => {
+    if (updated.id === CLIENTI_50_STAGE_ID) return;
     saveStages.mutate(stages.map(s => s.id === updated.id ? updated : s));
     setEditingStage(null);
   };
 
   const deleteStage = (stageId: string) => {
+    if (stageId === CLIENTI_50_STAGE_ID) return;
     saveStages.mutate(stages.filter(s => s.id !== stageId));
   };
 
@@ -400,6 +399,7 @@ export default function AziendePipeline() {
     const ordered = [...stages].sort((a, b) => a.order - b.order);
     const idx = ordered.findIndex(s => s.id === stageId);
     const target = idx + direction;
+    if (stageId === CLIENTI_50_STAGE_ID || ordered[target]?.id === CLIENTI_50_STAGE_ID) return;
     if (idx === -1 || target < 0 || target >= ordered.length) return;
     [ordered[idx], ordered[target]] = [ordered[target], ordered[idx]];
     saveStages.mutate(ordered.map((s, i) => ({ ...s, order: i })));
@@ -408,10 +408,10 @@ export default function AziendePipeline() {
   // ── Per-column data ───────────────────────────────────────────────────────
 
   const getCompaniesForStage = (stageId: string) => {
-    const isFirst = sortedStages[0]?.id === stageId;
+    const isDefault = defaultCrmStageId(sortedStages) === stageId;
     return companies.filter(c => {
       const assigned = assignments[c.id];
-      return assigned ? assigned === stageId : isFirst;
+      return assigned ? assigned === stageId : isDefault;
     });
   };
 
@@ -421,9 +421,9 @@ export default function AziendePipeline() {
   const stageName = (stageId: string) =>
     sortedStages.find(s => s.id === stageId)?.name ?? stageId;
 
-  /** Fase corrente di un'azienda (assegnata o, se non assegnata, la prima). */
+  /** Fase corrente di un'azienda (assegnata o, se non assegnata, Nuovo Lead). */
   const companyStageId = (companyId: string) =>
-    assignments[companyId] ?? sortedStages[0]?.id ?? "lead";
+    assignments[companyId] ?? NEW_LEAD_STAGE_ID;
 
   /** Apre il dettaglio se il click non proviene da un bottone/link interno. */
   const openDetailGuard = (e: ReactMouseEvent, open: () => void) => {
@@ -473,7 +473,7 @@ export default function AziendePipeline() {
                   <Button
                     size="icon" variant="ghost"
                     className="h-6 w-6 text-muted-foreground disabled:opacity-30"
-                    disabled={stageIdx === 0 || saveStages.isPending}
+                    disabled={stageIdx === 0 || sortedStages[stageIdx - 1]?.id === CLIENTI_50_STAGE_ID || saveStages.isPending}
                     onClick={() => moveStage(stage.id, -1)}
                     title="Sposta a sinistra"
                   >
@@ -482,7 +482,7 @@ export default function AziendePipeline() {
                   <Button
                     size="icon" variant="ghost"
                     className="h-6 w-6 text-muted-foreground disabled:opacity-30"
-                    disabled={stageIdx === sortedStages.length - 1 || saveStages.isPending}
+                    disabled={stage.id === CLIENTI_50_STAGE_ID || stageIdx === sortedStages.length - 1 || saveStages.isPending}
                     onClick={() => moveStage(stage.id, 1)}
                     title="Sposta a destra"
                   >
@@ -825,13 +825,14 @@ export default function AziendePipeline() {
                   <>
                     <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ background: stage.color }} />
                     <span className="text-sm flex-1">{stage.name}</span>
-                    <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setEditingStage(stage)}>
+                    <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setEditingStage(stage)} disabled={stage.id === CLIENTI_50_STAGE_ID}>
                       <Pencil className="h-3.5 w-3.5" />
                     </Button>
                     <Button
                       size="icon" variant="ghost"
                       className="h-7 w-7 text-destructive hover:text-destructive"
                       onClick={() => deleteStage(stage.id)}
+                      disabled={stage.id === CLIENTI_50_STAGE_ID}
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </Button>

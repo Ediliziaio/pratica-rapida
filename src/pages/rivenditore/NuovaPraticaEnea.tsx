@@ -26,7 +26,7 @@ import { isStaffCfIntake } from "@/features/cfCustomerEvidence";
 import { fallbackMonthlyPracticePrice } from "@/lib/monthly-financial-kpis";
 import { captureException } from "@/lib/sentry";
 import { arrivaDaUnAnnuncio, segnaPrivato } from "@/lib/imbutoPrivato";
-import type { TipoFatturazione, TipoSoggetto, TipoServizio } from "@/integrations/supabase/types";
+import type { Database, TipoFatturazione, TipoSoggetto, TipoServizio } from "@/integrations/supabase/types";
 
 // ── Costanti ──────────────────────────────────────────────────────────────────
 const ALLOWED_MIME = [
@@ -766,7 +766,7 @@ export default function NuovaPraticaEnea({
 
       const prodottoLabel = PRODOTTI.find((p) => p.id === tipoProdotto)?.label ?? tipoProdotto ?? "";
 
-      const practicePayload = {
+      const practicePayload: Database["public"]["Tables"]["enea_practices"]["Insert"] = {
           reseller_id: effectiveResellerId,
           brand: "enea",
           current_stage_id: initialStage?.id ?? null,
@@ -821,7 +821,7 @@ export default function NuovaPraticaEnea({
           documenti_enea_urls: [],
           documenti_aggiuntivi_urls: [],
           documenti_mancanti: [],
-        } as const;
+        };
 
       let practice: { id: string; form_token: string | null; dati_form: unknown } | null = null;
       let insertError: { message: string } | null = null;

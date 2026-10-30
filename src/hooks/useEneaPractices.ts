@@ -7,9 +7,13 @@ import type { EneaPractice, PipelineStage, TablesUpdate } from "@/integrations/s
 
 export function usePipelineStages(brand?: string) {
   const { resellerId, isInternal } = useAuth();
+  const { companyId: impersonatedCompanyId, isImpersonating } = useCompany();
+  const effectiveResellerScope = isImpersonating
+    ? impersonatedCompanyId
+    : (!isInternal ? resellerId : null);
 
   return useQuery({
-    queryKey: ["pipeline_stages", brand, resellerId],
+    queryKey: ["pipeline_stages", brand, effectiveResellerScope],
     queryFn: async () => {
       // Select esplicito: evita colonne potenzialmente pesanti (es. eventuali
       // metadata/config JSONB future) e fa match con il type PipelineStage.
@@ -23,9 +27,11 @@ export function usePipelineStages(brand?: string) {
 
       if (brand) q = q.eq("brand", brand);
 
-      // Rivenditore vede: stage di sistema (reseller_id IS NULL) + propri
-      if (!isInternal && resellerId) {
-        q = q.or(`reseller_id.is.null,reseller_id.eq.${resellerId}`);
+      // Rivenditore vede: stage di sistema + propri. Vale anche durante
+      // l'impersonazione: altrimenti uno staff interno carica gli stage di
+      // tutte le aziende e può scegliere per errore quello di un altro tenant.
+      if (effectiveResellerScope) {
+        q = q.or(`reseller_id.is.null,reseller_id.eq.${effectiveResellerScope}`);
       }
 
       const { data, error } = await q;

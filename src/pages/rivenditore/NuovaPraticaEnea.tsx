@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { resolveCfNetPriceEur } from "@/lib/cfPracticePriceClient";
 import { useAuth } from "@/hooks/useAuth";
+import { useCompany } from "@/hooks/useCompany";
 import { usePipelineStages } from "@/hooks/useEneaPractices";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -275,6 +276,7 @@ export default function NuovaPraticaEnea({
   lockProduct?: boolean;
 } = {}) {
   const { resellerId, isInternal } = useAuth();
+  const { companyId: contextCompanyId, isImpersonating } = useCompany();
   const { toast } = useToast();
   const navigate = useNavigate();
   const { data: stages = [] } = usePipelineStages("enea");
@@ -338,7 +340,7 @@ export default function NuovaPraticaEnea({
   const [staffSelectedCompanyId, setStaffSelectedCompanyId] = useState<string>("");
   const { data: allCompanies = [] } = useQuery({
     queryKey: ["nuova-pratica-companies"],
-    enabled: isInternal,
+    enabled: isInternal && !isImpersonating,
     queryFn: async () => {
       const { data } = await supabase
         .from("companies")
@@ -348,7 +350,14 @@ export default function NuovaPraticaEnea({
       return data ?? [];
     },
   });
-  const effectiveResellerId = isInternal ? staffSelectedCompanyId || null : resellerId;
+  // Il super admin che ha premuto "Accedi" conserva il proprio JWT interno,
+  // ma sta operando per l'azienda impersonata. La pagina deve quindi ereditare
+  // quell'azienda invece di richiedere una seconda selezione staff.
+  const effectiveResellerId = isImpersonating
+    ? contextCompanyId
+    : isInternal
+      ? staffSelectedCompanyId || null
+      : resellerId;
 
   // Listino CF personalizzato dell'azienda (companies.prezzo_cf_imponibile_cents):
   // nel portale sappiamo chi e' il rivenditore, quindi l'avviso "al tuo cliente
@@ -586,6 +595,11 @@ export default function NuovaPraticaEnea({
     e.preventDefault();
     if (isPrivato) segnaPrivato("invia");
     if (!validate()) {
+      toast({
+        variant: "destructive",
+        title: "Completa i campi obbligatori",
+        description: "Il form online si apre dopo aver compilato i dati evidenziati nella pagina.",
+      });
       // Scroll al primo errore
       setTimeout(() => document.querySelector("[data-error]")?.scrollIntoView({ behavior: "smooth", block: "center" }), 50);
       return;
@@ -1151,7 +1165,7 @@ export default function NuovaPraticaEnea({
       )}
 
       {/* ── Company picker (solo staff interni, per clienti direct-channel) ── */}
-      {isInternal && !publicMode && (
+      {isInternal && !isImpersonating && !publicMode && (
         <div className="rounded-xl border border-dashed border-amber-300 bg-amber-50/60 p-5 space-y-2">
           <div className="flex items-center gap-2">
             <Building2 className="h-4 w-4 text-amber-700" />

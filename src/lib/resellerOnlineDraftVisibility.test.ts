@@ -8,6 +8,9 @@ describe("bozze form online del rivenditore", () => {
   const migration = source(
     "supabase/migrations/20261029110000_hide_incomplete_reseller_online_drafts.sql",
   );
+  const completedVisibilityMigration = source(
+    "supabase/migrations/20261030173000_show_completed_reseller_online_drafts.sql",
+  );
   const publicIntake = source("supabase/functions/richiesta-pubblica/index.ts");
   const authenticatedIntake = source("src/pages/rivenditore/NuovaPraticaEnea.tsx");
   const stageChanged = source("supabase/functions/on-stage-changed/index.ts");
@@ -20,6 +23,13 @@ describe("bozze form online del rivenditore", () => {
     expect(migration).toContain("stage.stage_type = 'attesa_compilazione'");
     expect(migration).toContain("CREATE OR REPLACE FUNCTION public.save_form_draft_by_token");
     expect(migration).toContain("v_existing_data #>> '{workflow,reseller_form_draft}'");
+  });
+
+  it("rende visibile la pratica appena il form e' stato completato anche se resta il marker tecnico", () => {
+    expect(completedVisibilityMigration).toContain("AS RESTRICTIVE");
+    expect(completedVisibilityMigration).toContain("form_compilato_at IS NOT NULL");
+    expect(completedVisibilityMigration).toContain("{workflow,reseller_form_draft}");
+    expect(completedVisibilityMigration).toContain("{workflow,owner_review_required}");
   });
 
   it("marca come bozza entrambi i punti di ingresso senza modificare gli altri servizi", () => {

@@ -97,3 +97,27 @@ export function segnaPrivato(passo: PassoPrivato): void {
 export function eUnPrivatoDalSito(): boolean {
   return leggi(CHIAVE_PRIVATO) === "1";
 }
+
+const CHIAVE_ANNUNCIO = "pr-da-annuncio";
+
+/**
+ * Vero se la visita e' arrivata da un annuncio a pagamento (Google aggiunge
+ * gclid/gbraid/wbraid all'indirizzo; utm_medium=cpc per gli altri). Lo si
+ * ricorda per la scheda, cosi' resta vero anche ricaricando la pagina.
+ *
+ * Chi arriva dall'annuncio e' un privato: il modulo si apre gia' nella sua
+ * versione, senza la scelta rivenditore/privato (Titolare, 30/10/2026).
+ */
+export function arrivaDaUnAnnuncio(): boolean {
+  if (leggi(CHIAVE_ANNUNCIO) === "1") return true;
+  try {
+    const q = new URLSearchParams(window.location.search);
+    const si =
+      q.has("gclid") || q.has("gbraid") || q.has("wbraid") ||
+      (q.get("utm_medium") ?? "").toLowerCase() === "cpc";
+    if (si) scrivi(CHIAVE_ANNUNCIO, "1");
+    return si;
+  } catch {
+    return false;
+  }
+}

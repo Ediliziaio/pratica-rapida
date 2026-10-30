@@ -27,7 +27,7 @@ import { cn } from "@/lib/utils";
 import { isStaffCfIntake } from "@/features/cfCustomerEvidence";
 import { fallbackMonthlyPracticePrice } from "@/lib/monthly-financial-kpis";
 import { captureException } from "@/lib/sentry";
-import { segnaPrivato } from "@/lib/imbutoPrivato";
+import { arrivaDaUnAnnuncio, segnaPrivato } from "@/lib/imbutoPrivato";
 import type { TipoFatturazione, TipoSoggetto, TipoServizio } from "@/integrations/supabase/types";
 
 // ── Costanti ──────────────────────────────────────────────────────────────────
@@ -286,6 +286,10 @@ export default function NuovaPraticaEnea({
   // subito con carta). Cambiano i campi richiesti e il flusso di invio.
   const [richiedenteTipo, setRichiedenteTipo] = useState<"rivenditore" | "privato" | null>(null);
   const isPrivato = publicMode && richiedenteTipo === "privato";
+  // Chi arriva dall'annuncio Google e' un privato: niente scelta iniziale e
+  // niente intestazione da rivenditori. Il rivenditore che ci capita lo
+  // stesso ha un collegamento per tornare al modulo completo.
+  const [daAnnuncio, setDaAnnuncio] = useState(() => publicMode && arrivaDaUnAnnuncio());
 
   // ── Campi azienda (solo publicMode + rivenditore) ──
   const [ragioneSociale, setRagioneSociale] = useState("");
@@ -937,6 +941,14 @@ export default function NuovaPraticaEnea({
     setErrors((p) => ({ ...p, richiedenteTipo: "" }));
   };
 
+  // Dall'annuncio il modulo parte gia' da privato. Si aspetta di sapere se il
+  // listino privato e' attivo: se non lo e', si torna alla scelta normale.
+  useEffect(() => {
+    if (!daAnnuncio || richiedenteTipo !== null || !prezzoPrivato) return;
+    if (privatoDisponibile) scegliPrivato();
+    else setDaAnnuncio(false);
+  }, [daAnnuncio, prezzoPrivato, privatoDisponibile, richiedenteTipo]);
+
   // Numeri delle sezioni: al privato ne mostriamo 4 invece di 7, quindi la
   // numerazione va ricalcolata o si vedrebbe "2, 5, 6, 7".
   // (le sezioni nascoste restano a 0: non vengono renderizzate)
@@ -996,16 +1008,40 @@ export default function NuovaPraticaEnea({
   return (
     <form onSubmit={handleSubmit} className="max-w-2xl mx-auto space-y-5 pb-16">
       <div>
-        <h1 className="font-display text-2xl font-bold tracking-tight">Nuova pratica ENEA / F-Gas</h1>
-        <p className="text-muted-foreground text-sm mt-1">
-          Completa tutte le sezioni, poi invia. La pagina si salva automaticamente.
-        </p>
+        {daAnnuncio ? (
+          <>
+            <h1 className="font-display text-2xl font-bold tracking-tight">La tua pratica ENEA, fatta da noi</h1>
+            <p className="text-muted-foreground text-sm mt-1">
+              Scegli il lavoro e lascia i tuoi dati: al resto pensiamo noi.
+            </p>
+          </>
+        ) : (
+          <>
+            <h1 className="font-display text-2xl font-bold tracking-tight">Nuova pratica ENEA / F-Gas</h1>
+            <p className="text-muted-foreground text-sm mt-1">
+              Completa tutte le sezioni, poi invia. La pagina si salva automaticamente.
+            </p>
+          </>
+        )}
       </div>
+
+      {publicMode && daAnnuncio && (
+        <p className="text-xs text-muted-foreground -mt-2">
+          Sei un installatore o un rivenditore?{" "}
+          <button
+            type="button"
+            className="font-medium text-primary underline underline-offset-2"
+            onClick={() => { setDaAnnuncio(false); scegliRivenditore(); }}
+          >
+            Vai al modulo per i rivenditori
+          </button>
+        </p>
+      )}
 
       {/* ── Chi compila: rivenditore o cliente privato (solo dal sito) ──
           Prima domanda di tutte perché decide sia i campi richiesti sia il
           pagamento: il privato passa dalla cassa, il rivenditore no. */}
-      {publicMode && (
+      {publicMode && !daAnnuncio && (
         <div className="rounded-xl border bg-card p-5 space-y-4">
           <div>
             <h2 className="font-semibold">Chi sta compilando questo modulo?</h2>

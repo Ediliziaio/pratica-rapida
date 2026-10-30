@@ -775,7 +775,10 @@ export default function NuovaPraticaEnea({
           reseller_id: effectiveResellerId,
           brand: "enea",
           current_stage_id: initialStage?.id ?? null,
-          tipo_servizio: isFgasOnly || tipoServizio === "documenti_forniti" ? "documenti_forniti" : "servizio_completo",
+          // Il database conserva ancora il nome storico `pratica_only` per
+          // "Documenti forniti". Scrivere il nome UI `documenti_forniti`
+          // viola il vincolo della colonna e blocca la creazione della pratica.
+          tipo_servizio: isFgasOnly || tipoServizio === "documenti_forniti" ? "pratica_only" : "servizio_completo",
           // Ha senso solo con documenti_forniti: nel servizio completo il
           // cliente riceve la pratica comunque.
           invia_pratica_al_cliente: !isFgasOnly && tipoServizio === "documenti_forniti" && inviaPraticaCliente === true,

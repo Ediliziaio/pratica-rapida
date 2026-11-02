@@ -10,6 +10,10 @@ DECLARE
   v_sent integer := 0;
   v_failed integer := 0;
   v_out_of_scope integer := 0;
+  v_active integer := 0;
+  v_sending integer := 0;
+  v_stopped integer := 0;
+  v_cron_status text := 'missing';
 BEGIN
   SELECT COALESCE((value ->> 'enabled')::boolean, false)
   INTO v_enabled
@@ -41,6 +45,26 @@ BEGIN
   JOIN public.leads l ON l.id = d.lead_id
   WHERE COALESCE(d.sent_at, d.attempted_at) >= v_activated_at;
 
+  SELECT count(*) FILTER (WHERE e.status = 'active'),
+         count(*) FILTER (WHERE e.status = 'sending'),
+         count(*) FILTER (WHERE e.status = 'stopped')
+  INTO v_active, v_sending, v_stopped
+  FROM public.lead_nurture_enrollments e
+  JOIN public.leads l ON l.id = e.lead_id
+  WHERE l.stage_id = 'clienti_50' AND l.archived_at IS NULL;
+
+  SELECT COALESCE(jrd.status, 'unknown')
+  INTO v_cron_status
+  FROM cron.job j
+  LEFT JOIN LATERAL (
+    SELECT status
+    FROM cron.job_run_details r
+    WHERE r.jobid = j.jobid
+    ORDER BY r.start_time DESC
+    LIMIT 1
+  ) jrd ON true
+  WHERE j.jobname = 'business-lead-nurture-hourly';
+
   IF v_out_of_scope > 0 THEN
     RAISE EXCEPTION
       'Verifica nurture €50 fallita: % consegne fuori dalla pipeline Clienti €50',
@@ -53,7 +77,8 @@ BEGIN
   END IF;
   IF v_sent = 0 THEN
     RAISE EXCEPTION
-      'Verifica nurture €50 fallita: nessuna consegna reale registrata';
+      'Verifica nurture €50 fallita: nessuna consegna; candidati %, attivi %, in_invio %, fermati %, cron %',
+      v_candidates, v_active, v_sending, v_stopped, COALESCE(v_cron_status, 'missing');
   END IF;
 
   INSERT INTO public.platform_settings(key, value)

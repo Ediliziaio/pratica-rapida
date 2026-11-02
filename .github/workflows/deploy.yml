@@ -241,18 +241,18 @@ jobs:
                   --data-binary @-
               echo "Clienti €50 nurture enabled through Supabase Management API"
             fi
-            if jq -e --arg name clienti_50_nurture_health \
+            if jq -e --arg name authenticate_clienti_50_nurture_cron \
               'any(.[]; .name == $name)' <<< "$MIGRATIONS" > /dev/null; then
-              echo "Clienti €50 nurture live verification already recorded"
+              echo "Clienti €50 nurture clock authentication already installed"
             else
-              jq -n --rawfile query supabase/migrations/20261102182000_clienti_50_nurture_health.sql \
-                '{query: $query, name: "clienti_50_nurture_health"}' \
-                | curl --fail-with-body --silent --show-error \
+              jq -n --rawfile query supabase/migrations/20261102183500_authenticate_clienti_50_nurture_cron.sql \
+                '{query: $query, name: "authenticate_clienti_50_nurture_cron"}' \
+                | curl --fail-with-body --silent --show-error --output /dev/null \
                   --request POST "https://api.supabase.com/v1/projects/${PROJECT_REF}/database/migrations" \
                   --header "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
                   --header "Content-Type: application/json" \
                   --data-binary @-
-              echo "Clienti €50 nurture live verification recorded through Supabase Management API"
+              echo "Clienti €50 nurture clock authentication installed through Supabase Management API"
             fi
           else
             supabase link --project-ref "$PROJECT_REF"
@@ -300,6 +300,56 @@ jobs:
           if [ ${#FAILED[@]} -ne 0 ]; then
             echo "::error::The following functions failed to deploy: ${FAILED[*]}"
             exit 1
+          fi
+
+  verify-clienti-50-nurture:
+    name: Verify Clienti €50 nurture in live APR
+    runs-on: ubuntu-latest
+    needs: [deploy-functions]
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run one real cycle and verify its recorded outcome
+        run: |
+          set -o pipefail
+          PROJECT_REF="${SUPABASE_PROJECT_REF:-xmkjrhwmmuzaqjqlvzxm}"
+          MIGRATIONS=$(curl --fail-with-body --silent --show-error \
+            "https://api.supabase.com/v1/projects/${PROJECT_REF}/database/migrations" \
+            --header "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}")
+
+          if jq -e --arg name process_clienti_50_nurture_now \
+            'any(.[]; .name == $name)' <<< "$MIGRATIONS" > /dev/null; then
+            echo "Initial Clienti €50 nurture cycle already requested"
+          else
+            jq -n --rawfile query supabase/migrations/20261102184000_process_clienti_50_nurture_now.sql \
+              '{query: $query, name: "process_clienti_50_nurture_now"}' \
+              | curl --fail-with-body --silent --show-error --output /dev/null \
+                --request POST "https://api.supabase.com/v1/projects/${PROJECT_REF}/database/migrations" \
+                --header "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
+                --header "Content-Type: application/json" \
+                --data-binary @-
+            echo "Initial Clienti €50 nurture cycle requested"
+          fi
+
+          # pg_net esegue la richiesta dopo il commit della migrazione.
+          sleep 15
+          MIGRATIONS=$(curl --fail-with-body --silent --show-error \
+            "https://api.supabase.com/v1/projects/${PROJECT_REF}/database/migrations" \
+            --header "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}")
+          if jq -e --arg name clienti_50_nurture_health \
+            'any(.[]; .name == $name)' <<< "$MIGRATIONS" > /dev/null; then
+            echo "Clienti €50 nurture live verification already recorded"
+          else
+            jq -n --rawfile query supabase/migrations/20261102182000_clienti_50_nurture_health.sql \
+              '{query: $query, name: "clienti_50_nurture_health"}' \
+              | curl --fail-with-body --silent --show-error \
+                --request POST "https://api.supabase.com/v1/projects/${PROJECT_REF}/database/migrations" \
+                --header "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
+                --header "Content-Type: application/json" \
+                --data-binary @-
+            echo "Clienti €50 nurture live verification recorded through Supabase Management API"
           fi
 
   deploy-frontend:

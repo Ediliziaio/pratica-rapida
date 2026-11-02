@@ -14,6 +14,11 @@ DECLARE
   v_sending integer := 0;
   v_stopped integer := 0;
   v_cron_status text := 'missing';
+  v_cron_started_at timestamptz;
+  v_http_status integer;
+  v_http_error text;
+  v_http_reason text;
+  v_http_processed integer;
 BEGIN
   SELECT COALESCE((value ->> 'enabled')::boolean, false)
   INTO v_enabled
@@ -53,17 +58,40 @@ BEGIN
   JOIN public.leads l ON l.id = e.lead_id
   WHERE l.stage_id = 'clienti_50' AND l.archived_at IS NULL;
 
-  SELECT COALESCE(jrd.status, 'unknown')
-  INTO v_cron_status
+  SELECT COALESCE(jrd.status, 'unknown'), jrd.start_time
+  INTO v_cron_status, v_cron_started_at
   FROM cron.job j
   LEFT JOIN LATERAL (
-    SELECT status
+    SELECT status, start_time
     FROM cron.job_run_details r
     WHERE r.jobid = j.jobid
     ORDER BY r.start_time DESC
     LIMIT 1
   ) jrd ON true
   WHERE j.jobname = 'business-lead-nurture-hourly';
+
+  -- pg_cron registra come riuscita la sola consegna della richiesta a pg_net.
+  -- Leggiamo quindi anche la risposta HTTP prodotta subito dopo l'ultimo ciclo,
+  -- riportando soltanto campi diagnostici aggregati e mai dati del destinatario.
+  SELECT
+    r.status_code,
+    r.error_msg,
+    CASE
+      WHEN r.content ~ '^\s*\{' THEN (r.content::jsonb ->> 'reason')
+      ELSE NULL
+    END,
+    CASE
+      WHEN r.content ~ '^\s*\{' AND (r.content::jsonb ->> 'processed') ~ '^\d+$'
+        THEN (r.content::jsonb ->> 'processed')::integer
+      ELSE NULL
+    END
+  INTO v_http_status, v_http_error, v_http_reason, v_http_processed
+  FROM net._http_response r
+  WHERE v_cron_started_at IS NOT NULL
+    AND r.created >= v_cron_started_at
+    AND r.created < v_cron_started_at + interval '5 minutes'
+  ORDER BY r.created ASC
+  LIMIT 1;
 
   IF v_out_of_scope > 0 THEN
     RAISE EXCEPTION
@@ -77,8 +105,11 @@ BEGIN
   END IF;
   IF v_sent = 0 THEN
     RAISE EXCEPTION
-      'Verifica nurture €50 fallita: nessuna consegna; candidati %, attivi %, in_invio %, fermati %, cron %',
-      v_candidates, v_active, v_sending, v_stopped, COALESCE(v_cron_status, 'missing');
+      'Verifica nurture €50 fallita: nessuna consegna; candidati %, attivi %, in_invio %, fermati %, cron %, http %, motivo %, elaborati %, rete %',
+      v_candidates, v_active, v_sending, v_stopped,
+      COALESCE(v_cron_status, 'missing'), COALESCE(v_http_status::text, 'missing'),
+      COALESCE(v_http_reason, 'missing'), COALESCE(v_http_processed::text, 'missing'),
+      COALESCE(v_http_error, 'none');
   END IF;
 
   INSERT INTO public.platform_settings(key, value)

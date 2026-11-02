@@ -228,6 +228,19 @@ jobs:
                   --data-binary @-
               echo "Meta €50 lead routing migration applied through Supabase Management API"
             fi
+            if jq -e --arg name enable_clienti_50_lead_nurture \
+              'any(.[]; .name == $name)' <<< "$MIGRATIONS" > /dev/null; then
+              echo "Clienti €50 nurture already enabled"
+            else
+              jq -n --rawfile query supabase/migrations/20261102180500_enable_clienti_50_lead_nurture.sql \
+                '{query: $query, name: "enable_clienti_50_lead_nurture"}' \
+                | curl --fail-with-body --silent --show-error --output /dev/null \
+                  --request POST "https://api.supabase.com/v1/projects/${PROJECT_REF}/database/migrations" \
+                  --header "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
+                  --header "Content-Type: application/json" \
+                  --data-binary @-
+              echo "Clienti €50 nurture enabled through Supabase Management API"
+            fi
           else
             supabase link --project-ref "$PROJECT_REF"
             supabase db push --linked

@@ -13,7 +13,7 @@ export default function Footer() {
           <div>
             <img src="/pratica-rapida-logo-white.png" alt="Pratica Rapida" className="h-8 w-auto mb-3" />
             <p className="text-sm italic mb-4">"Le pratiche dei tuoi clienti? Ci pensiamo noi."</p>
-            <p className="text-xs text-white/40">Impresa Leggera S.r.l.s. — P.IVA 03937130791</p>
+            <p className="text-xs text-white/40">Impresa Leggera S.r.l.s. — P.IVA 14766520960</p>
             <p className="text-xs text-white/40 mt-1">Lissone (MB)</p>
           </div>
 

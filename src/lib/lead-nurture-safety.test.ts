@@ -14,6 +14,10 @@ const emailSender = readFileSync(
   resolve(process.cwd(), "supabase/functions/send-email/index.ts"),
   "utf8",
 );
+const cronAuthMigration = readFileSync(
+  resolve(process.cwd(), "supabase/migrations/20261102183500_authenticate_clienti_50_nurture_cron.sql"),
+  "utf8",
+);
 
 describe("lead nurture safety gates", () => {
   it("is installed disabled until the owner approves the final messages", () => {
@@ -45,6 +49,13 @@ describe("lead nurture safety gates", () => {
     expect(processor).toContain("const recipientOk");
     expect(processor).toContain("const { data: alreadySent = [] }");
     expect(processor).toContain("const contentOk");
+  });
+
+  it("authenticates the database clock with a service-role-only RPC", () => {
+    expect(processor).toContain("authorizedCronRequest");
+    expect(processor).toContain('verifier.rpc("authenticate_lead_nurture_cron")');
+    expect(cronAuthMigration).toContain("GRANT EXECUTE ON FUNCTION public.authenticate_lead_nurture_cron() TO service_role");
+    expect(cronAuthMigration).toContain("REVOKE ALL ON FUNCTION public.authenticate_lead_nurture_cron() FROM PUBLIC");
   });
 
   it("uses the approved multimedia sequence and the dedicated responsive template", () => {

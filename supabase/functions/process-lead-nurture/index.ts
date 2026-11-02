@@ -178,6 +178,24 @@ async function invoke(name: string, body: unknown) {
   return json;
 }
 
+async function authorizedCronRequest(req: Request): Promise<boolean> {
+  const authorization = req.headers.get("authorization") ?? "";
+  if (authorization === `Bearer ${KEY}`) return true;
+  if (!authorization.startsWith("Bearer ")) return false;
+
+  // La chiave custodita nel Vault del database può essere una chiave legacy
+  // ancora valida ma diversa dalla chiave iniettata nel runtime Edge. La
+  // validiamo tramite PostgREST contro una RPC eseguibile solo da service_role:
+  // nessun confronto debole e nessun segreto duplicato nel codice o nel DB.
+  const cronToken = authorization.slice("Bearer ".length);
+  const verifier = createClient(URL, cronToken, {
+    auth: { persistSession: false, autoRefreshToken: false },
+    global: { headers: { Authorization: authorization } },
+  });
+  const { data, error } = await verifier.rpc("authenticate_lead_nurture_cron");
+  return !error && data === true;
+}
+
 function validRecipient(channel: string, email: string | null, phone: string | null): boolean {
   if (channel === "email") return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email ?? "");
   return (phone ?? "").replace(/\D/g, "").length >= 8;
@@ -198,7 +216,7 @@ function promotionMessageIsTimely(stepIndex: number, expiresAt: string): boolean
 
 Deno.serve(async (req) => {
   if (req.method !== "POST") return Response.json({ ok: false, error: "method_not_allowed" }, { status: 405 });
-  if ((req.headers.get("authorization") ?? "") !== `Bearer ${KEY}`) return Response.json({ ok: false, error: "forbidden" }, { status: 403 });
+  if (!(await authorizedCronRequest(req))) return Response.json({ ok: false, error: "forbidden" }, { status: 403 });
   if (!inBusinessHours()) return Response.json({ ok: true, processed: 0, reason: "outside_business_hours" });
 
   const db = createClient(URL, KEY);

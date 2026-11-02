@@ -78,7 +78,7 @@ const STEPS: readonly NurtureStep[] = [
       subject: "Listino PraticaRapida 2026",
       preheader: "Costi chiari, nessun canone e pagamento solo a lavoro concluso.",
       eyebrow: "Listino allegato", title: "Sai subito quanto costa ogni servizio.",
-      body: "<p style=\"margin:0;\">Ti allego il listino completo. Per le pratiche ENEA il prezzo riservato ai rivenditori è <strong>65 € + IVA</strong>: niente anticipo, abbonamento o pacchetto prepagato.</p>",
+      body: "<p style=\"margin:0;\">Ti allego il listino completo. Per le pratiche ENEA il prezzo riservato ai rivenditori è <strong>50 € + IVA</strong>: niente anticipo, abbonamento o pacchetto prepagato.</p>",
       cta_label: "Apri il listino PDF", cta_url: `${MEDIA}/Pratica_Rapida_Servizi_e_prezzi_2026.pdf`,
       proof_heading: "Paghi soltanto le pratiche concluse.", proof_text: "La fatturazione avviene a fine mese.",
     },
@@ -103,12 +103,12 @@ const STEPS: readonly NurtureStep[] = [
   },
   {
     channel: "whatsapp",
-    whatsapp: "Ciao {{nome}}, con PraticaRapida non compri un software: affidi il lavoro a persone vere. 65 € + IVA, niente anticipo o abbonamento; a fine mese paghi solo le pratiche concluse. Hai un lavoro recente su cui provarci?",
+    whatsapp: "Ciao {{nome}}, con PraticaRapida non compri un software: affidi il lavoro a persone vere. 50 € + IVA riservati ai rivenditori, niente anticipo o abbonamento; a fine mese paghi solo le pratiche concluse. Hai un lavoro recente su cui provarci?",
     email: {
-      subject: "65 € + IVA. Solo quando il lavoro è concluso.",
+      subject: "50 € + IVA riservati ai rivenditori. Solo a lavoro concluso.",
       preheader: "Nessun software da imparare, nessun canone.",
       eyebrow: "Un costo chiaro", title: "Paghi il lavoro. Non il portale.",
-      body: "<p style=\"margin:0;\">La pratica ENEA costa <strong>65 € + IVA</strong>. Niente abbonamenti, anticipi o pacchetti: a fine mese fatturiamo soltanto le pratiche concluse.</p>",
+      body: "<p style=\"margin:0;\">La pratica ENEA costa <strong>50 € + IVA, prezzo riservato ai rivenditori</strong>. Niente abbonamenti, anticipi o pacchetti: a fine mese fatturiamo soltanto le pratiche concluse.</p>",
       cta_label: "Mettiamoci alla prova", cta_url: `${WHATSAPP}?text=Vorrei%20provare%20PraticaRapida`,
       proof_heading: "Tu non devi imparare nulla.", proof_text: "Inserisci pochi dati. Al resto pensiamo noi.",
     },
@@ -222,13 +222,13 @@ Deno.serve(async (req) => {
     if (channel === "email" && !lead.email && waProvider === "openwa" && lead.telefono) channel = "whatsapp";
 
     // Triplice preflight obbligatorio prima di ogni invio:
-    // 1) destinatario e consenso ancora validi; 2) nessun invio riuscito dello
+    // 1) destinatario ancora nella pipeline Clienti €50; 2) nessun invio riuscito dello
     // stesso passo; 3) testo/link appartenenti al catalogo controllato.
     const { data: current } = await db.from("leads")
-      .select("marketing_consent,archived_at,stage_id,email,telefono")
+      .select("archived_at,stage_id,email,telefono")
       .eq("id", lead.lead_id).maybeSingle();
-    const recipientOk = Boolean(current?.marketing_consent && !current.archived_at
-      && ["lead", "contatto", "demo", "onboarding"].includes(current.stage_id)
+    const recipientOk = Boolean(!current?.archived_at
+      && current?.stage_id === "clienti_50"
       && validRecipient(channel, current.email, current.telefono));
     const { data: alreadySent = [] } = await db.from("lead_nurture_deliveries")
       .select("id").eq("lead_id", lead.lead_id).eq("step_index", lead.step_index)

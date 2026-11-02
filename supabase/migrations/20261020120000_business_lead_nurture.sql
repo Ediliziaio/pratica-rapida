@@ -1,5 +1,5 @@
--- Nurturing commerciale B2B: consenso tracciato, invii idempotenti e stop
--- immediato quando il lead diventa cliente o esce dalla pipeline.
+-- Nurturing commerciale B2B riservato alla pipeline Clienti €50: invii
+-- idempotenti e stop immediato quando il lead esce dalla pipeline.
 
 ALTER TABLE public.leads
   ADD COLUMN IF NOT EXISTS marketing_consent boolean NOT NULL DEFAULT false,
@@ -66,13 +66,12 @@ BEGIN
     END IF;
   END IF;
 
-  IF NEW.archived_at IS NOT NULL OR NEW.stage_id = 'attivo' OR NEW.marketing_consent = false THEN
+  IF NEW.archived_at IS NOT NULL OR NEW.stage_id <> 'clienti_50' THEN
     UPDATE public.lead_nurture_enrollments
       SET status = 'stopped', stopped_at = now(),
           stop_reason = CASE
             WHEN NEW.archived_at IS NOT NULL THEN 'lead_archived'
-            WHEN NEW.stage_id = 'attivo' THEN 'customer_active'
-            ELSE 'consent_revoked'
+            ELSE 'left_clienti_50_pipeline'
           END,
           updated_at = now()
       WHERE lead_id = NEW.id AND status IN ('active', 'sending', 'paused');
@@ -85,16 +84,17 @@ CREATE TRIGGER leads_nurture_sync_before_write
   BEFORE INSERT OR UPDATE ON public.leads FOR EACH ROW
   EXECUTE FUNCTION public.sync_lead_nurture_enrollment();
 
-CREATE OR REPLACE FUNCTION public.enroll_consented_lead()
+CREATE OR REPLACE FUNCTION public.enroll_clienti_50_lead()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 BEGIN
-  IF NEW.marketing_consent = true AND NEW.archived_at IS NULL AND NEW.stage_id <> 'attivo' THEN
+  IF NEW.stage_id = 'clienti_50' AND NEW.archived_at IS NULL THEN
     INSERT INTO public.lead_nurture_enrollments(lead_id, status, next_step, next_run_at)
     VALUES (NEW.id, 'active', 0, now())
     ON CONFLICT (lead_id) DO UPDATE SET
       status = 'active', next_step = 0, next_run_at = now(),
       started_at = now(), promotion_expires_at = now() + interval '30 days',
-      stopped_at = NULL, stop_reason = NULL, updated_at = now();
+      stopped_at = NULL, stop_reason = NULL, updated_at = now()
+    WHERE lead_nurture_enrollments.stop_reason IS DISTINCT FROM 'recipient_opt_out';
   END IF;
   RETURN NEW;
 END $$;
@@ -103,14 +103,23 @@ DROP TRIGGER IF EXISTS leads_nurture_enroll_after_write ON public.leads;
 DROP TRIGGER IF EXISTS leads_nurture_enroll_after_insert ON public.leads;
 CREATE TRIGGER leads_nurture_enroll_after_insert
   AFTER INSERT ON public.leads FOR EACH ROW
-  WHEN (NEW.marketing_consent = true)
-  EXECUTE FUNCTION public.enroll_consented_lead();
+  WHEN (NEW.stage_id = 'clienti_50' AND NEW.archived_at IS NULL)
+  EXECUTE FUNCTION public.enroll_clienti_50_lead();
 
 DROP TRIGGER IF EXISTS leads_nurture_enroll_after_consent ON public.leads;
-CREATE TRIGGER leads_nurture_enroll_after_consent
-  AFTER UPDATE OF marketing_consent ON public.leads FOR EACH ROW
-  WHEN (NEW.marketing_consent = true AND OLD.marketing_consent = false)
-  EXECUTE FUNCTION public.enroll_consented_lead();
+DROP TRIGGER IF EXISTS leads_nurture_enroll_after_stage ON public.leads;
+CREATE TRIGGER leads_nurture_enroll_after_stage
+  AFTER UPDATE OF stage_id ON public.leads FOR EACH ROW
+  WHEN (NEW.stage_id = 'clienti_50' AND OLD.stage_id IS DISTINCT FROM 'clienti_50' AND NEW.archived_at IS NULL)
+  EXECUTE FUNCTION public.enroll_clienti_50_lead();
+
+-- Prepara, a configurazione ancora disattivata, i lead già presenti nella
+-- pipeline dedicata. Nessun cliente o lead di altre pipeline viene iscritto.
+INSERT INTO public.lead_nurture_enrollments(lead_id, status, next_step, next_run_at)
+SELECT id, 'active', 0, now()
+FROM public.leads
+WHERE stage_id = 'clienti_50' AND archived_at IS NULL
+ON CONFLICT (lead_id) DO NOTHING;
 
 CREATE OR REPLACE FUNCTION public.claim_due_lead_nurture(p_limit integer DEFAULT 20)
 RETURNS TABLE(
@@ -130,8 +139,8 @@ BEGIN
     FROM public.lead_nurture_enrollments e
     JOIN public.leads l ON l.id = e.lead_id
     WHERE e.status = 'active' AND e.next_run_at <= now()
-      AND l.marketing_consent = true AND l.archived_at IS NULL
-      AND l.stage_id IN ('lead', 'contatto', 'demo', 'onboarding')
+      AND l.archived_at IS NULL
+      AND l.stage_id = 'clienti_50'
     ORDER BY e.next_run_at
     FOR UPDATE OF e SKIP LOCKED
     LIMIT greatest(1, least(p_limit, 100))
@@ -172,4 +181,4 @@ SELECT cron.schedule('business-lead-nurture-hourly', '17 * * * *', $$
 $$);
 
 COMMENT ON TABLE public.lead_nurture_enrollments IS
-  'Sequenza B2B lead: disattivata globalmente finché il Titolare non approva i testi finali.';
+  'Sequenza B2B riservata esclusivamente ai lead della pipeline Clienti €50.';

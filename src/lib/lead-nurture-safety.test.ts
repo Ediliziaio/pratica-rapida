@@ -21,10 +21,18 @@ describe("lead nurture safety gates", () => {
     expect(processor).toContain('reason: "disabled"');
   });
 
-  it("stops on consent withdrawal, archive, or conversion to active customer", () => {
-    expect(migration).toContain("NEW.marketing_consent = false");
+  it("is restricted to Clienti €50 and stops on archive or pipeline exit", () => {
+    expect(migration).toContain("NEW.stage_id <> 'clienti_50'");
     expect(migration).toContain("NEW.archived_at IS NOT NULL");
-    expect(migration).toContain("NEW.stage_id = 'attivo'");
+    expect(migration).toContain("l.stage_id = 'clienti_50'");
+    expect(migration).toContain("recipient_opt_out");
+    expect(processor).toContain('current?.stage_id === "clienti_50"');
+  });
+
+  it("uses the €50 reseller price and contains no legacy €65 offer", () => {
+    expect(processor).toContain("50 € + IVA");
+    expect(processor).toContain("riservat");
+    expect(processor).not.toMatch(/65\s*€|€\s*65/);
   });
 
   it("enforces the permanent WhatsApp time windows", () => {

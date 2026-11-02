@@ -1,5 +1,5 @@
 # robots.txt — praticarapida.it
-# Pratica Rapida S.r.l.s. — Lissone (MB)
+# Impresa Leggera S.r.l.s. — Lissone (MB)
 
 # ────────────────────────────────────────────────────────────────
 # Default — tutti i crawler

@@ -89,7 +89,7 @@ serve(async (_req: Request): Promise<Response> => {
     <atom:link href="${FEED_URL}" rel="self" type="application/rss+xml" />
     <description>Guide e notizie su pratiche ENEA, Conto Termico, ecobonus e normativa per installatori italiani.</description>
     <language>it-IT</language>
-    <copyright>Copyright © Pratica Rapida S.r.l.s.</copyright>
+    <copyright>Copyright © Impresa Leggera S.r.l.s.</copyright>
     <managingEditor>modulistica@praticarapida.it (Pratica Rapida)</managingEditor>
     <webMaster>modulistica@praticarapida.it (Pratica Rapida)</webMaster>
     <lastBuildDate>${lastBuildDate}</lastBuildDate>

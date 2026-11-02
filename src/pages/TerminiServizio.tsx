@@ -6,7 +6,7 @@ import { SEO } from "@/components/SEO";
 /**
  * /termini — Termini e Condizioni di Servizio di Pratica Rapida.
  *
- * Documento contrattuale tra Pratica Rapida S.r.l.s. e gli utenti del
+ * Documento contrattuale tra Impresa Leggera S.r.l.s. e gli utenti del
  * servizio (installatori/rivenditori). Strutturato per essere conforme
  * al Codice del Consumo (B2C) e alla normativa italiana sui contratti
  * a distanza (D.Lgs. 70/2003).
@@ -37,7 +37,7 @@ export default function TerminiServizio() {
           <div className="space-y-8 text-gray-600 leading-relaxed">
             <section>
               <h2 className="text-xl font-semibold text-gray-900 mb-3">1. Premessa e parti del contratto</h2>
-              <p>I presenti Termini e Condizioni (di seguito "Termini") disciplinano l'utilizzo della piattaforma <strong>Pratica Rapida</strong> (di seguito il "Servizio"), erogata da <strong>Pratica Rapida S.r.l.s.</strong> (di seguito "Fornitore"), con sede legale in Lissone (MB), P.IVA e Codice Fiscale 03937130791, email <a href="mailto:info@praticarapida.it" className="text-[#00843D] underline">info@praticarapida.it</a>.</p>
+              <p>I presenti Termini e Condizioni (di seguito "Termini") disciplinano l'utilizzo della piattaforma <strong>Pratica Rapida</strong> (di seguito il "Servizio"), erogata da <strong>Impresa Leggera S.r.l.s.</strong> (di seguito "Fornitore"), con sede legale in Piazza Papa Giovanni XXIII 4, 20851 Lissone (MB), P.IVA e Codice Fiscale 03937130791, email <a href="mailto:info@praticarapida.it" className="text-[#00843D] underline">info@praticarapida.it</a>.</p>
               <p className="mt-2">La registrazione al Servizio e/o il suo utilizzo comporta accettazione integrale dei presenti Termini, della <Link to="/privacy-policy" className="text-[#00843D] underline">Privacy Policy</Link> e della <Link to="/cookie-policy" className="text-[#00843D] underline">Cookie Policy</Link>.</p>
             </section>
 
@@ -165,7 +165,7 @@ export default function TerminiServizio() {
 
             <section className="border-t border-gray-200 pt-6 mt-10">
               <p className="text-sm text-gray-500">
-                <strong>Pratica Rapida S.r.l.s.</strong> · Sede legale: Lissone (MB) · P.IVA 03937130791
+                <strong>Impresa Leggera S.r.l.s.</strong> · Sede legale: Piazza Papa Giovanni XXIII 4, 20851 Lissone (MB) · P.IVA 03937130791
               </p>
               <p className="text-sm text-gray-500 mt-2">
                 Consulta anche la <Link to="/privacy-policy" className="text-[#00843D] underline">Privacy Policy</Link> e la <Link to="/cookie-policy" className="text-[#00843D] underline">Cookie Policy</Link>.

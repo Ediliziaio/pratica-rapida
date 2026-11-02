@@ -555,7 +555,7 @@ export default function RichiestaPubblicaForm({ modulo, prodottoFisso, prodotti,
             : "Dichiaro di aver informato il cliente finale e acconsento al trattamento dei dati ai sensi del GDPR per la gestione della pratica."
           }
           {tipoFatturazione === "rivenditore" && (
-            <> In qualità di soggetto pagante, <strong>accetto di corrispondere a Pratica Rapida S.r.l.s. il compenso pattuito a pratica completata</strong>.</>
+            <> In qualità di soggetto pagante, <strong>accetto di corrispondere a Impresa Leggera S.r.l.s. il compenso pattuito a pratica completata</strong>.</>
           )}
           {" *"}
         </span>

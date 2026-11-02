@@ -39,7 +39,7 @@ export default function CookiePolicy() {
 
             <section>
               <h2 className="text-xl font-semibold text-gray-900 mb-3">2. Titolare del trattamento</h2>
-              <p><strong>Pratica Rapida S.r.l.s.</strong>, sede legale in Lissone (MB), P.IVA 03937130791. Email: <a href="mailto:privacy@praticarapida.it" className="text-[#00843D] underline">privacy@praticarapida.it</a>.</p>
+              <p><strong>Impresa Leggera S.r.l.s.</strong>, sede legale in Piazza Papa Giovanni XXIII 4, 20851 Lissone (MB), P.IVA 03937130791. Email: <a href="mailto:privacy@praticarapida.it" className="text-[#00843D] underline">privacy@praticarapida.it</a>.</p>
             </section>
 
             <section>
@@ -147,7 +147,7 @@ export default function CookiePolicy() {
 
             <section className="border-t border-gray-200 pt-6 mt-10">
               <p className="text-sm text-gray-500">
-                <strong>Pratica Rapida S.r.l.s.</strong> · Sede legale: Lissone (MB) · P.IVA 03937130791 · Email: <a href="mailto:privacy@praticarapida.it" className="text-[#00843D] underline">privacy@praticarapida.it</a>
+                <strong>Impresa Leggera S.r.l.s.</strong> · Sede legale: Piazza Papa Giovanni XXIII 4, 20851 Lissone (MB) · P.IVA 03937130791 · Email: <a href="mailto:privacy@praticarapida.it" className="text-[#00843D] underline">privacy@praticarapida.it</a>
               </p>
               <p className="text-sm text-gray-500 mt-2">
                 Consulta anche i nostri <Link to="/termini" className="text-[#00843D] underline">Termini di Servizio</Link> e la <Link to="/privacy-policy" className="text-[#00843D] underline">Privacy Policy</Link>.

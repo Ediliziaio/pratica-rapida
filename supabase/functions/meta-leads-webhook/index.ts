@@ -72,12 +72,23 @@ const CORS = {
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
 };
 
+const CLIENTI_50_FORM_ID = "2546968312490707";
+const CLIENTI_50_ENABLED_FROM = Date.parse("2026-10-31T00:00:00+01:00");
+
 /**
- * I lead Meta entrano sempre nella fase stabile "Nuovo Lead". La prima
- * colonna visiva è riservata ai Clienti €50 e non deve mai riceverli in modo
- * automatico.
+ * Dal 31 ottobre 2026 i lead del modulo Meta dell'offerta da €50 entrano
+ * direttamente nella colonna dedicata. Gli altri moduli e lo storico
+ * precedente mantengono la destinazione stabile "Nuovo Lead".
  */
-function newLeadStageId(): string {
+export function newLeadStageId(formId: string, metaCreatedAt?: string): string {
+  const createdAt = metaCreatedAt ? Date.parse(metaCreatedAt) : Date.now();
+  if (
+    formId === CLIENTI_50_FORM_ID
+    && Number.isFinite(createdAt)
+    && createdAt >= CLIENTI_50_ENABLED_FROM
+  ) {
+    return "clienti_50";
+  }
   return "lead";
 }
 
@@ -355,8 +366,6 @@ Deno.serve(async (req) => {
     const days = Math.max(1, Math.min(90, parseInt(url.searchParams.get("days") ?? "7", 10) || 7));
     const sinceUnix = Math.floor(Date.now() / 1000) - days * 86400;
     const pageToken = await resolvePageToken(pageId);
-    const stageId = newLeadStageId();
-
     const fr = await fetch(`https://graph.facebook.com/${GRAPH_VERSION}/${pageId}/leadgen_forms?limit=200&access_token=${pageToken}`);
     const fj = await fr.json().catch(() => ({}));
     if (!fr.ok) return Response.json({ ok: false, step: "leadgen_forms", result: fj }, { headers: CORS });
@@ -378,7 +387,14 @@ Deno.serve(async (req) => {
           scanned++;
           const created = lead.created_time ? Math.floor(new Date(lead.created_time).getTime() / 1000) : 0;
           if (created && created < sinceUnix) { reachedOld = true; break; } // /leads è ordinato desc
-          const res = await ingestLead(String(lead.id), String(form.id), lead.field_data ?? [], stageId, lead.created_time);
+          const formId = String(form.id);
+          const res = await ingestLead(
+            String(lead.id),
+            formId,
+            lead.field_data ?? [],
+            newLeadStageId(formId, lead.created_time),
+            lead.created_time,
+          );
           if (res === "inserted") inserted++;
           else if (res === "duplicate") duplicates++;
           else errors++;
@@ -410,8 +426,6 @@ Deno.serve(async (req) => {
   let body: { entry?: Array<{ changes?: Array<{ field?: string; value?: Record<string, unknown> }> }> };
   try { body = JSON.parse(raw); } catch { return new Response("Bad JSON", { status: 400 }); }
 
-  const stageId = newLeadStageId();
-
   for (const entry of body.entry ?? []) {
     for (const change of entry.changes ?? []) {
       if (change.field !== "leadgen") continue;
@@ -419,6 +433,11 @@ Deno.serve(async (req) => {
       const leadgenId = String(v.leadgen_id ?? "");
       const formId    = String(v.form_id ?? "");
       const pageId    = String(v.page_id ?? "322933287559293");
+      const eventCreatedAt = typeof v.created_time === "number"
+        ? new Date(v.created_time * 1000).toISOString()
+        : typeof v.created_time === "string"
+          ? v.created_time
+          : undefined;
       if (!leadgenId) continue;
 
       try {
@@ -430,11 +449,23 @@ Deno.serve(async (req) => {
         const lead = await resp.json();
         if (!resp.ok) {
           console.error("[meta-leads-webhook] Graph error:", JSON.stringify(lead));
-          await insertPendingLead(leadgenId, formId, String(lead?.error?.message ?? resp.status), stageId);
+          await insertPendingLead(
+            leadgenId,
+            formId,
+            String(lead?.error?.message ?? resp.status),
+            newLeadStageId(formId, eventCreatedAt),
+          );
           continue;
         }
 
-        await ingestLead(leadgenId, formId || String(lead.form_id ?? ""), lead.field_data ?? [], stageId, lead.created_time);
+        const resolvedFormId = formId || String(lead.form_id ?? "");
+        await ingestLead(
+          leadgenId,
+          resolvedFormId,
+          lead.field_data ?? [],
+          newLeadStageId(resolvedFormId, lead.created_time ?? eventCreatedAt),
+          lead.created_time,
+        );
       } catch (e) {
         console.error("[meta-leads-webhook] error:", e);
       }

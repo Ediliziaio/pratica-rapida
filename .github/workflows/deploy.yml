@@ -247,7 +247,7 @@ jobs:
             else
               jq -n --rawfile query supabase/migrations/20261102182000_clienti_50_nurture_health.sql \
                 '{query: $query, name: "clienti_50_nurture_health"}' \
-                | curl --fail-with-body --silent --show-error --output /dev/null \
+                | curl --fail-with-body --silent --show-error \
                   --request POST "https://api.supabase.com/v1/projects/${PROJECT_REF}/database/migrations" \
                   --header "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
                   --header "Content-Type: application/json" \

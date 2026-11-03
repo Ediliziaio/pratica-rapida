@@ -114,6 +114,8 @@ describe("fatturazione mensile FIC settembre 2026", () => {
     expect(source).toContain('["antonio@diioriogroupsrl.com", 112634649]');
     expect(source).toContain('["info@zanzasol.com", 112634762]');
     expect(source).toContain('["info@lmtende.it", 112634560]');
-    expect(source).toContain("email: group.email");
+    expect(source).toContain("const client = historicalClient");
+    expect(source).not.toContain("email: group.email,");
+    expect(source).not.toContain("historicalClient ?? (matches.length === 0 ? crmEntity : null)");
   });
 });

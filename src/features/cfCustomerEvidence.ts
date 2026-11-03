@@ -14,6 +14,29 @@ export function isStaffCfIntake(input: {
     input.tipoFatturazione === "cliente_finale";
 }
 
+/**
+ * Nel Servizio Completo CF lo staff apre soltanto la pratica: i documenti
+ * tecnici della pompa vengono raccolti dal modulo cliente dopo il pagamento.
+ * Il percorso pubblico del privato segue la stessa regola.
+ */
+export function shouldRequestPumpEvidenceAtIntake(input: {
+  isPump: boolean;
+  isFgasOnly: boolean;
+  isPrivato: boolean;
+  staffCfIntake: boolean;
+}): boolean {
+  return input.isPump && !input.isFgasOnly && !input.isPrivato && !input.staffCfIntake;
+}
+
+/** I prezzi/pacchetti F-Gas sono riservati a rivenditori e installatori. */
+export function shouldOfferResellerFgas(input: {
+  isPump: boolean;
+  isPrivato: boolean;
+  staffCfIntake: boolean;
+}): boolean {
+  return input.isPump && !input.isPrivato && !input.staffCfIntake;
+}
+
 /** L'eventuale modulo gestito da DB non può omettere la fine lavori CF. */
 export function withCfCustomerDate(schema: FormSchema, isCf: boolean): FormSchema {
   if (!isCf) return schema;

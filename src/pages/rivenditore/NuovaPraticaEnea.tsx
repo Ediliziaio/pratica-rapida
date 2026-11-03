@@ -22,7 +22,11 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { isStaffCfIntake } from "@/features/cfCustomerEvidence";
+import {
+  isStaffCfIntake,
+  shouldOfferResellerFgas,
+  shouldRequestPumpEvidenceAtIntake,
+} from "@/features/cfCustomerEvidence";
 import { fallbackMonthlyPracticePrice } from "@/lib/monthly-financial-kpis";
 import { captureException } from "@/lib/sentry";
 import { arrivaDaUnAnnuncio, segnaPrivato } from "@/lib/imbutoPrivato";
@@ -489,6 +493,18 @@ export default function NuovaPraticaEnea({
   const staffCfIntake = isStaffCfIntake({
     isInternal, publicMode, isFgasOnly, tipoServizio, tipoFatturazione,
   });
+  const requirePumpEvidenceAtIntake = shouldRequestPumpEvidenceAtIntake({
+    isPump: tipoProdotto === "pompe_calore",
+    isFgasOnly,
+    isPrivato,
+    staffCfIntake,
+  });
+  const showResellerFgas = shouldOfferResellerFgas({
+    isPump: tipoProdotto === "pompe_calore",
+    isPrivato,
+    staffCfIntake,
+  });
+  const deferPumpEvidenceToCustomer = staffCfIntake && tipoProdotto === "pompe_calore";
 
   // ── Validazione ────────────────────────────────────────────────────────────
   const validate = () => {
@@ -558,11 +574,11 @@ export default function NuovaPraticaEnea({
     if (!isPrivato && tipoFatturazione === "cliente_finale" && !EMAIL_RE.test(email.trim()))
       e.email = "Serve l'email del cliente: e' li' che arriva il link per il pagamento";
     // Pompe di calore: documento tecnico necessario alla pratica ENEA.
-    if (tipoProdotto === "pompe_calore" && !isFgasOnly && docExtra2.length === 0)
+    if (requirePumpEvidenceAtIntake && docExtra2.length === 0)
       e.libretto = "La scheda tecnica o il certificato del prodotto è obbligatorio";
     // Il pacchetto F-Gas è proposto soltanto a rivenditori/installatori. Il
     // percorso resta volutamente corto: una scelta e tre informazioni semplici.
-    if (tipoProdotto === "pompe_calore" && !isPrivato) {
+    if (showResellerFgas) {
       if (fgasChoice === null) e.fgasRequested = "Scegli ENEA, pacchetto completo oppure solo F-Gas";
       if (hasFgas) {
         if (fgasPlateFiles.length === 0) e.fgasPlate = "Carica almeno una foto leggibile della targhetta";
@@ -638,7 +654,7 @@ export default function NuovaPraticaEnea({
             indirizzo: indirizzo.trim() || undefined,
           },
           data_fine_lavori: dataFineLavori ? format(dataFineLavori, "yyyy-MM-dd") : undefined,
-          fgas: tipoProdotto === "pompe_calore" && !isPrivato
+          fgas: showResellerFgas
             ? {
                 requested: hasFgas,
                 package: fgasChoice,
@@ -789,7 +805,7 @@ export default function NuovaPraticaEnea({
           cliente_indirizzo: indirizzo.trim() || null,
           data_fine_lavori: staffCfIntake ? null : dataFineLavori ? format(dataFineLavori, "yyyy-MM-dd") : null,
           dati_form: {
-            ...(tipoProdotto === "pompe_calore" && !isPrivato
+            ...(showResellerFgas
               ? {
                 fgas: {
                   requested: hasFgas,
@@ -1010,7 +1026,9 @@ export default function NuovaPraticaEnea({
     ? { servizio: 0, prodotto: 1, soggetto: 0, fatturazione: 0, dati: 2, documenti: 0, fgas: 0, note: 0 }
     : isFgasOnly
       ? { servizio: 0, prodotto: 1, soggetto: 0, fatturazione: 0, dati: 2, documenti: 3, fgas: 4, note: 5 }
-    : { servizio: 1, prodotto: 2, soggetto: 3, fatturazione: 4, dati: 5, documenti: 6, fgas: 7, note: tipoProdotto === "pompe_calore" ? 8 : 7 };
+      : deferPumpEvidenceToCustomer
+        ? { servizio: 1, prodotto: 2, soggetto: 3, fatturazione: 4, dati: 5, documenti: 0, fgas: 0, note: 6 }
+        : { servizio: 1, prodotto: 2, soggetto: 3, fatturazione: 4, dati: 5, documenti: 6, fgas: 7, note: showResellerFgas ? 8 : 7 };
 
   /**
    * Giorni passati dalla fine dei lavori, o null se la data non c'e'.
@@ -1798,7 +1816,7 @@ export default function NuovaPraticaEnea({
       {/* I documenti al privato si chiedono dopo il pagamento, nel modulo
           tecnico: la fattura in PDF era il muro che fermava quattro persone
           su cinque. */}
-      {!isPrivato && (
+      {!isPrivato && !deferPumpEvidenceToCustomer && (
       <Section number={S.documenti} title="Documenti da allegare">
         {/* Fattura — sempre obbligatoria */}
         {!staffCfIntake && <>
@@ -1872,7 +1890,7 @@ export default function NuovaPraticaEnea({
         )}
 
         {/* Pompe di calore: libretto impianto obbligatorio */}
-        {tipoProdotto === "pompe_calore" && !isFgasOnly && (
+        {requirePumpEvidenceAtIntake && (
           <div className="space-y-2">
             {errors.libretto && (
               <p className="text-xs text-destructive flex items-center gap-1" data-error>
@@ -1921,7 +1939,7 @@ export default function NuovaPraticaEnea({
       {/* ── 7. Pacchetto F-Gas — solo installatori/rivenditori ────────────
           Non replichiamo il portale ministeriale: chiediamo solo le prove e le
           tre informazioni che PraticaRapida non può ricavare autonomamente. */}
-      {tipoProdotto === "pompe_calore" && !isPrivato && (
+      {showResellerFgas && (
         <Section number={S.fgas} title="Scelta ENEA / F-Gas">
           <div className="space-y-3">
             <div>

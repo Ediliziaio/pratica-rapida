@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   isStaffCfIntake,
   normalizeCfCustomerCompletionDate,
+  shouldOfferResellerFgas,
+  shouldRequestPumpEvidenceAtIntake,
   withCfCustomerDate,
 } from "./cfCustomerEvidence";
 import { applyInvoiceRequestPolicy } from "@/components/form-cliente/invoiceRequestPolicy";
@@ -18,6 +20,22 @@ describe("pratiche CF: fattura e fine lavori dal cliente", () => {
     expect(isStaffCfIntake({ ...input, tipoServizio: "documenti_forniti" })).toBe(false);
     expect(isStaffCfIntake({ ...input, isInternal: false })).toBe(false);
     expect(isStaffCfIntake({ ...input, isFgasOnly: true })).toBe(false);
+  });
+
+  it("rinvia al cliente i documenti della pompa nel percorso CF", () => {
+    const input = { isPump: true, isFgasOnly: false, isPrivato: false, staffCfIntake: false };
+    expect(shouldRequestPumpEvidenceAtIntake(input)).toBe(true);
+    expect(shouldRequestPumpEvidenceAtIntake({ ...input, staffCfIntake: true })).toBe(false);
+    expect(shouldRequestPumpEvidenceAtIntake({ ...input, isPrivato: true })).toBe(false);
+    expect(shouldRequestPumpEvidenceAtIntake({ ...input, isPump: false })).toBe(false);
+  });
+
+  it("mostra i pacchetti F-Gas soltanto a rivenditori e installatori", () => {
+    const input = { isPump: true, isPrivato: false, staffCfIntake: false };
+    expect(shouldOfferResellerFgas(input)).toBe(true);
+    expect(shouldOfferResellerFgas({ ...input, staffCfIntake: true })).toBe(false);
+    expect(shouldOfferResellerFgas({ ...input, isPrivato: true })).toBe(false);
+    expect(shouldOfferResellerFgas({ ...input, isPump: false })).toBe(false);
   });
 
   it("chiede al cliente CF sia la fattura sia la fine lavori anche con modulo DB incompleto", () => {

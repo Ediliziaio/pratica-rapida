@@ -413,35 +413,12 @@ serve(async (req) => {
       normalize(client.name) === normalize(ficEntityName)
     );
     const matches = byPreferredId.length ? byPreferredId : (byEmail.length ? byEmail : byName);
-    const postalCode = String(confirmedFiscalData?.address_postal_code ?? crmCompany?.cap ?? "").replace(/\s+/g, "");
-    const province = String(confirmedFiscalData?.address_province ?? crmCompany?.provincia ?? "").trim().toUpperCase();
-    const crmEntityComplete = Boolean(
-      (crmCompany || confirmedFiscalData) && (taxCode || vatNumber) &&
-      String(confirmedFiscalData?.address_street ?? crmCompany?.indirizzo ?? "").trim() &&
-      String(confirmedFiscalData?.address_city ?? crmCompany?.citta ?? "").trim() &&
-      /^\d{5}$/.test(postalCode) && /^[A-Z]{2}$/.test(province)
-    );
-    const crmEntity: JsonObject | null = crmEntityComplete ? {
-      name: String(ficEntityName).trim(),
-      email: group.email,
-      vat_number: vatNumber,
-      tax_code: taxCode,
-      address_street: String(confirmedFiscalData?.address_street ?? crmCompany?.indirizzo ?? "").trim(),
-      address_postal_code: postalCode,
-      address_city: String(confirmedFiscalData?.address_city ?? crmCompany?.citta ?? "").trim(),
-      address_province: province,
-      country: String(confirmedFiscalData?.country ?? "Italia"),
-      ei_code: String(confirmedFiscalData?.ei_code ?? "0000000"),
-      certified_email: String(confirmedFiscalData?.certified_email ?? ""),
-    } : null;
-    const historicalClient = matches.length === 1 ? {
-      ...matches[0],
-      // L'email operativa del CRM prevale su eventuali recapiti obsoleti o
-      // errati presenti nelle fatture storiche.
-      email: group.email,
-      ...(confirmedFiscalData ?? {}),
-    } : null;
-    const client = historicalClient ?? (matches.length === 0 ? crmEntity : null);
+    // I dati usati nel documento devono provenire integralmente da FIC. Il CRM
+    // serve a verificare l'identita fiscale, non a creare o correggere al volo
+    // destinatari, indirizzi o email. Se l'anagrafica FIC manca o e ambigua,
+    // l'emissione si ferma e richiede una correzione esplicita in FIC.
+    const historicalClient = matches.length === 1 ? { ...matches[0] } : null;
+    const client = historicalClient;
     const fiscalIdentityVerified = hasMatchingFiscalIdentity(client, vatNumber, taxCode);
     const entityId = Number(client?.id ?? 0);
     const duplicate = issuedDocuments.find((invoice) => {
@@ -461,7 +438,7 @@ serve(async (req) => {
       ...group,
       reseller_match_count: resellerMatches.length,
       client_match_count: matches.length,
-      client_source: matches.length === 1 ? "fattura_precedente" : (crmEntity ? "anagrafica_crm" : "mancante_o_ambigua"),
+      client_source: matches.length === 1 ? "fattura_precedente_fic" : "mancante_o_ambigua",
       candidate_entities: matches.map((entity) => ({ id: entity.id ?? null, name: entity.name ?? null, email: entity.email ?? null })),
       client,
       fiscal_identity_verified: fiscalIdentityVerified,

@@ -105,6 +105,31 @@ const normalize = (value: unknown) => String(value ?? "")
   .replace(/\s+/g, " ")
   .toLowerCase();
 
+// Un nome, un'email o un ID storico non provano l'identita fiscale: possono
+// appartenere a omonimi o a recapiti riutilizzati. Ogni intestatario deve avere
+// almeno un identificativo fiscale che coincida con quello presente nel CRM.
+const normalizeFiscalId = (value: unknown) => String(value ?? "")
+  .trim()
+  .replace(/^IT/i, "")
+  .replace(/[^A-Z0-9]/gi, "")
+  .toUpperCase();
+
+const hasMatchingFiscalIdentity = (
+  entity: JsonObject | null,
+  expectedVatNumber: string,
+  expectedTaxCode: string,
+) => {
+  if (!entity) return false;
+  const expected = new Set(
+    [expectedVatNumber, expectedTaxCode].map(normalizeFiscalId).filter(Boolean),
+  );
+  if (expected.size === 0) return false;
+  const actual = [entity.vat_number, entity.tax_code]
+    .map(normalizeFiscalId)
+    .filter(Boolean);
+  return actual.some((value) => expected.has(value));
+};
+
 const cents = (value: number) => Math.round(value * 100) / 100;
 
 async function listAll<T extends JsonObject>(path: string): Promise<T[]> {
@@ -364,20 +389,30 @@ serve(async (req) => {
 
   const previews = groups.map((group) => {
     const resellerMatches = resellerByEmail.get(group.email) ?? [];
-    const preferredEntityId = FIC_ENTITY_ID_BY_EMAIL.get(group.email);
-    const byPreferredId = preferredEntityId
-      ? entities.filter((client) => Number(client.id ?? 0) === preferredEntityId)
-      : [];
-    const byEmail = entities.filter((client) => normalize(client.email) === group.email);
-    const ficEntityName = FIC_ENTITY_NAME_BY_EMAIL.get(group.email) ?? group.provider;
-    const byName = entities.filter((client) => normalize(client.name) === normalize(ficEntityName));
-    const matches = byPreferredId.length ? byPreferredId : (byEmail.length ? byEmail : byName);
     const crmCompany = companyByEmail.get(group.email);
     const confirmedFiscalData = CONFIRMED_FISCAL_DATA_BY_EMAIL.get(group.email);
-    const taxCode = String(confirmedFiscalData?.tax_code ?? crmCompany?.codice_fiscale ?? "")
-      .replace(/\s+/g, "").toUpperCase();
-    const vatNumber = String(confirmedFiscalData?.vat_number ?? crmCompany?.piva ?? "")
-      .replace(/\s+/g, "").replace(/^IT/i, "");
+    const taxCode = normalizeFiscalId(
+      confirmedFiscalData?.tax_code ?? crmCompany?.codice_fiscale ?? "",
+    );
+    const vatNumber = normalizeFiscalId(
+      confirmedFiscalData?.vat_number ?? crmCompany?.piva ?? "",
+    );
+    // Tutte le strategie di ricerca (ID, email e nome) lavorano esclusivamente
+    // su entita gia validate fiscalmente. Il solo nome non puo mai selezionare
+    // un omonimo.
+    const fiscallyMatchingEntities = entities.filter((client) =>
+      hasMatchingFiscalIdentity(client, vatNumber, taxCode)
+    );
+    const preferredEntityId = FIC_ENTITY_ID_BY_EMAIL.get(group.email);
+    const byPreferredId = preferredEntityId
+      ? fiscallyMatchingEntities.filter((client) => Number(client.id ?? 0) === preferredEntityId)
+      : [];
+    const byEmail = fiscallyMatchingEntities.filter((client) => normalize(client.email) === group.email);
+    const ficEntityName = FIC_ENTITY_NAME_BY_EMAIL.get(group.email) ?? group.provider;
+    const byName = fiscallyMatchingEntities.filter((client) =>
+      normalize(client.name) === normalize(ficEntityName)
+    );
+    const matches = byPreferredId.length ? byPreferredId : (byEmail.length ? byEmail : byName);
     const postalCode = String(confirmedFiscalData?.address_postal_code ?? crmCompany?.cap ?? "").replace(/\s+/g, "");
     const province = String(confirmedFiscalData?.address_province ?? crmCompany?.provincia ?? "").trim().toUpperCase();
     const crmEntityComplete = Boolean(
@@ -407,6 +442,7 @@ serve(async (req) => {
       ...(confirmedFiscalData ?? {}),
     } : null;
     const client = historicalClient ?? (matches.length === 0 ? crmEntity : null);
+    const fiscalIdentityVerified = hasMatchingFiscalIdentity(client, vatNumber, taxCode);
     const entityId = Number(client?.id ?? 0);
     const duplicate = issuedDocuments.find((invoice) => {
       const entity = invoice.entity && typeof invoice.entity === "object" ? invoice.entity as JsonObject : {};
@@ -428,6 +464,7 @@ serve(async (req) => {
       client_source: matches.length === 1 ? "fattura_precedente" : (crmEntity ? "anagrafica_crm" : "mancante_o_ambigua"),
       candidate_entities: matches.map((entity) => ({ id: entity.id ?? null, name: entity.name ?? null, email: entity.email ?? null })),
       client,
+      fiscal_identity_verified: fiscalIdentityVerified,
       existing_invoice_id: existingInvoiceId,
       net,
       vat,
@@ -436,7 +473,8 @@ serve(async (req) => {
   });
 
   const isBlocked = (row: typeof previews[number]) =>
-    row.reseller_match_count !== 1 || !row.client || Boolean(row.existing_invoice_id) || row.unitPrice <= 0;
+    row.reseller_match_count !== 1 || !row.client || !row.fiscal_identity_verified ||
+    Boolean(row.existing_invoice_id) || row.unitPrice <= 0;
   const blockers = previews.filter(isBlocked);
   const audit = previews.map((row) => ({
     provider: row.provider,
@@ -455,6 +493,7 @@ serve(async (req) => {
     reseller_match_count: row.reseller_match_count,
     client_match_count: row.client_match_count,
     client_source: row.client_source,
+    fiscal_identity_verified: row.fiscal_identity_verified,
     candidate_entities: row.candidate_entities,
     existing_invoice_id: row.existing_invoice_id,
   }));

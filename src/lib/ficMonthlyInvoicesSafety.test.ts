@@ -45,6 +45,16 @@ describe("fatturazione mensile FIC settembre 2026", () => {
     expect(source).toContain('action === "create_ready"');
   });
 
+  it("non associa mai un omonimo usando soltanto nome, email o ID storico", () => {
+    expect(source).toContain("const hasMatchingFiscalIdentity");
+    expect(source).toContain("if (expected.size === 0) return false");
+    expect(source).toContain("const fiscallyMatchingEntities = entities.filter");
+    expect(source).toContain("fiscallyMatchingEntities.filter((client) => Number(client.id ?? 0) === preferredEntityId)");
+    expect(source).toContain("fiscallyMatchingEntities.filter((client) => normalize(client.email) === group.email)");
+    expect(source).toContain("const byName = fiscallyMatchingEntities.filter");
+    expect(source).toContain("!row.fiscal_identity_verified");
+  });
+
   it("modifica soltanto le 16 fatture registrate, non inviate e con totali gia verificati", () => {
     expect(source).toContain('action === "update_existing_draft_names"');
     expect(source).toContain("KNOWN_CREATED_INVOICE_BY_EMAIL.get(row.email)");

@@ -5,6 +5,7 @@ import {
   containsFiftyEuroPrice,
   defaultCrmStageId,
   isFiftyEuroAudienceSafe,
+  isFiftyEuroLead,
   normalizeCrmStages,
 } from "./crmPipeline";
 
@@ -14,10 +15,18 @@ describe("CRM €50 pipeline safety", () => {
     { id: "attivo", name: "Cliente Attivo", color: "#10b981", order: 1 },
   ];
 
-  it("pins Clienti €50 as the first column without changing existing stage ids", () => {
+  it("pins the incoming and contacted €50 stages as the first two columns", () => {
     const stages = normalizeCrmStages(legacyStages);
-    expect(stages.map(stage => stage.id)).toEqual([CLIENTI_50_STAGE_ID, "lead", "attivo"]);
+    expect(stages.map(stage => stage.id)).toEqual(["lead", CLIENTI_50_STAGE_ID, "attivo"]);
     expect(stages.map(stage => stage.order)).toEqual([0, 1, 2]);
+    expect(stages[0].name).toBe("Lead €50 in entrata");
+    expect(stages[1].name).toBe("Lead €50 contattati");
+  });
+
+  it("keeps the €50 visual marker after a lead leaves the contacted column", () => {
+    expect(isFiftyEuroLead({ stage_id: "attivo", commercial_price_eur: 50 })).toBe(true);
+    expect(isFiftyEuroLead({ stage_id: CLIENTI_50_STAGE_ID })).toBe(true);
+    expect(isFiftyEuroLead({ stage_id: "attivo", commercial_price_eur: 65 })).toBe(false);
   });
 
   it("keeps Nuovo Lead as the default even when Clienti €50 is first", () => {

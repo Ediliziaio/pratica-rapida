@@ -254,6 +254,19 @@ jobs:
                   --data-binary @-
               echo "Clienti €50 nurture clock authentication installed through Supabase Management API"
             fi
+            if jq -e --arg name lead_50_contacted_pipeline \
+              'any(.[]; .name == $name)' <<< "$MIGRATIONS" > /dev/null; then
+              echo "Lead €50 contacted pipeline already installed"
+            else
+              jq -n --rawfile query supabase/migrations/20261104123000_lead_50_contacted_pipeline.sql \
+                '{query: $query, name: "lead_50_contacted_pipeline"}' \
+                | curl --fail-with-body --silent --show-error --output /dev/null \
+                  --request POST "https://api.supabase.com/v1/projects/${PROJECT_REF}/database/migrations" \
+                  --header "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
+                  --header "Content-Type: application/json" \
+                  --data-binary @-
+              echo "Lead €50 contacted pipeline installed through Supabase Management API"
+            fi
           else
             supabase link --project-ref "$PROJECT_REF"
             supabase db push --linked

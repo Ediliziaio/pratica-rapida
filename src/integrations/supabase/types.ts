@@ -1805,6 +1805,8 @@ export type Database = {
           marketing_consent: boolean
           marketing_consent_at: string | null
           marketing_consent_source: string | null
+          commercial_price_eur: number | null
+          meta_form_id: string | null
           nome: string
           note: string | null
           page_url: string | null
@@ -1826,6 +1828,8 @@ export type Database = {
           marketing_consent?: boolean
           marketing_consent_at?: string | null
           marketing_consent_source?: string | null
+          commercial_price_eur?: number | null
+          meta_form_id?: string | null
           nome: string
           note?: string | null
           page_url?: string | null
@@ -1847,6 +1851,8 @@ export type Database = {
           marketing_consent?: boolean
           marketing_consent_at?: string | null
           marketing_consent_source?: string | null
+          commercial_price_eur?: number | null
+          meta_form_id?: string | null
           nome?: string
           note?: string | null
           page_url?: string | null

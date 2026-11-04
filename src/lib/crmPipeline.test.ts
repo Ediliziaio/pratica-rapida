@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   CLIENTI_50_STAGE_ID,
+  LEAD_50_INCOMING_STAGE_ID,
   NEW_LEAD_STAGE_ID,
   containsFiftyEuroPrice,
   defaultCrmStageId,
@@ -17,14 +18,21 @@ describe("CRM €50 pipeline safety", () => {
 
   it("pins the incoming and contacted €50 stages as the first two columns", () => {
     const stages = normalizeCrmStages(legacyStages);
-    expect(stages.map(stage => stage.id)).toEqual(["lead", CLIENTI_50_STAGE_ID, "attivo"]);
-    expect(stages.map(stage => stage.order)).toEqual([0, 1, 2]);
+    expect(stages.map(stage => stage.id)).toEqual([
+      LEAD_50_INCOMING_STAGE_ID,
+      CLIENTI_50_STAGE_ID,
+      NEW_LEAD_STAGE_ID,
+      "attivo",
+    ]);
+    expect(stages.map(stage => stage.order)).toEqual([0, 1, 2, 3]);
     expect(stages[0].name).toBe("Lead €50 in entrata");
     expect(stages[1].name).toBe("Lead €50 contattati");
+    expect(stages[2].name).toBe("Nuovo Lead");
   });
 
   it("keeps the €50 visual marker after a lead leaves the contacted column", () => {
     expect(isFiftyEuroLead({ stage_id: "attivo", commercial_price_eur: 50 })).toBe(true);
+    expect(isFiftyEuroLead({ stage_id: LEAD_50_INCOMING_STAGE_ID })).toBe(true);
     expect(isFiftyEuroLead({ stage_id: CLIENTI_50_STAGE_ID })).toBe(true);
     expect(isFiftyEuroLead({ stage_id: "attivo", commercial_price_eur: 65 })).toBe(false);
   });

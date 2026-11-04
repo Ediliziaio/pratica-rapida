@@ -87,7 +87,7 @@ export function newLeadStageId(formId: string, metaCreatedAt?: string): string {
     && Number.isFinite(createdAt)
     && createdAt >= CLIENTI_50_ENABLED_FROM
   ) {
-    return "lead";
+    return "lead_50_incoming";
   }
   return "lead";
 }

@@ -15,7 +15,7 @@ describe("instradamento lead Meta Clienti €50", () => {
   it("usa il modulo e la data autorizzati senza cambiare gli altri lead", () => {
     expect(source).toContain('CLIENTI_50_FORM_ID = "2546968312490707"');
     expect(source).toContain('Date.parse("2026-10-31T00:00:00+01:00")');
-    expect(source).toContain('return "lead"');
+    expect(source).toContain('return "lead_50_incoming"');
     expect(source).toContain("newLeadCommercialPrice");
     expect(source).toContain("commercial_price_eur: newLeadCommercialPrice");
   });

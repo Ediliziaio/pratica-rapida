@@ -6,16 +6,18 @@ export interface CrmPipelineStage {
 }
 
 export const CLIENTI_50_STAGE_ID = "clienti_50";
+export const LEAD_50_INCOMING_STAGE_ID = "lead_50_incoming";
 export const NEW_LEAD_STAGE_ID = "lead";
 export const CLIENTI_50_FORM_ID = "2546968312490707";
 
 export const DEFAULT_CRM_STAGES: CrmPipelineStage[] = [
-  { id: NEW_LEAD_STAGE_ID, name: "Lead €50 in entrata", color: "#0ea5e9", order: 0 },
+  { id: LEAD_50_INCOMING_STAGE_ID, name: "Lead €50 in entrata", color: "#0ea5e9", order: 0 },
   { id: CLIENTI_50_STAGE_ID, name: "Lead €50 contattati", color: "#16a34a", order: 1 },
-  { id: "contatto", name: "Primo Contatto", color: "#f59e0b", order: 2 },
-  { id: "demo", name: "Demo Programmata", color: "#8b5cf6", order: 3 },
-  { id: "onboarding", name: "In Onboarding", color: "#3b82f6", order: 4 },
-  { id: "attivo", name: "Cliente Attivo", color: "#10b981", order: 5 },
+  { id: NEW_LEAD_STAGE_ID, name: "Nuovo Lead", color: "#6366f1", order: 2 },
+  { id: "contatto", name: "Primo Contatto", color: "#f59e0b", order: 3 },
+  { id: "demo", name: "Demo Programmata", color: "#8b5cf6", order: 4 },
+  { id: "onboarding", name: "In Onboarding", color: "#3b82f6", order: 5 },
+  { id: "attivo", name: "Cliente Attivo", color: "#10b981", order: 6 },
 ];
 
 /**
@@ -23,15 +25,20 @@ export const DEFAULT_CRM_STAGES: CrmPipelineStage[] = [
  * poi quelli contattati. Non assegna né sposta alcun cliente.
  */
 export function normalizeCrmStages(stages: CrmPipelineStage[]): CrmPipelineStage[] {
-  const incoming = stages.find(stage => stage.id === NEW_LEAD_STAGE_ID);
+  const incoming = stages.find(stage => stage.id === LEAD_50_INCOMING_STAGE_ID);
   const fifty = stages.find(stage => stage.id === CLIENTI_50_STAGE_ID);
+  const legacyIncoming = stages.find(stage => stage.id === NEW_LEAD_STAGE_ID);
   const rest = stages
-    .filter(stage => stage.id !== NEW_LEAD_STAGE_ID && stage.id !== CLIENTI_50_STAGE_ID)
+    .filter(stage => ![
+      LEAD_50_INCOMING_STAGE_ID,
+      CLIENTI_50_STAGE_ID,
+      NEW_LEAD_STAGE_ID,
+    ].includes(stage.id))
     .sort((a, b) => a.order - b.order);
 
   return [
     {
-      id: NEW_LEAD_STAGE_ID,
+      id: LEAD_50_INCOMING_STAGE_ID,
       name: "Lead €50 in entrata",
       color: incoming?.color || "#0ea5e9",
       order: 0,
@@ -42,7 +49,13 @@ export function normalizeCrmStages(stages: CrmPipelineStage[]): CrmPipelineStage
       color: fifty?.color || "#16a34a",
       order: 1,
     },
-    ...rest.map((stage, index) => ({ ...stage, order: index + 2 })),
+    {
+      id: NEW_LEAD_STAGE_ID,
+      name: "Nuovo Lead",
+      color: legacyIncoming?.color || "#6366f1",
+      order: 2,
+    },
+    ...rest.map((stage, index) => ({ ...stage, order: index + 3 })),
   ];
 }
 
@@ -52,7 +65,7 @@ export function isFiftyEuroLead(lead: {
   commercial_price_eur?: number | null;
 }): boolean {
   return Number(lead.commercial_price_eur) === 50
-    || lead.meta_form_id === CLIENTI_50_FORM_ID
+    || lead.stage_id === LEAD_50_INCOMING_STAGE_ID
     || lead.stage_id === CLIENTI_50_STAGE_ID;
 }
 

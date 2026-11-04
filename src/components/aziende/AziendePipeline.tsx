@@ -28,6 +28,7 @@ import { it } from "date-fns/locale";
 import {
   CLIENTI_50_STAGE_ID,
   DEFAULT_CRM_STAGES,
+  LEAD_50_INCOMING_STAGE_ID,
   NEW_LEAD_STAGE_ID,
   defaultCrmStageId,
   isFiftyEuroLead,
@@ -422,13 +423,13 @@ export default function AziendePipeline() {
   };
 
   const updateStage = (updated: CrmStage) => {
-    if (updated.id === CLIENTI_50_STAGE_ID || updated.id === NEW_LEAD_STAGE_ID) return;
+    if (updated.id === CLIENTI_50_STAGE_ID || updated.id === LEAD_50_INCOMING_STAGE_ID) return;
     saveStages.mutate(stages.map(s => s.id === updated.id ? updated : s));
     setEditingStage(null);
   };
 
   const deleteStage = (stageId: string) => {
-    if (stageId === CLIENTI_50_STAGE_ID || stageId === NEW_LEAD_STAGE_ID) return;
+    if (stageId === CLIENTI_50_STAGE_ID || stageId === LEAD_50_INCOMING_STAGE_ID) return;
     saveStages.mutate(stages.filter(s => s.id !== stageId));
   };
 
@@ -444,9 +445,9 @@ export default function AziendePipeline() {
     const target = idx + direction;
     if (
       stageId === CLIENTI_50_STAGE_ID
-      || stageId === NEW_LEAD_STAGE_ID
+      || stageId === LEAD_50_INCOMING_STAGE_ID
       || ordered[target]?.id === CLIENTI_50_STAGE_ID
-      || ordered[target]?.id === NEW_LEAD_STAGE_ID
+      || ordered[target]?.id === LEAD_50_INCOMING_STAGE_ID
     ) return;
     if (idx === -1 || target < 0 || target >= ordered.length) return;
     [ordered[idx], ordered[target]] = [ordered[target], ordered[idx]];
@@ -530,7 +531,7 @@ export default function AziendePipeline() {
                   <Button
                     size="icon" variant="ghost"
                     className="h-6 w-6 text-muted-foreground disabled:opacity-30"
-                    disabled={stage.id === CLIENTI_50_STAGE_ID || stage.id === NEW_LEAD_STAGE_ID || stageIdx === sortedStages.length - 1 || saveStages.isPending}
+                    disabled={stage.id === CLIENTI_50_STAGE_ID || stage.id === LEAD_50_INCOMING_STAGE_ID || stageIdx === sortedStages.length - 1 || saveStages.isPending}
                     onClick={() => moveStage(stage.id, 1)}
                     title="Sposta a destra"
                   >
@@ -894,14 +895,14 @@ export default function AziendePipeline() {
                   <>
                     <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ background: stage.color }} />
                     <span className="text-sm flex-1">{stage.name}</span>
-                    <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setEditingStage(stage)} disabled={stage.id === CLIENTI_50_STAGE_ID || stage.id === NEW_LEAD_STAGE_ID}>
+                    <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setEditingStage(stage)} disabled={stage.id === CLIENTI_50_STAGE_ID || stage.id === LEAD_50_INCOMING_STAGE_ID}>
                       <Pencil className="h-3.5 w-3.5" />
                     </Button>
                     <Button
                       size="icon" variant="ghost"
                       className="h-7 w-7 text-destructive hover:text-destructive"
                       onClick={() => deleteStage(stage.id)}
-                      disabled={stage.id === CLIENTI_50_STAGE_ID || stage.id === NEW_LEAD_STAGE_ID}
+                      disabled={stage.id === CLIENTI_50_STAGE_ID || stage.id === LEAD_50_INCOMING_STAGE_ID}
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </Button>

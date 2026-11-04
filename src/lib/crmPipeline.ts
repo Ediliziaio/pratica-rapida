@@ -7,10 +7,11 @@ export interface CrmPipelineStage {
 
 export const CLIENTI_50_STAGE_ID = "clienti_50";
 export const NEW_LEAD_STAGE_ID = "lead";
+export const CLIENTI_50_FORM_ID = "2546968312490707";
 
 export const DEFAULT_CRM_STAGES: CrmPipelineStage[] = [
-  { id: CLIENTI_50_STAGE_ID, name: "Clienti €50", color: "#16a34a", order: 0 },
-  { id: NEW_LEAD_STAGE_ID, name: "Nuovo Lead", color: "#6366f1", order: 1 },
+  { id: NEW_LEAD_STAGE_ID, name: "Lead €50 in entrata", color: "#0ea5e9", order: 0 },
+  { id: CLIENTI_50_STAGE_ID, name: "Lead €50 contattati", color: "#16a34a", order: 1 },
   { id: "contatto", name: "Primo Contatto", color: "#f59e0b", order: 2 },
   { id: "demo", name: "Demo Programmata", color: "#8b5cf6", order: 3 },
   { id: "onboarding", name: "In Onboarding", color: "#3b82f6", order: 4 },
@@ -18,24 +19,41 @@ export const DEFAULT_CRM_STAGES: CrmPipelineStage[] = [
 ];
 
 /**
- * Mantiene la pipeline €50 sempre a sinistra senza cambiare l'identità delle
- * altre fasi. Non assegna né sposta alcun cliente.
+ * Mantiene a sinistra le due fasi del percorso €50: prima i lead in entrata,
+ * poi quelli contattati. Non assegna né sposta alcun cliente.
  */
 export function normalizeCrmStages(stages: CrmPipelineStage[]): CrmPipelineStage[] {
+  const incoming = stages.find(stage => stage.id === NEW_LEAD_STAGE_ID);
   const fifty = stages.find(stage => stage.id === CLIENTI_50_STAGE_ID);
   const rest = stages
-    .filter(stage => stage.id !== CLIENTI_50_STAGE_ID)
+    .filter(stage => stage.id !== NEW_LEAD_STAGE_ID && stage.id !== CLIENTI_50_STAGE_ID)
     .sort((a, b) => a.order - b.order);
 
   return [
     {
-      id: CLIENTI_50_STAGE_ID,
-      name: fifty?.name || "Clienti €50",
-      color: fifty?.color || "#16a34a",
+      id: NEW_LEAD_STAGE_ID,
+      name: "Lead €50 in entrata",
+      color: incoming?.color || "#0ea5e9",
       order: 0,
     },
-    ...rest.map((stage, index) => ({ ...stage, order: index + 1 })),
+    {
+      id: CLIENTI_50_STAGE_ID,
+      name: "Lead €50 contattati",
+      color: fifty?.color || "#16a34a",
+      order: 1,
+    },
+    ...rest.map((stage, index) => ({ ...stage, order: index + 2 })),
   ];
+}
+
+export function isFiftyEuroLead(lead: {
+  stage_id: string;
+  meta_form_id?: string | null;
+  commercial_price_eur?: number | null;
+}): boolean {
+  return Number(lead.commercial_price_eur) === 50
+    || lead.meta_form_id === CLIENTI_50_FORM_ID
+    || lead.stage_id === CLIENTI_50_STAGE_ID;
 }
 
 /** Nuovi lead e aziende non assegnate restano sempre in "Nuovo Lead". */

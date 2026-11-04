@@ -77,8 +77,8 @@ const CLIENTI_50_ENABLED_FROM = Date.parse("2026-10-31T00:00:00+01:00");
 
 /**
  * Dal 31 ottobre 2026 i lead del modulo Meta dell'offerta da €50 entrano
- * direttamente nella colonna dedicata. Gli altri moduli e lo storico
- * precedente mantengono la destinazione stabile "Nuovo Lead".
+ * nella prima colonna "Lead €50 in entrata". Soltanto lo spostamento manuale
+ * nella colonna dei contattati abilita il percorso automatico.
  */
 export function newLeadStageId(formId: string, metaCreatedAt?: string): string {
   const createdAt = metaCreatedAt ? Date.parse(metaCreatedAt) : Date.now();
@@ -87,9 +87,18 @@ export function newLeadStageId(formId: string, metaCreatedAt?: string): string {
     && Number.isFinite(createdAt)
     && createdAt >= CLIENTI_50_ENABLED_FROM
   ) {
-    return "clienti_50";
+    return "lead";
   }
   return "lead";
+}
+
+export function newLeadCommercialPrice(formId: string, metaCreatedAt?: string): number | null {
+  const createdAt = metaCreatedAt ? Date.parse(metaCreatedAt) : Date.now();
+  return formId === CLIENTI_50_FORM_ID
+    && Number.isFinite(createdAt)
+    && createdAt >= CLIENTI_50_ENABLED_FROM
+    ? 50
+    : null;
 }
 
 /** Verifica la firma X-Hub-Signature-256 (se META_APP_SECRET è impostato). */
@@ -188,6 +197,7 @@ async function insertPendingLead(leadgenId: string, formId: string, graphError: 
       `Modulo Meta: ${formId || "n/d"}`, PENDING_MARKER, marker,
     ].join("\n"),
     source: "meta_ads", stage_id: stageId, page_url: "Meta Ads",
+    commercial_price_eur: newLeadCommercialPrice(formId),
   });
   if (error) { console.error("[meta-leads-webhook] pending insert error:", error.message); return; }
   try {
@@ -239,6 +249,7 @@ async function ingestLead(
         note: noteLines.join("\n"),
         meta_leadgen_id: leadgenId, meta_form_id: formId || null,
         meta_created_at: metaCreatedAt || null, meta_field_data: fieldData,
+        commercial_price_eur: newLeadCommercialPrice(formId, metaCreatedAt),
       }).eq("id", existing[0].id);
       if (error) { console.error("[meta-leads-webhook] update error:", error.message); return "error"; }
       if (shouldSchedulePrivateFollowups(fieldData, metaCreatedAt, m.telefono)) {
@@ -260,6 +271,7 @@ async function ingestLead(
     note: noteLines.join("\n"), source: "meta_ads", stage_id: stageId, page_url: "Meta Ads",
     meta_leadgen_id: leadgenId, meta_form_id: formId || null,
     meta_created_at: metaCreatedAt || null, meta_field_data: fieldData,
+    commercial_price_eur: newLeadCommercialPrice(formId, metaCreatedAt),
   }).select("id").single();
   if (error) { console.error("[meta-leads-webhook] insert error:", error.message); return "error"; }
 

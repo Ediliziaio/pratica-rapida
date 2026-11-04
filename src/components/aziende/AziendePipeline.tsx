@@ -30,6 +30,7 @@ import {
   DEFAULT_CRM_STAGES,
   NEW_LEAD_STAGE_ID,
   defaultCrmStageId,
+  isFiftyEuroLead,
   normalizeCrmStages,
   type CrmPipelineStage,
 } from "@/lib/crmPipeline";
@@ -55,6 +56,8 @@ interface CrmLead {
   marketing_consent: boolean;
   marketing_consent_at: string | null;
   marketing_consent_source: string | null;
+  meta_form_id: string | null;
+  commercial_price_eur: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -419,13 +422,13 @@ export default function AziendePipeline() {
   };
 
   const updateStage = (updated: CrmStage) => {
-    if (updated.id === CLIENTI_50_STAGE_ID) return;
+    if (updated.id === CLIENTI_50_STAGE_ID || updated.id === NEW_LEAD_STAGE_ID) return;
     saveStages.mutate(stages.map(s => s.id === updated.id ? updated : s));
     setEditingStage(null);
   };
 
   const deleteStage = (stageId: string) => {
-    if (stageId === CLIENTI_50_STAGE_ID) return;
+    if (stageId === CLIENTI_50_STAGE_ID || stageId === NEW_LEAD_STAGE_ID) return;
     saveStages.mutate(stages.filter(s => s.id !== stageId));
   };
 
@@ -439,7 +442,12 @@ export default function AziendePipeline() {
     const ordered = [...stages].sort((a, b) => a.order - b.order);
     const idx = ordered.findIndex(s => s.id === stageId);
     const target = idx + direction;
-    if (stageId === CLIENTI_50_STAGE_ID || ordered[target]?.id === CLIENTI_50_STAGE_ID) return;
+    if (
+      stageId === CLIENTI_50_STAGE_ID
+      || stageId === NEW_LEAD_STAGE_ID
+      || ordered[target]?.id === CLIENTI_50_STAGE_ID
+      || ordered[target]?.id === NEW_LEAD_STAGE_ID
+    ) return;
     if (idx === -1 || target < 0 || target >= ordered.length) return;
     [ordered[idx], ordered[target]] = [ordered[target], ordered[idx]];
     saveStages.mutate(ordered.map((s, i) => ({ ...s, order: i })));
@@ -513,7 +521,7 @@ export default function AziendePipeline() {
                   <Button
                     size="icon" variant="ghost"
                     className="h-6 w-6 text-muted-foreground disabled:opacity-30"
-                    disabled={stageIdx === 0 || sortedStages[stageIdx - 1]?.id === CLIENTI_50_STAGE_ID || saveStages.isPending}
+                    disabled={stageIdx <= 1 || sortedStages[stageIdx - 1]?.id === CLIENTI_50_STAGE_ID || saveStages.isPending}
                     onClick={() => moveStage(stage.id, -1)}
                     title="Sposta a sinistra"
                   >
@@ -522,7 +530,7 @@ export default function AziendePipeline() {
                   <Button
                     size="icon" variant="ghost"
                     className="h-6 w-6 text-muted-foreground disabled:opacity-30"
-                    disabled={stage.id === CLIENTI_50_STAGE_ID || stageIdx === sortedStages.length - 1 || saveStages.isPending}
+                    disabled={stage.id === CLIENTI_50_STAGE_ID || stage.id === NEW_LEAD_STAGE_ID || stageIdx === sortedStages.length - 1 || saveStages.isPending}
                     onClick={() => moveStage(stage.id, 1)}
                     title="Sposta a destra"
                   >
@@ -536,13 +544,17 @@ export default function AziendePipeline() {
                 const sb = SOURCE_BADGE[lead.source] ?? SOURCE_BADGE.manual;
                 const isNew = lead.source === "public_form" && !lead.contacted_at;
                 const nurture = nurtureByLead.get(lead.id);
+                const isFifty = isFiftyEuroLead(lead);
                 return (
                   <Card
                     key={lead.id}
                     className={`border-l-[3px] hover:shadow-sm transition-shadow cursor-pointer ${
                       isNew ? "ring-1 ring-emerald-500/40 shadow-emerald-100" : ""
                     }`}
-                    style={{ borderLeftColor: stage.color }}
+                    style={{
+                      borderLeftColor: stage.color,
+                      backgroundColor: isFifty ? "rgba(22, 163, 74, 0.055)" : undefined,
+                    }}
                     onClick={(e) => openDetailGuard(e, () => setDetail({ kind: "lead", lead }))}
                   >
                     <CardContent className="p-3 space-y-2">
@@ -656,12 +668,19 @@ export default function AziendePipeline() {
                       )}
 
                       <div className="flex items-center justify-between gap-2 flex-wrap">
-                        <span
-                          className="text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide"
-                          style={{ backgroundColor: sb.bg, color: sb.color }}
-                        >
-                          {sb.label}
-                        </span>
+                        <div className="flex items-center gap-1.5">
+                          <span
+                            className="text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide"
+                            style={{ backgroundColor: sb.bg, color: sb.color }}
+                          >
+                            {sb.label}
+                          </span>
+                          {isFifty && (
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">
+                              €50
+                            </span>
+                          )}
+                        </div>
                         {lead.contacted_at ? (
                           <span className="text-[10px] text-emerald-700 flex items-center gap-1">
                             <CheckCircle2 className="h-2.5 w-2.5" />
@@ -875,14 +894,14 @@ export default function AziendePipeline() {
                   <>
                     <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ background: stage.color }} />
                     <span className="text-sm flex-1">{stage.name}</span>
-                    <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setEditingStage(stage)} disabled={stage.id === CLIENTI_50_STAGE_ID}>
+                    <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setEditingStage(stage)} disabled={stage.id === CLIENTI_50_STAGE_ID || stage.id === NEW_LEAD_STAGE_ID}>
                       <Pencil className="h-3.5 w-3.5" />
                     </Button>
                     <Button
                       size="icon" variant="ghost"
                       className="h-7 w-7 text-destructive hover:text-destructive"
                       onClick={() => deleteStage(stage.id)}
-                      disabled={stage.id === CLIENTI_50_STAGE_ID}
+                      disabled={stage.id === CLIENTI_50_STAGE_ID || stage.id === NEW_LEAD_STAGE_ID}
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </Button>

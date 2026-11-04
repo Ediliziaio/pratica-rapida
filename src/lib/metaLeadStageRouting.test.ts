@@ -15,8 +15,9 @@ describe("instradamento lead Meta Clienti €50", () => {
   it("usa il modulo e la data autorizzati senza cambiare gli altri lead", () => {
     expect(source).toContain('CLIENTI_50_FORM_ID = "2546968312490707"');
     expect(source).toContain('Date.parse("2026-10-31T00:00:00+01:00")');
-    expect(source).toContain('return "clienti_50"');
     expect(source).toContain('return "lead"');
+    expect(source).toContain("newLeadCommercialPrice");
+    expect(source).toContain("commercial_price_eur: newLeadCommercialPrice");
   });
 
   it("calcola la destinazione sia nel recupero sia nel webhook in tempo reale", () => {
@@ -24,7 +25,7 @@ describe("instradamento lead Meta Clienti €50", () => {
     expect(source).toContain("newLeadStageId(resolvedFormId, lead.created_time ?? eventCreatedAt)");
   });
 
-  it("riallinea soltanto i lead ancora nuovi dal 31 ottobre", () => {
+  it("documenta il riallineamento storico già applicato soltanto ai lead autorizzati", () => {
     expect(migration).toContain("meta_form_id = '2546968312490707'");
     expect(migration).toContain("2026-10-31 00:00:00+01");
     expect(migration).toContain("stage_id = 'lead'");

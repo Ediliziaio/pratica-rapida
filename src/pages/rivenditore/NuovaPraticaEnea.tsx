@@ -31,6 +31,7 @@ import {
 } from "@/features/cfCustomerEvidence";
 import { fallbackMonthlyPracticePrice } from "@/lib/monthly-financial-kpis";
 import { captureException } from "@/lib/sentry";
+import { intakeDiagnosticDetails, intakeErrorCode, recordPublicIntakeDiagnostic, type EneaIntakeEvent } from "@/lib/eneaIntakeDiagnostic";
 import { arrivaDaUnAnnuncio, segnaPrivato } from "@/lib/imbutoPrivato";
 import type { Database, TipoFatturazione, TipoSoggetto, TipoServizio } from "@/integrations/supabase/types";
 
@@ -278,7 +279,7 @@ export default function NuovaPraticaEnea({
   initialProduct?: TipoProdotto | null;
   lockProduct?: boolean;
 } = {}) {
-  const { resellerId, isInternal } = useAuth();
+  const { resellerId, isInternal, user } = useAuth();
   const { companyId: contextCompanyId, isImpersonating } = useCompany();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -434,6 +435,29 @@ export default function NuovaPraticaEnea({
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState<{ id: string; nome: string } | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const questionDiagnosticSent = useRef(false);
+
+  const recordIntake = useCallback((event: EneaIntakeEvent, phase: string, code = "none", fields: string[] = [], attemptId?: string) => {
+    const details = intakeDiagnosticDetails({
+      event, phase, code, fields, attemptId,
+      service: tipoServizio, documentsMode: documentiMode, product: tipoProdotto,
+      route: window.location.pathname,
+      selectedFiles: {
+        fattura: fatturaFiles.length, doc_extra: docExtra1.length,
+        libretto: docExtra2.length, moduli: moduliRaccoltaFiles.length,
+      },
+    });
+    if (publicMode) {
+      recordPublicIntakeDiagnostic(aziendaEmail, ragioneSociale, details);
+    } else if (user) {
+      void supabase.from("audit_log").insert({
+        user_id: user.id, company_id: effectiveResellerId,
+        azione: "enea_intake_diagnostic", dettagli: details,
+      }).then(({ error }) => { if (error) console.warn("[enea-intake] diagnostic unavailable", error.code); });
+    }
+  }, [publicMode, aziendaEmail, ragioneSociale, user, effectiveResellerId, tipoServizio,
+    documentiMode, tipoProdotto, fatturaFiles.length, docExtra1.length,
+    docExtra2.length, moduliRaccoltaFiles.length]);
 
   // ── Config documenti per prodotto ─────────────────────────────────────────
   const getDocConfig = (prodotto: TipoProdotto | null) => {
@@ -491,6 +515,12 @@ export default function NuovaPraticaEnea({
 
   const docConfig = getDocConfig(tipoProdotto);
   const isFgasOnly = fgasChoice === "fgas_only";
+  useEffect(() => {
+    if (tipoServizio === "documenti_forniti" && !isFgasOnly && !questionDiagnosticSent.current) {
+      questionDiagnosticSent.current = true;
+      recordIntake("question_shown", "render");
+    }
+  }, [tipoServizio, isFgasOnly, recordIntake]);
   const hasFgas = fgasChoice === "enea_fgas_full" || isFgasOnly;
   const staffCfIntake = isStaffCfIntake({
     isInternal, publicMode, isFgasOnly, tipoServizio, tipoFatturazione,
@@ -610,14 +640,17 @@ export default function NuovaPraticaEnea({
     if (!directPrivateCfIntake && tipoProdotto === "fotovoltaico_off_grid" && schemaUnifilareFiles.length === 0)
       e.schemaUnifilare = "Carica lo schema unifilare firmato e timbrato";
     setErrors(e);
-    return Object.keys(e).length === 0;
+    return e;
   };
 
   // ── Submit ─────────────────────────────────────────────────────────────────
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const attemptId = crypto.randomUUID();
     if (isPrivato) segnaPrivato("invia");
-    if (!validate()) {
+    const validationErrors = validate();
+    if (Object.keys(validationErrors).length > 0) {
+      recordIntake("validation_failed", "validation", "fields_invalid", Object.keys(validationErrors), attemptId);
       toast({
         variant: "destructive",
         title: "Completa i campi obbligatori",
@@ -692,7 +725,11 @@ export default function NuovaPraticaEnea({
         fgasInterventionFiles.forEach((f) => fd.append("fgas_rapporto", f));
 
         const { data, error: fnErr } = await supabase.functions.invoke("richiesta-pubblica", { body: fd });
-        if (fnErr) throw new Error(await motivoLeggibile(fnErr));
+        if (fnErr) {
+          throw Object.assign(new Error(await motivoLeggibile(fnErr)), {
+            code: (fnErr as { context?: { status?: number } }).context?.status ?? intakeErrorCode(fnErr),
+          });
+        }
         const res = data as {
           success: boolean;
           error?: string;
@@ -734,6 +771,7 @@ export default function NuovaPraticaEnea({
         }
         setSubmitted({ id: "public", nome: `${nome.trim()} ${cognome.trim()}` });
       } catch (err) {
+        recordIntake("submit_failed", "public_submit", intakeErrorCode(err), [], attemptId);
         toast({ variant: "destructive", title: "Errore invio", description: err instanceof Error ? err.message : "Riprova tra poco" });
       } finally {
         setSubmitting(false);
@@ -742,6 +780,7 @@ export default function NuovaPraticaEnea({
     }
 
     if (!effectiveResellerId) {
+      recordIntake("submit_failed", "account", "company_assignment_missing", [], attemptId);
       toast({
         variant: "destructive",
         title: isInternal ? "Seleziona un'azienda" : "Errore autenticazione",
@@ -752,6 +791,7 @@ export default function NuovaPraticaEnea({
       return;
     }
     if (!stages.length) {
+      recordIntake("submit_failed", "pipeline", "stages_unavailable", [], attemptId);
       toast({
         variant: "destructive",
         title: "Pipeline non configurata",
@@ -760,6 +800,7 @@ export default function NuovaPraticaEnea({
       return;
     }
     setSubmitting(true);
+    let failurePhase = "pricing";
 
     try {
       const prezzoNettoPratica = tipoFatturazione === "cliente_finale"
@@ -849,6 +890,7 @@ export default function NuovaPraticaEnea({
           documenti_mancanti: [],
         };
 
+      failurePhase = "insert";
       let practice: { id: string; form_token: string | null; dati_form: unknown } | null = null;
       let insertError: { message: string } | null = null;
 
@@ -896,6 +938,7 @@ export default function NuovaPraticaEnea({
       if (insertError || !practice) throw insertError ?? new Error("Insert fallito");
 
       // Upload documenti in parallelo
+      failurePhase = "upload";
       const [fatture, docExtra, docExtra2Res, schemaUnifilareRes, moduliRes, fgasPlateRes, fgasInterventionRes] = await Promise.all([
         uploadFiles(staffCfIntake ? [] : fatturaFiles, practice.id, "fattura"),
         uploadFiles(requireTechnicalEvidenceAtIntake ? docExtra1 : [], practice.id, "doc_extra"),
@@ -971,6 +1014,7 @@ export default function NuovaPraticaEnea({
       setSubmitted({ id: practice.id, nome: `${nome.trim()} ${cognome.trim()}` });
     } catch (err: unknown) {
       console.error(err);
+      recordIntake("submit_failed", failurePhase, intakeErrorCode(err), [], attemptId);
       captureException(err, {
         tags: {
           flow: "nuova_pratica_enea",
@@ -1452,6 +1496,35 @@ export default function NuovaPraticaEnea({
             )}
           </div>
         )}
+        {tipoServizio === "documenti_forniti" && (
+          <div className="mt-4 rounded-lg border border-blue-200 bg-blue-50/50 dark:border-blue-900/40 dark:bg-blue-950/20 p-4 space-y-3">
+            <div>
+              <p className="text-sm font-medium">Vuoi che mandiamo la pratica ENEA al cliente una volta conclusa? *</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Con «Documenti Forniti» il cliente non viene contattato durante la lavorazione.
+                Se rispondi sì, a conclusione gli inviamo la pratica via email.
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <button type="button"
+                onClick={() => { setInviaPraticaCliente(true); setErrors((p) => ({ ...p, inviaPraticaCliente: "" })); }}
+                className={cn("rounded-lg border-2 px-4 py-2.5 text-sm font-medium transition-all",
+                  inviaPraticaCliente === true ? "border-primary bg-primary/5" : "border-border hover:border-primary/40")}
+              >Sì, inviatela al cliente</button>
+              <button type="button"
+                onClick={() => { setInviaPraticaCliente(false); setErrors((p) => ({ ...p, inviaPraticaCliente: "" })); }}
+                className={cn("rounded-lg border-2 px-4 py-2.5 text-sm font-medium transition-all",
+                  inviaPraticaCliente === false ? "border-primary bg-primary/5" : "border-border hover:border-primary/40")}
+              >No, non contattatelo</button>
+            </div>
+            {inviaPraticaCliente === true && !email.trim() && (
+              <p className="text-xs text-amber-700 dark:text-amber-400">Serve l'email del cliente nella sezione «Dati del cliente finale».</p>
+            )}
+            {errors.inviaPraticaCliente && (
+              <p className="text-xs text-destructive" data-error>{errors.inviaPraticaCliente}</p>
+            )}
+          </div>
+        )}
       </Section>
       )}
 
@@ -1775,54 +1848,6 @@ export default function NuovaPraticaEnea({
           </div>
         </div>}
 
-        {/* Invio della pratica conclusa al cliente — solo "Documenti Forniti".
-            Con questo servizio il cliente non viene mai contattato, quindi
-            l'invio della pratica finita dev'essere una scelta esplicita di chi
-            compila: non c'è un default sensato al posto suo. */}
-        {!isFgasOnly && tipoServizio === "documenti_forniti" && (
-          <div className="rounded-lg border border-blue-200 bg-blue-50/50 dark:border-blue-900/40 dark:bg-blue-950/20 p-4 space-y-3">
-            <div>
-              <p className="text-sm font-medium">
-                Vuoi che mandiamo la pratica ENEA al cliente una volta conclusa? *
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                Con «Documenti Forniti» il cliente non viene mai contattato. Se rispondi sì, a
-                lavorazione conclusa gli inviamo la pratica tramite mail.
-              </p>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => { setInviaPraticaCliente(true); setErrors((p) => ({ ...p, inviaPraticaCliente: "" })); }}
-                className={cn(
-                  "rounded-lg border-2 px-4 py-2.5 text-sm font-medium transition-all",
-                  inviaPraticaCliente === true ? "border-primary bg-primary/5" : "border-border hover:border-primary/40",
-                )}
-              >
-                Sì, inviatela al cliente
-              </button>
-              <button
-                type="button"
-                onClick={() => { setInviaPraticaCliente(false); setErrors((p) => ({ ...p, inviaPraticaCliente: "" })); }}
-                className={cn(
-                  "rounded-lg border-2 px-4 py-2.5 text-sm font-medium transition-all",
-                  inviaPraticaCliente === false ? "border-primary bg-primary/5" : "border-border hover:border-primary/40",
-                )}
-              >
-                No, non contattatelo
-              </button>
-            </div>
-            {inviaPraticaCliente === true && !email.trim() && (
-              <p className="text-xs text-amber-700 dark:text-amber-400 flex items-start gap-1.5">
-                <AlertCircle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
-                Serve l'email del cliente qui sopra: è lì che inviamo la pratica.
-              </p>
-            )}
-            {errors.inviaPraticaCliente && (
-              <p className="text-xs text-destructive" data-error>{errors.inviaPraticaCliente}</p>
-            )}
-          </div>
-        )}
       </Section>
 
       {/* ── 6. Documenti ────────────────────────────────────────────────── */}

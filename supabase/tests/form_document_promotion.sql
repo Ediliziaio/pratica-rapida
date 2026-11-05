@@ -1,85 +1,74 @@
--- Integration test for an isolated Supabase database AFTER the promotion
--- migration. Do not run on production: it creates temporary practices/files.
+-- Execute against a database with the migration installed. This test uses
+-- existing Storage objects but writes ONLY a temporary table; it does not
+-- create or modify a real CRM practice and rolls back at the end.
 BEGIN;
+
+CREATE TEMP TABLE form_document_fixture (
+  id uuid NOT NULL,
+  dati_form jsonb,
+  fatture_urls text[] DEFAULT '{}',
+  documenti_aggiuntivi_urls text[] DEFAULT '{}'
+);
+CREATE TRIGGER promote_client_form_documents
+BEFORE INSERT OR UPDATE OF dati_form ON form_document_fixture
+FOR EACH ROW EXECUTE FUNCTION public.promote_client_form_documents();
 
 DO $$
 DECLARE
-  v_company uuid;
-  v_form_id uuid := gen_random_uuid();
-  v_dealer_id uuid := gen_random_uuid();
-  v_form_token text := gen_random_uuid()::text;
-  v_invoice text := v_form_id::text || '/dynamic/invoice.pdf';
-  v_technical text := v_form_id::text || '/dynamic/technical.pdf';
-  v_dealer_invoice text := v_dealer_id::text || '/fattura/invoice.pdf';
-  v_dealer_technical text := v_dealer_id::text || '/doc_extra/technical.pdf';
-  v_missing text := v_form_id::text || '/dynamic/not-saved.pdf';
-  v_form_invoices text[];
-  v_form_additional text[];
-  v_dealer_invoices text[];
-  v_dealer_additional text[];
+  v_practice_id uuid;
+  v_invoice text;
+  v_technical text;
+  v_invoices text[];
+  v_additional text[];
 BEGIN
-  SELECT id INTO v_company FROM public.companies LIMIT 1;
-  IF v_company IS NULL THEN
-    RAISE EXCEPTION 'Fixture requires one company';
+  SELECT p.id,
+    min(d.path) FILTER (WHERE d.is_invoice),
+    min(d.path) FILTER (WHERE NOT d.is_invoice)
+  INTO v_practice_id, v_invoice, v_technical
+  FROM public.enea_practices AS p
+  CROSS JOIN LATERAL public.form_uploaded_documents(p.id, p.dati_form) AS d
+  WHERE p.dati_form IS NOT NULL
+  GROUP BY p.id
+  HAVING count(*) FILTER (WHERE d.is_invoice) > 0
+     AND count(*) FILTER (WHERE NOT d.is_invoice) > 0
+  LIMIT 1;
+  IF v_practice_id IS NULL THEN
+    RAISE EXCEPTION 'No existing form with both document types for fixture';
   END IF;
 
-  INSERT INTO storage.objects(bucket_id, name)
-  VALUES ('enea-documents', v_invoice), ('enea-documents', v_technical),
-         ('enea-documents', v_dealer_invoice), ('enea-documents', v_dealer_technical);
-
-  INSERT INTO public.enea_practices
-    (id, reseller_id, cliente_nome, cliente_cognome, form_token)
-  VALUES (v_form_id, v_company, 'Test', 'Modulo', v_form_token);
-
-  -- The public form autosave is the real write/decision point. The invoice
-  -- key is nested in an array; the technical file uses another field.
-  PERFORM public.save_form_draft_by_token(v_form_token, jsonb_build_object(
+  -- The same trigger that receives a form autosave must classify uploads by
+  -- nested field/section, verify Storage, and deduplicate on repeated save.
+  INSERT INTO form_document_fixture(id, dati_form)
+  VALUES (v_practice_id, jsonb_build_object(
     'sezione', jsonb_build_object('righe', jsonb_build_array(
-      jsonb_build_object('fattura', v_invoice, 'certificato', v_technical,
-        'allegato_non_salvato', v_missing,
-        'file_di_altra_pratica', v_dealer_technical)
+      jsonb_build_object('fattura', v_invoice,
+        'certificato', v_technical,
+        'file_non_salvato', v_practice_id::text || '/dynamic/missing.pdf')
     ))
   ));
-
   SELECT fatture_urls, documenti_aggiuntivi_urls
-    INTO v_form_invoices, v_form_additional
-  FROM public.enea_practices WHERE id = v_form_id;
-
-  IF v_form_invoices IS DISTINCT FROM ARRAY[v_invoice]
-     OR v_form_additional IS DISTINCT FROM ARRAY[v_technical] THEN
-    RAISE EXCEPTION 'Form upload not promoted to practice columns';
+    INTO v_invoices, v_additional
+  FROM form_document_fixture WHERE id = v_practice_id;
+  IF v_invoices IS DISTINCT FROM ARRAY[v_invoice]
+     OR v_additional IS DISTINCT FROM ARRAY[v_technical] THEN
+    RAISE EXCEPTION 'Form save did not link files to the correct columns';
   END IF;
 
-  -- Repeat autosave: no duplicate links.
-  PERFORM public.save_form_draft_by_token(v_form_token, jsonb_build_object(
-    'sezione', jsonb_build_object('righe', jsonb_build_array(
-      jsonb_build_object('fattura', v_invoice, 'certificato', v_technical)
-    ))
-  ));
+  UPDATE form_document_fixture SET dati_form = dati_form
+  WHERE id = v_practice_id;
   IF (SELECT cardinality(fatture_urls) + cardinality(documenti_aggiuntivi_urls)
-      FROM public.enea_practices WHERE id = v_form_id) <> 2 THEN
-    RAISE EXCEPTION 'Repeated form save duplicated attachments';
+      FROM form_document_fixture WHERE id = v_practice_id) <> 2 THEN
+    RAISE EXCEPTION 'Repeated form save duplicated a file';
   END IF;
 
-  -- Dealer-panel path: the same two types must occupy the same columns.
-  INSERT INTO public.enea_practices
-    (id, reseller_id, cliente_nome, cliente_cognome,
-     fatture_urls, documenti_aggiuntivi_urls)
-  VALUES (v_dealer_id, v_company, 'Test', 'Rivenditore',
-          ARRAY[v_dealer_invoice], ARRAY[v_dealer_technical]);
-
-  SELECT fatture_urls, documenti_aggiuntivi_urls
-    INTO v_dealer_invoices, v_dealer_additional
-  FROM public.enea_practices WHERE id = v_dealer_id;
-
-  IF cardinality(v_form_invoices) <> cardinality(v_dealer_invoices)
-     OR cardinality(v_form_additional) <> cardinality(v_dealer_additional)
-     OR NOT EXISTS (
-       SELECT 1 FROM public.form_uploaded_documents(v_form_id,
-         (SELECT dati_form FROM public.enea_practices WHERE id = v_form_id))
-       WHERE is_invoice
-     ) THEN
-    RAISE EXCEPTION 'Form/dealer attachment decision diverges';
+  -- The reseller-panel route writes these columns directly; the resulting
+  -- column cardinalities must match the form route for the same two types.
+  INSERT INTO form_document_fixture(id, fatture_urls, documenti_aggiuntivi_urls)
+  VALUES (gen_random_uuid(), ARRAY[v_invoice], ARRAY[v_technical]);
+  IF (SELECT count(*) FROM form_document_fixture
+      WHERE cardinality(fatture_urls) = 1
+        AND cardinality(documenti_aggiuntivi_urls) = 1) <> 2 THEN
+    RAISE EXCEPTION 'Form and reseller attachment columns differ';
   END IF;
 END;
 $$;

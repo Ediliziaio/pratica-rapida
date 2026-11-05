@@ -42,6 +42,14 @@ import {
   customerMustUploadInvoice,
 } from "@/components/form-cliente/invoiceRequestPolicy";
 import { useFormModuleByProdotto } from "@/hooks/useFormSchema";
+import {
+  allPracticeAttachmentPaths,
+  emptyPracticeAttachments,
+  hydrateDynamicAttachments,
+  hydrateHardcodedAttachments,
+  normalizePracticeAttachments,
+  type PracticeAttachments,
+} from "@/components/form-cliente/practiceAttachments";
 import { getFormCompletionCopy } from "@/lib/formCompletionCopy";
 import {
   normalizeCfCustomerCompletionDate,
@@ -215,6 +223,8 @@ export default function FormPubblico({ marchio }: { marchio: Marchio }) {
   const [stepIndex, setStepIndex] = useState(0);
   const [cadastralResumeMode, setCadastralResumeMode] = useState<"at" | "after" | null>(null);
   const [formData, setFormData] = useState<FormClienteData>(emptyFormData());
+  const [practiceAttachments, setPracticeAttachments] = useState<PracticeAttachments>(emptyPracticeAttachments);
+  const [pendingUploads, setPendingUploads] = useState<ReadonlySet<string>>(new Set());
   const [uploading, setUploading] = useState(false);
   const returningFromPayment = typeof window !== "undefined"
     && new URLSearchParams(window.location.search).get("pagamento") === "ok";
@@ -242,15 +252,19 @@ export default function FormPubblico({ marchio }: { marchio: Marchio }) {
     let cancelled = false;
     // Il servizio catastale viene pagato subito dopo il relativo step; il
     // pagamento della pratica CF completa resta invece al termine del modulo.
-    supabase
-      .rpc("get_practice_by_form_token", { p_token: token })
-      .then(({ data, error }) => {
+    Promise.all([
+      supabase.rpc("get_practice_by_form_token", { p_token: token }),
+      supabase.rpc("get_form_attachments_by_token", { p_token: token }),
+    ])
+      .then(([{ data, error }, { data: attachmentRows, error: attachmentError }]) => {
         if (cancelled) return;
         const row = (Array.isArray(data) ? data[0] : null) as PublicEneaPractice | null;
         if (error || !row) {
           setError("Pratica non trovata o link non valido.");
         } else if (row.archived_at) {
           setError("Questa pratica è stata archiviata.");
+        } else if (attachmentError || !Array.isArray(attachmentRows) || !attachmentRows[0]) {
+          setError("Impossibile leggere gli allegati della pratica. Ricarica la pagina o contatta il supporto; non caricarli di nuovo.");
         } else if (row.form_compilato_at) {
           setPractice(row);
           const nomeAzienda = row.reseller_name ?? "";
@@ -271,6 +285,9 @@ export default function FormPubblico({ marchio }: { marchio: Marchio }) {
             setSubmitted(true);
           }
         } else {
+          const canonicalAttachments = normalizePracticeAttachments(attachmentRows[0]);
+          setPracticeAttachments(canonicalAttachments);
+          setPendingUploads(new Set());
           setPractice(row);
           // I contenitori di sistema ("Da abbinare", "Clienti privati") non
           // vanno MAI mostrati al cliente: sono nomi interni. Senza nome,
@@ -325,7 +342,7 @@ export default function FormPubblico({ marchio }: { marchio: Marchio }) {
       }, (err) => {
         // Promise rejection handler — senza questo lo spinner resta infinito su network error.
         if (cancelled) return;
-        console.error("get_practice_by_form_token failed:", err);
+        console.error("Form practice or attachment load failed:", err);
         setError("Impossibile caricare la pratica. Controlla la connessione e riprova.");
         setLoading(false);
       });
@@ -419,6 +436,18 @@ export default function FormPubblico({ marchio }: { marchio: Marchio }) {
         ...prev,
         [section]: { ...prev[section], ...patch },
       }));
+      if (section === "documenti") {
+        const documentPatch = patch as Record<string, unknown>;
+        const uploadedPaths = ["fattura_url", "bonifico_url", "libretto_url"]
+          .flatMap((key) => {
+            const value = documentPatch[key];
+            return Array.isArray(value) ? value : [value];
+          })
+          .filter((path): path is string => typeof path === "string" && path.includes("/"));
+        if (uploadedPaths.length > 0) {
+          setPendingUploads((current) => new Set([...current, ...uploadedPaths]));
+        }
+      }
     };
   }, []);
 
@@ -434,10 +463,19 @@ export default function FormPubblico({ marchio }: { marchio: Marchio }) {
     );
   }, [dbModule, requireCustomerInvoice, isCf]);
 
+  // Canonical attachment columns are the read source. The customer answer
+  // snapshot is kept unchanged when a reseller's file is displayed.
+  const visibleFormData = useMemo(() =>
+    hydrateHardcodedAttachments(formData, practiceAttachments, pendingUploads),
+  [formData, practiceAttachments, pendingUploads]);
+  const visibleDynamicData = useMemo(() =>
+    hydrateDynamicAttachments(dynamicData, effectiveDynamicSchema, practiceAttachments, pendingUploads),
+  [dynamicData, effectiveDynamicSchema, practiceAttachments, pendingUploads]);
+
   const visibleDynamicSteps = useMemo(() => {
     if (!useDynamic || !effectiveDynamicSchema) return [];
-    return getVisibleSteps(effectiveDynamicSchema, dynamicData);
-  }, [useDynamic, effectiveDynamicSchema, dynamicData]);
+    return getVisibleSteps(effectiveDynamicSchema, visibleDynamicData);
+  }, [useDynamic, effectiveDynamicSchema, visibleDynamicData]);
 
   const currentCadastralServiceRequested = useDynamic
     ? dynamicCadastralServiceRequested(dynamicData)
@@ -519,13 +557,13 @@ export default function FormPubblico({ marchio }: { marchio: Marchio }) {
   const hardcodedErrors = useMemo(
     () => (useDynamic ? {} : validateStep(
       hardcodedStep.id,
-      formData,
+      visibleFormData,
       prodottoTipo,
       isAzienda,
       requireCustomerInvoice,
       isCf,
     )),
-    [useDynamic, hardcodedStep.id, formData, prodottoTipo, isAzienda, requireCustomerInvoice, isCf],
+    [useDynamic, hardcodedStep.id, visibleFormData, prodottoTipo, isAzienda, requireCustomerInvoice, isCf],
   );
   // Path dinamico
   const dynamicStep = visibleDynamicSteps[safeStepIndex];
@@ -534,23 +572,23 @@ export default function FormPubblico({ marchio }: { marchio: Marchio }) {
     : hardcodedStep.id === "catastali";
   const showCadastralContinueLabel = isCadastralCurrentStep && currentCadastralServiceRequested;
   const dynamicErrors = useMemo(
-    () => (useDynamic && dynamicStep ? validateDynamicStep(dynamicStep, dynamicData) : {}),
-    [useDynamic, dynamicStep, dynamicData],
+    () => (useDynamic && dynamicStep ? validateDynamicStep(dynamicStep, visibleDynamicData) : {}),
+    [useDynamic, dynamicStep, visibleDynamicData],
   );
 
   const stepErrors = useDynamic ? dynamicErrors : hardcodedErrors;
   const canProceed = Object.keys(stepErrors).length === 0;
   const submitErrors = useMemo(
     () => useDynamic && dbModule
-      ? validateAllDynamicSteps(effectiveDynamicSchema ?? dbModule.schema, dynamicData)
-      : validateStep("recap", formData, prodottoTipo, isAzienda, requireCustomerInvoice, isCf),
-    [useDynamic, dbModule, effectiveDynamicSchema, dynamicData, formData, prodottoTipo, isAzienda, requireCustomerInvoice, isCf],
+      ? validateAllDynamicSteps(effectiveDynamicSchema ?? dbModule.schema, visibleDynamicData)
+      : validateStep("recap", visibleFormData, prodottoTipo, isAzienda, requireCustomerInvoice, isCf),
+    [useDynamic, dbModule, effectiveDynamicSchema, visibleDynamicData, visibleFormData, prodottoTipo, isAzienda, requireCustomerInvoice, isCf],
   );
   const firstIncompleteStep = useDynamic
     ? visibleDynamicSteps.findIndex((step) =>
       Object.keys(submitErrors).some((key) => key.startsWith(`${step.key}.`)))
     : hardcodedSteps.findIndex((step) =>
-      Object.keys(validateStep(step.id, formData, prodottoTipo, isAzienda, requireCustomerInvoice, isCf)).length > 0);
+      Object.keys(validateStep(step.id, visibleFormData, prodottoTipo, isAzienda, requireCustomerInvoice, isCf)).length > 0);
   const submitDisabledByMissingData = Object.keys(submitErrors).length > 0;
 
   // ── Navigation lock: previene click doppio durante saveDraft async ─────────
@@ -609,6 +647,13 @@ export default function FormPubblico({ marchio }: { marchio: Marchio }) {
       ...prev,
       [stepKey]: { ...(prev[stepKey] ?? {}), [fieldKey]: value },
     }));
+    const field = effectiveDynamicSchema?.steps.find((step) => step.key === stepKey)
+      ?.fields.find((entry) => entry.key === fieldKey);
+    if (field?.type === "upload") {
+      const paths = (Array.isArray(value) ? value : [value])
+        .filter((path): path is string => typeof path === "string" && path.includes("/"));
+      if (paths.length > 0) setPendingUploads((current) => new Set([...current, ...paths]));
+    }
     // L'autosave a ogni keystroke sarebbe troppo aggressivo; manteniamo il
     // comportamento esistente: salviamo a Avanti/Indietro.
   };
@@ -686,7 +731,7 @@ export default function FormPubblico({ marchio }: { marchio: Marchio }) {
 
     if (useDynamic && dbModule) {
       // Validazione completa su tutti gli step visibili
-      const allErrors = validateAllDynamicSteps(effectiveDynamicSchema ?? dbModule.schema, dynamicData);
+      const allErrors = validateAllDynamicSteps(effectiveDynamicSchema ?? dbModule.schema, visibleDynamicData);
       if (Object.keys(allErrors).length > 0) {
         // Le chiavi d'errore sono "step.campo": riportiamo l'utente allo step
         // che blocca. Senza questo, chi ha un campo mancante a meta' modulo
@@ -762,7 +807,7 @@ export default function FormPubblico({ marchio }: { marchio: Marchio }) {
     // ── Path hardcoded (fallback) ─────────────────────────────────────────────
     const allErrors = validateStep(
       "recap",
-      formData,
+      visibleFormData,
       prodottoTipo,
       isAzienda,
       requireCustomerInvoice,
@@ -1035,11 +1080,36 @@ export default function FormPubblico({ marchio }: { marchio: Marchio }) {
         {/* Step content */}
         <div className="rounded-lg border bg-card p-4 sm:p-6">
           <h2 className="text-lg font-semibold mb-4">{stepLabel}</h2>
+          {(useDynamic
+            ? dynamicStep?.fields.some((field) => field.type === "upload") || dynamicStep?.key === "recap"
+            : hardcodedStep.id === "documenti" || hardcodedStep.id === "recap") &&
+            allPracticeAttachmentPaths(practiceAttachments).length > 0 && (
+              <div className="mb-5 rounded-md border bg-muted/30 p-4 text-sm" data-testid="practice-attachments">
+                <p className="font-medium">Allegati già presenti nella pratica</p>
+                <p className="mt-1 text-muted-foreground">Sono già nel fascicolo: non caricarli di nuovo.</p>
+                {practiceAttachments.fatture_urls.length > 0 && (
+                  <div className="mt-3">
+                    <p className="font-medium">Fatture</p>
+                    <ul className="list-disc pl-5">
+                      {practiceAttachments.fatture_urls.map((path) => <li key={path} className="break-all">{path.split("/").pop()}</li>)}
+                    </ul>
+                  </div>
+                )}
+                {practiceAttachments.documenti_aggiuntivi_urls.length > 0 && (
+                  <div className="mt-3">
+                    <p className="font-medium">Altri documenti</p>
+                    <ul className="list-disc pl-5">
+                      {practiceAttachments.documenti_aggiuntivi_urls.map((path) => <li key={path} className="break-all">{path.split("/").pop()}</li>)}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
           {useDynamic && dbModule ? (
             <DynamicSteps
               schema={effectiveDynamicSchema ?? dbModule.schema}
               currentStepIndex={safeStepIndex}
-              formData={dynamicData}
+              formData={visibleDynamicData}
               onChange={updateDynamicField}
               errors={stepErrors}
               practiceId={practice?.id ?? ""}
@@ -1048,7 +1118,7 @@ export default function FormPubblico({ marchio }: { marchio: Marchio }) {
           ) : (
             <StepBody
               step={hardcodedStep.id}
-              data={formData}
+              data={visibleFormData}
               errors={stepErrors}
               patchSection={patchSection}
               prodottoTipo={prodottoTipo}

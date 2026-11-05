@@ -36,7 +36,8 @@ describe("invio del form cliente", () => {
     const errors = validateAllDynamicSteps(schema, { edificio: { tipo: "esistente" } });
 
     expect(errors).toHaveProperty("richiedente.nome");
-    expect(formSource).toContain("validateAllDynamicSteps(effectiveDynamicSchema ?? dbModule.schema, dynamicData)");
+    expect(formSource).toContain("validateAllDynamicSteps(effectiveDynamicSchema ?? dbModule.schema, visibleDynamicData)");
+    expect(formSource).toContain("hydrateDynamicAttachments(dynamicData, effectiveDynamicSchema, practiceAttachments, pendingUploads)");
     expect(formSource).toContain("disabled={submitting || uploading || navigating || submitDisabledByMissingData}");
     expect(formSource).toContain("Dati obbligatori mancanti: vai alla prima sezione da completare");
   });

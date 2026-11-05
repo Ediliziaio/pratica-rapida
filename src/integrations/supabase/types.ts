@@ -3283,6 +3283,13 @@ export type Database = {
           totale_cents: number
         }[]
       }
+      get_form_attachments_by_token: {
+        Args: { p_token: string }
+        Returns: {
+          fatture_urls: string[]
+          documenti_aggiuntivi_urls: string[]
+        }[]
+      }
       get_practice_by_form_token: {
         Args: { p_token: string }
         Returns: {

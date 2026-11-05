@@ -293,6 +293,19 @@ jobs:
                   --data-binary @-
               echo "Client form documents linked to practice columns"
             fi
+            if jq -e --arg name read_client_form_attachments_20261105 \
+              'any(.[]; .name == $name)' <<< "$MIGRATIONS" > /dev/null; then
+              echo "Client form attachment reader already installed"
+            else
+              jq -n --rawfile query supabase/migrations/20261105000002_read_client_form_attachments.sql \
+                '{query: $query, name: "read_client_form_attachments_20261105"}' \
+                | curl --fail-with-body --silent --show-error --output /dev/null \
+                  --request POST "https://api.supabase.com/v1/projects/${PROJECT_REF}/database/migrations" \
+                  --header "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
+                  --header "Content-Type: application/json" \
+                  --data-binary @-
+              echo "Client form reads practice attachment columns"
+            fi
           else
             supabase link --project-ref "$PROJECT_REF"
             supabase db push --linked

@@ -21,6 +21,9 @@ verify_jwt = false
 [functions.modulo-passi]
 verify_jwt = false
 
+[functions.enea-intake-diagnostic]
+verify_jwt = false
+
 [functions.chat-cliente]
 verify_jwt = false
 

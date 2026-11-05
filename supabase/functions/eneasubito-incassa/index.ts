@@ -30,6 +30,20 @@ const IMPORTO_DI_RISERVA = 9900;
 const json = (b: unknown, s = 200) =>
   new Response(JSON.stringify(b), { status: s, headers: { "Content-Type": "application/json" } });
 
+/** Il prezzo di listino, in centesimi. */
+// deno-lint-ignore no-explicit-any
+async function importoDellaPratica(db: any): Promise<number> {
+  const { data: riga } = await db
+    .from("platform_settings")
+    .select("value")
+    .eq("key", "prezzo_eneasubito")
+    .maybeSingle();
+  const cfg = (riga?.value ?? {}) as { importo_cents?: number };
+  return Number.isFinite(cfg.importo_cents) && (cfg.importo_cents ?? 0) >= 100
+    ? (cfg.importo_cents as number)
+    : IMPORTO_DI_RISERVA;
+}
+
 /** Una mail dal nostro indirizzo. Vero se Resend l'ha accettata. */
 async function manda(a: string, oggetto: string, testo: string): Promise<boolean> {
   if (!RESEND_API_KEY) return false;
@@ -111,7 +125,7 @@ Deno.serve(async (req) => {
   const db = createClient(SUPABASE_URL, SERVICE_KEY);
   const { data: pratica } = await db
     .from("enea_practices")
-    .select("id, canale, form_token, cliente_nome, cliente_cognome, cliente_email, prodotto_installato, pagamento_stato, stripe_payment_intent, note_interne")
+    .select("id, canale, form_token, cliente_nome, cliente_cognome, cliente_email, prodotto_installato, pagamento_stato, stripe_payment_intent, stripe_cliente, stripe_metodo_pagamento, note_interne")
     .eq("id", praticaId)
     .maybeSingle();
   if (!pratica || pratica.canale !== "eneasubito") return json({ error: "Pratica non trovata" }, 404);
@@ -125,8 +139,8 @@ Deno.serve(async (req) => {
   const nota = (riga: string) => [pratica.note_interne, riga].filter(Boolean).join("\n");
 
   // ── 1. Il blocco c'è ancora: si incassa ─────────────────────────────────
+  let pagamento: Stripe.PaymentIntent | null = null;
   if (pratica.stripe_payment_intent) {
-    let pagamento: Stripe.PaymentIntent | null = null;
     try {
       pagamento = await stripe.paymentIntents.retrieve(pratica.stripe_payment_intent);
       if (pagamento.status === "requires_capture") {
@@ -137,57 +151,84 @@ Deno.serve(async (req) => {
       // stato: in entrambi i casi si passa al link di pagamento.
       console.error("[eneasubito-incassa] incasso non riuscito", e);
     }
-    if (pagamento?.status === "succeeded") {
-      const incassato = Number(pagamento.amount_received ?? 0) / 100;
+  }
 
-      // La fattura: se non riesce l'incasso resta valido, e lo si scrive
-      // nelle note perche' la si faccia a mano.
-      let rigaFattura = "";
-      try {
-        const f = await fattura(stripe, pagamento, pratica.id, pratica.prodotto_installato);
-        if (f && pratica.cliente_email) {
-          const partita = await manda(
-            pratica.cliente_email,
-            "La tua pratica ENEA: ricevuta e fattura",
-            [
-              "Gentile cliente,",
-              "",
-              `ti abbiamo mandato la tua pratica ENEA, quindi abbiamo addebitato i ${incassato} € sulla carta che avevi lasciato in garanzia.`,
-              "",
-              `La fattura: ${f.pdf || f.pagina}`,
-              "",
-              "Grazie per esserti affidato a noi.",
-              "Il team di EneaSubito",
-              "assistenza@eneasubito.it",
-            ].join("\n"),
-          );
-          rigaFattura = partita
-            ? " Fattura fatta e mandata al cliente."
-            : ` Fattura fatta ma mail NON partita: ${f.pdf || f.pagina}`;
-        } else {
-          rigaFattura = " Fattura NON fatta (manca il cliente su Stripe o l'e-mail): da fare a mano.";
-        }
-      } catch (e) {
-        console.error("[eneasubito-incassa] fattura non fatta", e);
-        rigaFattura = " Fattura NON fatta (errore di Stripe): da fare a mano.";
-      }
-      const { error } = await db
-        .from("enea_practices")
-        .update({
-          pagamento_stato: "pagata",
-          data_incasso: new Date().toISOString().slice(0, 10),
-          ...(incassato > 0 ? { prezzo: incassato } : {}),
-          note_interne: nota(`Incassati ${incassato} € il ${quando}, alla consegna della pratica.${rigaFattura}`),
-        })
-        .eq("id", pratica.id);
-      if (error) {
-        // L'incasso e' fatto: va scritto. Rieseguendo, Stripe dice «gia'
-        // incassato» e si passa di nuovo di qui.
-        console.error("[eneasubito-incassa] incasso fatto ma non registrato", error);
-        return json({ error: "Incassato ma non registrato" }, 500);
-      }
-      return json({ ok: true, incassata: incassato });
+  // ── 1b. Blocco mai messo o scaduto, carta salvata: addebito diretto ─────
+  //
+  // Solo se e' certo che il blocco non c'e': un incasso che ha risposto con
+  // un errore puo' essere andato a buon fine, e qui si addebiterebbe due
+  // volte. In quel caso si va al link, e la chiave impedisce il doppio
+  // addebito se la funzione viene richiamata.
+  const senzaBlocco = !pratica.stripe_payment_intent || pagamento?.status === "canceled";
+  if (senzaBlocco && pratica.stripe_cliente && pratica.stripe_metodo_pagamento) {
+    try {
+      pagamento = await stripe.paymentIntents.create({
+        amount: await importoDellaPratica(db),
+        currency: "eur",
+        customer: pratica.stripe_cliente,
+        payment_method: pratica.stripe_metodo_pagamento,
+        off_session: true,
+        confirm: true,
+        metadata: { pratica_id: pratica.id, canale: "eneasubito" },
+        ...(pratica.cliente_email ? { receipt_email: pratica.cliente_email } : {}),
+      }, { idempotencyKey: `eneasubito-addebito-${pratica.id}` });
+    } catch (e) {
+      // La banca puo' rifiutare un addebito senza il cliente davanti.
+      console.error("[eneasubito-incassa] addebito diretto non riuscito", e);
+      pagamento = null;
     }
+  }
+
+  if (pagamento?.status === "succeeded") {
+    const incassato = Number(pagamento.amount_received ?? 0) / 100;
+
+    // La fattura: se non riesce l'incasso resta valido, e lo si scrive
+    // nelle note perche' la si faccia a mano.
+    let rigaFattura = "";
+    try {
+      const f = await fattura(stripe, pagamento, pratica.id, pratica.prodotto_installato);
+      if (f && pratica.cliente_email) {
+        const partita = await manda(
+          pratica.cliente_email,
+          "La tua pratica ENEA: ricevuta e fattura",
+          [
+            "Gentile cliente,",
+            "",
+            `ti abbiamo mandato la tua pratica ENEA, quindi abbiamo addebitato i ${incassato} € sulla carta che avevi lasciato in garanzia.`,
+            "",
+            `La fattura: ${f.pdf || f.pagina}`,
+            "",
+            "Grazie per esserti affidato a noi.",
+            "Il team di EneaSubito",
+            "assistenza@eneasubito.it",
+          ].join("\n"),
+        );
+        rigaFattura = partita
+          ? " Fattura fatta e mandata al cliente."
+          : ` Fattura fatta ma mail NON partita: ${f.pdf || f.pagina}`;
+      } else {
+        rigaFattura = " Fattura NON fatta (manca il cliente su Stripe o l'e-mail): da fare a mano.";
+      }
+    } catch (e) {
+      console.error("[eneasubito-incassa] fattura non fatta", e);
+      rigaFattura = " Fattura NON fatta (errore di Stripe): da fare a mano.";
+    }
+    const { error } = await db
+      .from("enea_practices")
+      .update({
+        pagamento_stato: "pagata",
+        data_incasso: new Date().toISOString().slice(0, 10),
+        ...(incassato > 0 ? { prezzo: incassato } : {}),
+        note_interne: nota(`Incassati ${incassato} € il ${quando}, alla consegna della pratica.${rigaFattura}`),
+      })
+      .eq("id", pratica.id);
+    if (error) {
+      // L'incasso e' fatto: va scritto. Rieseguendo, Stripe dice «gia'
+      // incassato» e si passa di nuovo di qui.
+      console.error("[eneasubito-incassa] incasso fatto ma non registrato", error);
+      return json({ error: "Incassato ma non registrato" }, 500);
+    }
+    return json({ ok: true, incassata: incassato });
   }
 
   // ── 2. Il blocco non c'è più: link di pagamento al cliente ──────────────
@@ -198,15 +239,7 @@ Deno.serve(async (req) => {
     return json({ ok: false, motivo: "senza_email" }, 200);
   }
 
-  const { data: riga } = await db
-    .from("platform_settings")
-    .select("value")
-    .eq("key", "prezzo_eneasubito")
-    .maybeSingle();
-  const cfg = (riga?.value ?? {}) as { importo_cents?: number };
-  const importo = Number.isFinite(cfg.importo_cents) && (cfg.importo_cents ?? 0) >= 100
-    ? (cfg.importo_cents as number)
-    : IMPORTO_DI_RISERVA;
+  const importo = await importoDellaPratica(db);
   const intestatario = [pratica.cliente_nome, pratica.cliente_cognome].filter(Boolean).join(" ").trim();
 
   let link = "";

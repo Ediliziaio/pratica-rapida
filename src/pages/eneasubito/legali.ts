@@ -162,8 +162,8 @@ export const DOCUMENTI: Documento[] = [
       {
         titolo: "4. Prezzo e pagamento",
         paragrafi: [
-          "Il servizio costa 99 €. All'apertura della richiesta non ti addebitiamo nulla: la carta, tramite Stripe, resta solo a garanzia dell'importo. I 99 € vengono addebitati quando la pratica è pronta e ti viene consegnata, mai prima; la fattura ti arriva per e-mail insieme all'addebito.",
-          "Se la garanzia sulla carta scade prima della consegna (di norma dopo sette giorni), ti mandiamo per e-mail un collegamento per pagare quando la pratica è pronta.",
+          "Il servizio costa 99 €. All'apertura della richiesta non ti addebitiamo nulla: la carta viene salvata da Stripe e resta solo a garanzia dell'importo. Quando ci mandi la pratica blocchiamo i 99 € sulla carta, senza addebitarli. I 99 € vengono addebitati quando la pratica è pronta e ti viene consegnata, mai prima; la fattura ti arriva per e-mail insieme all'addebito.",
+          "Se alla consegna il blocco non c'è più (di norma dura sette giorni), addebitiamo i 99 € sulla carta salvata; se la banca non lo consente, ti mandiamo per e-mail un collegamento per pagare.",
           "Il recupero dei dati catastali, se ce lo chiedi, è un servizio a parte ed è indicato con il suo prezzo al momento della richiesta.",
         ],
       },

@@ -47,12 +47,36 @@ Deno.serve(async (req) => {
   }
   const sessione = evento.data.object as Stripe.Checkout.Session;
 
+  // Dal 05/11/2026 la cassa salva la carta e basta: il blocco lo mette
+  // `eneasubito-blocca` quando arriva la pratica.
+  let cartaSalvata: { cliente: string; metodo: string } | null = null;
+  if (sessione.mode === "setup") {
+    const setupId = typeof sessione.setup_intent === "string"
+      ? sessione.setup_intent
+      : sessione.setup_intent?.id ?? "";
+    if (!setupId) return Response.json({ ricevuto: true, ignorato: "senza_carta" });
+    try {
+      const salvataggio = await stripe.setupIntents.retrieve(setupId);
+      const metodo = typeof salvataggio.payment_method === "string"
+        ? salvataggio.payment_method
+        : salvataggio.payment_method?.id ?? "";
+      const cliente = typeof salvataggio.customer === "string"
+        ? salvataggio.customer
+        : salvataggio.customer?.id ?? "";
+      if (salvataggio.status === "succeeded" && metodo && cliente) cartaSalvata = { cliente, metodo };
+    } catch (e) {
+      console.error("[eneasubito-pagato] carta non leggibile", e);
+      return new Response("Carta non leggibile", { status: 500 });
+    }
+    if (!cartaSalvata) return Response.json({ ricevuto: true, ignorato: "carta_non_salvata" });
+  }
+
   // Paghi solo quando la pratica e' inviata (21/10/2026): la cassa ora blocca
   // la carta e basta, e Stripe chiude la sessione con «unpaid». Si riconosce
   // dal pagamento in attesa di incasso, non dallo stato della sessione.
   let cartaBloccata = false;
   let pagamentoId = "";
-  if (sessione.payment_status !== "paid") {
+  if (!cartaSalvata && sessione.payment_status !== "paid") {
     pagamentoId = typeof sessione.payment_intent === "string"
       ? sessione.payment_intent
       : sessione.payment_intent?.id ?? "";
@@ -85,7 +109,7 @@ Deno.serve(async (req) => {
   }
   // Stripe puo' consegnare lo stesso evento piu' volte.
   if (pratica.pagamento_stato === "pagata") return Response.json({ ricevuto: true, gia_registrato: true });
-  if (cartaBloccata && pratica.carta_bloccata_at) return Response.json({ ricevuto: true, gia_registrato: true });
+  if ((cartaBloccata || cartaSalvata) && pratica.carta_bloccata_at) return Response.json({ ricevuto: true, gia_registrato: true });
 
   // Pagata: ora tocca al cliente completare i dati che mancano.
   const { data: stage } = await db
@@ -98,6 +122,27 @@ Deno.serve(async (req) => {
     .maybeSingle();
 
   const quando = new Date().toLocaleString("it-IT", { timeZone: "Europe/Rome" });
+
+  if (cartaSalvata) {
+    // `carta_bloccata_at` resta il segno «ha lasciato la carta»: lo leggono
+    // il CRM e i solleciti, e non vuol dire pagata.
+    const { error: erroreCarta } = await db
+      .from("enea_practices")
+      .update({
+        carta_bloccata_at: new Date().toISOString(),
+        stripe_cliente: cartaSalvata.cliente,
+        stripe_metodo_pagamento: cartaSalvata.metodo,
+        ...(stage?.id ? { current_stage_id: stage.id } : {}),
+        note_interne:
+          `Carta in garanzia dal ${quando}. Il blocco parte quando il cliente manda la pratica, l'addebito quando entra in «Da inserire su Excel».`,
+      })
+      .eq("id", pratica.id);
+    if (erroreCarta) {
+      console.error("[eneasubito-pagato] carta non registrata", erroreCarta);
+      return new Response("Aggiornamento fallito", { status: 500 });
+    }
+    return Response.json({ ricevuto: true, pratica: pratica.id, carta_salvata: true });
+  }
 
   if (cartaBloccata) {
     const { error: erroreBlocco } = await db

@@ -107,70 +107,42 @@ Deno.serve(async (req) => {
     });
     cliente = creato.id;
   } catch (e) {
-    // Se la scheda non si crea si incassa lo stesso: meglio una fattura con
-    // l'intestazione imprecisa che un cliente che non puo' pagare. Resta
-    // scritto nei registri.
+    // Resta scritto nei registri; sotto il cliente riceve un errore da
+    // riprovare.
     console.error("[eneasubito-pagamento] scheda cliente non creata", e);
   }
 
+  // La carta si salva su questa scheda: senza scheda non la si ritrova alla
+  // consegna, e lasciarla sarebbe inutile.
+  if (!cliente) return json({ error: "Non siamo riusciti ad aprire il pagamento" }, 500);
+
   try {
     const sessione = await stripe.checkout.sessions.create({
-      mode: "payment",
+      // Paghi solo quando la pratica e' inviata (Titolare, 21/10/2026), e i
+      // sette giorni del blocco partono da quando il cliente manda la pratica
+      // (Titolare, 05/11/2026): qui la carta si SALVA e basta, senza bloccare
+      // niente. Il 29/10 una cliente ha lasciato la carta e mandato la pratica
+      // il 05/11: il blocco era scaduto tre ore e mezza prima. Il blocco lo
+      // mette `eneasubito-blocca` quando arriva la pratica, l'addebito
+      // `eneasubito-incassa` quando entra in «Da inserire su Excel».
+      mode: "setup",
       // Apple Pay e Google Pay compaiono da soli con "card" sui dispositivi
       // che li hanno: e' la strada che toglie la tastiera dal pagamento.
       payment_method_types: ["card"],
-      // O la scheda che abbiamo appena creato, o — solo se non ci siamo
-      // riusciti — l'indirizzo da solo.
-      ...(cliente
-        ? { customer: cliente, customer_update: { name: "never", address: "never" } }
-        : { customer_email: pratica.cliente_email ?? undefined }),
-      // La ricevuta la deve mandare Stripe, al cliente, da solo.
-      //
-      // Senza questa riga non parte niente: la fattura nasce dentro il
-      // pagamento, Stripe la crea gia' saldata e non la spedisce. Verificato
-      // il 12/10/2026 sulla fattura LTP8YB7Q-0001: finalizzata e pagata, ma
-      // nella sua cronologia nessun invio, e il pulsante «Send receipt»
-      // ancora da premere. Con `receipt_email` l'invio e' forzato — lo dice
-      // la pagina stessa delle impostazioni, dove l'interruttore generale
-      // vale «tranne quando si passa receipt_email».
-      //
-      // Paghi solo quando la pratica e' inviata (Titolare, 21/10/2026): la
-      // carta qui si BLOCCA e basta. L'addebito lo fa `eneasubito-incassa`
-      // quando la pratica entra in «Da inserire su Excel».
-      payment_intent_data: {
-        capture_method: "manual",
+      customer: cliente,
+      customer_update: { name: "never", address: "never" },
+      setup_intent_data: {
+        description: "EneaSubito — carta in garanzia per la pratica ENEA",
         metadata: { pratica_id: pratica.id, canale: "eneasubito" },
-        ...(pratica.cliente_email ? { receipt_email: pratica.cliente_email } : {}),
       },
-      // Il pulsante di Stripe dice «Paga»: sopra, la frase che spiega che
-      // adesso non si paga niente.
+      // Il pulsante di Stripe non dice l'importo: la frase sopra spiega
+      // quanto, quando, e che adesso non si paga niente.
       custom_text: {
         submit: {
           message:
-            "Nessun addebito adesso: la carta fa solo da garanzia. I 99 € vengono addebitati quando hai ricevuto la tua pratica. Se non riusciamo a fartela avere, non paghi niente.",
+            `Nessun addebito adesso: la carta fa solo da garanzia. Quando ci mandi la pratica blocchiamo ${importo / 100} € sulla carta, e li addebitiamo quando hai ricevuto la tua pratica. Se non riusciamo a fartela avere, non paghi niente.`,
         },
       },
-      line_items: [
-        {
-          quantity: 1,
-          price_data: {
-            currency: "eur",
-            unit_amount: importo,
-            product_data: {
-              name: "EneaSubito — Pratica ENEA",
-              description: pratica.prodotto_installato
-                ? `${pratica.prodotto_installato} — compilazione e trasmissione all'ENEA`
-                : "Compilazione e trasmissione della comunicazione all'ENEA",
-            },
-          },
-        },
-      ],
-      // Niente `invoice_creation` qui: con la carta bloccata Stripe lo
-      // rifiuta («Post-payment invoice creation does not support separate
-      // authorization and capture», provato il 21/10/2026 sul conto di
-      // prova). La fattura la fa `eneasubito-incassa` al momento
-      // dell'incasso, gia' saldata, con la stessa descrizione e lo stesso
-      // piè di pagina.
       // Il riferimento serve al webhook per ritrovare la pratica senza
       // fidarsi di niente che arrivi dal browser.
       client_reference_id: pratica.id,

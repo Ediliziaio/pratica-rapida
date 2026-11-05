@@ -1,0 +1,49 @@
+name: Deploy direct CF intake frontend only
+
+on:
+  push:
+    branches:
+      - codex/direct-cf-intake-no-documents
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-frontend-only:
+    if: github.event.head_commit.message == 'ci(frontend): deploy direct CF intake'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify release scope and current base
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          git merge-base --is-ancestor origin/main HEAD
+          while IFS= read -r path; do
+            case "$path" in
+              .github/workflows/deploy-direct-cf-frontend.yml|src/features/cfCustomerEvidence.ts|src/features/cfCustomerEvidence.test.ts|src/pages/rivenditore/NuovaPraticaEnea.tsx) ;;
+              *) echo "Unexpected release file: $path" >&2; exit 1 ;;
+            esac
+          done < <(git diff --name-only origin/main...HEAD)
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install --frozen-lockfile
+      - run: bunx tsc -p tsconfig.app.json --noEmit
+      - run: bun run test --run
+      - name: Build frontend
+        run: bun run build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
+      - name: Install Wrangler
+        run: npm install -g wrangler
+      - name: Deploy only Pratica Rapida frontend
+        run: wrangler pages deploy dist --project-name=pratica-rapida --branch=main --commit-dirty=true
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: b3423ec9073bbd86dcc206273d7e093c

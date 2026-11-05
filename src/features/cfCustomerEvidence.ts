@@ -15,6 +15,28 @@ export function isStaffCfIntake(input: {
 }
 
 /**
+ * Il contenitore gia' presente nel menu aziende raccoglie anche i clienti
+ * privati che contattano direttamente lo staff. La scelta dell'azienda non
+ * cambia il percorso dei rivenditori: soltanto questa voce rinvia la raccolta
+ * tecnica a dopo l'invio del link.
+ */
+export function isDirectPrivateCfIntake(input: {
+  staffCfIntake: boolean;
+  selectedCompanyName: string | null | undefined;
+}): boolean {
+  return input.staffCfIntake &&
+    (input.selectedCompanyName ?? "").toLocaleLowerCase("it-IT").includes("clienti privati");
+}
+
+/** Nessuna domanda o allegato tecnico prima del link nel canale privato diretto. */
+export function shouldRequestTechnicalEvidenceAtIntake(input: {
+  isPrivato: boolean;
+  directPrivateCfIntake: boolean;
+}): boolean {
+  return !input.isPrivato && !input.directPrivateCfIntake;
+}
+
+/**
  * Nel Servizio Completo CF lo staff apre soltanto la pratica: i documenti
  * tecnici della pompa vengono raccolti dal modulo cliente dopo il pagamento.
  * Il percorso pubblico del privato segue la stessa regola.

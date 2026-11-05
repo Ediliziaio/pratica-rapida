@@ -280,6 +280,19 @@ jobs:
                   --data-binary @-
               echo "Dedicated incoming €50 pipeline installed through Supabase Management API"
             fi
+            if jq -e --arg name promote_client_form_documents_20261105 \
+              'any(.[]; .name == $name)' <<< "$MIGRATIONS" > /dev/null; then
+              echo "Client form document promotion already installed"
+            else
+              jq -n --rawfile query supabase/migrations/20261105000001_promote_client_form_documents.sql \
+                '{query: $query, name: "promote_client_form_documents_20261105"}' \
+                | curl --fail-with-body --silent --show-error --output /dev/null \
+                  --request POST "https://api.supabase.com/v1/projects/${PROJECT_REF}/database/migrations" \
+                  --header "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
+                  --header "Content-Type: application/json" \
+                  --data-binary @-
+              echo "Client form documents linked to practice columns"
+            fi
           else
             supabase link --project-ref "$PROJECT_REF"
             supabase db push --linked

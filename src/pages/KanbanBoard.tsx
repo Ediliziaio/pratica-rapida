@@ -2253,6 +2253,7 @@ function PracticeDetailSheet({
 
                     const fileDalForm: FileForm[] = [];
                     raccogliFile(practice.dati_form, "documento", fileDalForm);
+                    const formPaths = new Set(fileDalForm.map((f) => f.path));
 
                     // Nomi da mostrare per i campi il cui identificativo tecnico
                     // non coincide col nome del documento richiesto.
@@ -2282,6 +2283,7 @@ function PracticeDetailSheet({
                     // rivenditore). Quelle caricate dal cliente vivono nel jsonb
                     // dati_form → le mostriamo ma NON sono eliminabili da qui.
                     const fattureColPaths = practice.fatture_urls ?? [];
+                    const additionalColPaths = practice.documenti_aggiuntivi_urls ?? [];
                     const fatturePaths = [...fattureColPaths];
                     fattureDalForm.forEach((f) => {
                       if (!fatturePaths.includes(f.path)) fatturePaths.push(f.path);
@@ -2294,7 +2296,7 @@ function PracticeDetailSheet({
                           label: `Fattura ${i + 1}`,
                           path: p,
                           onDelete:
-                            isSuperAdmin && fattureColPaths.includes(p)
+                            isSuperAdmin && fattureColPaths.includes(p) && !formPaths.has(p)
                               ? () => setDeleteExtraFile({ path: p, column: "fatture_urls" })
                               : undefined,
                         })),
@@ -2315,10 +2317,10 @@ function PracticeDetailSheet({
                       },
                       {
                         title: "Documenti aggiuntivi",
-                        files: (practice.documenti_aggiuntivi_urls ?? []).map((p, i) => ({
+                        files: additionalColPaths.filter((p) => !formPaths.has(p)).map((p, i) => ({
                           label: `Doc. aggiuntivo ${i + 1}`,
                           path: p,
-                          onDelete: isSuperAdmin
+                          onDelete: isSuperAdmin && !formPaths.has(p)
                             ? () => setDeleteExtraFile({ path: p, column: "documenti_aggiuntivi_urls" })
                             : undefined,
                         })),

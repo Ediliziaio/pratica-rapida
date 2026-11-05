@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
+  isDirectPrivateCfIntake,
   isStaffCfIntake,
   normalizeCfCustomerCompletionDate,
   shouldOfferResellerFgas,
   shouldRequestPumpEvidenceAtIntake,
+  shouldRequestTechnicalEvidenceAtIntake,
   withCfCustomerDate,
 } from "./cfCustomerEvidence";
 import { applyInvoiceRequestPolicy } from "@/components/form-cliente/invoiceRequestPolicy";
@@ -20,6 +22,17 @@ describe("pratiche CF: fattura e fine lavori dal cliente", () => {
     expect(isStaffCfIntake({ ...input, tipoServizio: "documenti_forniti" })).toBe(false);
     expect(isStaffCfIntake({ ...input, isInternal: false })).toBe(false);
     expect(isStaffCfIntake({ ...input, isFgasOnly: true })).toBe(false);
+  });
+
+  it("rinvia i documenti tecnici solo per la voce esistente dei privati diretti", () => {
+    const input = { staffCfIntake: true, selectedCompanyName: "👤 Clienti privati — sito" };
+    expect(isDirectPrivateCfIntake(input)).toBe(true);
+    expect(isDirectPrivateCfIntake({ ...input, selectedCompanyName: "Sima Home" })).toBe(false);
+    expect(isDirectPrivateCfIntake({ ...input, staffCfIntake: false })).toBe(false);
+    expect(isDirectPrivateCfIntake({ ...input, selectedCompanyName: null })).toBe(false);
+    expect(shouldRequestTechnicalEvidenceAtIntake({ isPrivato: false, directPrivateCfIntake: true })).toBe(false);
+    expect(shouldRequestTechnicalEvidenceAtIntake({ isPrivato: false, directPrivateCfIntake: false })).toBe(true);
+    expect(shouldRequestTechnicalEvidenceAtIntake({ isPrivato: true, directPrivateCfIntake: false })).toBe(false);
   });
 
   it("rinvia al cliente i documenti della pompa nel percorso CF", () => {

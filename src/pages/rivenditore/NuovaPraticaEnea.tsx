@@ -23,9 +23,11 @@ import {
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import {
+  isDirectPrivateCfIntake,
   isStaffCfIntake,
   shouldOfferResellerFgas,
   shouldRequestPumpEvidenceAtIntake,
+  shouldRequestTechnicalEvidenceAtIntake,
 } from "@/features/cfCustomerEvidence";
 import { fallbackMonthlyPracticePrice } from "@/lib/monthly-financial-kpis";
 import { captureException } from "@/lib/sentry";
@@ -493,6 +495,14 @@ export default function NuovaPraticaEnea({
   const staffCfIntake = isStaffCfIntake({
     isInternal, publicMode, isFgasOnly, tipoServizio, tipoFatturazione,
   });
+  const directPrivateCfIntake = isDirectPrivateCfIntake({
+    staffCfIntake,
+    selectedCompanyName: allCompanies.find((company) => company.id === effectiveResellerId)?.ragione_sociale,
+  });
+  const requireTechnicalEvidenceAtIntake = shouldRequestTechnicalEvidenceAtIntake({
+    isPrivato,
+    directPrivateCfIntake,
+  });
   const requirePumpEvidenceAtIntake = shouldRequestPumpEvidenceAtIntake({
     isPump: tipoProdotto === "pompe_calore",
     isFgasOnly,
@@ -593,11 +603,11 @@ export default function NuovaPraticaEnea({
     // trasmittanza, GTOT, metri quadri sono richieste da rivenditore. Dei 20
     // privati che premevano «Invia» in cinque giorni, ne passavano 4; il dato
     // tecnico si recupera dopo, dalla fattura o nel modulo che segue.
-    if (!isPrivato && docConfig?.hasExtra && flagDocCompleto === false && docExtra1.length === 0)
+    if (requireTechnicalEvidenceAtIntake && docConfig?.hasExtra && flagDocCompleto === false && docExtra1.length === 0)
       e.docExtra1 = "Il documento aggiuntivo è obbligatorio";
-    if (!isPrivato && docConfig?.hasExtra && flagDocCompleto === null)
+    if (requireTechnicalEvidenceAtIntake && docConfig?.hasExtra && flagDocCompleto === null)
       e.flagDoc = "Rispondi alla domanda sui documenti";
-    if (tipoProdotto === "fotovoltaico_off_grid" && schemaUnifilareFiles.length === 0)
+    if (!directPrivateCfIntake && tipoProdotto === "fotovoltaico_off_grid" && schemaUnifilareFiles.length === 0)
       e.schemaUnifilare = "Carica lo schema unifilare firmato e timbrato";
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -888,12 +898,12 @@ export default function NuovaPraticaEnea({
       // Upload documenti in parallelo
       const [fatture, docExtra, docExtra2Res, schemaUnifilareRes, moduliRes, fgasPlateRes, fgasInterventionRes] = await Promise.all([
         uploadFiles(staffCfIntake ? [] : fatturaFiles, practice.id, "fattura"),
-        uploadFiles(docExtra1, practice.id, "doc_extra"),
-        uploadFiles(docExtra2, practice.id, "libretto"),
-        uploadFiles(schemaUnifilareFiles, practice.id, "schema_unifilare"),
-        uploadFiles(moduliRaccoltaFiles, practice.id, "moduli_raccolta"),
-        uploadFiles(fgasPlateFiles, practice.id, "fgas_targhetta"),
-        uploadFiles(fgasInterventionFiles, practice.id, "fgas_rapporto_intervento"),
+        uploadFiles(requireTechnicalEvidenceAtIntake ? docExtra1 : [], practice.id, "doc_extra"),
+        uploadFiles(requireTechnicalEvidenceAtIntake ? docExtra2 : [], practice.id, "libretto"),
+        uploadFiles(requireTechnicalEvidenceAtIntake ? schemaUnifilareFiles : [], practice.id, "schema_unifilare"),
+        uploadFiles(requireTechnicalEvidenceAtIntake ? moduliRaccoltaFiles : [], practice.id, "moduli_raccolta"),
+        uploadFiles(requireTechnicalEvidenceAtIntake ? fgasPlateFiles : [], practice.id, "fgas_targhetta"),
+        uploadFiles(requireTechnicalEvidenceAtIntake ? fgasInterventionFiles : [], practice.id, "fgas_rapporto_intervento"),
       ]);
 
       const allFailed = [
@@ -1233,7 +1243,8 @@ export default function NuovaPraticaEnea({
           </div>
           <p className="text-xs text-amber-800/80">
             Stai creando una pratica come operatore interno. Seleziona il rivenditore/azienda a cui
-            intestare la pratica (es. per clienti direct-channel).
+            intestare la pratica. Per chi ti ha contattato direttamente e paga da sé,
+            usa la voce già presente «Clienti privati»; non scegliere un rivenditore.
           </p>
           <Select value={staffSelectedCompanyId} onValueChange={setStaffSelectedCompanyId}>
             <SelectTrigger className="bg-white">
@@ -1696,7 +1707,9 @@ export default function NuovaPraticaEnea({
 
         {staffCfIntake ? (
           <p className="rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900">
-            La data di fine lavori e la fattura saranno richieste al cliente nel modulo che riceverà via link.
+            {directPrivateCfIntake
+              ? "La data di fine lavori e la fattura saranno richieste al cliente nel suo modulo. I documenti tecnici non sono richiesti a te per inviare il link."
+              : "La data di fine lavori e la fattura saranno richieste al cliente nel modulo che riceverà via link."}
           </p>
         ) : <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1.5">
@@ -1816,7 +1829,7 @@ export default function NuovaPraticaEnea({
       {/* I documenti al privato si chiedono dopo il pagamento, nel modulo
           tecnico: la fattura in PDF era il muro che fermava quattro persone
           su cinque. */}
-      {!isPrivato && !deferPumpEvidenceToCustomer && (
+      {requireTechnicalEvidenceAtIntake && !deferPumpEvidenceToCustomer && (
       <Section number={S.documenti} title="Documenti da allegare">
         {/* Fattura — sempre obbligatoria */}
         {!staffCfIntake && <>

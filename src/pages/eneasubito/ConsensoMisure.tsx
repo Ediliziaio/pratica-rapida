@@ -11,7 +11,7 @@
  * La scelta resta su questo dispositivo; si cambia cancellando i dati del
  * sito dal browser (lo dice la pagina Cookie).
  */
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const PROGETTO = "z4fliw7zi7";
 const CHIAVE = "eneasubito-misure";
@@ -56,6 +56,7 @@ function accendiClarity() {
 export function ConsensoMisure() {
   const [scelta, setScelta] = useState<Scelta>(null);
   const [pronta, setPronta] = useState(false);
+  const striscia = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const s = letta();
@@ -64,36 +65,69 @@ export function ConsensoMisure() {
     if (s === "si") accendiClarity();
   }, []);
 
-  if (!pronta || scelta !== null) return null;
+  const aperta = pronta && scelta === null;
+
+  /*
+   * Finche' la striscia e' aperta, la pagina si allunga esattamente di quanto
+   * la striscia misura davvero. Misurarla invece di fidarsi di un numero
+   * scritto a mano serve perche' l'altezza cambia con la larghezza dello
+   * schermo e con la dimensione del testo scelta dal visitatore: un numero
+   * sbagliato rimetterebbe una parte di pagina sotto la striscia, che e'
+   * proprio il difetto che stiamo togliendo.
+   */
+  useEffect(() => {
+    if (!aperta) return;
+    const corpo = document.body;
+    corpo.classList.add("es-consenso-aperto");
+    const misura = () => {
+      const altezza = striscia.current?.offsetHeight ?? 0;
+      document.documentElement.style.setProperty("--es-consenso-h", `${altezza}px`);
+    };
+    misura();
+    const osservatore = new ResizeObserver(misura);
+    if (striscia.current) osservatore.observe(striscia.current);
+    window.addEventListener("resize", misura);
+    return () => {
+      osservatore.disconnect();
+      window.removeEventListener("resize", misura);
+      corpo.classList.remove("es-consenso-aperto");
+      document.documentElement.style.removeProperty("--es-consenso-h");
+    };
+  }, [aperta]);
+
+  if (!aperta) return null;
 
   return (
-    <div className="es-consenso" role="dialog" aria-label="Misure anonime">
-      <p>
-        Per migliorare il sito registriamo in forma anonima come lo usi. Quello che scrivi non lo vediamo.{" "}
-        <a href="/es/cookie">Dettagli</a>
-      </p>
-      <div className="es-consenso-bottoni">
-        <button
-          type="button"
-          className="es-consenso-no"
-          onClick={() => {
-            salva("no");
-            setScelta("no");
-          }}
-        >
-          No, grazie
-        </button>
-        <button
-          type="button"
-          className="es-consenso-si"
-          onClick={() => {
-            salva("si");
-            setScelta("si");
-            accendiClarity();
-          }}
-        >
-          Va bene
-        </button>
+    <div className="es-consenso" role="region" aria-label="Misure anonime" ref={striscia}>
+      <div className="es-consenso-dentro">
+        <p>
+          <b>Teniamo alla tua privacy.</b> Non vendiamo i tuoi dati. Col tuo permesso misuriamo in
+          forma anonima come si usa il sito; quello che scrivi non lo vediamo.{" "}
+          <a href="/es/cookie">Dettagli</a>
+        </p>
+        <div className="es-consenso-bottoni">
+          <button
+            type="button"
+            className="es-consenso-no"
+            onClick={() => {
+              salva("no");
+              setScelta("no");
+            }}
+          >
+            No, grazie
+          </button>
+          <button
+            type="button"
+            className="es-consenso-si"
+            onClick={() => {
+              salva("si");
+              setScelta("si");
+              accendiClarity();
+            }}
+          >
+            Va bene
+          </button>
+        </div>
       </div>
     </div>
   );

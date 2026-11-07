@@ -450,6 +450,10 @@ body { background: #F5F2EC; }
   .es-consenso-bottoni button { flex: 1 1 0; }
 }
 body.es-consenso-aperto { padding-bottom: var(--es-consenso-h, 132px); }
-body.es-consenso-aperto .es-chat-bolla { bottom: calc(14px + var(--es-consenso-h, 132px)); }
+/* Finche' c'e' la striscia, la bolla della chat si toglie di mezzo del tutto:
+   alzandola finiva sopra una delle schede delle scelte, cioe' lo stesso
+   difetto che stiamo togliendo. Torna appena il visitatore risponde, e
+   intanto l'assistenza resta scritta nella pagina e nel pie' di pagina. */
+body.es-consenso-aperto .es-chat-bolla { display: none; }
 .es-etichetta-nota { display: block; font-weight: 400; font-size: 13px; color: var(--es-inchiostro-debole); margin-top: 2px; }
 `;

@@ -897,7 +897,7 @@ function PracticeDetailSheet({
   }
 
   async function handleAprOperatorAnswer() {
-    if (!practice || !aprOperatorResponse || aprOperatorResponse.answer) return;
+    if (!practice || !aprOperatorResponse) return;
     const answer = aprOperatorAnswer.trim();
     if (!answer) {
       toast({ title: "Inserisci la risposta richiesta da APR", variant: "destructive" });
@@ -907,11 +907,17 @@ function PracticeDetailSheet({
     try {
       await updatePractice.mutateAsync({
         id: practice.id,
-        updates: { note_documenti_mancanti: appendAprOperatorResponse(aprOperatorResponse.issuedNote, answer) },
+        updates: {
+          note_documenti_mancanti: appendAprOperatorResponse(
+            aprOperatorResponse.issuedNote,
+            answer,
+            aprOperatorResponse.answer,
+          ),
+        },
       });
       toast({
         title: "Risposta consegnata ad APR",
-        description: "APR riprenderà automaticamente questa pratica.",
+        description: "APR la registra al prossimo giro. La pratica riparte quando lo disponi tu.",
       });
       setAprOperatorAnswer("");
     } catch (err) {
@@ -2086,32 +2092,32 @@ function PracticeDetailSheet({
                           {aprOperatorResponse.question}
                         </p>
                       </div>
-                      {aprOperatorResponse.answer ? (
+                      {aprOperatorResponse.answer && (
                         <div className="rounded-md border border-emerald-200 bg-white/70 p-2 dark:border-emerald-900 dark:bg-background/40">
-                          <p className="text-xs font-semibold text-emerald-800 dark:text-emerald-300">Risposta inviata</p>
+                          <p className="text-xs font-semibold text-emerald-800 dark:text-emerald-300">Risposte gia' consegnate</p>
                           <p className="text-sm whitespace-pre-wrap mt-1">{aprOperatorResponse.answer}</p>
-                          <p className="text-xs text-muted-foreground mt-2">APR riprenderà automaticamente la pratica.</p>
+                          <p className="text-xs text-muted-foreground mt-2">
+                            APR le ha registrate. Se la domanda qui sopra chiede un altro dato, scrivilo qui
+                            sotto: si aggiunge alle precedenti e non ne cancella nessuna.
+                          </p>
                         </div>
-                      ) : (
-                        <>
-                          <Textarea
-                            value={aprOperatorAnswer}
-                            onChange={(event) => setAprOperatorAnswer(event.target.value.slice(0, 2_000))}
-                            placeholder="Scrivi qui il dato richiesto da APR…"
-                            rows={3}
-                            disabled={savingAprOperatorAnswer}
-                          />
-                          <Button
-                            type="button"
-                            onClick={handleAprOperatorAnswer}
-                            disabled={savingAprOperatorAnswer || !aprOperatorAnswer.trim()}
-                            className="w-full bg-emerald-700 hover:bg-emerald-800"
-                          >
-                            {savingAprOperatorAnswer ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Check className="h-4 w-4 mr-2" />}
-                            Consegna la risposta ad APR
-                          </Button>
-                        </>
                       )}
+                      <Textarea
+                        value={aprOperatorAnswer}
+                        onChange={(event) => setAprOperatorAnswer(event.target.value.slice(0, 2_000))}
+                        placeholder="Scrivi qui il dato richiesto da APR..."
+                        rows={3}
+                        disabled={savingAprOperatorAnswer}
+                      />
+                      <Button
+                        type="button"
+                        onClick={handleAprOperatorAnswer}
+                        disabled={savingAprOperatorAnswer || !aprOperatorAnswer.trim()}
+                        className="w-full bg-emerald-700 hover:bg-emerald-800"
+                      >
+                        {savingAprOperatorAnswer ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Check className="h-4 w-4 mr-2" />}
+                        Consegna la risposta ad APR
+                      </Button>
                     </div>
                   </section>
                 )}

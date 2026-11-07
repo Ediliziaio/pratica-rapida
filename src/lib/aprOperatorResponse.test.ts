@@ -37,6 +37,18 @@ describe("risposta operatore APR nel CRM", () => {
       .toBe("06/10/2026");
   });
 
+  it("accoda una seconda risposta senza cancellare la prima", () => {
+    const prima = appendAprOperatorResponse(note, "Totale 11110 euro");
+    const stato = parseAprOperatorResponseState(prima);
+    expect(stato?.answer).toBe("Totale 11110 euro");
+
+    const seconda = appendAprOperatorResponse(stato!.issuedNote, "Figline Valdarno", stato!.answer);
+    expect(seconda).toBe(`${note}\nTotale 11110 euro\nFigline Valdarno`);
+    const dopo = parseAprOperatorResponseState(seconda)?.answer ?? "";
+    expect(dopo).toContain("Totale 11110 euro");
+    expect(dopo).toContain("Figline Valdarno");
+  });
+
   it("non apre un campo risposta per guasti, rivenditori o note senza marcatore", () => {
     expect(parseAprOperatorResponseState("Guasto APR. Il lettore non ha risposto.\nRisposta operatore:"))
       .toBeNull();
